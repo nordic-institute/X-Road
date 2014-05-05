@@ -1,0 +1,15 @@
+member_in_vallavalitsused_name:
+  name: "This member should belong to group 'vallavalitsused'"
+  client_identifier_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused_client_identifier) %>
+
+member_out_of_vallavalitsused_name:
+  name: "This member should NOT belong to group 'vallavalitsused'"
+  client_identifier_id: <%= ActiveRecord::Fixtures.identify(:member_out_of_vallavalitsused_client_identifier) %>
+
+subsystem_in_vallavalitsused_name:
+  name: "This member should NOT belong to group 'vallavalitsused'"
+  client_identifier_id: <%= ActiveRecord::Fixtures.identify(:subsystem_in_vallavalitsused_client_identifier) %>
+
+subsystem_out_of_vallavalitsused_name:
+  name: "This member should belong to group 'vallavalitsused'"
+  client_identifier_id: <%= ActiveRecord::Fixtures.identify(:subsystem_out_of_vallavalitsused_client_identifier) %>

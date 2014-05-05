@@ -1,0 +1,14 @@
+<div style="padding-bottom: 0.5em;">
+  <% unless key_saved_to_configuration?(@key) %>
+  <p>The key can be renamed after importing a certificate or creating a certificate request.</p><br/>
+  <% end %>
+  <form>
+    <input id="key_id" name="key_id" type="hidden" value="<%= @key.id %>"/>
+    <span style="float: left;">Friendly name:</span>
+    <input type="text" name="friendly_name"
+           style="float: right; width: 450px; text-align: right;"
+           value="<%= @key.friendlyName || @key.id %>"
+           <%= "disabled" unless key_saved_to_configuration?(@key) %>/>
+  </form>
+  <div class="clearer"></div>
+</div>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="root_path" content="<%= root_path %>"/>
+    <%= csrf_meta_tags %>
+    <%= stylesheet_link_tag "layout", "menu", "datatables", "jquery-ui" %>
+    <%= stylesheet_link_tag "common", "application" %>
+    <%= javascript_include_tag "jquery.min.js", "jquery-i18n.min.js" %>
+    <%= javascript_include_tag t('layouts.application.js_locale_file') %>
+    <%= javascript_include_tag "jquery-ui.min.js" %>
+    <%= javascript_include_tag "jquery-ui-dialogextend.min.js" %>
+    <%= javascript_include_tag "jquery-datatables.min.js" %>
+    <%= javascript_include_tag "common.js" %>
+    <%= javascript_include_tag "periodic_jobs.js" %>
+    <%= yield :head %>
+    <title><%= t 'layouts.application.title' %></title>
+  </head>
+  <body>
+    <div id="header">
+      <div class="pagetitle">
+        <%= t 'layouts.application.title' %>
+      </div>
+      <div class="server_id">
+        <%= @server_id.toShortString if @server_id %>
+      </div>
+
+      <div class="user_info">
+        <p style="font-weight: bold;"><%= current_user.name %></p>
+        <a href="<%= url_for(:controller => :login, :action => :logout) %>">
+          <%= t 'layouts.application.logout' %>
+        </a>
+      </div>
+    </div>
+
+    <div id="colmask">
+      <div id="container">
+        <div id="content">
+          <% default_content_for :heading do %>
+            <%= heading %>
+          <% end %>
+
+          <%= render :partial => "application/messages" %>
+
+          <%= yield :content %>
+        </div>
+
+        <div id="menubar">
+          <ul id="menu">
+            <%= render :partial => "layouts/menu" %>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirm" title="Confirmation Required"></div>
+    <div id="warning" title="Warning"></div>
+    <div id="alert" title="Alert"></div>
+  </body>
+</html>

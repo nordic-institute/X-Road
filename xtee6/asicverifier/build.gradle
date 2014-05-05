@@ -1,0 +1,26 @@
+dependencies {
+    compile project(':common-util')
+    compile project(':common-verifier')
+    testCompile project(':common-test')
+}
+
+jar {
+    // Build 'fat jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} {
+        // remove all signature files (necessary to make it run)
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    manifest {
+        attributes 'Main-Class': 'ee.cyber.sdsb.asicverifier.AsicVerifierMain'
+    }
+}
+
+task runAsicVerifier(type: JavaExec) {
+    main = 'ee.cyber.sdsb.asicverifier.AsicVerifierMain'
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in;
+
+    description = "Starts ASiC container verifier main program.";
+}

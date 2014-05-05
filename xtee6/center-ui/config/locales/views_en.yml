@@ -1,0 +1,238 @@
+en:
+  common:
+    description: "Description"
+    clear: "Clear"
+    advanced_search: "Advanced Search Parameters"
+    ok: "OK"
+    name: "Name"
+    code: "Code"
+    class: "Class"
+    subsystem: "Subsystem"
+    auth_cert_hash: "Hash"
+    filename_empty: "You must provide the filename!"
+    cert: "Certificate"
+    cert_unreadable: "Certificate from file '%{filename}' could not be read"
+    cert_details_title: "Certificate Details"
+    cert_view: "View certificate"
+    subject_dn: "Subject Distinguished Name"
+    issuer_dn: "Issuer Distinguished Name"
+    upload: "Upload"
+    valid_from: "Valid From"
+    valid_to: "Valid To"
+    url: "URL"
+
+  about:
+    index:
+      name: "SDSB central server"
+      version: "version"
+
+  orgs:
+    index:
+      name: "Registry code"
+      fullname: "SDSB member's name"
+      enter_name: "Registry code:"
+      enter_fullname: "SDSB member's name:"
+      add_address: "Add address"
+      delete: "Delete"
+      add_contact: "Add E-mail"
+      add_auth_cert_hash: "Add auth cert hash"
+      contact: "E-mail addresses"
+      address: "Addresses of security servers"
+
+  members:
+    name: "Member name"
+    class: "Member class"
+    code: "Member code"
+    admin_contact: "Administrative Contact"
+    add:
+      title: "Add Member"
+      load_from_file: "Load Data from File"
+    edit:
+      title: "Member Details"
+      server: "Server"
+      details:
+        legend: "Member Details"
+      contact:
+        title: "Member contact editing"
+        legend: "Edit member contact"
+      owned_servers:
+        legend: "Owned Servers"
+      global_group_membership:
+        legend: "Global Group Membership"
+        group: "Group"
+        subsystem: "Subsystem"
+        added_to_group: "Added to Group"
+      subsystems:
+        legend: "Subsystems"
+        subsystem_code: "Subsystem Code"
+        used_servers: "Used Servers"
+      used_servers:
+        legend: "Used Servers"
+        server_code: "Server Code"
+        client_subsystem_code: "Client Subsystem Code"
+        server_owner: "Server Owner"
+        add:
+          title: "New Client Registration Request"
+          client:
+            legend: "Client Information"
+        remove:
+          title: "Client Deletion Request"
+          client:
+            legend: "Client Information"
+      name:
+        title: "Edit Member Name"
+        legend: "Edit Member Name"
+      all_servers:
+        search:
+          title: "Server Search Results"
+
+  management_requests:
+    legend: "Management Requests"
+    process_id: "Request ID"
+    process_type: "Request type"
+    created: "Created"
+    status: "Status"
+    request_id: "Request ID"
+    request_type: "Request Type"
+    source: "Source"
+    server_owner_name: "Server Owner Name"
+    server_owner_class: "Server Owner Class"
+    server_owner_code: "Server Owner Code"
+    server_code: "Server Code"
+    complementary_id: "Complementary request ID"
+    canceling_id: "Cancelling request ID"
+    details:
+      auth_cert_deletion:
+        title: "Authentication Certificate Deletion Request Details"
+        legend: "Authentication Certificate Submitted for Deletion"
+      auth_cert_reg:
+        title: "Authentication Certificate Registration Request Details"
+        legend: "Authentication Certificate Submitted for Registration"
+        new:
+          title: "Authentication Certificate Registration"
+      client_deletion:
+        title: "Security Server Client Deletion Request Details"
+        legend: "Client Submitted for Deletion"
+      client_reg:
+        title: "Security Server Client Registration Request Details"
+        legend: "Client Submitted for Registration"
+    request:
+      legend: "Request Information"
+    securityserver:
+      legend: "Affected Security Server Information"
+
+  securityservers:
+    server_code: "Server Code"
+    owner_name: "Owner Name"
+    owner_class: "Owner Class"
+    owner_code: "Owner Code"
+    address: "Address"
+    info:
+      legend: "Security Server Information"
+    details:
+      title: "Security Server Details"
+      legend: "Security Server Details"
+    edit:
+      address:
+        title: "Edit Address"
+        legend: "Edit Address"
+      categories:
+        title: "Security Categories"
+    categories:
+      legend: "Security Categories"
+    clients:
+      legend: "Clients"
+      name: "Name"
+      class: "Class"
+      code: "Code"
+      subsystem_code: "Subsystem Code"
+    auth_cert:
+      legend: "Authentication Certificates"
+      csp: "CSP"
+      serial_number: "Serial Number"
+      subject: "Subject"
+      expires: "Expires"
+      upload: "Upload"
+      add:
+        title: "Add Authentication Certificate"
+      owner:
+        legend: "Security Server"
+      cert:
+        legend: "Authentication Certificate Information"
+      delete:
+        title: "Delete Authentication Certificate"
+
+  groups:
+    code: "Code"
+    updated: "Updated"
+    member_count: "Member count"
+    add:
+      button: "Add"
+      title: "New Group"
+    details:
+      members: "Group members"
+      name: "Name"
+      code: "Code"
+      class: "Class"
+      subsystem: "Subsystem"
+      sdsb: "SDSB"
+      type: "Type"
+      added: "Added"
+      description:
+        edit:
+          title: "Edit Description"
+    index:
+      group_name: "Group name"
+      org_name: "SDSB member's name"
+      group_to_org: "Show by groups"
+      org_to_group: "Show by SDSB members"
+      org_not_in_group: "SDSB members that don't belong to selected group"
+    orgs:
+      add_all: "Add all SDSB members"
+      add_selected: "Add selected SDSB members"
+
+  central_services:
+    service_code: "Code"
+    implementing_service_code: "Code"
+    central_service_legend: "Central Service"
+    implementing_service_legend: "Implementing Service"
+    provider_legend: "Provider"
+    provider_code: "Provider Code"
+    provider_class: "Provider Class"
+    provider_subsystem: "Provider Subsystem"
+    details:
+      button: "Add"
+      central_service_code: "Central Service Code"
+      implementing_service:
+        legend: "Implementing Service"
+        code: "Code"
+        provider_name: "Provider Name"
+
+  layouts:
+    application:
+      title: "Central Server Administration"
+
+  pkis:
+    trusted_certification_service: "Trusted Certification Service"
+    intermediate_ca: "Intermediate CA"
+    add:
+      step1:
+        title: "Insert Top CA Certificate"
+      step2:
+        title: "View Top CA Certificate Info"
+      step3:
+        title: "Insert Name Extractor"
+      step4:
+        title: "Insert Top CA OCSP Responders"
+        top_ca_ocsp_responder: "Top CA OCSP responder"
+        add_top_ca_ocsp_responder: "Add top CA OCSP responder"
+      step5:
+        title: "Intermediate CAs"
+        intermediate_ca_ocsp_responder: "Intermediate CA OCSP responder"
+        add_intermediate_ca_ocsp_responder: "Add intermediate CA OCSP responder"
+      url: "URL"
+      cert: "Certificate"
+      load: "Load"
+
+  identifier_mapping:
+    upload_file: "Upload identifier mapping file"

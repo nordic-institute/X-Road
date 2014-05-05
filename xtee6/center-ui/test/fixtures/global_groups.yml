@@ -1,0 +1,7 @@
+vallavalitsused:
+  group_code: "vallavalitsused"
+  description: "Igasugu vallavalitsused"
+
+tyhigrupp:
+  group_code: "tyhjus"
+  description: "Siin pole midagi"

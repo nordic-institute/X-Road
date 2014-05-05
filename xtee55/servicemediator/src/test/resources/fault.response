@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+    xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+    <SOAP-ENV:Body>
+        <SOAP-ENV:Fault>
+            <faultcode>CODE</faultcode>
+            <faultstring>STRING</faultstring>
+            <faultactor>ACTOR</faultactor>
+            <detail>
+                <sdsb:faultDetail>DETAIL</sdsb:faultDetail>
+            </detail>
+        </SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,37 @@
+dependencies {
+    compile project(':async-db')
+    compile project(':common-ui')
+    compile project(':common-util')
+    compile project(':common-verifier')
+    compile project(':signer-protocol')
+
+    compile 'wsdl4j:wsdl4j:1.6.3'
+}
+
+clean << {
+    project.delete "vendor/engines/common-ui"
+}
+
+task copyCommon(type: Copy) {
+    into "vendor/engines/common-ui"
+    from "../common-ui"
+}
+
+task copyDeps(dependsOn: copyCommon, type: Copy) {
+    into "$buildDir/libs"
+    from configurations.compile
+}
+
+task warble(dependsOn: [copyDeps, ':proxy-ui:build'], type: Exec) {
+    commandLine = ['jruby', '-S', 'warble']
+}
+
+task deploy(dependsOn: [warble], type: Exec) {
+     commandLine = ['mv', 'build/libs/proxy-ui.war', 'build/libs/proxy-ui-deploy.war']
+}
+
+task benchmarkServerconfReadWrite(dependsOn: [copyDeps], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:benchmark']
+}
+
+build.dependsOn copyDeps

@@ -1,0 +1,34 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "clients" %>
+  <%= javascript_include_tag "groups" %>
+  <%= javascript_include_tag "services" %>
+  <%= javascript_include_tag "acl" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <div class="clients_actions" style="float: right;">
+      <% if can?(:view_client_details) %>
+      <button id="client_details"><%= t 'common.details' %></button>
+      <% end %>
+      <% if can?(:add_client) %>
+      <button id="client_add"><%= t '.add_client' %></button>
+      <% end %>
+    </div>
+
+    <table id="clients">
+      <thead>
+        <tr>
+          <th><%= t '.member_name' %></th>
+          <th><%= t '.member_class' %></th>
+          <th><%= t '.member_code' %></th>
+          <th><%= t '.subsystem_code' %></th>
+          <th><%= t '.state' %></th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+  <%= render :partial => "client_add_dialog" %>
+  <%= render :partial => "client_details_dialog" %>
+<% end %>

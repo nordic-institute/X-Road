@@ -1,0 +1,14 @@
+Source: sdsb-common
+Section: Xroad
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+Homepage: http://www.ria.ee
+
+Package: sdsb-common
+Architecture: amd64
+Depends: ${misc:Depends}, daemontools, java7-runtime-headless, rlwrap, acl
+Replaces: xtee2-common
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

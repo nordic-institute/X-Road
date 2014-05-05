@@ -1,0 +1,16 @@
+common: &common
+  adapter: postgresql
+  username: centerui
+  password: centerui # from psql setup, see Postgresql
+
+development:
+  <<: *common
+  database: centerui_development
+
+test:
+  <<: *common
+  database: centerui_test
+
+production:
+  <<: *common
+  database: centerui_production

@@ -1,0 +1,228 @@
+/* XXX Why was it necessary? It interferes with tables horizontal scrollbars */
+/*.dataTables_wrapper {
+    float: left;
+}*/
+.dataTables_filter {
+    float: left;
+}
+
+.dataTables_paginate {
+    float: right;
+    padding: 3px;
+}
+
+.dataTables_header {
+    padding: 0.5em;
+}
+
+.dataTables_footer {
+    padding: 5px;
+    border: 1px solid #bbb;
+    border-top: 0;
+}
+
+.dataTables_actions {
+    float: right;
+    padding: 5px;
+    border: 1px solid #bbb;
+    border-top: 0;
+}
+
+.dataTables_filter input[type="text"] {
+    width: 8em;
+}
+
+.paginate_button,
+.paginate_active {
+    padding: 0 5px;
+    cursor: pointer;
+    *cursor: hand;
+}
+
+.paginate_active {
+    color: #fff;
+    background-color: #6480B8;
+}
+
+.paginate_button:hover {
+    background-color: #D8DFEC;
+}
+
+.dataTable {
+    clear: left;
+    border-spacing: 0;
+    text-align: left;
+    border: 1px solid #bbb;
+}
+
+.dataTables_scroll .dataTable {
+    border: 0 solid;
+}
+
+.dataTables_scroll {
+    border: 1px solid #bbb !important;
+}
+
+.dataTables_scrollHead {
+    background-color: #F2F2F2;
+    border-bottom: 1px solid #bbb !important;
+}
+
+/* XXX Why was it necessary? It interferes with tables horizontal scrollbars */
+/*dataTables_scrollBody {
+    overflow-x: hidden !important;
+}*/
+
+table.fixed {
+    table-layout: fixed;
+}
+
+.dataTable .icon input[type="checkbox"] {
+    display: block;
+    vertical-align: middle;
+    * margin: -5px 0px;
+}
+
+.fill .dataTables_wrapper,
+.left .dataTables_wrapper,
+.right .dataTables_wrapper {
+    float: none;
+}
+
+.fill .dataTable,
+.left .dataTable,
+.right .dataTable {
+    width: 100%;
+}
+
+.left .dataTables_filter,
+.right .dataTables_filter {
+    border-top: 0;
+}
+
+fieldset .dataTable {
+    border: 0;
+}
+
+.dataTable th {
+    padding: 3px 10px;
+    border-bottom: 1px solid #bbb;
+    background-color: #F2F2F2;
+}
+
+.dataTables_scroll .dataTable th {
+    border-bottom: 0 solid;
+}
+
+.dataTable th.hidden {
+    visibility: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    border: 0;
+}
+
+.dataTable td {
+    padding: 5px 10px;
+    font-family: monospace;
+    position: relative;
+}
+
+.dataTable th,
+.dataTable td {
+    white-space: pre-wrap; /* CSS 3 */
+    white-space: -moz-pre-wrap !important; /* Mozilla */
+    white-space: -o-pre-wrap; /* Opera 7+ */
+    word-wrap: break-word; /* IE 5.5+ */
+    cursor: pointer;
+    * cursor: hand;
+}
+
+.dataTable .nowrap {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dataTable .noclip {
+    overflow: visible;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.dataTable th.thin-right,
+.dataTable td.thin-right {
+    padding-right: 0px;
+}
+
+.dataTable th.thin-left,
+.dataTable td.thin-left {
+    padding-left: 0px;
+}
+
+.dataTable td.yellow {
+    background-color: #ff6;
+}
+
+.dataTable td.red {
+    background-color: #f66;
+}
+
+.dataTable .icon {
+    width: 15px;
+    padding-left: 0;
+    padding-right: 7px;
+}
+
+.dataTable .icon img {
+    display: block;
+    position: relative;
+    bottom: 1px;
+}
+
+.dataTable .cert {
+    width: 10px;
+    padding: 0 2px;
+}
+
+.dataTable .editable {
+    padding: 0 10px;
+}
+
+.dataTable .editable input {
+    width: 100%;
+    padding: 2px;
+    border: 1px solid #bbb;
+    font-family: monospace;
+}
+
+.dataTable tr.group {
+    color: blue;
+}
+
+.dataTable tr.highlight {
+    color: red;
+}
+
+.dataTable tbody tr:hover {
+    background-color: #D8DFEC;
+}
+
+.dataTables_empty:hover,
+.dataTable.disabled tbody tr:hover,
+fieldset .dataTable tbody tr:hover {
+    background-color: #fff;
+}
+
+.dataTable tr.row_selected td {
+    background-color: #6480B8;
+    color: #fff;
+}
+
+.dataTable.disabled tr.row_selected td {
+    background-color: #efefef;
+}
+
+.dataTable.disabled tr.row_selected td {
+    background-color: #efefef;
+    color: #000000;
+}

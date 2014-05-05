@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>riigiasutus</id:memberClass>
+            <id:memberCode>ppa</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>riigiasutus</id:memberClass>
+            <id:memberCode>kiiruskaameraregister</id:memberCode>
+            <id:serviceCode>sdsbGetRandom</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>27001010001</sdsb:userId>
+        <sdsb:id>testquery4</sdsb:id>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:sdsbGetRandom xmlns:ns1="http://consumer.ee.sdsb.net">
+            <request>
+                <seed>123</seed>
+            </request>
+        </ns1:sdsbGetRandom>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

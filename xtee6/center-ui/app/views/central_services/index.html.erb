@@ -1,0 +1,97 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "centerui_common" %>
+  <%= javascript_include_tag "central_services" %>
+  <%= javascript_include_tag "central_service_details" %>
+<% end %>
+
+<% content_for :content do %>
+  <fieldset id="central_services_advanced_search_fieldset">
+    <fieldset>
+      <legend><%= t 'central_services.central_service_legend' %></legend>
+      <table>
+        <tr>
+          <td><%= t 'central_services.service_code' %></td>
+          <td><%= text_field_tag "central_services_advanced_search_field_service_code" %></td>
+        </tr>
+      </table>
+    </fieldset>
+    <fieldset>
+      <legend><%= t 'central_services.implementing_service_legend' %></legend>
+      <table>
+        <tr>
+          <td><%= t 'central_services.implementing_service_code' %></td>
+          <td><%= text_field_tag "central_services_advanced_search_field_impl_service_code" %></td>
+        </tr>
+     </table>
+    </fieldset>
+    <fieldset>
+     <table>
+      <legend><%= t 'central_services.provider_legend' %></legend>
+      <tr>
+        <td><%= t 'common.name' %></td>
+        <td><%= text_field_tag "central_services_advanced_search_field_provider_name" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'common.code' %></td>
+        <td><%= text_field_tag "central_services_advanced_search_field_provider_code" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'common.class' %></td>
+        <td><%= text_field_tag "central_services_advanced_search_field_provider_class" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'common.subsystem' %></td>
+        <td><%= text_field_tag "central_services_advanced_search_field_provider_subsystem" %></td>
+      </tr>
+    </table>
+    </fieldset>
+    <table>
+      <tr>
+        <td colspan="2">
+          <% if can?(:view_central_services) %>
+            <button id="central_services_advanced_search_execute"><%= t 'common.search' %></button>
+          <% end %>
+          <% if can?(:view_central_services) %>
+            <button id="central_services_advanced_search_clear"><%= t 'common.clear' %></button>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <div class="fill">
+    <div class="central_services_actions">
+      <% if can?(:view_central_service_details) %>
+        <button id="central_service_details" class="central_service-action"><%= t 'common.edit' %></button>
+      <% end %>
+      <% if can?(:add_central_service) %>
+        <button id="central_service_add"><%= t 'central_services.details.button' %></button>
+      <% end %>
+      <% if can?(:remove_central_service) %>
+        <button id="central_service_delete" class="central_service-action"><%= t 'common.delete' %></button>
+      <% end %>
+    </div>
+
+    <table id="central_services" class="">
+      <thead>
+        <tr>
+          <th class="table_header_group right_bordered"><%= t 'central_services.central_service' %></th>
+          <th colspan="4" class="table_header_group"><%= t 'central_services.implementing_service' %></th>
+        </tr>
+        <tr>
+          <th id="central_service_code" class="right_bordered"><%= t 'central_services.code' %></th>
+          <th id="central_service_id_service_code"><%= t 'central_services.service_code' %></th>
+          <th id="central_service_id_provider_code"><%= t 'central_services.provider_code' %></th>
+          <th id="central_service_id_provider_class"><%= t 'central_services.provider_class' %></th>
+          <th id="central_service_id_provider_subsystem"><%= t 'central_services.provider_subsystem' %></th>
+        </tr>
+      </thead>
+    </table>
+
+  </div>
+
+  <!-- We need to initialize this dialog dynamically -->
+  <div class="dialog_dynamic">
+    <%= render :partial => "central_service_details_dialog" %>
+  </div>
+<% end %>

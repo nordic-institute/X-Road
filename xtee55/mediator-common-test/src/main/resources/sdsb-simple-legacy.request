@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:xrd="http://x-rd.net/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testQuery</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </sdsb:service>
+        <sdsb:userId>EE37702211234</sdsb:userId>
+        <sdsb:id>1234567890</sdsb:id>
+        <sdsb:xroadHeader>
+            <xrd:consumer>consumer</xrd:consumer>
+            <xrd:producer>producer</xrd:producer>
+            <xrd:userId>EE37702211234</xrd:userId>
+            <xrd:service>producer.testQuery.v1</xrd:service>
+            <xrd:id>1234567890</xrd:id>
+            <xrd:unit>unit</xrd:unit>
+            <xrd:position>position</xrd:position>
+            <xrd:userName>userName</xrd:userName>
+            <xrd:paid>paid</xrd:paid>
+            <xrd:issue>issue</xrd:issue>
+            <xrd:encrypt>encrypt</xrd:encrypt>
+            <xrd:encrypted>encrypted</xrd:encrypted>
+            <xrd:foobar>baz</xrd:foobar>
+        </sdsb:xroadHeader>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.sdsb.net">
+            <request>
+                <name>foo</name>
+                <age>35</age>
+                <sdsb:blah>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                </sdsb:blah>
+            </request>
+        </ns1:testQuery>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

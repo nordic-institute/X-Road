@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+    <define name="logOutputPath" class="ee.cyber.xroad.mediator.util.LogOutputPathPropertyDefiner" />
+    <define name="sdsbLogLevel" class="ee.cyber.sdsb.common.LogLevelPropertyDefiner" />
+    <define name="xroadLogLevel" class="ee.cyber.xroad.mediator.util.LogLevelPropertyDefiner" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${logOutputPath}/xtee55_clients_importer.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/xtee55_clients_importer.%d{yyyy-MM}.%i.log.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <logger name="ee.cyber.sdsb" level="${sdsbLogLevel}"/>
+    <logger name="ee.cyber.xroad" level="${xroadLogLevel}" />
+
+    <root level="INFO">
+        <!--<appender-ref ref="STDOUT" />-->
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>

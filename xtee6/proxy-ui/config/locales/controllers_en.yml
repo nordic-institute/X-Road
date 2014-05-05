@@ -1,0 +1,24 @@
+en:
+  menu:
+    configuration:
+      title: "Configuration"
+      clients: "Security Server Clients"
+      quicklist: "Service Clients"
+      sysparams: "System Parameters"
+    management:
+      title: "Management"
+      keys: "Keys and Certificates"
+      async: "Asynchronous requests"
+      asynclog: "Asynchronous requests log"
+    help:
+      title: "Help"
+      version: "Version"
+
+  keys:
+    cert_loaded: "Certificate loaded successfully"
+    cert_missing: "Active key must have a certificate"
+    cert_check_error: "Certificate does not match the key"
+
+  clients:
+    adding_services: "Adding services:<p class='bold'>%{added}</p>"
+    deleting_services: "Deleting services:<p class='bold'>%{deleted}</p>"

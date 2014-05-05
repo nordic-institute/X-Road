@@ -1,0 +1,38 @@
+<%= dialog 'internal_servers_dialog', 'Internal servers' do %>
+	<h1 class="section-title">Connection type</h1>
+	<%= select_tag "connection_type", options_for_select([ "HTTP", "HTTPS", "HTTPS no auth" ]) %>
+	<%= button_tag 'Save', :id => 'edit_connection_type' %>
+	<!-- <h1 class="section-title">Internal SSL Certificates</h1> -->
+	<div class="tablewrapper">
+		<table id="internal_ssl_certs">
+			<thead>
+				<th>Internal SSL Certificates</th>
+			</thead>
+		</table>
+		<div class="dataTables_actions">
+			<%= button_tag 'Details', :id => 'internal_cert_details' %>
+			<%= button_tag 'Add', :id => 'internal_cert_add' %>
+			<%= button_tag 'Delete', :id => 'internal_cert_delete' %>
+		</div>
+		<div class="clearer"></div>
+	</div>
+
+	<h1 class="section-title">Security server certificate</h1>
+	<p style="background: #eee; margin: 5px 0px;" id="security_server_cert"></p>
+	<%= form_tag "#{controller.controller_name}/export_ssl_cert" do %>
+		<%= button_tag 'Export', :id => 'export_ssl_cert' %>
+	<% end %>
+<% end %>
+
+<%= dialog "import_cert_dialog", "Import certificate" do %>
+  <br/>
+  <%= form_tag "#{controller.controller_name}/import_internal_cert", :id => "import_cert_form",
+          :multipart => true, :target => "upload_target" do %>
+    Certificate location:
+    <%= file_field_tag "cert" %>
+    <%= hidden_field_tag 'client_id' %>
+  <% end %>
+  <iframe id="upload_target" name="upload_target"></iframe>
+<% end %>
+
+<%= render :partial => "sysparams/cert_details" %>

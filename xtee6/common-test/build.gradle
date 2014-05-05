@@ -1,0 +1,13 @@
+dependencies {
+    compile project(':common-util')
+	// JUnit is needed for ExpectedCodedException
+	compile 'junit:junit:4.11'
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/test/certs'
+        }
+    }
+}

@@ -1,0 +1,11 @@
+top_ca_autotehas:
+  top_ca_id: <%= ActiveRecord::Fixtures.identify(:pki_autotehas) %>
+  cert: "autotehas_cert"
+
+top_ca_baleriinid:
+  top_ca_id: <%= ActiveRecord::Fixtures.identify(:pki_baleriinid) %>
+  cert: "baleriinid_cert"
+
+top_ca_ccm:
+  top_ca_id: <%= ActiveRecord::Fixtures.identify(:pki_ccm) %>
+  cert: "ccm_cert"

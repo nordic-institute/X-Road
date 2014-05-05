@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<sdsb:client id:objectType="MEMBER"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:memberClass>COMPANY</id:memberClass>
+    <id:memberCode>FOOBAR</id:memberCode>
+</sdsb:client>
+

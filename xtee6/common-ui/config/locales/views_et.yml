@@ -1,0 +1,40 @@
+et:
+  common:
+    accept: "Nõus"
+    add: "Lisa"
+    apply: "Rakenda"
+    cancel: "Loobu"
+    close: "Sulge"
+    confirm: "Kinnita muudatused"
+    download: "Laadi alla"
+    export: "Ekspordi"
+    generate: "Genereeri"
+    generate_new: "Genereeri uus"
+    import: "Impordi"
+    load: "Laadi"
+    login: "Sisene"
+    refresh: "Värskenda"
+    remove: "Eemalda"
+    restore: "Taasta"
+    revert: "Tühista"
+
+  about:
+    index:
+      unknown: "teadmata"
+
+  layouts:
+    application:
+      title: "Turvaserveri haldusliides"
+      js_locale_file: "locale-et"
+      logout: "logi välja"
+    menu:
+      changes: "Salvestamata muudatused"
+
+  backup:
+    index:
+      backup: "Varunda konfiguratsioon"
+
+  restore:
+    index:
+      restore: "Taasta konfiguratsioon"
+      enter_file_name: "Konfiguratsioonifail"

@@ -1,0 +1,63 @@
+<%= dialog "owned_server_add_dialog", t("management_requests.details.auth_cert_reg.new.title") do %>
+  <fieldset>
+    <legend><%= t 'securityservers.info.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'securityservers.owner_name' %></td>
+        <td><input id="owned_server_owner_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_class' %></td>
+        <td><input id="owned_server_owner_class" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_code' %></td>
+        <td><input id="owned_server_owner_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.server_code' %></td>
+        <td><input id="owned_server_add_servercode" type="text"/></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <fieldset>
+    <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
+    <table>
+      <tr>
+        <td>
+          <%= form_tag "members/import_auth_cert",
+              :id => "auth_cert_upload", :multipart => true,
+              :target => "upload_target" do %>
+            <%= file_field_tag "auth_cert_file" %>
+          <% end %>
+        </td>
+        <iframe id="upload_target" name="upload_target"></iframe>
+        <td>
+          <% if can?(:add_security_server_auth_cert_reg_request) %>
+            <button id="owned_server_cert_upload">
+              <%= t 'securityservers.auth_cert.upload' %>
+            </button>
+          <% end %>
+        </td>
+      </tr>
+      <tr class="auth_cert_details">
+        <td><%= t 'securityservers.auth_cert.csp' %></td>
+        <td><input id="owned_server_authcert_csp" type="text" readonly/></td>
+      </tr>
+      <tr class="auth_cert_details">
+        <td><%= t 'securityservers.auth_cert.serial_number' %></td>
+        <td><input id="owned_server_authcert_serial_number" type="text" readonly/></td>
+      </tr>
+      <tr class="auth_cert_details">
+        <td><%= t 'securityservers.auth_cert.subject' %></td>
+        <td><input id="owned_server_authcert_subject" type="text" readonly/></td>
+      </tr>
+      <tr class="auth_cert_details">
+        <td><%= t 'securityservers.auth_cert.expires' %></td>
+        <td><input id="owned_server_authcert_expires" type="text" readonly/></td>
+      </tr>
+    </table>
+    <p id="owned_server_temp_cert_id"></p>
+  </fieldset>
+<% end %>

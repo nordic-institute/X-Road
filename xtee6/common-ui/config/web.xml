@@ -1,0 +1,70 @@
+<!DOCTYPE web-app PUBLIC
+  "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+  "http://java.sun.com/dtd/web-app_2_3.dtd">
+<web-app>
+    <context-param>
+        <param-name>public.root</param-name>
+        <param-value>/</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>rails.env</param-name>
+        <param-value>production</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>jruby.min.runtimes</param-name>
+        <param-value>1</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>jruby.max.runtimes</param-name>
+        <param-value>1</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>org.eclipse.jetty.servlet.SessionIdPathParameterName</param-name>
+        <param-value>none</param-value>
+    </context-param>
+
+    <session-config>
+        <session-timeout>120</session-timeout>
+    </session-config>
+
+    <filter>
+        <filter-name>AuthFilter</filter-name>
+        <filter-class>ee.cyber.sdsb.commonui.jaas.AuthFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>RackFilter</filter-name>
+        <filter-class>org.jruby.rack.RackFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>RackFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <listener>
+        <listener-class>org.jruby.rack.rails.RailsServletContextListener</listener-class>
+    </listener>
+
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <realm-name>sdsb</realm-name>
+        <form-login-config>
+            <form-login-page>
+                /login
+            </form-login-page>
+            <form-error-page>
+                /login?error=1
+            </form-error-page>
+        </form-login-config>
+    </login-config>
+</web-app>

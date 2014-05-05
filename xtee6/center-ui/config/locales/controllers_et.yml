@@ -1,0 +1,88 @@
+et:
+  menu:
+    configuration:
+      title: "Konfiguratsioon"
+      tsp: "Ajatempliteenus"
+      pki: "Sertifitseerimiskeskused"
+      org: "Liikmed"
+      group: "Grupid"
+      member: "Liikmed"
+      securityserver: "Turvaserverid"
+      central_service: "Tsentraalsed teenused"
+    mangement:
+      title: "Haldus"
+      request: "Haldustaotlused"
+      import_v5: "Impordi X-tee 5.0 andmed"
+      distributed_file: "Jagatud failid"
+      backup: "Varunda konfiguratsioon"
+      restore: "Taasta konfiguratsioon"
+    help:
+      title: "Abi"
+      version: "Versioon"
+    notimplemented: "TODO - Realiseerida!"
+
+  common:
+    auth_cert_imported: "Sertifikaat edukalt imporditud"
+
+  pki:
+    index:
+      name: "Nimi"
+      rootCA_SN: "Tipmise CA sertifikaadi subjektinimi"
+    add:
+      no_name_extractor: "Identifikaatori dekodeerimisreegli meetod peab olemas olema signeerimiseks kasutataval PKI-l"
+    edit:
+      no_ca_cert: "Ei saa salvestada SK-d ilma sertifikaadita"
+
+  orgs:
+    name_exists: "Sisestatud registrikood (lühinimi) on juba loetelus"
+    fullname_exists: "Sisestatud nimi on juba loetelus"
+    delete_success: "Organisatsioon eemaldatud."
+    org_type_error: "Organisatsiooni tüüp määramata."
+    name_error: "'{{org}}' registrikoodi ei õnnestu lugeda"
+    fullname_error: "'{{org}}' registrikoodi ei õnnestu lugeda"
+    invalid_name: "Andmekogu lühinimi ei tohi alata numbriga"
+    card_not_available: "Vajalik kiipkaart ({{serial}}) pole kättesaadav"
+
+  validation:
+    member_exists: "Klassiga '%{member_class}' ja koodiga '%{member_code}' liige on juba loetelus"
+    securitserver_exists: "Turvaserver koodiga '%{server_code}', ja omanikuga (liikmekood: '%{member_code}' ja liikmeklassi kood: '%{member_class}') on juba loetelus"
+    invalid_uri: "Mittevaliidne URI '%{uri}' atribuudi '%{attribute}' jaoks"
+    already_exists: "Atribuut '%{attribute}' väärtusega '%{value}' on juba loetelus"
+
+  central_services:
+    provider_not_found: "Teenusepakkujat ID-ga '%{provider_id}' ei leitud"
+    no_search_data: "Palun sisesta (osaliselt) teenusepakkuja nimi, kood, klass või alamsüsteem otsingu parameetrina."
+    add:
+      provider_not_found: "Teenusepakkujat ei leitud"
+      provider_with_no_service_code: "Ei saa salvestada tsentraalset teenust olemasoleva teenusepakkujaga, aga ilma teenuse koodita"
+
+  identifiers:
+    service_code_empty: "Teenuse kood ei tohi olla tühi"
+
+  groups:
+    delete: "Grupp edukalt kustutatud"
+    change_description: "Kirjeldus edukalt muudetud"
+    delete_all_members: "Kõik liikmed edukalt eemaldatud"
+    delete_selected_members: "Valitud liikmed edukalt eemaldatud"
+
+  members:
+    server_already_exists: "Server omaniku klassi '%{member_class}', omaniku koodi '%{member_code}' ja serveri koodiga '%{server_code}' on juba olemas."
+    server_code_blank: "Serveri kood ei saa olla tühi"
+    auth_cert_request_added: "Uue autentimissertifikaadi päring turvaserverile '%{security_server}' lisatud edukalt"
+    client_add_request_added: "Kliendi '%{client_id}' lisamise päring turvaserverile '%{server_id}' lisatud edukalt"
+    client_deletion_request_added: "Kliendi '%{client_id}' kustutamise päring turvaserverist '%{server_id}' lisatud edukalt"
+    member_added_to_global_group: "Liige '%{member_code}' edukalt lisatud globaalsele grupile '%{group_code}'"
+    member_deleted_from_global_group: "Liige '%{member_code}' edukalt kustutatud globaalsest grupist '%{group_code}'"
+
+  securityservers:
+     add_auth_cert_adding_request: "Request of adding authentication certificate to existing security server '%{security_server}' added successfully"
+     add_auth_cert_deletion_request: "Request of deleting authentication certificate from existing security server '#{security_server_id}' added successfully"
+
+  management_requests:
+    client_reg_request_canceled: "Edukalt tühistatud kliendi registreerimise päring id-ga '%{id}'"
+    auth_cert_reg_request_canceled: "Edukalt tühistatud autentimissertifikaadi registreerimise päring id-ga '%{id}'"
+
+  distributed_files:
+    invalid_xml: "Üleslaetud fail ei sisalda korrektselt XML-i. Kontrolli üleslaetud faili."
+    identifier_mapping_uploaded: "Identifikaatorite teisendustabel on edukalt andmebaasi salvestatud."
+

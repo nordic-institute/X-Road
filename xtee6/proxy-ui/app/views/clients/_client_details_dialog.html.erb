@@ -1,0 +1,67 @@
+<%= dialog "client_details_dialog", t('.client_details') do %>
+  <fieldset style="float: left; margin: 0 1em 1em 0; padding: 1%;">
+    <legend><%= t '.global_information' %></legend>
+    <input id="details_client_id" type="hidden"/>
+    <table class="client_global_info">
+    <tr>
+        <td><%= t 'clients.index.member_name' %></td>
+        <td><input id="details_member_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.index.member_class' %></td>
+        <td><input id="details_member_class" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.index.member_code' %></td>
+        <td><input id="details_member_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.index.subsystem_code' %></td>
+        <td><input id="details_subsystem_code" type="text" readonly/></td>
+      </tr>
+    </table>
+  </fieldset>
+
+
+  <div class="clearer"></div>
+
+  <fieldset class="fill">
+    <legend><%= t '.certificates' %></legend>
+    <table id="certificates">
+      <thead>
+        <tr>
+          <th><%= t '.csp' %></th>
+          <th><%= t '.serial_number' %></th>
+          <th><%= t '.state' %></th>
+          <th><%= t '.expires' %></th>
+        </tr>
+      </thead>
+    </table>
+  </fieldset>
+
+  <div style="margin: 1em 0 0.5em 0;">
+    <% if can?(:view_client_services) %>
+    <button id="client_services" class="right"><%= t '.services' %></button>
+    <% end %>
+    <% if can?(:view_internal_servers) %>
+    <button id="internal_servers" class="right">Internal Servers</button>
+    <% end %>
+    <% if can?(:view_client_groups) %>
+    <button id="client_groups" class="right"><%= t '.local_groups' %></button>
+    <% end %>
+    <% if can?(:send_client_reg_req) %>
+    <button id="client_register" class="left"><%= t '.register' %></button>
+    <% end %>
+    <% if can?(:send_client_del_req) %>
+    <button id="client_unregister" class="left"><%= t '.unregister' %></button>
+    <% end %>
+    <% if can?(:delete_client) %>
+    <button id="client_delete" class="left"><%= t '.delete' %></button>
+    <% end %>
+    <div class="clearer"></div>
+  </div>
+<% end %>
+
+<%= render :partial => "client_groups_dialog" %>
+<%= render :partial => "client_services_dialog" %>
+<%= render :partial => 'internal_servers' %>

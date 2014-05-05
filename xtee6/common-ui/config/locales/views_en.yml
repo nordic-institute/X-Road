@@ -1,0 +1,46 @@
+en:
+  common:
+    accept: "Save"
+    add: "Add"
+    apply: "Apply"
+    cancel: "Cancel"
+    clear: "Clear"
+    close: "Close"
+    confirm: "Save"
+    disable: "Disable"
+    download: "Download"
+    edit: "Edit"
+    enable: "Enable"
+    export: "Export"
+    generate: "Generate"
+    generate_new: "Generate new"
+    import: "Import"
+    load: "Load"
+    login: "Log in"
+    refresh: "Refresh"
+    remove: "Remove"
+    restore: "Undo"
+    revert: "Revert"
+    search: "Search"
+    select_all: "select all"
+
+  about:
+    index:
+      unknown: "unknown"
+
+  layouts:
+    application:
+      title: "Security Server Administration"
+      js_locale_file: "locale-en"
+      logout: "log out"
+    menu:
+      changes: "Unsaved changes"
+
+  backup:
+    index:
+      backup: "Back Up Configuration"
+
+  restore:
+    index:
+      restore: "Restore Configuration"
+      enter_file_name: "Configuration File"

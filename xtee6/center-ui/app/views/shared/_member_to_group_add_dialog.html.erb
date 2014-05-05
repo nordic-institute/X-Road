@@ -1,0 +1,31 @@
+<!-- Title will be filled in dynamically with JavaScript -->
+<%= dialog "member_to_group_add_dialog", "" do %>
+  <%= form_tag do %>
+    <table id="member_to_group_add_table">
+      <tr>
+        <td><%= t 'member.edit.global_group_membership.subsystem' %></td>
+        <td><%= select_tag(
+            "member_to_group_add_select_subsystem",
+            options_for_select([""]),
+                :class => "detail_input") %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'member.edit.global_group_membership.group' %></td>
+        <td><%= select_tag(
+            "member_to_group_add_select_group",
+            options_for_select([""]),
+                :class => "detail_input") %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'common.description' %></td>
+        <td>
+          <textarea id="member_to_group_add_description" readonly="true"
+              class="description" >
+          </textarea>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>

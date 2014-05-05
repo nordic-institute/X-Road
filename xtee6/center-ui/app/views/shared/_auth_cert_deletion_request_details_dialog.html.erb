@@ -1,0 +1,7 @@
+<%= dialog "auth_cert_deletion_request_details_dialog", t("management_requests.details.auth_cert_deletion.title") do %>
+  <%= render :partial => "shared/common_details" %>
+  <fieldset>
+    <legend><%= t 'management_requests.details.auth_cert_deletion.legend' %></legend>
+    <%= render :partial => "shared/auth_cert_details" %>
+  </fieldset>
+<% end %>

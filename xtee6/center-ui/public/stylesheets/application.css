@@ -1,0 +1,231 @@
+/* Single element specific styles - start */
+
+table#orgs {
+    cellpadding: 0;
+    cellspacing: 0;
+}
+
+th#name {
+    width: 11.5em;
+}
+
+th#fullname {
+    width: 100%;
+}
+
+div#desc {
+    border: 1px solid #bbb;
+    border-top: 0;
+    background-color: #fafafa;
+    overflow: auto;
+    font-family: monospace;
+}
+
+table#gr_orgs {
+    cellpadding: 0;
+    cellspacing: 0;
+}
+
+#member_add_fieldset {
+    float: center;
+    margin: 0 1em 1em 0;
+    padding: 1%;
+}
+
+#member_add_table {
+    width: 100%;
+    border-spacing: 0.5em;
+}
+
+#member_edit_table {
+    border-spacing: 0.5em;
+}
+
+#security_categories_edit_button_area {
+    float: left;
+}
+
+#member_delete_button_area #security_categories_edit_button_area {
+    float: right;
+}
+
+#member_add_class,
+#pki_add_name_extractor_member_class,
+#pki_add_is_ssl_only {
+    float: right;
+}
+
+#cert_details_dump {
+    background: #eee;
+    height: 450px;
+}
+
+#cert_details_separator {
+    font-weight: bold;
+}
+
+#cert_details_hash {
+    background: #eee;
+}
+
+#group_details_table {
+    width: 80%;
+}
+
+#group_details_description,
+#pki_add_extractor_method {
+    width: 100%;
+}
+
+#owned_server_temp_cert_id,
+#ocsp_responder_cert_temp_id,
+#ocsp_responder_id,
+#add_auth_cert_temp_id,
+#top_ca_cert_temp_id,
+#tsp_temp_cert_id,
+input#reverse,
+div#add_groups,
+div#repeated_template,
+p#securityserver_details_identifier,
+p#itermediate_ca_editing,
+button#top_ca_ocsp_responder_delete, 
+button#intermediate_ca_ocsp_responder_delete {
+    display: none;
+}
+
+/* Single element specific styles - end */
+
+.securityservers_actions,
+.requests_actions,
+.members_actions,
+.groups_actions,
+.central_services_actions,
+.pkis_actions,
+.tsps_actions,
+.intermediate_cas_actions {
+    float: right;
+}
+
+.no_used_servers {
+    color: red;
+    font-weight: bold;
+}
+
+.subsystem_delete {
+    float: right;
+}
+
+.detail_input {
+    float: right;
+    width: 200px;
+}
+
+.left-spaced {
+    padding-left: 7px;
+}
+
+div.error-external {
+    color: #B00;
+    background-color: #FAFAFA
+}
+
+div.dialog_dynamic,
+fieldset.intermediate_ca_ocsp_responder,
+tr.canceling_id {
+    display: none;
+}
+
+div.details_narrow {
+    float: left;
+    width: 500px;
+}
+
+div.inlined {
+    display: inline-block;
+}
+
+a.open_details {
+  text-decoration: underline;
+  color: blue;
+}
+
+p.cert_details_title {
+  text-decoration: underline;
+}
+/* XXX - work-around to make table headers look nicer. TODO: Find better solution! */
+table.display th,
+table.display td {
+    white-space: normal; /* CSS 3 */
+    white-space: -moz-pre-wrap !important; /* Mozilla */
+    white-space: -o-pre-wrap; /* Opera 7+ */
+    word-wrap: break-word; /* IE 5.5+ */
+    cursor: pointer;
+    * cursor: hand;
+}
+
+tr.group_member {
+    background-color: #C0C0C0;
+}
+
+th.table_header_group {
+    font-weight: bold;
+    background-color: #696969;
+    color: #fff;
+    text-align: center;
+}
+
+.right_bordered {
+    border-right: 1px solid #bbb;
+}
+
+.inactive {
+    color: #C8C8C8;
+}
+
+.section_heading {
+    background: #F2F2F2;
+    font-weight: bold;
+    margin: 10px 0px;
+}
+
+.upper_spaced {
+    padding-top: 15px;
+}
+
+#central_services tbody tr:not(:hover):not(.row_selected) td.implementing_service_data {
+    background-color: #fafafa;
+}
+
+#member_edit_dialog fieldset {
+    border: none;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+#member_edit_dialog fieldset > legend { border: none; background: none; }
+
+.common_button span {
+    border: 1px solid #ddd;
+    padding: 5px;
+    background: #f3f3f3;
+}
+
+.full_width {
+    width: 100%;
+}
+.cf:before,
+.cf:after {
+    content: " ";
+    display: table;
+}
+.cf:after {
+    clear: both;
+}
+#central_services_filter > a, #group_addable_members_filter > a,
+#group_details_members_filter > a {
+    margin-left: 10px;
+}
+#cert_details_dialog { display: none; }
+#central_service_details_dialog fieldset {
+    margin: 15px 0px;
+}

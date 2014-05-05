@@ -1,0 +1,106 @@
+ifndef COMMON_CFLAGS
+
+COMMON_CFLAGS += -W -Wall -Wundef -Wcast-align -fno-strict-aliasing
+
+ifndef MAKEFILE_COMMON_NO_OPT
+COMMON_CFLAGS += -O
+endif
+
+ifndef MAKEFILE_COMMON_NO_DEBUG
+COMMON_CFLAGS += -g
+endif
+
+COMMON_CFLAGS += -Werror
+
+endif
+
+# Position Independent Code - kõik kood, mida kuhugi
+# dünaamiliselt lingitakse.
+ifdef USE_PIC
+COMMON_CFLAGS += -fPIC -DPIC
+endif
+
+CFLAGS += $(COMMON_CFLAGS)
+CXXFLAGS += $(COMMON_CFLAGS)
+
+ifndef CC
+CC = gcc
+endif
+
+ifndef CXX
+CXX = g++
+endif
+
+AR = ar
+RANLIB = ranlib
+
+tests: $(TEST_PROGRAMS)
+
+check: tests
+	@for i in $(AUTOMATIC_TESTS); \
+	do \
+		echo "Running $$i"; \
+		if LD_LIBRARY_PATH=$(XROADTOP)/lib "./$$i"; \
+		then \
+			echo; echo; echo "Test was OK"; echo; \
+		else \
+			echo; echo; echo "TEST $$i FAILED!!!!!"; echo;\
+			exit 1; \
+		fi; \
+	done
+
+install: all $(INSTALL_EXTRA)
+	(mkdir -p $(XROADTOP)/lib && \
+		install -m 644  $(LIBRARY) $(XROADTOP)/lib) || exit 1
+
+
+# Eriti automaatsed sõltuvused, mis tekivad vastavalt võimalusele:
+
+MAKEFILE_COMMON_DEP_SOURCES = $(wildcard *.c *.cc *.cpp)
+
+.deps/%.c.dep: %.c
+	@test -d .deps || mkdir .deps ; \
+	if $(CC) $(CPPFLAGS) $(CFLAGS) -M $< > $@.tmp 2> /dev/null ; then \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.tmp > $@ ; \
+	else \
+		echo "Cannot create dependency info for $< yet" ; \
+	fi ; \
+	$(RM) $@.tmp
+
+.deps/%.cc.dep: %.cc
+	@test -d .deps || mkdir .deps ; \
+	if $(CXX) $(CPPFLAGS) $(CXXFLAGS) -M $< > $@.tmp 2> /dev/null ; then \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.tmp > $@ ; \
+	else \
+		echo "Cannot create dependency info for $< yet" ; \
+	fi ; \
+	$(RM) $@.tmp
+
+.deps/%.cpp.dep: %.cpp
+	@test -d .deps || mkdir .deps ; \
+	test -d .deps/.ui || mkdir .deps/.ui ; \
+	test -d .deps/.moc || mkdir .deps/.moc ; \
+	if $(CXX) $(CPPFLAGS) $(CXXFLAGS) -M $< > $@.tmp 2> /dev/null ; then \
+		sed 's,\($*\)\.o[ :]*,\1.o $@ : ,g' < $@.tmp > $@ ; \
+	else \
+		echo "Cannot create dependency info for $< yet" ; \
+	fi ; \
+	$(RM) $@.tmp
+
+# Väldime sõltuvuste uuendamist make clean korral:
+ifneq ($(MAKECMDGOALS), clean)
+ifneq ($(strip $(MAKEFILE_COMMON_DEP_SOURCES)),)
+-include $(MAKEFILE_COMMON_DEP_SOURCES:%=.deps/%.dep)
+endif
+endif
+
+clean: clean-deps
+
+clean-deps:
+	rm -rf .deps
+
+# Kui käesolev Makefile teeb teeki, siis keelame paralleelse makemise, et
+# mitu protsessi korraga .a-faili uuendama ei satuks.
+ifneq ($(strip $(LIBRARY)),)
+.NOTPARALLEL:
+endif

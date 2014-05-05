@@ -1,0 +1,3 @@
+etc/sdsb/nginx/sdsb-center.conf etc/nginx/sites-enabled/sdsb-center
+etc/sdsb/nginx/insecure-sdsb-center.conf etc/nginx/sites-enabled/insecure-sdsb-center
+etc/sdsb/nginx/sdsb-public.conf etc/nginx/sites-enabled/sdsb-public

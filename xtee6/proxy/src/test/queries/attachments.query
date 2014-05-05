@@ -1,0 +1,45 @@
+--jetty771207119h3h10dty
+Content-Type: text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>test</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>EE37702211234</sdsb:userId>
+        <sdsb:id>1234567890</sdsb:id>
+        <sdsb:issue>issue</sdsb:issue>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:test xmlns:ns1="http://cosumer.ee.sdsb.net" />
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--jetty771207119h3h10dty
+Content-Type: text/plain; charset=UTF-8
+
+blaah
+
+--jetty771207119h3h10dty
+Content-Type: text/plain; charset=UTF-8
+
+blaah1
+
+--jetty771207119h3h10dty
+Content-Type: text/plain; charset=UTF-8
+
+blaah2
+
+--jetty771207119h3h10dty--

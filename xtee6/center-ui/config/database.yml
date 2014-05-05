@@ -1,0 +1,20 @@
+common: &common
+  adapter: postgresql
+  username: centerui
+  password: centerui # from psql setup, see Postgresql
+
+production:
+  <<: *common
+  database: centerui_production
+
+development:
+  <<: *common
+  database: centerui_development
+
+  # XXX: Comment following lines in and use proper port for load test
+  # port: 15433 # Assumes that port with this number is forwarded
+  # database: centerui_production
+
+test:
+  adapter: jdbcsqlite3
+  database: build/centerui_test.sqlite3

@@ -1,0 +1,7 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "backup" %>
+<% end %>
+
+<% content_for :content do %>
+  <input id="backup" type="button" value="<%= t 'backup.index.backup' %>" />
+<% end %>

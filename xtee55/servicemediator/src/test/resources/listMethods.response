@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:ns4="http://x-tee.riik.ee/xsd/xtee.xsd"
+ SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:xtpais="http://x-tee.riik.ee/xsd/xtee.xsd">
+<SOAP-ENV:Body>
+<ns4:listMethodsResponse>
+<keha xsi:type="SOAP-ENC:Array" SOAP-ENC:arrayType="xsd:string[2]" SOAP-ENC:offset="[0]">
+<item xsi:type="xsd:string">andmekogu64.testQuery.v1</item>
+<item xsi:type="xsd:string">andmekogu64.nopQuery.v1</item>
+</keha>
+</ns4:listMethodsResponse>
+</SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

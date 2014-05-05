@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:mappings xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:tns="http://x-road.ee/xsd/x-road.xsd"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <mapping>
+        <oldId>consumer</oldId>
+        <newId id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </newId>
+    </mapping>
+    <mapping>
+        <oldId>producer</oldId>
+        <newId id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+        </newId>
+    </mapping>
+</tns:mappings>

@@ -1,0 +1,34 @@
+--jetty771207119h
+Content-Type: text/xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>getState</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
+        <sdsb:id>411d6755661409fed365ad8135f8210be07613da</sdsb:id>
+        <sdsb:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <sdsb:getStateResponse>
+            <response>1</response>
+        </sdsb:getStateResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--jetty771207119h3h
+Content-Type: multipart/mixed; charset=UTF-8; boundary=jetty1627004719h3h10du0
+
+--jetty771207119h3h10

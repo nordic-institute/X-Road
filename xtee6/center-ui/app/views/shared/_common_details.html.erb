@@ -1,0 +1,61 @@
+<div id="management_request_details_common">
+  <fieldset>
+    <legend><%= t 'management_requests.request.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'management_requests.request_id' %></td>
+        <td><input class="management_request_id" id="management_request_id" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'management_requests.received' %></td>
+        <td><input class="management_request_received" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'management_requests.source' %></td>
+        <td><input class="management_request_source" type="text" readonly/></td>
+      </tr>
+      <tr class="request_status">
+        <td><%= t 'management_requests.status' %></td>
+        <td><input class="management_request_status" type="text" readonly/></td>
+      </tr>
+      <tr class="complementary_id">
+        <td><%= t 'management_requests.complementary_id' %></td>
+        <td><input class="management_request_complementary_id" type="text" readonly/></td>
+      </tr>
+      <tr class="canceling_id">
+        <td><%= t 'management_requests.canceling_id' %></td>
+        <td><input class="management_request_canceling_id" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'management_requests.comments' %></td>
+        <td><input class="management_request_comments" type="text" readonly/></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <fieldset>
+    <legend><%= t 'management_requests.securityserver.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'securityservers.owner_name' %></td>
+        <td><input class="management_request_server_owner_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_class' %></td>
+        <td><input class="management_request_server_owner_class" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_code' %></td>
+        <td><input class="management_request_server_owner_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.server_code' %></td>
+        <td><input class="management_request_server_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.address' %></td>
+        <td><input class="management_request_server_address" type="text" readonly/></td>
+      </tr>
+    </table>
+  </fieldset>
+</div>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>test</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
+        <sdsb:id>411d6755661409fed365ad8135f8210be07613da</sdsb:id>
+        <sdsb:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <sdsb:test/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

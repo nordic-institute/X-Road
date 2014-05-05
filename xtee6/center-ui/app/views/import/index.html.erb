@@ -1,0 +1,29 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "centerui_common" %>
+  <%= javascript_include_tag "import" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <div class="section_heading"><%= t 'import_v5.upload_file' %></div>
+    <table class="display">
+      <% if can?(:execute_v5_import) %>
+        <tr>
+          <td>
+            <%= form_tag "#{controller.controller_name}/import_v5_data",
+                :id => "v5_mapping_file_upload", :multipart => true,
+                :target => "upload_target" do %>
+              <%= file_field_tag "v5_mapping_file" %>
+            <% end %>
+          </td>
+          <iframe id="upload_target" name="upload_target"></iframe>
+          <td>
+            <button id="import_v5_upload">
+              <%= t 'common.upload' %>
+            </button>
+          </td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
+<% end %>

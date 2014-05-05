@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<sdsb:securityServerId id:objectType="SERVER"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:memberClass>BUSINESS</id:memberClass>
+    <id:memberCode>123456789</id:memberCode>
+    <id:serverCode>bambi</id:serverCode>
+</sdsb:securityServerId>
+

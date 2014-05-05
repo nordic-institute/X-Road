@@ -1,0 +1,16 @@
+Source: sdsb-center
+Section: Xtee
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+Homepage: http://www.ria.ee
+
+Package: sdsb-center
+Architecture: all
+Depends: ${misc:Depends}, sdsb-common, jetty8-sdsb, curl, unzip
+Pre-depends: postgresql
+Replaces: xtee2-center
+Conflicts: sdsb-proxy
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

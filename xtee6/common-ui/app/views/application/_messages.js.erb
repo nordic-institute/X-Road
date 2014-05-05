@@ -1,0 +1,4 @@
+<% keep ||= false %>
+<%= 'clearMessages();' unless keep %>
+notice('<%= escape_javascript(flash_message(:notice)) %>');
+error('<%= escape_javascript(flash_message(:error)) %>');

@@ -1,0 +1,201 @@
+Content-Type: multipart/related; charset=UTF-8; boundary=IKbEogUMquVCKiONdlSNKYkElrw=
+
+--IKbEogUMquVCKiONdlSNKYkElrw=
+Content-Type: multipart/mixed; charset=UTF-8; boundary=VPj1ETmOz1zt4juDbTxxN6iylWg=
+
+--VPj1ETmOz1zt4juDbTxxN6iylWg=
+Content-Type: multipart/mixed; charset=UTF-8; boundary=3uelDMc5xDk38VFDZZ31AbTzjf8=
+Content-Date: 2013-10-21T12:48:43+0000
+
+--3uelDMc5xDk38VFDZZ31AbTzjf8=
+Content-File-Name: globalconf
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:conf xmlns:ns2="http://sdsb.net/xsd/identifiers" xmlns:ns3="http://sdsb.net/xsd/sdsb.xsd">
+    <instanceIdentifier>EE</instanceIdentifier>
+    <member id="ida696b134202add693d18f6bffea8037c">
+        <memberClass>riigiasutus</memberClass>
+        <memberCode>sdsbkeskus</memberCode>
+        <name>SDSB Keskus</name>
+    </member>
+    <member id="id78f77a90c2e2f42eb78a197f79db7b27">
+        <memberClass>riigiasutus</memberClass>
+        <memberCode>maanteeamet</memberCode>
+        <name>Maanteeamet</name>
+    </member>
+    <member id="id048e36aea20b09682729d3f339f1d740">
+        <memberClass>riigiasutus</memberClass>
+        <memberCode>ppa</memberCode>
+        <name>Politsei- ja Piirivalveamet</name>
+    </member>
+    <member id="ide728e9bb66443a28797315c8d2da8a71">
+        <memberClass>ettevõte</memberClass>
+        <memberCode>asp</memberCode>
+        <name>Application Service Provider</name>
+    </member>
+    <member id="id2bf98f3aab96fe525a1e83c04ee30434">
+        <memberClass>eraisik</memberClass>
+        <memberCode>48912136552</memberCode>
+        <name>Mari Maasikas</name>
+    </member>
+    <member id="id7f507b8cfb97bf005fe9632d3cd3dc5b">
+        <memberClass>eraisik</memberClass>
+        <memberCode>33903247624</memberCode>
+        <name>Karl Kartul</name>
+    </member>
+    <member id="id6e3c9126c6c4f60603d89e17828f658b">
+        <memberClass>eraisik</memberClass>
+        <memberCode>37101010021</memberCode>
+        <name>Igor Žaikovski</name>
+    </member>
+    <member id="id508b47f563096db231f18b17f5c487ec">
+        <memberClass>ettevõte</memberClass>
+        <memberCode>neli</memberCode>
+        <name>Neli Neli Neli</name>
+    </member>
+    <member id="idefdce82fca9e8689be238730e668e016">
+        <memberClass>ettevõte</memberClass>
+        <memberCode>333</memberCode>
+        <name>Kolm Kolm Kolm</name>
+    </member>
+    <memberClass>
+        <code>riigiasutus</code>
+        <description>Riigi ja kohaliku omavalitsuse asutused, RKOVAR</description>
+    </memberClass>
+    <memberClass>
+        <code>ettevõte</code>
+        <description>Kirjas Äriregistris</description>
+    </memberClass>
+    <memberClass>
+        <code>eraisik</code>
+        <description>Füüsilised isikud</description>
+    </memberClass>
+    <securityServer>
+        <owner>id048e36aea20b09682729d3f339f1d740</owner>
+        <serverCode>test1</serverCode>
+        <address>iks2-test1.cyber.ee</address>
+        <authCertHash>WWkGYjvI4dD9+Kebt65x04V5F1o=</authCertHash>
+        <authCertHash>x2uaW1qUfnX9/jigiT8YS1FqIiY=</authCertHash>
+        <client>id7f507b8cfb97bf005fe9632d3cd3dc5b</client>
+        <client>id6e3c9126c6c4f60603d89e17828f658b</client>
+        <client>id78f77a90c2e2f42eb78a197f79db7b27</client>
+    </securityServer>
+    <securityServer>
+        <owner>ida696b134202add693d18f6bffea8037c</owner>
+        <serverCode>test3</serverCode>
+        <address>iks2-test3.cyber.ee</address>
+        <authCertHash>z71xKtuO18wgSLi9WwgnzJj4TrM=</authCertHash>
+    </securityServer>
+    <securityServer>
+        <owner>ide728e9bb66443a28797315c8d2da8a71</owner>
+        <serverCode>test2</serverCode>
+        <address>iks2-test2.cyber.ee</address>
+        <authCertHash>8Te/bLaqkRETljjBmYNJ583c+uI=</authCertHash>
+    </securityServer>
+    <globalGroup>
+        <groupCode>server-owners</groupCode>
+        <description>Turvaserverite omanikud</description>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>riigiasutus</ns2:memberClass>
+            <ns2:memberCode>ppa</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>riigiasutus</ns2:memberClass>
+            <ns2:memberCode>sdsbkeskus</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>ettevõte</ns2:memberClass>
+            <ns2:memberCode>asp</ns2:memberCode>
+        </member>
+    </globalGroup>
+    <globalGroup>
+        <groupCode>vip</groupCode>
+        <description>Eriti Olulised Kliendid</description>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>ettevõte</ns2:memberClass>
+            <ns2:memberCode>asp</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>riigiasutus</ns2:memberClass>
+            <ns2:memberCode>sdsbkeskus</ns2:memberCode>
+        </member>
+    </globalGroup>
+    <globalGroup>
+        <groupCode>era</groupCode>
+        <description>Ettevõtted ja Eraisikud</description>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>ettevõte</ns2:memberClass>
+            <ns2:memberCode>asp</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>eraisik</ns2:memberClass>
+            <ns2:memberCode>48912136552</ns2:memberCode>
+        </member>
+        <member ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>eraisik</ns2:memberClass>
+            <ns2:memberCode>33903247624</ns2:memberCode>
+        </member>
+    </globalGroup>
+    <pki>
+        <name>/CN=AdminCA1/O=EJBCA Sample/C=SE</name>
+        <authenticationOnly>false</authenticationOnly>
+        <topCA>
+            <cert>MIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwNjE0MTAwNDI5WhcNMjIwNjEyMTAwNDI5WjA3MREwDwYDVQQDDAhBZG1pbkNBMTEVMBMGA1UECgwMRUpCQ0EgU2FtcGxlMQswCQYDVQQGEwJTRTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAILYKYehC6hsbPQnqBPWoatI8I7qZGow3otWO9pW8lMvjgNiE8Cl8oFQS+C3CaqSvHU+iXUVkIlHuAr6k30G/mm6JqU0zA2o2apt5HJFzkg/0/LvLbSB1S5e0VTRDhMncgJakEUJvHFL0aKtq1RigP9C7Zt5BdDyRBuJiutvaFjSeJ2sCQrHDcrJ1uAtdidv3z3Zih9O8CnalNZFltFf7M8pm+O+HIbumiA19kShJwvpcdC9fVPuwsF1Qbeo4SeKuDPU1KHq7ZP9Heh7P6eywxghkYC4yewjBu8COi1FJMGHt9OdD+rNa/GTZ7ULPFiCH8wwCTn+YUtFe5pFLkvCG7sCAwEAAaNjMGEwHQYDVR0OBBYEFHctiS4Dtv340mU5MTUi0EYa6NIJMA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUdy2JLgO2/fjSZTkxNSLQRhro0gkwDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBBQUAA4IBAQAnEhhOwvk2Goy+wRwZgQLkmv9QIzBwP+Bwd45DQOJyPjVTukNoc5w1y1in7yR9T8Cv5Ba1ctAqclztwjhAYAhWcG/CSZ4RvX8zysbnthW6qhZGGz5KJATZhFYrIaNGqC9i0FfTe3PF3HaowqndnBFtwjV65mszTaTNp94LKhLk1ARc/BidplsM1cBSoA9VWvTANI8alKuJxh1QG9TbEJul1BTzA/wItMVDtganTDrQxmkP1NW7d+MsIB5AQHABaXWgjygcqoMlLjyH/0QOP13iyvMXQU4jtSlaTmGm9CaC/xRQ10YD7AHHvq1P2cvfbQaV3I5xUYF7aqwM93ZjmptI</cert>
+            <ocsp>
+                <url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url>
+                <cert>MIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwNjE0MTAwNDI5WhcNMjIwNjEyMTAwNDI5WjA3MREwDwYDVQQDDAhBZG1pbkNBMTEVMBMGA1UECgwMRUpCQ0EgU2FtcGxlMQswCQYDVQQGEwJTRTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAILYKYehC6hsbPQnqBPWoatI8I7qZGow3otWO9pW8lMvjgNiE8Cl8oFQS+C3CaqSvHU+iXUVkIlHuAr6k30G/mm6JqU0zA2o2apt5HJFzkg/0/LvLbSB1S5e0VTRDhMncgJakEUJvHFL0aKtq1RigP9C7Zt5BdDyRBuJiutvaFjSeJ2sCQrHDcrJ1uAtdidv3z3Zih9O8CnalNZFltFf7M8pm+O+HIbumiA19kShJwvpcdC9fVPuwsF1Qbeo4SeKuDPU1KHq7ZP9Heh7P6eywxghkYC4yewjBu8COi1FJMGHt9OdD+rNa/GTZ7ULPFiCH8wwCTn+YUtFe5pFLkvCG7sCAwEAAaNjMGEwHQYDVR0OBBYEFHctiS4Dtv340mU5MTUi0EYa6NIJMA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUdy2JLgO2/fjSZTkxNSLQRhro0gkwDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBBQUAA4IBAQAnEhhOwvk2Goy+wRwZgQLkmv9QIzBwP+Bwd45DQOJyPjVTukNoc5w1y1in7yR9T8Cv5Ba1ctAqclztwjhAYAhWcG/CSZ4RvX8zysbnthW6qhZGGz5KJATZhFYrIaNGqC9i0FfTe3PF3HaowqndnBFtwjV65mszTaTNp94LKhLk1ARc/BidplsM1cBSoA9VWvTANI8alKuJxh1QG9TbEJul1BTzA/wItMVDtganTDrQxmkP1NW7d+MsIB5AQHABaXWgjygcqoMlLjyH/0QOP13iyvMXQU4jtSlaTmGm9CaC/xRQ10YD7AHHvq1P2cvfbQaV3I5xUYF7aqwM93ZjmptI</cert>
+            </ocsp>
+        </topCA>
+        <nameExtractor>
+            <memberClass>riigiasutus</memberClass>
+            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+        </nameExtractor>
+    </pki>
+    <pki>
+        <name>/C=EE/O=AS Sertifitseerimiskeskus/CN=TEST of ESTEID-SK 2011/Email=pki@sk.ee</name>
+        <authenticationOnly>false</authenticationOnly>
+        <topCA>
+            <cert>MIIEuzCCA6OgAwIBAgIQSxRID7FoIaNNdNhBeucLvDANBgkqhkiG9w0BAQUFADB9MQswCQYDVQQGEwJFRTEiMCAGA1UECgwZQVMgU2VydGlmaXRzZWVyaW1pc2tlc2t1czEwMC4GA1UEAwwnVEVTVCBvZiBFRSBDZXJ0aWZpY2F0aW9uIENlbnRyZSBSb290IENBMRgwFgYJKoZIhvcNAQkBFglwa2lAc2suZWUwHhcNMTEwMzA3MTMwNjA5WhcNMjMwOTA3MTIwNjA5WjBsMQswCQYDVQQGEwJFRTEiMCAGA1UECgwZQVMgU2VydGlmaXRzZWVyaW1pc2tlc2t1czEfMB0GA1UEAwwWVEVTVCBvZiBFU1RFSUQtU0sgMjAxMTEYMBYGCSqGSIb3DQEJARYJcGtpQHNrLmVlMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0SMr+A2QGMJuNpu60MgqKG0yLL7JfvjNtgs2hqWADDn1AQeD79o+8r4SRYp9kowSFA8E1v38XXTHRq3nSZeToOC5DMAWjsKlm4x8hwwp31BXCs/Hrl9VmikIgAlaHvv3Z+MzS6qeLdzyYi/glPVrY42A6/kBApOJlOVLvAFdySNmFkY+Ky7MZ9jbBr+Nx4py/V7xm9VD62Oe1lku4S4qd+VYcQ5jftbr4OFjBp9Nn58/5svQxrLjv3B67i19d7sNh7UPnMiO6BeBb6yb3P1lqdHofE1lElStIPViJlzjPOh4puxWadHDvVYUCJgW2aM58mTfjFhZbVfcrVn5OyIiTQIDAQABo4IBRjCCAUIwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYwgZkGA1UdIASBkTCBjjCBiwYKKwYBBAHOHwMBATB9MFgGCCsGAQUFBwICMEweSgBBAGkAbgB1AGwAdAAgAHQAZQBzAHQAaQBtAGkAcwBlAGsAcwAuACAATwBuAGwAeQAgAGYAbwByACAAdABlAHMAdABpAG4AZwAuMCEGCCsGAQUFBwIBFhVodHRwczovL3d3dy5zay5lZS9DUFMwHQYDVR0OBBYEFEG2/sWxsbRTE4z6+mLQNG1tIjQKMB8GA1UdIwQYMBaAFLU0Cp2lLxDF5yEOvsSxZUcbA3b+MEMGA1UdHwQ8MDowOKA2oDSGMmh0dHBzOi8vd3d3LnNrLmVlL3JlcG9zaXRvcnkvY3Jscy90ZXN0X2VlY2NyY2EuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQBdh5R23K7qkrO78j51xN6CR2qwxUcK/cgcTLWv0obPmJ7jRax3PX0pFhaUE6EhAR0dgS4u6XZrjPgVrt/mwq1h8lJP1MF2ueAHKyS0SGj7aFLkcC+ULwu1k6yiortFJ0Ds49ZGA+ioGzYWPQ+g1Zl4wSDIz52ot0cHUijnf39Szq7E2z7MDfZkYg8HZeHrO493EFghXcnSH7J7z47cgP3GWFNUKv1V2c0eVE4OxRulZ3KmBLPWbJKZ0TyGa/Aooc+TorEjxz//WzcF/Sklp4FeD0MU39UURIlg7LfEcm832bPzZzVGFd4drBd5Dy0Uquu63kW7RDqr+wQFSxKr9DIH</cert>
+            <ocsp>
+                <url>http://iks2-central.cyber.ee:8082/ocsp</url>
+                <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3NwIFNpZ25lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBANZTdnxNq1QMncmiInNUSpm02V72GNrMrvq2Q4Zz3Zr8zDKMdAiwdrjx9X+Zi5oTjiSUXRuHY5ZN9oeLO1cv9NV6OGk3MlrAzxquBfQUgnZMNLkPZW5SuLqlZpWf0vF7EvAVX20hxgMq7M26Fxt/B9W81/G/REnuHKJ+nxCAZi5Kd1hdGVTEIwkicqROiEfQUcycs0T5aZI7F5qFiZyo3AeRbWYyhEfe326cPaRaswo2WwcBjFYWibTCnNQuLgDL6qroL1T8soI6LzBaNao6Lm4YY1OwTPz/UEiJ3KIXoAjfxMlOUnznmeWYNPcJb5Z8fdtWpaZqjV3WIMAZocNThb8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQUI1mSgzcFjcBFmmjYwlc9Qm7yF/kwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACRO2KTCVKQxYMlsMDkjT5QjzqW0wHNCsxieYv0qfDM1Z5ceW0c0KjJcKXESj7GXT7oNejwI4gZNgxIzemJ3xABHdftk2WxLQBYJMKQ30EuisFKueqpxaLVkPAbt+XLxSrxaYePB9LTJ+rw3FtbiIbag3AH22TFUUUnaTGVF+OiHtthE1u7bnwsTqWXX4PI9I3KnSaIEE55mveNq2jHVWu4rMyy2flOZMonYh3dw1gmSp2yWo1YDpN3olM0Li6Lnfvg1TZd71xZ6ZkKf+MoAs+pW2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
+            </ocsp>
+        </topCA>
+        <nameExtractor>
+            <memberClass>eraisik</memberClass>
+            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectSerialNumber</methodName>
+        </nameExtractor>
+    </pki>
+    <approvedTsp>
+        <name>Test TSP</name>
+        <url>http://www.foo.bar</url>
+        <cert>MIICwjCCAaqgAwIBAgIIb+RPNmkfCdYwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIxMTI5MTE1MzA2WhcNMTQxMTI5MTE1MzA2WjAVMRMwEQYDVQQDDAp0aW1lc3RhbXAxMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCb55NVDtHzs91sflX3fatZWUS69rxkxDMpcGo6doJ7YaKrCMr3BZ3ZlDTfCdEosWocTcYXdm3CO8BXlZvhkvKyHN/hr0UzD0T8j8mBYoq3fGjTVTJOIG2yTsyT/3z3dpcMyGMWwsiqOd9TTtI8DcR2cOvQzlLiV9hz/kB9iLJeSQIDAQABo3gwdjAdBgNVHQ4EFgQUbdmtvKHCe0+vhKP+ZcVUjmf5w/AwDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8EBAMCBkAwFgYDVR0lAQH/BAwwCgYIKwYBBQUHAwgwDQYJKoZIhvcNAQEFBQADggEBAFJ3AJ4I4RTeMBWhN8RLPQdJzcd0VRp9FUyYhnIkR679nXU+ZbIyaQNx3+hPIbhcOMKxlKGm0LcDnjHL4EuJ6Gb027vF7mSwFbcKPM+L23x2QLvuVcUEjcbP3Kcm93XCSu3RI71JINM+WinjXke/COuFzhMWJcLYj7S5dGR53ya0NnSf7dlua5FLBRiOFA5kRWTft6RcEW0jGZzscL6wZn+hH99IihjqgdxV1GydL+BgDMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=</cert>
+    </approvedTsp>
+    <globalSettings>
+        <managementRequestServiceAddress>https://iks2-central.cyber.ee:8443/center-service/</managementRequestServiceAddress>
+        <managementRequestServiceId ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>riigiasutus</ns2:memberClass>
+            <ns2:memberCode>sdsbkeskus</ns2:memberCode>
+        </managementRequestServiceId>
+    </globalSettings>
+</ns3:conf>
+
+--3uelDMc5xDk38VFDZZ31AbTzjf8=--
+
+--VPj1ETmOz1zt4juDbTxxN6iylWg=--
+--IKbEogUMquVCKiONdlSNKYkElrw=
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
+Signature-Algorithm-Id: SHA-256
+
+h/w52bctZ4N6JirW7lwbcn5Z/aLm+0MOxpqxPiWXLlgSKLYIDmoKzQeQkH05WvSjRCO53PQqCrmMDoPWuh1z5HpZFkWaPgTJpfiZjiHHWDlMn8Q+RJRt2ipcWVS9KEQM5YqhvssMQbtVjOuZA0qiAlFkOFOLnK7PeYq90qJbPxTTDiauFp625eiyihC7xlSW9nr/nAU1TXYjNwFww0lu3vBAGvEgxxL6WHWeuA4I2iuFaKX9qxp0QNUjvfhc6DeQqfOipRIIQdSJnrGb1m8h1VfXhDA1lZ+ZHYvoxLqwXMfYumxkCD9pEzDBVZTegv0bWuiFd2j4TGVrylHH54q8vQ==
+--IKbEogUMquVCKiONdlSNKYkElrw=--

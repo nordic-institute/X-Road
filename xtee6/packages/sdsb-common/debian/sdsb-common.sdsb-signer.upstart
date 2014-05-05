@@ -1,0 +1,32 @@
+# Xroad signer
+#
+
+description	"xroad2 signer"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+#setuid sdsb
+#setgid sdsb
+
+respawn
+respawn limit 10 5
+umask 007
+
+expect daemon
+
+pre-start script
+    mkdir -p -m0755 /var/run/sdsb
+    chown sdsb:sdsb /var/run/sdsb
+end script
+
+script
+exec >>/tmp/ddd.log 2>&1
+set -x
+
+  . /etc/sdsb/services/signer.conf
+#  logger -t "$0" "DEBUG: `set`"
+#  java ${SIGNER_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/signer-1.0.jar
+   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name sdsb-signer --exec ${JAVA_HOME}/bin/java -- ${SIGNER_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/signer.jar 
+end script
+

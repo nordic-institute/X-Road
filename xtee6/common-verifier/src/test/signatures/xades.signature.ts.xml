@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?><asic:XAdESSignatures xmlns:asic="http://uri.etsi.org/02918/v1.1.1#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ds:Signature Id="signature" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"/>
+<ds:Reference Type="http://www.w3.org/2000/09/xmldsig#Manifest" URI="#sig-manifest-1">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>ilGEYKH0usBCSzKkMFnYZ6BzzJ7EVlUNexfwOiT/01dY3WY3CbYy378SLaRVV3ao8yO/WBIOITst
+6PECFoHXGQ==</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue>
+ILX2vOf4kES0nHKFAn031WVueEJJ4X2LRVXDkX3ljkhOKkHOWrzbmDE1R/NrANTOOxAJ5hmtVwui
+7qH78c6NZBJW7tdh4oYsiRIhJsgNIggMc7T0Hb58JIOk3X8ypizC2r76Z6lcvN74d6F4/q2ksHD4
+oZfF0tnyIZu252k6bxWlyKgmNmQ92uCdG8yzkFZG07aYsljbG/16ncKA+q6kjAeaLOTT26hcMOXb
+zoqGqldur2C8KYctzC4NGBYplqU0US7ZHVTHCVpD3o1E9sM0S8rpV7Jzu6GhtFEvw4tEQ8o/KT2d
+bB31jmDRHo2/oDhvI75slw807339nE5X/wkZoA==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIDiDCCAnCgAwIBAgIIb3mLuHRMWF4wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5D
+QTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwODA3MDc0MjE4WhcN
+MTQwODA3MDc0MjE4WjATMREwDwYDVQQDDAhUZXN0IE9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAIiUVb/4OBQZc9hgPyxuikI36tS/PEjSqLQu4fyyEqIjsF5eHhgHONx/LQjhMi0R
+KZ/nFxPJd2wIghFQ7b8nmKAZGRKVMJh7UT4hhZjXfxVclT/ZJLBAPmEZRLzfjsNimk+f5/BnHMnB
+eEEUG+AEi0x4eE/Ro3aJ7o0bY+PlD0k2nNUnKXtNkdvB1nekLg92JknE5wNSKPxo88MNV3HUMEsD
+JjIbjyMBmpMRbPUihJA35aCehooxxL8VzuepVW3iJRnd4UH0i1YJyYuWdwMUXNUcB6znaBOaE+6s
++f7q+8utiYmXrpeKENXOTbyre0WpcSskXYVxkykJSxlscUvvObkCAwEAAaOBuzCBuDBYBggrBgEF
+BQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2Vq
+YmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQUovms6yAtO4/VlLrULg3zuHiyy4Iw
+DAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8E
+BAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAFTQ7KlmrzN2nq38gJKl4KvK82p85Bt3EsIKDC6i0k5U
+430h5x9iPhCo8wBtztm6HAHqK6V+K5vU74HY3Rz30lpY9VS6KxW1SYoYj4nIb4j2MUua8M2Rlsvo
+sKj5b/Hz9I93qV9jh6YhtFmw2HWEVQPM6iDE1GRNGEHMqmObnl/i7EVxuYM51qMwu84sig7Ei+r2
+/y/YLi507SVHvnk1n2QmqhASTLtaz2kpy6q0Hkgj/4ET6+N5IG17Bze7tpYdRl4kUOG62fxH9LI4
+NEIM2QsjxB2RZhIXVXdDBfeNQZIizjj0oRi3d9VblynvJKUCGJmjuYmeCaLSYw7tYTS7Kfg=
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+<ds:Object><ds:Manifest Id="sig-manifest-1">
+<ds:Reference URI="xxxxx-/message.xml">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>OcorH5fH0dIj3LKyLL4gw2+SCu79IB0L9o/8CNttmsYIoKIC+1NtlEydH1DPm9YbW8hCFyEvByeo
+24oBwvpUtw==</ds:DigestValue>
+</ds:Reference>
+</ds:Manifest><xades:QualifyingProperties Target="#signature"><xades:SignedProperties Id="signed-properties"><xades:SignedSignatureProperties><xades:SigningTime>2012-08-07T11:04:41.055+03:00</xades:SigningTime><xades:SigningCertificate><xades:Cert><xades:CertDigest><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>ynvf77MFyNJSWOFdy1z36h14KciJAqxa/n3vDxIAuE/UeJBj0VlIxeSS4KdltD7uIVgE4f51Oq3Q
+vTzIQeH4XA==</ds:DigestValue></xades:CertDigest><xades:IssuerSerial><ds:X509IssuerName>C=SE,O=EJBCA Sample,CN=AdminCA1</ds:X509IssuerName><ds:X509IssuerNumber>8032605034733394014</ds:X509IssuerNumber></xades:IssuerSerial></xades:Cert></xades:SigningCertificate></xades:SignedSignatureProperties><xades:SignedDataObjectProperties/></xades:SignedProperties><xades:UnsignedProperties><xades:UnsignedSignatureProperties><xades:CompleteCertificateRefs><xades:CertRefs><xades:Cert><xades:CertDigest><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>QZMNnhNgn0jE/g1mbQjYS2wCumgc5Ek0DyLiwAmwKQc/UNa3OusmbBnc4+WB5L4jWlXSBFcX4nSe
+ZdOqDstEOg==</ds:DigestValue></xades:CertDigest><xades:IssuerSerial><ds:X509IssuerName>C=SE,O=EJBCA Sample,CN=AdminCA1</ds:X509IssuerName><ds:X509IssuerNumber>6005434255669835317</ds:X509IssuerNumber></xades:IssuerSerial></xades:Cert></xades:CertRefs></xades:CompleteCertificateRefs><xades:CompleteRevocationRefs><xades:OCSPRefs><xades:OCSPRef><xades:OCSPIdentifier URI="#ocsp-response"><xades:ResponderID>ohYEFHctiS4Dtv340mU5MTUi0EYa6NIJ</xades:ResponderID><xades:ProducedAt>2012-08-07T11:04:40+03:00</xades:ProducedAt></xades:OCSPIdentifier><xades:DigestAlgAndValue><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>PfjUa0GJDPxmACkOEismN4vYofciLJin0/b2UpGARr/IkUA1qpPHuK64IBCl+7oTz+Eif/bU9Fp9
+cRYNfUtHZQ==</ds:DigestValue></xades:DigestAlgAndValue></xades:OCSPRef></xades:OCSPRefs></xades:CompleteRevocationRefs><xades:CertificateValues><ds:EncapsulatedX509Certificate>MIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5D
+QTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwNjE0MTAwNDI5WhcN
+MjIwNjEyMTAwNDI5WjA3MREwDwYDVQQDDAhBZG1pbkNBMTEVMBMGA1UECgwMRUpCQ0EgU2FtcGxl
+MQswCQYDVQQGEwJTRTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAILYKYehC6hsbPQn
+qBPWoatI8I7qZGow3otWO9pW8lMvjgNiE8Cl8oFQS+C3CaqSvHU+iXUVkIlHuAr6k30G/mm6JqU0
+zA2o2apt5HJFzkg/0/LvLbSB1S5e0VTRDhMncgJakEUJvHFL0aKtq1RigP9C7Zt5BdDyRBuJiutv
+aFjSeJ2sCQrHDcrJ1uAtdidv3z3Zih9O8CnalNZFltFf7M8pm+O+HIbumiA19kShJwvpcdC9fVPu
+wsF1Qbeo4SeKuDPU1KHq7ZP9Heh7P6eywxghkYC4yewjBu8COi1FJMGHt9OdD+rNa/GTZ7ULPFiC
+H8wwCTn+YUtFe5pFLkvCG7sCAwEAAaNjMGEwHQYDVR0OBBYEFHctiS4Dtv340mU5MTUi0EYa6NIJ
+MA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUdy2JLgO2/fjSZTkxNSLQRhro0gkwDgYDVR0P
+AQH/BAQDAgGGMA0GCSqGSIb3DQEBBQUAA4IBAQAnEhhOwvk2Goy+wRwZgQLkmv9QIzBwP+Bwd45D
+QOJyPjVTukNoc5w1y1in7yR9T8Cv5Ba1ctAqclztwjhAYAhWcG/CSZ4RvX8zysbnthW6qhZGGz5K
+JATZhFYrIaNGqC9i0FfTe3PF3HaowqndnBFtwjV65mszTaTNp94LKhLk1ARc/BidplsM1cBSoA9V
+WvTANI8alKuJxh1QG9TbEJul1BTzA/wItMVDtganTDrQxmkP1NW7d+MsIB5AQHABaXWgjygcqoMl
+LjyH/0QOP13iyvMXQU4jtSlaTmGm9CaC/xRQ10YD7AHHvq1P2cvfbQaV3I5xUYF7aqwM93ZjmptI</ds:EncapsulatedX509Certificate></xades:CertificateValues><xades:RevocationValues><xades:OCSPValues><ds:EncapsulatedOCSPValue Id="ocsp-response">MIIFMAoBAKCCBSkwggUlBgkrBgEFBQcwAQEEggUWMIIFEjCBnKIWBBR3LYkuA7b9+NJlOTE1ItBG
+GujSCRgPMjAxMjA4MDcwODA0NDBaMFgwVjBBMAkGBSsOAwIaBQAEFEFF+KXM8H4B6/HSLUCh4pOS
+seAuBBR3LYkuA7b9+NJlOTE1ItBGGujSCQIIb3mLuHRMWF6AABgPMjAxMjA4MDcwODA0NDBaoRcw
+FTATBgkrBgEFBQcwAQIEBgE5AB1ALjANBgkqhkiG9w0BAQUFAAOCAQEAAaTf6PhfewOMZ2fJY9Wp
+Mh/6oIduwm3AsqNXaRDhEAwLNFNlB2mJ6fl4qPdTMWW4apCUjfiHPTzglVisrvtUBfFLG58Fxacv
+i6pU+7j3DV8regjCIEMeLfLT31NURXxUMnhnzGJKPbJs5IrkHCblu7PId6yaf9gUrydFxfUyBIXI
+oiZaqY9xrLK/ZkaXDNdJlmfO3NP45Hlz0s+pnJGZ2rAHZ4k/cVEelqkItuTYnitRfqggERVYENkL
+oy7hCxDx4sYJrBh9/uAZRMuosQ2RgHCU90sAbgTZxP9ph5nrhEDLODTmJYc9TsqkzU4KvUBEcrb6
+lrRfzAlwY1bvFO1pLKCCA1swggNXMIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEF
+BQAwNzERMA8GA1UEAwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMC
+U0UwHhcNMTIwNjE0MTAwNDI5WhcNMjIwNjEyMTAwNDI5WjA3MREwDwYDVQQDDAhBZG1pbkNBMTEV
+MBMGA1UECgwMRUpCQ0EgU2FtcGxlMQswCQYDVQQGEwJTRTCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAILYKYehC6hsbPQnqBPWoatI8I7qZGow3otWO9pW8lMvjgNiE8Cl8oFQS+C3CaqS
+vHU+iXUVkIlHuAr6k30G/mm6JqU0zA2o2apt5HJFzkg/0/LvLbSB1S5e0VTRDhMncgJakEUJvHFL
+0aKtq1RigP9C7Zt5BdDyRBuJiutvaFjSeJ2sCQrHDcrJ1uAtdidv3z3Zih9O8CnalNZFltFf7M8p
+m+O+HIbumiA19kShJwvpcdC9fVPuwsF1Qbeo4SeKuDPU1KHq7ZP9Heh7P6eywxghkYC4yewjBu8C
+Oi1FJMGHt9OdD+rNa/GTZ7ULPFiCH8wwCTn+YUtFe5pFLkvCG7sCAwEAAaNjMGEwHQYDVR0OBBYE
+FHctiS4Dtv340mU5MTUi0EYa6NIJMA8GA1UdEwEB/wQFMAMBAf8wHwYDVR0jBBgwFoAUdy2JLgO2
+/fjSZTkxNSLQRhro0gkwDgYDVR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBBQUAA4IBAQAnEhhOwvk2
+Goy+wRwZgQLkmv9QIzBwP+Bwd45DQOJyPjVTukNoc5w1y1in7yR9T8Cv5Ba1ctAqclztwjhAYAhW
+cG/CSZ4RvX8zysbnthW6qhZGGz5KJATZhFYrIaNGqC9i0FfTe3PF3HaowqndnBFtwjV65mszTaTN
+p94LKhLk1ARc/BidplsM1cBSoA9VWvTANI8alKuJxh1QG9TbEJul1BTzA/wItMVDtganTDrQxmkP
+1NW7d+MsIB5AQHABaXWgjygcqoMlLjyH/0QOP13iyvMXQU4jtSlaTmGm9CaC/xRQ10YD7AHHvq1P
+2cvfbQaV3I5xUYF7aqwM93ZjmptI</ds:EncapsulatedOCSPValue></xades:OCSPValues></xades:RevocationValues></xades:UnsignedSignatureProperties><xades:XAdESTimeStamp><xades:Include URI="ts-root-manifest"/><xades:EncapsulatedTimeStamp>FIXME</xades:EncapsulatedTimeStamp></xades:XAdESTimeStamp></xades:UnsignedProperties></xades:QualifyingProperties><ds:Manifest Id="ts-manifest-rnd1">
+<ds:Reference URI="#siganture-value">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue/>
+</ds:Reference>
+<ds:Reference URI="#complete-certificate-refs">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue/>
+</ds:Reference>
+<ds:Reference URI="#complete-revocation-refs">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue/>
+</ds:Reference>
+</ds:Manifest><ds:Manifest Id="ts-root-manifest">
+<ds:Reference URI="#ts-manifest-rnd1">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>jiboKCGc5rvL1hfWac50haITvRfnFq/K/1/URZtZqBmEStgdU8aIHDeLNj7I8onjqSRqd3FwTA4A
+9Ic/oJSPYg==</ds:DigestValue>
+</ds:Reference>
+</ds:Manifest></ds:Object>
+</ds:Signature></asic:XAdESSignatures>

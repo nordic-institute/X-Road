@@ -1,0 +1,5 @@
+<% menu_items.each do |item| %>
+  <% if !item.privilege || can?(item.privilege) %>
+    <%= render :partial => "layouts/menu_item", :locals => { :item => item } %>
+  <% end %>
+<% end %>

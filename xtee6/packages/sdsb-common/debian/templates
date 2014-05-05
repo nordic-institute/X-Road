@@ -1,0 +1,13 @@
+
+Template: sdsb-common/username
+Type: string
+Default: 
+Description: Enter SDSB Superuser username
+ Username for sdsb admin rights
+ This user will be promoted to _ALL_ SDSB groups of privileges
+
+Template: sdsb-common/non_existing_user
+Type: error
+Description: User does not exist
+  Specified user does not exist
+

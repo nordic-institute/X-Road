@@ -1,0 +1,196 @@
+/* keys_controller */
+#keys tr.token td {
+    line-height: 22px;
+}
+
+#keys tr.key td {
+    padding-left: 2em;
+}
+
+#keys .cert-friendly-name {
+    padding-left: 3em;
+}
+
+#keys .buttons {
+    padding-left: 3em;
+    text-align: right;
+}
+
+.unsaved {
+    background-color: #ff6
+}
+.token-unavailable,
+.key.key-unavailable {
+    background-color: #a8a8a8;
+}
+.token-active .activate_token {
+    display: none;
+}
+.token-active .deactivate_token {
+    display: inline;
+}
+.token-inactive .deactivate_token {
+    display: none;
+}
+.token-inactive .activate_token {
+    display: inline;
+}
+.token .locked,
+.token.token-available.token-inactive {
+    color: red;
+    font-weight: bold;
+}
+
+.ocsp-response-suspended .cert-ocsp-response,
+.expiring .cert-expires {
+    color: pink;
+}
+
+.cert-inactive .cert-ocsp-response,
+.ocsp-response-revoked .cert-ocsp-response,
+.ocsp-response-unknown .cert-ocsp-response,
+.expired .cert-expires {
+    color: #f33;
+}
+
+.key-usage {
+    text-transform: capitalize;
+}
+
+.token, .key, cert-active, .cert-inactive {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.ui-dialog input {
+    border: 1px solid #bbb;
+}
+
+table:not(.dataTable) {
+    border-collapse: separate;
+    border-spacing: 10px;
+}
+
+.unselectable {
+    color: #bbb;
+}
+
+.wsdl {
+    font-weight: bold;
+}
+
+.wsdl.disabled,
+.wsdl.disabled a {
+    color: #f33;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+p.bold {
+    padding: 1em 0;
+}
+
+.rtl {
+    direction: rtl;
+}
+
+/* Clients */
+
+.clients_actions button, .common_button {
+    border: 1px solid #ddd;
+    padding: 5px;
+    background: #f3f3f3;
+}
+
+#client_add_dialog fieldset,
+#client_details_dialog fieldset {
+    border: none;
+}
+
+#client_details_dialog .client_global_info {
+    width: 100%; 
+    border-spacing: 0.5em;
+}
+
+#client_details_dialog .client_global_info tr td:last-child input {
+    width: 450px;
+}
+
+#client_add_dialog td span {
+    color: red;
+    font-weight: bold;
+}
+
+#client_add_dialog fieldset legend,
+#client_details_dialog fieldset legend {
+    border: none;
+    background: #fff;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+}
+
+#client_add_dialog select,
+#client_add_dialog input,
+#subjects_add_dialog fieldset input,
+#subjects_add_dialog fieldset select,
+#group_add_dialog input,
+.advanced_search input,
+.advanced_search select,
+#group_members_add_dialog fieldset input,
+#group_members_add_dialog fieldset select {
+    width: 100%;
+}
+
+#serverconf_form input,
+#serverconf_form select {
+    width: 50%;
+}
+
+.ui-autocomplete {
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#client_details_dialog fieldset legend {
+    border: none;
+}
+
+#group_members_actions *,
+#members_search_actions * {
+    vertical-align: middle;
+}
+
+.alert-ol {
+    margin-left: 20px;
+}
+
+#group_details_dialog p {
+    font-weight: bold;
+    padding: 0.3em;
+    background: #ccc;
+}
+
+.field {
+    border: none;
+}
+.tablewrapper {
+    margin-bottom: 40px;
+}
+#internal_ssl_certs {
+    width: 100%;
+}
+#internal_servers_dialog button {
+    padding: 5px;
+}
+#internal_servers_dialog select {
+    padding: 4px;
+    margin: 5px 0px;
+}
+h1.section-title {
+    font-weight: bold;
+    font-size: 12pt;
+}

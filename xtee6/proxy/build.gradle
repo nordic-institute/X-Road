@@ -1,0 +1,88 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
+    }
+}
+
+apply plugin: 'fatjar'
+
+configurations {
+    provided
+}
+
+dependencies {
+    compile project(':common-util')
+    compile project(':common-verifier')
+    compile project(':async-db')
+    compile project(':signer-protocol')
+    
+    provided 'org.projectlombok:lombok:0.12.0'
+    
+    testCompile project(':common-test')
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+
+eclipse {
+    classpath {
+        plusConfigurations += configurations.provided 
+    }
+}
+
+fatJarPrepareFiles {
+    include '*'
+}
+
+fatJar {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    manifest {
+        attributes 'Main-Class': 'ee.cyber.sdsb.proxy.ProxyMain'
+    }
+}
+
+jar.enabled = false
+build.dependsOn fatJar
+buildall.dependsOn fatJar
+
+task runProxyMain(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.proxy.sslEnabled=false',
+        '-Dee.cyber.sdsb.proxy.globalConfDistributor.enabled=false',
+        '-Dee.cyber.sdsb.secureLog.path=build/slog', 
+        '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache', 
+        '-Dee.cyber.sdsb.tempFiles.path=build/attach-tmp',
+        '-Dee.cyber.sdsb.asyncdb.path=build',
+        '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
+        '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
+        '-Dee.cyber.sdsb.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
+        '-Dee.cyber.sdsb.appLog.path=log'
+
+    main = 'ee.cyber.sdsb.proxy.ProxyMain'
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+task runProxyTest(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.secureLog.path=build/slog', 
+        '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache', 
+        '-Dee.cyber.sdsb.tempFiles.path=build/attach-tmp',
+        '-Dee.cyber.sdsb.asyncdb.path=build',
+        '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
+        '-Dlogback.configurationFile=src/test/logback-proxytest.xml'
+//	'-Djava.security.properties==src/main/resources/java.security'
+
+    main = 'ee.cyber.sdsb.proxy.testsuite.ProxyTestSuite'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runBatchSigner(type: JavaExec) {
+    jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
+
+    main = 'ee.cyber.sdsb.common.signature.BatchSigner'
+    classpath = sourceSets.test.runtimeClasspath
+}

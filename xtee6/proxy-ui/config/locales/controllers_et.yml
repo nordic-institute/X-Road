@@ -1,0 +1,23 @@
+et:
+  menu:
+    configuration:
+      title: "Konfiguratsioon"
+      members: "Liikmed"
+      quicklist: "Pääsuõigused"
+    mangement:
+      title: "Haldus"
+      keys: "Võtmed ja Sertifikaadid"
+      async: "Asünkroonsed päringud"
+      asynclog: "Asünkroonsete päringute logi"
+    help:
+      title: "Abi"
+      version: "Versioon"
+
+  keys:
+    cert_loaded: "Sertifikaadi laadimine õnnestus"
+    cert_missing: "Aktiivne võti peab omama sertifikaati"
+    cert_check_error: "Sertifikaat ei sobi võtmega"
+
+  clients:
+    adding_services: "Lisatakse teenused:<p class='bold'>%{added}</p>"
+    deleting_services: "Kustutakse teenused:<p class='bold'>%{deleted}</p>"

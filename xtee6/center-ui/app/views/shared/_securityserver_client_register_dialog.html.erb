@@ -1,0 +1,59 @@
+<%= dialog "securityserver_client_register_dialog", t("members.edit.used_servers.add.title") do %>
+  <fieldset>
+    <legend><%= t 'members.edit.used_servers.add.client.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'securityservers.clients.name' %></td>
+        <td><input id="used_server_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.clients.class' %></td>
+        <td><input id="used_server_class" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.clients.code' %></td>
+        <td><input id="used_server_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.clients.subsystem' %></td>
+        <td><input id="used_server_subsystem_code" type="text"/></td>
+      </tr>
+    </table>
+  </fieldset>
+  <fieldset>
+    <legend><%= t 'securityservers.info.legend' %></legend>
+    <table>
+      <tr>
+        <td></td>
+        <td>
+          <% if can?(:view_security_server_details) %>
+            <button id="used_server_server_search" >
+              <%= t 'common.search' %>
+            </button>
+          <% end %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_name' %></td>
+        <td><input id="used_server_owner_name" type="text"/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_class' %></td>
+        <td><%= select_tag(
+            "used_server_owner_class",
+            options_for_select(create_member_class_select(get_all_member_classes))) %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_code' %></td>
+        <td><input id="used_server_owner_code" type="text"/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.server_code' %></td>
+        <td><input id="used_server_server_code" type="text"/></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <%= render :partial => "shared/securityserver_search_dialog" %>
+<% end %>

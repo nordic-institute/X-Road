@@ -1,0 +1,10 @@
+#!/bin/sh
+
+
+test -d /var/log/sdsb/jetty && test -w /var/log/sdsb/jetty || mkdir -p /var/log/sdsb/jetty  ; chown sdsb:sdsb /var/log/sdsb/jetty
+test -d /usr/share/sdsb/webapps || mkdir -p /usr/share/sdsb/webapps
+test -d /etc/sdsb/ssl || mkdir /etc/sdsb/ssl
+test -e /etc/sdsb/ssl/nginx.pem && test -e /etc/sdsb/ssl/nginx.key || openssl req -new -x509 -days 365 -nodes -out /etc/sdsb/ssl/nginx.pem -keyout /etc/sdsb/ssl/nginx.key
+test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+
+exit 0

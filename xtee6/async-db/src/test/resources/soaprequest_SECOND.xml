@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>clientmember</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember</id:memberCode>
+            <id:serviceCode>anotherAsyncService</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>EE37702211234</sdsb:userId>
+        <sdsb:id>0987654321</sdsb:id>
+        <sdsb:async>true</sdsb:async>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:anotherAsyncService xmlns:ns1="http://cosumer.ee.sdsb.net">
+            <request>
+                <name>bar</name>
+                <age>18</age>
+            </request>
+        </ns1:anotherAsyncService>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

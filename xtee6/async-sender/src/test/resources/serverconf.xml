@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns3:serverConf xmlns:ns2="http://sdsb.net/xsd/identifiers"
+    xmlns:ns3="http://sdsb.net/xsd/sdsb.xsd"
+    ns3:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-util/src/main/resources/serverconf.xsd">
+    <serverCode>ProducerServerConf</serverCode>
+    <owner>owner</owner>
+
+    <client id="owner">
+        <identifier ns2:objectType="MEMBER">
+            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:memberClass>BUSINESS</ns2:memberClass>
+            <ns2:memberCode>producer</ns2:memberCode>
+        </identifier>
+        <fullName>Experimental producer</fullName>
+        <wsdl>
+            <!-- TODO -->
+            <url>http://consumer.com</url>
+            <wsdlLocation>kusagil/elvas</wsdlLocation>
+            <disabled>false</disabled>
+            <publish>true</publish>
+            <publishedDate>2011-12-31T12:00:00</publishedDate>
+            <refreshedDate>2012-12-31T14:00:00</refreshedDate>
+
+            <service>
+                <serviceCode>bodyMassIndex</serviceCode>
+                <url>http://127.0.0.1:8081/bodyMassIndex</url>
+                <timeout>20</timeout>
+                <requiredSecurityCategory
+                    ns2:objectType="MEMBER">
+                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:securityCategoryCode>XXX
+                    </ns2:securityCategoryCode>
+                </requiredSecurityCategory>
+                <authorizedSubject>
+                    <subjectId
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xsi:type="ns2:SdsbClientIdentifierType"
+                        ns2:objectType="MEMBER">
+                        <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                        <ns2:memberClass>BUSINESS</ns2:memberClass>
+                        <ns2:memberCode>clientmember</ns2:memberCode>
+                    </subjectId>
+                    <rightsGiven>2013-09-05T15:07:45.386+03:00
+                    </rightsGiven>
+                </authorizedSubject>
+            </service>
+
+            <service>
+                <serviceCode>bigSoap</serviceCode>
+                <timeout>30</timeout>
+            </service>
+
+            <service>
+                <serviceCode>bigAttachment</serviceCode>
+                <timeout>30</timeout>
+            </service>
+
+            <service>
+                <serviceCode>examReport</serviceCode>
+                <url>http://127.0.0.1:8081/examReport</url>
+                <timeout>30</timeout>
+            </service>
+
+            <service>
+                <serviceCode>getState</serviceCode>
+                <url>http://127.0.0.1:8081/getState</url>
+                <timeout>30</timeout>
+
+                <authorizedSubject>
+                    <subjectId
+                        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                        xsi:type="ns2:SdsbClientIdentifierType"
+                        ns2:objectType="MEMBER">
+                        <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                        <ns2:memberClass>BUSINESS</ns2:memberClass>
+                        <ns2:memberCode>consumer</ns2:memberCode>
+                    </subjectId>
+                    <rightsGiven>2013-09-05T15:07:45.386+03:00
+                    </rightsGiven>
+                </authorizedSubject>
+
+            </service>
+
+            <service>
+                <serviceCode>smallAttachment</serviceCode>
+                <timeout>30</timeout>
+            </service>
+
+            <service>
+                <serviceCode>testQuery</serviceCode>
+                <timeout>30</timeout>
+            </service>
+
+            <service>
+                <serviceCode>async</serviceCode>
+                <url>http://127.0.0.1:8081/async</url>
+                <timeout>30</timeout>
+            </service>
+        </wsdl>
+    </client>
+
+
+    <!--identifier>foobar</identifier> <member> <identifier>producer</identifier> 
+        <fullName>Experimental producer</fullName> <service> <name>testQuery</name> 
+        <url>http://127.0.0.1:8081/testQuery</url> <acl> <client>consumer</client> 
+        </acl> </service> <service> <name>getState</name> <url>http://127.0.0.1:8081/getState</url> 
+        <acl> <client>consumer</client> </acl> </service> <service> <name>bigSoap</name> 
+        <url>http://127.0.0.1:8081/bigSoap</url> <acl> <client>consumer</client> 
+        </acl> </service> <service> <name>smallAttachment</name> <url>http://127.0.0.1:8081/smallAttachment</url> 
+        <acl> <client>consumer</client> </acl> </service> <service> <name>bigAttachment</name> 
+        <url>http://127.0.0.1:8081/bigAttachment</url> <acl> <client>consumer</client> 
+        </acl> </service> <service> <name>bodyMassIndex</name> <url>http://127.0.0.1:8081/bodyMassIndex</url> 
+        <acl> <client>consumer</client> </acl> </service> <service> <name>examReport</name> 
+        <url>http://127.0.0.1:8081/examReport</url> <acl> <client>consumer</client> 
+        </acl> </service> </member> <member> <identifier>consumer</identifier> <fullName>Experimental 
+        consumer</fullName> </member -->
+
+    <globalConfDistributor>
+        <!--<url>http://iks2-central.cyber.ee/globalconf</url> -->
+        <url>file:../systemtest/conf/local_test/globalconf.xml.signed
+        </url>
+        <verificationCert>
+            MIICPTCCAaYCCQDhAMDISeX12TANBgkqhkiG9w0BAQUFADBjMQswCQYDVQQGEwJF
+            RTERMA8GA1UECAwIVGFydHVtYWExDjAMBgNVBAcMBVRhcnR1MRQwEgYDVQQKDAtD
+            eWJlcm5ldGljYTEMMAoGA1UECwwDSVRPMQ0wCwYDVQQDDAREZW1vMB4XDTEzMDIw
+            NTA4MjIzOFoXDTIzMDIwMzA4MjIzOFowYzELMAkGA1UEBhMCRUUxETAPBgNVBAgM
+            CFRhcnR1bWFhMQ4wDAYDVQQHDAVUYXJ0dTEUMBIGA1UECgwLQ3liZXJuZXRpY2Ex
+            DDAKBgNVBAsMA0lUTzENMAsGA1UEAwwERGVtbzCBnzANBgkqhkiG9w0BAQEFAAOB
+            jQAwgYkCgYEAxe1NWPzMunQZrYa+q7oblnrfmbEeip21BetODfa1bNbEukaPMHWe
+            hgrF1o5qNbMGNHyBNnU9M2nACx2jtps6SdeZSrfa7wgKlaf7ewnEjq2m3h3s4S1l
+            NsVsCqsgGaPLQ7e0v0EL5UidsA18zic8etcHsU8T+Tjzw6EnAyaqoxsCAwEAATAN
+            BgkqhkiG9w0BAQUFAAOBgQB5VCoeaHsWCrSW8UbPWAuUXaiKZb7tZLRanD1P5aGT
+            Ps8WuY8Ob0qyAM1o7W09fjjJmpiqOP/HrhjwGQI63KQLYJH3xEeZNKkTrVdy6uqa
+            hUuz1B/jn5ebqN3ZN/e9jUCfXJHxxWwx+K6FydQcAlRdXGnT7y2BEAOqlclQFOWY
+            eA==
+        </verificationCert>
+    </globalConfDistributor>
+
+    <asyncSender>
+        <baseDelay>333</baseDelay>
+        <maxDelay>666</maxDelay>
+        <maxSenders>999</maxSenders>
+    </asyncSender>
+</ns3:serverConf>

@@ -1,0 +1,111 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "experimental" %>
+<% end %>
+
+<%= render_optional "heading" %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <button id="list_devices">
+      list_devices
+    </button>
+    <h3>Result</h3>
+    <div id="list_devices_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="activate_device">
+      activate_device
+    </button>
+    <h3>Result</h3>
+    <div id="activate_device_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="deactivate_device">
+      deactivate_device
+    </button>
+    <h3>Result</h3>
+    <div id="deactivate_device_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="set_device_friendly_name">
+      set_device_friendly_name
+    </button>
+    <h3>Result</h3>
+    <div id="set_device_friendly_name_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="set_key_friendly_name">
+      set_key_friendly_name
+    </button>
+    <h3>Result</h3>
+    <div id="set_key_friendly_name_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="generate_key">
+      generate_key
+    </button>
+    <h3>Result</h3>
+    <div id="generate_key_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="import_cert">
+      import_cert
+    </button>
+    <h3>Result</h3>
+    <div id="import_cert_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="activate_cert">
+      activate_cert
+    </button>
+    <h3>Result</h3>
+    <div id="activate_cert_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="deactivate_cert">
+      deactivate_cert
+    </button>
+    <h3>Result</h3>
+    <div id="deactivate_cert_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="generate_cert_request">
+      generate_cert_request
+    </button>
+    <h3>Result</h3>
+    <div id="generate_cert_request_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="delete_cert">
+      delete_cert
+    </button>
+    <h3>Result</h3>
+    <div id="delete_cert_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="delete_key">
+      delete_key
+    </button>
+    <h3>Result</h3>
+    <div id="delete_key_result"></div>
+  </div>
+
+  <div class="fill">
+    <button id="get_cached_devices">
+      get_cached_devices
+    </button>
+    <h3>Result</h3>
+    <div id="get_cached_devices_result"></div>
+  </div>
+<% end %>

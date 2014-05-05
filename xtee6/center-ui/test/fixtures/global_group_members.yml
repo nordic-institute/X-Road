@@ -1,0 +1,7 @@
+member_in_vallavalitsused_group_member:
+  global_group_id: <%= ActiveRecord::Fixtures.identify(:vallavalitsused) %>
+  group_member_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused_group_member_identifier) %>
+
+subsystem_in_vallavalitsused_group_member:
+  global_group_id: <%= ActiveRecord::Fixtures.identify(:vallavalitsused) %>
+  group_member_id: <%= ActiveRecord::Fixtures.identify(:subsystem_in_vallavalitsused_group_member_identifier) %>

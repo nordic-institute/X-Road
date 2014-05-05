@@ -1,0 +1,14 @@
+automotive_service:
+  service_code: "automotive_service"
+  target_service_id: <%= ActiveRecord::Fixtures.identify(:automotive_service_identifier) %>
+
+ballistic_service:
+  service_code: "ballistic_service"
+  target_service_id: <%= ActiveRecord::Fixtures.identify(:ballistic_service_identifier) %>
+
+ceramic_service:
+  service_code: "ceramic_service"
+  target_service_id: <%= ActiveRecord::Fixtures.identify(:ceramic_service_identifier) %>
+
+no_target_service:
+  service_code: "no_target_service"

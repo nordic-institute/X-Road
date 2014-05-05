@@ -1,0 +1,17 @@
+pki_autotehas:
+  name: "Autosid valmistatakse siin"
+  authentication_only: false
+  name_extractor_member_class: "riigiasutus"
+  name_extractor_method_name: "ee.cyber.sdsb.extractor.method"
+
+pki_baleriinid:
+  name: "Balletti tehakse siin"
+  authentication_only: true
+  name_extractor_member_class: "riigiasutus"
+  name_extractor_method_name: "ee.cyber.sdsb.extractor.method"
+
+pki_ccm:
+  name: "C keeles midagi tehakse siin"
+  authentication_only: false
+  name_extractor_member_class: "riigiasutus"
+  name_extractor_method_name: "ee.cyber.sdsb.extractor.method"

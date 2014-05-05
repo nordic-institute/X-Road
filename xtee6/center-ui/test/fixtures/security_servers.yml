@@ -1,0 +1,4 @@
+security_server:
+  server_code: "securityServer"
+  address: "www.example.com"
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused) %>

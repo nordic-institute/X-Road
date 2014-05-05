@@ -1,0 +1,17 @@
+<xsd:complexType>
+  <xsd:sequence>
+   <xsd:element name="request">
+      <xsd:complexType>
+        <xsd:sequence>
+          <xsd:element name="seed" type="xsd:decimal">
+            <xsd:annotation>
+              <xsd:appinfo>
+                <xrd:title>Random input</xrd:title>
+              </xsd:appinfo>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:sequence>
+</xsd:complexType>

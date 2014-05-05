@@ -1,0 +1,25 @@
+configurations {
+    provided
+}
+
+dependencies {
+    compile 'org.apache.commons:commons-lang3:3.1'
+    
+    compile 'ch.qos.logback:logback-access:1.0.7'
+    compile 'ch.qos.logback:logback-classic:1.0.6'
+
+    compile 'com.typesafe.akka:akka-actor_2.10:2.2.0'
+    compile 'com.typesafe.akka:akka-remote_2.10:2.2.0'
+    
+    compile project(':common-util')
+    
+    provided 'org.projectlombok:lombok:0.12.0'
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+
+eclipse {
+    classpath {
+        plusConfigurations += configurations.provided 
+    }
+}

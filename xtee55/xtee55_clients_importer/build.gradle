@@ -1,0 +1,91 @@
+project.ext.set("SDSB_HOME", System.getenv('SDSB_HOME'))
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
+    }
+}
+
+apply plugin: 'fatjar'
+
+dependencies {
+    compile project(':mediator-common')
+}
+
+fatJarPrepareFiles {
+    include '*'
+}
+
+fatJar {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+}
+
+jar.enabled = false
+
+clean << {
+    project.delete "lib/sdsb",
+            "lib/xtee55_clients_importer/xtee55_clients_importer.jar",
+            "lib/xtee55_clients_importer/version.rb"
+    // project.delete does not support wildcards.
+    ant.delete {
+        fileset(dir: file('.'), includes: '*.gem')
+    }
+}
+
+task copyCommonUi(type: Copy) {
+    if (project.SDSB_HOME == null) {
+        throw new GradleException('System environment SDSB_HOME not set')
+    }
+
+    into "$projectDir/lib/sdsb"
+    from project.SDSB_HOME + "/common-ui/lib/validation_helper.rb"
+}
+
+task copyCenterCommon(dependsOn: copyCommonUi, type: Copy) {
+    if (project.SDSB_HOME == null) {
+       throw new GradleException('System environment SDSB_HOME not set')
+    }
+
+    into "$projectDir/lib/sdsb"
+    from project.SDSB_HOME + "/center-common/app/models/"
+    include 'client_id.rb',
+        'distributed_files.rb',
+        'identifier.rb',
+        'global_group_member.rb',
+        'global_group.rb',
+        'member_class.rb',
+        'sdsb_member.rb',
+        'security_server_client_name.rb',
+        'security_server_client.rb',
+        'subsystem.rb',
+        'system_parameter.rb',
+        'validators.rb'
+}
+
+task changeSDSBSource(dependsOn: copyCenterCommon, type: Exec) {
+   commandLine = ['./change_sdsb_source.sh']
+}
+
+task createGemVersion(type: Exec) {
+   commandLine = "./create_gem_version.sh $version $projectDir/lib/xtee55_clients_importer/version.rb".tokenize()
+}
+
+task copyJar(dependsOn: fatJar, type: Copy) {
+   into "$projectDir/lib/xtee55_clients_importer"
+   from "$buildDir/libs/xtee55_clients_importer-${version}.jar"
+   rename "xtee55_clients_importer-${version}.jar", "xtee55_clients_importer.jar"
+}
+
+task buildGem(dependsOn: [createGemVersion, changeSDSBSource, copyJar], type: Exec) {
+    commandLine = [
+            'jruby', '-S', 'gem', 'build', 'xtee55_clients_importer.gemspec']
+}
+
+build.dependsOn fatJar
+build.dependsOn buildGem

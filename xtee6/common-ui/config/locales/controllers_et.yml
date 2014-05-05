@@ -1,0 +1,26 @@
+et:
+  common:
+    params_error: "Viga päringu parameetrites"
+    changes_saved: "Muudatused salvestatud"
+    proxy_org_name: "X-tee turvaserver"
+    proxy_org_name_az: "EHDIS turvaserver"
+    present: "olemas"
+    missing: "puudub"
+    time_format: "%Y-%m-%d %H:%M:%S"
+
+  menu:
+    mangement:
+      backup: "Varunda konfiguratsioon"
+      restore: "Taasta konfiguratsioon"
+
+  validation:
+    missing_param: "Puuduv parameeter: %{param}"
+    unexpected_param: "Tundmatu parameeter: %{param}"
+    invalid_email: "Ebakorrektne e-posti aadress: '%{addr}'"
+    invalid_filename: "Ebakorrektne failinimi: '%{val}'"
+
+  restore:
+    success: "Konfiguratsioon edukalt taastatud"
+    error:
+      script_failed: "Taastamine ebaõnnestus, skript lõpetas koodiga '%{exitstatus}'"
+      

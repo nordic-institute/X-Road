@@ -1,0 +1,29 @@
+source 'https://rubygems.org'
+
+gem 'rails', '~>3.2.10'
+#gem 'pg', '~>0.15.1'
+
+gem 'activerecord-jdbcpostgresql-adapter', '~>1.2.9'
+gem 'jdbc-postgres', '~>9.2.1002.1'
+
+# XXX Why is it here commented out?
+# gem 'jruby-openssl', '~>0.8.8'
+
+if File.exists?("../common-ui")
+  gem 'common-ui', :path => "../common-ui"
+else
+  gem 'common-ui', :path => "vendor/engines/common-ui"
+end
+
+if File.exists?("../center-common")
+  gem 'center-common', :path => "../center-common"
+else
+  gem 'center-common', :path => "vendor/engines/center-common"
+end
+
+if ENV["RAILS_ENV"] != "production"
+  group :test do
+    gem 'jdbc-sqlite3', '~>3.7.2.1'
+    gem 'activerecord-jdbcsqlite3-adapter', '~>1.2.9'
+  end
+end

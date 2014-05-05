@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<sdsb:securityCategoryId id:objectType="SECURITYCATEGORY"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:securityCategoryCode>ISKE_H</id:securityCategoryCode>
+</sdsb:securityCategoryId>
+

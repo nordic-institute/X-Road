@@ -1,0 +1,48 @@
+<%= dialog "add_pki_step4_add_top_ca_ocsp_responders", t("pkis.add.step4.title") do %>
+  <fieldset class="top_ca_ocsp_responder">
+    <legend>
+      <%= t 'pkis.add.step4.top_ca_ocsp_responder' %>
+      <% if can?(get_pki_edit_privilege) %>
+        <button id="top_ca_ocsp_responder_delete">
+          <%= t 'common.delete' %>
+        </button>
+      <% end %>
+    </legend>
+    <table>
+      <tr>
+        <td><%= t 'pkis.add.url' %></td>
+        <td><input id="top_ca_ocsp_responder_url" type="text"/></td>
+      </tr>
+      <tr>
+        <td><%= t 'pkis.add.cert' %></td>
+        <td>
+          <%= form_tag "#{controller.controller_name}/upload_ocsp_responder_cert",
+              :id => "ocsp_responder_cert_upload_form", :multipart => true,
+              :target => "top_ca_ocsp_responder_cert_upload_target" do %>
+            <%= file_field_tag "upload_ocsp_responder_cert_file" %>
+          <% end %>
+        </td>
+        <td>
+          <% if can?(get_pki_edit_privilege) %>
+            <button id="ocsp_responder_cert_upload" disabled="disabled">
+              <%= t 'pkis.add.load' %>
+            </button>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+    <p id="ocsp_responder_cert_temp_id"></p>
+    <p id="ocsp_responder_id"></p>
+  </fieldset>
+
+  <iframe
+      id="top_ca_ocsp_responder_cert_upload_target"
+      name="top_ca_ocsp_responder_cert_upload_target">
+  </iframe>
+
+  <% if can?(get_pki_edit_privilege) %>
+    <button id="pki_add_top_ca_ocsp_responder" disabled="disabled">
+      <%= t 'pkis.add.step4.add_top_ca_ocsp_responder' %>
+    </button>
+  <% end %>
+<% end %>

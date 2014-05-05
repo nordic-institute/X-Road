@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<SOAP-ENV:Envelope 
+ SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+ xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" 
+ xmlns:xtee="http://x-tee.riik.ee/xsd/xtee.xsd">
+ <SOAP-ENV:Body>
+ <xtee:listMethodsResponse>
+ <keha xsi:type="SOAP-ENC:Array" 
+ SOAP-ENC:arrayType="xsd:string[2]" SOAP-ENC:offset="[0]">
+ <item xsi:type="xsd:string">xrddl-andmekogu.listMethods</item> 
+ <item xsi:type="xsd:string">xrddl-andmekogu.xrddlGetRandom.v1</item> 
+ </keha>
+ </xtee:listMethodsResponse>
+ </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

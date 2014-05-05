@@ -1,0 +1,29 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "asynclog" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <table id="records" class="fixed">
+      <thead>
+        <tr>
+          <th><%= t 'asynclog.index.no' %></th>
+          <th><%= t 'asynclog.index.logged' %></th>
+          <th><%= t 'asynclog.index.state' %></th>
+          <th><%= t 'asynclog.index.received' %></th>
+          <th><%= t 'asynclog.index.removed' %></th>
+          <th><%= t 'asynclog.index.send_attempts' %></th>
+          <th><%= t 'asynclog.index.producer' %></th>
+          <th><%= t 'asynclog.index.sender' %></th>
+          <th><%= t 'asynclog.index.request_id' %></th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+  <div class="dataTables_actions">
+    <button id="refresh"><%= t 'common.refresh' %></button>
+  </div>
+
+  <div class="clearer"></div>
+<% end %>

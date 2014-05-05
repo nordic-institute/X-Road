@@ -1,0 +1,13 @@
+Source: xtee55-proxy
+Section: X-Road
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: xtee55-proxy
+Architecture: all
+Depends: ${misc:Depends}, xroad-common, xroad-proxy, xtee55-common, xtee-proxy (>=5.37)
+Description: X-Road 5.5 security server
+ Adapter programs and utilities for co-operating 5.0 and 6.0
+

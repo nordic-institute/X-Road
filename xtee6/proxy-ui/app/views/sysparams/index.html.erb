@@ -1,0 +1,76 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "sysparams" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill" id="sysparams">
+    <h1 class="section-title">Global configuration distributors</h1>
+    <div class="tablewrapper">
+    	<table id="globalconf_dist" class="fixed">
+    		<thead>
+    			<th>Address</th>
+    			<th>Certificate</th>
+    		</thead>
+    	</table>
+
+    	<div class="dataTables_actions">
+        <button id="dists_add">Add</button>
+        <button id="dists_remove" disabled="disabled">Delete</button>
+      </div>
+    </div>
+
+    <h1 class="section-title">Timestamping services</h1>
+    <div class="tablewrapper">
+    	<table id="timestamp_services" class="fixed">
+    		<thead>
+    			<th>Timestamping service</th>
+    			<th>Service URL</th>
+    		</thead>
+    	</table>
+
+    	<div class="dataTables_actions">
+        <button id="timestamp_add">Add</button>
+        <button id="timestamp_remove">Delete</button>
+      </div>
+    </div>
+
+    <h1 class="section-title">Asynchronous requests parameters</h1>
+    <div class="tablewrapper">
+      <table id="async_request_params">
+        <tr>
+          <td>Period between first and second attempt to send request (sec)</td>
+          <td><%= text_field_tag 'async_period' %></td>
+        </tr>
+        <tr>
+          <td>Maximum period between attempts to send a request (sec)</td>
+          <td><%= text_field_tag 'async_max_period' %></td>
+        </tr>
+        <tr>
+          <td>Maximum number of parallel requests</td>
+          <td><%= text_field_tag 'async_parallel' %></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><button id="async_edit">Save</button></td>
+        </tr>
+      </table>
+    </div>
+    <h1 class="section-title">Internal SSL Certificate</h1>
+    <div class="tablewrapper">
+      <div><span>Fingerprint</span> <%= text_field_tag 'fingerprint', nil, :readonly => true %></div>
+      <div>
+        <%= form_tag "#{controller.controller_name}/export_ssl_cert" do %>
+          <%= button_tag 'Certificate details', :id => 'cert_details_btn' %>
+          <%= button_tag 'Export', :id => 'export_ssl_cert' %>
+          <%= button_tag 'Generate New SSL Key', :id => 'new_ssl' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%= render :partial => 'globalconf_dists_add' %>
+  <%= render :partial => 'timestamp_services_add' %>
+  <%= render :partial => 'edit_timestamp_url' %>
+  <%= render :partial => 'cert_details' %>
+
+<% end %>

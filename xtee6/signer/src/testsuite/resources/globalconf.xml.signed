@@ -1,0 +1,199 @@
+Content-Type: multipart/related; charset=UTF-8; boundary=9CwYrFKZKx4Qg1p89Z/JBNilMtU=
+
+--9CwYrFKZKx4Qg1p89Z/JBNilMtU=
+Content-Type: multipart/mixed; charset=UTF-8; boundary=r9z2ThoR/ra2CxueXqfpQX/KR+k=
+
+--r9z2ThoR/ra2CxueXqfpQX/KR+k=
+Content-Type: text/xml
+Content-Date: 2023-02-11T13:16:39+0000
+
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:conf xmlns:id="http://sdsb.net/xsd/identifiers" xmlns:tns="http://sdsb.net/xsd/xroad.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://x-rd.net/xsd/xroad.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
+    <instanceIdentifier>EE</instanceIdentifier>
+    <!-- Members - start -->
+
+
+    <member id="clientmember">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>clientmember</memberCode>
+        <name>clientmember</name>
+    </member>
+
+    <member id="servicemember">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>servicemember</memberCode>
+        <name>servicemember</name>
+    </member>
+
+    <member id="servicemember2">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>servicemember2</memberCode>
+        <name>servicemember2</name>
+    </member>
+
+    <member id="publicmember3">
+        <memberClass>riigiasutus</memberClass>
+        <memberCode>publicmember3</memberCode>
+        <name>publicmember3</name>
+    </member>
+
+    <member id="servicemember4">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>servicemember4</memberCode>
+        <name>servicemember4</name>
+    </member>
+
+    <member id="My_Cert_Expires_Soon">
+        <memberClass>BUSINESS</memberClass>
+        <memberCode>My_Cert_Expires_Soon</memberCode>
+        <name>My_Cert_Expires_Soon</name>
+    </member>
+
+
+    <!-- Members - end -->
+
+    <memberClass>
+        <code>BUSINESS</code>
+        <description>Business clients</description>
+    </memberClass>
+
+    <securityCategory>
+        <code>topSecret</code>
+        <description>Explicit content</description>
+    </securityCategory>
+
+    <!-- Security servers - start -->
+
+    <securityServer>
+        <owner>clientmember</owner>
+        <serverCode>topSecret</serverCode>
+        <address>iks2-test1.cyber.ee</address>
+        <authCertHash>wdl2l2BY4w1r8G1Fw1VtdIV5lKGZGKkmOb9lYZt3k7o=</authCertHash>
+        <securityCategory>topSecret</securityCategory>
+    </securityServer>
+
+    <securityServer>
+        <owner>servicemember</owner>
+        <serverCode>topSecret</serverCode>
+        <address>127.0.0.1</address>
+        <authCertHash>ArmKbrzcB5bCQZFba0tHjxRfH4pP85NRxGS8HV1P9YU=</authCertHash>
+        <securityCategory>topSecret</securityCategory>
+    </securityServer>
+
+
+    <!-- Security servers - end -->
+
+    <centralService>
+        <serviceCode>serviceCode</serviceCode>
+        <implementingService id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>chuckNorris</id:memberCode>
+            <id:serviceCode>central</id:serviceCode>
+        </implementingService>
+    </centralService>
+
+
+
+    <pki>
+        <name>pki1</name>
+        <!-- Extracted from: signer/src/testsuite/resources/root_ca.pem -->
+        <topCA>
+            <cert>MIIDdTCCAl2gAwIBAgIJAOuBNCIUm0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNV
+                BAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEa
+                MBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIw
+                OTEyMTE1NjM3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2Ex
+                EDAOBgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIB
+                IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0THglNHoU
+                T8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80EGwJFAU1IajhELF
+                yRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6BERkrTQi8oRXO7psslbiU
+                4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB814gCpoM6nmK1XR2f3JdCTJxPyE
+                7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XSC6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2
+                Tlx+QHIWhvZ9bDdEGY58O0jWj3lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwID
+                AQABo1AwTjAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwS
+                hz1YZzAfBgNVHSMEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0B
+                AQUFAAOCAQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJr
+                pHdUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQnAb6a
+                SJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxTjtcHbTnm/y
+                GPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar3za6UdFEBDX2aHQD
+                4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5Jrr4P9xYprRY1une3IWvviJ
+                NXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==
+            </cert>
+            <ocsp>
+                <!-- Local OCSP responder simulator used currently -->
+                <url>http://127.0.0.1:8082/ocsp</url>                
+                <!--url>http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp</url-->
+                <!-- XXX For some reason it requires CA cert right here! -->
+                <cert>MIIDdTCCAl2gAwIBAgIJAOuBNCIUm0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNV
+                    BAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEa
+                    MBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIw
+                    OTEyMTE1NjM3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2Ex
+                    EDAOBgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIB
+                    IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0THglNHoU
+                    T8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80EGwJFAU1IajhELF
+                    yRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6BERkrTQi8oRXO7psslbiU
+                    4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB814gCpoM6nmK1XR2f3JdCTJxPyE
+                    7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XSC6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2
+                    Tlx+QHIWhvZ9bDdEGY58O0jWj3lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwID
+                    AQABo1AwTjAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwS
+                    hz1YZzAfBgNVHSMEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0B
+                    AQUFAAOCAQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJr
+                    pHdUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQnAb6a
+                    SJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxTjtcHbTnm/y
+                    GPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar3za6UdFEBDX2aHQD
+                    4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5Jrr4P9xYprRY1une3IWvviJ
+                    NXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==
+                </cert>
+            </ocsp>
+        </topCA>
+        <nameExtractor>
+            <memberClass>BUSINESS</memberClass>
+            <methodName>ee.cyber.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
+        </nameExtractor>
+    </pki>
+    <approvedTsp>
+        <name>Test TSP</name>
+        <url>http://www.foo.bar</url>
+        <cert>MIIDdTCCAl2gAwIBAgIJAOuBNCIUm0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNV
+            BAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEa
+            MBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIw
+            OTEyMTE1NjM3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2Ex
+            EDAOBgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIB
+            IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0THglNHoU
+            T8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80EGwJFAU1IajhELF
+            yRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6BERkrTQi8oRXO7psslbiU
+            4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB814gCpoM6nmK1XR2f3JdCTJxPyE
+            7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XSC6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2
+            Tlx+QHIWhvZ9bDdEGY58O0jWj3lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwID
+            AQABo1AwTjAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwS
+            hz1YZzAfBgNVHSMEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0B
+            AQUFAAOCAQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJr
+            pHdUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQnAb6a
+            SJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxTjtcHbTnm/y
+            GPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar3za6UdFEBDX2aHQD
+            4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5Jrr4P9xYprRY1une3IWvviJ
+            NXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==
+        </cert>
+    </approvedTsp>
+    <globalSettings>
+        <managementRequestServiceAddress>http://mgmt.com:1234</managementRequestServiceAddress>
+        <managementRequestServiceId id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>servicemember</id:memberCode>
+        </managementRequestServiceId>
+    </globalSettings>
+</tns:conf>
+
+
+
+--r9z2ThoR/ra2CxueXqfpQX/KR+k=--
+
+--9CwYrFKZKx4Qg1p89Z/JBNilMtU=
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: binary
+Signature-Algorithm-Id: SHA-256
+
+gs#ßíÕ@Äi§Ê≠¿_r—¢h˚G€ﬁ»	ÕÛÍåè"œ~¨[^Ÿ¢æÏœf«ÛW˘ÚØJ

@@ -1,0 +1,16 @@
+dependencies {
+    compile project(':common-util'),
+    'com.google.code.gson:gson:2.2.3'
+
+    testCompile project(':common-test')
+}
+
+task runLockingTest(type: JavaExec) {
+    main = 'ee.cyber.sdsb.asyncdb.LockingTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runAsyncDBIntegrationTest(type: JavaExec) {
+    main = 'ee.cyber.sdsb.asyncdb.AsyncDBIntegrationTest'
+    classpath = sourceSets.test.runtimeClasspath
+}

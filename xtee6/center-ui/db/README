@@ -1,0 +1,14 @@
+I did not manage to get both migrations work and central up and running
+when migrations were in center-common project where these are supposed to be.
+
+TODO: Later move migrations to center-common, so that center-ui comes up as
+well.
+
+To migrate successfully in devel, copy folder center-common/db/migrate right
+here!
+
+rake db:migrate and rake db:rollback should be run from this project
+(center-ui).
+In production environment run:
+
+rake db:migrate RAILS_ENV="production" 

@@ -1,0 +1,4 @@
+<foo>
+    <!-- Some comment that should be removed -->
+    <bar>Hello, world!</bar>
+</foo>

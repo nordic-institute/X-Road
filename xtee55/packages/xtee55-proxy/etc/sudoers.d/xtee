@@ -1,0 +1,19 @@
+
+User_Alias	IMPORTERS = sdsb,ui
+
+Cmnd_Alias	SSLKEY = /usr/share/sdsb/scripts/import_internal_sslkey.sh -export
+
+# enable exporter run as ui user
+IMPORTERS  ALL=(ui) NOPASSWD: /usr/share/sdsb/scripts/serviceimporter.sh
+
+#exporter should trigger reload of producer_proxy conf
+IMPORTERS  ALL=(ui) NOPASSWD: /usr/share/sdsb/scripts/reload_producer_proxy.sh
+
+#need to restart nginx
+IMPORTERS ALL=(root) NOPASSWD: /etc/init.d/nginx reload
+
+#export sslkey to 5.0
+sdsb	ALL=(ui) NOPASSWD: SSLKEY
+
+# Reload servicemediator
+sdsb	ALL=(root) NOPASSWD: /sbin/restart xtee55-servicemediator

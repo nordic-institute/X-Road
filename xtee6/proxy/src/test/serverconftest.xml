@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:serverConf xmlns:id="http://sdsb.net/xsd/identifiers"
+    xmlns:tns="http://sdsb.net/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-util/src/main/resources/serverconf.xsd">
+    <serverCode>topSecret</serverCode>
+
+    <owner>owner</owner>
+
+    <client id="owner">
+        <identifier id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:subsystemCode>highSecurity</id:subsystemCode>
+        </identifier>
+        <fullName>Experimental consumer</fullName>
+        <wsdl>
+            <url>http://consumer.com</url>
+            <wsdlLocation>kusagil/elvas</wsdlLocation>
+            <disabled>false</disabled>
+            <publish>true</publish>
+            <publishedDate>2011-12-31T12:00:00</publishedDate>
+            <refreshedDate>2012-12-31T14:00:00</refreshedDate>
+
+            <service>
+                <serviceCode>testQuery</serviceCode>
+                <url>http://127.0.0.1:8081/testQuery</url>
+                <timeout>20</timeout>
+                <requiredSecurityCategory
+                    id:objectType="MEMBER">
+                    <id:sdsbInstance>CH</id:sdsbInstance>
+                    <id:securityCategoryCode>XXX</id:securityCategoryCode>
+                </requiredSecurityCategory>
+                <authorizedSubject>
+                    <subjectId id:objectType="MEMBER"
+                        xsi:type="id:SdsbIdentifierType">
+                        <id:sdsbInstance>EE</id:sdsbInstance>
+                        <id:memberClass>BUSINESS</id:memberClass>
+                        <id:memberCode>consumer</id:memberCode>
+                    </subjectId>
+                    <rightsGiven>2011-12-31T12:00:00</rightsGiven>
+                </authorizedSubject>
+                <authorizedSubject>
+                    <subjectId id:objectType="MEMBER"
+                        xsi:type="id:SdsbIdentifierType">
+                        <id:sdsbInstance>EE</id:sdsbInstance>
+                        <id:memberClass>NEEGRID</id:memberClass>
+                        <id:memberCode>miskiAsutus</id:memberCode>
+                    </subjectId>
+                    <rightsGiven>2011-12-31T12:00:00</rightsGiven>
+                </authorizedSubject>
+            </service>
+
+            <service>
+                <serviceCode>arvutaSuurused</serviceCode>
+                <url>http://nihhuijaa.example.net/ikstee</url>
+                <timeout>30</timeout>
+                <authorizedSubject>
+                    <subjectId id:objectType="LOCALGROUP"
+                        xsi:type="id:SdsbIdentifierType">
+                        <!-- XXX Do we need this in case of local groups? -->
+                        <id:sdsbInstance>LV</id:sdsbInstance>
+                        <id:groupCode>daGroup</id:groupCode>
+                    </subjectId>
+                    <rightsGiven>2011-12-31T12:00:00</rightsGiven>
+                </authorizedSubject>
+
+                <authorizedSubject>
+                    <subjectId id:objectType="MEMBER"
+                        xsi:type="id:SdsbIdentifierType">
+                        <id:sdsbInstance>EE</id:sdsbInstance>
+                        <id:memberClass>BUSINESS</id:memberClass>
+                        <id:memberCode>consumer</id:memberCode>
+                    </subjectId>
+                    <rightsGiven>2011-12-31T12:00:00</rightsGiven>
+                </authorizedSubject>
+                <authorizedSubject>
+                    <subjectId id:objectType="MEMBER"
+                        xsi:type="id:SdsbIdentifierType">
+                        <id:sdsbInstance>LV</id:sdsbInstance>
+                        <id:memberClass>MEIECUNDIMEES</id:memberClass>
+                        <id:memberCode>vitaliFaktulin</id:memberCode>
+                        <id:subsystemCode>saldejums</id:subsystemCode>
+                    </subjectId>
+                    <rightsGiven>2011-12-31T12:00:00</rightsGiven>
+                </authorizedSubject>
+            </service>
+        </wsdl>
+
+        <localGroup>
+            <groupCode>daGroup</groupCode>
+            <description>tankistid</description>
+            <groupMember>
+                <groupMemberId id:objectType="MEMBER">
+                    <id:sdsbInstance>RU</id:sdsbInstance>
+                    <id:memberClass>SPETSNAZ</id:memberClass>
+                    <id:memberCode>natasha</id:memberCode>
+                </groupMemberId>
+                <added>2011-12-31T12:00:00</added>
+            </groupMember>
+            <updated>2011-12-31T12:00:00</updated>
+        </localGroup>
+        <isAuthentication>NOSSL</isAuthentication>
+    </client>
+
+    <client>
+        <identifier id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </identifier>
+        <fullName>Experimental consumer</fullName>
+        <isAuthentication>NOSSL</isAuthentication>
+    </client>
+
+    <client>
+        <identifier id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>subwoofer</id:memberCode>
+        </identifier>
+        <fullName>Experimental consumer</fullName>
+        <isAuthentication>NOSSL</isAuthentication>
+    </client>
+
+    <client>
+        <identifier id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>ettevõte</id:memberClass>
+            <id:memberCode>õäö</id:memberCode>
+        </identifier>
+        <fullName>Äü Öõä</fullName>
+        <isAuthentication>NOSSL</isAuthentication>
+    </client>
+
+    <globalConfDistributor>
+        <url>http://iks2-central.cyber.ee</url>
+        <verificationCert>TODO</verificationCert>
+    </globalConfDistributor>
+
+    <tsp>
+        <name>Blaah</name>
+        <url>http://www.tsp.org</url>
+    </tsp>
+
+    <asyncSender>
+        <baseDelay>300</baseDelay>
+        <maxDelay>1800</maxDelay>
+        <maxSenders>1000</maxSenders>
+    </asyncSender>
+
+</tns:serverConf>

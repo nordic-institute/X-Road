@@ -1,0 +1,3 @@
+etc/sdsb/devices.ini
+etc/sdsb/services/global.conf
+etc/sdsb/services/signer.conf

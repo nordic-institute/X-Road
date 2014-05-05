@@ -1,0 +1,35 @@
+# Xroad distributed files client
+#
+
+description	"xroad2 distributed files client"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+#setuid sdsb
+#setgid sdsb
+
+respawn
+respawn limit 10 5
+umask 007
+
+expect daemon
+
+pre-start script
+    mkdir -p -m0755 /var/run/sdsb
+    chown sdsb:sdsb /var/run/sdsb
+    mount -o remount,acl `df  /etc/sdsb/ | awk '/^\/dev/ {print $1}'`
+    chown sdsb:sdsb /etc/sdsb
+    setfacl -m "default:group::rw" /etc/sdsb/
+end script
+
+script
+exec >>/tmp/ddd2.log 2>&1
+set -x
+
+  . /etc/sdsb/services/dfc.conf
+#  logger -t "$0" "DEBUG: `set`"
+#  java ${SIGNER_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/signer-1.0.jar
+   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name sdsb-dfc --exec ${JAVA_HOME}/bin/java -- ${DFC_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/distributed-files-client.jar
+end script
+

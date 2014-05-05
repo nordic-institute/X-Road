@@ -1,0 +1,12 @@
+#!/bin/sh
+
+unset BUNDLE_GEMFILE
+unset GEM_HOME
+unset GEM_PATH
+unset BUNDLE_BIN_PATH
+unset RUBYOPT
+unset SCHEMA
+unset _ORIGINAL_GEM_PATH
+unset PATH
+
+/usr/share/sdsb/jruby/bin/jruby /usr/share/sdsb/jruby/lib/ruby/gems/shared/gems/xtee55_clients_importer-0.1/bin/xtee55_clients_importer  $*

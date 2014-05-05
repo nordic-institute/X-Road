@@ -1,0 +1,21 @@
+--xtop1357783211hcn1yiro
+Content-Type: text/xml
+
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd">
+    <SOAP-ENV:Header>
+        <sdsb:consumer>consumer</sdsb:consumer>
+        <sdsb:producer>producer</sdsb:producer>
+        <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
+        <sdsb:id>598b0bcc8302a9a6ae86d41af6e5ebd3</sdsb:id>
+        <sdsb:service>producer.getState</sdsb:service>
+        <sdsb:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <sdsb:getState/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+--xtop1357783211hcn1yiro
+Content-Type: signature/bdoc-1.0/ts
+
+invalid signature
+--xtop1357783211hcn1yiro--

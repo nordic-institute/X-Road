@@ -1,0 +1,78 @@
+<!-- Title will be filled dynamically later -->
+<%= dialog "central_service_details_dialog", "" do %>
+  <div class="inlined">
+    <table>
+      </tr>
+        <td><%= t 'central_services.details.central_service_code' %></td>
+        <td><input id="central_service_details_service_code" type="text"/></td>
+      </tr>
+    </table>
+
+    <fieldset>
+      <legend>
+        <%= t 'central_services.details.implementing_service.legend' %>
+      </legend>
+      <table>
+        <tr>
+          <td/>
+        </tr>
+          <td><%= t 'central_services.details.implementing_service.code' %></td>
+          <td><input id="central_service_details_target_code" type="text"/></td>
+        </tr>
+        </tr>
+          <td><%= t 'central_services.details.implementing_service.provider_name' %></td>
+          <td><input id="central_service_details_target_provider_name" type="text"/></td>
+        </tr>
+        <tr>
+          <td><%= t 'central_services.provider_code' %></td>
+          <td><input id="central_service_details_target_provider_code" type="text"/></td>
+        </tr>
+        <tr>
+          <td><%= t 'central_services.provider_class' %></td>
+          <td><%= select_tag(
+            "central_service_details_target_provider_class",
+            options_for_select([""])) %>
+          </td>
+        </tr>
+        <tr>
+        <tr>
+          <td><%= t 'central_services.provider_subsystem' %></td>
+          <td><input id="central_service_details_target_provider_subsystem" type="text"/></td>
+        </tr>
+      </table>
+    </fieldset>
+
+    <% if can?(:edit_implementing_service) %>
+      <button id="central_service_details_clear_search" class="right">
+        <%= t 'common.clear' %>
+      </button>
+    <% end %>
+    <% if can?(:edit_implementing_service) %>
+      <button id="central_service_details_search_provider" class="right">
+        <%= t 'central_services.details.search_provider' %>
+      </button>
+    <% end %>
+  </div>
+
+  <div id="central_service_details_member_search">
+    <table id="central_service_details_providers" class="display">
+      <thead>
+        <tr>
+          <th id="central_service_id_service_code"><%= t 'central_services.provider_name' %></th>
+          <th id="central_service_id_provider_code"><%= t 'central_services.provider_code' %></th>
+          <th id="central_service_id_provider_class"><%= t 'central_services.provider_class' %></th>
+          <th id="central_service_id_provider_subsystem"><%= t 'central_services.provider_subsystem' %></th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="clearer"></div>
+
+    <% if can?(:edit_implementing_service) %>
+      <button id="central_service_details_found_provider_cancel" class="right"><%= t 'common.cancel' %></button>
+    <% end %>
+    <% if can?(:edit_implementing_service) %>
+      <button id="central_service_details_found_provider_add" class="right"><%= t 'common.ok' %></button>
+    <% end %>
+  </div>
+<% end %>

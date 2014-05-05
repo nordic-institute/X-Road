@@ -1,0 +1,45 @@
+<%= dialog "auth_cert_delete_dialog", t("securityservers.auth_cert.delete.title") do %>
+  <fieldset>
+    <legend><%= t 'securityservers.auth_cert.owner.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'securityservers.owner_name' %></td>
+        <td><input id="delete_auth_cert_owner_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_class' %></td>
+        <td><input id="delete_auth_cert_owner_class" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_code' %></td>
+        <td><input id="delete_auth_cert_owner_code" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.server_code' %></td>
+        <td><input id="delete_auth_cert_servercode" type="text" readonly/></td>
+      </tr>
+    </table>
+  </fieldset>
+
+  <fieldset>
+    <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
+    <table>
+      <tr>
+        <td><%= t 'securityservers.auth_cert.csp' %></td>
+        <td><input id="delete_auth_cert_csp" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.auth_cert.serial_number' %></td>
+        <td><input id="delete_auth_cert_serial_number" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.auth_cert.subject' %></td>
+        <td><input id="delete_auth_cert_subject" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.auth_cert.expires' %></td>
+        <td><input id="delete_auth_cert_expires" type="text" readonly/></td>
+      </tr>
+    </table>
+  </fieldset>
+<% end %>

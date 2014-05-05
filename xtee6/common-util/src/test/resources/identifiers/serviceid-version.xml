@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<sdsb:service id:objectType="SERVICE"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:memberClass>BUSINESS</id:memberClass>
+    <id:memberCode>JODA</id:memberCode>
+    <id:serviceCode>getState</id:serviceCode>
+    <id:serviceVersion>v1</id:serviceVersion>
+</sdsb:service>
+

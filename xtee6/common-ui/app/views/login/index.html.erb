@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <%= stylesheet_link_tag "layout", "common", "application" %>
+    <title><%= t 'layouts.application.title' %></title>
+  </head>
+  <body>
+    <div id="header">
+      <div class="pagetitle">
+        <%= t 'layouts.application.title' %>
+      </div>
+      <div class="server_id">
+        <%= @server_id.toShortString if @server_id %>
+      </div>
+    </div>
+
+    <form method="POST" action="j_security_check">
+      <table style="margin: 0 auto;">
+        <tbody>
+          <tr>
+            <td>Username:</td>
+            <td align="right"><%= text_field_tag :j_username %></td>
+          </tr>
+          <tr>
+            <td>Password:</td>
+            <td align="right"><%= password_field_tag :j_password %></td>
+          </tr>
+          <% if flash[:error] %>
+          <tr>
+            <td colspan="2">
+              <div class="error message" style="display: block;">
+                <%= raw(flash_message(:error)) %>
+              </div>
+            </td>
+          </tr>
+          <% end %>
+          <tr>
+            <td colspan="2" style="padding-top: 0.5em; text-align: right;">
+              <input type="submit" value="Login"/>
+            </td>
+            <td />
+          </tr>
+        </tbody>
+      </table>
+    </form>
+  </body>
+</html>

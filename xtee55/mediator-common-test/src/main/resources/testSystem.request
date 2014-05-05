@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Body>
+        <xrd:testSystem xmlns:xrd="http://x-road.ee/xsd/x-road.xsd"/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,36 @@
+<%= dialog "client_groups_dialog", t('.local_groups') do %>
+  <div class="fill">
+    <div class="groups_actions" style="float: right;">
+      <button id="group_details"><%= t '.details' %></button>
+      <button id="group_add"><%= t '.add_group' %></button>
+    </div>
+
+    <table id="groups">
+      <thead>
+        <tr>
+          <th id="group_code"><%= t '.code' %></th>
+          <th id="group_description"><%= t '.description' %></th>
+          <th id="group_member_count"><%= t '.member_count' %></th>
+          <th id="group_updated"><%= t '.updated' %></th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+<% end %>
+
+<%= dialog "group_add_dialog", t('.new_group') do %>
+  <%= form_tag do %>
+    <table style="width: 100%;">
+      <tr>
+        <td><%= t '.code' %></td>
+        <td><%= text_field_tag "add_group_code", nil, :style => "width: 100%;" %></td>
+      </tr>
+      <tr>
+        <td><%= t '.description' %></td>
+        <td><%= text_area_tag "add_group_description" %></td>
+      </tr>
+    </table>
+  <% end %>
+<% end %>
+
+<%= render :partial => "group_details_dialog" %>

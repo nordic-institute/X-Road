@@ -1,0 +1,93 @@
+en:
+  menu:
+    configuration:
+      title: "Configuration"
+      tsp: "Time Stamping Services"
+      pki: "Certification Services"
+      org: "Members"
+      group: "Groups"
+      member: "Members"
+      securityserver: "Security Servers"
+      central_service: "Central Services"
+    management:
+      title: "Management"
+      request: "Management Requests"
+      import_v5: "Import X-Road 5.0 Data"
+      distributed_file: "Distributed Files"
+    help:
+      title: "Help"
+      version: "Version"
+    notimplemented: "TODO - Implement!"
+
+  common:
+    cert_imported: "Certificate imported successfully"
+
+  pki:
+    index:
+      name: "Name"
+      rootCA_SN: "Root CA subject name"
+    add:
+      no_name_extractor: "Name extractor method must be provided for PKI used for signing"
+    edit:
+      no_ca_cert: "Cannot save CA with no cert"
+
+  orgs:
+    name_exists: "This registry code (short name) is already in use"
+    fullname_exists: "This name is already in use"
+    delete_success: "SDSB member removed"
+    org_type_error: "Unknown SDSB member type"
+    name_error: "Cannot read the registry code (short name) of '{{org}}'"
+    fullname_error: "Cannot read the name of '{{org}}'"
+    invalid_name: "Database name must not start with number"
+    card_not_available: "Required smart card ({{serial}}) not available"
+
+  validation:
+    member_exists: "Member with class '%{member_class}' and code '%{member_code}' already exists"
+    securitserver_exists: "Security server with server code '%{server_code}', and with owner (member code: '%{member_code}' and member class code: '%{member_class}') already exists"
+    invalid_uri: "Invalid URI '%{uri}' for attribute '%{attribute}'"
+    already_exists: "Attribute '%{attribute}' with value '%{value}' already exists"
+
+  central_services:
+    provider_not_found: "Provider with ID '%{provider_id}' not found"
+    no_search_data: "Please insert (part of) provider name, code, class or subsystem code as search parameter"
+    add:
+      provider_not_found: "Provider not found"
+      provider_with_no_service_code: "Cannot save central service with existing provider, but no service code"
+
+  identifiers:
+    service_code_empty: "Service code must not be blank"
+
+  groups:
+    delete: "Group deleted successfully"
+    change_description: "Description changed successfully"
+    delete_all_members: "All members removed successfully"
+    delete_selected_members: "Selected members removed successfully"
+
+  members:
+    server_already_exists: "Server with owner class '%{member_class}', owner code '%{member_code}' and server code '%{server_code}' already exists."
+    server_code_blank: "Server code cannot be blank!"
+    auth_cert_request_added: "Request of adding authentication certificate to new security server '%{security_server}' added successfully"
+    client_add_request_added: "Request of adding client '%{client_id}' to security server '%{server_id}' added successfully"
+    client_deletion_request_added: "Request of deleting client '%{client_id}' from security server '%{server_id}' added successfully"
+    member_added_to_global_group: "Member '%{member_code}' successfully added to global group '%{group_code}'"
+    member_deleted_from_global_group: "Member '%{member_code}' successfully deleted from global group '%{group_code}'"
+
+  securityservers:
+     add_auth_cert_adding_request: "Request of adding authentication certificate to existing security server '%{security_server}' added successfully"
+     add_auth_cert_deletion_request: "Request of deleting authentication certificate from existing security server '#{security_server_id}' added successfully"
+
+  management_requests:
+    client_reg_request_canceled: "Successfully canceled client registration request with id '%{id}'"
+    auth_cert_reg_request_canceled: "Successfully canceled authentication request with id '%{id}'"
+
+  distributed_files:
+    invalid_xml: "Uploaded does not contain valid XML content. Check uploaded file."
+    identifier_mapping_uploaded: "Identifier mapping successfully saved to the database"
+
+  import:
+    execute:
+      success: "Import successful"
+      warnings: "Import succeeded with some warnings"
+      failure: "Importer finished unsuccessfully"
+      other_error: "Import failed, check if importer is installed properly"
+

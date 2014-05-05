@@ -1,0 +1,34 @@
+<%= dialog "service_acl_dialog", t('.access_rights') do %>
+  <div style="float: left; padding: 0.5em;">
+    <%= t '.service' %> <%= select_tag "service", nil %>
+  </div>
+
+  <div class="clearer"></div>
+
+  <div class="fill">
+
+    <table id="subjects" class="fixed">
+      <thead>
+        <tr>
+          <th><%= t '.member_name_group_desc' %></th>
+          <th><%= t '.member_class' %></th>
+          <th><%= t '.member_group_code' %></th>
+          <th><%= t '.subsystem_code' %></th>
+          <th><%= t '.sdsb' %></th>
+          <th><%= t '.type' %></th>
+          <th><%= t '.access_rights_given' %></th>
+        </tr>
+      </thead>
+    </table>
+
+    <% if can?(:edit_service_acl) %>
+    <div class="dataTables_actions">
+      <button id="subjects_add"><%= t '.add_subjects' %></button>
+      <button id="subjects_remove_selected"><%= t '.remove_selected' %></button>
+      <button id="subjects_remove_all"><%= t '.clear_acl' %></button>
+    </div>
+    <% end %>
+  </div>
+<% end %>
+
+<%= render :partial => "subjects_add_dialog" %>

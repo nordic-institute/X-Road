@@ -1,0 +1,4 @@
+etc/sdsb/services/xtee55-monitor.conf
+etc/sdsb/services/xtee55-clientmediator.conf
+etc/sdsb/services/xtee55-servicemediator.conf
+etc/sdsb/nginx/xtee55-clientmediator.conf

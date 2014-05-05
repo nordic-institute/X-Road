@@ -1,0 +1,20 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "restore" %>
+  <%= javascript_include_tag "centerui_common" %>
+<% end %>
+
+<% content_for :content do %>
+  <%= form_tag "#{controller.controller_name}/restore",
+      :id => "restore_configuration", :multipart => true,
+      :target => "restore_configuration_upload_target" do %>
+    <p class="label"><%= t 'restore.index.enter_file_name' %></p>
+    <%= file_field_tag "restore_configuration_file" %>
+
+    <br/><br/>
+    <div class="action">
+      <input id="restore_accept" type="submit" value="<%= t 'restore.index.restore' %>" />
+    </div>
+  <% end %>
+
+  <iframe id="restore_configuration_upload_target" name="restore_configuration_upload_target"></iframe>
+<% end %>

@@ -1,0 +1,124 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
+    }
+}
+
+apply plugin: 'fatjar'
+
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+    provided
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+
+    testsuite {
+        java {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
+        }
+    }
+}
+
+dependencies {
+    compile project(':common-util')
+    compile project(':common-verifier')
+    compile project(':signer-protocol')
+
+    // Necessary since there are jars with no adequate Maven dependencies
+    compile fileTree(dir: '../libs', include: '*.jar')
+
+    compile 'org.slf4j:jcl-over-slf4j:1.6.6'
+    compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
+
+    xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
+    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
+    
+    provided 'org.projectlombok:lombok:0.12.0'
+
+    testsuiteCompile project(':common-test')
+}
+
+sourceSets.main.compileClasspath += configurations.provided
+
+eclipse {
+    classpath {
+        plusConfigurations += configurations.provided 
+    }
+}
+
+configurations {
+    testsuiteCompile.extendsFrom testCompile
+    testsuiteRuntime.extendsFrom testRuntime
+}
+
+fatJarPrepareFiles {
+    include '*'
+}
+
+fatJar {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    manifest {
+        attributes 'Main-Class': 'ee.cyber.sdsb.signer.SignerMain'
+    }
+}
+
+jar.enabled = false
+build.dependsOn fatJar
+buildall.dependsOn fatJar
+
+task createDirs () {
+    project.ext.schemaTargetDir.mkdirs()
+}
+
+task xjc () {
+    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+
+    ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.cyber.sdsb.common.conf.keyconf',
+        schema: 'src/main/resources/keyconf.xsd',
+        binding: '../common-util/src/main/resources/identifiers-bindings.xml'
+    )
+}
+
+task runSignerMain(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.key.configurationFile=build/tmp/keyconf.xml',
+        '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
+        '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
+        '-Dee.cyber.sdsb.device.configurationFile=src/main/resources/devices.ini',
+        '-Djava.library.path=../legacy/lib',
+        '-Dlogback.configurationFile=src/test/resources/logback-signer.xml'
+    main = 'ee.cyber.sdsb.signer.SignerMain'
+    classpath = sourceSets.main.runtimeClasspath
+
+    description = "Starts singner main program.\nNote: " +
+       "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
+       "directory\n{JAVA_HOME}/jre/lib/i386 (analogous directory for 64-bit " +
+       "OS). Otherwise use\nnext property to detemine your library path:\n" +
+       "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
+}
+
+task testsuite(type:Test){
+    include '**/SignerTestSuite.class' // for doing only testsuite 
+    description = "Run Signer test suite."
+    testClassesDir = project.sourceSets.testsuite.output.classesDir
+    classpath = project.sourceSets.testsuite.runtimeClasspath
+    jvmArgs '-Djava.library.path=../legacy/lib'
+}
+
+xjc.dependsOn createDirs
+compileJava.dependsOn xjc

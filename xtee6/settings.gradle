@@ -1,0 +1,2 @@
+include "common-util", "common-verifier", "common-test", "proxy", "common-ui", "proxy-ui", "signer", "signer-protocol", "logreader", "asicverifier", "sandbox", "systemtest", "testclient", "center-ui", "center-util", "center-service", "async-db", "async-sender", "signer-console", "distributed-files-client"
+

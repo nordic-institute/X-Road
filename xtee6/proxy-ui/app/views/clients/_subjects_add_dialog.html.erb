@@ -1,0 +1,59 @@
+<%= javascript_include_tag "subjects_add" %>
+
+<%= dialog "subjects_add_dialog", t('.add_subjects') do %>
+  <fieldset style="width: 50%; padding: 0 1em;">
+    <legend><%= t '.search_parameters' %></legend>
+    <%= form_tag do %>
+    <table style="width: 100%;">
+      <tr>
+        <td><%= t 'clients.service_acl_dialog.member_name_group_desc' %></td>
+        <td><%= text_field_tag "subject_search_description" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.service_acl_dialog.member_class' %></td>
+        <td><%= select_tag "subject_search_class",
+                  options_for_select(@member_classes), :include_blank => true %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.service_acl_dialog.member_group_code' %></td>
+        <td><%= text_field_tag "subject_search_code" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.service_acl_dialog.sdsb' %></td>
+        <td>
+          <%= select_tag "subject_search_sdsb",
+                  options_for_select(@instances), :include_blank => true %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.service_acl_dialog.type' %></td>
+        <td>
+          <%= select_tag "subject_search_type",
+                  options_for_select(@subject_types), :include_blank => true %>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2">
+          <button id="subjects_add_search"><%= t 'common.search' %></button>
+          <button id="subjects_add_clear"><%= t 'common.clear' %></button>
+        </td>
+      </tr>
+    </table>
+    <% end %>
+  </fieldset>
+
+  <div class="fill" style="margin-top: 1em;">
+    <table id="subjects_search">
+      <thead>
+        <tr>
+          <th><%= t 'clients.service_acl_dialog.member_name_group_desc' %></th>
+          <th><%= t 'clients.service_acl_dialog.member_class' %></th>
+          <th><%= t 'clients.service_acl_dialog.member_group_code' %></th>
+          <th><%= t 'clients.service_acl_dialog.subsystem_code' %></th>
+          <th><%= t 'clients.service_acl_dialog.sdsb' %></th>
+          <th><%= t 'clients.service_acl_dialog.type' %></th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+<% end %>

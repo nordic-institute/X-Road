@@ -1,0 +1,44 @@
+--mainBoundary
+Content-Type: text/xml; charset="utf-8"
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>testQuery</id:serviceCode>
+        </sdsb:service>
+        <sdsb:userId>EE37702211234</sdsb:userId>
+        <sdsb:id>1234567890</sdsb:id>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.sdsb.net">
+            <request>
+                <name>foo</name>
+                <age>35</age>
+            </request>
+        </ns1:testQuery>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--mainBoundary
+Content-Type: multipart/mixed; charset=UTF-8; boundary=jetty1627004719h3h10du0
+
+--jetty1627004719h3h10du0
+Content-Type: text/plain
+
+Plain text attachment.
+
+--jetty1627004719h3h10du0--
+
+--mainBoundary--

@@ -1,0 +1,34 @@
+<%= dialog "globalconf_dists_add", "Add distributor" do %>
+	<div class="align-left">
+		<fieldset class="field">
+			
+			<table style="width: 100%">
+				<tr>
+					<td>Address</td>
+					<td>
+						<%= text_field_tag "dist_address", nil %>
+						<%= hidden_field_tag 'cert_id', '' %>
+					</td>
+				</tr>
+				<tr>
+					<%= form_tag "#{controller.controller_name}/upload_distributor_cert", :id => 'dists',
+						:multipart => true, :target => 'upload_dist_cert' do %>
+
+					<td>Certificate</td>
+					<td><%= file_field_tag "dist_certificate" %><% end %><%= button_tag "Upload", :id => 'load_cert' %></td>
+					
+				</tr>
+				<tr>
+					<td>Subject DN</td>
+					<td><%= text_field_tag "dist_dn", nil, readonly: true %></td>
+				</tr>
+				<tr>
+					<td>Serial number</td>
+					<td><%= text_field_tag "dist_serial", nil, readonly: true %></td>
+				</tr>
+			</table>
+			
+			<iframe id="upload_dist_cert" name="upload_dist_cert" style="width: 1px; height: 1px;"></iframe>
+		</fieldset>
+	</div>
+<% end %>

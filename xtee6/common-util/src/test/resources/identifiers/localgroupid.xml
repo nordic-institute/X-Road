@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<sdsb:group id:objectType="LOCALGROUP"
+        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
+        xmlns:id="http://sdsb.net/xsd/identifiers">
+    <id:groupCode>lokaalgrupp</id:groupCode>
+</sdsb:group>
+

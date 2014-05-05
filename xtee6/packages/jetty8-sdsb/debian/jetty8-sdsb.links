@@ -1,0 +1,5 @@
+
+etc/sdsb/nginx/default-sdsb.conf etc/nginx/sites-enabled/default-sdsb
+etc/sdsb/jetty/jetty-login.conf usr/share/sdsb/jetty8/etc/login.conf
+etc/sdsb/nginx/nginx-secure-addons.conf etc/nginx/conf.d/sdsb-securing.conf
+

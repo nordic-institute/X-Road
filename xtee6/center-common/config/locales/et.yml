@@ -1,0 +1,14 @@
+et:
+  # Management requests error messages.
+  requests:
+    server_not_found: "Serverit ei leitud: %{server}"
+    multiple_open_requests: "Rohkem kui üks päring on avatud serveri '%{server_id}' jaoks"
+    invalid_processing_state: "Päringu töötlemine on ebakorrektses olekus: %{status}"
+    duplicate_requests: "Taotlus registreerimaks kasutajat '%{user}', turvaserveri '%{security_server}' kliendiks on juba saadetud (%{received}, päringu ID: '%{id}')"
+    more_than_one_requests: "Sisemine viga: topelttaotlused andmebaasis"
+    client_not_found: "Klienti ei leitud: %{client}"
+
+  errors:
+    invalid_url: "'%{url}' on ebakorrektne URL, näited korrektsetest: 'http://www.example.com', 'https://www.example.com'"
+    tsp_url_not_unique: "URL '%{value}' juba kuulub olemasolevale ATO-le"
+    tsp_cert_not_unique: "Sellele sertifikaadile vastav ATO juba eksisteerib"

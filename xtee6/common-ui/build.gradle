@@ -1,0 +1,4 @@
+dependencies {
+    compile 'org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016'
+    compile 'org.kohsuke:libpam4j:1.7'
+}

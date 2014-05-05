@@ -1,0 +1,81 @@
+# Group member identifiers - start
+
+member_in_vallavalitsused_group_member_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  type: "ClientId"
+
+subsystem_in_vallavalitsused_group_member_identifier:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  subsystem_code: "subsystem_in_vallavalitsused"
+  type: "ClientId"
+
+# Group member identifiers - end
+
+# Client identifiers - start
+
+member_in_vallavalitsused_client_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  type: "ClientId"
+
+member_out_of_vallavalitsused_client_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  type: "ClientId"
+
+subsystem_in_vallavalitsused_client_identifier:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  subsystem_code: "subsystem_in_vallavalitsused"
+  type: "ClientId"
+
+subsystem_out_of_vallavalitsused_client_identifier:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  subsystem_code: "subsystem_out_of_vallavalitsused"
+  type: "ClientId"
+
+# Client identifiers - end
+
+# Central service identifiers - start
+
+automotive_service_identifier:
+  object_type: "SERVICE"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "autotehas"
+  service_code: "getNewModels"
+  type: "ServiceId"
+
+ballistic_service_identifier:
+  object_type: "SERVICE"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "kosmodroom"
+  service_code: "getTravelSchedule"
+  type: "ServiceId"
+
+ceramic_service_identifier:
+  object_type: "SERVICE"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "keraamikavabrik"
+  subsystem_code: "potiosakond"
+  service_code: "getDiameters"
+  type: "ServiceId"
+
+# Central service identifiers - end

@@ -1,0 +1,83 @@
+et:
+  about:
+    index:
+      name: "SDSB turvaserver"
+      version: "versioon"
+
+  async:
+    index:
+      name: "Provider"
+      request_count: "Request count"
+      send_attempts: "Send attempts"
+      last_attempt: "Last attempt"
+      last_attempt_result: "Last attempt result"
+      next_attempt: "Next attempt"
+      last_success: "Last success"
+      last_success_id: "Last success request ID"
+      reset: "Reset"
+      request_queue_no: "Queue No."
+      request_id: "Request ID"
+      request_received: "Received"
+      request_removed: "Removed"
+      request_sender: "Sender"
+      request_user: "User"
+      request_service: "Service"
+      request_remove: "Remove"
+      request_restore: "Restore"
+
+  asynclog:
+    index:
+      no: "Nr"
+      logged: "Logitud"
+      state: "Olek"
+      send_attempts: "Katse"
+      received: "Saabus"
+      removed: "Tühistatud"
+      producer: "Andmekogu"
+      sender: "Saatja"
+      user: "Kasutaja"
+      service: "Teenus"
+      request_id: "Päringu ID"
+
+  keys:
+    index:
+      name: "Nimi"
+      type: "Tüüp"
+      saved: "Salvestatud"
+      save_pin: "Salvesta PIN"
+      auto_deactivate: "Automaatne desaktiveerimine"
+      enter_key_name: "Võtme nimi:"
+      create_csr: "Loo sertifitseerimispäring"
+      load_certificate: "Laadi sertifikaat"
+      change_pin: "Muuda PIN"
+      activate: "Aktiveeri"
+      deactivate: "Desaktiveeri"
+      certificate_file: "Sertifikaadi fail"
+      certreq: "Salvesta sertifitseerimispäring"
+    cert:
+      certificate: "Sertifikaat"
+
+  layouts:
+    application:
+      title: "Turvaserveri haldusliides"
+
+  members:
+    index:
+      name: "Nimi"
+      fullname: "Täisnimi"
+      enter_name: "Nimi:"
+      enter_fullname: "Täisnimi:"
+      services: "Teenused"
+
+  services:
+    index:
+      title: "Teenused"
+      wsdl_url: "WSDL url:"
+      url: "URL"
+      urls: "Aadressid"
+      acl: "Pääsuõigused"
+      load: "Lae WSDL"
+
+  signkeys:
+    index:
+      title: "Signeerimisvõtmed"

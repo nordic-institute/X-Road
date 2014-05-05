@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:HashChain xmlns:ns2="http://cyber.ee/hashchain" xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <ns2:DefaultDigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+    <ns2:HashStep id="STEP0">
+        <ns2:DataRef URI="/message.xml">
+            <DigestValue>xcSve7XsUpOo0rRLeHkDL7rFPmPm7iyWz39SwcU5kvQcAyxt6Z1htW/kX2xyBI6yWDFSN72M0AW3NfW7BN3BsA==</DigestValue>
+        </ns2:DataRef>
+        <ns2:HashValue>
+            <DigestValue>P7BjBAd08zXug4OZ4FXptOWadnCKjggOmT6mWtjEhRMuCINkywSSbsOg008gu2qtWLcMyJPATc2Z9slVLB2KyQ==</DigestValue>
+        </ns2:HashValue>
+    </ns2:HashStep>
+</ns2:HashChain>

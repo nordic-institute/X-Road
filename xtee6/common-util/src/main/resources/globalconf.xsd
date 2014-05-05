@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd"
+    targetNamespace="http://sdsb.net/xsd/sdsb.xsd" xmlns:id="http://sdsb.net/xsd/identifiers">
+    <import namespace="http://sdsb.net/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
+    <complexType name="GlobalConfType">
+        <sequence>
+            <element name="instanceIdentifier" type="string">
+                <annotation>
+                    <documentation>Name that identifies this instance of the SDSB system.</documentation>
+                </annotation>
+            </element>
+            <element name="member" type="tns:MemberType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Data of the registered organizations.
+                    </documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="memberClass"
+                type="tns:MemberClassType"/>
+            <element maxOccurs="unbounded" minOccurs="0" name="securityCategory"
+                type="tns:SecurityCategoryType"/>
+            <element maxOccurs="unbounded" minOccurs="0" name="securityServer"
+                type="tns:SecurityServerType">
+                <annotation>
+                    <documentation>Information about security servers.</documentation>
+                </annotation>
+            </element>
+            <element name="globalGroup" type="tns:GlobalGroupType" maxOccurs="unbounded"
+                minOccurs="0">
+                <annotation>
+                    <documentation>
+                        Organization groups defined by the central
+                        agency.
+                    </documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="centralService"
+                type="tns:CentralServiceType"/>
+            <element name="pki" type="tns:PkiType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        PKI element corresponds to a certification
+                        hierarchy ending with a common trust anchor.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="approvedTsp" type="tns:ApprovedTspType" minOccurs="0"
+                maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Information about time stamp service providers.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="globalSettings" type="tns:GlobalSettingsType">
+                <annotation>
+                    <documentation>
+                        Miscellaneous information for various system modules
+                    </documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="MemberType">
+        <annotation>
+            <documentation>Represents information about a member of the SDSB.</documentation>
+        </annotation>
+        <sequence>
+            <element name="memberClass" type="tns:MemberClassCodeType">
+                <annotation>
+                    <documentation>Refers to the class of the member</documentation>
+                </annotation>
+            </element>
+            <element name="memberCode" type="string">
+                <annotation>
+                    <documentation/>
+                </annotation>
+            </element>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>Full, official name of the member, used in user interfaces.
+                    </documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="subsystem" type="tns:SubsystemType"/>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+
+    <complexType name="SecurityServerType">
+        <annotation>
+            <documentation>Represents information about a security server.</documentation>
+        </annotation>
+        <sequence>
+            <element name="owner" type="IDREF">
+                <annotation>
+                    <documentation>Auto-generated xml id for referencing inside xml. Connects sdsb member and security server(s) this member owns.</documentation>
+                </annotation>
+            </element>
+            <element name="serverCode" type="string">
+                <annotation>
+                    <documentation/>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="address" type="string">
+                <annotation>
+                    <documentation>Address of this security server.</documentation>
+                </annotation>
+            </element>
+            <element name="authCertHash" type="base64Binary" maxOccurs="unbounded" minOccurs="0">
+                <annotation>
+                    <documentation>Hash of the authentication certificate belonging to this security server.</documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="client" type="IDREF">
+                <annotation>
+                    <documentation>Reference to a client of this security server. Client can be either SDSB member or a subsystem.</documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="securityCategory"
+                type="tns:SecurityCategoryCodeType">
+                <annotation>
+                    <documentation>Code of the security category given to this security server.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="PkiType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>
+                        Name of the PKI, just for displaying to users.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="authenticationOnly" type="boolean" minOccurs="0">
+                <annotation>
+                    <documentation>
+                        If present and true, indicates that this PKI can
+                        only be used for SSL authentication and not for
+                        creating and verifying digital signatures.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="topCA" type="tns:CaInfoType">
+                <annotation>
+                    <documentation>
+                        Topmost (usually self-signed) CA that is used as
+                        trust anchor.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="intermediateCA" type="tns:CaInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>
+                        Intermediate CA. This information can be used
+                        for certificate path building and finding OCSP
+                        responders.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="nameExtractor" type="tns:NameExtractorType" minOccurs="0">
+                <annotation>
+                    <documentation>Name of the (fully qualified) static method that extracts unique identifier from the certificate.
+The method takes as argument java.security.cert.X509Certificate object and returns String that contains the identifier.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="GlobalGroupType">
+        <sequence>
+            <element name="groupCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies this group in a given SDSB instance.</documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string">
+                <annotation>
+                    <documentation>Human-readable name of the group.</documentation>
+                </annotation>
+            </element>
+            <element name="member" type="id:SdsbClientIdentifierType" minOccurs="0"
+                maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Identifier of subject belonging to group.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="OcspInfoType">
+        <annotation>
+            <documentation>Information about a single OCSP provider.</documentation>
+        </annotation>
+        <sequence>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>URL of the server.</documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>Certificate that the server uses to sign OCSP responses.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <element name="conf" type="tns:GlobalConfType">
+        <annotation>
+            <documentation>Topmost element for the global configuration.</documentation>
+        </annotation>
+    </element>
+
+    <complexType name="ApprovedTspType">
+        <sequence>
+            <element name="name" type="string">
+                <annotation>
+                    <documentation>Name of the TSP, for display.</documentation>
+                </annotation>
+            </element>
+            <element name="url" type="string">
+                <annotation>
+                    <documentation>URL of the TSP</documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>Cert that the TSP uses to sign responses.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="CaInfoType">
+        <annotation>
+            <documentation>
+                This type encapsulates information about a single CA
+                certificate.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="cert" type="base64Binary">
+                <annotation>
+                    <documentation>
+                        The certificate value.
+                    </documentation>
+                </annotation>
+            </element>
+            <element name="ocsp" type="tns:OcspInfoType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>List of OCSP responders that provide status of certificates issued by this CA.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="SubsystemType">
+        <sequence>
+            <element name="subsystemCode" type="string"/>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+    <complexType name="MemberClassType">
+        <sequence>
+            <element name="code" type="tns:MemberClassCodeType">
+                <annotation>
+                    <documentation>Code that uniquely identifies member class in this SDSB instance.</documentation>
+                </annotation>
+            </element>
+            <element name="description" type="string"/>
+        </sequence>
+    </complexType>
+    <complexType name="NameExtractorType">
+        <sequence>
+            <element name="memberClass" type="string">
+                <annotation>
+                    <documentation>Code of the member class of the extracted member code.</documentation>
+                </annotation>
+            </element>
+            <element name="methodName" type="string">
+                <annotation>
+                    <documentation>Name of the public static method (formatted as ClassName.methodName) that takes a certificate as input and returns member code as output.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="CentralServiceType">
+        <sequence>
+            <element name="serviceCode" type="string">
+                <annotation>
+                    <documentation>Code that uniquely identifies central service in this SDSB instance.</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="implementingService" type="id:SdsbServiceIdentifierType">
+                <annotation>
+                    <documentation>Real service that implements the central service</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="SecurityCategoryType">
+        <sequence>
+            <element name="code" type="tns:SecurityCategoryCodeType"/>
+            <element name="description" type="string"/>
+        </sequence>
+    </complexType>
+    <simpleType name="MemberClassCodeType">
+        <annotation>
+            <documentation>Specifies the structure of member class code</documentation>
+        </annotation>
+        <restriction base="string"/>
+    </simpleType>
+    <simpleType name="SecurityCategoryCodeType">
+        <annotation>
+            <documentation>Specifies the structure of security category code</documentation>
+        </annotation>
+        <restriction base="string"/>
+    </simpleType>
+    <complexType name="GlobalSettingsType">
+        <sequence>
+            <element name="managementRequestServiceAddress" type="string">
+                <annotation>
+                    <documentation>Address of the management request service.</documentation>
+                </annotation>
+            </element>
+            <element name="managementRequestServiceId" type="id:SdsbClientIdentifierType">
+                <annotation>
+                    <documentation>Identifier of the management request service.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+</schema>

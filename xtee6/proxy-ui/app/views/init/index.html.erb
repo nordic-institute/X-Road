@@ -1,0 +1,79 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "init" %>
+<% end %>
+
+<% content_for :heading do %>
+  <%= heading("Initial configuration") %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <iframe id="upload_target" name="upload_target"></iframe>
+
+    <% if @init_globalconf %>
+      <%= form_tag "#{controller.controller_name}/init_globalconf",
+            :id => "globalconf_form", :multipart => true,
+            :target => "upload_target" do %>
+        <fieldset>
+          <legend>Global Configuration</legend>
+          <table style="width: 100%;">
+            <tr>
+              <td style="width: 15em;">Distributor URL</td>
+              <td><%= text_field_tag "globalconf_url", nil, :style => "width: 100%;" %></td>
+            </tr>
+            <tr>
+              <td>Verification Certificate</td>
+              <td><%= file_field_tag "globalconf_cert" %></td>
+            </tr>
+          </table>
+        </fieldset>
+
+        <br/>
+        <button id="submit_globalconf">Submit</button>
+      <% end %>
+    <% end %>
+
+    <%= form_tag nil, :id => "serverconf_form" do %>
+      <fieldset>
+        <legend>Security Server Identification</legend>
+        <table style="width: 100%;">
+          <tr>
+            <td style="width: 15em;">Member Name</td>
+            <td><%= text_field_tag "owner_name", nil, :disabled => true %></td>
+          </tr>
+          <tr>
+            <td>Member Class</td>
+            <td><%= select_tag "owner_class" %></td>
+          </tr>
+          <tr>
+            <td>Member Code</td>
+            <td><%= text_field_tag "owner_code" %></td>
+          </tr>
+          <tr>
+            <td>Security Server Code</td>
+            <td><%= text_field_tag "server_code" %></td>
+          </tr>
+        </table>
+      </fieldset>
+
+      <br/>
+
+      <fieldset>
+        <legend>Software Token</legend>
+        <table style="width: 100%;">
+          <tr>
+            <td style="width: 15em;">PIN</td>
+            <td><%= password_field_tag "pin" %></td>
+          </tr>
+          <tr>
+            <td>Repeat PIN</td>
+            <td><%= password_field_tag "pin_repeat" %></td>
+          </tr>
+        </table>
+      </fieldset>
+
+      <br/>
+      <button id="submit_serverconf">Submit</button>
+    <% end %>
+  </div>
+<% end %>

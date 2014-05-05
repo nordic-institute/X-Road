@@ -1,0 +1,29 @@
+subprojects {
+    apply plugin: 'eclipse'
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    group = 'ee.cyber.xroad'
+    version = '0.1'
+
+    repositories {
+        mavenCentral()
+        mavenLocal() // used for local SDSB libraries
+    }
+
+    dependencies {
+        testCompile 'junit:junit:4.11'
+    }
+
+    tasks.withType(Compile) {
+        options.encoding = "UTF-8"
+        sourceCompatibility = 1.7
+        targetCompatibility = 1.7
+    }
+
+    tasks.withType(JavaExec) {
+        if (project.hasProperty("args")) {
+            args = project.getProperty("args").tokenize()
+        }
+    }
+}

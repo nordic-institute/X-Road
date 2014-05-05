@@ -1,0 +1,4 @@
+<wsdl:message name="standardheader">
+<wsdl:part xmlns:elemns="http://x-road.eu/xsd/x-road.xsd" name="consumer" element="elemns:consumer"/>
+<wsdl:part xmlns:elemns="http://x-road.eu/xsd/x-road.xsd" name="producer" element="elemns:producer"/>
+</wsdl:message>

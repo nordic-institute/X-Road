@@ -1,0 +1,125 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "jquery-datatables-rowgrouping", "keys" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="fill">
+    <table id="keys" class="fixed">
+      <thead>
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th style="width: 22%;">Certificate</th>
+          <th style="width: 10%">Member</th>
+          <th style="width: 13%">OCSP response</th>
+          <th style="width: 13%">Expires</th>
+          <th style="width: 10%">Status</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="dataTables_actions">
+      <div class="align-right">
+        <button id="details">Details</button>
+        <% if can?(:generate_key) %>
+        <button id="generate_key">Generate key</button>
+        <% end %>
+        <% if can?(:generate_auth_cert_req) || can?(:generate_sign_cert_req) %>
+        <button id="generate_csr">Generate certificate request</button>
+        <% end %>
+        <% if can?(:activate_disable_auth_cert) && can?(:activate_disable_sign_cert) %>
+        <button id="activate" style="display: none;">Activate</button>
+        <button id="disable">Disable</button>
+        <% end %>
+        <% if can?(:send_auth_cert_reg_req) %>
+        <button id="register">Register</button>
+        <% end %>
+        <% if can?(:send_auth_cert_del_req) %>
+        <button id="unregister">Unregister</button>
+        <% end %>
+        <% if can?(:delete_auth_cert) && can?(:delete_sign_cert) %>
+        <button id="delete">Delete</button>
+        <% end %>
+      </div>
+      <div class="align-right" style="margin-top: 0.4em;">
+        <button id="refresh">Refresh view</button>
+        <% if can?(:import_auth_cert) && can?(:import_sign_cert) %>
+        <button id="import_cert">Import certificate</button>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="clearer"></div>
+
+    <%= dialog "activate_token_dialog", "Enter PIN" do %>
+      <br/>
+      <form id="activate_token_form">
+        <input name="token_id" id="token_id" type="hidden"/>
+        PIN:
+        <input name="pin" id="pin" type="password"/>
+      </form>
+    <% end %>
+
+    <%= dialog "generate_csr_dialog", "Generate certificate request" do %>
+      <%= form_tag do %>
+        <input name="token_id" id="token_id" type="hidden"/>
+        <input name="key_id" id="key_id" type="hidden"/>
+        <input name="key_usage" id="key_usage" type="hidden"/>
+
+        <span style="float: left;">Usage:</span>
+        <span style="float: right;">
+          <select id="key_usage_select" style="width: 10em;">
+            <option value="sign">Sign</option>
+            <option value="auth">Auth</option>
+          </select>
+        </span><div class="clearer"></div><br/>
+
+        <div>
+          <span style="float: left;">Member:</span>
+          <span style="float: right;">
+            <%= select_tag "member_id", options_for_select(client_options(@client_ids)) %>
+          </span><div class="clearer"></div><br/>
+        </div>
+
+        <span style="float: left;">Distinguished name:</span>
+        <span style="float: right;">
+          <input id="subject_name" name="subject_name" type="text" style="width: 25em;"/>
+        </span>
+      <% end %>
+    <% end %>
+
+    <%= dialog "token_details_dialog", "Token details" %>
+    <%= dialog "key_details_dialog", "Key details" %>
+    <%= dialog "cert_details_dialog", "Certificate details" %>
+
+    <%= dialog "import_cert_dialog", "Import certificate" do %>
+      <br/>
+      <%= form_tag "#{controller.controller_name}/import_cert", :id => "import_cert_form",
+              :multipart => true, :target => "upload_target" do %>
+        Certificate location:
+        <%= file_field_tag "file" %>
+      <% end %>
+      <iframe id="upload_target" name="upload_target"></iframe>
+    <% end %>
+
+    <%= dialog "register_dialog", "Registration request" do %>
+      <%= form_tag do %>
+      <table style="width: 100%;">
+        <tr>
+          <td>Server DNS name or IP address:</td>
+          <td><%= text_field_tag "address", nil, :style => "width: 90%;" %></td>
+        </tr>
+      </table>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

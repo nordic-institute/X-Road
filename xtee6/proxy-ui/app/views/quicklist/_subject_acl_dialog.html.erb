@@ -1,0 +1,30 @@
+<%= dialog "subject_acl_dialog", "Access Rights" do %>
+  <div class="fill" style="margin-top: 1em;">
+    <% if can?(:import_export_subject_acl) %>
+    <div class="services_actions" style="float: right;">
+    </div>
+    <% end %>
+
+    <table id="services" class="fixed">
+      <thead>
+        <tr>
+          <th>Service Name</th>
+          <th>Title</th>
+          <th>Provider Name</th>
+          <th>Provider Class</th>
+          <th>Provider Code</th>
+          <th>Provider Subsystem</th>
+          <th>Access Rights Given</th>
+        </tr>
+      </thead>
+    </table>
+
+    <div class="dataTables_actions">
+      <button id="acl_services_add">Add Service</button>
+      <button id="acl_services_remove">Remove Selected</button>
+      <button id="acl_services_remove_all">Remove All</button>
+    </div>
+  </div>
+<% end %>
+
+<%= render :partial => "acl_services_add_dialog" %>

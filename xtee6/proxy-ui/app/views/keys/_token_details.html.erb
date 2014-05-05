@@ -1,0 +1,19 @@
+<div style="padding-bottom: 0.5em;">
+  <form>
+    <input id="token_id" name="token_id" type="hidden" value="<%= @token.id %>"/>
+    <span style="float: left;">Friendly name:</span>
+    <input type="text" name="friendly_name"
+           style="float: right; width: 450px; text-align: right;"
+           value="<%= @token.friendlyName || @token.id %>"
+           <%= "disabled" unless token_saved_to_configuration?(@token) %>/>
+  </form>
+  <div class="clearer"></div>
+</div>
+
+<% @token.tokenInfo.each do |key, value| %>
+  <div style="padding-bottom: 0.5em;">
+    <span style="float: left;"><%= key %>:</span>
+    <input type="text" readonly style="float: right; background: #eee;" value="<%= value %>"/>
+    <div class="clearer"></div>
+  </div>
+<% end %>

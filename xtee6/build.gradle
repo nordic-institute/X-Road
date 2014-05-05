@@ -1,0 +1,52 @@
+subprojects {
+    apply plugin: 'eclipse'
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    group = 'ee.cyber.sdsb'
+    version = '1.0'
+
+    repositories {
+        mavenCentral()
+	mavenLocal()
+
+        // XXX In case mavenCentral is unreachable, use this mirror instead
+        // maven {
+        //     url "http://mirrors.ibiblio.org/pub/mirrors/maven2"
+        // }
+
+        // iaikPkcs11Wrapper is located there
+        maven {
+            url "http://ground.zero.ee/maven2"
+        }
+    }
+
+    dependencies {
+        testCompile 'junit:junit:4.11'
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    tasks.withType(Compile) {
+        options.encoding = "UTF-8"
+        sourceCompatibility = 1.7
+        targetCompatibility = 1.7
+    }
+
+    tasks.withType(JavaExec) {
+        if (project.hasProperty("args")) {
+            args = project.getProperty("args").tokenize()
+        }
+    }
+
+    task buildall(dependsOn: [build, ':proxy-ui:warble', ':center-ui:warble', ':center-service:warble']) {
+        description = "Builds all that can be built (even the slow tasks)"
+    }
+
+    artifacts {
+        archives sourcesJar
+    }
+}

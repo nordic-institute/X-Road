@@ -1,0 +1,7 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xtee="http://x-tee.riik.ee/xsd/xtee.xsd" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <SOAP-ENV:Body>
+    <ns:listProducersResponse xmlns:ns="xtee">
+      <keha />
+    </ns:listProducersResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

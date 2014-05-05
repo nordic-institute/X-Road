@@ -1,0 +1,26 @@
+en:
+  common:
+    params_error: "Error in query parameters"
+    changes_saved: "Changes saved"
+    proxy_org_name: "X-Road Security Server"
+    proxy_org_name_az: "EHDIS Security Server"
+    present: "Present"
+    missing: "Not available"
+    time_format: "%Y-%m-%d %H:%M:%S"
+
+  validation:
+    missing_param: "Missing parameter: %{param}"
+    unexpected_param: "Unknown parameter: %{param}"
+    invalid_email: "Invalid e-mail address: '%{addr}'"
+    invalid_filename: "Invalid filename: '%{val}'"
+
+  menu:
+    management:
+      backup: "Back Up Configuration"
+      restore: "Restore Configuration"
+
+  restore:
+    success: "Configuration restored successfully"
+    error:
+      script_failed: "Restore failed, script exited with code '%{exitstatus}'"
+

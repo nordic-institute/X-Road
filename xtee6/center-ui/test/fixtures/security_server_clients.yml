@@ -1,0 +1,27 @@
+member_in_vallavalitsused:
+  member_class_id:  <%= ActiveRecord::Fixtures.identify(:riigiasutus) %>
+  member_code: "member_in_vallavalitsused"
+  name: "This member should belong to group 'vallavalitsused'"
+  administrative_contact: "a@b.com"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused_client_identifier) %>
+  type: "SdsbMember"
+
+member_out_of_vallavalitsused:
+  member_class_id: <%= ActiveRecord::Fixtures.identify(:riigiasutus) %>
+  member_code: "member_out_of_vallavalitsused"
+  name: "This member should NOT belong to group 'vallavalitsused'"
+  administrative_contact: "a@c.com"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:member_out_of_vallavalitsused_client_identifier) %>
+  type: "SdsbMember"
+
+subsystem_in_vallavalitsused:
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:member_out_of_vallavalitsused) %>
+  subsystem_code: "subsystem_in_vallavalitsused"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_in_vallavalitsused_client_identifier) %>
+  type: "Subsystem"
+
+subsystem_out_of_vallavalitsused:
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused) %>
+  subsystem_code: "subsystem_out_of_vallavalitsused"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_out_of_vallavalitsused_client_identifier) %>
+  type: "Subsystem"
