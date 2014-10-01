@@ -1,0 +1,105 @@
+#!/bin/bash -e
+
+. /usr/share/debconf/confmodule
+
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+function handle_error {
+         ERR=$(</tmp/cert.err)
+         db_subst xroad-common/cert-generation-error ERR "$(printf %s "$ERR" | debconf-escape -e)"
+         db_input critical xroad-common/cert-generation-error
+         db_go
+         rm -f /tmp/cert.err
+}
+
+    if  [ "$1" = "reconfigure" ]; 
+    then
+       db_fset xroad-common/admin-subject seen false
+       db_fset xroad-common/admin-altsubject seen false
+       db_fset xroad-common/service-subject seen false
+       db_fset xroad-common/service-altsubject seen false
+    fi
+
+
+    #check certificates and request neccesary subject information from user
+    HOST=`hostname -f`
+    LIST=
+    for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
+    ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+
+   while :; do
+    if [[ ! -r /etc/sdsb/ssl/nginx.crt || ! -r /etc/sdsb/ssl/nginx.key ]]
+    then 
+       echo "Generating new nginx.[crt|key] files "
+       db_subst xroad-common/admin-subject HOST "$HOST"
+       db_subst xroad-common/admin-altsubject ALT "$ALT"
+       RET=
+       db_get xroad-common/admin-subject
+       if [ -z "$RET"  ] 
+       then 
+          db_set xroad-common/admin-subject "/CN=$HOST"
+       fi 
+       RET=
+       db_get xroad-common/admin-altsubject
+       if [ -z "$RET"  ] 
+       then 
+          db_set xroad-common/admin-altsubject "$ALT"
+       fi 
+       db_input critical xroad-common/admin-subject || true
+       db_input critical xroad-common/admin-altsubject || true
+       db_go
+       RET=
+       db_get xroad-common/admin-subject
+       subj="$RET"
+       RET=
+       db_get xroad-common/admin-altsubject
+       altn="$RET"
+       db_go
+       rm -f /etc/sdsb/ssl/nginx.crt /etc/sdsb/ssl/nginx.key
+       echo "generating new webUI SSL key/certificate with $subj and $altn"
+       /bin/bash /usr/share/sdsb/scripts/generate_certificate.sh  -n nginx  -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
+    else
+      break
+    fi
+   done
+
+   while :; do
+    if [[ ! -r /etc/sdsb/ssl/internal.crt || ! -r /etc/sdsb/ssl/internal.key  || ! -r /etc/sdsb/ssl/internal.p12 ]]
+    then 
+       echo "Generating new internal.[crt|key|p12] files "
+       db_subst xroad-common/service-subject HOST "$HOST"
+       db_subst xroad-common/service-altsubject ALT "$ALT"
+       RET=
+       db_get xroad-common/service-subject
+       if [ -z "$RET"  ] 
+       then 
+          db_set xroad-common/service-subject "/CN=$HOST"
+       fi 
+       RET=
+       db_get xroad-common/service-altsubject
+       if [ -z "$RET"  ] 
+       then 
+          db_set xroad-common/service-altsubject "$ALT"
+       fi 
+       db_input critical xroad-common/service-subject || true
+       db_input critical xroad-common/service-altsubject || true
+       db_go
+       RET=
+       db_get xroad-common/service-subject
+       subj="$RET"
+       RET=
+       db_get xroad-common/service-altsubject
+       altn="$RET"
+       db_go
+       rm -f /etc/sdsb/ssl/internal.crt /etc/sdsb/ssl/internal.key /etc/sdsb/ssl/internal.p12
+       echo "generating new service SSL key/certificate with $subj and $altn"
+       /usr/share/sdsb/scripts/generate_certificate.sh  -n internal -s "${subj}" -a "${altn}" -p 2> /tmp/cert.err || handle_error
+    else
+      break
+    fi
+  done
+
+
+db_stop
+

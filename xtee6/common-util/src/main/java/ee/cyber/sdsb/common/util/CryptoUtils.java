@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.common.util;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +12,7 @@ import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -29,6 +31,7 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -47,6 +50,8 @@ public class CryptoUtils {
 
     static {
         try {
+            Security.addProvider(new BouncyCastleProvider());
+
             CERT_FACTORY = CertificateFactory.getInstance("X.509");
             KEY_FACTORY = KeyFactory.getInstance("RSA");
         } catch (Exception e) {
@@ -55,16 +60,11 @@ public class CryptoUtils {
     }
 
     /** SSL protocol name. */
-    // TODO: Use this protocol in production!
-    //public static final String SSL_PROTOCOL = "TLSv1.2";
-    public static final String SSL_PROTOCOL = "TLS";
+    public static final String SSL_PROTOCOL = "TLSv1.2";
 
     /** The list of cipher suites used with SSL. */
     public static final String[] INCLUDED_CIPHER_SUITES =
-            { "TLS_RSA_WITH_AES_256_CBC_SHA" };
-
-            // TODO: Use this Cipher in production!
-            // { "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256" };
+            { "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256" };
 
     /** Global default digest method identifier and URL. */
     public static final String DEFAULT_DIGEST_ALGORITHM_ID =
@@ -143,13 +143,13 @@ public class CryptoUtils {
 
     /**
      * Returns the signature algorithm identifier for the given algorithm id.
-     * @param signatureAlgorithm the algorithm id
+     * @param digestAlgorithm the algorithm id
      *
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
-    public static String getSignatureAlgorithmId(String signatureAlgorithm)
+    public static String getSignatureAlgorithmId(String digestAlgorithm)
             throws NoSuchAlgorithmException {
-        switch (signatureAlgorithm) {
+        switch (digestAlgorithm) {
             case SHA1_ID:
                 return SHA1WITHRSA_ID;
             case SHA256_ID:
@@ -160,8 +160,8 @@ public class CryptoUtils {
                 return SHA512WITHRSA_ID;
         }
 
-        throw new NoSuchAlgorithmException("Unkown signature algorithm id: " +
-                signatureAlgorithm);
+        throw new NoSuchAlgorithmException("Unkown digest algorithm id: " +
+                digestAlgorithm);
     }
 
     /**
@@ -542,15 +542,25 @@ public class CryptoUtils {
     }
 
     /**
-     * Loads a key store from a file.
-     * @param type the type of key store to load ("pkcs12" for PKCS12 type)
-     * @param fileName the name of the file to load
+     * Loads a pkcs12 keystore from a file.
+     * @param file the file to load
      * @param password the password for the key store
      */
-    public static KeyStore loadKeyStore(String type, String fileName,
+    public static KeyStore loadPkcs12KeyStore(File file, char[] password)
+            throws Exception {
+        return loadKeyStore("pkcs12", file, password);
+    }
+
+    /**
+     * Loads a key store from a file.
+     * @param type the type of key store to load ("pkcs12" for PKCS12 type)
+     * @param file the file to load
+     * @param password the password for the key store
+     */
+    public static KeyStore loadKeyStore(String type, File file,
             char[] password) throws Exception {
         KeyStore keyStore = KeyStore.getInstance(type);
-        try (FileInputStream fis = new FileInputStream(fileName)) {
+        try (FileInputStream fis = new FileInputStream(file)) {
             keyStore.load(fis, password);
         }
 

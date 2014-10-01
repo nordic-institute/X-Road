@@ -1,0 +1,10 @@
+<%= dialog "identifier_mapping_upload_dialog", t("distributed_files.identifier_mapping.upload.title") do %>
+  <%= form_tag "#{controller.controller_name}/upload_identifier_mapping",
+      :id => "upload_new_identifier_mapping", :multipart => true,
+      :target => "new_identifier_mapping_upload_target" do %>
+    <p class="label"><%= t 'distributed_files.identifier_mapping.upload.enter_file_name' %></p>
+    <%= file_field_tag "identifier_mapping_file" %>
+  <% end %>
+
+  <iframe id="new_identifier_mapping_upload_target" name="new_identifier_mapping_upload_target"></iframe>
+<% end %>

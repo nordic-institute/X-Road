@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.signer;
 
 import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
+import ee.cyber.sdsb.common.util.CertUtils;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.PasswordStore;
-import ee.cyber.sdsb.signer.core.device.SoftwareDeviceType;
 import ee.cyber.sdsb.signer.dummies.certificateauthority.CAMock;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 import ee.cyber.sdsb.signer.protocol.dto.AuthKeyInfo;
@@ -26,6 +27,7 @@ import ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo;
 import ee.cyber.sdsb.signer.protocol.dto.MemberSigningInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.protocol.message.*;
+import ee.cyber.sdsb.signer.tokenmanager.module.SoftwareModuleType;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
@@ -64,7 +66,7 @@ public class TestSuiteHelper {
             TokenInfo softToken;
             for (TokenInfo token : listTokens()) {
 
-                if (token.getType().equals(SoftwareDeviceType.TYPE)) {
+                if (token.getType().equals(SoftwareModuleType.TYPE)) {
                     softToken = token;
                     setPassword(softToken, password);
                     LOG.debug("Softtoken: {}: {}, {}", new Object[] {
@@ -256,10 +258,15 @@ public class TestSuiteHelper {
         LOG.debug("Signed! The signature is " + Arrays.toString(signature));
     }
 
-    public static String importCert(byte[] certByte) throws Exception {
+    public static String importCert(byte[] certBytes) throws Exception {
+        ClientId clientId = getClientId(readCertificate(certBytes));
         ImportCertResponse cert = SignerClient.execute(
-                new ImportCert(certByte, "SAVED"));
+                new ImportCert(certBytes, "SAVED", clientId));
         return cert.getKeyId();
+    }
+
+    public static ClientId getClientId(X509Certificate cert) {
+        return CertUtils.getSubjectClientId(cert);
     }
 
     public static void importCerts(
@@ -292,7 +299,7 @@ public class TestSuiteHelper {
         MemberSigningInfo memberSigningInfo =
                 SignerClient.execute(new GetMemberSigningInfo(memberId));
         return new Pair(memberSigningInfo.getKeyId(),
-                memberSigningInfo.getCert());
+                memberSigningInfo.getCert().getCertificateBytes());
     }
 
     public static String getMemberSignInfo(ClientId memberId)

@@ -4,19 +4,19 @@ import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import ee.cyber.sdsb.common.cert.CertChain;
+
+@Slf4j
 public class AuthKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "AuthKeyManager";
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AuthKeyManager.class);
 
     private static final AuthKeyManager instance = new AuthKeyManager();
 
@@ -27,60 +27,59 @@ public class AuthKeyManager extends X509ExtendedKeyManager {
     private AuthKeyManager() {
     }
 
-    public X509Certificate getAuthCert() {
-        return KeyConf.getAuthKey().getCert();
-    }
-
     @Override
     public String chooseClientAlias(String[] keyType, Principal[] issuers,
             Socket socket) {
-        LOG.debug("chooseClientAlias {} {}", keyType, issuers);
+        log.trace("chooseClientAlias {} {}", keyType, issuers);
         return ALIAS;
     }
 
     @Override
     public String chooseServerAlias(String keyType, Principal[] issuers,
             Socket socket) {
-        LOG.debug("chooseServerAlias {} {}", keyType, issuers);
+        log.trace("chooseServerAlias {} {}", keyType, issuers);
         return ALIAS;
     }
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        LOG.debug("getCertificateChain {}", alias);
-        return new X509Certificate[] { getAuthCert() /*, caCert*/ };
+        log.trace("getCertificateChain {}", alias);
+
+        CertChain certChain = KeyConf.getAuthKey().getCertChain();
+        List<X509Certificate> allCerts =
+                certChain.getAllCertsWithoutTrustedRoot();
+        return allCerts.toArray(new X509Certificate[allCerts.size()]);
     }
 
     @Override
     public String[] getClientAliases(String keyType, Principal[] issuers) {
-        LOG.debug("getClientAliases {} {}", keyType, issuers);
+        log.trace("getClientAliases {} {}", keyType, issuers);
         return null;
     }
 
     @Override
     public PrivateKey getPrivateKey(String alias) {
-        LOG.debug("getPrivateKey {}", alias);
+        log.trace("getPrivateKey {}", alias);
         return KeyConf.getAuthKey().getKey();
     }
 
     @Override
     public String[] getServerAliases(String keyType, Principal[] issuers) {
-        LOG.debug("getServerAliases {} {}", keyType, issuers);
+        log.trace("getServerAliases {} {}", keyType, issuers);
         return null;
     }
 
     @Override
     public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
             SSLEngine engine) {
-        LOG.debug("chooseEngineClientAlias {} {}", keyType, issuers);
+        log.trace("chooseEngineClientAlias {} {}", keyType, issuers);
         return ALIAS;
     }
 
     @Override
     public String chooseEngineServerAlias(String keyType, Principal[] issuers,
             SSLEngine engine) {
-        LOG.debug("chooseEngineServerAlias {} {}", keyType, issuers);
+        log.trace("chooseEngineServerAlias {} {}", keyType, issuers);
         return ALIAS;
     }
-
 }

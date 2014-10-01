@@ -1,0 +1,6 @@
+<wsdl:service name="serviceName">
+<wsdl:port xmlns:bindingns="http://andmed.x-road.ee/producer" binding="bindingns:portBinding" name="servicePortName">
+<soap:address location="http://SECUREPROXY/cgi-bin/consumer_proxy"/>
+<xrd:address producer="andmed"/>
+</wsdl:port>
+</wsdl:service>

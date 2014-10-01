@@ -1,0 +1,12 @@
+Source: xroad-common
+Section: X-Road
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: xroad-common
+Architecture: amd64
+Depends: ${misc:Depends}, daemontools, java7-runtime-headless, rlwrap, nginx-light (>=1.5.10)
+Description: X-Road shared components
+ X-Road shared components and utilities

@@ -9,6 +9,10 @@ public final class SecurityServerId extends SdsbId {
     private final String memberCode;
     private final String serverCode;
 
+    SecurityServerId() { // required by Hibernate
+        this(null, null, null, null);
+    }
+
     private SecurityServerId(String sdsbInstance,
             String memberClass, String memberCode, String serverCode) {
         super(SdsbObjectType.SERVER, sdsbInstance);

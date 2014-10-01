@@ -22,5 +22,7 @@ $javabin -Dee.cyber.sdsb.secureLog.path=build/slog\
     -Dee.cyber.sdsb.tempFiles.path=build/attach-tmp -Xmx2000m\
     -Dee.cyber.sdsb.appLog.path=log\
     -Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml\
-    -Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml\
-    -cp ../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:$classes $classname $*
+    -Dlogback.configurationFile=src/test/logback-proxytest.xml\
+    -Dee.cyber.sdsb.proxy.clientHandlers=ee.cyber.sdsb.proxy.clientproxy.MetadataHandler\
+    -Dee.cyber.sdsb.proxy.serverServiceHandlers=ee.cyber.sdsb.proxy.serverproxy.MetadataServiceHandlerImpl\
+    -cp ../libs/hsqldb.jar:../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../addons/metaservice/build/libs/metaservice-1.0.jar:$classes $classname $*

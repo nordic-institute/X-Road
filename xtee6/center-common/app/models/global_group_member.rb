@@ -1,7 +1,5 @@
 class GlobalGroupMember < ActiveRecord::Base
-  include Validators
-
-  validates :global_group_id, :present => true
+  validates_presence_of :global_group_id
   belongs_to :global_group
   belongs_to :group_member,
     :class_name => "ClientId",
@@ -46,7 +44,7 @@ class GlobalGroupMember < ActiveRecord::Base
   end
 
   def self.map_advanced_search_params(searchable)
-    {
+    return {
         "security_server_clients.name" => searchable.name,
         "identifiers.member_code" => searchable.member_code,
         "identifiers.member_class" => searchable.member_class,
@@ -57,7 +55,7 @@ class GlobalGroupMember < ActiveRecord::Base
   end
 
   def self.get_searchable_columns
-    [   "security_server_clients.name",
+    return [   "security_server_clients.name",
         "identifiers.member_code",
         "identifiers.member_class",
         "identifiers.subsystem_code",

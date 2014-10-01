@@ -33,7 +33,7 @@ public class HttpUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpUtils.class);
 
-    private static final int CLIENT_TIMEOUT = 300000; // milliseconds.
+    private static final int CLIENT_TIMEOUT = 3000000; // milliseconds.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
 
@@ -44,7 +44,7 @@ public class HttpUtils {
     /**
      * Returns HTTP client with no special thread pool configuration.
      *
-     * XXX In testclient web application we need to do it like this in order to
+     * In testclient web application we need to do it like this in order to
      * be able to do more than one consecutive requests.
      *
      * @return
@@ -70,9 +70,15 @@ public class HttpUtils {
 
     public static CloseableHttpAsyncClient getHttpClient(
             X509ExtendedKeyManager clientKeyManager) throws Exception {
+        return getHttpClient(clientKeyManager, new ClientTrustManager());
+    }
+
+    public static CloseableHttpAsyncClient getHttpClient(
+            X509ExtendedKeyManager clientKeyManager,
+            X509TrustManager clientTrustManager) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] { clientKeyManager },
-                new TrustManager[] { new ClientTrustManager() },
+                new TrustManager[] { clientTrustManager },
                 new SecureRandom());
 
         Registry<SchemeIOSessionStrategy> sessionStrategyRegistry =
@@ -95,7 +101,7 @@ public class HttpUtils {
         IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
                 .setIoThreadCount(Runtime.getRuntime().availableProcessors())
                 .setConnectTimeout(CLIENT_TIMEOUT)
-                .setSoTimeout(30000)
+                .setSoTimeout(CLIENT_TIMEOUT)
                 .build();
 
         ConnectingIOReactor ioReactor =

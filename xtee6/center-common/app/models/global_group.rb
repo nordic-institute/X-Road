@@ -1,7 +1,7 @@
 class GlobalGroup < ActiveRecord::Base
-  include Validators
+  validates_with Validators::MaxlengthValidator
+  validates :group_code, :presence => true, :uniqueness => true
 
-  validates :group_code, :unique => true
   has_many :global_group_members, :dependent => :destroy
 
   # Adds a member to the group. The member should not be saved
@@ -98,17 +98,16 @@ class GlobalGroup < ActiveRecord::Base
   end
 
   def self.get_search_relation(searchable)
-    search_params = get_search_sql_params(searchable)
-    GlobalGroup.where(get_search_sql, *search_params)
+    sql_generator = 
+        SimpleSearchSqlGenerator.new(get_searchable_columns(), searchable)
+
+    GlobalGroup.where(sql_generator.sql, *sql_generator.params)
   end
 
-  def self.get_search_sql
-    "lower(global_groups.group_code) LIKE ?
-    OR lower(global_groups.description) LIKE ?
-    OR lower(CAST(global_groups.created_at AS TEXT)) LIKE ?"
-  end
-
-  def self.get_search_sql_params(searchable)
-    ["%#{searchable}%", "%#{searchable}%", "%#{searchable}%"]
+  def self.get_searchable_columns
+    return [
+        "global_groups.group_code",
+        "global_groups.description",
+        "global_groups.updated_at"]
   end
 end

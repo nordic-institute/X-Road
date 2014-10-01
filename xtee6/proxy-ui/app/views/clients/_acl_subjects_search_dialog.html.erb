@@ -1,0 +1,76 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "acl_subjects_search" %>
+<% end %>
+
+<%= dialog "acl_subjects_search_dialog", t('.add_subjects') do %>
+  <section class="container simple_search">
+      <legend><%= t 'common.simple_search' %></legend>
+
+      <%= form_tag(nil, { class: "simple_search_form" }) do %>
+      <table class="details">
+        <tr>
+          <td></td>
+          <td><%= text_field_tag "subject_search_all" %></td>
+          <td><button class="search"><%= t 'common.search' %></button></td>
+        </tr>
+      </table>
+      <% end %>
+
+    <a href="#"><%= t 'common.advanced_search' %></a>
+  </section>
+
+  <section class="container advanced_search">
+      <legend><%= t 'common.advanced_search' %></legend>
+
+      <%= form_tag(nil, { class: "advanced_search_form" }) do %>
+      <table class="details">
+        <tr>
+          <td><%= t 'clients.service_acl_dialog.member_name_group_desc' %></td>
+          <td><%= text_field_tag "subject_search_description" %></td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.service_acl_dialog.type' %></td>
+          <td>
+            <%= select_tag "subject_search_type",
+                options_for_select(@subject_types), :include_blank => true %>
+          </td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.service_acl_dialog.sdsb' %></td>
+          <td>
+            <%= select_tag "subject_search_sdsb",
+                options_for_select(@instances), :include_blank => true %>
+          </td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.service_acl_dialog.member_class' %></td>
+          <td><%= select_tag "subject_search_class",
+                  options_for_select(@member_classes), :include_blank => true %></td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.service_acl_dialog.member_group_code' %></td>
+          <td><%= text_field_tag "subject_search_code" %></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <button class="search"><%= t 'common.search' %></button>
+            <button class="clear"><%= t 'common.clear' %></button>
+          </td>
+        </tr>
+      </table>
+      <% end %>
+
+    <a href="#"><%= t 'common.simple_search' %></a>
+  </section>
+
+  <div class="fill" style="margin-top: 1em;">
+    <table id="acl_subjects_search">
+      <thead>
+        <tr>
+          <th><%= t 'clients.service_acl_dialog.member_name_group_desc' %></th>
+          <th>ID</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+<% end %>

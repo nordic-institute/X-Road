@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.CorruptQueueException;
+import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
@@ -120,7 +122,7 @@ public class RequestInfoBehavior {
     }
 
     @Test
-    public void shouldTurnRequestToAndFromJson() {
+    public void shouldTurnRequestToAndFromJson() throws CorruptQueueException {
         RequestInfo requestInfo = new RequestInfo(0, "id", new Date(),
                 null,  sender, "user", service);
 
@@ -132,7 +134,8 @@ public class RequestInfoBehavior {
     }
 
     @Test
-    public void shouldReadMarkedSendingAttributeFromJsonCorrectly() {
+    public void shouldReadMarkedSendingAttributeFromJsonCorrectly()
+            throws CorruptQueueException {
         String json = "{\"orderNo\":0," +
                 "\"id\":\"1234567890\"," +
                 "\"receivedTime\":1368442452094," +
@@ -151,5 +154,15 @@ public class RequestInfoBehavior {
 
         RequestInfo request = RequestInfo.fromJson(json);
         assertTrue(request.isSending());
+    }
+
+    @Test(expected = CorruptQueueException.class)
+    public void shouldThrowCorruptQueueExceptionWhenReadMalformedJson()
+            throws CorruptQueueException {
+        // Given
+        String malformedJson = "";
+
+        // When/then
+        RequestInfo.fromJson(malformedJson);
     }
 }

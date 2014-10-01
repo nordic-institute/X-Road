@@ -1,53 +1,123 @@
 package ee.cyber.sdsb.signer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.TimeUnit;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 
+import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.util.PeriodicJob;
 import ee.cyber.sdsb.common.util.StartStop;
-import ee.cyber.sdsb.signer.core.TokenManager;
-import ee.cyber.sdsb.signer.core.token.TokenActorManager;
+import ee.cyber.sdsb.signer.certmanager.OcspClientWorker;
+import ee.cyber.sdsb.signer.certmanager.OcspResponseManager;
 import ee.cyber.sdsb.signer.protocol.SignerRequestProcessor;
+import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
+import ee.cyber.sdsb.signer.tokenmanager.module.AbstractModuleManager;
+import ee.cyber.sdsb.signer.tokenmanager.module.DefaultModuleManagerImpl;
+import ee.cyber.sdsb.signer.util.Update;
 
-import static ee.cyber.sdsb.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
-import static ee.cyber.sdsb.signer.protocol.ComponentNames.TOKEN_ACTOR_MANAGER;
+import static ee.cyber.sdsb.signer.protocol.ComponentNames.*;
 
+@Slf4j
+@RequiredArgsConstructor
 public class Signer implements StartStop {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(Signer.class);
+    private static final String MODULE_MANAGER_IMPL_CLASS =
+            SystemProperties.PREFIX + "signer.moduleManagerImpl";
 
     private final ActorSystem actorSystem;
 
-    public Signer(ActorSystem actorSystem) {
-        this.actorSystem = actorSystem;
-    }
-
     @Override
     public void start() throws Exception {
-        LOG.trace("start()");
+        log.trace("start()");
 
-        // TODO: Start task for periodically reloading confs
-        createComponent(TokenActorManager.class, TOKEN_ACTOR_MANAGER);
-        createComponent(SignerRequestProcessor.class, REQUEST_PROCESSOR);
+        TokenManager.init();
+
+        createComponent(MODULE_MANAGER, getModuleManagerImpl());
+        createComponent(ModuleManagerJob.class);
+
+        createComponent(REQUEST_PROCESSOR, SignerRequestProcessor.class);
+
+        createComponent(OCSP_RESPONSE_MANAGER, OcspResponseManager.class);
+        createComponent(OCSP_CLIENT, OcspClientWorker.class);
+        createComponent(OcspClientJob.class);
     }
 
     @Override
     public void stop() throws Exception {
-        LOG.trace("stop()");
+        log.trace("stop()");
 
         TokenManager.saveToConf();
     }
 
     @Override
     public void join() throws InterruptedException {
-        LOG.trace("join()");
-
+        log.trace("join()");
     }
 
-    private void createComponent(Class<?> clazz, String name) {
-        actorSystem.actorOf(Props.create(clazz), name);
+    private ActorRef createComponent(Class<?> clazz, Object... arg) {
+        return createComponent(clazz.getName(), clazz, arg);
+    }
+
+    private ActorRef createComponent(String name, Class<?> clazz,
+            Object... arg) {
+        return actorSystem.actorOf(Props.create(clazz, arg), name);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<? extends AbstractModuleManager> getModuleManagerImpl() {
+        String moduleManagerImplClassName =
+                System.getProperty(MODULE_MANAGER_IMPL_CLASS,
+                        DefaultModuleManagerImpl.class.getName());
+        log.debug("Using module manager implementation: {}",
+                moduleManagerImplClassName);
+        try {
+            Class<?> clazz = Class.forName(moduleManagerImplClassName);
+            return (Class<? extends AbstractModuleManager>) clazz;
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Could not load module manager impl: "
+                    + moduleManagerImplClassName, e);
+        }
+    }
+
+    /**
+     * Periodically updates the ModuleManager
+     */
+    private static class ModuleManagerJob extends PeriodicJob {
+
+        private static final FiniteDuration MODULE_MANAGER_INTERVAL =
+                Duration.create(30, TimeUnit.SECONDS);
+
+        public ModuleManagerJob() {
+            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_INTERVAL);
+        }
+
+        @Override
+        protected FiniteDuration getInitialDelay() {
+            return Duration.create(1, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Periodically executes the OcspClient
+     */
+    private static class OcspClientJob extends PeriodicJob {
+
+        private static final FiniteDuration OCSP_CLIENT_INTERVAL =
+                Duration.create(1, TimeUnit.MINUTES); // TODO: system parameter
+
+        public OcspClientJob() {
+            super(OCSP_CLIENT, OcspClientWorker.EXECUTE, OCSP_CLIENT_INTERVAL);
+        }
+
+        @Override
+        protected FiniteDuration getInitialDelay() {
+            return Duration.create(10, TimeUnit.SECONDS);
+        }
     }
 }

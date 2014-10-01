@@ -11,7 +11,7 @@ Content-Date: 2013-10-21T12:48:43+0000
 Content-File-Name: globalconf
 
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:conf xmlns:ns2="http://sdsb.net/xsd/identifiers" xmlns:ns3="http://sdsb.net/xsd/sdsb.xsd">
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/sdsb.xsd">
     <instanceIdentifier>EE</instanceIdentifier>
     <member id="ida696b134202add693d18f6bffea8037c">
         <memberClass>riigiasutus</memberClass>

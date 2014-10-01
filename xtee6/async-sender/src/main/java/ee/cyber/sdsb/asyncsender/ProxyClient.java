@@ -17,16 +17,23 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.eclipse.jetty.http.MimeTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.message.Soap;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.message.SoapParserImpl;
+import ee.cyber.sdsb.common.message.SoapUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.common.util.StartStop;
 
+import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+
 class ProxyClient implements StartStop {
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ProxyClient.class);
 
     private static final int CLIENT_TIMEOUT = 300000; // 30 sec.
 
@@ -44,10 +51,12 @@ class ProxyClient implements StartStop {
         httpClient = createHttpClient();
     }
 
-    SoapMessageImpl send(String contentType, InputStream message) throws Exception {
+    SoapMessageImpl send(String contentType, InputStream message)
+            throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
-            sender.addHeader(SoapMessageImpl.X_IGNORE_ASYNC, "true");
-            sender.doPost(getProxyAddress(), message, contentType);
+            sender.addHeader(SoapUtils.X_IGNORE_ASYNC, "true");
+            sender.doPost(getProxyAddress(), message, CHUNKED_LENGTH,
+                    contentType);
             return handleResponse(sender);
         }
     }
@@ -94,7 +103,10 @@ class ProxyClient implements StartStop {
 
     private static void checkForFaultResponse(Soap responseSoap) {
         if (responseSoap != null && responseSoap instanceof SoapFault) {
-            throw ((SoapFault) responseSoap).toCodedException();
+            SoapFault soapFault = (SoapFault) responseSoap;
+            LOG.error("checkForFaultResponse() - got fault message: {}",
+                    soapFault.getXml());
+            throw soapFault.toCodedException();
         }
     }
 

@@ -2,45 +2,89 @@ en:
   common:
     accept: "Save"
     add: "Add"
+    advanced_search: "Advanced Search"
     apply: "Apply"
+    approve: "Approve"
+    back: "Back"
     cancel: "Cancel"
+    cert_view: "View certificate"
     clear: "Clear"
     close: "Close"
-    confirm: "Save"
+    confirm: "Confirm"
+    continue: "Continue"
+    decline: "Decline"
+    delete: "Delete"
+    details: "Details"
     disable: "Disable"
     download: "Download"
     edit: "Edit"
     enable: "Enable"
     export: "Export"
+    finish: "Finish"
     generate: "Generate"
     generate_new: "Generate new"
     import: "Import"
     load: "Load"
     login: "Log in"
+    next: "Next"
+    ok: "OK"
     refresh: "Refresh"
     remove: "Remove"
-    restore: "Undo"
+    remove_all: "Remove All"
+    remove_selected: "Remove Selected"
+    restore: "Restore"
     revert: "Revert"
+    revoke: "Revoke"
+    save: "Save"
     search: "Search"
-    select_all: "select all"
-
-  about:
-    index:
-      unknown: "unknown"
+    select: "Select"
+    select_all: "Select/deselect all"
+    session_timed_out: "<div class='align-center'>Session timed out. Redirecting.</div>"
+    simple_search: "Simple Search"
+    submit: "Submit"
+    upload: "Upload"
+    warning: "<div class='align-center'>{{text}}</div>"
+    zero_records: "No (matching) records"
+    zero_records_none: "None"
+    language: "Language (%{current})"
+    enter_pin: "Enter PIN"
+    'yes': "Yes"
+    'no': "No"
 
   layouts:
     application:
       title: "Security Server Administration"
-      js_locale_file: "locale-en"
       logout: "log out"
+      select_locale: "Select Language"
+      confirm_title: "Confirmation Required"
+      yesno_title: "Confirmation Required"
+      warning_title: "Warning"
+      alert_title: "Alert"
     menu:
       changes: "Unsaved changes"
 
   backup:
     index:
+      last_successful: "Last Successful Backups"
+      restore: "Restore Configuration"
+      upload: "Upload backup file"
       backup: "Back Up Configuration"
+      file:
+        name: "Name"
+        size: "Size (kB)"
+      done: "Configuration backup created"
+      error: "Error making configuration backup, script exited with status code '%{code}'"
+      item:
+        restore_confirm: "Are you sure you want to restore configuration from file '{{file}}'?"
+        delete_confirm: "Are you sure you want to permanently delete configuration backup file '{{file}}'?"
+      console_output: "Backup Script Output"
+
+    upload:
+      title: "Upload New Backup File"
+      enter_file_name: "Backup File"
 
   restore:
     index:
       restore: "Restore Configuration"
       enter_file_name: "Configuration File"
+      console_output: "Restore Script Output"

@@ -1,10 +1,9 @@
-var tsps = function() {
+var SDSB_TSPS = function() {
     var oTsps;
 
-    /* Public API - start */
-
     function initTable() {
-        var opts = defaultOpts(updateActionButtonsVisibility, 100);
+        var opts = defaultTableOpts();
+        opts.fnDrawCallback = updateActionButtonsVisibility;
         opts.bProcessing = true;
         opts.bServerSide = true;
         opts.sScrollY = "400px";
@@ -17,7 +16,7 @@ var tsps = function() {
         ];
 
         opts.fnDrawCallback = function() {
-            updateRecordsCount("tsps");
+            SDSB_CENTERUI_COMMON.updateRecordsCount("tsps");
             enableActions();
         }
 
@@ -28,6 +27,15 @@ var tsps = function() {
 
         oTsps = $('#tsps').dataTable(opts);
         oTsps.fnSetFilteringDelay(600);
+
+        $("#tsps tbody td").live("click", function(ev) {
+            setTableFocus(0, ev.target.parentNode);
+            updateActionButtonsVisibility();
+        });
+
+        $("#tsps tbody tr").live("dblclick", function(ev) {
+            initEditingExisting();
+        });
     }
 
     function refreshTable() {
@@ -59,58 +67,46 @@ var tsps = function() {
     }
 
     function initEditingExisting() {
-        editableTsp = oTsps.getFocusData();
-        editTsp.initEditing(editableTsp.id, editableTsp.url);
+        SDSB_CENTERUI_COMMON.openDetailsIfAllowed("tsps/can_see_details",
+                function(){
+            editableTsp = oTsps.getFocusData();
+            SDSB_TSP_EDIT.initEditing(editableTsp.id, editableTsp.url);
+        });
     }
 
     function deleteTsp() {
         var tsp = oTsps.getFocusData();
         var requestParams = {id: tsp.id};
-        var confirmParams = [tsp.name];
+        var confirmParams = {tsp: tsp.name};
 
-        confirm("tsps.remove.confirm", confirmParams, function() {
-            $.post(action("delete_tsp"), requestParams, function() {
+        confirm("tsps.remove_confirm", confirmParams, function() {
+            $.post("tsps/delete_tsp", requestParams, function() {
                 refreshTable();
             }, "json");
         });
     }
 
-    /* Public API - end */
-    
+    function addActionHandlers() {
+        $("#tsp_add").live("click", function() {
+            SDSB_TSP_EDIT.initAdding();
+        });
+
+        $("#tsp_details").live("click", function() {
+            initEditingExisting();
+        });
+
+        $("#tsp_delete").live("click", function() {
+            deleteTsp();
+        });
+    }
+
+    $(document).ready(function() {
+        initTable();
+        enableActions();
+        addActionHandlers();
+    });
+
     return {
-        initTable: initTable,
         refreshTable: refreshTable,
-        enableActions: enableActions,
-        setTableFocus: setTableFocus,
-        updateActionButtonsVisibility: updateActionButtonsVisibility,
-        initEditingExisting: initEditingExisting,
-        deleteTsp: deleteTsp
     }
 }();
-
-$(document).ready(function() {
-    tsps.initTable();
-
-    tsps.enableActions();
-
-    $("#tsps tbody td").live("click", function(ev) {
-        tsps.setTableFocus(0, ev.target.parentNode);
-        tsps.updateActionButtonsVisibility();
-    });
-
-    $("#tsp_add").live("click", function() {
-        newTsp.initAdding();
-    });
-
-    $("#tsps tbody tr").live("dblclick", function(ev) {
-        tsps.initEditingExisting();
-    });
-
-    $("#tsp_details").live("click", function() {
-        tsps.initEditingExisting();
-    });
-
-    $("#tsp_delete").live("click", function() {
-        tsps.deleteTsp();
-    });
-});

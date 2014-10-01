@@ -17,9 +17,9 @@ import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.message.SoapParserImpl;
 import ee.cyber.sdsb.common.signature.SignatureData;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 public class ProxyMessageEncoderTest {
 
@@ -29,7 +29,7 @@ public class ProxyMessageEncoderTest {
     @Before
     public void initialize() throws Exception {
         out = new ByteArrayOutputStream();
-        encoder = new ProxyMessageEncoder(out);
+        encoder = new ProxyMessageEncoder(out, getHashAlgoId());
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ProxyMessageEncoderTest {
         assertNotNull(proxyMessage.getSoap());
         assertNotNull(proxyMessage.getSignature());
         assertNull(proxyMessage.getFault());
-        assertNull(proxyMessage.getOcspResponse());
+        assertTrue(proxyMessage.getOcspResponses().isEmpty());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class ProxyMessageEncoderTest {
         ProxyMessage proxyMessage = decode();
 
         // assert the required parts are there
-        assertNotNull(proxyMessage.getOcspResponse());
+        assertFalse(proxyMessage.getOcspResponses().isEmpty());
         assertNotNull(proxyMessage.getSoap());
         assertNotNull(proxyMessage.getSignature());
         assertNull(proxyMessage.getFault());
@@ -128,7 +128,8 @@ public class ProxyMessageEncoderTest {
     private ProxyMessage decode() throws Exception {
         ProxyMessage proxyMessage = new ProxyMessage();
         ProxyMessageDecoder decoder =
-                new ProxyMessageDecoder(proxyMessage, encoder.getContentType());
+                new ProxyMessageDecoder(proxyMessage, encoder.getContentType(),
+                        getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));
 
         return proxyMessage;
@@ -162,5 +163,9 @@ public class ProxyMessageEncoderTest {
         try (InputStream is = new FileInputStream(fileName)) {
             return new OCSPResp(IOUtils.toByteArray(is));
         }
+    }
+
+    private String getHashAlgoId() {
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 }

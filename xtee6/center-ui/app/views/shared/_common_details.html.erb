@@ -1,7 +1,7 @@
-<div id="management_request_details_common">
-  <fieldset>
+<div id="management_request_edit_common">
+  <section class="container">
     <legend><%= t 'management_requests.request.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'management_requests.request_id' %></td>
         <td><input class="management_request_id" id="management_request_id" type="text" readonly/></td>
@@ -22,20 +22,20 @@
         <td><%= t 'management_requests.complementary_id' %></td>
         <td><input class="management_request_complementary_id" type="text" readonly/></td>
       </tr>
-      <tr class="canceling_id">
-        <td><%= t 'management_requests.canceling_id' %></td>
-        <td><input class="management_request_canceling_id" type="text" readonly/></td>
+      <tr class="revoking_id">
+        <td><%= t 'management_requests.revoking_id' %></td>
+        <td><input class="management_request_revoking_id" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'management_requests.comments' %></td>
         <td><input class="management_request_comments" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
+  </section>
 
-  <fieldset>
+  <section class="container">
     <legend><%= t 'management_requests.securityserver.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'securityservers.owner_name' %></td>
         <td><input class="management_request_server_owner_name" type="text" readonly/></td>
@@ -57,5 +57,5 @@
         <td><input class="management_request_server_address" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
+  </section>
 </div>

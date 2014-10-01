@@ -1,162 +1,136 @@
-var oGlobalconf, oTimestampServices, oTimestamps;
+var oDistributors, oTsps, oTspsApproved, oInternalSslCert;
 
-function reloadDistData(response) {
-    oGlobalconf.fnClearTable();
-    if(response == null) {
-        oGlobalconf.fnAddData(response.data);
-    } else {
-        $.get(action('get_distributors'), function(response) {
-            oGlobalconf.fnAddData(response.data);
-        });
+function distributorAddCallback(response) {
+    $("#distributor_add_dialog form")
+        .attr("action", action("distributor_cert_load"));
+
+    if (response.success) {
+        oDistributors.fnClearTable();
+        oDistributors.fnAddData(response.data);
+        $("#distributor_add_dialog").dialog("close");
     }
-    
-    $("#globalconf_dists_add").dialog('close');
-    $('#dists_remove').disable();
+
+    showMessages(response.messages);
+    PERIODIC_JOBS.refreshAlerts();
 }
 
-function certUploadCallback(response) {
-    if(response.success)
-    {
-        $('#dist_dn').val(response.data.issuer);
-        $('#dist_serial').val(response.data.serial_number);
-        $('#cert_id').val(response.data.temp_cert_id);
-        $('#globalconf_add_ok').enable();
+function distributorCertLoadCallback(response) {
+    if (response.success) {
+        $('#distributor_add_dialog #subject').val(response.data.subject);
+        $('#distributor_add_dialog #serial').val(response.data.serial);
     }
+
+    showMessages(response.messages);
 };
 
-function updateAsync(response) {
-    $.get(action('get_async_requests'), function(response) {
+function populate() {
+    $.get(action("distributors"), function(response) {
+        oDistributors.fnClearTable();
+        oDistributors.fnAddData(response.data);
+    });
+
+    $.get(action("tsps"), function(response) {
+        oTsps.fnClearTable();
+        oTsps.fnAddData(response.data);
+    });
+
+    $('#distributor_delete, #tsp_delete').disable();
+
+    $.get(action("async_params"), function(response) {
         $('#async_period').val(response.data.base_delay);
         $('#async_max_period').val(response.data.max_delay);
         $('#async_parallel').val(response.data.max_senders);
     });
-};
 
-function populate() {
-    $.get(action('get_distributors'), function(response) {
-        oGlobalconf.fnClearTable();
-        oGlobalconf.fnAddData(response.data);
-    });
-
-    $.get(action('get_timestamping_services'), function(response) {
-        oTimestampServices.fnClearTable();
-        oTimestampServices.fnAddData(response.data);
-    });
-
-    $.get(action('get_timestamps'), function(response) {
-        oTimestamps.fnClearTable();
-        oTimestamps.fnAddData(response.data);
-    });
-
-    $('#dists_remove, #timestamp_edit, #timestamp_remove').disable();
-
-    updateAsync();
-    updateCertDetails();
-};
-
-function updateCertDetails() {
-    $.get(action('get_cert'), function(response) {
-        $('#fingerprint').val(response.data.fingerprint);
+    $.get(action("internal_ssl_cert"), function(response) {
+        oInternalSslCert.fnClearTable();
+        if (response.data.hash) {
+            oInternalSslCert.fnAddData(response.data);
+            $("#cert_details, #export_internal_ssl_cert").enable();
+        } else {
+            $("#cert_details, #export_internal_ssl_cert").disable();
+        }
     });
 };
 
 function initDialogs() {
-    $('#globalconf_dists_add').initDialog({
+    $('#distributor_add_dialog').initDialog({
         autoOpen: false,
         modal: true,
-        height: 280,
-        width: 460,
+        width: 550,
         buttons: [
         {
-            text: _('ok'),
-            id: 'globalconf_add_ok',
+            text: _("common.ok"),
             click: function() {
-                var params = {
-                    dist_address: $('#dist_address').val(),
-                    dist_certificate: $('#cert_id').val(),
-                    dist_dn: $('#dist_dn').val(),
-                    dist_serial: $('#dist_serial').val()
-                }
-                $.post(action('add_distributor'), params, function(response) {
-                    reloadDistData(response);
-                });
-            },
-            disabled: true
+                $("#distributor_add_dialog form")
+                    .attr("action", action("distributor_add"));
+                $("#distributor_add_dialog form").submit();
+            }
         },
         {
-            text: _('cancel'),
+            text: _("common.cancel"),
             click: function() {
                 $(this).dialog('close');
             }
         }
         ]
     });
-    $('#timestamp_service_add').initDialog({
+
+    $('#tsp_add_dialog').initDialog({
         autoOpen: false,
+        width: 550,
         modal: true,
         open: function() {
-            oTimestamps.fnAdjustColumnSizing();
-        },
-        buttons: [
-        {
-            text: _('ok'),
-            click: function() {
-                var params = {
-                    tsp_name: oTimestamps.getFocusData().tsp_name
-                };
-                $.post(action('add_timestamping_service'), params, function(data) {
-                    populate();
-                });
-                $(this).dialog('close');
-            }
-        },
-        {
-            text: _('cancel'),
-            click: function() {
-                $(this).dialog('close');
-            }
-        }
-        ]
-    });
-    $('#edit_timestamp_url').initDialog({
-        autoOpen: false,
-        modal: true,
-        buttons: [
-        {
-            text: _('ok'),
-            click: function() {
-                var params = {
-                    tsp_name: oTimestampServices.getFocusData().tsp_name,
-                    tsp_url: $('#tsp_url').val()
-                };
-                $.post(action('edit_timestamping_service'), params, function(ret) {
-                    populate();
-                });
-                $(this).dialog('close');
-            }
-        },
-        {
-            text: _('cancel'),
-            click: function() {
-                $(this).dialog('close');
-            }
-        }
-        ]
-    });
-    $('#cert_details').initDialog({
-        autoOpen: false,
-        modal: true,
-        width: 515,
-        height: 600,
-        open: function() {
-            $.get(action('cert_details'), function(response) {
-                $('#cert_dump').text(response.data.cert_dump);
-                $('#cert_hash').text(response.data.cert_hash);
+            oTspsApproved.fnAdjustColumnSizing();
+
+            $.get(action("tsps_approved"), function(response) {
+                oTspsApproved.fnClearTable();
+                oTspsApproved.fnAddData(response.data);
             });
         },
         buttons: [
+        {
+            text: _("common.ok"),
+            click: function() {
+                var selected = oTspsApproved.getFocusData();
+                var params = {
+                    name: selected.name,
+                    url: selected.url
+                };
+
+                $.post(action("tsp_add"), params, function(response) {
+                    oTsps.fnClearTable();
+                    oTsps.fnAddData(response.data);
+                });
+
+                $(this).dialog('close');
+            }
+        },
+        {
+            text: _("common.cancel"),
+            click: function() {
+                $(this).dialog('close');
+            }
+        }
+        ]
+    });
+
+    $('#cert_details_dialog').initDialog({
+        autoOpen: false,
+        modal: true,
+        width: 710,
+        height: 580,
+        open: function() {
+            var dialog = this;
+
+            $.get(action("internal_ssl_cert_details"), function(response) {
+                $('#dump', dialog).text(response.data.dump).scrollTop(0);
+                $('#hash', dialog).text(response.data.hash);
+            }, 'json');
+        },
+        buttons: [
             {
-                text: _('ok'),
+                text: _("common.ok"),
                 click: function() {
                     $(this).dialog('close');
                 }
@@ -166,84 +140,95 @@ function initDialogs() {
 };
 
 $(function() {
-    var opts = defaultOpts(null, 1);
-    opts.bPaginate = false;
-    opts.sDom = "<'dataTables_header'<'clearer'>>t";
+    var opts = scrollableTableOpts();
+    opts.sDom = "t";
     opts.aoColumns = [
         { 'mData': 'url' },
-        { 'mData': 'certificate' }
+        { 'mData': 'cert_subject' }
     ];
 
-    oGlobalconf = $('#globalconf_dist').dataTable(opts);
+    oDistributors = $('#distributors').dataTable(opts);
 
-    opts = defaultOpts(null, 1);
-    opts.bPaginate = false;
-    opts.sDom = "<'dataTables_header'<'clearer'>>t";
+    opts = scrollableTableOpts(200);
+    opts.sDom = "t";
     opts.aoColumns = [
-        { 'mData': 'tsp_name' },
-        { 'mData': 'tsp_url' }
+        { 'mData': 'name' },
+        { 'mData': 'url' }
     ];
 
-    oTimestampServices = $('#timestamp_services').dataTable(opts);
+    oTsps = $('#tsps').dataTable(opts);
 
-    opts = defaultOpts(null, 1);
-    opts.bPaginate = false;
-    opts.sDom = "<'dataTables_header'<'clearer'>>t";
+    opts = scrollableTableOpts(200);
+    opts.sDom = "t";
     opts.aoColumns = [
-        { 'mData': 'tsp_name' }
+        { 'mData': 'name' }
     ];
 
-    oTimestamps = $('#timestamps').dataTable(opts);
+    oTspsApproved = $('#tsps_approved').dataTable(opts);
+
+    opts = scrollableTableOpts(200);
+    opts.sDom = "t";
+    opts.aoColumns = [
+        { 'mData': 'hash' }
+    ];
+    opts.oLanguage = {
+        "sZeroRecords": _("common.zero_records_none")
+    };
+
+    oInternalSslCert = $('#internal_ssl_cert').dataTable(opts);
 
     populate();
     initDialogs();
 
-    $('#globalconf_dist tbody tr').live('click', function() {
-        oGlobalconf.setFocus(0, this);
-        $('#dists_remove').enable();
+    $('#distributors tbody tr').live('click', function() {
+        oDistributors.setFocus(0, this);
+        $('#distributor_delete').enable();
     });
 
-    $('#timestamp_services tbody tr').live('click', function() {
-        oTimestampServices.setFocus(0, this);
-        $('#timestamp_edit, #timestamp_remove').enable();
+    $('#tsps tbody tr').live('click', function() {
+        oTsps.setFocus(0, this);
+        $('#tsp_delete').enable();
     });
 
-    $('#timestamps tbody tr').live('click', function() {
-        oTimestamps.setFocus(0, this);
+    $('#tsps_approved tbody tr').live('click', function() {
+        oTspsApproved.setFocus(0, this);
     });
 
-    $('#dists_add').live('click', function() {
-        $('#globalconf_dists_add').dialog('open');
+    $('#distributor_add').click(function() {
+        $('#distributor_add_dialog input[type!=hidden]').val('');
+        $('#distributor_add_dialog').dialog('open');
     });
 
-    $('#dists_remove').live('click', function() {
+    $('#distributor_delete').click(function() {
+        var selected = oDistributors.getFocusData();
         var params = {
-            dist_address: oGlobalconf.getFocusData().url,
-            dist_certificate: oGlobalconf.getFocusData().certificate
+            url: selected.url,
+            cert_subject: selected.cert_subject
         };
-        $.post(action('delete_distributor'), params, function(response) {
-            reloadDistData(response);
+
+        confirm("sysparams.index.delete_distributor_confirm", null, function() {
+            $.post(action("distributor_delete"), params, function(response) {
+                oDistributors.fnClearTable();
+                oDistributors.fnAddData(response.data);
+                $('#distributor_delete').disable();
+
+                PERIODIC_JOBS.refreshAlerts();
+            });
         });
     });
 
-    $('#load_cert').live('click', function() {
-        $('#dists').submit();
+    $('#tsp_add').click(function() {
+        $('#tsp_add_dialog').dialog('open');
     });
 
-    $('#timestamp_add').live('click', function() {
-        $('#timestamp_service_add').dialog('open');
-    });
-
-    $('#timestamp_edit').live('click', function() {
-        $('#edit_timestamp_url').dialog('open');
-    });
-
-    $('#timestamp_remove').live('click', function() {
+    $('#tsp_delete').click(function() {
         var params = {
-            tsp_name: oTimestampServices.getFocusData().tsp_name
+            name: oTsps.getFocusData().name
         };
-        $.post(action('delete_timestamping_service'), params, function(data) {
-            populate();
+
+        $.post(action("tsp_delete"), params, function(response) {
+            oTsps.fnClearTable();
+            oTsps.fnAddData(response.data);
         });
     });
 
@@ -253,23 +238,32 @@ $(function() {
             max_delay: $('#async_max_period').val(),
             max_senders: $('#async_parallel').val()
         };
-        $.post(action('edit_async_requests'), params, function(response) {
-            updateAsync();
+
+        $.post(action("async_params_edit"), params);
+    });
+
+    $('#cert_details').click(function(event) {
+        event.preventDefault();
+
+        $('#cert_details_dialog').dialog('open');
+    });
+
+    $('#export_internal_ssl_cert').click(function() {
+        location.href = action("internal_ssl_cert_export");
+    });
+
+    $('#generate_internal_ssl').click(function(event) {
+        event.preventDefault();
+
+        confirm("sysparams.index.generate_internal_ssl_confirm", null,
+                function() {
+            $.get(action("internal_ssl_generate"), function(response) {
+                oInternalSslCert.fnClearTable();
+                if (response.data.hash) {
+                    oInternalSslCert.fnAddData(response.data);
+                    $("#cert_details, #export_internal_ssl_cert").enable();
+                }
+            }, "json");
         });
     });
-
-    $('#new_ssl').click(function(event) {
-        event.preventDefault();
-        confirm('"Generate new internal SSL key and certificate?', null, function() {
-            $.get(action('generate_ssl'), function(response) {
-                updateCertDetails();
-            });
-        });
-    });
-
-    $('#cert_details_btn').click(function(event) {
-        event.preventDefault();
-        $('#cert_details').dialog('open');
-    });
-
 });

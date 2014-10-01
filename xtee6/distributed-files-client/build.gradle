@@ -1,3 +1,5 @@
+ext.codeCoverage = true
+
 buildscript {
     repositories {
         mavenCentral()
@@ -10,24 +12,10 @@ buildscript {
 
 apply plugin: 'fatjar'
 
-configurations {
-    provided
-}
-
 dependencies {
-    compile project(':common-util')
-    
-    provided 'org.projectlombok:lombok:0.12.0'
+    compile project(':serverconf')
     
     testCompile project(':common-test')
-}
-
-sourceSets.main.compileClasspath += configurations.provided
-
-eclipse {
-    classpath {
-        plusConfigurations += configurations.provided 
-    }
 }
 
 fatJarPrepareFiles {

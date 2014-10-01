@@ -22,6 +22,21 @@ fi
 
 if [ -f $XTEE_ETC_DIR/sdsb_activated ]; then
   rm -f $XTEE_ETC_DIR/sdsb_activated || exit 1
+cat > /etc/nginx/sites-enabled/sdsb_proxy_disabled << EOF
+# direct connection to proxy is disabled when v5.5 is not activated
+server { listen 5577;
+if (\$request_method = HEAD ) {
+return 510;
+} 
+location / {
+ proxy_pass http://localhost:5578;
+}
+}
+server {listen 5500;
+return 510;
+}
+EOF
+
 else
   echo SDSB proxy is not activated!
   exit 0
@@ -30,6 +45,7 @@ fi
 echo Disable nginx site for client mediator..
 rm -f $CLIENT_MEDIATOR_ENABLED_SITE
 rm -f $CLIENT_MEDIATOR_ENABLED_SSL_SITE
+service xroad-proxy restart
 service nginx restart
 
 

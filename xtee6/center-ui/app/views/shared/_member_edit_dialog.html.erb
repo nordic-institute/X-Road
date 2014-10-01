@@ -1,50 +1,57 @@
 <%= dialog "member_edit_dialog", t("members.edit.title") do %>
-  <div>
-    <fieldset id="member_details_fieldset">
-      <legend>
-        <%= t 'members.edit.details.legend' %>
+  <div id="member_edit_tabs">
+    <ul>
+      <li><a href="#details_tab"><%= t 'members.edit.details.legend' %></a></li>
+      <% if can?(:view_member_details) %>
+      <li><a href="#owned_servers_tab"><%= t 'members.edit.owned_servers.legend' %></a></li>
+      <li><a href="#group_membership_tab"><%= t 'members.edit.global_group_membership.legend' %></a></li>
+      <li><a href="#subsystems_tab"><%= t 'members.edit.subsystems.legend' %></a></li>
+      <li><a href="#used_servers_tab"><%= t 'members.edit.used_servers.legend' %></a></li>
+      <li><a href="#management_requests_tab"><%= t 'management_requests.legend' %></a></li>
+      <% end %>
+    </ul>
+
+    <div id="details_tab">
+      <div class="ui-tabs-panel-actions">
         <% if can?(:delete_member) %>
-          <button id="member_edit_delete" class="common-button"><%= t 'common.delete' %></button>
+        <button id="member_edit_delete" class="btn warning"><%= t 'common.delete' %></button>
         <% end %>
-      </legend>
+      </div>
+
       <%= form_tag do %>
-      <table id="member_edit_table">
+      <table class="details">
         <tr>
-          <td><%= t 'members.name' %></td>
-          <td><input id="member_edit_name" type="text" readonly/></td>
+          <td>
+            <%= t 'members.name' %>
+          </td>
+          <td style="width: 100%;"><p id="member_edit_name" class="input"/></td>
           <td>
             <% if can?(:edit_member_name_and_admin_contact) %>
-              <button id="member_edit_change_name"><%= t 'common.edit' %></button>
+            <button id="member_edit_change_name"><%= t 'common.edit' %></button>
             <% end %>
           </td>
-        </tr>
         <tr>
           <td><%= t 'members.class' %></td>
-          <td><input id="member_edit_class" type="text" readonly/></td>
+          <td><p id="member_edit_class" class="input"></p></td>
         </tr>
         <tr>
           <td><%= t 'members.code' %></td>
-          <td><input id="member_edit_code" type="text" readonly/></td>
+          <td><p id="member_edit_code" class="input"/></td>
         </tr>
-        <tr>
       </table>
       <% end %>
-    </fieldset>
-  </div>
 
-  <div class="clearer"></div>
+      <p class="ui-helper-hidden" id="member_edit_id"></p>
+    </div>
 
-  <div>
-    <fieldset class="fill">
-      <legend class="full_width cf">
-        <% if can?(:view_member_details) %>
-          <button id="toggle_member_owned_servers" data-refresh="refreshOwnedServers" class=toggle_table>+</button>
-        <% end %>
-        <%= t 'members.edit.owned_servers.legend' %>
+    <% if can?(:view_member_details) %>
+    <div id="owned_servers_tab">
+      <div class="ui-tabs-panel-actions">
         <% if can?(:add_security_server_reg_request) %>
-          <button id="add_owned_server" class="right"><%= t 'common.add' %></button>
+        <button id="add_owned_server" class="btn"><%= t 'common.add' %></button>
         <% end %>
-      </legend>
+      </div>
+
       <table id="member_owned_servers" class="display">
         <thead>
           <tr>
@@ -52,72 +59,58 @@
           </tr>
         </thead>
       </table>
-    </fieldset>
-  </div>
+    </div>
 
-  <div>
-    <fieldset class="fill">
-      <legend class="full_width cf">
-        <% if can?(:view_member_details) %>
-          <button id="toggle_member_global_group_membership" data-refresh="refreshGlobalGroupMembership" class=toggle_table>+</button>
-        <% end %>
-        <%= t 'members.edit.global_group_membership.legend' %>
+    <div id="group_membership_tab">
+      <div class="ui-tabs-panel-actions">
         <% if can?(:add_and_remove_group_members) %>
-          <button id="delete_global_group_membership" class="right"><%= t 'common.delete' %></button>
-          <button id="add_global_group_membership" class="right"><%= t 'common.add' %></button>
+        <button id="delete_global_group_membership" class="btn warning"><%= t 'common.delete' %></button>
+        <button id="add_global_group_membership" class="btn"><%= t 'common.add' %></button>
         <% end %>
-      </legend>
+      </div>
+
       <table id="member_global_group_membership" class="display">
         <thead>
           <tr>
             <th><%= t 'members.edit.global_group_membership.group' %></th>
-            <th><%= t 'members.edit.global_group_membership.subsystem' %></th>
+            <th><%= t 'members.edit.global_group_membership.subsystem.table' %></th>
             <th><%= t 'members.edit.global_group_membership.added_to_group' %></th>
           </tr>
         </thead>
       </table>
-    </fieldset>
-  </div>
+    </div>
 
-  <div class="clearer"></div>
-
-  <fieldset class="fill">
-    <legend class="full_width cf">
-      <% if can?(:view_member_details) %>
-        <button id="toggle_member_subsystems" data-refresh="refreshSubsystems" class=toggle_table>+</button>
-      <% end %>
-      <%= t 'members.edit.subsystems.legend' %>
-    </legend>
-    <table id="member_subsystems" class="display">
-      <thead>
-        <tr>
-          <th><%= t 'members.edit.subsystems.subsystem_code' %></th>
-          <th><%= t 'members.edit.subsystems.used_servers' %></th>
-        </tr>
-      </thead>
-    </table>
-  </fieldset>
-
-  <div class="clearer"></div>
-
-  <div>
-    <fieldset class="fill">
-      <legend class="full_width cf">
-        <% if can?(:view_member_details) %>
-          <button id="toggle_member_used_servers" data-refresh="refreshUsedServers" class=toggle_table>+</button>
+    <div id="subsystems_tab">
+      <div class="ui-tabs-panel-actions">
+        <% if can?(:remove_member_subsystem) %>
+        <button id="delete_subsystem" class="btn warning"><%= t 'members.edit.subsystems.delete' %></button>
         <% end %>
-        <%= t 'members.edit.used_servers.legend' %>
+      </div>
+
+      <table id="member_subsystems" class="display">
+        <thead>
+          <tr>
+            <th><%= t 'members.edit.subsystems.subsystem_code' %></th>
+            <th><%= t 'members.edit.subsystems.used_servers' %></th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+
+    <div id="used_servers_tab">
+      <div class="ui-tabs-panel-actions">
         <% if can?(:remove_member_from_security_server_clients) %>
-          <button id="remove_securityserver_client" class="right">
-            <%= t 'common.delete' %>
-          </button>
+        <button id="remove_securityserver_client" class="btn warning">
+          <%= t 'common.delete' %>
+        </button>
         <% end %>
         <% if can?(:add_security_server_client_reg_request) %>
-          <button id="register_securityserver_client" class="right">
-            <%= t 'common.add' %>
-          </button>
+        <button id="register_securityserver_client" class="btn">
+          <%= t 'common.add' %>
+        </button>
         <% end %>
-      </legend>
+      </div>
+
       <table id="member_used_servers" class="display">
         <thead>
           <tr>
@@ -127,50 +120,43 @@
           </tr>
         </thead>
       </table>
-    </fieldset>
+    </div>
+
+    <div id="management_requests_tab">
+      <table id="member_management_requests" class="display">
+        <thead>
+          <tr>
+            <th><%= t 'management_requests.process_id' %></th>
+            <th><%= t 'management_requests.process_type' %></th>
+            <th><%= t 'management_requests.created' %></th>
+            <th><%= t 'management_requests.status' %></th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+    <% end %>
   </div>
-
-  <div class="clearer"></div>
-
-  <fieldset class="fill">
-    <legend class="full_width cf">
-      <% if can?(:view_member_details) %>
-        <button id="toggle_member_management_requests" data-refresh="refreshMemberManagementRequests" class=toggle_table>+</button>
-      <% end %>
-      <%= t 'management_requests.legend' %>
-    </legend>
-    <table id="member_management_requests" class="display">
-      <thead>
-        <tr>
-          <th><%= t 'management_requests.process_id' %></th>
-          <th><%= t 'management_requests.process_type' %></th>
-          <th><%= t 'management_requests.created' %></th>
-          <th><%= t 'management_requests.status' %></th>
-        </tr>
-      </thead>
-    </table>
-  </fieldset>
 
   <%= render :partial => "shared/member_name_edit_dialog" %>
   <%= render :partial => "shared/member_contact_edit_dialog" %>
   <%= render :partial => "shared/owned_server_add_dialog" %>
-  <%= render :partial => "shared/securityserver_client_register_dialog" %>
-  <%= render :partial => "shared/securityserver_client_remove_dialog" %>
+  <%= render :partial => "shared/member_used_server_register_dialog" %>
 
   <!-- XXX Prevents infinite rendering loop -->
   <% if from_main_menu %>
-    <%= render :partial => "shared/securityserver_details_dialog",
+    <%= render :partial => "shared/securityserver_edit_dialog",
         locals: {from_main_menu: false} %>
   <% end %>
 
   <!-- Partials related to requests -->
-  <%= render :partial => "shared/auth_cert_reg_request_details_dialog" %>
-  <%= render :partial => "shared/client_reg_request_details_dialog" %>
-  <%= render :partial => "shared/auth_cert_deletion_request_details_dialog" %>
-  <%= render :partial => "shared/client_deletion_request_details_dialog" %>
+  <%= render :partial => "shared/auth_cert_reg_request_edit_dialog" %>
+  <%= render :partial => "shared/client_reg_request_edit_dialog" %>
+  <%= render :partial => "shared/auth_cert_deletion_request_edit_dialog" %>
+  <%= render :partial => "shared/client_deletion_request_edit_dialog" %>
 
   <!-- We need to initialize this dialog dynamically -->
   <div class="dialog_dynamic">
     <%= render :partial => "shared/member_to_group_add_dialog" %>
+    <%= render :partial => "shared/securityserver_client_remove_dialog" %>
   </div>
 <% end %>

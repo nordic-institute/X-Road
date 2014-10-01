@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+    "-//Hibernate/Hibernate Configuration DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+  <session-factory>
+<!-- Connection parameters should be configured in hibernate.properties 
+     and included in classpath -->
+<!--
+    hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+    hibernate.connection.driver_class=org.postgresql.Driver
+    hibernate.connection.url=jdbc:postgresql://localhost:5432/serverconf
+    hibernate.connection.username=serverconf
+    hibernate.connection.password=serverconf
+-->
+<!--
+    <property name="dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+    <property name="connection.driver_class">org.postgresql.Driver</property>
+    <property name="connection.username">serverconf</property>
+    <property name="connection.password">serverconf</property>
+    <property name="connection.url">jdbc:postgresql://localhost:5432/serverconf</property>
+-->
+
+    <property name="connection.pool_size">1</property>
+
+    <!-- Enable Hibernate's automatic session context management -->
+    <property name="current_session_context_class">thread</property>
+
+    <!-- Select the second-level cache provider. -->
+    <!--<property name="cache.provider_class">org.hibernate.cache.internal.NoCacheProvider</property>-->
+    <property name="cache.provider_class">org.hibernate.cache.HashtableCacheProvider</property>
+
+    <!-- Echo all executed SQL to stdout -->
+    <property name="show_sql">false</property>
+
+    <!-- c3p0 configuration -->
+    <property name="c3p0.acquire_increment">1</property>
+    <property name="c3p0.idle_test_period">100</property>
+    <property name="c3p0.min_size">5</property>
+    <property name="c3p0.max_size">20</property>
+    <property name="c3p0.timeout">1800</property>
+    <property name="c3p0.max_statements">50</property>
+
+  </session-factory>
+</hibernate-configuration>

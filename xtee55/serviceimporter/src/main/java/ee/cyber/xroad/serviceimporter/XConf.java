@@ -32,6 +32,7 @@ class XConf {
 
     private static final String PRODUCERS_PATH = "/proxy/producers/producers";
     private static final String CONSUMERS_PATH = "/proxy/consumers/consumers";
+    private static final String CERTS_PATH = "/proxy/certs";
 
     // A regex to check for UTF-8 encoding.
     // http://www.w3.org/International/questions/qa-forms-utf-8
@@ -322,6 +323,15 @@ class XConf {
 
     public void deleteOrg(Org org) throws IOException {
         FileUtils.deleteDirectory(toFullPath(org.getPath()).toFile());
+
+        String orgType = org instanceof Consumer ? "consumer" : "producer";
+        String pathFormat =
+            CERTS_PATH + "/%s/" + orgType + "." + org.getShortName() + ".%s";
+
+        deleteField(String.format(pathFormat, "current", "cur"));
+        deleteField(String.format(pathFormat, "current", "new"));
+        deleteField(String.format(pathFormat, "new", "cur"));
+        deleteField(String.format(pathFormat, "new", "new"));
     }
 
     public boolean adapterExists(Producer producer) throws IOException {

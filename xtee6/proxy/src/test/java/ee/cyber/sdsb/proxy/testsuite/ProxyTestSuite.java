@@ -9,13 +9,18 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import akka.actor.ActorSystem;
+
+import com.typesafe.config.ConfigFactory;
+
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
+import ee.cyber.sdsb.common.util.JobManager;
 import ee.cyber.sdsb.common.util.StartStop;
 import ee.cyber.sdsb.proxy.clientproxy.ClientProxy;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
-import ee.cyber.sdsb.proxy.securelog.LogManager;
+import ee.cyber.sdsb.proxy.securelog.MessageLog;
 import ee.cyber.sdsb.proxy.serverproxy.ServerProxy;
 import ee.cyber.sdsb.proxy.util.CertHashBasedOcspResponder;
 
@@ -24,17 +29,19 @@ public class ProxyTestSuite {
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyTestSuite.class);
 
-    static final int SERVICE_PORT = 8081;
+    public static final int SERVICE_PORT = 8081;
+    public static final int SERVICE_SSL_PORT = 8088;
 
     static volatile MessageTestCase currentTestCase;
 
-    public static void main(String[] args) throws Exception {
-        KeyConf.reload(new TestKeyConf());
-        ServerConf.reload(new TestServerConf());
-        GlobalConf.reload(new TestGlobalConf());
+    private static ClientProxy clientProxy;
+    private static ServerProxy serverProxy;
 
-        System.setProperty(SystemProperties.ASYNC_DB_PATH, "build/asyncdb");
-        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+    private static JobManager jobManager;
+    private static ActorSystem actorSystem;
+
+    public static void main(String[] args) throws Exception {
+        setUp();
 
         List<MessageTestCase> testCasesToRun =
                 TestcaseLoader.getTestCasesToRun(args);
@@ -52,12 +59,13 @@ public class ProxyTestSuite {
         startWatchdog();
 
         try {
-            LogManager.getInstance().start();
+            MessageLog.init(actorSystem, jobManager);
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);
         } finally {
-            LogManager.getInstance().stop();
+            jobManager.stop();
+            actorSystem.shutdown();
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
             LOG.info("COMPLETE, passed {} - failed {}",
@@ -79,6 +87,24 @@ public class ProxyTestSuite {
                 throw new RuntimeException(sb.toString());
             }
         }
+    }
+
+    private static void setUp() throws Exception {
+        KeyConf.reload(new TestKeyConf());
+        ServerConf.reload(new TestServerConf());
+        GlobalConf.reload(new TestGlobalConf());
+
+        System.setProperty(SystemProperties.ASYNC_DB_PATH, "build/asyncdb");
+        System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
+        System.setProperty(
+                SystemProperties.DATABASE_PROPERTIES,
+                "src/test/resources/hibernate.properties");
+
+        jobManager = new JobManager();
+        jobManager.start();
+
+        actorSystem = ActorSystem.create("Proxy",
+                ConfigFactory.load().getConfig("proxy"));
     }
 
     private static void runNormalTestCases(List<MessageTestCase> tc)
@@ -146,6 +172,12 @@ public class ProxyTestSuite {
             } catch (Exception e) {
                 t.setFailed(true);
                 LOG.info("TESTCASE FAILED: " + t.getId(), e);
+            } finally {
+                // We close all idle connections after each testcase to provide
+                // clean connection pool for the next testcase. This comes
+                // in handy for SSL testcases, where we want to do
+                // SSL handshake for each consequtive request.
+                serverProxy.closeIdleConnections();
             }
         }
     }
@@ -163,11 +195,13 @@ public class ProxyTestSuite {
     }
 
     private static List<StartStop> getDefaultServices() throws Exception {
+        clientProxy = new ClientProxy();
+        // listen at localhost to let dummy proxy listen at 127.0.0.2
+        serverProxy = new ServerProxy("127.0.0.1");
+
         return new ArrayList<>(// need mutable list
                 Arrays.asList(
-                    new ClientProxy(),
-                    // listen at localhost to let dummy proxy listen at 127.0.0.2
-                    new ServerProxy("127.0.0.1"),
+                    clientProxy, serverProxy,
                     new CertHashBasedOcspResponder("127.0.0.1"),
                     new DummyService(),
                     new DummyServerProxy()));

@@ -1,30 +1,64 @@
 package ee.cyber.sdsb.signer.protocol.handler;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.signer.core.TokenManager;
+import lombok.extern.slf4j.Slf4j;
+
+import ee.cyber.sdsb.signer.protocol.dto.CertRequestInfo;
+import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
 import ee.cyber.sdsb.signer.protocol.dto.KeyInfo;
-import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.protocol.message.DeleteKey;
+import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
+import ee.cyber.sdsb.signer.util.TokenAndKey;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_KEY_NOT_FOUND;
-
+@Slf4j
 public class DeleteKeyRequestHandler
         extends AbstractDeleteFromKeyInfo<DeleteKey> {
 
     @Override
     protected Object handle(DeleteKey message) throws Exception {
-        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
-            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
-                if (message.getKeyId().equals(keyInfo.getId())) {
-                    if (TokenManager.removeKey(message.getKeyId())) {
-                        deleteKeyFile(tokenInfo.getId(), message);
-                        return success();
-                    }
-                }
+        TokenAndKey tokenAndKey =
+                TokenManager.findTokenAndKey(message.getKeyId());
+
+        // If the key is saved to configuration, delete all certs and
+        // cert requests from configuration. Otherwise, delete the key from
+        // the module along with certs.
+        if (isSavedToConfiguration(tokenAndKey.getKey())) {
+            log.trace("Key '{}' is saved to configuration, "
+                    + "deleting key from configuration",
+                    tokenAndKey.getKey().getId());
+            removeCertsFromKey(tokenAndKey.getKey());
+            return success();
+        } else {
+            log.trace("Key '{}' is not saved to configuration, "
+                    + "deleting key from module",
+                    tokenAndKey.getKey().getId());
+            deleteKeyFile(tokenAndKey.getTokenId(), message);
+            return nothing();
+        }
+    }
+
+    private static boolean isSavedToConfiguration(KeyInfo keyInfo) {
+        if (!keyInfo.getCertRequests().isEmpty()) {
+            return true;
+        }
+
+        for (CertificateInfo certInfo : keyInfo.getCerts()) {
+            if (certInfo.isSavedToConfiguration()) {
+                return true;
             }
         }
 
-        throw new CodedException(X_KEY_NOT_FOUND, "Key '%s' not found",
-                message.getKeyId());
+        return false;
+    }
+
+    private static void removeCertsFromKey(KeyInfo keyInfo) throws Exception {
+        for (CertificateInfo certInfo : keyInfo.getCerts()) {
+            if (certInfo.isSavedToConfiguration()) {
+                TokenManager.removeCert(certInfo.getId());
+            }
+        }
+
+        for (CertRequestInfo certReqInfo : keyInfo.getCertRequests()) {
+            TokenManager.removeCertRequest(certReqInfo.getId());
+        }
     }
 }

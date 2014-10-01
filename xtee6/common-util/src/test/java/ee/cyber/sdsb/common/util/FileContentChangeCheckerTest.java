@@ -18,7 +18,7 @@ public class FileContentChangeCheckerTest {
     public void shouldDetectContentChange() throws Exception {
         MockedChecker checker = new MockedChecker();
 
-        assertFalse("Should have not changed yet", checker.hasChanged());
+        assertFalse("Should not have changed yet", checker.hasChanged());
 
         checker.setData("foobar");
 
@@ -26,26 +26,26 @@ public class FileContentChangeCheckerTest {
     }
 
     @Test
-    public void shouldDetectContentChangeForLastModified() throws Exception {
+    public void shouldNotDetectContentChangeForLastModified() throws Exception {
         MockedChecker checker = new MockedChecker();
 
-        assertFalse("Should have not changed yet", checker.hasChanged());
+        assertFalse("Should not have changed yet", checker.hasChanged());
 
         checker.getFile().setLastModified(System.currentTimeMillis() + 1000);
 
-        assertTrue("Should have changed", checker.hasChanged());
+        assertFalse("Should not have changed", checker.hasChanged());
     }
 
     @Test
     public void shouldNotDetectContentChange() throws Exception {
         MockedChecker checker = new MockedChecker();
 
-        assertFalse("Should have not changed yet", checker.hasChanged());
+        assertFalse("Should not have changed yet", checker.hasChanged());
 
         checker.setData("foobar");
         checker.setData(INITIAL_DATA);
 
-        assertFalse("Should have not changed", checker.hasChanged());
+        assertFalse("Should not have changed", checker.hasChanged());
     }
 
     private class MockedChecker extends FileContentChangeChecker {

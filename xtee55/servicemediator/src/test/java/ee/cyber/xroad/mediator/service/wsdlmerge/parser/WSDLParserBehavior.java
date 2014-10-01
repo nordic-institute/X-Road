@@ -11,9 +11,10 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.*;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.Binding;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.BindingOperation;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * TODO: Will be removed!
@@ -52,6 +53,9 @@ public class WSDLParserBehavior {
         assertTrue(result.isDoclit());
         assertEquals(
                 "http://x-road.eu/xsd/x-road.xsd", result.getXrdNamespace());
+        assertEquals(
+                "http://xrddl-andmekogu.x-road.ee/producer",
+                result.getTargetNamespace());
     }
 
     @Test
@@ -103,15 +107,11 @@ public class WSDLParserBehavior {
     private void assertDoclitSchemaElements(List<XrdNode> schemaElements) {
         assertEquals(2, schemaElements.size());
 
-        XrdNode requestElement = schemaElements.get(0);
-        Node requestName =
-                requestElement.getNode().getAttributes().getNamedItem("name");
-        assertEquals("xrddlGetRandom_1", requestName.getTextContent());
+        XrdNode requestElement = (XrdNode) schemaElements.get(0);
+        assertEquals("xrddlGetRandom", requestElement.getName());
 
-        XrdNode responseElement = schemaElements.get(1);
-        Node responseName =
-                responseElement.getNode().getAttributes().getNamedItem("name");
-        assertEquals("xrddlGetRandomResponse_1", responseName.getTextContent());
+        XrdNode responseElement = (XrdNode) schemaElements.get(1);
+        assertEquals("xrddlGetRandomResponse", responseElement.getName());
     }
 
     private void assertDoclitMessages(List<Message> messages) {
@@ -156,10 +156,13 @@ public class WSDLParserBehavior {
 
             if ("standardheader".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(standardHeaderParts));
-            } else if ("xrddlGetRandom_1".equals(messageName)) {
+                assertTrue(each.isXrdStandardHeader());
+            } else if ("xrddlGetRandom".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(requestParts));
-            } else if ("xrddlGetRandomResponse_1".equals(messageName)) {
+                assertFalse(each.isXrdStandardHeader());
+            } else if ("xrddlGetRandomResponse".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(responseParts));
+                assertFalse(each.isXrdStandardHeader());
             }
         }
     }
@@ -225,15 +228,15 @@ public class WSDLParserBehavior {
     private void assertRpcSchemaElements(List<XrdNode> schemaElements) {
         assertEquals(2, schemaElements.size());
 
-        XrdNode requestElement = schemaElements.get(0);
+        XrdNode requestElement = (XrdNode) schemaElements.get(0);
         Node requestName =
                 requestElement.getNode().getAttributes().getNamedItem("name");
-        assertEquals("xrdrpcGetRandom_paring_1", requestName.getTextContent());
+        assertEquals("xrdrpcGetRandom_paring", requestName.getTextContent());
 
-        XrdNode responseElement = schemaElements.get(1);
+        XrdNode responseElement = (XrdNode) schemaElements.get(1);
         Node responseName =
                 responseElement.getNode().getAttributes().getNamedItem("name");
-        assertEquals("xrdrpcGetRandom_vastus_1", responseName.getTextContent());
+        assertEquals("xrdrpcGetRandom_vastus", responseName.getTextContent());
     }
 
     private void assertRpcMessages(List<Message> messages) {
@@ -281,10 +284,13 @@ public class WSDLParserBehavior {
 
             if ("standardpais".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(standardHeaderParts));
-            } else if ("xrdrpcGetRandom_1".equals(messageName)) {
+                assertTrue(each.isXrdStandardHeader());
+            } else if ("xrdrpcGetRandom".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(requestParts));
-            } else if ("xrdrpcGetRandomResponse_1".equals(messageName)) {
+                assertFalse(each.isXrdStandardHeader());
+            } else if ("xrdrpcGetRandomResponse".equals(messageName)) {
                 assertTrue(each.getParts().containsAll(responseParts));
+                assertFalse(each.isXrdStandardHeader());
             }
         }
     }

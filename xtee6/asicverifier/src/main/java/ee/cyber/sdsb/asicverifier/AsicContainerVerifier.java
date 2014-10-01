@@ -8,9 +8,14 @@ import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.xml.security.c14n.Canonicalizer;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -21,26 +26,36 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.w3c.dom.Attr;
-import org.w3c.dom.Element;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.asic.AsicContainer;
 import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.hashchain.DigestValue;
 import ee.cyber.sdsb.common.hashchain.HashChainReferenceResolver;
+import ee.cyber.sdsb.common.hashchain.HashChainVerifier;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.message.Soap;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.message.SoapParserImpl;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
+import ee.cyber.sdsb.common.signature.MessagePart;
 import ee.cyber.sdsb.common.signature.Signature;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.common.signature.SignatureVerifier;
 import ee.cyber.sdsb.common.signature.TimestampVerifier;
-import ee.cyber.sdsb.common.util.CryptoUtils;
-import ee.cyber.sdsb.common.util.XmlUtils;
+import ee.cyber.sdsb.common.util.MessageFileNames;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.cyber.sdsb.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
+import static ee.cyber.sdsb.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
+import static ee.cyber.sdsb.common.util.CryptoUtils.decodeBase64;
+import static ee.cyber.sdsb.common.util.CryptoUtils.encodeHex;
+import static ee.cyber.sdsb.common.util.MessageFileNames.MESSAGE;
+import static ee.cyber.sdsb.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Getter(AccessLevel.PACKAGE)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class AsicContainerVerifier {
 
     static {
@@ -49,35 +64,36 @@ public class AsicContainerVerifier {
     }
 
     private final List<String> attachmentHashes = new ArrayList<>();
-
     private final AsicContainer asic;
+
+    private Signature signature;
+
     private ClientId signerName;
-    X509Certificate signerCert;
-    Date timestampDate;
-    X509Certificate timestampCert;
-    Date ocspDate;
-    X509Certificate ocspCert;
+    private X509Certificate signerCert;
 
-    AsicContainerVerifier(AsicContainer asic) {
-        this.asic = asic;
-    }
+    private Date timestampDate;
+    private X509Certificate timestampCert;
 
-    AsicContainer getContainer() {
-        return asic;
-    }
+    private Date ocspDate;
+    private X509Certificate ocspCert;
 
-    ClientId getSignerName() {
-        return signerName;
+    static AsicContainerVerifier create(InputStream is) throws Exception {
+        return new AsicContainerVerifier(AsicContainer.read(is));
     }
 
     void verify() throws Exception {
         String message = asic.getMessage();
-        SignatureData signature = asic.getSignature();
+        SignatureData signatureData = asic.getSignature();
+        signature = new Signature(signatureData.getSignatureXml());
         signerName = getSigner(message);
 
-        SignatureVerifier signatureVerifier = new SignatureVerifier(signature);
+        SignatureVerifier signatureVerifier =
+                new SignatureVerifier(signature,
+                        signatureData.getHashChainResult(),
+                        signatureData.getHashChain());
+        verifyRequiredReferencesExist();
 
-        Date atDate = verifyTimestamp(signatureVerifier);
+        Date atDate = verifyTimestamp();
 
         configureResourceResolvers(signatureVerifier);
 
@@ -85,20 +101,25 @@ public class AsicContainerVerifier {
         // may contain the XadesTimeStamp element, which is not standard.
         signatureVerifier.setVerifySchema(false);
 
+        // Add required part "message" to the hash chain verifier.
+        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null));
+
         signatureVerifier.verify(signerName, atDate);
         signerCert = signatureVerifier.getSigningCertificate();
+
         OCSPResp ocsp = signatureVerifier.getSigningOcspResponse();
         ocspDate = ((BasicOCSPResp) ocsp.getResponseObject()).getProducedAt();
         ocspCert = OcspVerifier.getOcspCert(
                 (BasicOCSPResp) ocsp.getResponseObject());
     }
 
-    List<String> getAttachmentHashes() {
-        return attachmentHashes;
-    }
-
-    static AsicContainerVerifier create(InputStream is) throws Exception {
-        return new AsicContainerVerifier(AsicContainer.read(is));
+    private void verifyRequiredReferencesExist() throws Exception {
+        if (!signature.references(MESSAGE)
+                && !signature.references(SIG_HASH_CHAIN_RESULT)) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Signature does not reference '%s' or '%s'",
+                    MESSAGE, SIG_HASH_CHAIN_RESULT);
+        }
     }
 
     private void configureResourceResolvers(SignatureVerifier verifier) {
@@ -117,38 +138,20 @@ public class AsicContainerVerifier {
             }
         });
 
-        verifier.setHashChainResourceResolver(new HashChainReferenceResolver() {
-            @Override
-            public boolean shouldResolve(String uri, byte[] digestValue) {
-                if (asic.hasEntry(uri)) {
-                    return true;
-                } else {
-                    logUnresolvableHash(uri, digestValue);
-                    return false;
-                }
-            }
-
-            @Override
-            public InputStream resolve(String uri) throws IOException {
-                return asic.getEntry(uri);
-            }
-        });
+        verifier.setHashChainResourceResolver(
+                new HashChainReferenceResolverImpl());
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
-        String hexDigest = CryptoUtils.encodeHex(digestValue);
         attachmentHashes.add(String.format("The digest for \"%s\" is: %s", uri,
-                hexDigest));
+                encodeHex(digestValue)));
     }
 
-    private Date verifyTimestamp(SignatureVerifier signatureVerifier)
-            throws Exception {
-        Element xadesTimeStampElement =
-                getXadesTimeStampElement(signatureVerifier.getSignature());
-        TimeStampToken tsToken = getTimeStampToken(xadesTimeStampElement);
+    private Date verifyTimestamp() throws Exception {
+        TimeStampToken tsToken = getTimeStampToken();
 
-        TimestampVerifier.verify(tsToken, getCanonicalizedTsRootManifest(
-                xadesTimeStampElement), GlobalConf.getTspCertificates());
+        TimestampVerifier.verify(tsToken, getTimestampedData(),
+                GlobalConf.getTspCertificates());
 
         timestampDate = tsToken.getTimeStampInfo().getGenTime();
         timestampCert = TimestampVerifier.getSignerCertificate(
@@ -157,45 +160,44 @@ public class AsicContainerVerifier {
         return tsToken.getTimeStampInfo().getGenTime();
     }
 
-    private static byte[] getCanonicalizedTsRootManifest(Element tsElement)
-            throws Exception {
-        String includeUriValue =
-                ((Element) tsElement.getFirstChild()).getAttribute("URI");
+    private void verifyTimestampHashChain(byte[] tsHashChainResultBytes) {
+        Map<String, DigestValue> inputs = new HashMap<>();
+        inputs.put(MessageFileNames.SIGNATURE, null);
 
-        Element tsRootManifest = XmlUtils.getElementById(
-                tsElement.getOwnerDocument(), includeUriValue);
-        if (tsRootManifest == null) {
+        InputStream in = new ByteArrayInputStream(tsHashChainResultBytes);
+        try {
+            HashChainVerifier.verify(in, new HashChainReferenceResolverImpl(),
+                    inputs);
+        } catch (Exception e) {
             throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Could not find element " + includeUriValue);
+                    "Failed to verify time-stamp hash chain: %s",
+                    e.getMessage());
         }
-
-        return XmlUtils.canonicalize(
-                Canonicalizer.ALGO_ID_C14N11_OMIT_COMMENTS, tsRootManifest);
     }
 
-    private static Element getXadesTimeStampElement(Signature signature)
-            throws Exception {
-        Element tsElement = signature.getXadesTimestamp();
-        if (tsElement == null) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Missing XAdESTimeStamp element");
+    private byte[] getTimestampedData() throws Exception {
+        String tsHashChainResult =
+                asic.getEntryAsString(ENTRY_TS_HASH_CHAIN_RESULT);
+        if (tsHashChainResult != null) { // batch time-stamp
+            byte[] tsHashChainResultBytes =
+                    tsHashChainResult.getBytes(StandardCharsets.UTF_8);
+            verifyTimestampHashChain(tsHashChainResultBytes);
+            return tsHashChainResultBytes;
+        } else {
+            return signature.getXmlSignature().getSignatureValue();
         }
-
-        return tsElement;
     }
 
-    private static TimeStampToken getTimeStampToken(Element tsElement)
-            throws Exception {
-        String tsDerBase64 = tsElement.getLastChild().getTextContent();
-        byte[] tsDerDecoded = CryptoUtils.decodeBase64(tsDerBase64);
+    private TimeStampToken getTimeStampToken() throws Exception {
+        String timestampDerBase64 = asic.getEntryAsString(ENTRY_TIMESTAMP);
+        byte[] tsDerDecoded = decodeBase64(timestampDerBase64);
         return new TimeStampToken(new ContentInfo(
                 (ASN1Sequence) ASN1Sequence.fromByteArray(tsDerDecoded)));
     }
 
     private static ClientId getSigner(String messageXml) {
         Soap soap = new SoapParserImpl().parse(
-                new ByteArrayInputStream(messageXml.getBytes(
-                        StandardCharsets.UTF_8))); // FIXME: Charset
+                new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
         if (!(soap instanceof SoapMessageImpl)) {
             throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
         }
@@ -205,4 +207,22 @@ public class AsicContainerVerifier {
                 : GlobalConf.getServiceId(msg.getService()).getClientId();
     }
 
+    private class HashChainReferenceResolverImpl
+            implements HashChainReferenceResolver {
+
+        @Override
+        public boolean shouldResolve(String uri, byte[] digestValue) {
+            if (asic.hasEntry(uri)) {
+                return true;
+            } else {
+                logUnresolvableHash(uri, digestValue);
+                return false;
+            }
+        }
+
+        @Override
+        public InputStream resolve(String uri) throws IOException {
+            return asic.getEntry(uri);
+        }
+    }
 }

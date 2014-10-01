@@ -1,5 +1,6 @@
 package ee.cyber.sdsb.common.request;
 
+import java.io.File;
 import java.net.URI;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
@@ -13,7 +14,8 @@ import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
-import ee.cyber.sdsb.common.util.CryptoUtils;
+
+import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 public class ManagementMessageTest {
 
@@ -109,10 +111,10 @@ public class ManagementMessageTest {
     }
 
     private static byte[] getAuthCert() throws Exception {
-        String fileName = "../proxy/src/test/producer.p12";
+        File file = new File("../proxy/src/test/producer.p12");
         char[] password = "test".toCharArray();
 
-        KeyStore ks = CryptoUtils.loadKeyStore("pkcs12", fileName, password);
+        KeyStore ks = loadPkcs12KeyStore(file, password);
 
         X509Certificate cert = (X509Certificate) ks.getCertificate("producer");
         return cert.getEncoded();

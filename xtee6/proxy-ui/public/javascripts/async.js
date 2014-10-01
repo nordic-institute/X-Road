@@ -1,4 +1,4 @@
-var oProviders;
+var oProviders, oRequests;
 
 function params() {
     var ret = {
@@ -17,15 +17,18 @@ function enableActions() {
         $("#last_attempt_result, #reset").enable();
     }
     if ($("#requests .row_selected").length > 0) {
-        $("#remove, #restore").enable();
+        if (oRequests.getFocusData().removed) {
+            $("#restore").enable();
+        } else {
+            $("#remove").enable();
+        }
     }
 }
 
 $(document).ready(function() {
     // init providers table
-    var opts = scrollableTableOpts(null, 1);
+    var opts = scrollableTableOpts();
     opts.bFilter = false;
-    opts.bPaginate = false;
     opts.oLanguage.sZeroRecords = "&nbsp;";
     opts.aoColumns = [
         { "mData": "name" },
@@ -42,8 +45,7 @@ $(document).ready(function() {
     oProviders = $("#providers").dataTable(opts);
 
     // init requests table
-    opts = scrollableTableOpts(null, 1);
-    opts.bPaginate = false;
+    opts = scrollableTableOpts();
     opts.bFilter = false;
     opts.oLanguage.sZeroRecords = "&nbsp;";
     opts.aoColumns = [
@@ -62,6 +64,8 @@ $(document).ready(function() {
         .insertBefore("#providers_wrapper .dataTables_footer .clearer");
     $("#requests_actions")
         .insertBefore("#requests_wrapper .dataTables_footer .clearer");
+
+    enableActions();
 
     $("#providers tbody tr").live("click", function(ev) {
         if (oProviders.setFocus(0, this)) {
@@ -92,7 +96,7 @@ $(document).ready(function() {
     $("#last_attempt_result_dialog").initDialog({
         autoOpen: false,
         modal: true,
-        height: 500,
+        height: 300,
         width: 600,
         buttons: [
             { text: "OK",

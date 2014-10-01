@@ -1,19 +1,21 @@
 <%= dialog "add_pki_step3_add_name_extractor_dialog", t("pkis.add.step3.title") do %>
-  <p>This PKI can only be used for SSL authentication (mark if true)
-    <input id = "pki_add_is_ssl_only" type="checkbox"/>
-  </p>
-  <br/>
-
-  <div id="name_extractor_data">
-    <p>This PKI is issuing certificates for member class
-      <%= select_tag(
-        "pki_add_name_extractor_member_class",
-        options_for_select([""])) %>
+  <section class="container">
+    <p>This PKI can only be used for SSL authentication (mark if true)
+      <input id = "pki_add_is_ssl_only" type="checkbox"/>
     </p>
-    <p>(leave empty if this PKI is used for more than one member class)</p>
     <br/>
 
-    <p>Member Code/Identifier Extractor Method</p>
-    <p><input id="pki_add_extractor_method" type="text"/></p>
-  </div>
+    <div id="name_extractor_data">
+      <p>This PKI is issuing certificates for member class
+        <%= select_tag(
+          "pki_add_name_extractor_member_class",
+          options_for_select([""])) %>
+      </p>
+      <p>(leave empty if this PKI is used for more than one member class)</p>
+      <br/>
+
+      <p>Member Code/Identifier Extractor Method</p>
+      <p><input id="pki_add_extractor_method" type="text"/></p>
+    </div>
+  </section>
 <% end %>

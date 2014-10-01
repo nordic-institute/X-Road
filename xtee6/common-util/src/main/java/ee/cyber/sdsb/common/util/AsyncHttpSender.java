@@ -38,7 +38,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
     }
 
     /**
-     * Sends an input stream of data using POST method to some address.
+     * Sends data using POST method to some address.
      * Method does not block. Use {@link #waitForResponse()} to get the
      * response handled after which you can use {@link #getResponseContent()}
      * and {@link #getResponseContentType()} to retrieve the response.
@@ -49,12 +49,38 @@ public class AsyncHttpSender extends AbstractHttpSender {
      * @throws Exception if an error occurs
      */
     @Override
-    public void doPost(URI address, InputStream content, String contentType)
+    public void doPost(URI address, String content, String contentType)
             throws Exception {
-        LOG.debug("doPost({})", address);
+        LOG.trace("doPost({})", address);
 
         HttpPost post = new HttpPost(address);
-        post.setEntity(createInputStreamEntity(content, contentType));
+        post.setEntity(createStringEntity(content, contentType));
+
+        PerformanceLogger.log(LOG, "doPost(" + address + ") done");
+
+        doRequest(post);
+    }
+
+    /**
+     * Sends an input stream of data using POST method to some address.
+     * Method does not block. Use {@link #waitForResponse()} to get the
+     * response handled after which you can use {@link #getResponseContent()}
+     * and {@link #getResponseContentType()} to retrieve the response.
+     *
+     * @param address the address to send
+     * @param content the content to send
+     * @param contentLength of the content.
+     * @param contentType the content type of the input data
+     * @throws Exception if an error occurs
+     */
+    @Override
+    public void doPost(URI address, InputStream content, long contentLength,
+            String contentType) throws Exception {
+        LOG.trace("doPost({})", address);
+
+        HttpPost post = new HttpPost(address);
+        post.setEntity(createInputStreamEntity(content, contentLength,
+                contentType));
 
         PerformanceLogger.log(LOG, "doPost(" + address + ") done");
 
@@ -63,7 +89,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
 
     @Override
     public void doGet(URI address) throws Exception {
-        LOG.debug("doGet({})", address);
+        LOG.trace("doGet({})", address);
 
         PerformanceLogger.log(LOG, "doGet(" + address + ") done");
 
@@ -78,7 +104,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
             throw new CodedException(X_INTERNAL_ERROR, "Request uninitialized");
         }
 
-        LOG.debug("waitForResponse()");
+        LOG.trace("waitForResponse()");
         try {
             HttpResponse response =
                     futureResponse.get(timeoutSec, TimeUnit.SECONDS);
@@ -99,11 +125,6 @@ public class AsyncHttpSender extends AbstractHttpSender {
         LOG.trace("handleFailure()");
 
         cancelRequest();
-
-        // TODO: Better handling of SSL exceptions:
-        // If trustmanager or keymanager fails, the 'cause' here is an
-        // SSLHandshakeException or similar, in which case we might try
-        // to find the actual cause (CodedException) from the exception stack.
 
         throw translateException(cause);
     }

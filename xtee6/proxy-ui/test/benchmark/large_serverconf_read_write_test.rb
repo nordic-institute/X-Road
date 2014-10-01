@@ -6,7 +6,7 @@ Dir.glob(File.expand_path("../../../build/libs/*.jar", __FILE__)).each do |file|
 end
 
 # Here Java imports must be after loading jars
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.AuthorizedSubjectType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AuthorizedSubjectType
 java_import Java::ee.cyber.sdsb.common.identifier.ClientId
 java_import Java::javax.xml.datatype.DatatypeFactory
 java_import Java::javax.xml.datatype.XMLGregorianCalendar

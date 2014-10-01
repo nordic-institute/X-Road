@@ -1,53 +1,28 @@
-var periodicJobs = function() {
+var SDSB_PERIODIC_JOBS = function() {
     var executing = false;
+    var lastStatusRefreshTime = null;
+
+    /* -- PUBLIC - START -- */
+
     /**
-     * Polls global configuration generation status and refreshes it every minute.
+     * Polls global configuration generation status and refreshes it every
+     * minute.
      */
-    function refreshGlobalConfGenStatus() {
-        executing = true;
-        $.get("/global_conf_gen_status/check_status", {}, function(response) {
-            showGlobalConfGenStatus(response.data)
-        }, "json");
+    function refreshCentralStatus() {
+        if (canRefresh()) {
+            lastStatusRefreshTime = new Date();
+            executing = true;
+
+            $.get("system_status/check_status", {}, function(response) {
+                var errorMessages =
+                        createErrorMessages(response.data.error_messages);
+                showAlerts(errorMessages);
+            }, "json");
+        }
 
         var intervalInMilliseconds = 60000;
-        window.setTimeout('periodicJobs.refreshGlobalConfGenStatus()',
+        window.setTimeout('SDSB_PERIODIC_JOBS.refreshCentralStatus()',
                 intervalInMilliseconds);
-    }
-
-    function showGlobalConfGenStatus(responseData) {
-        switch(responseData.status) {
-        case "NO_STATUS_FILE":
-            addGlobalConfGenError(_("global_conf_gen_status.no_status_file"))
-            break;
-        case "OUT_OF_DATE":
-            var message = _("global_conf_gen_status.out_of_date",
-                    [responseData.last_attempt_time]);
-
-            addGlobalConfGenError(message);
-            break;
-        case "SUCCESS":
-            removeGlobalConfGenError();
-            break;
-        case "FAILURE":
-            var message = _("global_conf_gen_status.failure",
-                    [responseData.last_attempt_time]);
-
-            addGlobalConfGenError(message);
-            break;
-        }
-    }
-
-    function addGlobalConfGenError(message) {
-        removeGlobalConfGenError();
-
-        errorDiv = $("<div>", {id: "global_conf_gen_error",
-            class: "error-external"});
-        errorDiv.text(message);
-        $("#header").prepend(errorDiv);
-    }
-
-    function removeGlobalConfGenError() {
-        $("#global_conf_gen_error").remove();
     }
 
     function areExecuting() {
@@ -58,13 +33,105 @@ var periodicJobs = function() {
         executing = false;
     }
 
+    /* -- PUBLIC - END -- */
+
+    function createErrorMessages(rawErrorMessages) {
+        var result = []
+
+        $.each(rawErrorMessages, function(idx, each) {
+            var msg = each.text;
+
+            if(each.signing_token_pin_required == true) {
+                result.push({text: msg, link: getPinEnteringLink()});
+            } else {
+                result.push(msg);
+            }
+        });
+
+        return result;
+    }
+
+    function getPinEnteringLink() {
+        return $('<a>', {
+                text: _("system_status.enter_softtoken_pin"),
+                href: "#",
+                class: "enter-signing-token-pin",
+                click: function() {
+                    openSigningTokenPinDialog();
+                }});
+    }
+
+    function openSigningTokenPinDialog() {
+        clearSigningTokenPin();
+
+        $("#enter_pin_dialog").initDialog({
+            title: _("system_status.enter_softtoken_pin"),
+            autoOpen: false,
+            modal: true,
+            height: "auto",
+            width: "auto",
+            buttons: [
+                { text: _("common.ok"),
+                  click: function() {
+                      enterSigningTokenPin(this);
+                  }
+                },
+                { text: _("common.close"),
+                  click: function() {
+                      clearSigningTokenPin();
+                      $(this).dialog("close");
+                  }
+                }
+            ]
+        }).dialog("open");
+    }
+
+    function enterSigningTokenPin(dialog) {
+        var params = {pin: $("#pin").val()}
+        clearSigningTokenPin();
+
+        $.post("system_status/enter_signing_token_pin", params,
+                function() {
+            removeSigningTokenPinErrorMsg();
+            $(dialog).dialog("close");
+        }, "json");
+    }
+
+    function removeSigningTokenPinErrorMsg() {
+        $(".enter-signing-token-pin").closest("p").remove();
+        setTopPosition();
+    }
+
+    function clearSigningTokenPin() {
+        $("#pin").val("");
+    }
+
+    function canRefresh() {
+        if (lastStatusRefreshTime == null) {
+            return true;
+        }
+
+        var timeLimit = new Date();
+        timeLimit.setMinutes(timeLimit.getMinutes()-1);
+
+        return lastStatusRefreshTime <= timeLimit;
+    }
+
+    $(document).ready(function() {
+        refreshCentralStatus();
+
+        // Enter event
+        $("#pin").on("keypress", function(event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if(keycode == '13'){
+                enterSigningTokenPin($("#enter_pin_dialog"));
+            }
+        });
+    });
+
     return {
-        refreshGlobalConfGenStatus: refreshGlobalConfGenStatus,
+        refreshCentralStatus: refreshCentralStatus,
         areExecuting: areExecuting,
-        clearExecution: clearExecution
+        clearExecution: clearExecution,
     };
 }();
-
-$(document).ready(function() {
-    periodicJobs.refreshGlobalConfGenStatus();
-});

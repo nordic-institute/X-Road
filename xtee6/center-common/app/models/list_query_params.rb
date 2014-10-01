@@ -16,9 +16,9 @@ class ListQueryParams
 
     @sort_column = sort_column
     @sort_direction = sort_direction
-    @display_start = display_start
-    @display_length = display_length
-    @search_string = search_string.downcase
+    @display_start = display_start.to_i
+    @display_length = display_length.to_i
+    @search_string = search_string != nil ? search_string.downcase : ""
   end
 
   def to_s

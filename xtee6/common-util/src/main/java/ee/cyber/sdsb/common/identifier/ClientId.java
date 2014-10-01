@@ -13,6 +13,10 @@ public final class ClientId extends SdsbId {
     private final String memberCode;
     private final String subsystemCode;
 
+    ClientId() { // required by Hibernate
+        this(null, null, null, null);
+    }
+
     private ClientId(String sdsbInstance, String memberClass,
             String memberCode, String subsystemCode) {
         super(subsystemCode == null ? MEMBER : SUBSYSTEM, sdsbInstance);
@@ -43,10 +47,6 @@ public final class ClientId extends SdsbId {
      * class and code.
      */
     public boolean subsystemContainsMember(ClientId member) {
-        // TODO: maybe it is possible to replace calls to
-        // foo.equals(bar) || foo.subsystemContainsMember(bar)
-        // with calls to foo.memberEquals(bar)?
-
         if (getObjectType() == SdsbObjectType.SUBSYSTEM &&
                 member.getObjectType() == SdsbObjectType.MEMBER) {
             return getSdsbInstance().equals(member.getSdsbInstance())
@@ -82,8 +82,10 @@ public final class ClientId extends SdsbId {
         validateField("sdsbInstance", sdsbInstance);
         validateField("memberClass", memberClass);
         validateField("memberCode", memberCode);
-        return new ClientId(sdsbInstance, memberClass, memberCode,
-                subsystemCode);
+        validateOptionalField("subsystemCode", subsystemCode);
+
+        return new ClientId(
+                sdsbInstance, memberClass, memberCode, subsystemCode);
     }
 
     /**

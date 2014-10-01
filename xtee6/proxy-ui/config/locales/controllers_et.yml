@@ -3,7 +3,6 @@ et:
     configuration:
       title: "Konfiguratsioon"
       members: "Liikmed"
-      quicklist: "Pääsuõigused"
     mangement:
       title: "Haldus"
       keys: "Võtmed ja Sertifikaadid"

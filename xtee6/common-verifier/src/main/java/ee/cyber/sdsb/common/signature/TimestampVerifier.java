@@ -12,8 +12,10 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampToken;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.ErrorCodes;
-import ee.cyber.sdsb.common.util.CryptoUtils;
+
+import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
+import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
 
 public class TimestampVerifier {
 
@@ -24,12 +26,12 @@ public class TimestampVerifier {
     public static void verify(TimeStampToken tsToken,
             byte[] stampedData, List<X509Certificate> tspCerts)
                     throws Exception {
-        String thatHash = CryptoUtils.encodeBase64(CryptoUtils.calculateDigest(
+        String thatHash = encodeBase64(calculateDigest(
                 tsToken.getTimeStampInfo().getHashAlgorithm(), stampedData));
-        String thisHash = CryptoUtils.encodeBase64(
+        String thisHash = encodeBase64(
                 tsToken.getTimeStampInfo().getMessageImprintDigest());
         if (!thisHash.equals(thatHash)) {
-            throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
+            throw new CodedException(X_MALFORMED_SIGNATURE,
                     "Timestamp hashes do not match");
         }
 
@@ -43,7 +45,7 @@ public class TimestampVerifier {
     public static void verify(TimeStampToken tsToken,
             List<X509Certificate> tspCerts) throws Exception {
         if (tspCerts.isEmpty()) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
+            throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get TSP certificates");
         }
 
@@ -51,28 +53,28 @@ public class TimestampVerifier {
 
         X509Certificate cert = getTspCertificate(signerId, tspCerts);
         if (cert == null) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
+            throw new CodedException(X_INTERNAL_ERROR,
                     "Could not find TSP certificate for timestamp");
         }
 
         SignerInformation signerInfo =
                 tsToken.toCMSSignedData().getSignerInfos().get(signerId);
         if (signerInfo == null) {
-            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR,
+            throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get signer information for "
                             + signerId.getSerialNumber());
         }
 
         SignerInformationVerifier verifier = createVerifier(cert);
         if (!signerInfo.verify(verifier)) {
-            throw new CodedException(ErrorCodes.X_TIMESTAMP_VALIDATION,
+            throw new CodedException(X_TIMESTAMP_VALIDATION,
                     "Failed to verify timestamp");
         }
     }
 
     public static X509Certificate getSignerCertificate(
             TimeStampToken tsToken, List<X509Certificate> tspCerts)
-            throws Exception {
+                    throws Exception {
         SignerId signerId = tsToken.getSID();
 
         return getTspCertificate(signerId, tspCerts);

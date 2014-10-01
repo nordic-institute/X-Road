@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
 import ee.cyber.sdsb.common.util.HandlerBase;
-import ee.cyber.xroad.mediator.util.HttpHeaders;
+import ee.cyber.sdsb.common.util.HttpHeaders;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 
@@ -70,6 +70,10 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
             @Override
             public InputStream getInputStream() throws Exception {
                 return request.getInputStream();
+            }
+            @Override
+            public String getParameters() {
+                return request.getQueryString();
             }
         }, new MediatorResponse() {
             @Override

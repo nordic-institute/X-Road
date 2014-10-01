@@ -1,6 +1,6 @@
 package ee.cyber.sdsb.proxy.signedmessage;
 
-import ee.cyber.sdsb.common.signature.PartHash;
+import ee.cyber.sdsb.common.signature.MessagePart;
 import ee.cyber.sdsb.common.signature.SignatureBuilder;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
@@ -23,7 +23,7 @@ public class Signer {
      * @param data the data.
      */
     public void addPart(String name, String hashMethod, byte[] data) {
-        builder.addPart(new PartHash(name, hashMethod, encodeBase64(data)));
+        builder.addPart(new MessagePart(name, hashMethod, encodeBase64(data)));
     }
 
     /**

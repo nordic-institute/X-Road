@@ -6,12 +6,15 @@ public interface ComponentNames {
 
     String SIGNER_CLIENT = "SignerClient";
 
-    String TOKEN_ACTOR_MANAGER = "TokenActorManager";
-
     String REQUEST_PROCESSOR = "RequestProcessor";
 
     String TOKEN_SIGNER = "TokenSigner";
 
     String TOKEN_WORKER = "TokenWorker";
 
+    String OCSP_RESPONSE_MANAGER = "OcspResponseManager";
+
+    String OCSP_CLIENT = "OcspClient";
+
+    String MODULE_MANAGER = "ModuleManager";
 }

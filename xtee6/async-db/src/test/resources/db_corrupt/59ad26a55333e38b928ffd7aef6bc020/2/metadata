@@ -1,0 +1,1 @@
+{"orderNo":2,"id":"2c9453d6-84df-4000-8482-92765b87bfe6","receivedTime":1387543688326,"sender":{"memberClass":"GOV","memberCode":"XTS1CLIENT","type":"MEMBER","sdsbInstance":"EE"},"user":"EE37702211234","service":{"memberClass":"GOV","memberCode":"XTS4CLIENT","serviceVersion":"v1","serviceCode":"sdsbGetRandom","type":"SERVICE","sdsbInstance":"EE"},"sending":false}

@@ -1,14 +1,23 @@
-<div style="padding-bottom: 0.5em;">
-  <% unless key_saved_to_configuration?(@key) %>
-  <p>The key can be renamed after importing a certificate or creating a certificate request.</p><br/>
-  <% end %>
-  <form>
-    <input id="key_id" name="key_id" type="hidden" value="<%= @key.id %>"/>
-    <span style="float: left;">Friendly name:</span>
-    <input type="text" name="friendly_name"
-           style="float: right; width: 450px; text-align: right;"
-           value="<%= @key.friendlyName || @key.id %>"
-           <%= "disabled" unless key_saved_to_configuration?(@key) %>/>
-  </form>
-  <div class="clearer"></div>
-</div>
+<% unless key_saved_to_configuration?(@key) %>
+<p><%= t '.friendly_name_hint' %></p><br/>
+<% end %>
+
+<table class="details">
+  <tr>
+    <td><%= t '.friendly_name' %>:</td>
+    <td>
+      <form>
+        <input id="key_id" name="key_id" type="hidden" value="<%= @key.id %>"/>
+        <input id="friendly_name" name="friendly_name" type="text"
+               style="float: right;" value="<%= @key.friendlyName || @key.id %>"
+               <%= "disabled" unless key_saved_to_configuration?(@key) %>/>
+      </form>
+    </td>
+  </tr>
+</table>
+
+<section class="container">
+  <textarea readonly class="dump" style="height: auto;" wrap="off"><%= t '.key_info' %>:
+    <%= t '.key_id' %>: <%= @key.id %>
+    <%= t '.readonly' %>: <%= @token.readOnly %></textarea>
+</section>

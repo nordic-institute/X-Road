@@ -1,8 +1,6 @@
 class Subsystem < SecurityServerClient
-  include Validators
-
-  validates :sdsb_member_id, :present => true
-  validates :subsystem_code, :present => true
+  validates_presence_of :sdsb_member_id
+  validates_presence_of :subsystem_code
 
   belongs_to :sdsb_member,
       :class_name => "SdsbMember",
@@ -11,8 +9,8 @@ class Subsystem < SecurityServerClient
   # Finds a subsystem by member class, member code and subsystem code.
   # Returns nil, if not found.
   def self.find_by_code(member_class, member_code, subsystem_code)
-    subsystems = Subsystem
-        .joins(:sdsb_member => :member_class)
+    subsystems = Subsystem\
+        .joins(:sdsb_member => :member_class)\
         .where(
           :subsystem_code => subsystem_code,
           :sdsb_members_security_server_clients => {

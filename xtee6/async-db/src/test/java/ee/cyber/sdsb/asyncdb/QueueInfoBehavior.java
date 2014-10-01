@@ -8,6 +8,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.CorruptQueueException;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
@@ -23,8 +25,8 @@ public class QueueInfoBehavior {
 
     @Before
     public void setUp() throws Exception {
-        System.setProperty(SystemProperties.SERVER_CONFIGURATION_FILE,
-                "src/test/resources/serverconf.xml");
+        System.setProperty(SystemProperties.ASYNC_SENDER_CONFIGURATION_FILE,
+                "src/test/resources/async-sender.properties");
     }
 
     @Test
@@ -58,12 +60,21 @@ public class QueueInfoBehavior {
     }
 
     @Test
+    public void shouldGiveNextAttemptAlwaysAfterPrevious() {
+        ClientId client = ClientId.create("EE", "GOV",
+                "XTS2CLIENT");
+        QueueInfo qInit = new QueueInfo(client, 2000, 0, new Date(), 267808,
+                null, null, "Jah");
+
+        assertTrue(qInit.getNextAttempt().getTime() > new Date().getTime());
+    }
+
+    @Test
     public void shouldIncreaseRequestCountWhenAddingRequest() {
         QueueInfo initial = new QueueInfo(
                 client, 0, 0, null, 0, null, null, null);
         QueueInfo finalProvider = QueueInfo.addRequest(initial);
         assertEquals(1, finalProvider.getRequestCount());
-        // TODO - Validate other fields as well!
     }
 
     @Test
@@ -73,7 +84,7 @@ public class QueueInfoBehavior {
         QueueInfo thirdQueueInfo = getProviderWithSpecifiedFirstRequestSendCount(3);
         QueueInfo forthQueueInfo = getProviderWithSpecifiedFirstRequestSendCount(5);
 
-        // XXX This test takes default values of 'basedelay' and 'maxdelay' into
+        // This test takes default values of 'basedelay' and 'maxdelay' into
         // consideration.
         Date firstExpectedNextAttempt = AsyncDBTestUtil
                 .getDate("2012-04-17 13:00.00");
@@ -115,6 +126,20 @@ public class QueueInfoBehavior {
         assertEquals(id, result.getLastSuccessId());
         assertEquals(lastSendResult, result.getLastSendResult());
         assertNotNull(result.getLastSuccessTime());
+    }
+
+    @Test
+    public void shouldRemoveCorruptRequest() {
+        // Given
+        QueueInfo initial = new QueueInfo(
+                client, 2, 0, null, 7, null, null, null);
+
+        // When
+        QueueInfo result = QueueInfo.removeCorruptRequest(initial);
+
+        // Then
+        assertEquals(1, result.getRequestCount());
+        assertEquals(1, result.getFirstRequestNo());
     }
 
     // In this case lastSendResult should not change
@@ -204,7 +229,7 @@ public class QueueInfoBehavior {
     }
 
     @Test
-    public void shouldTurnQueueToAndFromJson() {
+    public void shouldTurnQueueToAndFromJson() throws CorruptQueueException {
         QueueInfo queueInfo = new QueueInfo(
                 client, 1, 0, new Date(), 0, "lastSuccessId", new Date(),
                         "Asi toimis!");
@@ -214,5 +239,15 @@ public class QueueInfoBehavior {
 
         QueueInfo readBack = QueueInfo.fromJson(json);
         LOG.debug("Queue info read back from JSON: '{}'", readBack);
+    }
+
+    @Test(expected = CorruptQueueException.class)
+    public void shouldThrowCorruptQueueExceptionWhenReadMalformedJson()
+            throws CorruptQueueException {
+        // Given
+        String malformedJson = "";
+
+        // When/then
+        QueueInfo.fromJson(malformedJson);
     }
 }

@@ -33,9 +33,6 @@ public class SignerHelper {
     private static final String GLOBAL_CONFIGURATION_FILE =
             "build/conf/globalconf.xml";
 
-    private static final String SERVER_CONFIGURATION_FILE =
-            "build/conf/serverconf.xml";
-
     private static Signer signer;
 
     private static ActorSystem actorSystem;
@@ -100,8 +97,6 @@ public class SignerHelper {
 
         System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
                 GLOBAL_CONFIGURATION_FILE);
-        System.setProperty(SystemProperties.SERVER_CONFIGURATION_FILE,
-                SERVER_CONFIGURATION_FILE);
         System.setProperty(SystemProperties.KEY_CONFIGURATION_FILE,
                 KEY_CONFIGURATION_FILE);
         System.setProperty(SystemProperties.DEVICE_CONFIGURATION_FILE,

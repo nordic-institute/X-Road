@@ -8,8 +8,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.conf.GlobalConfProvider;
-import ee.cyber.sdsb.common.conf.VerificationCtx;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
@@ -23,11 +23,6 @@ import ee.cyber.sdsb.common.identifier.ServiceId;
  * more interesting methods.
  */
 public class EmptyGlobalConf implements GlobalConfProvider {
-
-    @Override
-    public VerificationCtx getVerificationCtx() {
-        return null;
-    }
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org)
@@ -150,5 +145,37 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public ServiceId getServiceId(CentralServiceId serviceId) {
         return null;
+    }
+
+    @Override
+    public String getSdsbInstance() {
+        return null;
+    }
+
+    @Override
+    public X509Certificate getCentralServerSslCertificate() {
+        return null;
+    }
+
+    @Override
+    public boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        return false;
+    }
+
+    @Override
+    public CertChain getCertChain(X509Certificate subject)
+            throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<CentralServiceId> getCentralServices() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<ClientId> getMembers() {
+        return Collections.emptyList();
     }
 }

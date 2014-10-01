@@ -1,0 +1,183 @@
+table.dataTable, table {
+    width: 100%;
+    thead {
+        text-align: left;
+        border: 1px solid $base-border-color;
+        background: #f3f3f3;
+        tr {
+            th {
+                font-family: "Open Sans";
+                font-weight: 500;
+                padding: 10px 5px;
+                font-size: 9pt;
+                border-bottom: none !important;
+
+                &.status {
+                    width: 19px;
+                    i {
+                        padding: 0 4px;
+                    }
+                }
+                &.sorting, &.sorting_asc, &.sorting_desc {
+                    background: none;
+                }
+            }
+        }
+    }
+
+    tbody {
+        border: 1px solid $base-border-color;
+        background: #fff;
+        font-size: 11pt;
+
+        tr {
+            border-bottom: 1px solid $base-border-color;
+            &:hover {
+                td {
+                    background: rgba($base-color-blue, 0.5) !important;
+                }
+            }
+            &.odd {
+                background: none;
+                td[class^='sorting_'], td[class*=' sorting_'] {
+                    background: none;
+                }
+            }
+            &.even {
+                background: #f3f3f3;
+                td[class^='sorting_'], td[class*=' sorting_'] {
+                    background: #f3f3f3;
+                }
+            }
+            &.row_selected {
+                td, td[class^='sorting_'], td[class*=' sorting_'] {
+                    background: rgba($base-color-blue, 0.5) !important;
+                }
+            }
+
+            &.wsdl.disabled {
+                color: $base-color-red;
+                font-weight: 700;
+            }
+            td {
+                padding: 5px;
+
+                a {
+                    text-decoration: underline;
+                }
+
+                &.actions {
+                    width: 1px;
+                    white-space: nowrap;
+                }
+
+                span {
+                    &.status {
+                        font-size: 8pt;
+                        padding: 0 5px;
+
+                        &.ok {
+                            color: $base-color-green;
+                            text-shadow: 0 0 3px rgba($base-color-green, 0.8);
+                        }
+
+                        &.waiting {
+                            color: $base-color-yellow;
+                            text-shadow: 0 0 3px rgba($base-color-yellow, 0.8);
+                        }
+
+                        &.fail {
+                            color: $base-color-red;
+                            text-shadow: 0 0 3px rgba($base-color-red, 0.8);
+                        }
+                    }
+                    &.sdsb-id {
+                        border-bottom: 1px dotted $base-border-color;
+                    }
+                }
+
+                ul.tableitem-actions {
+                    list-style: none;
+                    cursor: pointer;
+                    @include reset;
+                    white-space: nowrap;
+
+                    li {
+                        display: inline;
+                        font-size: 8pt;
+                        border: 1px solid $base-border-color;
+                        background: #fff;
+                        border-left: none;
+                        padding: 3px 7px;
+
+                        &:first-of-type {
+                            border-left: 1px solid $base-border-color;
+                        }
+                    }
+                }
+            }
+
+            &.unselectable {
+                color: $base-border-color;
+            }
+        }
+    }
+}
+
+div.full-table-wrap, div.fill {
+    margin: 10px;
+    table {
+        width: 100%;
+    }
+    table.full-table {
+        width: 100%;
+        margin-bottom: 0;
+
+        tbody tr {
+            &:hover {
+                background: #D8DFEC;
+            }
+            &.row_selected {
+                background: #6480B8;
+                td {
+                    color: #fff;
+                }
+            }
+        }
+    }
+}
+
+.dataTables_wrapper {
+    margin-bottom: 10px;
+
+    .dataTables_header {
+        border: 1px solid $base-border-color;
+        border-bottom: none;
+        padding: 5px;
+        background: rgba($base-color-light, 0.4);
+
+        label {
+            font-size: 11pt;
+        }
+
+        button {
+            font-size: 8pt;
+            font-family: "Open Sans";
+            font-weight: 500;
+        }
+
+        input[type='checkbox'] {
+          margin-left: 5px;
+          margin-right: 5px;
+          vertical-align: middle;
+        }
+    }
+
+    .dataTables_scrollBody {
+        word-wrap: break-word;
+    }
+
+    .dataTables_footer {
+        margin-top: 10px;
+    }
+}

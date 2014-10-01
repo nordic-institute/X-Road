@@ -7,20 +7,64 @@ en:
     present: "Present"
     missing: "Not available"
     time_format: "%Y-%m-%d %H:%M:%S"
+    locale_en: "English (%{short})"
+    locale_et: "Eesti (%{short})"
+    filename_error: "Upload failed: filename '%{file}' contains invalid characters. Valid characters include: (A-Z), (a-z), (0-9), (_), (.), (-)."
+
+  coded_exception:
+    pin_incorrect: "PIN incorrect"
+    key_not_found_on_token: "Key '%{0}' not found on token '%{1}'"
+    token_is_readonly: "Token '%{0}' is read only"
+    cert_request_wrong_usage: "Cannot add '%{0}' certificate request to '%{1}' key"
+    csr_not_found: "Certificate request '%{0}' not found"
+    auth_cert_under_softtoken: "Authentication certificate requests can only be created under software tokens"
+    auth_key_not_found_for_server: "Could not find active authentication key for security server '%{0}'"
+    certificate_with_hash_not_found: "Certificate with hash '%{0}' not found"
+    member_certs_not_found: "Could not find any certificates for member '%{0}'"
+    member_has_no_suitable_certs: "Member '%{0}' has no suitable certificates"
+    member_not_found: "Certificate issued to an unknown member '%{0}'"
+    failed_to_parse_cert: "Failed to parse certificate: %{0}"
+    key_not_found_for_certificate: "Could not find key corresponding to the certificate"
+    cert_exists_under_key: "Certificate already exists under key '%{0}'"
+    wrong_cert_usage:
+      both: "Both signing and authentication, only one of them allowed"
+      none: "Certificate cannot be used for signing nor authentication"
+      auth_to_sign: "Authentication certificate cannot be imported to signing keys"
+      sign_to_auth: "Signing certificate cannot be imported to authentication keys"
+    cert_chain_validation_failed: "Certificate chain validation failed: %{0}"
+    token_not_found: "Token '%{0}' not found"
+    token_not_active: "Token '%{0}' not active"
+    token_not_initialized: "Token '%{0}' not initialized"
+    key_not_found: "Key '%{0}' not found"
+    key_not_available: "Key '%{0}' not available"
+    cert_with_id_not_found: "Certificate with id '%{0}' not found"
+    login_failed: "Login failed: %{0}"
+    logout_failed: "Logout failed: %{0}"
 
   validation:
     missing_param: "Missing parameter: %{param}"
     unexpected_param: "Unknown parameter: %{param}"
     invalid_email: "Invalid e-mail address: '%{addr}'"
     invalid_filename: "Invalid filename: '%{val}'"
+    int_error: "Invalid integer: '%{val}'"
+    invalid_url: "Invalid URL format, must begin with 'http' or 'https'"
+    invalid_cert: "Upload failed: incorrect file format. Only PEM and DER files allowed."
 
   menu:
     management:
-      backup: "Back Up Configuration"
-      restore: "Restore Configuration"
+      backup_and_restore: "Back Up and Restore"
+
+  about:
+    unknown: "unknown"
+
+  backup:
+    success:
+      delete: "Selected backup deleted successfully"
+      upload: "New backup file uploaded successfully"
+    error:
+      delete: "Deletion of backup files failed, reason: '%{reason}'"
 
   restore:
-    success: "Configuration restored successfully"
+    success: "Configuration restored successfully from file '%{conf_file}'."
     error:
-      script_failed: "Restore failed, script exited with code '%{exitstatus}'"
-
+      script_failed: "Restoring configuration from file '%{conf_file}' failed."

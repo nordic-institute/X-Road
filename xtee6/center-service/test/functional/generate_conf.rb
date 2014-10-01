@@ -1,5 +1,7 @@
 require "global_conf_generator"
 
+java_import Java::ee.cyber.sdsb.common.conf.GlobalConfSchemaValidator
+
 def get_cert_bytes
   Base64.decode64(
   "MIIDiDCCAnCgAwIBAgIIW99Q5VUloqswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW
@@ -43,12 +45,13 @@ def create_test_data
     name_extractor_method_name: "foo.bar.baz.NameExtractor.getCommonName")
 
   top_ca = CaInfo.create(cert: get_cert_bytes)
-  intermediate_ca = CaInfo.create(cert: get_cert_bytes)
+  #intermediate_ca = CaInfo.create(cert: get_cert_bytes)
 
-  ocsp = OcspInfo.create(cert: "ocsp", url: "http://127.0.0.1")
-  CaInfo.update(intermediate_ca.id, ocsp_infos: [ocsp])
+  #ocsp = OcspInfo.create(cert: "ocsp", url: "http://127.0.0.1")
+  #CaInfo.update(intermediate_ca.id, ocsp_infos: [ocsp])
 
-  Pki.update(pki.id, top_cas: [top_ca], intermediate_cas: [intermediate_ca])
+  pki.top_ca = top_ca
+  pki.save!
 
   # Global Groups
   ggroup1 = GlobalGroup.create(group_code: "ggroup1",
@@ -109,24 +112,15 @@ def create_test_data
       sdsb_instance: "EE", member_class: "BUSINESS", member_code: "10",
       service_code: "teenus")
 
-  CentralService.update(central_service.id, target_service: target_service)
+  #CentralService.update(central_service.id, target_service: target_service)
+  central_service.update_attributes!(:target_service => target_service)
 
   # Add TSPs
-  ApprovedTsp.create(name: "Test TSP", url: "http://foo.bar.baz", cert: "foo")
+  ApprovedTsp.create(name: "Test TSP", url: "http://foo.bar.baz", cert: get_cert_bytes)
 
 end
 
-def generate_conf
-  xml = GlobalConfGenerator.new.generate
-  puts "Generated GlobalConf XML: #{xml}"
-
-end
-
-def perform_test
-  create_test_data
-  generate_conf
-ensure
-  # Cleanup
+def cleanup
   ApprovedTsp.delete_all
   Identifier.delete_all
   CentralService.delete_all
@@ -142,6 +136,43 @@ ensure
   SystemParameter.delete_all
   AuthCert.delete_all
   Subsystem.delete_all
+end
+
+class TestGlobalConfGenerator < GlobalConfGenerator
+  def get_central_server_ssl_cert
+    "-- BEGIN CERTIFICATE --\n
+      MIIDiDCCAnCgAwIBAgIIW99Q5VUloqswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW\n
+      5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwOTI4MTgxNzM5W\n
+      hcNMTQwOTI4MTgxNzM5WjATMREwDwYDVQQDDAhjb25zdW1lcjCCASIwDQYJKoZIhvcNAQEBBQAD\n
+      ggEPADCCAQoCggEBAILY5AcoHHeoHIYqrrjaadQJwJlwMFN8mT/txE4/oKUWecvikwk1RNJNH0s\n
+      +D9iUoCsCYqlU7PXbIXIelkH08ehgsdi5OmNAiG0fxEIouPDDOg5L5c4wxOm1/vVf0H+yBrv1OW\n
+      UfEnCwsiRmqRN1JU9LH1GkVulPdqCMbicqlbidTTfYcFwf4R7RfOFeHrrNJSBvRev+TUt+JnwbO\n
+      4vHFxhGDBXMLwiNZdedhE9NO3zUorWPEiVNapp/u0agMXAv3RmJsIGeVJerGFay7Eb9RbhTcHOe\n
+      PGl1IetV7J3A9L14OqauMShaFJQUnTXSqS8ldcge/JfgSiWTqE0TjVc0pYMCAwEAAaOBuzCBuDB\n
+      YBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZT\n
+      o4MDgwL2VqYmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQU25SlUgQRwFCiraz2e\n
+      uhPUBqpvj0wDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAO\n
+      BgNVHQ8BAf8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAFFWRyInsq/jKrW20BKzRr2KAAnE2nD\n
+      VmZLFfcv7ZwrLOOJYkHxdPEfkcXcwJy4B1KJdvm0+1FlgfoKgDiUjTRbXraXmyUwAL5s5yMr9wF\n
+      wu9N9JL6IwchMNT6S5zwA+iioLMQbHAMfwXXSS/Vp7aUxmejK4XbNtehsukalD7S3ILAK7dtamP\n
+      r0YvRqUBbj4k9zD60gVU13jmACr/JuSXI4JxyoiFdUNDdtQbiiGOsrOuLmc/WbzXNo7iN/zhwEM\n
+      JNJThtyGYthhiYeZKT+0B5Yy/sARkinWqLpUwddf+plfH+4HP2akrt8uoHSZXKKOmN8IlXgN89L\n
+      PVBC+oSltnhY=\n
+    -- END CERTIFICATE --".split(/\n/)
+  end
+end
+
+def generate_conf
+  xml = TestGlobalConfGenerator.new.generate
+  puts "Generated GlobalConf XML: #{xml}"
+end
+
+def perform_test
+  create_test_data
+  generate_conf
+ensure
+  # Cleanup
+  #cleanup
 end
 
 perform_test

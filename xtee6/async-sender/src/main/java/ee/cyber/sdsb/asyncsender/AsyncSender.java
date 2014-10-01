@@ -12,9 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.asyncdb.AsyncDB;
 import ee.cyber.sdsb.asyncdb.AsyncSenderConf;
-import ee.cyber.sdsb.asyncdb.MessageQueue;
-import ee.cyber.sdsb.asyncdb.QueueInfo;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
 import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.sdsb.common.util.SystemMetrics;
 
 class AsyncSender {
 
@@ -66,6 +67,9 @@ class AsyncSender {
     }
 
     Map<ClientId, MessageQueueWorker> updateWorkers() {
+        LOG.debug("updateWorkers() - free file descriptor count at start: {}",
+                SystemMetrics.getFreeFileDescriptorCount());
+
         Map<ClientId, MessageQueueWorker> workersToKeep = new HashMap<>();
 
         // Create workers for new queues
@@ -103,6 +107,10 @@ class AsyncSender {
             }
         }
 
+        LOG.debug(
+                "updateWorkers() - free file descriptor count at the end: {}",
+                SystemMetrics.getFreeFileDescriptorCount());
+
         return workersToKeep;
     }
 
@@ -122,8 +130,7 @@ class AsyncSender {
     }
 
     private static ExecutorService createExecutor() throws Exception {
-        AsyncSenderConf conf = null;
-        conf = AsyncSenderConf.getInstance();
+        AsyncSenderConf conf = new AsyncSenderConf();
 
         LOG.trace("Creating ExecutorService with max {} senders...",
                 conf.getMaxSenders());

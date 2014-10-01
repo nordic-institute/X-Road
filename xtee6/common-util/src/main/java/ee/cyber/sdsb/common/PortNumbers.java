@@ -9,7 +9,6 @@ public interface PortNumbers {
     public static final int CLIENT_HTTP_PORT = 8080;
 
     /** Client proxy listens for HTTPS queries. */
-    // TODO: currently not used.
     public static final int CLIENT_HTTPS_PORT = 8443;
 
     /** Port for connection between client and server proxy. */
@@ -32,4 +31,7 @@ public interface PortNumbers {
 
     /** Port for Distributed Files Client. */
     public static final int DISTRIBUTED_FILES_CLIENT_PORT = 5665;
+
+    /** Admin port for proxy monitor agent */
+    public static final int PROXY_MONITOR_AGENT_ADMIN_PORT = 5588;
 }

@@ -3,14 +3,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.joda.time.DateTime;
 
+import scala.concurrent.duration.FiniteDuration;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
+import akka.actor.Cancellable;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -18,42 +22,52 @@ import akka.util.Timeout;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.signer.protocol.message.ConnectionPing;
+import ee.cyber.sdsb.signer.protocol.message.ConnectionPong;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.SIGNER;
 
+@Slf4j
 public final class SignerClient {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignerClient.class);
 
     private static final Timeout DEFAULT_TIMEOUT =
             new Timeout(SystemProperties.getSignerClientTimeout());
 
     private static ActorSystem actorSystem;
+    private static ActorSelection requestProcessor;
 
-    public SignerClient() {
+    private static Boolean connected;
+
+    private SignerClient() {
     }
 
     public static void init(ActorSystem actorSystem) throws Exception {
-        LOG.debug("init()");
+        log.debug("init()");
 
         if (SignerClient.actorSystem == null) {
             SignerClient.actorSystem = actorSystem;
+
+            requestProcessor = actorSystem.actorSelection(
+                    getSignerPath() + "/user/" + REQUEST_PROCESSOR);
+
+            actorSystem.actorOf(Props.create(ConnectionPinger.class),
+                    "ConnectionPinger");
         }
     }
 
     public static void execute(Object message, ActorRef receiver)
             throws Exception {
         verifyInitialized();
+        verifyConnected();
 
         CountDownLatch latch = new CountDownLatch(1);
 
         ActorRef executionCtx = actorSystem.actorOf(
                 Props.create(ReceiverExecutionCtx.class, latch, receiver));
 
-        getRequestProcessor().tell(message, executionCtx);
+        requestProcessor.tell(message, executionCtx);
         try {
             waitForResponse(latch);
         } finally {
@@ -63,6 +77,7 @@ public final class SignerClient {
 
     public static <T> T execute(Object message) throws Exception {
         verifyInitialized();
+        verifyConnected();
 
         CountDownLatch latch = new CountDownLatch(1);
         Response response = new Response();
@@ -70,7 +85,7 @@ public final class SignerClient {
         ActorRef executionCtx = actorSystem.actorOf(
                 Props.create(ResponseExecutionCtx.class, latch, response));
 
-        getRequestProcessor().tell(message, executionCtx);
+        requestProcessor.tell(message, executionCtx);
         try {
             waitForResponse(latch);
             return result(response.getValue());
@@ -95,9 +110,7 @@ public final class SignerClient {
                 throw new TimeoutException();
             }
         } catch (Exception e) {
-            throw new CodedException(X_HTTP_ERROR,
-                    "Could not connect to Signer (port %s)",
-                    SystemProperties.getSignerPort());
+            throw couldNotConnectException();
         }
     }
 
@@ -106,15 +119,22 @@ public final class SignerClient {
                 + SystemProperties.getSignerPort();
     }
 
-    private static ActorSelection getRequestProcessor() {
-        return actorSystem.actorSelection(
-                getSignerPath() + "/user/" + REQUEST_PROCESSOR);
-    }
-
     private static void verifyInitialized() {
         if (actorSystem == null) {
             throw new IllegalStateException("SignerClient is not initialized");
         }
+    }
+
+    private static void verifyConnected() {
+        if (connected != null && !connected) {
+            throw couldNotConnectException();
+        }
+    }
+
+    private static CodedException couldNotConnectException() {
+        return new CodedException(X_HTTP_ERROR,
+                "Could not connect to Signer (port %s)",
+                SystemProperties.getSignerPort());
     }
 
     @Data
@@ -122,20 +142,15 @@ public final class SignerClient {
         private Object value;
     }
 
+    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     private static class ReceiverExecutionCtx extends UntypedActor {
 
         private final CountDownLatch latch;
         private final ActorRef receiver;
 
-        @SuppressWarnings("unused")
-        ReceiverExecutionCtx(CountDownLatch latch, ActorRef receiver) {
-            this.latch = latch;
-            this.receiver = receiver;
-        }
-
         @Override
         public void onReceive(Object message) throws Exception {
-            LOG.trace("onReceive({})", message);
+            log.trace("onReceive({})", message);
 
             if (receiver != ActorRef.noSender()) {
                 receiver.tell(message, getSender());
@@ -145,23 +160,68 @@ public final class SignerClient {
         }
     }
 
+    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     private static class ResponseExecutionCtx extends UntypedActor {
 
         private final CountDownLatch latch;
         private final Response response;
 
-        @SuppressWarnings("unused")
-        ResponseExecutionCtx(CountDownLatch latch, Response response) {
-            this.latch = latch;
-            this.response = response;
+        @Override
+        public void onReceive(Object message) throws Exception {
+            log.trace("onReceive({})", message);
+
+            response.setValue(message);
+            latch.countDown();
+        }
+    }
+
+    @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
+    private static class ConnectionPinger extends UntypedActor {
+
+        private final FiniteDuration interval =
+                FiniteDuration.create(5, TimeUnit.SECONDS);
+
+        private Cancellable tick;
+        private DateTime lastPong;
+
+        @Override
+        public void preStart() throws Exception {
+            tick = start();
+        }
+
+        @Override
+        public void postStop() {
+            tick.cancel();
         }
 
         @Override
         public void onReceive(Object message) throws Exception {
-            LOG.trace("onReceive({})", message);
+            if (message instanceof ConnectionPing) {
+                requestProcessor.tell(message, getSelf());
+                checkLastPong();
+            } else if (message instanceof ConnectionPong) {
+                connected = true;
+                lastPong = new DateTime();
+            }
+        }
 
-            response.setValue(message);
-            latch.countDown();
+        private void checkLastPong() {
+            if (lastPong == null || hasTimedOut()) {
+                connected = false;
+            }
+        }
+
+        private boolean hasTimedOut() {
+            long now = new DateTime().getMillis();
+            long diff = now - lastPong.getMillis();
+            return diff > DEFAULT_TIMEOUT.duration().toMillis();
+        }
+
+        private Cancellable start() {
+            return getContext().system().scheduler().schedule(
+                    FiniteDuration.create(100, TimeUnit.MILLISECONDS),
+                    interval, getSelf(), new ConnectionPing(),
+                    getContext().dispatcher(), ActorRef.noSender());
         }
     }
 }

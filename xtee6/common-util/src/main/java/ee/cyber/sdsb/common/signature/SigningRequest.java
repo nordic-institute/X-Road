@@ -16,7 +16,7 @@ public final class SigningRequest implements Serializable {
 
     private final X509Certificate signingCert;
 
-    private final List<PartHash> parts;
+    private final List<MessagePart> parts;
 
     private final List<X509Certificate> extraCertificates = new ArrayList<>();
     private final List<OCSPResp> ocspResponses = new ArrayList<>();

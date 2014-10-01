@@ -1,12 +1,1 @@
-<li>
-  <a class="<%= menu_item_class(item) %>" href="<%= menu_item_url(item) %>"><%= item.text %></a>
-  <% if defined? item.subitems %>
-    <ul>
-      <% item.subitems.each do |subitem| %>
-        <% if !subitem.privilege || can?(subitem.privilege) %>
-          <%= render :partial => "layouts/menu_item", :locals => { :item => subitem } %>
-        <% end %>
-      <% end %>
-    </ul>
-  <% end %>
-</li>
+<li><a href="<%= menu_item_url(item) %>" class="<%= menu_item_class(item) %>"><%= item.text %></a></li>

@@ -20,8 +20,9 @@ import org.w3c.dom.NodeList;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ErrorCodes;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.XmlUtils;
+
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
 /**
  * Local helper class for constructing Xades signatures.
@@ -53,6 +54,9 @@ final class Helper {
     static final String COMPLETE_CERTIFICATE_REFS_TAG = "CompleteCertificateRefs";
     static final String COMPLETE_REVOCATION_REFS_TAG = "CompleteRevocationRefs";
     static final String SIGNED_DATAOBJ_TAG = "SignedDataObjectProperties";
+    static final String DATAOBJECTFORMAT_TAG = "DataObjectFormat";
+    static final String MIMETYPE_TAG = "MimeType";
+    static final String OBJECTREFERENCE_ATTR = "ObjectReference";
     static final String ISSUER_SERIAL_TAG = "IssuerSerial";
     static final String CERT_DIGEST_TAG = "CertDigest";
     static final String SIGNING_CERTIFICATE_TAG = "SigningCertificate";
@@ -81,6 +85,7 @@ final class Helper {
     static final String X509_SERIAL_NUMBER_TAG = "X509SerialNumber";
     static final String X509_ISSUER_NAME_TAG = "X509IssuerName";
     static final String XADES_TIMESTAMP_TAG = "XAdESTimeStamp";
+    static final String SIGNATURE_TIMESTAMP_TAG = "SignatureTimeStamp";
     static final String INCLUDE_TAG = "Include";
     static final String ENCAPSULATED_TIMESTAMP_TAG = "EncapsulatedTimeStamp";
     static final String REFERENCE_INFO_TAG = "ReferenceInfo";
@@ -132,10 +137,10 @@ final class Helper {
      */
     static Element createDigestMethodElement(Document doc, String hashMethod)
             throws Exception {
-        Element digestMethodElement = doc.createElement(PREFIX_DS
-                + Constants._TAG_DIGESTMETHOD);
+        Element digestMethodElement =
+                doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
         digestMethodElement.setAttribute(Constants._ATT_ALGORITHM,
-                CryptoUtils.getAlgorithmURI(hashMethod));
+                getAlgorithmURI(hashMethod));
 
         return digestMethodElement;
     }
@@ -144,8 +149,8 @@ final class Helper {
      * Creates and returns a ds:DigestValue element.
      */
     static Element createDigestValueElement(Document doc, String hashValue) {
-        Element digestValueElement = doc.createElement(PREFIX_DS
-                + Constants._TAG_DIGESTVALUE);
+        Element digestValueElement =
+                doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
         digestValueElement.setTextContent(hashValue);
 
         return digestValueElement;
@@ -163,14 +168,13 @@ final class Helper {
             OperatorCreationException {
         String digestMethod =
                 ((Element) digAlgAndValueElement.getFirstChild()).getAttribute(
-                        Helper.ALGORITHM_ATTRIBUTE);
+                        ALGORITHM_ATTRIBUTE);
         String digestValue =
                 digAlgAndValueElement.getLastChild().getTextContent();
 
-        byte[] digest = CryptoUtils.calculateDigest(
-                CryptoUtils.getAlgorithmId(digestMethod), data);
+        byte[] digest = calculateDigest(getAlgorithmId(digestMethod), data);
         return MessageDigestAlgorithm.isEqual(
-                CryptoUtils.decodeBase64(digestValue), digest);
+                decodeBase64(digestValue), digest);
     }
 
     /**
@@ -179,7 +183,7 @@ final class Helper {
     static void addManifestReference(Manifest manifest, String uri)
             throws Exception {
         manifest.addDocument(null, "#" + uri, null,
-                CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI, null, null);
+                DEFAULT_DIGEST_ALGORITHM_URI, null, null);
     }
 
     /**
@@ -198,18 +202,52 @@ final class Helper {
         // -------- xades:OCSPRef
 
         StringBuilder xpath = new StringBuilder();
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.COMPLETE_REVOCATION_REFS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.OCSP_REFS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.OCSP_REF_TAG);
+        xpath.append(PREFIX_XADES);
+        xpath.append(QUALIFYING_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(COMPLETE_REVOCATION_REFS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(OCSP_REFS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(OCSP_REF_TAG);
+
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
+                getNamespaceCtx());
+    }
+
+    /**
+     * Returns a node list of EncapsulatedOCSPValue elements using
+     * XPath evaluation.
+     */
+    static NodeList getEncapsulatedOCSPValueElements(Element objectContainer) {
+        // the EncapsulatedOCSPValues are located in the XML:
+        // asic:XAdESSignatures
+        // - ds:Signature
+        // -- ds:Object
+        // --- xades:QualifiyingProperties
+        // ---- xades:UnsignedProperties
+        // ----- xades:UnsignedSignatureProperties
+        // ------ xades:RevocationValues
+        // ------- xades:OCSPValues
+        // -------- xades:EncapsulatedOCSPValue
+
+        StringBuilder xpath = new StringBuilder();
+        xpath.append(PREFIX_XADES);
+        xpath.append(QUALIFYING_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(REVOCATION_VALUES_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(OCSP_VALUES_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(ENCAPSULATED_OCSP_VALUE_TAG);
 
         return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
                 getNamespaceCtx());
@@ -231,18 +269,18 @@ final class Helper {
         // -------- xades:Cert
 
         StringBuilder xpath = new StringBuilder();
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.QUALIFYING_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.UNSIGNED_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.COMPLETE_CERTIFICATE_REFS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.CERT_REFS_TAG).append("/");
-        xpath.append(Helper.PREFIX_XADES);
-        xpath.append(Helper.CERT_TAG);
+        xpath.append(PREFIX_XADES);
+        xpath.append(QUALIFYING_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(UNSIGNED_SIGNATURE_PROPS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(COMPLETE_CERTIFICATE_REFS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(CERT_REFS_TAG).append("/");
+        xpath.append(PREFIX_XADES);
+        xpath.append(CERT_TAG);
 
         return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
                 getNamespaceCtx());

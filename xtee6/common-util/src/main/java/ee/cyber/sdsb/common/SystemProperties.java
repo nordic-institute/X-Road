@@ -6,7 +6,7 @@ package ee.cyber.sdsb.common;
  */
 public final class SystemProperties {
     /** The prefix for all properties. */
-    private static final String PREFIX = "ee.cyber.sdsb.";
+    public static final String PREFIX = "ee.cyber.sdsb.";
 
     /** Property name of controlling SSL support between Proxies. */
     public static final String PROXY_SSL_SUPPORT =
@@ -21,8 +21,8 @@ public final class SystemProperties {
             PREFIX + "proxy.globalConfDistributor.enabled";
 
     /** Property name of the Proxy's local configuration file. */
-    public static final String SERVER_CONFIGURATION_FILE =
-            PREFIX + "proxy.configurationFile";
+    public static final String DATABASE_PROPERTIES =
+            PREFIX + "proxy.databaseProperties";
 
     /** Property name of the key configuration file. */
     public static final String KEY_CONFIGURATION_FILE =
@@ -48,6 +48,10 @@ public final class SystemProperties {
     public static final String PROXY_CLIENT_TIMEOUT =
             PREFIX + "proxy.clientTimout";
 
+    /** Property name of the Server Proxy's listen address. */
+    public static final String PROXY_SERVER_LISTEN_ADDRESS =
+            PREFIX + "proxy.serverListenAddress";
+
     /** Property name of the Server Proxy's port number. */
     public static final String PROXY_SERVER_PORT =
             PREFIX + "proxy.serverPort";
@@ -63,6 +67,22 @@ public final class SystemProperties {
     /** Property name of the cached OCSP response path. */
     public static final String OCSP_CACHE_PATH =
             PREFIX + "proxy.ocspCachePath";
+
+    /** Property name of the Ocsp Responder port. */
+    public static final String OCSP_RESPONDER_PORT =
+            PREFIX + "proxy.ocspResponderPort";
+
+    /** Property name of the Ocsp Responder listen address. */
+    public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
+            PREFIX + "proxy.ocspResponderListenAddress";
+
+    /** Property name of the path where conf backups are created. */
+    public static final String CONF_BACKUP_PATH =
+            PREFIX + "conf.backup";
+
+    /** Property name of the path where original V5 data files are located. */
+    public static final String V5_IMPORT_PATH =
+            PREFIX + "v5.import";
 
     /** Property name of the configuration files path. */
     public static final String CONF_PATH =
@@ -92,6 +112,10 @@ public final class SystemProperties {
     public static final String ASYNC_DB_PATH =
             PREFIX + "asyncdb.path";
 
+    /** Property name of the async sender configuration file. */
+    public static final String ASYNC_SENDER_CONFIGURATION_FILE =
+            PREFIX + "asyncdb.senderConfFile";
+
     public static final String MONITORING_AGENT_URI =
             PREFIX + "monitoringagent.uri";
 
@@ -116,6 +140,32 @@ public final class SystemProperties {
     public static final String SERVICE_MEDIATOR_ADDRESS =
             PREFIX + "serviceMediator.address";
 
+    public static final String INTERNAL_SSL_EXPORTER_COMMAND =
+            PREFIX + "internalSslExporter.command";
+
+    /** Property of the proxy monitor agent admin port. **/
+    public static final String PROXY_MONITOR_AGENT_ADMIN_PORT =
+            PREFIX + "proxyMonitorAgent.adminPort";
+
+    /** Property of the proxy monitor agent sending interval in seconds. */
+    public static final String PROXY_MONITOR_AGENT_SENDING_INTERVAL =
+            PREFIX + "proxyMonitorAgent.sendingInterval";
+
+    /** Property name of the proxy monitor agent configuration file. */
+    public static final String PROXY_MONITOR_AGENT_CONFIGURATION_FILE =
+            PREFIX + "proxyMonitorAgent.monitoringConfFile";
+
+    /** Property name of the proxy monitor info collection interval. */
+    public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
+            PREFIX + "proxyMonitorAgent.paramsCollectingInterval";
+
+    public static final String NET_STATS_FILE =
+            PREFIX + "proxyMonitorAgent.netStatsFile";
+
+    /** Property name of the flag to turn off proxy client SSL verification. */
+    public static final String PROXY_VERIFY_CLIENT_CERT =
+            PREFIX + "proxy.verifyClientCert";
+
     // --------------------------------------------------------------------- //
 
     private static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
@@ -132,6 +182,12 @@ public final class SystemProperties {
                 DefaultFilepaths.ASYNC_DB_PATH);
     }
 
+    public static String getAsyncSenderConfFile() {
+        return System.getProperty(ASYNC_SENDER_CONFIGURATION_FILE,
+                getConfPath() +
+                    DefaultFilepaths.ASYNC_SENDER_CONFIGURATION_FILE);
+    }
+
     public static String getLogPath() {
         return System.getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
     }
@@ -140,9 +196,9 @@ public final class SystemProperties {
         return System.getProperty(SDSB_LOG_LEVEL, "DEBUG");
     }
 
-    public static String getServerConfFile() {
-        return System.getProperty(SERVER_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.SERVER_CONFIGURATION_FILE);
+    public static String getDatabasePropertiesFile() {
+        return System.getProperty(DATABASE_PROPERTIES,
+                getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     public static String getGlobalConfFile() {
@@ -180,6 +236,16 @@ public final class SystemProperties {
                 DefaultFilepaths.OCSP_CACHE_PATH);
     }
 
+    public static String getConfBackupPath() {
+        return System.getProperty(CONF_BACKUP_PATH,
+                DefaultFilepaths.CONF_BACKUP_PATH);
+    }
+
+    public static String getV5ImportPath() {
+        return System.getProperty(V5_IMPORT_PATH,
+                DefaultFilepaths.V5_IMPORT_PATH);
+    }
+
     public static String getConnectorHost() {
         return System.getProperty(PROXY_CONNECTOR_HOST,
                 DEFAULT_CONNECTOR_HOST);
@@ -203,6 +269,11 @@ public final class SystemProperties {
     public static int getServerProxyPort() {
         return Integer.parseInt(System.getProperty(PROXY_SERVER_PORT,
                 Integer.toString(PortNumbers.PROXY_PORT)));
+    }
+
+    public static String getServerProxyListenAddress() {
+        return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS,
+                DEFAULT_CONNECTOR_HOST);
     }
 
     public static int getSignerPort() {
@@ -231,6 +302,16 @@ public final class SystemProperties {
                 Integer.toString(5))); // default time in minutes
     }
 
+    public static int getOcspResponderPort() {
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_PORT,
+                Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
+    }
+
+    public static String getOcspResponderListenAddress() {
+        return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS,
+                DEFAULT_CONNECTOR_HOST);
+    }
+
     public static String getServiceImporterCommand() {
         return System.getProperty(SERVICE_IMPORTER_COMMAND);
     }
@@ -253,7 +334,7 @@ public final class SystemProperties {
     }
 
     /** Returns where the system copies signed configuration file
-     * that will be distributed to securoty servers. */
+     * that will be distributed to security servers. */
     public static String getCenterDistributedFile() {
         return System.getProperty(CENTER_DISTRIBUTED_FILE,
                 "/var/lib/sdsb/public/conf");
@@ -262,5 +343,41 @@ public final class SystemProperties {
     public static String getServiceMediatorAddress() {
         return System.getProperty(SERVICE_MEDIATOR_ADDRESS,
                 "http://127.0.0.1:6669");
+    }
+
+    public static String getInternalSslExporterCommand() {
+        return System.getProperty(INTERNAL_SSL_EXPORTER_COMMAND);
+    }
+
+    public static int getProxyMonitorAgentAdminPort() {
+        return Integer.parseInt(System.getProperty(
+                PROXY_MONITOR_AGENT_ADMIN_PORT,
+                Integer.toString(PortNumbers.PROXY_MONITOR_AGENT_ADMIN_PORT)));
+    }
+
+    public static int getProxyMonitorAgentSendingInterval() {
+        return Integer.parseInt(System.getProperty(
+                PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
+    }
+
+    public static String getProxyMonitorAgentConfFile() {
+        return System.getProperty(PROXY_MONITOR_AGENT_CONFIGURATION_FILE,
+                getConfPath() +
+                        DefaultFilepaths.PROXY_MONITOR_AGENT_CONFIGURATION_FILE);
+    }
+
+    public static int getProxyParamsCollectingInterval() {
+        return Integer.parseInt(System.getProperty(
+                PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
+    }
+
+    public static String getNetStatsFile() {
+        return System.getProperty(NET_STATS_FILE, "/proc/net/dev");
+    }
+
+    /** Returns true, if client proxy should verify client SSL cert. */
+    public static boolean shouldVerifyClientCert() {
+        return "true".equalsIgnoreCase(
+                System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
     }
 }

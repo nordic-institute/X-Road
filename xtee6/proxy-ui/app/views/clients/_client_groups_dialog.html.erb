@@ -1,35 +1,41 @@
-<%= dialog "client_groups_dialog", t('.local_groups') do %>
-  <div class="fill">
-    <div class="groups_actions" style="float: right;">
-      <button id="group_details"><%= t '.details' %></button>
-      <button id="group_add"><%= t '.add_group' %></button>
-    </div>
-
-    <table id="groups">
-      <thead>
-        <tr>
-          <th id="group_code"><%= t '.code' %></th>
-          <th id="group_description"><%= t '.description' %></th>
-          <th id="group_member_count"><%= t '.member_count' %></th>
-          <th id="group_updated"><%= t '.updated' %></th>
-        </tr>
-      </thead>
-    </table>
-  </div>
+<% content_for :head do %>
+  <%= javascript_include_tag "groups" %>
 <% end %>
+
+<div class="ui-tabs-panel-actions">
+  <button id="group_details"><%= t '.details' %></button>
+  <% if can?(:add_local_group) %>
+  <button id="group_add"><%= t '.add_group' %></button>
+  <% end %>
+</div>
+
+<section class="container" id="client_groups_dialog">
+  <table id="groups">
+    <thead>
+      <tr>
+        <th id="group_code"><%= t '.code' %></th>
+        <th id="group_description"><%= t '.description' %></th>
+        <th id="group_member_count"><%= t '.member_count' %></th>
+        <th id="group_updated"><%= t '.updated' %></th>
+      </tr>
+    </thead>
+  </table>
+</section>
 
 <%= dialog "group_add_dialog", t('.new_group') do %>
   <%= form_tag do %>
-    <table style="width: 100%;">
+  <section class="container">
+    <table class="details">
       <tr>
         <td><%= t '.code' %></td>
-        <td><%= text_field_tag "add_group_code", nil, :style => "width: 100%;" %></td>
+        <td><%= text_field_tag "add_group_code", nil %></td>
       </tr>
       <tr>
         <td><%= t '.description' %></td>
         <td><%= text_area_tag "add_group_description" %></td>
       </tr>
     </table>
+  </section>
   <% end %>
 <% end %>
 

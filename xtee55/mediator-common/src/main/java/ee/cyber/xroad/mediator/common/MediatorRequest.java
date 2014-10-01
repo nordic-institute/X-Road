@@ -8,4 +8,5 @@ public interface MediatorRequest {
 
     InputStream getInputStream() throws Exception;
 
+    String getParameters();
 }

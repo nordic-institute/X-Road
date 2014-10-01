@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessage;
 import ee.cyber.sdsb.common.message.SoapMessageDecoder;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
@@ -24,7 +25,6 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
  */
 public class ManagementRequestHandler {
 
-    // XXX: This logger defaults to NOP, because it cannot initialize
     private static final Logger LOG =
             LoggerFactory.getLogger(ManagementRequestHandler.class);
 
@@ -154,6 +154,11 @@ public class ManagementRequestHandler {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Unexpected content in multipart");
             }
+        }
+
+        @Override
+        public void fault(SoapFault fault) throws Exception {
+            onError(fault.toCodedException());
         }
 
         @Override

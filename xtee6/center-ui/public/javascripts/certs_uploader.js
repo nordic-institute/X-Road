@@ -1,4 +1,4 @@
-var certsUploader = function() {
+var SDSB_CERTS_UPLOADER = function() {
     var afterCertsSubmissionCallback;
     var uploadingTempCerts = false;
     var loadButtons = []

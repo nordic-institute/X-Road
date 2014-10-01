@@ -1,19 +1,21 @@
-<div style="padding-bottom: 0.5em;">
-  <form>
-    <input id="token_id" name="token_id" type="hidden" value="<%= @token.id %>"/>
-    <span style="float: left;">Friendly name:</span>
-    <input type="text" name="friendly_name"
-           style="float: right; width: 450px; text-align: right;"
-           value="<%= @token.friendlyName || @token.id %>"
-           <%= "disabled" unless token_saved_to_configuration?(@token) %>/>
-  </form>
-  <div class="clearer"></div>
-</div>
+<table class="details">
+  <tr>
+    <td><%= t '.friendly_name' %>:</td>
+    <td>
+      <form>
+        <input name="token_id" type="hidden" value="<%= @token.id %>"/>
+        <input name="friendly_name" type="text" style="float: right;"
+               value="<%= @token.friendlyName || @token.id %>"
+               <%= "disabled" unless token_saved_to_configuration?(@token) %>/>
+      </form>
+    </td>
+  </tr>
+</table>
 
-<% @token.tokenInfo.each do |key, value| %>
-  <div style="padding-bottom: 0.5em;">
-    <span style="float: left;"><%= key %>:</span>
-    <input type="text" readonly style="float: right; background: #eee;" value="<%= value %>"/>
-    <div class="clearer"></div>
-  </div>
-<% end %>
+<section class="container">
+  <% unless @token.tokenInfo.isEmpty %>
+  <textarea readonly class="dump" style="height: auto;" wrap="off"><%= t '.token_info' %>:
+<% @token.tokenInfo.each do |key, value| %>    <%= key %>: <%= value %>
+<% end %></textarea>
+  <% end %>
+</section>

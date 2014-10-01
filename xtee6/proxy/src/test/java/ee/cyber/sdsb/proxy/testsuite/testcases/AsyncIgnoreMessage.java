@@ -1,6 +1,6 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.message.SoapUtils;
 import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
 
@@ -12,7 +12,7 @@ public class AsyncIgnoreMessage extends MessageTestCase {
         requestFileName = "async.query";
         responseFileName = "getstate.answer";
 
-        addRequestHeader(SoapMessageImpl.X_IGNORE_ASYNC, "true");
+        addRequestHeader(SoapUtils.X_IGNORE_ASYNC, "true");
     }
 
     @Override

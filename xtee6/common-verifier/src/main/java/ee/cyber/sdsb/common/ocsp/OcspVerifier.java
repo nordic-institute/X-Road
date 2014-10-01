@@ -21,9 +21,10 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.joda.time.DateTime;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.conf.GlobalConf;
 
+import static ee.cyber.sdsb.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.cyber.sdsb.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
 /** Helper class for verifying OCSP responses. */
@@ -31,21 +32,57 @@ public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
 
+    /** The minimum number of seconds the OCSP should still be fresh. */
+    private static final int MIN_FRESHNESS_SECONDS = 60;
+
     /**
      * Verifies certificate with respect to OCSP response.
      * @param response the OCSP response
      * @param subject the certificate to verify
      * @param issuer the issuer of the subject certificate
      * @throws CodedException with appropriate error code
-     * if verification fails.
+     * if verification fails or the status of OCSP is not good.
      */
-    public static void verify(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer) throws Exception {
-        verify(response, subject, issuer, new Date());
+    public static void verifyValidityAndStatus(OCSPResp response,
+            X509Certificate subject, X509Certificate issuer) throws Exception {
+        verifyValidity(response, subject, issuer, new Date());
+        verifyStatus(response);
     }
 
     /**
-     * Verifies certificate with respect to OCSP response at a specified date.
+     * Verifies certificate with respect to OCSP response at a specified date
+     * and checks the OCSP status
+     * @param response the OCSP response
+     * @param subject the certificate to verify
+     * @param issuer the issuer of the subject certificate
+     * @param atDate the date
+     * @throws CodedException with appropriate error code
+     * if verification fails or the status of OCSP is not good.
+     */
+    public static void verifyValidityAndStatus(OCSPResp response,
+            X509Certificate subject, X509Certificate issuer, Date atDate)
+                    throws Exception {
+        verifyValidity(response, subject, issuer, atDate);
+        verifyStatus(response);
+    }
+
+    /**
+     * Verifies certificate with respect to OCSP response but does not
+     * check the status of the OCSP response.
+     * @param response the OCSP response
+     * @param subject the certificate to verify
+     * @param issuer the issuer of the subject certificate
+     * @throws CodedException with appropriate error code
+     * if verification fails.
+     */
+    public static void verifyValidity(OCSPResp response,
+            X509Certificate subject, X509Certificate issuer) throws Exception {
+        verifyValidity(response, subject, issuer, new Date());
+    }
+
+    /**
+     * Verifies certificate with respect to OCSP response but does not
+     * check the status of the OCSP response.
      * @param response the OCSP response
      * @param subject the certificate to verify
      * @param issuer the issuer of the subject certificate
@@ -53,8 +90,9 @@ public final class OcspVerifier {
      * @throws CodedException with appropriate error code
      * if verification fails.
      */
-    public static void verify(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer, Date atDate) throws Exception {
+    public static void verifyValidity(OCSPResp response,
+            X509Certificate subject, X509Certificate issuer, Date atDate)
+                    throws Exception {
         BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
         SingleResp singleResp = basicResp.getResponses()[0];
 
@@ -67,7 +105,7 @@ public final class OcspVerifier {
         // 1. The certificate identified in a received response corresponds to
         // that which was identified in the corresponding request;
         if (!singleResp.getCertID().equals(requestCertId)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "OCSP response does not apply to certificate (sn = %s)",
                     subject.getSerialNumber());
         }
@@ -75,7 +113,7 @@ public final class OcspVerifier {
         // 2. The signature on the response is valid.
         X509Certificate ocspCert = getOcspCert(basicResp);
         if (ocspCert == null) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "Could not find OCSP certificate for responder ID");
         }
 
@@ -83,7 +121,7 @@ public final class OcspVerifier {
                 createDefaultContentVerifier(ocspCert.getPublicKey());
 
         if (!basicResp.isSignatureValid(verifier)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "Signature on OCSP response is not valid");
         }
 
@@ -93,14 +131,14 @@ public final class OcspVerifier {
 
         // 4. The signer is currently authorized to sign the response.
         if (!isAuthorizedOcspSigner(ocspCert, issuer)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "OCSP responder is not authorized for given CA");
         }
 
         // 5. The time at which the status being indicated is known
         // to be correct (thisUpdate) is sufficiently recent.
         if (isExpired(singleResp, atDate)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "OCSP response is too old");
         }
 
@@ -109,23 +147,53 @@ public final class OcspVerifier {
         // greater than the current time.
         if (singleResp.getNextUpdate() != null
                 && singleResp.getNextUpdate().before(atDate)) {
-            throw new CodedException(ErrorCodes.X_INCORRECT_VALIDATION_INFO,
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "OCSP response is too old: newer information is available");
         }
+    }
 
-        // Finally check the status for the response
-        final CertificateStatus status = singleResp.getCertStatus();
-        // null indicates GOOD.
-        if (status != null) {
-            throw new CodedException(ErrorCodes.X_CERT_VALIDATION,
+    /**
+     * Verifies the status of the OCSP response.
+     * @param response the OCSP response
+     * @throws CodedException with appropriate error code X_CERT_VALIDATION
+     * if status is not good.
+     */
+    public static void verifyStatus(OCSPResp response) throws Exception {
+        BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
+        SingleResp singleResp = basicResp.getResponses()[0];
+
+        CertificateStatus status = singleResp.getCertStatus();
+        if (status != null) { // null indicates GOOD.
+            throw new CodedException(X_CERT_VALIDATION,
                     "OCSP response indicates certificate status is %s",
                     getStatusString(status));
         }
     }
 
+    /**
+     * Returns true of the OCSP response is about to expire at the given date.
+     * @param singleResp the response
+     * @param atDate the date
+     * @return true, if the OCSP response is expired
+     */
     public static boolean isExpired(SingleResp singleResp, Date atDate) {
         Date allowedThisUpdate = new DateTime(atDate).minusMinutes(
                 GlobalConf.getValidationFreshnessTime()).toDate();
+        return singleResp.getThisUpdate().before(allowedThisUpdate);
+    }
+
+    /**
+     * Returns true of the OCSP response is about to expire at the current date.
+     * @param singleResp the response
+     * @return true, if the OCSP response is expired
+     */
+    public static boolean isExpired(OCSPResp response) throws Exception {
+        BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
+        SingleResp singleResp = basicResp.getResponses()[0];
+
+        // Make sure the OCSP is still fresh for the next specified seconds.
+        Date allowedThisUpdate =
+                new DateTime().minusSeconds(MIN_FRESHNESS_SECONDS).toDate();
         return singleResp.getThisUpdate().before(allowedThisUpdate);
     }
 

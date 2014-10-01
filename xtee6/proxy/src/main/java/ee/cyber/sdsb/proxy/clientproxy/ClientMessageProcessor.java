@@ -16,20 +16,25 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.eclipse.jetty.http.MimeTypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.asyncdb.AsyncDB;
-import ee.cyber.sdsb.asyncdb.MessageQueue;
 import ee.cyber.sdsb.asyncdb.WritingCtx;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
+import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
+import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
+import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessage;
 import ee.cyber.sdsb.common.message.SoapMessageConsumer;
 import ee.cyber.sdsb.common.message.SoapMessageDecoder;
@@ -38,24 +43,25 @@ import ee.cyber.sdsb.common.message.SoapUtils;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MessageInfo.Origin;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.common.util.MimeUtils;
-import ee.cyber.sdsb.proxy.conf.AuthKeyManager;
+import ee.cyber.sdsb.proxy.ProxyMain;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessage;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageDecoder;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageEncoder;
-import ee.cyber.sdsb.proxy.securelog.SecureLog;
+import ee.cyber.sdsb.proxy.securelog.MessageLog;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_PROXY_VERSION;
 import static ee.cyber.sdsb.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
+@Slf4j
 class ClientMessageProcessor extends MessageProcessorBase {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ClientMessageProcessor.class);
 
     /**
      * Timeout for waiting for the SOAP message to be read from the request.
@@ -69,6 +75,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
      * request SOAP.
      */
     private final CountDownLatch requestHandlerGate = new CountDownLatch(1);
+
+    /**
+     * Holds the client side SSL certificate.
+     */
+    private final ClientCert clientCert;
 
     /** Holds the incoming request SOAP message. */
     private volatile SoapMessageImpl requestSoap;
@@ -92,12 +103,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private ProxyMessage response;
 
     ClientMessageProcessor(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse, HttpClient httpClient)
-            throws Exception {
+            HttpServletResponse servletResponse, HttpClient httpClient,
+            ClientCert clientCert) throws Exception {
         super(servletRequest, servletResponse, httpClient);
-
-        reqIns = new PipedInputStream();
-        reqOuts = new PipedOutputStream(reqIns);
+        this.clientCert = clientCert;
+        this.reqIns = new PipedInputStream();
+        this.reqOuts = new PipedOutputStream(reqIns);
     }
 
     SoapMessageImpl getRequestSoap() {
@@ -105,8 +116,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     @Override
-    protected void process() throws Exception {
-        LOG.trace("process()");
+    public void process() throws Exception {
+        log.trace("process()");
 
         cacheConfigurationForCurrentThread();
 
@@ -120,6 +131,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // If the handler thread excepted, do not continue.
             checkError();
 
+            // Check client authentication mode
+            verifyClientAuthentication();
+
             // If the message is synchronous, start sending proxy message
             if (!isAsync) {
                 processRequest();
@@ -129,19 +143,25 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 sendResponse();
             }
         } catch (Exception e) {
+            if (reqIns != null) {
+                reqIns.close();
+            }
+
             // Let's interrupt the handler thread so that it won't
             // block forever waiting for us to do something.
             handlerThread.interrupt();
             throw e;
         } finally {
             handlerThread.join();
-        }
 
-        onSuccess(requestSoap);
+            if (response != null) {
+                response.consume();
+            }
+        }
     }
 
     private void processRequest() throws Exception {
-        LOG.trace("processRequest()");
+        log.trace("processRequest()");
 
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
@@ -154,7 +174,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void sendRequest(HttpSender httpSender) throws Exception {
-        LOG.trace("sendRequest()");
+        log.trace("sendRequest()");
         try {
             // If we're using SSL, we need to include the provider name in
             // the HTTP request so that server proxy could verify the SSL
@@ -173,9 +193,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
             httpSender.setAttribute(ID_TARGETS, addresses);
             httpSender.setTimeout(SystemProperties.getClientProxyTimeout());
 
+            httpSender.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
+            httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
+
             try {
                 httpSender.doPost(getDummyServiceAddress(addresses), reqIns,
-                        outputContentType);
+                        CHUNKED_LENGTH, outputContentType);
             } catch (Exception e) {
                 // Failed to connect to server proxy
                 MonitorAgent.serverProxyFailed(createRequestMessageInfo());
@@ -193,11 +216,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void parseResponse(HttpSender httpSender) throws Exception {
-        LOG.trace("parseResponse()");
+        log.trace("parseResponse()");
         response = new ProxyMessage();
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
-                httpSender.getResponseContentType());
+                httpSender.getResponseContentType(),
+                getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (CodedException ex) {
@@ -207,12 +231,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
         // Ensure we have the required parts.
         checkResponse();
 
-        decoder.verify(requestServiceId.getClientId(), response.getSignature(),
-                GlobalConf.getVerificationCtx());
+        decoder.verify(requestServiceId.getClientId(), response.getSignature());
     }
 
     private void checkResponse() throws Exception {
-        LOG.trace("checkResponse()");
+        log.trace("checkResponse()");
         if (response.getFault() != null) {
             throw response.getFault().toCodedException();
         }
@@ -229,10 +252,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void checkConsistency() throws Exception {
-        LOG.trace("checkConsistency()");
-        if (!SoapUtils.checkConsistency(requestSoap, response.getSoap())) {
-            LOG.error("Inconsistent request-response: {}\n{}",
-                    requestSoap.getXml(), response.getSoap().getXml());
+        log.trace("checkConsistency()");
+        try {
+            SoapUtils.checkConsistency(requestSoap, response.getSoap());
+        } catch (CodedException e) {
+            log.error("Inconsistent request-response", e);
             // The error code includes ServiceFailed because it indicates
             // faulty response from service (problem on the other side).
             throw new CodedException(X_INCONSISTENT_RESPONSE,
@@ -242,11 +266,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void logSignature() throws Exception {
-        SecureLog.logSignature(response.getSoap(), response.getSignature());
+        MessageLog.log(response.getSoap(), response.getSignature());
     }
 
     private void sendResponse() throws Exception {
-        LOG.trace("sendResponse()");
+        log.trace("sendResponse()");
         servletResponse.setStatus(HttpServletResponse.SC_OK);
         servletResponse.setHeader("SOAPAction", "");
         servletResponse.setCharacterEncoding(MimeUtils.UTF8);
@@ -258,7 +282,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void waitForSoapMessage() {
-        LOG.trace("waitForSoapMessage()");
+        log.trace("waitForSoapMessage()");
         try {
             if (!requestHandlerGate.await(WAIT_FOR_SOAP_TIMEOUT,
                     TimeUnit.SECONDS)) {
@@ -271,27 +295,44 @@ class ClientMessageProcessor extends MessageProcessorBase {
     }
 
     private void continueProcessing() {
-        LOG.trace("continueProcessing()");
+        log.trace("continueProcessing()");
         requestHandlerGate.countDown();
     }
 
     private void checkError() throws Exception {
         if (executionException != null) {
-            LOG.error("checkError(): ", executionException);
+            log.error("checkError(): ", executionException);
             throw executionException;
         }
     }
 
     private void setError(Exception ex) {
+        log.trace("setError()");
         if (executionException == null) {
             executionException = translateException(ex);
         }
     }
 
-    protected MessageInfo createRequestMessageInfo() {
+    @Override
+    public MessageInfo createRequestMessageInfo() {
+        if (requestSoap == null) {
+            return null;
+        }
+
         return new MessageInfo(Origin.CLIENT_PROXY, requestSoap.getClient(),
                 requestServiceId, requestSoap.getUserId(),
                 requestSoap.getQueryId());
+    }
+
+    protected void verifyClientAuthentication() throws Exception {
+        if (!SystemProperties.shouldVerifyClientCert()) {
+            return;
+        }
+
+        log.trace("verifyClientAuthentication()");
+
+        ClientId sender = requestSoap.getClient();
+        IsAuthentication.verifyClientAuthentication(sender, clientCert);
     }
 
     private static URI getDummyServiceAddress(URI[] addresses)
@@ -309,10 +350,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private static URI[] getServiceAddresses(ServiceId serviceProvider)
             throws Exception {
-        LOG.debug("getServiceAddresses({})", serviceProvider);
+        log.trace("getServiceAddresses({})", serviceProvider);
 
-        Collection<String> hostNames = GlobalConf.getProviderAddress(
-                serviceProvider.getClientId());
+        Collection<String> hostNames =
+                GlobalConf.getProviderAddress(serviceProvider.getClientId());
         if (hostNames == null || hostNames.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER,
                     "Could not find addresses for service provider \"%s\"",
@@ -328,6 +369,15 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         return addresses.toArray(new URI[] {});
+    }
+
+    private static String getHashAlgoId() {
+        // TODO: #2578 make hash function configurable
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    }
+
+    private static String getHashAlgoId(HttpSender httpSender) {
+        return httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID);
     }
 
     private class HandlerThread extends Thread {
@@ -360,7 +410,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void soap(SoapMessage message) throws Exception {
-            LOG.trace("soap({})", message.getXml());
+            log.trace("soap({})", message.getXml());
             requestSoap = (SoapMessageImpl) message;
             requestServiceId =
                     GlobalConf.getServiceId(requestSoap.getService());
@@ -375,31 +425,35 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
-            LOG.trace("attachment({})", contentType);
+            log.trace("attachment({})", contentType);
             if (handler != null) {
                 handler.attachment(contentType, content, additionalHeaders);
             } else {
-                // Theoretically, should not happen
                 throw new CodedException(X_INTERNAL_ERROR,
                         "No soap message handler present");
             }
         }
 
+        @Override
+        public void fault(SoapFault fault) throws Exception {
+            onError(fault.toCodedException());
+        }
+
         private void chooseHandler() {
             isAsync = requestSoap.isAsync() && (servletRequest.getHeader(
-                    SoapMessageImpl.X_IGNORE_ASYNC) == null);
+                    SoapUtils.X_IGNORE_ASYNC) == null);
             if (isAsync) {
-                LOG.trace("Creating handler for asynchronous messages");
+                log.trace("Creating handler for asynchronous messages");
                 handler = new AsyncSoapMessageHandler();
             } else {
-                LOG.trace("Creating handler for normal messages");
+                log.trace("Creating handler for normal messages");
                 handler = new DefaultSoapMessageHandler();
             }
         }
 
         @Override
         public void onCompleted() {
-            LOG.trace("onCompleted()");
+            log.trace("onCompleted()");
             if (requestSoap == null) {
                 setError(new ClientException(X_MISSING_SOAP,
                         "Request does not contain SOAP message"));
@@ -413,7 +467,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void onError(Exception e) throws Exception {
-            LOG.error("onError(): ", e);
+            log.error("onError(): ", e);
             if (handler != null) {
                 handler.onError(e);
             } else {
@@ -430,7 +484,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void soap(SoapMessage message) throws Exception {
             if (encoder == null) {
-                encoder = new ProxyMessageEncoder(reqOuts);
+                encoder = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
                 outputContentType = encoder.getContentType();
             }
 
@@ -440,7 +494,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             // In SSL mode, we need to send the OCSP response of our SSL cert.
             if (SystemProperties.isSslEnabled()) {
-                writeOcspResponse();
+                writeOcspResponses();
             }
 
             encoder.soap(requestSoap);
@@ -450,6 +504,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
             encoder.attachment(contentType, content, additionalHeaders);
+        }
+
+        @Override
+        public void fault(SoapFault fault) throws Exception {
+            onError(fault.toCodedException());
         }
 
         @Override
@@ -479,15 +538,13 @@ class ClientMessageProcessor extends MessageProcessorBase {
             throw e;
         }
 
-        private void writeOcspResponse() throws Exception {
-            AuthKeyManager km = AuthKeyManager.getInstance();
-            OCSPResp ocsp = ServerConf.getOcspResponse(km.getAuthCert());
-            if (ocsp == null) { // no response was found
-                throw new ClientException(X_SSL_AUTH_FAILED,
-                        "Could not find OCSP response for SSL certificate");
+        private void writeOcspResponses() throws Exception {
+            CertChain chain = KeyConf.getAuthKey().getCertChain();
+            List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(
+                    chain.getAllCertsWithoutTrustedRoot()); // exclude TopCA
+            for (OCSPResp ocsp : ocspResponses) {
+                encoder.ocspResponse(ocsp);
             }
-
-            encoder.ocspResponse(ocsp);
         }
     }
 
@@ -515,7 +572,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 Map<String, String> additionalHeaders) throws Exception {
             if (consumer != null) {
                 consumer.attachment(contentType, content, additionalHeaders);
-            } // handle else?
+            }
+        }
+
+        @Override
+        public void fault(SoapFault fault) throws Exception {
+            onError(fault.toCodedException());
         }
 
         @Override
@@ -524,7 +586,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 commit();
                 createAsyncSoapResponse();
             } catch (Exception e) {
-                LOG.error("Error when committing async message", e);
+                log.error("Error when committing async message", e);
                 setError(e);
                 rollback();
             } finally {
@@ -553,7 +615,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 try {
                     writingCtx.rollback();
                 } catch (Exception e) {
-                    LOG.error("Rollback failed", e);
+                    log.error("Rollback failed", e);
                 }
             }
         }

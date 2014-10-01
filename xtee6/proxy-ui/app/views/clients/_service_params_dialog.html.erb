@@ -1,29 +1,40 @@
 <%= dialog "service_params_dialog", t('.edit_service_parameters') do %>
-  <%= form_tag do %>
-    <%= hidden_field_tag "params_wsdl_id", nil %>
-    <%= hidden_field_tag "params_name", nil %>
-    <table class="fixed" style="width: 100%; border-spacing: 1em;">
-      <tr>
-        <th style="width: 6em;"></th>
-        <th></th>
-        <th style="width: 6em; font-weight: normal;"><%= t '.apply_to_all' %></th>
-      </tr>
-      <tr>
-        <td><%= t '.service_url' %></td>
-        <td><%= text_field_tag "params_url", nil, :style => "width: 100%;" %></td>
-        <td class="align-center"><%= check_box_tag "params_url_all", nil %></td>
-      </tr>
-      <tr>
-        <td><%= t 'clients.client_services_dialog.timeout' %></td>
-        <td><%= text_field_tag "params_timeout", nil, :style => "width: 100%;" %></td>
-        <td class="align-center"><%= check_box_tag "params_timeout_all", nil %></td>
-      </tr>
-      <tr>
-        <td><%= t '.required_sec_cat' %></td>
-        <td><%= select_tag "params_security_category", options_for_select(@security_categories),
-                  :multiple => true, :size => 5, :style => "width: 100%; padding-right: 0;" %></td>
-        <td class="align-center"><%= check_box_tag "params_security_category_all", nil %></td>
-      </tr>
-    </table>
-  <% end %>
+  <section class="container">
+    <%= form_tag do %>
+      <%= hidden_field_tag "params_wsdl_id", nil %>
+      <%= hidden_field_tag "params_service_id", nil %>
+      <table class="details">
+        <tr>
+          <th></th>
+          <th></th>
+          <th><%= t '.apply_to_all' %></th>
+        </tr>
+        <tr>
+          <td><%= t '.service_url' %></td>
+          <td><%= text_field_tag "params_url", nil %></td>
+          <td class="center"><%= check_box_tag "params_url_all", nil %></td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.client_services_dialog.timeout' %></td>
+          <td><%= text_field_tag "params_timeout", nil %></td>
+          <td class="center"><%= check_box_tag "params_timeout_all", nil %></td>
+        </tr>
+        <tr style="display: none;">
+          <td><%= t '.required_sec_cat' %></td>
+          <td>
+            <% @security_categories.each do |sc| %>
+              <%= check_box_tag "params_security_category[]",
+                  sc.code, nil, :id => nil %> <%= sc.description %><br/>
+            <% end %>
+          </td>
+          <td class="center"><%= check_box_tag "params_security_category_all", nil %></td>
+        </tr>
+        <tr>
+          <td><%= t '.sslauth' %></td>
+          <td><%= check_box_tag "params_sslauth", true %></td>
+          <td class="center"><%= check_box_tag "params_sslauth_all", nil %></td>
+        </tr>
+      </table>
+    <% end %>
+  </section>
 <% end %>

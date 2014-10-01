@@ -1,34 +1,93 @@
-<%= dialog "service_acl_dialog", t('.access_rights') do %>
-  <div style="float: left; padding: 0.5em;">
-    <%= t '.service' %> <%= select_tag "service", nil %>
-  </div>
+<% content_for :head do %>
+  <%= javascript_include_tag "acl" %>
+<% end %>
 
-  <div class="clearer"></div>
+<%= dialog "service_acl_dialog", t('.access_rights') do %>
+  <section class="container cf">
+    <div class="left">
+      <%= t '.service' %> <%= select_tag "service", nil %>
+    </div>
+
+    <div class="right">
+      <% if can?(:edit_service_acl) %>
+      <div class="dataTables_actions">
+        <button id="service_acl_subjects_add"><%= t '.add_subjects' %></button>
+        <button id="service_acl_subjects_remove_selected"><%= t '.remove_selected' %></button>
+        <button id="service_acl_subjects_remove_all"><%= t '.remove_all' %></button>
+      </div>
+      <% end %>
+    </div>
+  </section>
 
   <div class="fill">
+    <div id="subjects_actions">
+      <div class="right">
+        <span><%= t 'common.select_all' %></span>
+        <input class="select_all" type="checkbox"/>
+      </div>
+
+      <div class="clearer"></div>
+
+      <div class="simple_search">
+        <a href="#"><%= t 'common.advanced_search' %></a>
+      </div>
+
+      <div class="advanced_search">
+        <fieldset style="width: 30%; padding: 0 1em;">
+          <legend><%= t 'common.advanced_search' %></legend>
+          <table style="width: 100%;">
+            <tr>
+              <td><%= t '.member_name_group_desc' %></td>
+              <td><%= text_field_tag nil %></td>
+            </tr>
+            <tr>
+              <td><%= t '.type' %></td>
+              <td>
+                <%= select_tag nil, options_for_select(@subject_types),
+                    :include_blank => true %>
+              </td>
+            </tr>
+            <tr>
+              <td><%= t '.sdsb' %></td>
+              <td>
+                <%= select_tag nil, options_for_select(@instances),
+                    :include_blank => true %>
+              </td>
+            </tr>
+            <tr>
+              <td><%= t '.member_class' %></td>
+              <td><%= select_tag nil, options_for_select(@member_classes),
+                      :include_blank => true %></td>
+            </tr>
+            <tr>
+              <td><%= t '.member_group_code' %></td>
+              <td><%= text_field_tag nil %></td>
+            </tr>
+            <tr>
+              <td><%= t '.subsystem_code' %></td>
+              <td><%= text_field_tag nil %></td>
+            </tr>
+            <tr>
+              <td colspan="2">
+                <button class="search"><%= t 'common.search' %></button>
+                <button class="clear"><%= t 'common.clear' %></button>
+              </td>
+            </tr>
+          </table>
+        </fieldset>
+
+        <a href="#"><%= t 'common.simple_search' %></a>
+      </div>
+    </div>
 
     <table id="subjects" class="fixed">
       <thead>
         <tr>
           <th><%= t '.member_name_group_desc' %></th>
-          <th><%= t '.member_class' %></th>
-          <th><%= t '.member_group_code' %></th>
-          <th><%= t '.subsystem_code' %></th>
-          <th><%= t '.sdsb' %></th>
-          <th><%= t '.type' %></th>
+          <th>ID</th>
           <th><%= t '.access_rights_given' %></th>
         </tr>
       </thead>
     </table>
-
-    <% if can?(:edit_service_acl) %>
-    <div class="dataTables_actions">
-      <button id="subjects_add"><%= t '.add_subjects' %></button>
-      <button id="subjects_remove_selected"><%= t '.remove_selected' %></button>
-      <button id="subjects_remove_all"><%= t '.clear_acl' %></button>
-    </div>
-    <% end %>
   </div>
 <% end %>
-
-<%= render :partial => "subjects_add_dialog" %>

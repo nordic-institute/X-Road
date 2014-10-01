@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.proxy.util;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,12 +19,11 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.PortNumbers;
-import ee.cyber.sdsb.common.util.CryptoUtils;
+import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.util.MimeTypes;
 import ee.cyber.sdsb.common.util.MimeUtils;
 import ee.cyber.sdsb.common.util.StartStop;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
+import ee.cyber.sdsb.proxy.conf.KeyConf;
 
 /**
  * Service responsible for responding with OCSP responses of
@@ -42,19 +40,21 @@ public class CertHashBasedOcspResponder implements StartStop {
     private static final Logger LOG =
             LoggerFactory.getLogger(CertHashBasedOcspResponder.class);
 
-    private static final String METHOD = "GET";
+    private static final String METHOD_HEAD = "HEAD";
+    private static final String METHOD_GET = "GET";
+
     private static final String CERT_PARAM = "cert";
 
-    private Server server = new Server();
+    private final Server server = new Server();
 
     public CertHashBasedOcspResponder() {
-        this(ServerConf.getConnectorHost());
+        this(SystemProperties.getOcspResponderListenAddress());
     }
 
     public CertHashBasedOcspResponder(String host) {
         SelectChannelConnector ocspConnector = new SelectChannelConnector();
         ocspConnector.setName("OcspResponseConnector");
-        ocspConnector.setPort(PortNumbers.PROXY_OCSP_PORT);
+        ocspConnector.setPort(SystemProperties.getOcspResponderPort());
         ocspConnector.setHost(host);
 
         server.addConnector(ocspConnector);
@@ -79,36 +79,53 @@ public class CertHashBasedOcspResponder implements StartStop {
         }
     }
 
+    private void doHandleRequest(HttpServletRequest request,
+            HttpServletResponse response) throws Exception {
+        String[] hashes = getCertHashes(request);
+        List<OCSPResp> ocspResponses = getOcspResponses(hashes);
+
+        LOG.debug("Returning OCSP responses for cert hashes: "
+                + Arrays.toString(hashes));
+
+        MultiPartOutputStream mpResponse =
+                new MultiPartOutputStream(response.getOutputStream());
+
+        response.setContentType(
+                MimeUtils.mpRelatedContentType(mpResponse.getBoundary()));
+        response.setStatus(HttpServletResponse.SC_OK);
+
+        for (OCSPResp ocsp : ocspResponses) {
+            mpResponse.startPart(MimeTypes.OCSP_RESPONSE);
+            mpResponse.write(ocsp.getEncoded());
+        }
+
+        mpResponse.close();
+    }
+
     private class RequestHandler extends AbstractHandler {
         @Override
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
+            LOG.trace("Received {} request from {}", baseRequest.getMethod(),
+                    request.getRemoteAddr());
             try {
-                checkRequestMethod(request);
-
-                String[] hashes = getCertHashes(request);
-                List<OCSPResp> ocspResponses = getOcspResponses(hashes);
-
-                LOG.debug("Returning OCSP responses for cert hashes: "
-                        + Arrays.toString(hashes));
-
-                MultiPartOutputStream mpResponse =
-                        new MultiPartOutputStream(response.getOutputStream());
-
-                response.setContentType(MimeUtils.mpRelatedContentType(
-                                mpResponse.getBoundary()));
-                response.setStatus(HttpServletResponse.SC_OK);
-
-                for (OCSPResp ocsp : ocspResponses) {
-                    mpResponse.startPart(MimeTypes.OCSP_RESPONSE);
-                    mpResponse.write(ocsp.getEncoded());
+                switch (baseRequest.getMethod()) {
+                    case METHOD_HEAD:
+                        // heart beat - simply return OK
+                        response.setStatus(HttpServletResponse.SC_OK);
+                        break;
+                    case METHOD_GET:
+                        doHandleRequest(request, response);
+                        break;
+                    default:
+                        throw new Exception("Invalid request method: "
+                                + request.getMethod());
                 }
-
-                mpResponse.close();
             } catch (Exception e) {
-                LOG.error("Error getting OCSP response", e);
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                LOG.error("Error getting OCSP responses", e);
+                response.sendError(
+                        HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                         e.getMessage());
             } finally {
                 baseRequest.setHandled(true);
@@ -127,42 +144,22 @@ public class CertHashBasedOcspResponder implements StartStop {
     }
 
     private static OCSPResp getOcspResponse(String certHash) throws Exception {
-        X509Certificate cert = getCert(certHash);
-        OCSPResp ocsp = ServerConf.getOcspResponse(cert);
+        OCSPResp ocsp = KeyConf.getOcspResponse(certHash);
         if (ocsp == null) {
-            throw new Exception("Could not find OCSP response");
+            throw new Exception("Could not find OCSP response for certificate "
+                    + certHash);
         }
 
         return ocsp;
     }
 
-    private static X509Certificate getCert(String certHash) throws Exception {
-        List<X509Certificate> certs = ServerConf.getCertsForOcsp();
-        for (X509Certificate cert : certs) {
-            String hash = CryptoUtils.calculateCertHexHash(cert);
-            if (certHash.equals(hash)) {
-                return cert;
-            }
-        }
-
-        return null;
-    }
-
     private static String[] getCertHashes(HttpServletRequest request)
-        throws Exception {
+            throws Exception {
         String[] paramValues = request.getParameterValues(CERT_PARAM);
         if (paramValues.length < 1) {
             throw new Exception("Could not get cert hashes");
         }
 
         return paramValues;
-    }
-
-    private static void checkRequestMethod(HttpServletRequest request)
-            throws Exception {
-        if (!request.getMethod().equalsIgnoreCase(METHOD)) {
-            throw new Exception(
-                    "Invalid request method: " + request.getMethod());
-        }
     }
 }

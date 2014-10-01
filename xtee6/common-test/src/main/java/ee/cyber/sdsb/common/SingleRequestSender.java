@@ -2,7 +2,6 @@ package ee.cyber.sdsb.common;
 
 import java.io.InputStream;
 import java.net.URI;
-
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPException;
@@ -15,12 +14,14 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
 
+import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+
 public class SingleRequestSender {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(SingleRequestSender.class);
 
-    private static final int CLIENT_TIMEOUT = 30; // seconds
+    private static final int DEFAULT_CLIENT_TIMEOUT_SEC = 30;
 
     private static MessageFactory messageFactory = null;
 
@@ -33,6 +34,13 @@ public class SingleRequestSender {
     }
 
     private CloseableHttpAsyncClient client;
+    private Integer timeoutSec;
+
+    public SingleRequestSender(CloseableHttpAsyncClient client,
+            Integer timeoutSec) {
+        this(client);
+        this.timeoutSec = timeoutSec;
+    }
 
     public SingleRequestSender(CloseableHttpAsyncClient client) {
         this.client = client;
@@ -41,9 +49,10 @@ public class SingleRequestSender {
     public SOAPMessage sendRequestAndReceiveResponse(String address,
             String contentType, InputStream content) throws Exception {
         try (AsyncHttpSender sender = new AsyncHttpSender(client)) {
-            sender.doPost(new URI(address), content, contentType);
+            sender.doPost(new URI(address), content, CHUNKED_LENGTH,
+                    contentType);
 
-            sender.waitForResponse(CLIENT_TIMEOUT);
+            sender.waitForResponse(getTimeoutSec());
 
             String responseContentType = sender.getResponseContentType();
             MimeHeaders mimeHeaders = getMimeHeaders(responseContentType);
@@ -54,6 +63,14 @@ public class SingleRequestSender {
             return messageFactory.createMessage(mimeHeaders,
                     sender.getResponseContent());
         }
+    }
+
+    private Integer getTimeoutSec() {
+        if (timeoutSec == null) {
+            return DEFAULT_CLIENT_TIMEOUT_SEC;
+        }
+
+        return timeoutSec;
     }
 
     private static MimeHeaders getMimeHeaders(String contentType) {

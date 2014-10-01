@@ -17,7 +17,7 @@ module SecurityserversHelper
   end
 
   def get_full_server_data_as_json(server)
-    {
+    return {
       :server_code => server.server_code,
       :owner_name => server.owner.name,
       :owner_class => server.owner.member_class.code,
@@ -25,6 +25,15 @@ module SecurityserversHelper
       :registered => format_time(server.created_at.localtime),
       :address => server.address,
       :identifier => server.get_identifier
+    }
+  end
+
+  def get_short_server_data_as_json(server)
+    return {
+      :server_code => server.server_code,
+      :owner_name => server.owner.name,
+      :owner_class => server.owner.member_class.code,
+      :owner_code => server.owner.member_code
     }
   end
 end

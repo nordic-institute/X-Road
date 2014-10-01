@@ -11,16 +11,16 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20131202162342) do
+ActiveRecord::Schema.define(:version => 20140710141136) do
 
   create_table "approved_tsps", :force => true do |t|
     t.string   "name"
     t.string   "url"
     t.binary   "cert"
-    t.datetime "valid_from"
-    t.datetime "valid_to"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+    t.datetime "valid_from"
+    t.datetime "valid_to"
   end
 
   create_table "auth_certs", :force => true do |t|
@@ -48,8 +48,13 @@ ActiveRecord::Schema.define(:version => 20131202162342) do
   end
 
   create_table "distributed_files", :force => true do |t|
-    t.string "file_name"
-    t.text   "file_data"
+    t.string   "file_name"
+    t.text     "file_data"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "last_successful",                   :default => true
+    t.string   "original_filename_last_successful"
+    t.string   "original_filename_last_failed"
   end
 
   create_table "distributed_signed_files", :force => true do |t|
@@ -92,8 +97,9 @@ ActiveRecord::Schema.define(:version => 20131202162342) do
     t.string   "service_code"
     t.string   "server_code"
     t.string   "type"
-    t.datetime "created_at",     :null => false
-    t.datetime "updated_at",     :null => false
+    t.datetime "created_at",      :null => false
+    t.datetime "updated_at",      :null => false
+    t.string   "service_version"
   end
 
   create_table "member_class_mappings", :force => true do |t|
@@ -208,6 +214,19 @@ ActiveRecord::Schema.define(:version => 20131202162342) do
     t.string   "value"
     t.datetime "created_at", :null => false
     t.datetime "updated_at", :null => false
+  end
+
+  create_table "ui_users", :force => true do |t|
+    t.string   "username"
+    t.string   "locale"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
+
+  create_table "v5_imports", :force => true do |t|
+    t.string   "file_name"
+    t.text     "console_output"
+    t.datetime "created_at",     :null => false
   end
 
 end

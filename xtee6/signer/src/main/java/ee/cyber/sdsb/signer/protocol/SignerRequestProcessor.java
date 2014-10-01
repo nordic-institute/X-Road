@@ -1,23 +1,21 @@
 package ee.cyber.sdsb.signer.protocol;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.signer.protocol.message.ConnectionPing;
+import ee.cyber.sdsb.signer.protocol.message.ConnectionPong;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 
 /**
  * Request handler will handle all incoming requests...
  */
+@Slf4j
 public class SignerRequestProcessor extends UntypedActor {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignerRequestProcessor.class);
 
     private static final String HANDLER_PACKAGE_NAME =
             "ee.cyber.sdsb.signer.protocol.handler.";
@@ -25,11 +23,16 @@ public class SignerRequestProcessor extends UntypedActor {
 
     @Override
     public void onReceive(Object message) throws Exception {
-        LOG.trace("onReceive({})", message);
+        if (message instanceof ConnectionPing) {
+            getSender().tell(new ConnectionPong(), getSelf());
+            return;
+        }
+
+        log.trace("onReceive({})", message);
         try {
             handle(message);
         } catch (Throwable e) {
-            LOG.error("Error in request processor", e);
+            log.error("Error in request processor", e);
         }
     }
 
@@ -47,7 +50,7 @@ public class SignerRequestProcessor extends UntypedActor {
                 throw new CodedException(X_INTERNAL_ERROR, "Unknown request");
             }
         } catch (Throwable e) { // We want to catch serious errors as well
-            LOG.error("Error in request processor", e);
+            log.error("Error in request processor", e);
 
             if (getSender() != ActorRef.noSender()) {
                 CodedException translated =
@@ -64,18 +67,18 @@ public class SignerRequestProcessor extends UntypedActor {
                 HANDLER_CLASS_SUFFIX;
         String handlerClass = HANDLER_PACKAGE_NAME + handlerName;
 
-        LOG.debug("Looking for request processor '{}'", handlerClass);
+        log.trace("Looking for request processor '{}'", handlerClass);
         try {
             Class<?> clazz = Class.forName(handlerClass);
             if (AbstractRequestHandler.class.isAssignableFrom(clazz)) {
                 return (Class<? extends AbstractRequestHandler<?>>) clazz;
             } else {
-                LOG.error("Invalid request handler '{}'; must be subclass" +
+                log.error("Invalid request handler '{}'; must be subclass" +
                         " of {}", clazz, AbstractRequestHandler.class);
                 return null;
             }
         } catch (Exception e) {
-            LOG.error("Error while getting request handler", e);
+            log.error("Error while getting request handler", e);
             return null;
         }
     }

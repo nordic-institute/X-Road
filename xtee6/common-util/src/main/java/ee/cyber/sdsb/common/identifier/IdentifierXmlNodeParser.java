@@ -8,15 +8,19 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.message.JaxbUtils;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_XML;
 
 public class IdentifierXmlNodeParser {
 
     public static final String NS_IDENTIFIERS =
-            "http://sdsb.net/xsd/identifiers";
+            "http://x-road.eu/xsd/identifiers";
 
     public static final String PREFIX_IDENTIFIERS = "id";
+
+    private static final JAXBContext JAXB_CTX =
+            JaxbUtils.initJAXBContext(ObjectFactory.class);
 
     public static ClientId parseClientId(Node node) throws Exception {
         SdsbClientIdentifierType type =
@@ -25,7 +29,7 @@ public class IdentifierXmlNodeParser {
         return IdentifierTypeConverter.parseClientId(type);
     }
 
-    public static AbstractServiceId parseServiceId(Node node) throws Exception {
+    public static ServiceId parseServiceId(Node node) throws Exception {
         SdsbObjectType objectType = getObjectType(node);
         if (objectType.equals(SdsbObjectType.CENTRALSERVICE)) {
             SdsbCentralServiceIdentifierType type =
@@ -46,10 +50,8 @@ public class IdentifierXmlNodeParser {
             Class<T> clazz) throws Exception {
         verifyObjectType(node, expectedType);
 
-        JAXBContext ctx = JAXBContext.newInstance(ObjectFactory.class);
-        Unmarshaller unmarshaller = ctx.createUnmarshaller();
+        Unmarshaller unmarshaller = JAXB_CTX.createUnmarshaller();
         JAXBElement<T> element = unmarshaller.unmarshal(node, clazz);
-
         return element.getValue();
     }
 

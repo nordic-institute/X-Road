@@ -15,17 +15,17 @@ public abstract class MultipartWriter implements Runnable {
     private byte[] soapBytes;
 
     protected MultiPartOutputStream mpos;
-    protected TestQuery testQuery;
+    protected TestRequest testRequest;
 
     MultipartWriter(PipedOutputStream os, byte[] soapBytes) throws IOException {
         this.mpos = new MultiPartOutputStream(os);
         this.soapBytes = soapBytes;
     }
 
-    MultipartWriter(PipedOutputStream os, TestQuery testQuery)
+    MultipartWriter(PipedOutputStream os, TestRequest testRequest)
             throws IOException {
         this.mpos = new MultiPartOutputStream(os);
-        this.testQuery = testQuery;
+        this.testRequest = testRequest;
     }
 
     public MultiPartOutputStream getMultipartOutputStream() {
@@ -37,7 +37,7 @@ public abstract class MultipartWriter implements Runnable {
         try {
             // Write SOAP message
             mpos.startPart("text/xml");
-            mpos.write(soapBytes != null ? soapBytes : testQuery.getContent()
+            mpos.write(soapBytes != null ? soapBytes : testRequest.getContent()
                     .getBytes());
 
             startAttachmentPart();

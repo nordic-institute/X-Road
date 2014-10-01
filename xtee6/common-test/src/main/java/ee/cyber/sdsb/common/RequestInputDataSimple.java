@@ -5,31 +5,26 @@ import java.io.InputStream;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-public class RequestInputDataSimple implements RequestInputData {
+public class RequestInputDataSimple extends RequestInputData {
 
     private String contentType;
-    private TestQuery testQuery;
 
-    public RequestInputDataSimple(TestQuery testQuery, String contentType) {
-        this.testQuery = testQuery;
+    public RequestInputDataSimple(String clientUrl, TestRequest testRequest,
+            String contentType) {
+        super(clientUrl, testRequest);
         this.contentType = contentType;
     }
 
     @Override
     public Pair<String, InputStream> getRequestInput() {
         try {
-            return Pair.of(contentType, getQueryFileInputStream());
+            return Pair.of(contentType, getRequestContentInputStream());
         } catch (Exception e) {
             throw new RuntimeException("Cannot create request input", e);
         }
     }
 
-    @Override
-    public String getQueryName() {
-        return testQuery.getName();
-    }
-
-    private InputStream getQueryFileInputStream() throws Exception {
-        return new ByteArrayInputStream(testQuery.getContent().getBytes());
+    private InputStream getRequestContentInputStream() throws Exception {
+        return new ByteArrayInputStream(testRequest.getContent().getBytes());
     }
 }

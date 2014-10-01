@@ -1,7 +1,7 @@
 <%= dialog "auth_cert_add_dialog", t("securityservers.auth_cert.add.title") do %>
-  <fieldset>
+  <section class="container">
     <legend><%= t 'securityservers.auth_cert.owner.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'securityservers.owner_name' %></td>
         <td><input id="add_auth_cert_owner_name" type="text" readonly/></td>
@@ -19,13 +19,13 @@
         <td><input id="add_auth_cert_servercode" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
+  </section>
 
-  <fieldset>
-    
+  <section class="container">
     <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
+        <td></td>
         <td>
           <%= form_tag "securityservers/import_auth_cert",
               :id => "server_auth_cert_upload", :multipart => true,
@@ -36,15 +36,15 @@
         <iframe id="upload_target" name="upload_target"></iframe>
         <td>
           <% if can?(:add_security_server_auth_cert_reg_request) %>
-            <button id="add_auth_cert_upload">
+            <button id="add_auth_cert_upload" class="ui-state-disabled" disabled="disabled">
               <%= t 'securityservers.auth_cert.upload' %>
             </button>
           <% end %>
         </td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.csp' %></td>
-        <td><input id="add_auth_cert_csp" type="text" readonly/></td>
+        <td><%= t 'securityservers.auth_cert.ca' %></td>
+        <td><input id="add_auth_cert_ca" type="text" readonly/></td>
       </tr>
       <tr class="auth_cert_details">
         <td><%= t 'securityservers.auth_cert.serial_number' %></td>
@@ -59,6 +59,6 @@
         <td><input id="add_auth_cert_expires" type="text" readonly/></td>
       </tr>
     </table>
-    <p id="add_auth_cert_temp_id"></p>
-  </fieldset>
+    <p id="add_auth_cert_temp_id" class="ui-helper-hidden"></p>
+  </section>
 <% end %>

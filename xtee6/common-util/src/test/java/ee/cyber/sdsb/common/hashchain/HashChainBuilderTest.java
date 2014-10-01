@@ -60,13 +60,13 @@ public class HashChainBuilderTest {
         assertEquals("D7oIIfhfp4ToT729xyx991PvstI5XvpW+d7oeWvXw8E=",
                 encodeBase64(topHash));
 
-        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult());
+        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult("foo"));
 
         printChains(builder);
     }
 
     private static void printChains(HashChainBuilder builder) throws Exception {
-        String[] chains = builder.getHashChains();
+        String[] chains = builder.getHashChains("foo.xml");
         LOG.debug("Hash chains:");
         for (String chain: chains) {
             LOG.debug(chain);
@@ -100,7 +100,7 @@ public class HashChainBuilderTest {
 
         builder.finishBuilding();
 
-        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult());
+        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult("foo"));
         printChains(builder);
     }
 
@@ -111,8 +111,8 @@ public class HashChainBuilderTest {
         HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
         builder.finishBuilding();
 
-        assertNull(builder.getHashChainResult());
-        assertNull(builder.getHashChains());
+        assertNull(builder.getHashChainResult("foo"));
+        assertNull(builder.getHashChains("bar"));
     }
 
     @Test
@@ -131,7 +131,7 @@ public class HashChainBuilderTest {
         assertEquals("v3CBVgjKmzZT5hnJ6vj6waqBazZe334tdEoNiL2oM5E=",
                 encodeBase64(builder.getTreeTop()));
 
-        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult());
+        LOG.debug("Hash chain result:\n{}", builder.getHashChainResult("foo"));
         printChains(builder);
     }
 }

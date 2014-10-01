@@ -10,7 +10,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import lombok.Getter;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
@@ -22,14 +22,11 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import akka.actor.ActorSystem;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.serverconf.GlobalConfDistributorType;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
+import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
 import ee.cyber.sdsb.distributedfiles.handler.DefaultFileHandler;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -46,57 +43,60 @@ import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_TYPE;
  * containing the files and signature. Also, the header is expected
  * to contain signature algorithm identifier and ID of the signing key.
  */
+@Slf4j
 @DisallowConcurrentExecution
 public class DistributedFilesClient implements Job {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DistributedFilesClient.class);
 
     private static final DateTimeFormatter DATE_TIME_PARSER =
             ISODateTimeFormat.dateTimeParser();
 
     private static final String HEADER_CONTENT_FILE_NAME = "content-file-name";
 
-    private static ActorSystem actorSystem;
-
-    public static void init(ActorSystem actorSystem) {
-        DistributedFilesClient.actorSystem = actorSystem;
-    }
+    // Holds the last error potentially produced by any of the file distributors.
+    private Exception lastAttemptError;
 
     public static void execute() throws Exception {
-        // JobExecutionContext can be null, since we do not use it
         new DistributedFilesClient().execute(null);
     }
 
     @Override
     public void execute(JobExecutionContext context)
             throws JobExecutionException {
-        LOG.trace("DistributedFilesClient executing...");
+        lastAttemptError = null;
         try {
-            ServerConf conf = new ServerConf();
+            doExecute();
+        } catch (Exception e) {
+            log.error("Could not fetch files", e);
+            throw new JobExecutionException(e);
+        }
+    }
 
-            List<GlobalConfDistributorType> fileDistributors =
-                    conf.getFileDistributors();
+    private void doExecute() throws Exception {
+        log.trace("DistributedFilesClient executing...");
 
-            if (!shouldFetch(fileDistributors)) {
+        List<GlobalConfDistributorType> fileDistributors =
+                ServerConf.getFileDistributors();
+
+        if (!shouldFetch(fileDistributors)) {
+            return;
+        }
+
+        for (int idx = 0; idx < fileDistributors.size(); ++idx) {
+            if (fetchConfiguration(fileDistributors.get(idx), idx)) {
+                // Got the conf.
                 return;
             }
-
-            for (int idx = 0; idx < fileDistributors.size(); ++idx) {
-                if (fetchConfiguration(fileDistributors.get(idx), idx)) {
-                    // Got the conf.
-                    return;
-                }
-            }
-
-            // All the distributors failed.
-            throw new Exception("All "
-                    + (fileDistributors.size() > 1
-                        ? fileDistributors.size() + " " : "")
-                    + "attempts failed");
-        } catch (Exception e) {
-            LOG.error("Could not fetch files", e);
         }
+
+        if (lastAttemptError != null) {
+            throw lastAttemptError;
+        }
+
+        // All the distributors failed.
+        throw new Exception("All "
+                + (fileDistributors.size() > 1
+                    ? fileDistributors.size() + " " : "")
+                + "attempts failed");
     }
 
     private boolean fetchConfiguration(
@@ -104,7 +104,7 @@ public class DistributedFilesClient implements Job {
         try {
             URL url = new URL(fileDistributor.getUrl());
             X509Certificate cert = readCertificate(
-                    fileDistributor.getVerificationCert());
+                    fileDistributor.getVerificationCert().getData());
 
             SignedMultipart signedContent = fetch(url);
             verifySignature(signedContent, cert);
@@ -112,14 +112,13 @@ public class DistributedFilesClient implements Job {
 
             return true;
         } catch (Exception e) {
-            LOG.warn("Could not fetch files from {}. distributor "
-                    + "(URL: {}): {}",
-                    new Object[] {
-                            idx,
-                            fileDistributor.getUrl() == null
-                                    ? "N/A"
-                                    : fileDistributor.getUrl(),
-                            e});
+            String url = fileDistributor.getUrl() == null
+                    ? "N/A" : fileDistributor.getUrl();
+            String message = String.format(
+                    "Could not fetch files from %s. distributor (URL: %s): %s",
+                    idx, url, e);
+            log.warn(message);
+            lastAttemptError = new Exception(message);
             return false;
         }
     }
@@ -134,14 +133,13 @@ public class DistributedFilesClient implements Job {
 
             return true;
         } else {
-            LOG.trace("DistributedFilesClient is not enabled");
+            log.trace("DistributedFilesClient is not enabled");
+            return false;
         }
-
-        return false;
     }
 
     SignedMultipart fetch(URL url) throws Exception {
-        LOG.trace("Fetching signed multipart from {}", url);
+        log.trace("Fetching signed multipart from {}", url);
 
         try (InputStream is = url.openStream()) {
             return fetch(is);
@@ -153,7 +151,7 @@ public class DistributedFilesClient implements Job {
 
         SignedMultipart signedMultipart = new SignedMultipart(parser);
 
-        LOG.trace("Parsing distributed files multipart");
+        log.trace("Parsing distributed files multipart");
 
         parser.setContentHandler(signedMultipart);
         parser.parse(stream);
@@ -169,7 +167,7 @@ public class DistributedFilesClient implements Job {
 
     void verifySignature(SignedMultipart response, PublicKey verificationKey)
             throws Exception {
-        LOG.trace("Verifying signed data...");
+        log.trace("Verifying signed data...");
 
         Signature verifier = Signature.getInstance(
             getSignatureAlgorithmId(response.getSignatureAlgoId()));
@@ -190,36 +188,28 @@ public class DistributedFilesClient implements Job {
         MimeStreamParser parser = new MimeStreamParser(config);
         parser.setContentHandler(new SignedPartHandler(parser));
 
-        LOG.trace("Parsing signed content wrapper");
+        log.trace("Parsing signed content wrapper");
         parser.parse(new ByteArrayInputStream(signedMultipart.getSignedData()));
     }
 
     void handleFileReceived(DistributedFile file) throws Exception {
         String identifier = file.getFileName();
 
-        LOG.trace("handleFileReceived({})", identifier);
+        log.trace("handleFileReceived({})", identifier);
 
         DistributedFileHandler handler = getHandler(identifier);
         if (handler != null) {
             handler.handle(file);
         } else {
-            LOG.warn("Received unknown file '{}'", identifier);
+            log.warn("Received unknown file '{}'", identifier);
         }
     }
 
     DistributedFileHandler getHandler(String identifier) throws Exception {
-        // XXX: Could be more specialized in the future
+        log.trace("getHandler({})", identifier);
+        // Here we can return more specialized handlers (i.e. actor based that
+        // will notify other parties) in the future.
         return new DefaultFileHandler();
-        /*return new DefaultFileHandler() {
-            @Override
-            public void handle(final DistributedFile file) throws Exception {
-                super.handle(file);
-
-                ActorSelection proxy = actorSystem.actorSelection(
-                        "akka.tcp://Proxy@127.0.0.1:2551/user/Proxy");
-                proxy.tell("reload-" + file.getFileName(), ActorRef.noSender());
-            }
-        };*/
     }
 
     boolean verifySignatureFreshness(DateTime signDate, DateTime atDate) {
@@ -272,7 +262,7 @@ public class DistributedFilesClient implements Job {
             parser.setContentHandler(
                     new DistributedFilePartHandler(parser, signDate));
 
-            LOG.trace("Parsing distributed files");
+            log.trace("Parsing distributed files");
             parser.parse(is);
         }
     }
@@ -292,7 +282,7 @@ public class DistributedFilesClient implements Job {
                 throws MimeException, IOException {
             String file = getHeader(HEADER_CONTENT_FILE_NAME);
             if (file == null) {
-                LOG.error("{} not specified for part",
+                log.error("{} not specified for part",
                         HEADER_CONTENT_FILE_NAME);
                 return;
             }
@@ -300,7 +290,7 @@ public class DistributedFilesClient implements Job {
             try {
                 handleFileReceived(new DistributedFile(file, signDate, is));
             } catch (Exception e) {
-                LOG.error("Error handling content '{}': {}", file, e);
+                log.error("Error handling content '{}': {}", file, e);
             }
         }
     }

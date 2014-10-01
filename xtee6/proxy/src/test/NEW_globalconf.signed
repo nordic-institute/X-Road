@@ -8,7 +8,7 @@ Content-Type: text/xml
 Content-Date: 2013-05-29T13:59:41+0000
 
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:conf xmlns:ns2="http://sdsb.net/xsd/identifiers" xmlns:ns3="http://sdsb.net/xsd/xroad.xsd">
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <instanceIdentifier>EE</instanceIdentifier>
     <member id="consumerId">
         <memberClass>BUSINESS</memberClass>

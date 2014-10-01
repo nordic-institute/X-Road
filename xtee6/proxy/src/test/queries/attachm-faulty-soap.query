@@ -4,8 +4,8 @@ Content-Type: text/xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
-        xmlns:id="http://sdsb.net/xsd/identifiers">
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
         <sdsb:client id:objectType="MEMBER">
             <id:sdsbInstance>EE</id:sdsbInstance>

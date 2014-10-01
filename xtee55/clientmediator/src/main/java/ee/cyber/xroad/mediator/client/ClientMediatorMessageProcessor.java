@@ -1,18 +1,21 @@
 package ee.cyber.xroad.mediator.client;
 
+import java.net.HttpURLConnection;
 import java.net.URI;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.GlobalConfImpl;
 import ee.cyber.sdsb.common.conf.GlobalConfProvider;
+import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -27,8 +30,9 @@ import ee.cyber.xroad.mediator.message.XRoadMetaServiceImpl;
 import ee.cyber.xroad.mediator.message.XRoadSoapMessageImpl;
 import ee.cyber.xroad.mediator.util.MediatorUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.cyber.sdsb.common.SystemProperties.getOcspResponderPort;
+import static ee.cyber.sdsb.common.metadata.MetadataRequests.ALLOWED_METHODS;
+import static ee.cyber.sdsb.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.cyber.xroad.mediator.message.MessageVersion.SDSB;
 import static ee.cyber.xroad.mediator.message.MessageVersion.XROAD50;
 import static ee.cyber.xroad.mediator.util.MediatorUtils.isSdsbSoapMessage;
@@ -38,6 +42,9 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ClientMediatorMessageProcessor.class);
+
+    private static final Map<String, ActivationInfo> activationInfo =
+            new ConcurrentHashMap<>();
 
     private final GlobalConfProvider globalConf;
     private final ClientCert clientCert;
@@ -151,46 +158,7 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             return;
         }
 
-        IsAuthentication isAuthentication =
-                MediatorServerConf.getIsAuthentication(sender);
-        if (isAuthentication == null) {
-            // Means the client was not found in the server conf.
-            // The getIsAuthentication method implemented in ServerConfCommonImpl
-            // checks if the client exists; if it does, returns the
-            // isAuthentication value or NOSSL if no value is specified.
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Client '%s' not found", sender);
-        }
-
-        LOG.debug("IS authentication for client '{}' is: {}", sender,
-                isAuthentication);
-
-        if (isAuthentication == IsAuthentication.SSLNOAUTH) {
-            if (clientCert.getVerificationResult() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies SSLNOAUTH but client made "
-                                + " plaintext connection", sender);
-            }
-        } else if (isAuthentication == IsAuthentication.SSLAUTH) {
-            if (clientCert.getCert() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies SSLAUTH but did not supply"
-                                + " SSL certificate", sender);
-            }
-
-            List<X509Certificate> isCerts =
-                    MediatorServerConf.getIsCerts(sender);
-            if (isCerts.isEmpty()) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) has no IS certificates", sender);
-            }
-
-            if (!isCerts.contains(clientCert.getCert())) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) SSL certificate does not match any"
-                                + " IS certificates", sender);
-            }
-        }
+        IsAuthentication.verifyClientAuthentication(sender, clientCert);
     }
 
     private ClientId getSender(SoapMessage message) throws Exception {
@@ -216,10 +184,18 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             return false;
         }
 
-        if (MediatorUtils.isSdsbSoapMessage(message) &&
-                ((SoapMessageImpl)
-                        message).getService() instanceof CentralServiceId) {
-            return true;
+        if (MediatorUtils.isSdsbSoapMessage(message)) {
+            SoapMessageImpl sdsbSoap = (SoapMessageImpl) message;
+            if (sdsbSoap.getService() instanceof CentralServiceId) {
+                return true;
+            }
+
+            // SDSB meta requests go to SDSB
+            String serviceCode = sdsbSoap.getService().getServiceCode();
+            if (LIST_METHODS.equals(serviceCode)
+                    || ALLOWED_METHODS.equals(serviceCode)) {
+                return true;
+            }
         }
 
         ClientId sender = getSender(message);
@@ -246,7 +222,46 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             return false;
         }
 
-        return true;
+        // We assume that all security servers of a service provider are
+        // activated simultaneously thus we check with the first known address.
+        return isServerProxyActivated(addresses.iterator().next());
+    }
+
+    boolean isServerProxyActivated(String address) {
+        return checkIfServerProxyIsActivated(address);
+    }
+
+    private static boolean checkIfServerProxyIsActivated(String address) {
+        ActivationInfo i = activationInfo.get(address);
+        if (i != null && !i.isExpired()) {
+            return i.isActivated();
+        }
+
+        boolean activated = false;
+        try {
+            URI uri = new URI("http", null, address, getOcspResponderPort(),
+                    "/", null, null);
+            LOG.trace("Checking if {} is activated (URL = {})", address, uri);
+
+            HttpURLConnection conn =
+                    (HttpURLConnection) uri.toURL().openConnection();
+            conn.setRequestMethod("HEAD");
+            int responseCode = conn.getResponseCode();
+            LOG.trace("Got HTTP response code {} from {}", responseCode, uri);
+
+            activated = responseCode == HttpServletResponse.SC_OK;
+            try {
+                conn.getInputStream().close();
+            } catch (Exception ignored) {
+            }
+        } catch (Exception e) {
+            LOG.warn("Error when checking if " + address + " is activated", e);
+        }
+
+        LOG.trace("{} is {}activated", address, !activated ? "not " : "");
+
+        activationInfo.put(address, new ActivationInfo(activated));
+        return activated;
     }
 
     private static GlobalConfProvider loadGlobalConf() throws Exception {

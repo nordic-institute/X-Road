@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -93,7 +94,9 @@ public class AsyncLogWriterBehavior {
 
         assertEquals(2, logFileLines.size());
         
-        String[] firstLineData = logFileLines.get(0).split("\t");
+        String[] firstLineData = logFileLines.get(0)
+                .split(Character.toString(AsyncLogWriter.FIELD_SEPARATOR));
+        ;
         assertEquals(AsyncDBTestUtil.LOG_FILE_FIELDS, firstLineData.length);
 
         assertTrue(StringUtils.isNotBlank(firstLineData[FIELD_LOGGING_TIME]));
@@ -108,7 +111,9 @@ public class AsyncLogWriterBehavior {
         assertEquals("d41d8cd98f00b204e9800998ecf8427e",
                 firstLineData[FIELD_ID]);
 
-        String[] secondLineData = logFileLines.get(1).split("\t");
+        String[] secondLineData = logFileLines.get(1)
+                .split(Character.toString(AsyncLogWriter.FIELD_SEPARATOR));
+
         assertEquals(AsyncDBTestUtil.LOG_FILE_FIELDS, secondLineData.length);
 
         assertTrue(StringUtils.isNotBlank(secondLineData[FIELD_LOGGING_TIME]));

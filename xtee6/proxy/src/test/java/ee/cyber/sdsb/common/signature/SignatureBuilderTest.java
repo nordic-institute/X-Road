@@ -45,8 +45,8 @@ public class SignatureBuilderTest {
 
     @Test
     public void buildSuccessfullyNoExtraCerts() throws Exception {
-        List<PartHash> hashes = new ArrayList<>();
-        hashes.add(new PartHash(MessageFileNames.MESSAGE,
+        List<MessagePart> hashes = new ArrayList<>();
+        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
                 CryptoUtils.SHA512_ID, hash("xxx")));
 
         SignatureBuilder builder = new SignatureBuilder();
@@ -70,10 +70,10 @@ public class SignatureBuilderTest {
 
     @Test
     public void buildSuccessfullyWithExtraCerts() throws Exception {
-        List<PartHash> hashes = new ArrayList<>();
-        hashes.add(new PartHash(MessageFileNames.MESSAGE,
+        List<MessagePart> hashes = new ArrayList<>();
+        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
                 CryptoUtils.SHA512_ID, hash("xxx")));
-        hashes.add(new PartHash(MessageFileNames.attachment(0),
+        hashes.add(new MessagePart(MessageFileNames.attachment(0),
                 CryptoUtils.SHA512_ID, hash("yyy")));
 
         SignatureBuilder builder = new SignatureBuilder();

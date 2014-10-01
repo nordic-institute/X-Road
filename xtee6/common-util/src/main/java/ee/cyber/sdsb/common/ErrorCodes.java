@@ -29,6 +29,7 @@ public class ErrorCodes {
     public static final String X_NETWORK_ERROR = "NetworkError";
     public static final String X_INTERNAL_ERROR = "InternalError";
     public static final String X_HTTP_ERROR = "HttpError";
+    public static final String X_DATABASE_ERROR = "DatabaseError";
     public static final String X_INVALID_RESPONSE = "InvalidResponse";
     public static final String X_INVALID_REQUEST = "InvalidRequest";
 
@@ -94,6 +95,14 @@ public class ErrorCodes {
     public static final String X_ASIC_SIGNATURE_NOT_FOUND = "AsicSignatureNotFound";
     public static final String X_ASIC_MESSAGE_NOT_FOUND = "AsicMessageNotFound";
     public static final String X_ASIC_INVALID_MIME_TYPE = "AsicInvalidMimeType";
+    public static final String X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND =
+            "AsicHashChainResultNotFound";
+    public static final String X_ASIC_HASH_CHAIN_NOT_FOUND =
+            "AsicHashChainNotFound";
+    public static final String X_ASIC_TIMESTAMP_NOT_FOUND =
+            "AsicTimestampNotFound";
+    public static final String X_ASIC_MANIFEST_NOT_FOUND =
+            "AsicManifestNotFound";
 
 
     // Configuration errors
@@ -104,6 +113,8 @@ public class ErrorCodes {
     public static final String X_MALFORMED_GLOBALCONF = "MalformedGlobalConf";
     public static final String X_OUTDATED_GLOBALCONF = "OutdatedGlobalConf";
     public static final String X_SERVICE_MISSING_URL = "ServiceMissingUrl";
+    public static final String X_SERVICE_MALFORMED_URL = "ServiceMalformedUrl";
+    public static final String X_ADAPTER_WSDL_NOT_FOUND = "AdapterWsdlNotFound";
 
 
     // Signer Errors
@@ -115,9 +126,8 @@ public class ErrorCodes {
     public static final String X_TOKEN_NOT_FOUND = "TokenNotFound";
     public static final String X_TOKEN_NOT_ACTIVE = "TokenNotActive";
     public static final String X_TOKEN_NOT_INITIALIZED = "TokenNotInitialized";
-    public static final String X_WORKER_THREAD_IS_NOT_WORKING =
-            "WorkerThreadIsNotWorking";
-    public static final String X_CANNOT_SIGN = "CannotSign"; // TODO: Wrong error code value!
+    public static final String X_TOKEN_READONLY = "TokenReadOnly";
+    public static final String X_CANNOT_SIGN = "CannotSign";
     public static final String X_CSR_FAILED =
             "FailedToGenerateCertificateRequest";
     public static final String X_FAILED_TO_GENERATE_R_KEY =
@@ -130,10 +140,17 @@ public class ErrorCodes {
             "CannotGetMemberIdFromCertificate";
     public static final String X_WRONG_CERT_USAGE = "WrongCertUsage";
     public static final String X_NO_MEMBERID = "CannotFindMember";
+    public static final String X_LOGIN_FAILED = "LoginFailed";
+    public static final String X_LOGOUT_FAILED = "LogoutFailed";
+    public static final String X_PIN_INCORRECT = "PinIncorrect";
 
     // SecureLog errors
 
     public static final String X_SLOG_MALFORMED_RECORD = "MalformedRecord";
+    public static final String X_SLOG_MALFORMED_INDEX = "MalformedIndex";
+    public static final String X_SLOG_MALFORMED_ARCHIVE = "MalformedArchive";
+    public static final String X_SLOG_TIMESTAMPER_FAILED = "TimestamperFailed";
+    public static final String X_SLOG_RECORD_NOT_FOUND = "RecordNotFound";
 
 
     /**
@@ -159,7 +176,7 @@ public class ErrorCodes {
             return new CodedException(X_MIME_PARSING_FAILED, ex);
         } else if (ex instanceof SAXException) {
             return new CodedException(X_INVALID_XML, ex);
-        } else { // TODO: other system exceptions.
+        } else { // other system exceptions.
             return new CodedException(X_INTERNAL_ERROR, ex);
         }
     }

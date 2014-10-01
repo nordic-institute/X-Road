@@ -3,9 +3,7 @@ package ee.cyber.sdsb.proxy.clientproxy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.StandardSocketOptions;
 import java.net.URI;
-import java.nio.channels.SocketChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -15,16 +13,18 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocket;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.cyber.sdsb.common.ErrorCodes.X_NETWORK_ERROR;
+import static ee.cyber.sdsb.proxy.clientproxy.AuthTrustVerifier.verify;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
@@ -36,6 +36,7 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_NETWORK_ERROR;
  * If an SSL session already exists to one of the provided addresses, then
  * that address is selected immediately without previous selection algorithm.
  */
+@Slf4j
 class FastestConnectionSelectingSSLSocketFactory
         extends SSLConnectionSocketFactory {
 
@@ -52,111 +53,114 @@ class FastestConnectionSelectingSSLSocketFactory
     private static final String ID_SELECTED_TARGET =
             "ee.cyber.sdsb.serverproxy.selectedtarget";
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(
-                    FastestConnectionSelectingSSLSocketFactory.class);
-
     private final javax.net.ssl.SSLSocketFactory socketfactory;
 
     private final SSLContext sslContext;
 
-    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext) {
-        super(sslContext, null);
-
+    FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext,
+            String[] supportedCipherSuites) {
+        super(sslContext, null, supportedCipherSuites, null);
         this.sslContext = sslContext;
         this.socketfactory = sslContext.getSocketFactory();
     }
 
     @Override
-    public Socket connectSocket(int timeout, Socket socket,
-            HttpHost host, InetSocketAddress remoteAddress,
-            InetSocketAddress localAddress, HttpContext context)
-                    throws IOException {
-        // Read target addresses from the context.
-        Object targets = context.getAttribute(ID_TARGETS);
-        if (targets == null || !(targets instanceof URI[]) ||
-                ((URI[]) targets).length == 0) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Target hosts not specified in http context");
-        }
+    public Socket createSocket(HttpContext context) throws IOException {
+        // create dummy socket that will be discarded
+        return new Socket();
+    }
 
-        URI[] hosts = (URI[]) targets;
+    @Override
+    public Socket connectSocket(int timeout, Socket socket, HttpHost host,
+            InetSocketAddress remoteAddress, InetSocketAddress localAddress,
+            HttpContext context) throws IOException {
+        // Read target addresses from the context.
+        URI[] addressesFromContext = getAddressesFromContext(context);
+        URI[] addresses = addressesFromContext;
 
         // If the current SSL session cache contains a session to a target
         // then connect to that target immediately without host selection.
-        URI cachedSSLSessionURI = getCachedSSLSessionHostURI(hosts);
+        URI cachedSSLSessionURI = getCachedSSLSessionHostURI(addresses);
         if (cachedSSLSessionURI != null) {
-            hosts = new URI[] { cachedSSLSessionURI };
+            addresses = new URI[] { cachedSSLSessionURI };
         }
-
-        LOG.trace("Connecting to hosts: {}", Arrays.toString(hosts));
 
         // Select the fastest address if more than one address is provided.
-        FastestSocketSelector.SocketInfo socketInfo =
-                connect(hosts, localAddress, context, timeout);
-        if (socketInfo == null) {
-            LOG.error("Could not connect to any target host ({})",
-                    Arrays.toString(hosts));
-            throw new CodedException(X_NETWORK_ERROR, String.format(
-                    "Could not connect to any target host (%s)",
-                    Arrays.toString(hosts)));
+        SocketInfo selectedSocket = connect(addresses, context, timeout);
+        if (selectedSocket == null) {
+            if (cachedSSLSessionURI != null) {
+                // could not connect to cached host, try all others.
+                selectedSocket =
+                        connect(addressesFromContext, context, timeout);
+                if (selectedSocket == null) {
+                    throw couldNotConnectException(addresses);
+                }
+            } else {
+                throw couldNotConnectException(addresses);
+            }
         }
 
-        URI selectedAddress = socketInfo.getUri();
-        Socket selectedSock = socketInfo.getSocket();
+        log.info("Connecting to {}", selectedSocket.getUri());
 
-        LOG.debug("Selected connection to {}", selectedAddress);
+        SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
+        prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
-        // Create the SSL socket and store the selected target address.
-        selectedSock = wrapToSSLSocket(selectedSock);
-        if (selectedSock instanceof SSLSocket) {
-            SSLSocket sslSock = (SSLSocket) selectedSock;
-            prepareSocket(sslSock);
+        return sslSocket;
+    }
 
-            sslSock.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
+    private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
+            HttpContext context) throws IOException {
+        prepareSocket(sslSocket);
 
-            AuthTrustVerifier.verify(context, sslSock.getSession());
+        sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
 
-            return sslSock;
+        verify(context, sslSocket.getSession());
+    }
+
+    private SocketInfo connect(URI[] addresses, HttpContext context,
+            int timeout) throws IOException {
+        log.trace("Connecting to hosts: {}", Arrays.toString(addresses));
+
+        if (addresses.length == 1) { // only one host, no need to select fastest
+            return connect(addresses[0], context, timeout);
+        } else {
+            return new FastestSocketSelector(addresses, timeout).select();
+        }
+    }
+
+    private SocketInfo connect(URI address, HttpContext context, int timeout)
+            throws IOException {
+        Socket socket = super.createSocket(context);
+        try {
+            socket.connect(toAddress(address), timeout);
+            return new SocketInfo(address, socket);
+        } catch (IOException | UnresolvedAddressException e) {
+            log.error("Could not connect to '{}': {}", address, e);
+            try {
+                socket.close();
+            } catch (IOException ignore) {
+            }
+
+            return null;
+        }
+    }
+
+    private SSLSocket wrapToSSLSocket(Socket socket) throws IOException {
+        if (socket instanceof SSLSocket) {
+            return (SSLSocket) socket;
+        }
+
+        Socket sslSocket = socketfactory.createSocket(socket,
+                socket.getInetAddress().getHostName(), socket.getPort(), false);
+        if (sslSocket instanceof SSLSocket) {
+            return (SSLSocket) sslSocket;
         }
 
         throw new CodedException(X_INTERNAL_ERROR,
                 "Failed to create SSL socket");
     }
 
-    private FastestSocketSelector.SocketInfo connect(URI[] addresses,
-            InetSocketAddress localAddress, HttpContext context, int timeout)
-                    throws IOException {
-        if (addresses.length == 1) { // only one host, no need to select fastest
-            InetSocketAddress remoteAddress =
-                    new InetSocketAddress(addresses[0].getHost(),
-                            addresses[0].getPort());
-
-            SocketChannel socketChannel = SocketChannel.open();
-            socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-            socketChannel.configureBlocking(true);
-            try {
-                socketChannel.connect(remoteAddress);
-                return new FastestSocketSelector.SocketInfo(addresses[0],
-                        socketChannel.socket());
-            } catch (UnresolvedAddressException e) {
-                // The thrown exception does not contain anything useful,
-                // so we just throw a new CodedException instead.
-                throw new CodedException(X_NETWORK_ERROR,
-                        "Could not connect to '%s'", addresses[0]);
-            }
-        } else {
-            return new FastestSocketSelector(addresses, timeout).select();
-        }
-    }
-
-    private Socket wrapToSSLSocket(Socket sock) throws IOException {
-        return socketfactory.createSocket(sock,
-                sock.getInetAddress().getHostName(), sock.getPort(),
-                false);
-    }
-
-    private URI getCachedSSLSessionHostURI(URI[] hosts) {
+    private URI getCachedSSLSessionHostURI(URI[] addresses) {
         SSLSessionContext sessionCtx = sslContext.getClientSessionContext();
 
         Enumeration<byte[]> ids = sessionCtx.getIds();
@@ -165,10 +169,10 @@ class FastestConnectionSelectingSSLSocketFactory
 
             SSLSession session = sessionCtx.getSession(id);
             if (session != null) {
-                for (URI host : hosts) {
-                    if (isSessionHost(session, host)) {
-                        LOG.trace("Found cached session for {}", host);
-                        return host;
+                for (URI address : addresses) {
+                    if (isSessionHost(session, address)) {
+                        log.trace("Found cached session for {}", address);
+                        return address;
                     }
                 }
             }
@@ -177,16 +181,38 @@ class FastestConnectionSelectingSSLSocketFactory
         return null;
     }
 
+    private static URI[] getAddressesFromContext(HttpContext context) {
+        Object targets = context.getAttribute(ID_TARGETS);
+        if (targets == null || !(targets instanceof URI[])
+                || ((URI[]) targets).length == 0) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Target hosts not specified in http context");
+        }
+
+        return (URI[]) targets;
+    }
+
     private static boolean isSessionHost(SSLSession session, URI host) {
         try {
             URI sslHost = (URI) session.getValue(ID_SELECTED_TARGET);
             return sslHost != null ? sslHost.equals(host) : false;
         } catch (Exception e) {
-            LOG.error("Error checking if host {} is in session ({})", host,
+            log.error("Error checking if host {} is in session ({})", host,
                     session);
         }
 
         return false;
     }
 
+    private static InetSocketAddress toAddress(URI uri) {
+        return new InetSocketAddress(uri.getHost(), uri.getPort());
+    }
+
+    private static CodedException couldNotConnectException(URI[] addresses) {
+        log.error("Could not connect to any target host ({})",
+                Arrays.toString(addresses));
+        return new CodedException(X_NETWORK_ERROR, String.format(
+                "Could not connect to any target host (%s)",
+                Arrays.toString(addresses)));
+    }
 }

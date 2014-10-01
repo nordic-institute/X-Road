@@ -1,8 +1,7 @@
 
 echo "jetty olemas?"
 test -d jetty8 && exit 0
-
-wget -O jetty.tgz "http://eclipse.org/downloads/download.php?file=/jetty/8.1.14.v20131031/dist/jetty-distribution-8.1.14.v20131031.tar.gz&r=1"
+wget -O jetty.tgz "http://eclipse.org/downloads/download.php?file=/jetty/8.1.15.v20140411/dist/jetty-distribution-8.1.15.v20140411.tar.gz&r=1"
 tar zxf jetty.tgz 
 rm jetty.tgz
 mv jetty-distribution* jetty8

@@ -1,3 +1,5 @@
+ext.codeCoverage = true
+
 def mainClass = 'ee.cyber.sdsb.asyncsender.Main'
 
 dependencies {

@@ -1,0 +1,12 @@
+xroad-common (6.0-2) lucid; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 14 Jul 2014 15:37:35 +0300
+
+xroad-common (6.0-1) lucid; urgency=low
+
+  * New naming schema
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 31 Dec 2013 11:19:14 +0200
+

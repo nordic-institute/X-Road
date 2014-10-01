@@ -1,0 +1,28 @@
+.ui-dialog-titlebar .sdsb-id {
+     font-weight: 300;
+}
+
+#services {
+    .fa {
+        padding-right: 0.5em;
+    }
+    .gray {
+        color: gray;
+    }
+    .orange {
+        color: #f2a020;
+    }
+    .green {
+        color: green;
+    }
+}
+
+#group_description_edit_dialog {
+    .dialog-body {
+        height: 100%;
+
+        textarea {
+            height: calc(100% - 15px);
+        }
+    }
+}

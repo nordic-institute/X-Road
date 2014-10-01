@@ -33,6 +33,12 @@ import org.xml.sax.InputSource;
 import ee.cyber.sdsb.common.message.SoapHeader;
 import ee.cyber.xroad.mediator.message.XRoadNamespaces;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.*;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.Binding;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.BindingOperation;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBinding;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBindingOperation;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.RpcBinding;
+import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.RpcBindingOperation;
 
 /**
  * Parses WSDL to get data sufficient to merge WSDL-s later.
@@ -239,7 +245,7 @@ public class WSDLParser {
 
         Node nameAttribute = element.getAttributes().getNamedItem("name");
         String elementName = nameAttribute.getTextContent();
-        nameAttribute.setTextContent(addOrderNo(elementName));
+        nameAttribute.setTextContent(elementName);
 
         XrdNode xrdNode = new XrdNode(element);
         LOG.trace("Added schema element: '{}'", xrdNode.getXml());
@@ -267,7 +273,8 @@ public class WSDLParser {
 
             Message message = new Message(
                     getNewMessageName(wsdlMessage, messageName),
-                    parts);
+                    parts,
+                    wsdlStyle.isXrdStandardHeader(wsdlMessage));
             LOG.trace("Message parsed: '{}'", message);
             messages.add(message);
         }
@@ -286,7 +293,7 @@ public class WSDLParser {
             for (Object eachOp : portTypeContent.getOperations()) {
                 javax.wsdl.Operation operation = (javax.wsdl.Operation) eachOp;
 
-                List<XrdNode> doc = parseOperationDocumentation(operation);
+                List<Marshallable> doc = parseOperationDocumentation(operation);
                 QName inputQName = parseOperationInput(operation);
                 QName outputQName = parseOperationOutput(operation);
 
@@ -303,9 +310,9 @@ public class WSDLParser {
         }
     }
 
-    private List<XrdNode> parseOperationDocumentation(
+    private List<Marshallable> parseOperationDocumentation(
             javax.wsdl.Operation operation) {
-        List<XrdNode> result = new ArrayList<>();
+        List<Marshallable> result = new ArrayList<>();
         Element docElement = operation.getDocumentationElement();
 
         if (docElement != null) {
@@ -352,10 +359,11 @@ public class WSDLParser {
             List<BindingOperation> newOperations =
                     parseBindingOperations(rawBinding);
 
-            Binding binding = new Binding(
+            Binding binding = wsdlStyle.getBinding(
                     bindingName,
                     bindingType,
                     newOperations);
+
             LOG.trace("New binding added: '{}'", binding);
             bindings.add(binding);
         }
@@ -373,8 +381,8 @@ public class WSDLParser {
             String version = new ExtensibilityElementTextParser(
                     opExtElements, new QName(xrdNamespace, "version")).parse();
 
-            List<XrdNode> xrdNodes = getXrdNodes(opExtElements);
-            newOperations.add(new BindingOperation(
+            List<Marshallable> xrdNodes = getXrdNodes(opExtElements);
+            newOperations.add(wsdlStyle.getBindingOperations(
                     bindingOp.getName(), version, xrdNodes));
         }
 
@@ -410,7 +418,7 @@ public class WSDLParser {
 
             List<?> extElements = port.getExtensibilityElements();
 
-            List<XrdNode> nodes = getXrdNodes(extElements);
+            List<Marshallable> nodes = getXrdNodes(extElements);
             newPorts.add(new ServicePort(
                     port.getBinding().getQName(),
                     port.getName(),
@@ -419,8 +427,8 @@ public class WSDLParser {
         return newPorts;
     }
 
-    private List<XrdNode> getXrdNodes(List<?> opExtElements) {
-        List<XrdNode> result = new ArrayList<>(opExtElements.size());
+    private List<Marshallable> getXrdNodes(List<?> opExtElements) {
+        List<Marshallable> result = new ArrayList<>(opExtElements.size());
 
         for (Object each : opExtElements) {
             if (!(each instanceof UnknownExtensibilityElement)) {
@@ -445,11 +453,6 @@ public class WSDLParser {
 
         LOG.trace("getNewMessagePart(element: '{}', type: '{}')",
                 elementName, typeName);
-
-        if (!wsdlStyle.isXrdStandardHeader(wsdlMessage)) {
-            elementName = addOrderNo(elementName);
-            typeName = addOrderNo(typeName);
-        }
 
         return new MessagePart(partName, elementName, typeName);
     }
@@ -483,7 +486,9 @@ public class WSDLParser {
                 bindings,
                 services,
                 (wsdlStyle instanceof DoclitWSDLStyle),
-                xrdNamespace);
+                xrdNamespace,
+                targetNamespace,
+                "");
     }
 
     /**
@@ -548,6 +553,12 @@ public class WSDLParser {
             return true;
         }
 
+        protected abstract Binding getBinding(
+                String name, QName type, List<BindingOperation> operations);
+
+        protected abstract BindingOperation getBindingOperations(
+                String name, String version, List<Marshallable> xrdNodes);
+
         protected abstract QName[] getValidSchemaElementQNames();
 
         protected abstract Map<String, QName> getStandardHeaderParts();
@@ -578,6 +589,18 @@ public class WSDLParser {
 
             return result;
         }
+
+        @Override
+        protected Binding getBinding(String name, QName type,
+                List<BindingOperation> operations) {
+            return new DoclitBinding(name, type, operations);
+        }
+
+        @Override
+        protected BindingOperation getBindingOperations(String name,
+                String version, List<Marshallable> xrdNodes) {
+            return new DoclitBindingOperation(name, version, xrdNodes);
+        }
     }
 
     private class RpcWSDLStyle extends WSDLStyle {
@@ -601,6 +624,19 @@ public class WSDLParser {
             result.put("nimi", new QName(xrdNamespace, "nimi"));
 
             return result;
+        }
+
+        @Override
+        protected Binding getBinding(String name, QName type,
+                List<BindingOperation> operations) {
+            return new RpcBinding(name, type, operations);
+        }
+
+        @Override
+        protected BindingOperation getBindingOperations(String name,
+                String version, List<Marshallable> xrdNodes) {
+            return new RpcBindingOperation(
+                    name, version, xrdNodes, targetNamespace);
         }
     }
 

@@ -1,14 +1,14 @@
 <% content_for :head do %>
   <%= javascript_include_tag "requests" %>
-  <%= javascript_include_tag "request_details" %>
+  <%= javascript_include_tag "request_edit" %>
   <%= javascript_include_tag "centerui_common" %>
 <% end %>
 
 <% content_for :content do %>
   <div class="fill">
     <div class="requests_actions">
-      <% if can?(:view_management_request_details) %>
-        <button id="request_details" class="request-action">
+      <% if can?(:view_management_request_edit) %>
+        <button id="request_edit" class="request-action">
           <%= t 'common.details' %>
         </button>
       <% end %>
@@ -49,8 +49,8 @@
     </table>
   </div>
 
-  <%= render :partial => "shared/auth_cert_reg_request_details_dialog" %>
-  <%= render :partial => "shared/client_reg_request_details_dialog" %>
-  <%= render :partial => "shared/auth_cert_deletion_request_details_dialog" %>
-  <%= render :partial => "shared/client_deletion_request_details_dialog" %>
+  <%= render :partial => "shared/auth_cert_reg_request_edit_dialog" %>
+  <%= render :partial => "shared/client_reg_request_edit_dialog" %>
+  <%= render :partial => "shared/auth_cert_deletion_request_edit_dialog" %>
+  <%= render :partial => "shared/client_deletion_request_edit_dialog" %>
 <% end %>

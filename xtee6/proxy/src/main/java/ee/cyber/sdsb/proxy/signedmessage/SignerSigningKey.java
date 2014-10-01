@@ -3,7 +3,7 @@ package ee.cyber.sdsb.proxy.signedmessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.signature.BatchSigningWorker;
+import ee.cyber.sdsb.common.signature.BatchSigner;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.common.signature.SigningRequest;
 
@@ -38,7 +38,7 @@ public class SignerSigningKey implements SigningKey {
             String algorithmId) throws Exception {
         LOG.debug("Calculating signature using algorithm {}", algorithmId);
         try {
-            return BatchSigningWorker.sign(keyId, algorithmId, request);
+            return BatchSigner.sign(keyId, algorithmId, request);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

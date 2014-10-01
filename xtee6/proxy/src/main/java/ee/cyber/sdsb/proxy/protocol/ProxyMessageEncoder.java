@@ -13,25 +13,25 @@ import org.bouncycastle.operator.DigestCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.signature.SignatureData;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.MessageFileNames;
 import ee.cyber.sdsb.common.util.MimeTypes;
 import ee.cyber.sdsb.common.util.MultipartEncoder;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
 import ee.cyber.sdsb.proxy.signedmessage.Signer;
 
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.sdsb.common.util.CryptoUtils.createDigestCalculator;
-import static ee.cyber.sdsb.common.util.MimeUtils.TEXT_XML_UTF8;
-import static ee.cyber.sdsb.common.util.MimeUtils.toHeaders;
+import static ee.cyber.sdsb.common.util.MimeUtils.*;
 
 public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyMessageEncoder.class);
+
+    private final String hashAlgoId;
 
     private final MultipartEncoder mpEncoder;
 
@@ -47,9 +47,15 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * Creates the encoder instance.
      * @param out Writer that will receive the encoded message.
      */
-    public ProxyMessageEncoder(OutputStream out) throws Exception {
-        String uniquePart = System.identityHashCode(this) +
-                Long.toString(System.currentTimeMillis(), 36);
+    public ProxyMessageEncoder(OutputStream out, String hashAlgoId)
+            throws Exception {
+        this.hashAlgoId = hashAlgoId;
+        if (hashAlgoId == null) {
+            throw new IllegalArgumentException(
+                    "Hash algorithm id cannot be null");
+        }
+
+        String uniquePart = randomBoundary();
 
         topBoundary = "xtop" + uniquePart;
         attachmentBoundary = "xatt" + uniquePart;
@@ -66,19 +72,19 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public void ocspResponse(OCSPResp resp) throws Exception {
         byte[] responseEncoded = resp.getEncoded();
 
-        LOG.debug("writeOcspResponse({} bytes)", responseEncoded.length);
+        LOG.trace("writeOcspResponse({} bytes)", responseEncoded.length);
 
         try {
             mpEncoder.startPart(MimeTypes.OCSP_RESPONSE);
             mpEncoder.write(responseEncoded);
         } catch (Exception ex) {
-            throw ErrorCodes.translateException(ex);
+            throw translateException(ex);
         }
     }
 
     @Override
     public void signature(SignatureData signature) throws Exception {
-        LOG.debug("signature()");
+        LOG.trace("signature()");
 
         endAttachments();
 
@@ -93,38 +99,38 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public void soap(SoapMessageImpl message) throws Exception {
         String soapMessage = message.getXml();
 
-        LOG.debug("writeSoapMessage({})", soapMessage);
+        LOG.trace("writeSoapMessage({})", soapMessage);
 
         byte[] data = message.getBytes();
         try {
-            // TODO: handle xml+xop!
+            // TODO: #2604 handle xml+xop!
             mpEncoder.startPart(TEXT_XML_UTF8);
             mpEncoder.write(data);
 
-            signer.addPart(MessageFileNames.MESSAGE, getHashAlgoId(), data);
+            signer.addPart(MessageFileNames.MESSAGE, hashAlgoId, data);
         } catch (Exception ex) {
-            throw ErrorCodes.translateException(ex);
+            throw translateException(ex);
         }
     }
 
     @Override
     public void attachment(String contentType, InputStream content,
             Map<String, String> additionalHeaders) throws Exception {
-        LOG.debug("writeAttachment({})", contentType);
+        LOG.trace("writeAttachment({})", contentType);
 
         if (!inAttachmentPart) {
             mpEncoder.startNested(attachmentBoundary);
             inAttachmentPart = true;
         }
 
-        DigestCalculator calc = createDigestCalculator(getHashAlgoId());
+        DigestCalculator calc = createDigestCalculator(hashAlgoId);
         TeeInputStream proxyIs =
                 new TeeInputStream(content, calc.getOutputStream(), true);
 
         mpEncoder.startPart(contentType, toHeaders(additionalHeaders));
         mpEncoder.write(proxyIs);
         signer.addPart(MessageFileNames.attachment(attachmentNo++),
-                getHashAlgoId(), calc.getDigest());
+                hashAlgoId, calc.getDigest());
     }
 
     @Override
@@ -133,7 +139,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     public void fault(String faultXml) throws Exception {
-        LOG.debug("writeFault({})", faultXml);
+        LOG.trace("writeFault({})", faultXml);
 
         // We assume that the SOAP message is already sent.
         // Therefore, we will write the message either before or after
@@ -157,7 +163,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
      * Call after adding SOAP message and attachments.
      */
     public void sign(SigningCtx securityCtx) throws Exception {
-        LOG.debug("sign()");
+        LOG.trace("sign()");
 
         endAttachments();
 
@@ -176,7 +182,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     /** Closes the writer and flushes streams. */
     public void close() throws IOException {
-        LOG.debug("close()");
+        LOG.trace("close()");
 
         endAttachments();
 
@@ -185,20 +191,20 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     private void signature(String signatureData) throws Exception {
         mpEncoder.startPart(MimeTypes.SIGNATURE_BDOC);
-        mpEncoder.write(new StringReader(signatureData));
+        mpEncoder.write(new StringReader(signatureData)); // TODO: #2573
     }
 
     private void hashChain(String hashChainResult, String hashChain)
             throws Exception {
         mpEncoder.startPart(MimeTypes.HASH_CHAIN_RESULT);
-        mpEncoder.write(new StringReader(hashChainResult));
+        mpEncoder.write(new StringReader(hashChainResult)); // TODO: #2573
 
         mpEncoder.startPart(MimeTypes.HASH_CHAIN);
-        mpEncoder.write(new StringReader(hashChain));
+        mpEncoder.write(new StringReader(hashChain)); // TODO: #2573
     }
 
     protected void endAttachments() throws IOException {
-        LOG.debug("endAttachments()");
+        LOG.trace("endAttachments()");
 
         if (inAttachmentPart) {
             mpEncoder.endNested();
@@ -206,8 +212,4 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
     }
 
-    private static String getHashAlgoId() {
-        // TODO: make hash function configurable?
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-    }
 }

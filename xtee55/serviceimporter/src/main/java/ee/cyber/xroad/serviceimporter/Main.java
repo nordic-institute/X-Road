@@ -1,9 +1,11 @@
 package ee.cyber.xroad.serviceimporter;
 
 import java.io.RandomAccessFile;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -11,6 +13,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +21,11 @@ import org.slf4j.LoggerFactory;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.db.HibernateUtil;
 import ee.cyber.sdsb.common.db.TransactionCallback;
+import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
+
+import static ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Conf related utils for 5.0->SDSB migration.
@@ -30,6 +37,8 @@ public class Main {
     private static final String LOCK_FILE = "serviceimporter.lock";
 
     public static void main(String[] args) throws Exception {
+        int exitCode = 0;
+
         try {
             CommandLine commandLine = parseArgs(args);
 
@@ -37,15 +46,31 @@ public class Main {
             Path identifierMappingPath =
                 Paths.get(MediatorSystemProperties.getIdentifierMappingFile());
 
-            if (commandLine.hasOption("import") ||
-                commandLine.getOptions().length == 0) {
+            String[] delete = commandLine.getOptionValues("delete");
+
+            LOG.debug("Delete client/org = {}", Arrays.toString(delete));
+
+            int optionsLength = commandLine.getOptions().length;
+
+            if (commandLine.hasOption("import") || optionsLength == 0
+                || (delete != null && optionsLength == 1)) {
 
                 if (!requireFile(globalConfPath) ||
                     !requireFile(identifierMappingPath)) {
                     return;
                 }
 
-                doImport();
+                String deleteShortName = null;
+                if (delete != null) {
+                    if (delete.length != 1) {
+                        throw new RuntimeException(
+                            "Invalid value for -delete option");
+                    }
+
+                    deleteShortName = delete[0];
+                }
+
+                doImport(deleteShortName);
             }
 
             if (commandLine.hasOption("export")) {
@@ -53,26 +78,49 @@ public class Main {
                     return;
                 }
 
-                doExport();
+                ClientId deleteClientId = null;
+                if (delete != null) {
+                    if (delete.length != 4) {
+                        throw new RuntimeException(
+                            "Invalid value for -delete option");
+                    }
+
+                    deleteClientId = ClientId.create(
+                            decodeBase64(delete[0]),
+                            decodeBase64(delete[1]),
+                            decodeBase64(delete[2]),
+                            StringUtils.isBlank(delete[3])
+                                    ? null : decodeBase64(delete[3]));
+                }
+
+                doExport(deleteClientId);
             }
 
             if (commandLine.hasOption("checksdsb")) {
-                if (new SDSBChecker().canActivate()) {
-                    System.exit(0);
-                } else {
-                    System.exit(1);
+                if (!new SDSBChecker().canActivate()) {
+                    exitCode = 1;
                 }
             }
 
-        } catch (Exception ex) {
-            LOG.error("ServiceImporter failed", ex);
-            throw ex;
+        } catch (Throwable e) {
+            LOG.error("ServiceImporter failed", e);
+            System.err.println("ServiceImporter failed: " + e.getMessage());
+
+            exitCode = 2;
         } finally {
-            HibernateUtil.closeSessionFactory();
+            HibernateUtil.closeSessionFactories();
         }
+
+        System.exit(exitCode);
     }
 
-    private static void doImport() throws Exception {
+    private static String decodeBase64(String str) {
+        return new String(CryptoUtils.decodeBase64(str), StandardCharsets.UTF_8);
+    }
+
+    private static void doImport(final String deleteShortName)
+            throws Exception {
+
         String lockFilePath = SystemProperties.getTempFilesPath() + LOCK_FILE;
 
         try (RandomAccessFile lockFile =
@@ -81,21 +129,22 @@ public class Main {
             // lock is released when lockFile is closed
             lockFile.getChannel().lock();
 
-            HibernateUtil.doInTransaction(new TransactionCallback<Object>() {
+            doInTransaction(new TransactionCallback<Object>() {
                 @Override
                 public Object call(Session session) throws Exception {
-                    new ServiceImporter().doImport();
+                    new ServiceImporter().doImport(deleteShortName);
                     return null;
                 }
             });
         }
     }
 
-    private static void doExport() throws Exception {
-        HibernateUtil.doInTransaction(new TransactionCallback<Object>() {
+    private static void doExport(final ClientId deleteClientId)
+            throws Exception {
+        doInTransaction(new TransactionCallback<Object>() {
             @Override
             public Object call(Session session) throws Exception {
-                new ServiceImporter().doExport();
+                new ServiceImporter().doExport(deleteClientId);
                 return null;
             }
         });
@@ -114,15 +163,24 @@ public class Main {
         BasicParser optionsParser = new BasicParser();
         Options options = new Options();
 
-        OptionGroup optionGroup = new OptionGroup();
-        optionGroup.addOption(
+        OptionGroup mainOperations = new OptionGroup();
+        mainOperations.addOption(
             new Option("import", "import services conf from 5.0 to SDSB"));
-        optionGroup.addOption(
+        mainOperations.addOption(
             new Option("export", "export services conf from SDSB to 5.0"));
-        optionGroup.addOption(
+        mainOperations.addOption(
             new Option("checksdsb", "check if SDSB can be activated"));
 
-        options.addOptionGroup(optionGroup);
+        // -delete option has the value of either
+        // 'sdsbInstance,memberClass,memberCode,subsystemCode' or 'shortName'
+        Option deleteOption =
+            new Option("delete", true, "delete specified client/org");
+        deleteOption.setRequired(false);
+        deleteOption.setValueSeparator(',');
+        deleteOption.setArgs(4);
+
+        options.addOptionGroup(mainOperations);
+        options.addOption(deleteOption);
 
         return optionsParser.parse(options, args);
     }

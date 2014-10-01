@@ -47,7 +47,7 @@ public class OcspVerifierTest {
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, subject, subject);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, subject);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class OcspVerifierTest {
                 signer, signerKey, CertificateStatus.GOOD);
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, issuer, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, issuer, issuer);
     }
 
     @Test
@@ -65,7 +65,7 @@ public class OcspVerifierTest {
                 issuer, signerKey, CertificateStatus.GOOD);
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, issuer, signer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, issuer, signer);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class OcspVerifierTest {
                 anotherSignerCert, anotherSignerKey, CertificateStatus.GOOD);
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, issuer, anotherSignerCert);
+        OcspVerifier.verifyValidityAndStatus(ocsp, issuer, anotherSignerCert);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class OcspVerifierTest {
                 thisUpdate, new Date());
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, subject, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class OcspVerifierTest {
                 new Date(), nextUpdate);
 
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
-        OcspVerifier.verify(ocsp, subject, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     @Test
@@ -113,7 +113,7 @@ public class OcspVerifierTest {
                 signer, signerKey, CertificateStatus.GOOD,
                 thisUpdate, null);
 
-        OcspVerifier.verify(ocsp, subject, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     @Test
@@ -125,7 +125,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         thrown.expectError(X_CERT_VALIDATION);
-        OcspVerifier.verify(ocsp, subject, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     @Test
@@ -136,7 +136,7 @@ public class OcspVerifierTest {
                 thisUpdate, null);
 
         thrown.expectError(X_CERT_VALIDATION);
-        OcspVerifier.verify(ocsp, subject, issuer);
+        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     @Before

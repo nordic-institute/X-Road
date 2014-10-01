@@ -15,12 +15,14 @@ import ee.cyber.sdsb.common.ExpectedCodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.TestCertUtil;
 import ee.cyber.sdsb.common.TestCertUtil.PKCS12;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 
+import static ee.cyber.sdsb.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
@@ -55,12 +57,27 @@ public class GlobalConfTest {
     }
 
     @Test
+    public void getMembers() {
+        List<ClientId> expected = Arrays.asList(
+                newClientId("producer"), newClientId("consumer"),
+                newClientId("foo"), newClientId("foo", "foosubsystem"));
+
+        assertEquals(expected, GlobalConf.getMembers());
+    }
+
+    @Test
+    public void getCentralServices() {
+        assertEquals(Arrays.asList(CentralServiceId.create("EE", "central1")),
+                GlobalConf.getCentralServices());
+    }
+
+    @Test
     public void getProviderAddress() throws Exception {
         ClientId consumer = newClientId("consumer");
         ClientId producer = newClientId("producer");
 
         Set<String> expected = new HashSet<>();
-        expected.add("https://www.karauul.com/explicitContent");
+        expected.add("https://www.foo.com/bar");
         expected.add("127.0.0.1");
 
         assertEquals(expected, GlobalConf.getProviderAddress(consumer));
@@ -109,6 +126,22 @@ public class GlobalConfTest {
     }
 
     @Test
+    public void getCertChain() throws Exception {
+        X509Certificate org = getCertChainCert("user_3.p12");
+        assertNotNull(org);
+
+        CertChain certChain = GlobalConf.getCertChain(org);
+        List<X509Certificate> chain = certChain.getAllCerts();
+        assertEquals(5, chain.size());
+
+        assertEquals(getCertChainCert("root_ca.p12"), chain.get(4));
+        assertEquals(getCertChainCert("ca_1.p12"), chain.get(3));
+        assertEquals(getCertChainCert("ca_2.p12"), chain.get(2));
+        assertEquals(getCertChainCert("ca_3.p12"), chain.get(1));
+        assertEquals(getCertChainCert("user_3.p12"), chain.get(0));
+    }
+
+    @Test
     public void getAllOcspResponderCertificates() {
         List<X509Certificate> ocspResponderCerts =
                 GlobalConf.getOcspResponderCertificates();
@@ -119,7 +152,6 @@ public class GlobalConfTest {
         assertEquals(6, ocspResponderCerts.size());
     }
 
-    // TODO - Currently handles getting all possible OCSP responder addresses
     @Test
     public void getOcspResponderAddresses() throws Exception {
         // Does not matter which org exactly as long as CA is adminca1
@@ -152,9 +184,14 @@ public class GlobalConfTest {
     @Test
     public void hasAuthCert() throws Exception {
         SecurityServerId server = SecurityServerId.create("EE",
-                "BUSINESS", "nahavabrik", "nahavabrikServerCode");
+                "BUSINESS", "foo", "fooServerCode");
         X509Certificate cert = TestCertUtil.getProducer().cert;
+        assertTrue(GlobalConf.hasAuthCert(cert, null));
         assertTrue(GlobalConf.hasAuthCert(cert, server));
+
+        cert = TestCertUtil.getTestOrg().cert;
+        assertFalse(GlobalConf.hasAuthCert(cert, null));
+        assertFalse(GlobalConf.hasAuthCert(cert, server));
     }
 
     @Test
@@ -201,7 +238,7 @@ public class GlobalConfTest {
         Set<String> expectedAddresses = new HashSet<>(
                 Arrays.asList(
                     "127.0.0.1",
-                    "https://www.karauul.com/explicitContent",
+                    "https://www.foo.com/bar",
                     "https://foo.bar.baz"));
         Set<String> actualAddresses = GlobalConf.getKnownAddresses();
 
@@ -223,17 +260,47 @@ public class GlobalConfTest {
                 GlobalConf.getManagementRequestService());
     }
 
+    @Test
+    public void getInstanceIdentifier() {
+        assertEquals("EE", GlobalConf.getSdsbInstance());
+    }
+
+    @Test
+    public void isSecurityServerClient() {
+        ClientId client1 = ClientId.create("EE", "BUSINESS", "consumer");
+        ClientId client2 = ClientId.create("EE", "BUSINESS", "producer");
+        ClientId client3 = ClientId.create("EE", "BUSINESS", "foo",
+                "foosubsystem");
+        ClientId client4 = ClientId.create("EE", "xx", "foo", "foosubsystem");
+
+        SecurityServerId server1 =
+                SecurityServerId.create("EE", "BUSINESS", "producer",
+                        "producerServerCode");
+        SecurityServerId server2 =
+                SecurityServerId.create("EE", "BUSINESS", "producer",
+                        "foo");
+        SecurityServerId server3 =
+                SecurityServerId.create("EE", "BUSINESS", "foo",
+                        "FooBarServerCode");
+
+        assertTrue(GlobalConf.isSecurityServerClient(client1, server1));
+        assertTrue(GlobalConf.isSecurityServerClient(client2, server1));
+        assertTrue(GlobalConf.isSecurityServerClient(client3, server1));
+        assertFalse(GlobalConf.isSecurityServerClient(client4, server1));
+
+        assertFalse(GlobalConf.isSecurityServerClient(client1, server2));
+        assertFalse(GlobalConf.isSecurityServerClient(client2, server2));
+        assertFalse(GlobalConf.isSecurityServerClient(client3, server2));
+
+        assertFalse(GlobalConf.isSecurityServerClient(client3, server3));
+    }
+
     private static ClientId newClientId(String name) {
         return ClientId.create("EE", "BUSINESS", name);
     }
 
-    private static ServiceId newServiceId(String name) {
-        return ServiceId.create("EE", "BUSINESS", name, null, "getState");
+    private static ClientId newClientId(String name, String subsystem) {
+        return ClientId.create("EE", "BUSINESS", name, subsystem);
     }
 
-    // TODO: test for getting instance identifier
-
-    // TODO: test for getting central service
-
-    // TODO: Test for getting clients of security server
 }

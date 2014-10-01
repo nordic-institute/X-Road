@@ -1,0 +1,2 @@
+class InvalidAuthCertRegRequestException < Exception
+end

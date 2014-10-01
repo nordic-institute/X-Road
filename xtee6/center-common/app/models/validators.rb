@@ -1,38 +1,27 @@
-require "validation_helper"
-
-# Validators compatible with ActiveRecord, used by several classes. Wraps some 
-# validators in ValidationHelper.
+# Validators compatible with ActiveRecord, used by several classes.
 module Validators
-  # XXX For some reason I could not override PresenceValidator of ActiveModel 
-  # properly.
-  class PresentValidator < ActiveModel::EachValidator
-    include ValidationHelper
+  STRING_MAX_LENGTH = 255
 
-    def validate_each(record, attribute, value)
-      # XXX to_s used so that integers also could be validated
-      RequiredValidator.new.validate(value.to_s, attribute)
-    end
-  end
+  class MaxlengthValidator < ActiveModel::Validator 
+    def validate(record)
+      record.class.columns.each do |each|
+        name = each.name.to_sym()
+        value = record[name]
+        max_length = each.limit
 
-  # Uses functionality of built-in UniquenessValidator, but raises error if
-  # validation fails.
-  class UniqueValidator < ActiveRecord::Validations::UniquenessValidator
+        next if MaxlengthValidator.string_length_valid?(value, max_length)
 
-    def validate_each(record, attribute, value)
-      super
-
-      if !record.errors.messages.empty?
-        raise I18n.t("validation.already_exists",
-            :attribute => attribute, :value => value)
+        record.errors.add(name, I18n.t(
+            "activerecord.errors.input_too_long",
+            {:max_length => max_length}))
       end
     end
-  end
 
-  class EmailValidator < ActiveModel::EachValidator
-    include ValidationHelper
-
-    def validate_each(record, attribute, value)
-      EmailAddressValidator.new.validate(value, attribute)
+    def self.string_length_valid?(str, max_length = STRING_MAX_LENGTH)
+      return max_length == nil ||
+          !str.is_a?(String) ||
+          str.blank? ||
+          str.length <= max_length
     end
   end
 
@@ -45,11 +34,9 @@ module Validators
         false
       end
       unless valid
-        # TODO: format error message better
         record.errors[attribute] <<
-          I18n.t("errors.invalid_url", :url => record.url)
+          I18n.t("activerecord.errors.invalid_url", :url => record.url)
       end
     end
   end
-
 end

@@ -5,6 +5,10 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(IdentifierTypeConverter.LocalGroupIdAdapter.class)
 public final class LocalGroupId extends AbstractGroupId {
 
+    LocalGroupId() { // required by Hibernate
+        this(null);
+    }
+
     private LocalGroupId(String groupCode) {
         super(SdsbObjectType.LOCALGROUP, null, groupCode);
     }

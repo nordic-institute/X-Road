@@ -26,7 +26,8 @@
     </appender>
 
     <logger name="ee.cyber.sdsb" level="${sdsbLogLevel}" />
-    <logger name="ee.cyber.sdsb.common.conf" level="ERROR" />
+    <!--logger name="ee.cyber.sdsb.common.conf" level="ERROR" /-->
+    <logger name="ee.cyber.sdsb.signer.tokenmanager.TokenManager" level="OFF" />
 
     <root level="INFO">
         <!--<appender-ref ref="STDOUT" />-->

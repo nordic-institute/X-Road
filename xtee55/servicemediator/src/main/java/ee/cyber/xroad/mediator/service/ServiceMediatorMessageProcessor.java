@@ -132,7 +132,7 @@ class ServiceMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
 
     @Override
     protected URI getTargetAddress(SoapMessage message) throws Exception {
-        String url = null;
+        String url;
         if (isSpecialMetaMessage(message)) {
             ClientId client = getClientIdFromRequest();
             LOG.trace("getTargetAddress({})", client);
@@ -222,5 +222,12 @@ class ServiceMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
     private static boolean isSpecialMetaMessage(SoapMessage message) {
         return message instanceof XRoadListMethods
                 || message instanceof XRoadTestSystem;
+    }
+
+    @Override
+    protected boolean shouldSendWithHttp10(SoapMessage message) {
+        MessageVersion version =
+                MessageVersion.fromMessage(message);
+        return version != MessageVersion.SDSB;
     }
 }

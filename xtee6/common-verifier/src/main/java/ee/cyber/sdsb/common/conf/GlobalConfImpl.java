@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.conf.globalconf.*;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -24,10 +25,9 @@ import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.util.CertUtils;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
@@ -46,12 +46,11 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     private Map<ClientId, Set<String>> memberAddresses = new HashMap<>();
     private Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
     private Map<String, SecurityServerType> serverByAuthCert = new HashMap<>();
+    private Map<SecurityServerId, Set<ClientId>> securityServerClients =
+            new HashMap<>();
 
     private List<X509Certificate> verificationCaCerts = new ArrayList<>();
     private Set<String> knownAddresses = new HashSet<>();
-
-    /** Cached verification context. */
-    private VerificationCtx verificationCtx;
 
     public GlobalConfImpl(String confFileName) {
         super(ObjectFactory.class, confFileName,
@@ -66,11 +65,16 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     }
 
     @Override
+    public String getSdsbInstance() {
+        return confType.getInstanceIdentifier();
+    }
+
+    @Override
     public ServiceId getServiceId(CentralServiceId centralServiceId) {
-        if (!confType.getInstanceIdentifier().equals(
-                centralServiceId.getSdsbInstance())) {
+        if (!getSdsbInstance().equals(centralServiceId.getSdsbInstance())) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    "Incompatible SDSB instances");
+                    "Incompatible SDSB instances (%s, %s)",
+                    getSdsbInstance(), centralServiceId.getSdsbInstance());
         }
 
         for (CentralServiceType centralServiceType :
@@ -91,13 +95,41 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     }
 
     @Override
+    public List<ClientId> getMembers() {
+        List<ClientId> clients = new ArrayList<>();
+
+        for (MemberType member : confType.getMember()) {
+            clients.add(createMemberId(member));
+
+            for (SubsystemType subsystem : member.getSubsystem()) {
+                clients.add(createSubsystemId(member, subsystem));
+            }
+        }
+
+        return clients;
+    }
+
+    @Override
+    public List<CentralServiceId> getCentralServices() {
+        List<CentralServiceId> centralServices = new ArrayList<>();
+
+        for (CentralServiceType centralService : confType.getCentralService()) {
+            centralServices.add(
+                    CentralServiceId.create(confType.getInstanceIdentifier(),
+                            centralService.getServiceCode()));
+        }
+
+        return centralServices;
+    }
+
+    @Override
     public String getProviderAddress(X509Certificate authCert)
             throws Exception {
         if (authCert == null) {
             return null;
         }
 
-        byte[] inputCertHash = CryptoUtils.certHash(authCert);
+        byte[] inputCertHash = certHash(authCert);
 
         for (SecurityServerType securityServer : confType.getSecurityServer()) {
             for (byte[] hash : securityServer.getAuthCertHash()) {
@@ -120,15 +152,6 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     }
 
     @Override
-    public VerificationCtx getVerificationCtx() {
-        if (verificationCtx == null) {
-            verificationCtx = new VerificationCtxImpl(getVerificationCaCerts());
-        }
-
-        return verificationCtx;
-    }
-
-    @Override
     public List<String> getOcspResponderAddresses(X509Certificate member)
             throws Exception {
         List<String> responders = new ArrayList<>();
@@ -136,7 +159,7 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         List<OcspInfoType> caOcspData =
                 caCertsAndOcspData.get(getCaCert(member));
         for (OcspInfoType caOcspItem : caOcspData) {
-            if (caOcspItem.getUrl() != null && !caOcspItem.getUrl().isEmpty()) {
+            if (isNotBlank(caOcspItem.getUrl())) {
                 responders.add(caOcspItem.getUrl().trim());
             }
         }
@@ -153,9 +176,8 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     public List<X509Certificate> getOcspResponderCertificates() {
         List<X509Certificate> responderCerts = new ArrayList<>();
         try {
-            for (List<OcspInfoType> ocspTypeList
-                    : caCertsAndOcspData.values()) {
-                for (OcspInfoType ocspType : ocspTypeList) {
+            for (List<OcspInfoType> ocspTypes : caCertsAndOcspData.values()) {
+                for (OcspInfoType ocspType : ocspTypes) {
                     if (ocspType.getCert() != null) {
                         responderCerts.add(readCertificate(ocspType.getCert()));
                     }
@@ -163,7 +185,7 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
             }
         } catch (Exception e) {
             LOG.error("Error while getting OCSP responder certificates: ", e);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         return responderCerts;
@@ -193,6 +215,31 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     @Override
     public List<X509Certificate> getAllCaCerts() throws CertificateException {
         return new ArrayList<>(subjectsAndCaCerts.values());
+    }
+
+    @Override
+    public CertChain getCertChain(X509Certificate subject)
+            throws Exception {
+        if (subject == null) {
+            throw new IllegalArgumentException(
+                    "Member certificate must be present to find cert chain!");
+        }
+
+        List<X509Certificate> chain = new ArrayList<>();
+        chain.add(subject);
+
+        X509Certificate ca = getCaCertForSubject(subject);
+        while (ca != null) {
+            chain.add(ca);
+            ca = getCaCertForSubject(ca);
+        }
+
+        if (chain.size() < 2) { // did not found any CA certs
+            return null;
+        }
+
+        return CertChain.create(
+                chain.toArray(new X509Certificate[chain.size()]));
     }
 
     @Override
@@ -230,21 +277,16 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     @Override
     public boolean hasAuthCert(X509Certificate cert, SecurityServerId server)
             throws Exception {
-        byte[] inputCertHash = CryptoUtils.certHash(cert);
-
-        String base64 = CryptoUtils.encodeBase64(inputCertHash);
+        String base64 = encodeBase64(certHash(cert));
 
         SecurityServerType serverType = serverByAuthCert.get(base64);
-        if (serverType == null) {
-            throw new IllegalArgumentException("No security servers " +
-                    "correspond to authentication certificate");
+        if (server == null) {
+            return serverType != null;
+        } else if (serverType == null) {
+            return false;
         }
 
-        if (!(serverType.getOwner() instanceof MemberType)) {
-            throw new RuntimeException("Server owner must be member");
-        }
-
-        MemberType owner = (MemberType) serverType.getOwner();
+        MemberType owner = getOwner(serverType);
         SecurityServerId foundServerId =
                 SecurityServerId.create(confType.getInstanceIdentifier(),
                         owner.getMemberClass(), owner.getMemberCode(),
@@ -256,7 +298,7 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     @Override
     public boolean authCertMatchesMember(X509Certificate cert,
             ClientId memberId) throws Exception {
-        byte[] inputCertHash = CryptoUtils.certHash(cert);
+        byte[] inputCertHash = certHash(cert);
 
         Set<byte[]> registeredHashes = memberAuthCerts.get(memberId);
         if (registeredHashes == null || registeredHashes.isEmpty()) {
@@ -275,13 +317,12 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
     @Override
     public Set<SecurityCategoryId> getProvidedCategories(
             X509Certificate authCert) throws Exception {
-        byte[] inputCertHash = CryptoUtils.certHash(authCert);
-        String base64 = CryptoUtils.encodeBase64(inputCertHash);
+        String base64 = encodeBase64(certHash(authCert));
 
         SecurityServerType server = serverByAuthCert.get(base64);
         if (server == null) {
-            throw new IllegalArgumentException("No security servers " +
-                    "correspond to authentication certificate");
+            throw new IllegalArgumentException("No security servers "
+                    + "correspond to authentication certificate");
         }
 
         Set<SecurityCategoryId> ret = new HashSet<>();
@@ -299,14 +340,18 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         NameExtractorType nameExtractor = caCertsAndNameExtractors.get(caCert);
         if (nameExtractor == null) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not find name extractor for certificate " +
-                            cert.getSerialNumber());
+                    "Could not find name extractor for certificate "
+                            + cert.getSerialNumber());
         }
 
         Method m;
         try {
             m = getMethodFromClassName(nameExtractor.getMethodName(),
                     X509Certificate.class);
+        } catch (ClassNotFoundException e) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not find name extractor: %s",
+                    nameExtractor.getMethodName());
         } catch (Exception e) {
             LOG.error("Could not get name extractor method '"
                     + nameExtractor + "'", e);
@@ -319,27 +364,36 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         } catch (Exception e) {
             Throwable t = (e instanceof InvocationTargetException)
                     ? e.getCause() : e;
-            LOG.error("Error during extraction of subject name using " +
-                    "name extractor '" + nameExtractor + "'", t);
-            throw new CodedException(X_INTERNAL_ERROR, t);
+            String message = "Error during extraction of subject name from "
+                    + "certificate '" + cert.getSubjectDN() + "' using "
+                    + "name extractor '" + nameExtractor + "'";
+            LOG.error(message, t);
+            throw new CodedException(X_INCORRECT_CERTIFICATE,
+                    message + ": " + t.getMessage());
         }
 
         if (result == null) {
             throw new CodedException(X_INCORRECT_CERTIFICATE,
                     "Could not get SubjectName from certificate " +
-                            cert.getSerialNumber());
+                            cert.getSubjectDN());
         }
 
         if (result instanceof String) {
             return ClientId.create(confType.getInstanceIdentifier(),
                     nameExtractor.getMemberClass(), (String) result);
+        } else if (result instanceof String[]) {
+            String[] parts = (String[]) result;
+            if (parts.length == 2) {
+                return ClientId.create(confType.getInstanceIdentifier(),
+                        parts[0], parts[1]);
+            }
         } else if (result instanceof ClientId) {
             return (ClientId) result;
-        } else {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Unexpected result from name extractor: " +
-                            result.getClass());
         }
+
+        throw new CodedException(X_INTERNAL_ERROR,
+                "Unexpected result from name extractor: "
+                        + result.getClass());
     }
 
     @Override
@@ -381,17 +435,33 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         return false;
     }
 
-    private GlobalGroupType findGlobalGroup(GlobalGroupId groupId) {
-        // TODO: support groups from other SDSB instances
-        if (!groupId.getSdsbInstance().equals(
-                confType.getInstanceIdentifier())) {
-            return null;
-        }
+    @Override
+    public boolean isSecurityServerClient(ClientId clientId,
+            SecurityServerId securityServerId) {
+        return securityServerClients.containsKey(securityServerId) &&
+            securityServerClients.get(securityServerId).contains(clientId);
+    }
 
-        for (GlobalGroupType group : confType.getGlobalGroup()) {
-            if (group.getGroupCode().equals(groupId.getGroupCode())) {
-                return group;
-            }
+    @Override
+    public String getManagementRequestServiceAddress() {
+        GlobalSettingsType gs = confType.getGlobalSettings();
+        return gs.getManagementRequestServiceAddress();
+    }
+
+    @Override
+    public ClientId getManagementRequestService() {
+        GlobalSettingsType gs = confType.getGlobalSettings();
+        return gs.getManagementRequestServiceId();
+    }
+
+    /**
+     * Returns SSL certificates of central servers.
+     */
+    @Override
+    public X509Certificate getCentralServerSslCertificate() throws Exception {
+        byte[] certBytes = confType.getCentralServerSslCert();
+        if (certBytes != null) {
+            return readCertificate(certBytes);
         }
 
         return null;
@@ -414,6 +484,23 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
                         "GlobalConf is out of date");
             }
         }
+    }
+
+   // ------------------------------------------------------------------------
+
+    private GlobalGroupType findGlobalGroup(GlobalGroupId groupId) {
+        if (!groupId.getSdsbInstance().equals(
+                confType.getInstanceIdentifier())) {
+            return null;
+        }
+
+        for (GlobalGroupType group : confType.getGlobalGroup()) {
+            if (group.getGroupCode().equals(groupId.getGroupCode())) {
+                return group;
+            }
+        }
+
+        return null;
     }
 
     private void cacheCaCerts() throws CertificateException, IOException {
@@ -466,7 +553,7 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         for (SecurityServerType securityServer : confType.getSecurityServer()) {
             // Cache the server.
             for (byte[] certHash: securityServer.getAuthCertHash()) {
-                serverByAuthCert.put(CryptoUtils.encodeBase64(certHash),
+                serverByAuthCert.put(encodeBase64(certHash),
                         securityServer);
             }
 
@@ -500,6 +587,13 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         for (byte[] authCert : server.getAuthCertHash()) {
             addToMap(memberAuthCerts, client, authCert);
         }
+
+        MemberType owner = getOwner(server);
+        SecurityServerId securityServerId = SecurityServerId.create(
+                getSdsbInstance(), owner.getMemberClass(),
+                owner.getMemberCode(), server.getServerCode());
+
+        addToMap(securityServerClients, securityServerId, client);
     }
 
     private static <K, V> void addToMap(Map<K, Set<V>> map, K key, V value) {
@@ -547,6 +641,17 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         }
     }
 
+    private X509Certificate getCaCertForSubject(X509Certificate subject)
+            throws Exception {
+        X509CertificateHolder certHolder =
+                new X509CertificateHolder(subject.getEncoded());
+        if (certHolder.getSubject().equals(certHolder.getIssuer())) {
+            return null;
+        }
+
+        return subjectsAndCaCerts.get(certHolder.getIssuer());
+    }
+
     private static List<X509Certificate> getTopOrIntermediateCaCerts(
             List<CaInfoType> typesUnderCA)
                     throws CertificateException, IOException {
@@ -576,15 +681,11 @@ public class GlobalConfImpl extends AbstractXmlConf<GlobalConfType>
         return clazz.getMethod(methodName, parameterTypes);
     }
 
-    @Override
-    public String getManagementRequestServiceAddress() {
-        GlobalSettingsType gs = confType.getGlobalSettings();
-        return gs.getManagementRequestServiceAddress();
-    }
+    private static MemberType getOwner(SecurityServerType serverType) {
+        if (!(serverType.getOwner() instanceof MemberType)) {
+            throw new RuntimeException("Server owner must be member");
+        }
 
-    @Override
-    public ClientId getManagementRequestService() {
-        GlobalSettingsType gs = confType.getGlobalSettings();
-        return gs.getManagementRequestServiceId();
+        return (MemberType) serverType.getOwner();
     }
 }

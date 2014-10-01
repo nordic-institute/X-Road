@@ -22,11 +22,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.XmlUtils;
 
+import static ee.cyber.sdsb.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.sdsb.common.signature.Helper.*;
+import static ee.cyber.sdsb.common.util.CryptoUtils.decodeBase64;
+import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
 
 /**
  * Container class for the XML signature specific objects.
@@ -63,7 +66,7 @@ public class Signature {
             readSignature();
             readObjectContainer();
         } catch (Exception e) {
-            throw ErrorCodes.translateException(e);
+            throw translateException(e);
         }
     }
 
@@ -96,6 +99,21 @@ public class Signature {
      */
     public ObjectContainer getObjectContainer() {
         return objectContainer;
+    }
+
+    /**
+     * Returns true, if the signature contains the specified URI,
+     * false otherwise.
+     */
+    public boolean references(String uri) throws Exception {
+        for (int i = 0; i < xmlSignature.getSignedInfo().getLength(); i++) {
+            Reference ref = xmlSignature.getSignedInfo().item(i);
+            if (uri.equals(ref.getURI())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -132,7 +150,7 @@ public class Signature {
 
         // add references
         addManifestReference(manifest, SIGNATURE_VALUE_ID);
-        addManifestReference(manifest, COMPLETE_REVOCATION_REFS_ID);
+        //addManifestReference(manifest, COMPLETE_REVOCATION_REFS_ID);
 
         // this reference is optional
         if (XmlUtils.getElementById(
@@ -140,7 +158,9 @@ public class Signature {
             addManifestReference(manifest, COMPLETE_CERTIFICATE_REFS_ID);
         }
 
+        manifest.addResourceResolver(new IdResolver(document));
         manifest.generateDigestValues();
+
         objectContainer.appendChild(manifest.getElement());
         return manifest;
     }
@@ -174,35 +194,32 @@ public class Signature {
     }
 
     /**
-     * Adds a XAdESTimeStamp element to the signature
-     * @param timestampDERBase64 the base64 timestamp DER encoded data
+     * Adds the SignatureTimeStamp element containing the base64 encoded
+     * timestamp DER.
+     * @param timestampDer the timestamp bytes
      * @throws Exception
      */
-    public void addXadesTimestamp(String timestampDERBase64)
-            throws Exception {
+    public void addSignatureTimestamp(byte[] timestampDer) throws Exception {
         Element unsignedProperties = getFirstElementByTagName(document,
                 xadesElement(UNSIGNED_SIGNATURE_PROPS_TAG));
 
-        Element includeRootManifestElement =
-                document.createElement(xadesElement(INCLUDE_TAG));
-        includeRootManifestElement.setAttribute(
-                URI_ATTRIBUTE, ID_TS_ROOT_MANIFEST);
+        Element signatureTimeStampElement =
+                document.createElement(xadesElement(SIGNATURE_TIMESTAMP_TAG));
+        String timestampDERBase64 = encodeBase64(timestampDer);
+        signatureTimeStampElement.setTextContent(timestampDERBase64);
 
-        Element encapsulatedTimeStampElement =
-                document.createElement(xadesElement(ENCAPSULATED_TIMESTAMP_TAG));
-        encapsulatedTimeStampElement.setTextContent(timestampDERBase64);
-
-        Element xadesTimeStamp =
-                document.createElement(xadesElement(XADES_TIMESTAMP_TAG));
-        xadesTimeStamp.appendChild(includeRootManifestElement);
-        xadesTimeStamp.appendChild(encapsulatedTimeStampElement);
-
-        unsignedProperties.appendChild(xadesTimeStamp);
+        unsignedProperties.insertBefore(signatureTimeStampElement,
+                unsignedProperties.getFirstChild());
     }
 
-    public Element getXadesTimestamp() {
-        return XmlUtils.getFirstElementByTagName(document,
-                xadesElement(XADES_TIMESTAMP_TAG));
+    /**
+     * Returns the timestamp value as base64 encoded string.
+     */
+    public String getSignatureTimestamp() throws Exception {
+        Element signatureTimestamp = getFirstElementByTagName(document,
+                xadesElement(SIGNATURE_TIMESTAMP_TAG));
+
+        return signatureTimestamp.getTextContent();
     }
 
     /**
@@ -246,14 +263,14 @@ public class Signature {
             Element certRef =  (Element) certificateRefs.item(i);
             String certId = certRef.getAttribute(URI_ATTRIBUTE);
             if (certId == null || certId.isEmpty()) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
+                throw new CodedException(X_MALFORMED_SIGNATURE,
                         "Missing certificate id attribute");
             }
 
             // we have the ocsp response element id, let's find the response
             Element certElem = XmlUtils.getElementById(document, certId);
             if (certElem == null) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
+                throw new CodedException(X_MALFORMED_SIGNATURE,
                         "Could not find certificate with id " + certId);
             }
 
@@ -264,7 +281,7 @@ public class Signature {
                 // we now have the certificate constructed, verify the digest
                 if (!verifyDigest(
                         (Element) certRef.getFirstChild(), x509.getEncoded())) {
-                    throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
+                    throw new CodedException(X_MALFORMED_SIGNATURE,
                             "Certificate (%s) digest does not match",
                             x509.getSerialNumber());
                 }
@@ -272,7 +289,7 @@ public class Signature {
                 extraCertificates.add(x509);
             } catch (CertificateException | NoSuchAlgorithmException
                     | IOException | OperatorCreationException  e) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, e);
+                throw new CodedException(X_MALFORMED_SIGNATURE, e);
             }
         }
 
@@ -283,51 +300,24 @@ public class Signature {
      * Return list of OCSP responses included in the signature.
      */
     List<OCSPResp> getOcspResponses() {
-        // First, we retrieve a list of OCSPRef elements, where each element
-        // references the OCSP response and contains information
-        // about the response, such as the responder id etc.
-        // For each OCSPRef element, we get the OCSP response referenced by
-        // the URI and validate the digest.
-        NodeList ocspRefs = getOcspRefElements(objectContainer.getElement());
-        if (ocspRefs == null || ocspRefs.getLength() == 0) {
-            throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
-                    "Could not get any OCSP reference elements from signature");
+        List<OCSPResp> ocspResponses = new ArrayList<>();
+
+        NodeList ocspValueElements =
+                getEncapsulatedOCSPValueElements(objectContainer.getElement());
+        if (ocspValueElements == null || ocspValueElements.getLength() == 0) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Could not get any OCSP elements from signature");
         }
 
-        List<OCSPResp> ocspResponses = new ArrayList<>();
-        for (int i = 0; i < ocspRefs.getLength(); i++) {
-            Element ocspIdentifier = (Element) ocspRefs.item(i).getFirstChild();
-            Element digAlgAndValue = (Element) ocspRefs.item(i).getLastChild();
-
-            String ocspId = ocspIdentifier.getAttribute(URI_ATTRIBUTE);
-            if (ocspId == null || ocspId.isEmpty()) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
-                        "Missing ocsp id attribute");
-            }
-
-            // we have the ocsp response element id, let's find the response
-            Element ocspResponseElem = XmlUtils.getElementById(document, ocspId);
-            if (ocspResponseElem == null) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
-                        "Could not find OCSP response with id " + ocspId);
-            }
+        for (int i = 0; i < ocspValueElements.getLength(); i++) {
+            Element ocspResponseElem = (Element) ocspValueElements.item(i);
 
             // we have the ocsp response in base64 form, attempt to parse it
             String base64 = ocspResponseElem.getTextContent();
             try {
-                OCSPResp ocspResponse =
-                        new OCSPResp(CryptoUtils.decodeBase64(base64));
-
-                // response was constructed successfully, verify the digest
-                if (!verifyDigest(digAlgAndValue, ocspResponse.getEncoded())) {
-                    throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
-                            "OCSP response digest does not match");
-                }
-
-                ocspResponses.add(ocspResponse);
-            } catch (IOException| NoSuchAlgorithmException
-                    | OperatorCreationException e) {
-                throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, e);
+                ocspResponses.add(new OCSPResp(decodeBase64(base64)));
+            } catch (IOException e) {
+                throw new CodedException(X_MALFORMED_SIGNATURE, e);
             }
         }
 

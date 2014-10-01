@@ -1,16 +1,15 @@
 <%= dialog "client_add_dialog", t('clients.index.add_client') do %>
-  <div class="align-center" style="margin: 1em 0;">
+  <section class="container center">
     <button id="client_select" class="common_button" style="margin-bottom: 0.5em;">
       <%= t '.select' %>
     </button>
-  </div>
-  <fieldset>
-    <legend><%= t '.new_client' %></legend>
+  </section>
+  <section class="container">
     <%= form_tag do %>
-    <table style="width: 100%;">
+    <table class="details">
       <tr>
         <td><%= t 'clients.index.member_name' %></td>
-        <td><%= text_field_tag "add_member_name", nil, disabled: true %></td>
+        <td id="add_member_name"></td>
       </tr>
       <tr>
         <td><%= t 'clients.index.member_class' %> <span>*</span></td>
@@ -26,8 +25,7 @@
       </tr>
     </table>
     <% end %>
-  </fieldset>
+  </section>
 <% end %>
 
 <%= render :partial => "client_select_dialog" %>
-<%= render :partial => "clients_load_dialog" %>

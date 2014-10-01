@@ -18,9 +18,19 @@ public abstract class SdsbId implements Serializable {
     private final SdsbObjectType type;
     private final String sdsbInstance;
 
+    private Long id; // used for references in database
+
+    SdsbId() {
+        this(null, null);
+    }
+
     SdsbId(SdsbObjectType type, String sdsbInstance) {
         this.type = type;
         this.sdsbInstance = sdsbInstance;
+    }
+
+    Long getId() {
+        return id;
     }
 
     /** Returns type of the object for this identifier. */
@@ -37,12 +47,16 @@ public abstract class SdsbId implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
+        // exclude 'id' field, because it is not part of identifier
+        // and all identifiers are unique
+        return EqualsBuilder.reflectionEquals(this, obj, new String[] {"id"});
     }
 
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        // exclude 'id' field, because it is not part of identifier
+        // and all identifiers are unique
+        return HashCodeBuilder.reflectionHashCode(this, new String[] {"id"});
     }
 
     @Override
@@ -81,9 +95,15 @@ public abstract class SdsbId implements Serializable {
 
     protected static void validateField(String fieldName, String fieldValue) {
         if (StringUtils.isBlank(fieldValue)) {
-            // TODO: Better error?
             throw new IllegalArgumentException(
                     "'" + fieldName + "' must not be blank");
+        }
+    }
+
+    protected static void validateOptionalField(String fieldName,
+            String fieldValue) {
+        if (fieldValue != null) {
+            validateField(fieldName, fieldValue);
         }
     }
 }

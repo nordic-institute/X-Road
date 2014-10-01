@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,6 +20,9 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.common.util.StartStop;
+
+import static ee.cyber.sdsb.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 @SuppressWarnings("unchecked")
 class DummyServerProxy extends Server implements StartStop {
@@ -43,6 +47,9 @@ class DummyServerProxy extends Server implements StartStop {
                 throws IOException, ServletException {
             LOG.debug("Proxy simulator received request {}, contentType={}",
                     target, request.getContentType());
+
+            response.addHeader(
+                    HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
             // check if the test case implements custom service response
             AbstractHandler handler = currentTestCase().getServerProxyHandler();

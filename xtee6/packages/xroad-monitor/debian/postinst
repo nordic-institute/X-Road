@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+service xroad-monitor restart || service xroad-monitor start
+
+exit 0

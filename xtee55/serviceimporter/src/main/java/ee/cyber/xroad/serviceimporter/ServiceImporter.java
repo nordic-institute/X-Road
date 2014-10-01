@@ -5,9 +5,9 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.cyber.sdsb.common.conf.serverconf.model.*;
-import ee.cyber.sdsb.common.db.HibernateUtil;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
 import ee.cyber.sdsb.common.identifier.LocalGroupId;
@@ -19,9 +19,7 @@ import ee.cyber.xroad.mediator.BackendTypes;
 import ee.cyber.xroad.mediator.IdentifierMappingImpl;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
 
-import static ee.cyber.xroad.serviceimporter.Helper.getConf;
-import static ee.cyber.xroad.serviceimporter.Helper.getIdentifier;
-import static ee.cyber.xroad.serviceimporter.Helper.urlEncode;
+import static ee.cyber.xroad.serviceimporter.Helper.*;
 
 public class ServiceImporter {
 
@@ -47,7 +45,7 @@ public class ServiceImporter {
         this.now = new Date();
     }
 
-    public void doImport() throws Exception {
+    public void doImport(String deleteShortName) throws Exception {
         LOG.info("Importing clients...");
 
         serverConf = getConf(); // will throw exception if server conf not initalized
@@ -89,33 +87,41 @@ public class ServiceImporter {
                 }
             }
 
-            Set<ClientId> mappedClients = identifierMapping.getClientIds();
+            if (deleteShortName == null) {
+                return;
+            }
 
+            ClientId deleteClientId =
+                identifierMapping.getClientId(deleteShortName);
+
+            if (deleteClientId == null) {
+                return;
+            }
+
+            ClientType deleteClient = ClientDAOImpl.getInstance()
+                .getClient(ServerConfDatabaseCtx.getSession(), deleteClientId);
+
+            if (deleteClient == null) {
+                return;
+            }
+
+            String status = deleteClient.getClientStatus();
             SecurityServerId serverId = getSecurityServerId();
             ManagementRequestSender sender = getManagementRequestSender();
 
-            Iterator<ClientType> it = getConf().getClient().iterator();
-            while (it.hasNext()) {
-                ClientType client = it.next();
-                ClientId clientId = client.getIdentifier();
-                String status = client.getClientStatus();
+            // Delete the given client if it was not imported.
+            if (!importedClients.contains(deleteClientId)) {
 
-                // Delete the clients who are in the mapping but were
-                // not imported.
-                if (mappedClients.contains(clientId) &&
-                        !importedClients.contains(clientId)) {
+                if (ClientType.STATUS_REGINPROG.equals(status) ||
+                    ClientType.STATUS_REGISTERED.equals(status)) {
 
-                    if (ClientType.STATUS_REGINPROG.equals(status) ||
-                        ClientType.STATUS_REGISTERED.equals(status)) {
-
-                        LOG.info("Sending deletion request for client '{}'",
-                                 clientId);
-                        sender.sendClientDeletionRequest(serverId, clientId);
-                    }
-
-                    LOG.info("Deleting client '{}'", clientId);
-                    it.remove();
+                    LOG.info("Sending deletion request for client '{}'",
+                        deleteClientId);
+                    sender.sendClientDeletionRequest(serverId, deleteClientId);
                 }
+
+                LOG.info("Deleting client '{}'", deleteClientId);
+                getConf().getClient().remove(deleteClient);
             }
         } finally {
             xConf.unlock();
@@ -132,7 +138,7 @@ public class ServiceImporter {
         }
 
         ClientType mappedClient = ClientDAOImpl.getInstance().getClient(
-                HibernateUtil.getSession(), mappedId);
+                ServerConfDatabaseCtx.getSession(), mappedId);
 
         if (mappedClient == null) {
             LOG.info("Importing client '{}'", org.getShortName());
@@ -348,7 +354,7 @@ public class ServiceImporter {
             "serviceImporter", receiver, sender);
     }
 
-    public void doExport() throws Exception {
+    public void doExport(ClientId deleteClientId) throws Exception {
         LOG.info("Exporting clients...");
 
         getConf(); // will throw exception if server conf not initalized
@@ -356,9 +362,6 @@ public class ServiceImporter {
         xConf.writeLock();
 
         try {
-            Set<String> exportedConsumers = new HashSet<>();
-            Set<String> exportedProducers = new HashSet<>();
-
             for (ClientType client : getConf().getClient()) {
                 String shortName =
                     identifierMapping.getShortName(client.getIdentifier());
@@ -387,42 +390,31 @@ public class ServiceImporter {
                 exportInternalSSLConf(consumer, client);
                 exportInternalSSLConf(producer, client);
 
-                exportedConsumers.add(shortName);
-                exportedProducers.add(shortName);
-
                 exportServices(producer, client);
             }
 
-            Set<String> mappedClients = identifierMapping.getShortNames();
-
-            Iterator<XConf.Consumer> itc = xConf.getConsumers().iterator();
-            while (itc.hasNext()) {
-                XConf.Consumer consumer = itc.next();
-                String shortName = consumer.getShortName();
-
-                // Delete the consumers who are in the mapping but were
-                // not exported.
-                if (mappedClients.contains(shortName) &&
-                        !exportedConsumers.contains(shortName)) {
-                    LOG.info("Deleting consumer '{}'", shortName);
-
-                    xConf.deleteOrg(consumer);
-                }
+            if (deleteClientId == null) {
+                return;
             }
 
-            Iterator<XConf.Producer> itp = xConf.getProducers().iterator();
-            while (itp.hasNext()) {
-                XConf.Producer producer = itp.next();
-                String shortName = producer.getShortName();
+            String deleteShortName =
+                identifierMapping.getShortName(deleteClientId);
 
-                // Delete the producers who are in the mapping but were
-                // not exported.
-                if (mappedClients.contains(shortName) &&
-                        !exportedProducers.contains(shortName)) {
-                    LOG.info("Deleting producer '{}'", shortName);
+            if (deleteShortName == null) {
+                return;
+            }
 
-                    xConf.deleteOrg(producer);
-                }
+            XConf.Consumer deleteConsumer = new XConf.Consumer(deleteShortName);
+            XConf.Producer deleteProducer = new XConf.Producer(deleteShortName);
+
+            if (xConf.orgExists(deleteConsumer)) {
+                LOG.info("Deleting consumer '{}'", deleteShortName);
+                xConf.deleteOrg(deleteConsumer);
+            }
+
+            if (xConf.orgExists(deleteProducer)) {
+                LOG.info("Deleting producer '{}'", deleteShortName);
+                xConf.deleteOrg(deleteProducer);
             }
         } finally {
             xConf.unlock();

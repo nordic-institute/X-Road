@@ -2,8 +2,16 @@ package ee.cyber.sdsb.common.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPFault;
+import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
@@ -18,6 +26,7 @@ import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.message.SoapUtils.*;
 import static ee.cyber.sdsb.common.util.MimeUtils.UTF8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
 
 public class SoapParserImpl implements SoapParser {
 
@@ -51,8 +60,8 @@ public class SoapParserImpl implements SoapParser {
             charset = UTF8;
         }
 
-        byte[] data = IOUtils.toByteArray(is);
-        InputStream buffered = new ByteArrayInputStream(data);
+        // We need to keep the original XML around for various logging reasons.
+        byte[] rawXml = IOUtils.toByteArray(is);
 
         // Explicitly check content type to produce better error code
         // for client.
@@ -60,12 +69,13 @@ public class SoapParserImpl implements SoapParser {
             validateMimeType(mimeType);
         }
 
-        SOAPMessage soap = createSOAPMessage(buffered, charset);
-        return parseMessage(data, soap, charset);
+        SOAPMessage soap =
+                createSOAPMessage(new ByteArrayInputStream(rawXml), charset);
+        return parseMessage(rawXml, soap, charset);
     }
 
-    protected Soap parseMessage(byte[] data, SOAPMessage soap, String charset)
-            throws Exception {
+    protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
+            String charset) throws Exception {
         if (soap.getSOAPBody() == null) {
             throw new CodedException(X_MISSING_BODY,
                     "Malformed SOAP message: body missing");
@@ -83,26 +93,34 @@ public class SoapParserImpl implements SoapParser {
             return new SoapFault(fault);
         }
 
-        return createMessage(data, soap, charset);
+        return createMessage(rawXml, soap, charset);
     }
 
-    protected Soap createMessage(byte[] data, SOAPMessage soap, String charset)
-            throws Exception {
+    protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
+            String charset) throws Exception {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
-        SoapHeader header = soap.getSOAPHeader() != null
-                ? new SoapHeader(charset, soap.getSOAPHeader()) : null;
+        SoapHeader header = null;
+        if (soap.getSOAPHeader() != null) {
+            validateSOAPHeader(soap.getSOAPHeader());
+            header = unmarshalHeader(SoapHeader.class, soap.getSOAPHeader());
+        }
 
+        return createMessage(rawXml, header, soap, charset);
+    }
+
+    protected Soap createMessage(byte[] rawXml, SoapHeader header,
+            SOAPMessage soap, String charset) throws Exception {
         if (header == null) {
             throw new CodedException(X_MISSING_HEADER,
                     "Malformed SOAP message: header missing");
         }
 
         String serviceName = getServiceName(soap.getSOAPBody());
-        validateServiceName(header.service.getServiceCode(), serviceName);
+        validateServiceName(header.getService().getServiceCode(), serviceName);
 
-        String xml = new String(data, charset);
-        return new SoapMessageImpl(xml, soap, header, serviceName);
+        String xml = new String(rawXml, charset);
+        return new SoapMessageImpl(xml, charset, header, soap, serviceName);
     }
 
     protected void validateAgainstSoapSchema(SOAPMessage soap)
@@ -111,4 +129,40 @@ public class SoapParserImpl implements SoapParser {
                 new DOMSource(soap.getSOAPPart().getDocumentElement()));
     }
 
+    public static void validateSOAPHeader(SOAPHeader soapHeader) {
+        // Check for duplicate fields
+        Set<QName> fields = new HashSet<>();
+        Iterator<?> it = soapHeader.getChildElements();
+        while (it.hasNext()) {
+            Object next = it.next();
+            if (next instanceof SOAPElement) {
+                SOAPElement soapElement = (SOAPElement) next;
+                if (!fields.add(soapElement.getElementQName())) {
+                    throw new CodedException(X_DUPLICATE_HEADER_FIELD,
+                            "SOAP header contains duplicate field '%s'",
+                            soapElement.getElementQName());
+                }
+            }
+        }
+    }
+
+    public static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader)
+            throws Exception {
+        return unmarshalHeader(clazz, soapHeader, true);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T unmarshalHeader(Class<?> clazz, SOAPHeader soapHeader,
+            boolean checkRequiredFields) throws Exception {
+        Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
+
+        if (checkRequiredFields) {
+            unmarshaller.setListener(new RequiredHeaderFieldsChecker(clazz));
+        }
+
+        JAXBElement<T> jaxbElement =
+                (JAXBElement<T>) unmarshaller.unmarshal(soapHeader, clazz);
+        return jaxbElement.getValue();
+    }
 }
+

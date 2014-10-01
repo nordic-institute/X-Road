@@ -7,6 +7,10 @@ public final class SecurityCategoryId extends SdsbId {
 
     private final String securityCategory;
 
+    SecurityCategoryId() { // required by Hibernate
+        this(null, null);
+    }
+
     private SecurityCategoryId(String sdsbInstance, String securityCategory) {
         super(SdsbObjectType.SECURITYCATEGORY, sdsbInstance);
 

@@ -2,10 +2,7 @@ package ee.cyber.xroad.mediator.service.wsdlmerge.merger;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +26,7 @@ public class WSDLsMergerBehavior {
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
     @Test
-    public void shouldReturnSingleWsdlExactlyAsIs() throws IOException {
+    public void shouldReturnSingleWsdlExactlyAsIs() throws Exception {
         // Given
         String wsdlUrl = "http://www.example.com/wsdl";
         List<String> wsdlUrls = Collections.singletonList(wsdlUrl);
@@ -42,7 +39,7 @@ public class WSDLsMergerBehavior {
 
         // When
         WSDLsMerger merger = new WSDLsMerger(
-                wsdlUrls, wsdlProvider, client, new WSDLStreamsMerger());
+                wsdlUrls, wsdlProvider, client);
 
         // Then
         String expectedWsdlContent = FileUtils.readFileToString(
@@ -55,7 +52,7 @@ public class WSDLsMergerBehavior {
     }
 
     @Test
-    public void shouldThrowErrorIfNoMergeableWsdlsFound() throws IOException {
+    public void shouldThrowErrorIfNoMergeableWsdlsFound() throws Exception {
         // Given
         thrown.expectError(X_ADAPTER_WSDL_NOT_FOUND);
 
@@ -63,41 +60,6 @@ public class WSDLsMergerBehavior {
         new WSDLsMerger(
                 new ArrayList<String>(),
                 new WSDLProvider(),
-                ClientId.create("EE", "foo", "bar"),
-                new WSDLStreamsMerger());
-    }
-
-    @Test
-    public void shouldMergeMultipleWsdls() throws IOException {
-        // Given
-        String wsdlUrl1 = "http://wsdl1.example.com";
-        String wsdlUrl2 = "http://wsdl2.example.com";
-        List<String> wsdlUrls = Arrays.asList(wsdlUrl1, wsdlUrl2);
-
-        InputStream wsdl1IS = IOUtils.toInputStream("<wsdl1>");
-        InputStream wsdl2IS = IOUtils.toInputStream("<wsdl2>");
-        List<InputStream> wsdlStreams = Arrays.asList(wsdl1IS, wsdl2IS);
-
-        WSDLProvider wsdlProvider = Mockito.mock(WSDLProvider.class);
-        Mockito.when(wsdlProvider.getWsdl(wsdlUrl1)).thenReturn(wsdl1IS);
-        Mockito.when(wsdlProvider.getWsdl(wsdlUrl2)).thenReturn(wsdl2IS);
-
-        ClientId client = ClientId.create("EE", "foo", "bar");
-
-        String expectedMergedWsdlContent = "<wsdlMerged>";
-
-        WSDLStreamsMerger streamsMerger = Mockito.mock(WSDLStreamsMerger.class);
-        Mockito.when(streamsMerger.merge(wsdlStreams))
-                .thenReturn(IOUtils.toInputStream(expectedMergedWsdlContent));
-
-        // When
-        WSDLsMerger merger = new WSDLsMerger(
-                wsdlUrls, wsdlProvider, client, streamsMerger);
-
-        // Then
-        String actualWsdlContent = IOUtils.toString(
-                merger.getMergedWsdlAsStream());
-
-        assertEquals(expectedMergedWsdlContent, actualWsdlContent);
+                ClientId.create("EE", "foo", "bar"));
     }
 }

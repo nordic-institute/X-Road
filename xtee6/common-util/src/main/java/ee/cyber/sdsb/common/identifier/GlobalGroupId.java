@@ -5,6 +5,10 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 @XmlJavaTypeAdapter(IdentifierTypeConverter.GlobalGroupIdAdapter.class)
 public final class GlobalGroupId extends AbstractGroupId {
 
+    GlobalGroupId() { // required by Hibernate
+        this(null, null);
+    }
+
     private GlobalGroupId(String sdsbInstance, String groupCode) {
         super(SdsbObjectType.GLOBALGROUP, sdsbInstance, groupCode);
     }

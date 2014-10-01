@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.identifier.AbstractServiceId;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
@@ -22,8 +22,6 @@ import ee.cyber.sdsb.common.identifier.ServiceId;
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 
 /** Global configuration.
- *
- * TODO: Make thread safe
  */
 public class GlobalConf {
 
@@ -61,7 +59,7 @@ public class GlobalConf {
     }
 
     /** Reloads the configuration. */
-    public static void reload() {
+    public static synchronized void reload() {
         LOG.trace("reload()");
 
         initInstance();
@@ -76,7 +74,7 @@ public class GlobalConf {
 
     /** Reloads the configuration if the underlying configuration
      * file has changed. */
-    public static void reloadIfChanged() {
+    public static synchronized void reloadIfChanged() {
         LOG.trace("reloadIfChanged()");
 
         if (shouldInitInstance()) {
@@ -87,20 +85,45 @@ public class GlobalConf {
         }
     }
 
+    /**
+     * Returns the SDSB instance identifier.
+     */
+    public static String getSdsbInstance() {
+        return getInstance().getSdsbInstance();
+    }
+
     /** Returns concrete service id for the given service id type. If the input
      * is ServiceId, returns it. If the input is CentralServiceId, looks for
      * a mapping to ServiceId in GlobalConf. */
-    public static ServiceId getServiceId(AbstractServiceId serviceId) {
-        LOG.debug("getServiceId({})", serviceId);
+    public static ServiceId getServiceId(ServiceId serviceId) {
+        LOG.trace("getServiceId({})", serviceId);
 
         if (serviceId instanceof CentralServiceId) {
             return getInstance().getServiceId((CentralServiceId) serviceId);
         } else if (serviceId instanceof ServiceId) {
-            return (ServiceId) serviceId;
+            return serviceId;
         } else {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Unknown type of service id: %s", serviceId.getClass());
         }
+    }
+
+    /**
+     * Returns all members.
+     */
+    public static List<ClientId> getMembers() {
+        LOG.trace("getMembers()");
+
+        return getInstance().getMembers();
+    }
+
+    /**
+     * Returns all central services.
+     */
+    public static List<CentralServiceId> getCentralServices() {
+        LOG.trace("getCentralServices()");
+
+        return getInstance().getCentralServices();
     }
 
     /**
@@ -110,7 +133,7 @@ public class GlobalConf {
      */
     public static String getProviderAddress(X509Certificate authCert)
             throws Exception {
-        LOG.debug("getProviderAddress({})", authCert.getSubjectX500Principal());
+        LOG.trace("getProviderAddress({})", authCert.getSubjectX500Principal());
 
         return getInstance().getProviderAddress(authCert);
     }
@@ -121,17 +144,18 @@ public class GlobalConf {
      */
     public static Collection<String> getProviderAddress(
             ClientId serviceProvider) {
-        LOG.debug("getProviderAddress({})", serviceProvider);
+        LOG.trace("getProviderAddress({})", serviceProvider);
 
         return getInstance().getProviderAddress(serviceProvider);
     }
+
     /**
      * Returns a list of OCSP responder addresses for the given member.
      * @param member the member
      */
     public static List<String> getOcspResponderAddresses(
             X509Certificate member) throws Exception {
-        LOG.debug("getOcspResponderAddresses({})", member != null
+        LOG.trace("getOcspResponderAddresses({})", member != null
                 ? member.getSubjectX500Principal().getName() : "null");
 
         return getInstance().getOcspResponderAddresses(member);
@@ -139,7 +163,7 @@ public class GlobalConf {
 
     /** Returns a list of known OCSP responder certificates. */
     public static List<X509Certificate> getOcspResponderCertificates() {
-        LOG.debug("getOcspResponderCertificates()");
+        LOG.trace("getOcspResponderCertificates()");
 
         return getInstance().getOcspResponderCertificates();
     }
@@ -147,30 +171,33 @@ public class GlobalConf {
     /** Returns the issuer certificate for the member certificate. */
     public static X509Certificate getCaCert(X509Certificate subject)
             throws Exception {
-        LOG.debug("getCaCert({})", subject.getSubjectX500Principal().getName());
+        LOG.trace("getCaCert({})", subject.getSubjectX500Principal().getName());
 
         return getInstance().getCaCert(subject);
     }
 
     public static Collection<X509Certificate> getAllCaCerts()
             throws CertificateException {
-        LOG.debug("getAllCaCerts()");
+        LOG.trace("getAllCaCerts()");
 
         return getInstance().getAllCaCerts();
     }
 
-    /** Returns verification context for this server. */
-    public static VerificationCtx getVerificationCtx() {
-        LOG.debug("getVerificationCtx()");
+    /** Returns the top CA and any intermediate CA certs for a
+     * given end entity. */
+    public static CertChain getCertChain(X509Certificate subject)
+            throws Exception {
+        LOG.trace("getCertChain({})",
+                subject.getSubjectX500Principal().getName());
 
-        return getInstance().getVerificationCtx();
+        return getInstance().getCertChain(subject);
     }
 
     /** Returns true, if the CA has the specified OCSP responder certificate,
      * false otherwise. */
     public static boolean isOcspResponderCert(
             X509Certificate ca, X509Certificate ocspCert) {
-        LOG.debug("isOcspResponderCert({}, {})",
+        LOG.trace("isOcspResponderCert({}, {})",
                 ca.getSubjectX500Principal().getName(),
                 ocspCert.getSubjectX500Principal().getName());
 
@@ -182,20 +209,22 @@ public class GlobalConf {
      * to verify the other party in establishing SSL connection.
      */
     public static X509Certificate[] getAuthTrustChain() {
-        LOG.debug("getAuthTrustChain()");
+        LOG.trace("getAuthTrustChain()");
 
         return getInstance().getAuthTrustChain();
     }
 
     /**
-     * Returns true, if <code>cert</code> is registered for any
-     * Security Server in GlobalConf.
+     * If <code>server</code> <b>is not null</b>, returns true if <code>cert</code>
+     * is registered for that particular Security Server in GlobalConf.
+     * If <code>server</code> <b>is null</b>, then returns true if <code>cert</code>
+     * is registered for any Security Server in GlobalConf.
      *
      * @throws Exception
      */
     public static boolean hasAuthCert(X509Certificate cert,
             SecurityServerId server) throws Exception {
-        LOG.debug("hasAuthCert({}, {})", cert.getSubjectDN(), server);
+        LOG.trace("hasAuthCert({}, {})", cert.getSubjectDN(), server);
 
         return getInstance().hasAuthCert(cert, server);
     }
@@ -208,7 +237,7 @@ public class GlobalConf {
      */
     public static boolean authCertMatchesMember(X509Certificate cert,
             ClientId memberId) throws Exception {
-        LOG.debug("authCertMatchesMember({}: {}, {})",
+        LOG.trace("authCertMatchesMember({}: {}, {})",
                 new Object[] {cert.getSerialNumber(), cert.getSubjectDN(),
                         memberId});
 
@@ -221,7 +250,7 @@ public class GlobalConf {
      */
     public static Collection<SecurityCategoryId> getProvidedCategories(
             X509Certificate authCert) throws Exception {
-        LOG.debug("getProvidedCategories()");
+        LOG.trace("getProvidedCategories()");
 
         return getInstance().getProvidedCategories(authCert);
     }
@@ -232,7 +261,7 @@ public class GlobalConf {
      */
     public static ClientId getSubjectName(X509Certificate cert)
             throws Exception {
-        LOG.debug("getSubjectName()");
+        LOG.trace("getSubjectName()");
 
         return getInstance().getSubjectName(cert);
     }
@@ -240,7 +269,7 @@ public class GlobalConf {
      * Returns the list of TSP certificates.
      */
     public static List<X509Certificate> getTspCertificates() throws Exception {
-        LOG.debug("getTspCertificates()");
+        LOG.trace("getTspCertificates()");
 
         return getInstance().getTspCertificates();
     }
@@ -249,7 +278,7 @@ public class GlobalConf {
      * Returns all addresses of all members.
      */
     public static Set<String> getKnownAddresses() {
-        LOG.debug("getKnownAddresses()");
+        LOG.trace("getKnownAddresses()");
 
         return getInstance().getKnownAddresses();
     }
@@ -257,9 +286,17 @@ public class GlobalConf {
     /** Returns true, if given subject belongs to given global group. */
     public static boolean isSubjectInGlobalGroup(ClientId subject,
             GlobalGroupId group) {
-        LOG.debug("isSubjectInGlobalGroup({}, {})", subject, group);
+        LOG.trace("isSubjectInGlobalGroup({}, {})", subject, group);
 
         return getInstance().isSubjectInGlobalGroup(subject, group);
+    }
+
+    /** Returns true, if client belongs to the security server. */
+    public static boolean isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer) {
+        LOG.trace("isSecurityServerClient({}, {})", client, securityServer);
+
+        return getInstance().isSecurityServerClient(client, securityServer);
     }
 
     /**
@@ -274,7 +311,7 @@ public class GlobalConf {
      * Returns the address of the management request service.
      */
     public static String getManagementRequestServiceAddress() {
-        LOG.debug("getManagementRequestServiceAddress()");
+        LOG.trace("getManagementRequestServiceAddress()");
 
         return getInstance().getManagementRequestServiceAddress();
     }
@@ -283,12 +320,22 @@ public class GlobalConf {
      * Returns the service id of the management request service.
      */
     public static ClientId getManagementRequestService() {
-        LOG.debug("getManagementRequestServiceAddress()");
+        LOG.trace("getManagementRequestServiceAddress()");
 
         // Note that ClientId is sufficient, since the ServiceId is built from
         // this ClientId and the service method name that comes from
         // generated classes of the management requests.
         return getInstance().getManagementRequestService();
+    }
+
+    /**
+     * Returns SSL certificates of central servers.
+     */
+    public static X509Certificate getCentralServerSslCertificate()
+            throws Exception {
+        LOG.trace("getCentralServerSslCertificate()");
+
+        return getInstance().getCentralServerSslCertificate();
     }
 
     private static void initInstance() {

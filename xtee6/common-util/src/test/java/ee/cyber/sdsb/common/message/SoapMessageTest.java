@@ -12,10 +12,10 @@ import org.junit.Test;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.message.SoapBuilder.BodyBuilderCallback;
 import ee.cyber.sdsb.common.util.ExpectedCodedException;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.message.SoapMessageTestUtil.*;
 import static org.junit.Assert.*;
 
 /**
@@ -23,8 +23,6 @@ import static org.junit.Assert.*;
  * of the SoapMessage class.
  */
 public class SoapMessageTest {
-
-    private static final String QUERY_DIR = "../proxy/src/test/queries/";
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
@@ -216,7 +214,7 @@ public class SoapMessageTest {
     public void consistentMessages() throws Exception {
         SoapMessageImpl m1 = createRequest("getstate.query");
         SoapMessageImpl m2 = createResponse("getstate.answer");
-        assertEquals(true, SoapUtils.checkConsistency(m1, m2));
+        SoapUtils.checkConsistency(m1, m2);
     }
 
     /**
@@ -225,8 +223,11 @@ public class SoapMessageTest {
     @Test
     public void inconsistentMessages() throws Exception {
         SoapMessageImpl m1 = createRequest("simple.query");
+        SoapUtils.checkConsistency(m1, m1);
+
         SoapMessageImpl m2 = createResponse("getstate.answer");
-        assertEquals(false, SoapUtils.checkConsistency(m1, m2));
+        thrown.expectError(X_INCONSISTENT_HEADERS);
+        SoapUtils.checkConsistency(m1, m2);
     }
 
     /**
@@ -248,11 +249,12 @@ public class SoapMessageTest {
         ClientId client = ClientId.create("EE", "BUSINESS", "producer");
         ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer",
                 null, "test");
-        String userId = "foo'bar";
+        CentralServiceId centralService =
+                CentralServiceId.create("EE", "central");
+        String userId = "foobar";
         String queryId = "barbaz";
 
-        SoapMessageImpl built = SoapBuilder.build(client, service, userId,
-                queryId);
+        SoapMessageImpl built = build(client, service, userId, queryId);
         assertNotNull(built);
         assertEquals(userId, built.getUserId());
         assertEquals(queryId, built.getQueryId());
@@ -266,7 +268,26 @@ public class SoapMessageTest {
         SoapMessageImpl parsed = (SoapMessageImpl) parsedSoap;
         assertNotNull(parsed);
 
-        assertTrue(SoapUtils.checkConsistency(built, parsed));
+        SoapUtils.checkConsistency(built, parsed);
+        assertEquals(built.isRequest(), parsed.isRequest());
+
+        // Central Service ----------------------------------------------------
+
+        built = build(client, centralService, userId, queryId);
+        assertNotNull(built);
+        assertEquals(userId, built.getUserId());
+        assertEquals(queryId, built.getQueryId());
+        assertEquals(client, built.getClient());
+        assertEquals(centralService, built.getService());
+
+        parsedSoap = new SoapParserImpl().parse(
+                        IOUtils.toInputStream(built.getXml()));
+        assertTrue(parsedSoap instanceof SoapMessageImpl);
+
+        parsed = (SoapMessageImpl) parsedSoap;
+        assertNotNull(parsed);
+
+        SoapUtils.checkConsistency(built, parsed);
         assertEquals(built.isRequest(), parsed.isRequest());
     }
 
@@ -281,8 +302,7 @@ public class SoapMessageTest {
         String userId = "foobar";
         String queryId = "barbaz";
 
-        SoapMessageImpl built = SoapBuilder.build(true, client, service, userId,
-                queryId);
+        SoapMessageImpl built = build(true, client, service, userId, queryId);
         assertNotNull(built);
         assertTrue(built.isRpcEncoded());
         assertEquals(userId, built.getUserId());
@@ -304,24 +324,7 @@ public class SoapMessageTest {
         String userId = "foobar";
         String queryId = "barbaz";
 
-        SoapBuilder.build(client, service, userId, queryId);
-    }
-
-    /**
-     * Tests that missing body builder is checked.
-     */
-    @Test
-    public void shouldNotBuildWithoutBodyBuilder() throws Exception {
-        thrown.expectError(X_MISSING_BODY);
-
-        ClientId client = ClientId.create("EE", "BUSINESS", "producer");
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer",
-                null, "test");
-        String userId = "foobar";
-        String queryId = "barbaz";
-        BodyBuilderCallback bodyBuilder = null;
-
-        SoapBuilder.build(false, client, service, userId, queryId, bodyBuilder);
+        build(client, service, userId, queryId);
     }
 
     /**
@@ -353,58 +356,4 @@ public class SoapMessageTest {
 
     // Helper methods ---------------------------------------------------------
 
-    private static byte[] fileToBytes(String fileName) throws Exception {
-        return IOUtils.toByteArray(new FileInputStream(QUERY_DIR + fileName));
-    }
-
-    private static byte[] messageToBytes(Soap soap) throws Exception {
-        if (soap instanceof SoapMessage) {
-            return soap.getXml().getBytes(((SoapMessage) soap).getCharset());
-        }
-
-        return soap.getXml().getBytes();
-    }
-
-    private static Soap createSoapMessage(String fileName)
-            throws Exception {
-        return new SoapParserImpl().parse(
-                new FileInputStream(QUERY_DIR + fileName));
-    }
-
-    private static Soap createSoapMessage(byte[] data)
-            throws Exception {
-        return new SoapParserImpl().parse(new ByteArrayInputStream(data));
-    }
-
-    private static SoapMessageImpl createRequest(String fileName)
-            throws Exception {
-        Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
-            throw new RuntimeException(
-                    "Got " + message.getClass() + " instead of SoapMessage");
-        }
-
-        if (((SoapMessageImpl) message).isResponse()) {
-            throw new RuntimeException(
-                    "Got response instead of request");
-        }
-
-        return (SoapMessageImpl) message;
-    }
-
-    private static SoapMessageImpl createResponse(String fileName)
-            throws Exception {
-        Soap message = createSoapMessage(fileName);
-        if (!(message instanceof SoapMessageImpl)) {
-            throw new RuntimeException(
-                    "Got " + message.getClass() + " instead of SoapResponse");
-        }
-
-        if (((SoapMessageImpl) message).isRequest()) {
-            throw new RuntimeException(
-                    "Got request instead of response");
-        }
-
-        return (SoapMessageImpl) message;
-    }
 }

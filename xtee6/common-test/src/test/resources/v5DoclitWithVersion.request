@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.ee/xsd/x-road.xsd">
+    <SOAP-ENV:Header>
+        <xrd:consumer>consumer</xrd:consumer>
+        <xrd:producer>producer</xrd:producer>
+        <xrd:userId>EE30101010007</xrd:userId>
+        <xrd:id>1234567890</xrd:id>
+        <xrd:service>producer.bodyMassIndex.v1</xrd:service>
+        <xrd:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns4:bodyMassIndex xmlns:ns4="http://producer.ee.x-road.ee/producer/">
+            <request>
+                <height>180</height>
+                <weight>80.1</weight>
+            </request>
+        </ns4:bodyMassIndex>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

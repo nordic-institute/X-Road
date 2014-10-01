@@ -6,6 +6,7 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.util.SystemMetrics;

@@ -86,9 +86,6 @@ restart xroad-async || start xroad-async
 echo \(Re\)Start SDSB distributed files client..
 restart xroad-dfc || start xroad-dfc
 
-echo \(Re\)Start SDSB proxy..
-restart xroad-proxy || start xroad-proxy
-
 echo \(Re\)Start jetty server..
 restart xroad-jetty || start xroad-jetty
 
@@ -104,6 +101,13 @@ restart xtee55-monitor || start xtee55-monitor
 echo Enable nginx sites for client mediator..
 ln -s -f $CLIENT_MEDIATOR_SITE /etc/nginx/sites-enabled/xtee55-clientmediator || exit 1
 ln -s -f $CLIENT_MEDIATOR_SSL_SITE /etc/nginx/sites-enabled/xtee55-clientmediator-ssl || exit 1
+
+echo Disable v6 activate checking responder
+rm /etc/nginx/sites-enabled/sdsb_proxy_disabled
 service nginx restart
+
+echo \(Re\)Start SDSB proxy..
+restart xroad-proxy || start xroad-proxy
+
 
 echo "SDSB proxy activated"

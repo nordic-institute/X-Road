@@ -2,6 +2,14 @@ module ValidationHelper
 
   class ValidationError < RuntimeError; end
 
+  class RequiredFieldError < ValidationError
+    attr_reader :field
+
+    def initialize(field)
+      @field = field
+    end
+  end
+
   private
 
   DEFAULT_VALIDATORS = {
@@ -40,7 +48,7 @@ module ValidationHelper
       validators.each do |validator|
         if validator.is_a?(RequiredValidator) && (!params || !params[param] ||
              (params[param].is_a?(String) && params[param].length == 0))
-          raise t('validation.missing_param', :param => param)
+          raise RequiredFieldError.new(param), t('validation.missing_param', :param => param)
         end
       end
     end
@@ -67,6 +75,10 @@ module ValidationHelper
   end
 
   class Validator
+    def initialize(error_msg = nil)
+      @error_msg = error_msg
+    end
+
     def validate(val, param)
     end
   end
@@ -79,9 +91,18 @@ module ValidationHelper
     end
   end
 
+  class IntValidator < Validator
+    def validate(val, param)
+      m = val.match(/\A\d+\z/)
+      unless m
+        raise ValidationError, I18n.t(
+          @error_msg || 'validation.int_error', :param => param, :val => val)
+      end
+    end
+  end
+
   class EmailAddressValidator < Validator
     def validate(val, param)
-      # XXX: Is it sufficient behavior everywhere?
       return if !val || val.empty?
 
       emailValid = val =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\Z/
@@ -93,9 +114,24 @@ module ValidationHelper
 
   class FilenameValidator < Validator
     def validate(val, param)
-      m = val.match('^[a-z0-9]*$')
+      m = val.match('\A[a-z0-9]*\z')
       unless m
         raise I18n.t("validation.invalid_filename", :val => val)
+      end
+    end
+  end
+
+  class URLValidator < Validator
+    def validate(val, param)
+      begin
+        url = URI.parse(val)
+        invalid = !url.kind_of?(URI::HTTP) && !url.kind_of?(URI::HTTPS)
+      rescue URI::InvalidURIError
+        invalid = true
+      end
+
+      if invalid
+        raise I18n.t("validation.invalid_url", :param => param, :val => val)
       end
     end
   end

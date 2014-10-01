@@ -7,24 +7,24 @@
     <table id="providers" class="fixed">
       <thead>
         <tr>
-          <th style="width: 20%;"><%= t 'async.index.name' %></th>
-          <th style="width: 8%;"><%= t 'async.index.requests' %></th>
-          <th style="width: 8%;"><%= t 'async.index.send_attempts' %></th>
-          <th><%= t 'async.index.last_attempt' %></th>
+          <th style="width: 20%;"><%= t '.name' %></th>
+          <th style="width: 8%;"><%= t '.requests' %></th>
+          <th style="width: 8%;"><%= t '.send_attempts' %></th>
+          <th><%= t '.last_attempt' %></th>
           <th></th>
-          <th><%= t 'async.index.next_attempt' %></th>
-          <th><%= t 'async.index.last_success' %></th>
-          <th><%= t 'async.index.last_success_id' %></th>
+          <th><%= t '.next_attempt' %></th>
+          <th><%= t '.last_success' %></th>
+          <th><%= t '.last_success_id' %></th>
         </tr>
       </thead>
     </table>
 
     <span id="providers_actions" style="float: left;">
       <% if can?(:view_async_req_last_send_result) %>
-      <button id="last_attempt_result"><%= t 'async.index.last_attempt_result' %></button>
+      <button id="last_attempt_result"><%= t '.last_attempt_result' %></button>
       <% end %>
       <% if can?(:reset_async_req_send_count) %>
-      <button id="reset"><%= t 'async.index.reset' %></button>
+      <button id="reset"><%= t '.reset' %></button>
       <% end %>
       <button id="refresh"><%= t 'common.refresh' %></button>
     </span>
@@ -34,13 +34,13 @@
     <table id="requests" class="fixed">
       <thead>
         <tr>
-          <th style="width: 6%;"><%= t 'async.index.request_queue_no' %></th>
-          <th><%= t 'async.index.request_id' %></th>
-          <th><%= t 'async.index.request_received' %></th>
-          <th><%= t 'async.index.request_removed' %></th>
-          <th><%= t 'async.index.request_sender' %></th>
-          <th><%= t 'async.index.request_user' %></th>
-          <th><%= t 'async.index.request_service' %></th>
+          <th style="width: 6%;"><%= t '.request_queue_no' %></th>
+          <th><%= t '.request_id' %></th>
+          <th><%= t '.request_received' %></th>
+          <th><%= t '.request_removed' %></th>
+          <th><%= t '.request_sender' %></th>
+          <th><%= t '.request_user' %></th>
+          <th><%= t '.request_service' %></th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -48,15 +48,15 @@
 
     <% if can?(:remove_restore_async_req) %>
     <span id="requests_actions" style="float: left;">
-      <button id="remove"><%= t 'async.index.request_remove' %></button>
-      <button id="restore"><%= t 'async.index.request_restore' %></button>
+      <button id="remove"><%= t '.request_remove' %></button>
+      <button id="restore"><%= t '.request_restore' %></button>
     </span>
     <% end %>
 
     <%= dialog "last_attempt_result_dialog", "Last attempt result" do %>
-      <div style="border: 1px solid #bbb; padding: 1%;">
-        <textarea readonly rows="22" wrap="off"></textarea>
-      </div>
+      <section class="container">
+        <textarea readonly wrap="off"></textarea>
+      </section>
     <% end %>
   </div>
 <% end %>

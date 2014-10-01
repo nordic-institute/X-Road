@@ -144,6 +144,20 @@ public class SoapParserImplTest {
     }
 
     @Test
+    public void readSdsbAllowedMethodsRequest() throws Exception {
+        SoapMessage response = parseSoapMessage("sdsb-allowedMethods.request");
+        assertTrue(MediatorUtils.isSdsbSoapMessage(response));
+        assertTrue(response.isRequest());
+    }
+
+    @Test
+    public void readSdsbListMethodsRequest() throws Exception {
+        SoapMessage response = parseSoapMessage("sdsb-listMethods.request");
+        assertTrue(MediatorUtils.isSdsbSoapMessage(response));
+        assertTrue(response.isRequest());
+    }
+
+    @Test
     public void readUnknownRequestMessage() throws Exception {
         thrown.expectError(X_INVALID_MESSAGE);
         parseSoapMessage("unknown.request");

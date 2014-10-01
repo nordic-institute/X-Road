@@ -106,6 +106,10 @@ public class ExpectedCodedException implements TestRule {
 
                 return;
             } catch (Throwable th) {
+                if (expected == null) {
+                    throw th;
+                }
+
                 fail("Expected test to throw CodedException, " +
                         "but test threw: " + th);
             }

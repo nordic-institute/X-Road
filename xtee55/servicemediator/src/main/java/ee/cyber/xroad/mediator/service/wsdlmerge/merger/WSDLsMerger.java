@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.xroad.mediator.IdentifierMapping;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_ADAPTER_WSDL_NOT_FOUND;
 /**
@@ -24,7 +25,6 @@ public class WSDLsMerger {
 
     private List<String> wsdlUrls;
     private WSDLProvider wsdlProvider;
-    private WSDLStreamsMerger wsdlStreamsMerger;
     private ClientId client;
 
     @Getter
@@ -33,17 +33,15 @@ public class WSDLsMerger {
     public WSDLsMerger(
             List<String> wsdlUrls,
             WSDLProvider wsdlProvider,
-            ClientId client,
-            WSDLStreamsMerger wsdlStreamsMerger) throws IOException {
+            ClientId client) throws Exception {
         this.wsdlUrls = wsdlUrls;
         this.wsdlProvider = wsdlProvider;
         this.client = client;
-        this.wsdlStreamsMerger = wsdlStreamsMerger;
 
         mergeWsdls();
     }
 
-    private void mergeWsdls() throws IOException {
+    private void mergeWsdls() throws Exception {
         if (wsdlUrls == null || wsdlUrls.isEmpty()) {
             throw new CodedException(X_ADAPTER_WSDL_NOT_FOUND,
                     "No adapter WSDL-s found for client '%s', inspect Your " +
@@ -63,7 +61,7 @@ public class WSDLsMerger {
         mergedWsdlAsStream = wsdlProvider.getWsdl(wsdlUrls.get(0));
     }
 
-    private void mergeMultipleWsdls() throws IOException {
+    private void mergeMultipleWsdls() throws Exception {
         LOG.trace("mergeMultipleWsdls()");
         List<InputStream> wsdlInputStreams = new ArrayList<>(wsdlUrls.size());
 
@@ -71,6 +69,9 @@ public class WSDLsMerger {
             wsdlInputStreams.add(wsdlProvider.getWsdl(each));
         }
 
-        mergedWsdlAsStream = wsdlStreamsMerger.merge(wsdlInputStreams);
+        String v5DbName = IdentifierMapping.getInstance().getShortName(client);
+        mergedWsdlAsStream =
+                new WSDLStreamsMerger(wsdlInputStreams, v5DbName)
+                        .getMergedWsdlAsStream();
     }
 }

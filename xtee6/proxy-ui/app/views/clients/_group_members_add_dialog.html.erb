@@ -1,7 +1,7 @@
 <%= dialog "group_members_add_dialog" do %>
   <div class="simple_search">
     <fieldset style="width: 30%; padding: 0 1em;">
-      <legend><%= t '.simple_search' %></legend>
+      <legend><%= t 'common.simple_search' %></legend>
 
       <%= form_tag(nil, { class: "simple_search_form" }) do %>
       <table style="width: 100%;">
@@ -13,12 +13,12 @@
       <% end %>
     </fieldset>
 
-    <a href="#"><%= t '.advanced_search' %></a>
+    <a href="#"><%= t 'common.advanced_search' %></a>
   </div>
 
   <div class="advanced_search">
     <fieldset style="width: 30%; padding: 0 1em;">
-      <legend><%= t '.advanced_search_parameters' %></legend>
+      <legend><%= t 'common.advanced_search' %></legend>
 
       <%= form_tag(nil, { class: "advanced_search_form" }) do %>
       <table style="width: 100%;">
@@ -27,17 +27,11 @@
           <td><%= text_field_tag "subject_search_description" %></td>
         </tr>
         <tr>
-          <td><%= t 'clients.group_details_dialog.code' %></td>
-          <td><%= text_field_tag "subject_search_code" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.class' %></td>
-          <td><%= select_tag "subject_search_class",
-                  options_for_select(@member_classes), :include_blank => true %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.subsystem' %></td>
-          <td><%= text_field_tag "subject_search_subsystem_code" %></td>
+          <td><%= t 'clients.group_details_dialog.type' %></td>
+          <td>
+            <%= select_tag "subject_search_type",
+                options_for_select(@member_types), :include_blank => true %>
+          </td>
         </tr>
         <tr>
           <td><%= t 'clients.group_details_dialog.sdsb' %></td>
@@ -47,11 +41,17 @@
           </td>
         </tr>
         <tr>
-          <td><%= t 'clients.group_details_dialog.type' %></td>
-          <td>
-            <%= select_tag "subject_search_type",
-                options_for_select(@member_types), :include_blank => true %>
-          </td>
+          <td><%= t 'clients.group_details_dialog.class' %></td>
+          <td><%= select_tag "subject_search_class",
+                  options_for_select(@member_classes), :include_blank => true %></td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.group_details_dialog.code' %></td>
+          <td><%= text_field_tag "subject_search_code" %></td>
+        </tr>
+        <tr>
+          <td><%= t 'clients.group_details_dialog.subsystem' %></td>
+          <td><%= text_field_tag "subject_search_subsystem_code" %></td>
         </tr>
         <tr>
           <td colspan="2">
@@ -63,7 +63,7 @@
       <% end %>
     </fieldset>
 
-    <a href="#"><%= t '.simple_search' %></a>
+    <a href="#"><%= t 'common.simple_search' %></a>
   </div> 
 
   <div class="fill" style="margin-top: 1em;">
@@ -82,11 +82,7 @@
       <thead>
         <tr>
           <th><%= t '.name' %></th>
-          <th><%= t '.code' %></th>
-          <th><%= t '.class' %></th>
-          <th><%= t '.subsystem' %></th>
-          <th><%= t '.sdsb' %></th>
-          <th><%= t '.type' %></th>
+          <th>ID</th>
         </tr>
       </thead>
     </table>

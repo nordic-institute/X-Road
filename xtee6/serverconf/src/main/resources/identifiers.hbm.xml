@@ -1,0 +1,61 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+    "-//Hibernate/Hibernate Mapping DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
+<hibernate-mapping package="ee.cyber.sdsb.common.identifier">
+
+    <class name="SdsbId" table="IDENTIFIER">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <discriminator column="DISCRIMINATOR" type="string"/>
+
+        <property name="type" access="field">
+             <type name="org.hibernate.type.EnumType">
+                 <param name="enumClass">ee.cyber.sdsb.common.identifier.SdsbObjectType</param>
+                 <param name="type">12</param>
+             </type>
+        </property>
+
+        <property name="sdsbInstance" access="field"/>
+
+        <subclass name="ClientId" discriminator-value="C">
+            <property name="memberClass" access="field"/>
+            <property name="memberCode" access="field"/>
+            <property name="subsystemCode" access="field"/>
+        </subclass>
+
+        <subclass name="ServiceId" discriminator-value="S">
+            <property name="memberClass" access="field"/>
+            <property name="memberCode" access="field"/>
+            <property name="serviceVersion" access="field"/>
+            <property name="subsystemCode" access="field"/>
+            <property name="serviceCode" access="field"/>
+        </subclass>
+
+        <subclass name="CentralServiceId" discriminator-value="CS">
+            <property name="serviceCode" access="field"/>
+        </subclass>
+
+        <subclass name="GlobalGroupId" discriminator-value="GG">
+            <property name="groupCode" access="field"/>
+        </subclass>
+
+        <subclass name="LocalGroupId" discriminator-value="LG">
+            <property name="groupCode" access="field"/>
+        </subclass>
+
+        <subclass name="SecurityCategoryId" discriminator-value="SC">
+            <property name="securityCategory" access="field"/>
+        </subclass>
+
+        <subclass name="SecurityServerId" discriminator-value="SS">
+            <property name="memberClass" access="field"/>
+            <property name="memberCode" access="field"/>
+            <property name="serverCode" access="field"/>
+        </subclass>
+
+    </class>
+
+</hibernate-mapping>

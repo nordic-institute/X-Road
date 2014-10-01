@@ -1,7 +1,8 @@
+ext.codeCoverage = true
+
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
-    provided
     xjc
 }
 
@@ -12,14 +13,15 @@ sourceSets {
 }
 
 dependencies {
-    compile 'aopalliance:aopalliance:1.0'
     compile 'org.apache.james:apache-mime4j-core:0.7.2'
     compile 'org.apache.commons:commons-lang3:3.1'
-    compile 'org.bouncycastle:bcpkix-jdk15on:1.47'
+    compile 'org.apache.santuario:xmlsec:1.5.6'
+
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.50'
     compile 'commons-configuration:commons-configuration:1.9'
     compile 'commons-io:commons-io:2.4'
     compile 'commons-jxpath:commons-jxpath:1.3'
-    compile 'javax.xml:jaxb-api:2.1'
+    compile 'com.sun.xml.bind:jaxb-impl:2.2.7'
     compile 'org.slf4j:jcl-over-slf4j:1.6.6'
 
     compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
@@ -31,54 +33,39 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.1.6'
     compile 'joda-time:joda-time:2.1'
     compile 'xalan:serializer:2.7.1'
-    compile 'eu.vitaliy:xades4j:1.2.0'
-
+    
     compile 'org.apache.httpcomponents:httpasyncclient:4.0'
     compile 'org.apache.httpcomponents:httpclient:4.3.1'
     compile 'org.apache.httpcomponents:httpcore:4.3'
             
-    compile 'com.typesafe.akka:akka-actor_2.10:2.2.0'
-    compile 'com.typesafe.akka:akka-remote_2.10:2.2.0'
+    compile 'com.typesafe.akka:akka-actor_2.10:2.2.1'
+    compile 'com.typesafe.akka:akka-remote_2.10:2.2.1'
 
-    provided 'org.projectlombok:lombok:0.12.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
     xjc 'net.java.dev.vcc.thirdparty:collection-setter-injector:0.5.0-1'
 }
 
-sourceSets.main.compileClasspath += configurations.provided
-
-eclipse {
-    classpath {
-        plusConfigurations += configurations.provided 
-    }
-}
-
 test {
     jvmArgs '-Djava.library.path=../legacy/lib'
 }
 
-task createDirs () {
+task createDirs() {
     project.ext.schemaTargetDir.mkdirs()
 }
 
-task xjc () {
-    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+task xjc() {
+    ant.taskdef(name: 'xjc', 
+        classname: 'com.sun.tools.xjc.XJCTask', 
+        classpath: configurations.xjc.asPath)
 
     // Generate classes for identifiers
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
         package: 'ee.cyber.sdsb.common.identifier',
         schema: 'src/main/resources/identifiers.xsd'
-    )
-
-    // Generate classes for serverconf, using identifier classes
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.conf.serverconf',
-        schema: 'src/main/resources/serverconf.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
     )
 
     // Generate classes for message, using identifier classes
@@ -109,9 +96,17 @@ task xjc () {
 
     // Generate classes for hash chains
     ant.xjc(
-            destdir: project.ext.schemaTargetDir,
-            package: 'ee.cyber.sdsb.common.hashchain',
-            schema: 'src/main/resources/hashchain.xsd',
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.cyber.sdsb.common.hashchain',
+        schema: 'src/main/resources/hashchain.xsd',
+    )
+
+    // Generate classes service metainfo
+    ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.cyber.sdsb.common.metadata',
+        schema: 'src/main/resources/service-metainfo.xsd',
+        binding: 'src/main/resources/identifiers-bindings.xml'
     )
 }
 

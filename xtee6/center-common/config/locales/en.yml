@@ -1,15 +1,111 @@
 en:
+  activerecord:
+    attributes:
+      approved_tsp:
+        url: "TSP URL"
+      central_service:
+        service_code: "Central service code"
+      distributed_files:
+        original_filename_last_successful: "Original filename of uploaded file"
+        original_filename_last_failed: "Original filename of uploaded file"
+      distributed_signed_files:
+        data_boundary: "Data boundary"
+        sig_algo_id: "Signature algorithm ID"
+      federated_sdsb:
+        code: "Code"
+        address: "Address"
+      global_group:
+        group_code: "Group code"
+        description: "Group description"
+      identifier:
+        object_type: "Object type"
+        sdsb_instance: "SDSB instance"
+        member_class: "Member class"
+        member_code: "Member code"
+        subsystem_code: "Subsystem code"
+        service_code: "Service code"
+        server_code: "Server code"
+        type: "Type"
+        service_version: "Service version"
+      member_class_mapping:
+        federated_member_class: "Federated member class"
+      member_class:
+        code: "Code"
+        description: "Description"
+      ocsp_info:
+        url: "URL"
+      pki:
+        name: "Name"
+        name_extractor_member_class: "Name extractor member class"
+        name_extractor_method_name: "Name extractor method name"
+      request_processing:
+        type: "Type"
+        status: "Status"
+      request:
+        type: "Type"
+        address: "Address"
+        origin: "Origin"
+        server_owner_name: "Server owner name"
+        server_user_name: "Server user name"
+      sdsb_member:
+        member_code: "Member code"
+        name: "Member name"
+      security_category:
+        code: "Code"
+        description: "Description"
+      security_category_mapping:
+        federated_category: "Federated category"
+      security_server_client_name:
+        name: "Name"
+      security_server_client:
+        subsystem_code: "Subsystem code"
+        type: "Type"
+        administrative_contact: "Administrative contact"
+      security_server:
+        server_code: "Server code"
+        address: "Address"
+      system_parameter:
+        key: "Key"
+        value: "Value"
+      ui_user:
+        username: "Username"
+        locale: "Locale"
+      v5_import:
+        file_name: "File name"
+    errors:
+      invalid_url: "'%{url}' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'"
+      input_too_long: "can contain ultimately %{max_length} symbols"
+      messages:
+        taken: "'%{value}' has already been taken"
+        blank: "cannot be blank"
+        record_invalid: "%{errors}"
+
   # Management requests error messages.
   requests:
     server_not_found: "Server not found: %{server}"
-    multiple_open_requests: "More than one request is open for server %{server_id}"
+    multiple_open_requests: "More than one request is open for server %{server_id}, id of another request: '%{request_id}'"
     invalid_processing_state: "Request processing is in invalid state: %{status}"
     duplicate_requests: "A request for registering '%{user}', as a client to security server '%{security_server}' has already been submitted (%{received}, request ID: '%{id}')"
+    client_already_registered: "'%{user}' has already been registered as a client to securit server '%{security_server}'"
     more_than_one_requests: "Internal error: duplicate requests found in database"
     client_not_found: "Client not found: %{client}"
+    request_with_same_cert_already_exists: "Certificate is already submitted for registration with request '%{id}'"
+    security_server_exists: "Certificate is already registered, request id '%{id}"
 
   errors:
-    invalid_url: "'%{url}' is an invalid URL, examples of valid URL-s: : 'http://www.example.com', 'https://www.example.com'"
-    tsp_url_not_unique: "URL '%{value}' already belongs to existing TSP"
-    tsp_cert_not_unique: "TSP corresponding to this certificate already exists"
-
+    pki:
+      top_ca_cert_too_long_subject_name: "Length of top CA certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
+    tsp:
+      cert_and_url_exists: "This combination of URL and certificate already exists"
+      cert_too_long_subject_name: "Length of TSP certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
+    request:
+      auth_cert_not_unique: "Security server '%{server_id}' already has authentication certificate You are trying to add"
+      cert_not_auth: "This certificate cannot be used for authentication."
+    identifier_mapping:
+      malformed: "Upload failed: incorrect file structure.  %{fault_msg}"
+      member_class_not_allowed: "Uploading failed: Member class '%{class}' is not defined in the system. Valid values are: '%{allowed_classes}'"
+      wrong_sdsb_instance: "Uploading failed: X-Road instance identifier must be '%{current}', '%{found}' was found"
+    import:
+      invalid_extension: "Uploaded file name '%{file}' has invalid extension, valid ones are '%{extensions}'"
+      invalid_content_type: "Invalid content type for uploaded file: '%{content_type}', allowed ones are '%{allowed_content_types}'"
+      invalid_content: "Content of uploaded file '%{file}' does not correspond to gzip format"

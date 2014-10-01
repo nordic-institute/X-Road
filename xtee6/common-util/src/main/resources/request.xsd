@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd"
-    targetNamespace="http://sdsb.net/xsd/sdsb.xsd" xmlns:id="http://sdsb.net/xsd/identifiers"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
     elementFormDefault="qualified">
-    <import namespace="http://sdsb.net/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
 
     <element name="authCertReg" type="tns:AuthCertRegRequestType"/>
     <element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>

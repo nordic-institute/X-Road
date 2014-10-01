@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+test -d /var/log/sdsb/jetty && test -w /var/log/sdsb/jetty || mkdir -p /var/log/sdsb/jetty  ; chown sdsb:sdsb /var/log/sdsb/jetty
+test -d /usr/share/sdsb/webapps || mkdir -p /usr/share/sdsb/webapps
+
+exit 0

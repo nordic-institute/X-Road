@@ -21,23 +21,24 @@ import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorServerConfProvider;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey.KEY_ALIAS;
 import static ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey.KEY_PASSWORD;
 import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
 
 class IntegrationTestServerConfImpl implements
         MediatorServerConfProvider {
 
-    private static final Logger LOG = LoggerFactory
-            .getLogger(IntegrationTestServerConfImpl.class);
+    private static final Logger LOG =
+            LoggerFactory.getLogger(IntegrationTestServerConfImpl.class);
 
     @Override
     public SecurityServerId getIdentifier() {
-        return null; // Not used
+        return SecurityServerId.create(
+                "EE", "BUSINESS", "producer_nossl", "server");
     }
 
     @Override
@@ -213,6 +214,8 @@ class IntegrationTestServerConfImpl implements
             result.add("http://192.168.74.203:55555/foo");
         } else if (getClientProducerNossl().equals(clientId)) {
             result.add("http://iks2-testhost:8080/testservice-0.1/xrddl");
+            result.add(
+                    "http://iks2-testhost:8080/testservice-0.1/transpordiamet");
         }
 
         return result;
@@ -303,7 +306,17 @@ class IntegrationTestServerConfImpl implements
             throws Exception {
         String isCertBase64 = FileUtils.readFileToString(new File(
                 "src/test/resources/iscert-" + clientCode + ".base64"));
-        return Collections.singletonList(CryptoUtils
-                .readCertificate(isCertBase64));
+        return Collections.singletonList(readCertificate(isCertBase64));
+    }
+
+    @Override
+    public List<ServiceId> getAllServices(ClientId serviceProvider) {
+        return null;
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServices(ClientId serviceProvider,
+            ClientId client) {
+        return null;
     }
 }

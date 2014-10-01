@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.identifier.AbstractServiceId;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -33,7 +32,6 @@ public class AsyncDBTestUtil {
 
     public static final String DB_FILEPATH = "build/asyncdb";
     public static final String LOG_FILEPATH = "build/asynclog";
-    public static final String SERVER_CONF_FILE = "src/test/resources/serverconf.xml";
 
     public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm.ss";
 
@@ -45,8 +43,6 @@ public class AsyncDBTestUtil {
         System.setProperty(SystemProperties.ASYNC_DB_PATH,
                 AsyncDBTestUtil.DB_FILEPATH);
         System.setProperty(SystemProperties.LOG_PATH, LOG_FILEPATH);
-        System.setProperty(SystemProperties.SERVER_CONFIGURATION_FILE,
-                SERVER_CONF_FILE);
     }
 
     public static String getProviderDirPath() throws Exception {
@@ -119,9 +115,9 @@ public class AsyncDBTestUtil {
         throw new RuntimeException("Read unexpected Soap message");
     }
 
-    private static ServiceId serviceId(AbstractServiceId abstractServiceId) {
+    private static ServiceId serviceId(ServiceId abstractServiceId) {
         if (abstractServiceId instanceof ServiceId) {
-            return (ServiceId) abstractServiceId;
+            return abstractServiceId;
         } else if (abstractServiceId instanceof CentralServiceId) {
             CentralServiceId centralServiceId =
                     (CentralServiceId) abstractServiceId;

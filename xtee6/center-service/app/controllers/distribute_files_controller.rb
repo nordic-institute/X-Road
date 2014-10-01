@@ -7,17 +7,19 @@ class DistributeFilesController < ApplicationController
 
   ALLOWED_IPS = ['127.0.0.1', 'localhost'].freeze
 
-  # TODO: Perhaps it is better to read this from SystemProperties table as well?
   DIST_FILE = Java::ee.cyber.sdsb.common.SystemProperties.getCenterDistributedFile()
 
   before_filter :restrict_access
 
   def index
     begin
-      sign
-      distribute
+      sign()
+      distribute()
+      DistributedFiles.write_signed_files_log(
+          "Distributed files signed successfully.\n")
       render :text => ""
     rescue Exception => e
+      DistributedFiles.write_signed_files_log(e)
       log "#{e.message}"
       render :text => "#{e.message}"
     end

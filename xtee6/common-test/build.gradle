@@ -1,7 +1,9 @@
 dependencies {
     compile project(':common-util')
-	// JUnit is needed for ExpectedCodedException
-	compile 'junit:junit:4.11'
+    compile 'org.antlr:ST4:4.0.7'
+    // JUnit is needed for ExpectedCodedException
+    compile 'junit:junit:4.11'
+    compile 'com.google.code.gson:gson:2.2.3'
 }
 
 sourceSets {

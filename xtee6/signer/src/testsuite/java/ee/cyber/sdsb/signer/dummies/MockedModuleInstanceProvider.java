@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.signer.dummies.pkcs11.ModuleMock;
-import ee.cyber.sdsb.signer.util.ModuleInstanceProvider;
+import ee.cyber.sdsb.signer.tokenmanager.module.ModuleInstanceProvider;
 
 public class MockedModuleInstanceProvider implements ModuleInstanceProvider {
 

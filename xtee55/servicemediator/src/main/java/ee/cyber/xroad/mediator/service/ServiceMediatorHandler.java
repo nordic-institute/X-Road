@@ -8,14 +8,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.server.Request;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.db.HibernateUtil;
-import ee.cyber.sdsb.common.db.TransactionCallback;
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
+import ee.cyber.sdsb.common.util.MimeTypes;
+import ee.cyber.sdsb.common.util.MimeUtils;
 import ee.cyber.sdsb.common.util.PerformanceLogger;
 import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
@@ -24,6 +23,8 @@ import ee.cyber.xroad.mediator.service.wsdlmerge.WSDLMergeRequestProcessor;
 
 import static ee.cyber.sdsb.common.ErrorCodes.SERVER_SERVERPROXY_X;
 import static ee.cyber.sdsb.common.ErrorCodes.translateWithPrefix;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 
 class ServiceMediatorHandler extends AbstractMediatorHandler {
 
@@ -46,25 +47,33 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
         LOG.info("Received request from {}", request.getRemoteAddr());
 
         try {
-            final MediatorMessageProcessor processor =
+            MediatorMessageProcessor processor =
                     getRequestProcessor(target, request);
 
-            HibernateUtil.doInTransaction(new TransactionCallback<Object>() {
-                @Override
-                public Object call(Session session) throws Exception {
-                    process(processor, request, response);
-                    return null;
-                }
-            });
+            process(processor, request, response);
         } catch (CodedException.Fault fault) {
             LOG.info("Handler got fault", fault);
 
-            sendErrorResponse(response, fault);
+            if (isMergedWsdlRequest(target)) {
+                sendErrorResponse(response, SC_OK, fault.getFaultString());
+            } else if (isGetRequest(request)) {
+                sendErrorResponse(response, SC_INTERNAL_SERVER_ERROR,
+                        fault.getFaultString());
+            } else {
+                sendErrorResponse(response, fault);
+            }
         } catch (Exception ex) {
             LOG.error("Request processing error", ex);
 
-            sendErrorResponse(response,
-                    translateWithPrefix(SERVER_SERVERPROXY_X, ex));
+            if (isMergedWsdlRequest(target)) {
+                sendErrorResponse(response, SC_OK, ex.getMessage());
+            } else if (isGetRequest(request)) {
+                sendErrorResponse(response, SC_INTERNAL_SERVER_ERROR,
+                        ex.getMessage());
+            } else {
+                sendErrorResponse(response,
+                        translateWithPrefix(SERVER_SERVERPROXY_X, ex));
+            }
         } finally {
             baseRequest.setHandled(true);
 
@@ -106,6 +115,23 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
 
     private boolean isMergedWsdlRequest(String target) {
         return "/wsdl".equals(target);
+    }
+
+    /**
+     * We send plain text with HTTP OK status, as MISP
+     * (and other V5 client applications) could handle it more accurately.
+     */
+    private void sendErrorResponse(HttpServletResponse response,
+            int status, String errorMsg) throws IOException {
+        String encoding = MimeUtils.UTF8;
+        byte[] messageBytes = errorMsg.getBytes(encoding);
+
+        response.setStatus(status);
+        response.setContentType(MimeTypes.TEXT_PLAIN);
+        response.setContentLength(messageBytes.length);
+        response.setCharacterEncoding(encoding);
+
+        response.getOutputStream().write(messageBytes);
     }
 
     private static URI getBackendUri(HttpServletRequest request)

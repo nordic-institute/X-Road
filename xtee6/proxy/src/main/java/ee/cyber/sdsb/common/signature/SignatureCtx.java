@@ -18,8 +18,7 @@ import ee.cyber.sdsb.common.util.MessageFileNames;
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
 import static ee.cyber.sdsb.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.cyber.sdsb.common.util.MessageFileNames.HASH_CHAIN_RESULT;
-import static ee.cyber.sdsb.common.util.MessageFileNames.MESSAGE;
+import static ee.cyber.sdsb.common.util.MessageFileNames.*;
 
 /**
  * This class handles the (batch) signature creation. After requests
@@ -90,7 +89,7 @@ class SignatureCtx {
 
         byte[] hashChainResultBytes =
                 hashChainResult.getBytes(StandardCharsets.UTF_8);
-        return builder.createDataToBeSigned(HASH_CHAIN_RESULT,
+        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT,
                 createResourceResolver(hashChainResultBytes));
     }
 
@@ -110,17 +109,17 @@ class SignatureCtx {
 
         hashChainBuilder.finishBuilding();
 
-        hashChainResult = hashChainBuilder.getHashChainResult();
-        hashChains = hashChainBuilder.getHashChains();
+        hashChainResult = hashChainBuilder.getHashChainResult(SIG_HASH_CHAIN);
+        hashChains = hashChainBuilder.getHashChains(MESSAGE);
     }
 
     private static byte[][] getHashChainInputs(SigningRequest request)
             throws Exception {
-        List<PartHash> parts = request.getParts();
+        List<MessagePart> parts = request.getParts();
 
         byte[][] result = new byte[parts.size()][];
         for (int i = 0; i < parts.size(); i++) {
-            PartHash part = parts.get(i);
+            MessagePart part = parts.get(i);
 
             // Assuming that message is raw data, we need to hash it
             if (MessageFileNames.MESSAGE.equals(part.getName())) {
@@ -133,7 +132,7 @@ class SignatureCtx {
         return result;
     }
 
-    private static byte[] calculateHash(PartHash part) throws Exception {
+    private static byte[] calculateHash(MessagePart part) throws Exception {
         return calculateDigest(part.getHashAlgoId(), part.getData());
     }
 
@@ -151,7 +150,7 @@ class SignatureCtx {
             public boolean engineCanResolve(Attr uri, String baseUri) {
                 switch (uri.getValue()) {
                     case MessageFileNames.MESSAGE:
-                    case MessageFileNames.HASH_CHAIN_RESULT:
+                    case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                         return true;
                     default:
                         return false;

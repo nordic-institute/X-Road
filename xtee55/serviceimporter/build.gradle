@@ -14,9 +14,9 @@ dependencies {
     compile project(':mediator-common')
 
     // SDSB dependencies
-    compile 'ee.cyber.sdsb:common-util:1.0'
+    compile 'ee.cyber.sdsb:serverconf:1.0'
     compile 'ee.cyber.sdsb:signer-protocol:1.0'
-    compile 'ee.cyber.sdsb:proxy-ui:1.0'
+    compile 'ee.cyber.sdsb:common-ui:1.0'
 
     // Additional 3rd party dependencies
     compile 'commons-cli:commons-cli:1.2'

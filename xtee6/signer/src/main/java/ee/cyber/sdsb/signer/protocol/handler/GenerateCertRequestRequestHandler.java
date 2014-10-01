@@ -6,6 +6,8 @@ import java.security.PublicKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.operator.ContentSigner;
@@ -18,19 +20,22 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.signer.core.TokenManager;
 import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
+import ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo;
 import ee.cyber.sdsb.signer.protocol.message.GenerateCertRequest;
 import ee.cyber.sdsb.signer.protocol.message.GenerateCertRequestResponse;
+import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
+import ee.cyber.sdsb.signer.tokenmanager.token.SoftwareTokenType;
 import ee.cyber.sdsb.signer.util.CalculateSignature;
 import ee.cyber.sdsb.signer.util.CalculatedSignature;
 import ee.cyber.sdsb.signer.util.SignerUtil;
 import ee.cyber.sdsb.signer.util.TokenAndKey;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.ErrorCodes.X_KEY_NOT_AVAILABLE;
+import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
+import static ee.cyber.sdsb.signer.util.ExceptionHelper.keyNotAvailable;
 
+@Slf4j
 public class GenerateCertRequestRequestHandler
         extends AbstractRequestHandler<GenerateCertRequest> {
 
@@ -39,8 +44,20 @@ public class GenerateCertRequestRequestHandler
         TokenAndKey tokenAndKey =
                 TokenManager.findTokenAndKey(message.getKeyId());
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
-            throw new CodedException(X_KEY_NOT_AVAILABLE,
-                    "Key '%s' is not available", tokenAndKey.getKeyId());
+            throw keyNotAvailable(tokenAndKey.getKeyId());
+        }
+
+        if (message.getKeyUsage() == KeyUsageInfo.AUTHENTICATION
+                && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
+            throw CodedException.tr(X_WRONG_CERT_USAGE,
+                    "auth_cert_under_softtoken",
+                    "Authentication certificate requests can only be created" +
+                    " under software tokens");
+        }
+
+        if (tokenAndKey.getKey().getPublicKey() == null) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Key '%s' has no public key", message.getKeyId());
         }
 
         PublicKey publicKey =
@@ -98,7 +115,7 @@ public class GenerateCertRequestRequestHandler
 
         @Override
         public byte[] getSignature() {
-            LOG.debug("Calculating signature for certificate request...");
+            log.debug("Calculating signature for certificate request...");
 
             byte[] tbsData = null;
             try {
@@ -119,8 +136,7 @@ public class GenerateCertRequestRequestHandler
                 waitForSignature();
 
                 if (signature.getException() != null) {
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            signature.getException());
+                    throw translateException(signature.getException());
                 }
 
                 return signature.getSignature();

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+service xroad-signer restart || service xroad-signer start
+
+exit 0

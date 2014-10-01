@@ -5,7 +5,6 @@ import java.security.cert.CertPathBuilderException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -43,9 +42,9 @@ public class CertChainTest {
         X509Certificate rootCa = TestCertUtil.getCertChainCert("root_ca.p12");
         X509Certificate userCert = TestCertUtil.getCertChainCert("user_0.p12");
 
-        CertChain chain = new CertChain(
-                userCert, Arrays.asList(rootCa), null);
-        chain.verify(getAllOcspResponses(), makeDate(userCert.getNotBefore(), 1));
+        CertChain chain = new CertChain(userCert, rootCa, null);
+        verify(chain, getAllOcspResponses(),
+                makeDate(userCert.getNotBefore(), 1));
     }
 
     @Test
@@ -58,9 +57,10 @@ public class CertChainTest {
 
         CertChain chain = new CertChain(
                 userCert,
-                Arrays.asList(rootCa),
+                rootCa,
                 Arrays.asList(interCa1, interCa2, interCa3));
-        chain.verify(getAllOcspResponses(), makeDate(rootCa.getNotBefore(), 1));
+        verify(chain, getAllOcspResponses(),
+                makeDate(rootCa.getNotBefore(), 1));
     }
 
     @Test
@@ -72,9 +72,9 @@ public class CertChainTest {
 
         try {
             CertChain chain = new CertChain(userCert,
-                    Arrays.asList(rootCa),
+                    rootCa,
                     Arrays.asList(interCa1, interCa3));
-            chain.verify(Collections.<OCSPResp>emptyList(), new Date());
+            verifyChainOnly(chain, new Date());
             fail("Path creation should fail");
         } catch (CodedException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
@@ -92,10 +92,10 @@ public class CertChainTest {
 
         CertChain chain = new CertChain(
                 userCert,
-                Arrays.asList(rootCa),
+                rootCa,
                 Arrays.asList(interCa1, interCa2, interCa3));
         try {
-            chain.verify(Collections.<OCSPResp>emptyList(), null);
+            verifyChainOnly(chain, null);
             fail("Path creation should fail");
         } catch (CodedException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
@@ -119,18 +119,17 @@ public class CertChainTest {
 
         CertChain chain = new CertChain(
                 userCert,
-                Arrays.asList(rootCa),
+                rootCa,
                 Arrays.asList(interCa1, interCa2, interCa3, interCa4));
         try {
-            chain.verify(ocsp, null);
+            verify(chain, ocsp, null);
             fail("Path creation should fail");
         } catch (CodedException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
         }
     }
 
-    //@Test
-    // TODO: Investigate why this test fails on some environments.
+    @Test
     public void unsafeUserCertSignatureAlgorithm() throws Exception {
         String disabledAlgorithms =
                 Security.getProperty("jdk.certpath.disabledAlgorithms");
@@ -150,9 +149,9 @@ public class CertChainTest {
 
         try {
             CertChain chain = new CertChain(userCert,
-                    Arrays.asList(rootCa),
+                    rootCa,
                     Arrays.asList(interCa1, interCa2, interCa3));
-            chain.verify(ocsp, new Date());
+            verify(chain, ocsp, new Date());
             fail("Path creation should fail");
         } catch (CodedException e) {
             assertTrue(e.getCause() instanceof CertPathBuilderException);
@@ -173,10 +172,10 @@ public class CertChainTest {
 
         CertChain chain = new CertChain(
                 userCert,
-                Arrays.asList(rootCa),
+                rootCa,
                 Arrays.asList(interCa1, interCa2, interCa3));
         try {
-            chain.verify(ocsp, makeDate(rootCa.getNotBefore(), 1));
+            verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
         } catch (CodedException e) {
             assertTrue(e.getFaultCode().startsWith(
@@ -198,10 +197,10 @@ public class CertChainTest {
 
         CertChain chain = new CertChain(
                 userCert,
-                Arrays.asList(rootCa),
+                rootCa,
                 Arrays.asList(interCa1, interCa2, interCa3));
         try {
-            chain.verify(ocsp, makeDate(rootCa.getNotBefore(), 1));
+            verify(chain, ocsp, makeDate(rootCa.getNotBefore(), 1));
             fail("OCSP verification should fail");
         } catch (CodedException e) {
             assertTrue(e.getFaultCode().startsWith(
@@ -210,6 +209,15 @@ public class CertChainTest {
     }
 
     // -- Utility methods
+
+    private static void  verify(CertChain chain, List<OCSPResp> ocspResponses,
+            Date atDate) {
+        new CertChainVerifier(chain).verify(ocspResponses, atDate);
+    }
+
+    private static void  verifyChainOnly(CertChain chain, Date atDate) {
+        new CertChainVerifier(chain).verifyChainOnly(atDate);
+    }
 
     private static Date makeDate(Date someDate, int plusDays) {
         return new Date(someDate.getTime()

@@ -15,5 +15,5 @@ mkdir -p packages/xtee55-proxy/usr/share/sdsb/scripts/
 cp  scripts/serviceimporter.sh  scripts/serviceexporter.sh scripts/promote_sdsb.sh scripts/deactivate_sdsb.sh scripts/activate_sdsb.sh scripts/import_internal_sslkey.sh scripts/export_internal_sslkey.sh scripts/check_sdsb.sh packages/xtee55-proxy/usr/share/sdsb/scripts/
 
 #xtee55-common
-mkdir -p xtee55-common/usr/share/sdsb/lib/
+mkdir -p packages/xtee55-common/usr/share/sdsb/lib/
 cp serviceimporter/src/main/c/libxlock.so packages/xtee55-common/usr/share/sdsb/lib/

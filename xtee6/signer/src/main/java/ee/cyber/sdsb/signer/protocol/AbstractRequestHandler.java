@@ -1,33 +1,31 @@
-package ee.cyber.sdsb.signer.protocol;
+ package ee.cyber.sdsb.signer.protocol;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.signer.protocol.message.SuccessResponse;
+import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.sdsb.signer.util.SignerUtil.getTokenManager;
-import static ee.cyber.sdsb.signer.util.SignerUtil.getTokenWorker;
+import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getTokenSigner;
+import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getTokenWorker;
+import static ee.cyber.sdsb.signer.util.ExceptionHelper.tokenNotInitialized;
 
 @SuppressWarnings("unchecked")
+@Slf4j
 public abstract class AbstractRequestHandler<T> extends UntypedActor {
 
-    public static final Object SUCCESS = new SuccessResponse();
-    public static final Object NOTHING = null;
-
-    protected static final Logger LOG =
-            LoggerFactory.getLogger(AbstractRequestHandler.class);
+    private static final Object SUCCESS = new SuccessResponse();
+    private static final Object NOTHING = null;
 
     @Override
     public void onReceive(Object message) throws Exception {
-        LOG.trace("onReceive({})", message);
+        log.trace("onReceive({})", message);
         try {
             Object result = handle((T) message);
-            if (result != AbstractRequestHandler.NOTHING) {
+            if (result != nothing()) {
                 if (result instanceof Exception) {
                     handleError(translateException((Exception) result));
                 } else if (hasSender()) {
@@ -36,7 +34,7 @@ public abstract class AbstractRequestHandler<T> extends UntypedActor {
             }
         } catch (ClassCastException e) {
             handleError(new CodedException(X_INTERNAL_ERROR,
-                    "Unexpected message '%s'", message));
+                    "Unexpected message: %s", message.getClass()));
         } catch (Exception e) {
             handleError(translateException(e));
         } finally {
@@ -44,23 +42,31 @@ public abstract class AbstractRequestHandler<T> extends UntypedActor {
         }
     }
 
-    protected void tellTokenManager(Object message) {
-        getTokenManager(getContext()).tell(message, getSender());
-    }
-
     protected void tellTokenWorker(Object message, String tokenId) {
         tellTokenWorker(message, tokenId, getSender());
     }
 
+    protected void tellTokenSigner(Object message, String tokenId) {
+        if (!TokenManager.isTokenAvailable(tokenId)) {
+            throw tokenNotInitialized(tokenId);
+        }
+
+        getTokenSigner(getContext(), tokenId).tell(message, getSender());
+    }
+
     protected void tellTokenWorker(Object message, String tokenId,
             ActorRef sender) {
+        if (!TokenManager.isTokenAvailable(tokenId)) {
+            throw tokenNotInitialized(tokenId);
+        }
+
         getTokenWorker(getContext(), tokenId).tell(message, sender);
     }
 
     protected abstract Object handle(T message) throws Exception;
 
     private void handleError(CodedException e) {
-        LOG.error("Error in request handler", e);
+        log.error("Error in request handler", e);
 
         if (hasSender()) {
             getSender().tell(e.withPrefix(SIGNER_X), getSelf());

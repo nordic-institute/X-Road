@@ -1,15 +1,21 @@
 class RequestProcessing < ActiveRecord::Base
+
   # Processing has been created but not associated with any requests.
   NEW = "NEW"
   # Processing has one request and is waiting for second.
   WAITING = "WAITING"
   # Processing has two requests and is executing the task.
   EXECUTING = "EXECUTING"
+  # Processing has to request and is waiting for approval.
+  SUBMITTED_FOR_APPROVAL = "SUBMITTED FOR APPROVAL"
   # Processing is approved.
   APPROVED = "APPROVED"
-  # Processing is canceled.
-  CANCELED = "CANCELED"
+  # Processing is revoked.
+  REVOKED = "REVOKED"
+  # Processing is declined by the registration officer.
+  DECLINED = "DECLINED"
 
+  validates_with Validators::MaxlengthValidator
 
   has_many :requests,
       :class_name => "RequestWithProcessing",
@@ -36,8 +42,10 @@ class RequestProcessing < ActiveRecord::Base
       requests.first.request_processing
     else
       # We have several processings open at the same time. This is error.
+      first_request = requests.first
       raise I18n.t("requests.multiple_open_requests",
-          :server_id => requests.first.security_server.to_s)
+          :server_id => first_request.security_server.to_s,
+          :request_id => first_request.id)
     end
   end
 
@@ -53,15 +61,45 @@ class RequestProcessing < ActiveRecord::Base
 
       # Attach new request to processing.
       connect_to(request)
-      self.status = EXECUTING
-      # Determine the request that came from the security server.
-      from_server = requests.find {|req| req.origin == Request::SECURITY_SERVER}
-      execute(from_server)
-      self.status = APPROVED
+
+      self.status = SUBMITTED_FOR_APPROVAL
     else # not waiting for requests
       raise I18n.t("requests.invalid_processing_state",
           :status => status)
     end
+
+    save!
+  end
+
+  def approve
+    if self.status != SUBMITTED_FOR_APPROVAL
+      raise "Cannot approve request with status '#{self.status}'!"
+    end
+
+    logger.info(
+        "Approving processing for following requests: '#{requests.to_yaml}'")
+
+    # Determine the request that came from the security server.
+    from_server = requests.find {|req| req.origin == Request::SECURITY_SERVER}
+
+    self.status = EXECUTING
+
+    execute(from_server)
+
+    self.status = APPROVED
+
+    save!
+  end
+
+  def decline
+    if self.status != SUBMITTED_FOR_APPROVAL
+      raise "Cannot decline request with status '#{self.status}'!"
+    end
+
+    logger.info(
+        "Declining processing for following requests: '#{requests.to_yaml}'")
+
+    self.status = DECLINED
 
     save!
   end
@@ -107,7 +145,7 @@ class RequestProcessing < ActiveRecord::Base
     requests.find {|req| req.id != request.id}
   end
 
-  # TODO Duplication with common-ui/helpers/base_helper
+  # TODO (RM task #3502) Duplication with common-ui/helpers/base_helper
   def format_time(time)
     time.to_i == 0 ? "&mdash;" : time.strftime(I18n.t('common.time_format'))
   end

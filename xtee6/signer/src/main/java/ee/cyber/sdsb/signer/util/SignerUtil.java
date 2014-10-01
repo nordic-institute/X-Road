@@ -21,7 +21,6 @@ import org.bouncycastle.operator.ContentSigner;
 import scala.concurrent.Await;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
-import akka.actor.UntypedActorContext;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 
@@ -29,9 +28,9 @@ import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.signer.protocol.dto.KeyInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 
-import static ee.cyber.sdsb.signer.protocol.ComponentNames.*;
-
 public class SignerUtil {
+
+    private static final int RANDOM_ID_LENGTH = 20;
 
     private static final Timeout DEFAULT_ASK_TIMEOUT = new Timeout(5000);
 
@@ -93,21 +92,29 @@ public class SignerUtil {
     }
 
     public static String keyId(iaik.pkcs.pkcs11.objects.Key k) {
+        if (k.getId().getByteArrayValue() == null) {
+            return null;
+        }
+
         return DatatypeConverter.printHexBinary(k.getId().getByteArrayValue());
     }
 
     public static String keyId(
             iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate c) {
+        if (c.getId().getByteArrayValue() == null) {
+            return null;
+        }
+
         return DatatypeConverter.printHexBinary(c.getId().getByteArrayValue());
     }
 
-    // TODO: Make sure this has correct behavior and validity period
     public static X509Certificate createCertificate(String commonName,
             KeyPair keyPair, ContentSigner signer) throws Exception {
-
         Calendar cal = GregorianCalendar.getInstance();
+
         cal.add(Calendar.YEAR, -1);
         Date notBefore = cal.getTime();
+
         cal.add(Calendar.YEAR, 2);
         Date notAfter = cal.getTime();
 
@@ -127,8 +134,7 @@ public class SignerUtil {
     }
 
     public static byte[] generateId() {
-        // TODO: Better ID generation?
-        byte[] id = new byte[20];
+        byte[] id = new byte[RANDOM_ID_LENGTH];
         new Random().nextBytes(id);
         return id;
     }
@@ -143,29 +149,15 @@ public class SignerUtil {
                 timeout.duration().length()), timeout.duration());
     }
 
-    public static ActorSelection getTokenManager(UntypedActorContext context) {
-        return context.actorSelection("/user/" + TOKEN_ACTOR_MANAGER);
+    public static Object ask(ActorSelection actorSelection, Object message)
+            throws Exception {
+        return ask(actorSelection, message, DEFAULT_ASK_TIMEOUT);
     }
 
-    public static ActorSelection getToken(UntypedActorContext context,
-            String tokenId) {
-        String path = String.format("/user/%s/%s", TOKEN_ACTOR_MANAGER,
-                tokenId);
-        return context.actorSelection(path);
-    }
-
-    public static ActorSelection getTokenWorker(UntypedActorContext context,
-            String tokenId) {
-        String path = String.format("/user/%s/%s/%s", TOKEN_ACTOR_MANAGER,
-                tokenId, TOKEN_WORKER);
-        return context.actorSelection(path);
-    }
-
-    public static ActorSelection getTokenSigner(UntypedActorContext context,
-            String tokenId) {
-        String path = String.format("/user/%s/%s/%s", TOKEN_ACTOR_MANAGER,
-                tokenId, TOKEN_SIGNER);
-        return context.actorSelection(path);
+    public static Object ask(ActorSelection actorSelection, Object message,
+            Timeout timeout) throws Exception {
+        return Await.result(Patterns.ask(actorSelection, message, timeout),
+                timeout.duration());
     }
 
     public static String getWorkerId(TokenInfo tokenInfo) {
@@ -178,4 +170,5 @@ public class SignerUtil {
 
         return workerId;
     }
+
 }

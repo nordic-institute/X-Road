@@ -1,7 +1,7 @@
 I did not manage to get both migrations work and central up and running
 when migrations were in center-common project where these are supposed to be.
 
-TODO: Later move migrations to center-common, so that center-ui comes up as
+TODO (RM task #3317): Later move migrations to center-common, so that center-ui comes up as
 well.
 
 To migrate successfully in devel, copy folder center-common/db/migrate right

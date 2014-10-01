@@ -2,22 +2,21 @@ package ee.cyber.sdsb.common.asic;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.MimeTypes;
 
-import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.signature.SignatureData;
-import ee.cyber.sdsb.common.util.MessageFileNames;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
+import static ee.cyber.sdsb.common.asic.AsicContainerEntries.*;
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Encapsulates the creation of the ASiC-container, which is essentially a
@@ -25,87 +24,75 @@ import static ee.cyber.sdsb.common.ErrorCodes.*;
  */
 public class AsicContainer {
 
-    /** The default ASiC container file name suffix. */
-    public static final String FILENAME_SUFFIX = "-signed-message.asice";
+    /** Holds the entries in the container. */
+    private final Map<String, String> entries = new HashMap<>();
 
-    /** The mime type value of the container. */
-    public static final String MIMETYPE = "application/vnd.etsi.asic-e+zip";
-
-    /** The name of the mimetype entry. */
-    public static final String ENTRY_MIMETYPE = "mimetype";
-
-    /** The name suffix of the message entry. */
-    public static final String ENTRY_MESSAGE =
-            stripSlash(MessageFileNames.MESSAGE);
-
-    /** The name of the signature entry. */
-    public static final String ENTRY_SIGNATURE = "META-INF/signatures.xml";
-
-    /** The name suffix of the hash chain result entry. */
-    public static final String ENTRY_HASH_CHAIN_RESULT =
-            stripSlash(MessageFileNames.HASH_CHAIN_RESULT);
-
-    /** The name suffix of the hash chain entry. */
-    public static final String ENTRY_HASH_CHAIN =
-            stripSlash(MessageFileNames.HASH_CHAIN);
-
-    /** The part of the name of the attachment entry. */
-    public static final String ENTRY_ATTACHMENT = "-attachment";
-
-    /** Pattern for matching signature file names. */
-    private static final Pattern ENTRY_SIGNATURE_PATTERN =
-            Pattern.compile("META-INF/.*signatures.*\\.xml");
-
-    /** The SOAP message XML. */
-    private String message;
-
-    /** The signature XML and possible hash chain. */
-    private SignatureData signature;
+    AsicContainer(Map<String, String> entries) throws Exception {
+        this.entries.putAll(entries);
+        verifyContents();
+    }
 
     public AsicContainer(String message, SignatureData signature)
             throws Exception {
-        this.message = message;
-        this.signature = signature;
+        this(message, signature, null);
+    }
 
+    public AsicContainer(String message, SignatureData signature,
+            TimestampData timestamp) throws Exception {
+        put(ENTRY_MIMETYPE, MIMETYPE);
+        put(ENTRY_MESSAGE, message);
+        put(ENTRY_SIGNATURE, signature.getSignatureXml());
+        put(ENTRY_SIG_HASH_CHAIN_RESULT, signature.getHashChainResult());
+        put(ENTRY_SIG_HASH_CHAIN, signature.getHashChain());
+
+        if (timestamp != null) {
+            if (isNotBlank(timestamp.getHashChainResult())) { // batch ts
+                put(ENTRY_TIMESTAMP, timestamp.getTimestampBase64());
+            }
+
+            put(ENTRY_TS_HASH_CHAIN, timestamp.getHashChain());
+            put(ENTRY_TS_HASH_CHAIN_RESULT, timestamp.getHashChainResult());
+        }
+
+        createManifests();
         verifyContents();
     }
 
     public String getMessage() {
-        return message;
+        return get(ENTRY_MESSAGE);
     }
 
     public SignatureData getSignature() {
-        return signature;
+        return new SignatureData(get(ENTRY_SIGNATURE),
+                get(ENTRY_SIG_HASH_CHAIN_RESULT),
+                get(ENTRY_SIG_HASH_CHAIN));
+    }
+
+    public TimestampData getTimestamp() {
+        if (entries.containsKey(ENTRY_TS_HASH_CHAIN_RESULT) &&
+                entries.containsKey(ENTRY_TS_HASH_CHAIN)) {
+            return new TimestampData(get(ENTRY_TIMESTAMP),
+                    get(ENTRY_TS_HASH_CHAIN_RESULT),
+                    get(ENTRY_TS_HASH_CHAIN));
+        }
+
+        return null;
+    }
+
+    public String getManifest() {
+        return get(ENTRY_MANIFEST);
+    }
+
+    public String getAsicManifest() {
+        return get(ENTRY_ASIC_MANIFEST);
     }
 
     public byte[] getBytes() throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        writeTo(out);
+
+        write(out);
 
         return out.toByteArray();
-    }
-
-    public void writeTo(OutputStream out) throws Exception {
-        ZipOutputStream zip = new ZipOutputStream(out);
-        try {
-            // The mime type
-            addEntry(zip, ENTRY_MIMETYPE, MIMETYPE);
-
-            // The message (SOAP)
-            addEntry(zip, ENTRY_MESSAGE, message);
-
-            // The signature
-            addEntry(zip, ENTRY_SIGNATURE, signature.getSignatureXml());
-
-            // The hash chain result and hash chain, if they are supplied
-            if (signature.isBatchSignature()) {
-                addEntry(zip, ENTRY_HASH_CHAIN_RESULT,
-                        signature.getHashChainResult());
-                addEntry(zip, ENTRY_HASH_CHAIN, signature.getHashChain());
-            }
-        } finally {
-            zip.close();
-        }
     }
 
     public boolean isAttachment(String fileName) {
@@ -113,125 +100,106 @@ public class AsicContainer {
     }
 
     public boolean hasEntry(String fileName) {
-        String name = stripSlash(fileName);
-
-        return name.equalsIgnoreCase(ENTRY_MIMETYPE)
-                || name.equalsIgnoreCase(ENTRY_MESSAGE)
-                || name.equalsIgnoreCase(ENTRY_HASH_CHAIN_RESULT)
-                || name.equalsIgnoreCase(ENTRY_HASH_CHAIN)
-                || ENTRY_SIGNATURE_PATTERN.matcher(name).matches();
+        return entries.containsKey(Helper.stripSlash(fileName));
     }
 
     public InputStream getEntry(String fileName) {
-        String name = stripSlash(fileName);
-
-        String data = null;
-        if (name.equalsIgnoreCase(ENTRY_MIMETYPE)) {
-            data = MIMETYPE;
-        } else if (name.equalsIgnoreCase(ENTRY_MESSAGE)) {
-            data = message;
-        } else if (name.equalsIgnoreCase(ENTRY_SIGNATURE)) {
-            data = signature.getSignatureXml();
-        } else if (name.equalsIgnoreCase(ENTRY_HASH_CHAIN_RESULT)) {
-            data = signature.getHashChainResult();
-        } else if (name.equalsIgnoreCase(ENTRY_HASH_CHAIN)) {
-            data = signature.getHashChain();
-        }
-
+        String data = get(Helper.stripSlash(fileName));
         return data != null ? new ByteArrayInputStream(
                 data.getBytes(StandardCharsets.UTF_8)) : null;
     }
 
+    public String getEntryAsString(String fileName) {
+        return get(Helper.stripSlash(fileName));
+    }
+
     public static AsicContainer read(InputStream is) throws Exception {
-        boolean foundMimeType = false;
+        return Helper.read(is);
+    }
 
-        String message = null;
-        String signature = null;
-        String hashChainResult = null;
-        String hashChain = null;
+    public void write(OutputStream out) throws Exception {
+        try (ZipOutputStream zip = new ZipOutputStream(out)) {
+            Helper.write(this, zip);
+        }
+    }
 
-        ZipInputStream zip = new ZipInputStream(is);
-        ZipEntry entry;
-        while ((entry = zip.getNextEntry()) != null) {
-            String name = entry.getName();
+    private void createManifests() throws Exception {
+        createOpenDocumentManifest();
+        createAsicManifest();
+    }
 
-            if (ENTRY_MIMETYPE.equalsIgnoreCase(name) && !foundMimeType) {
-                foundMimeType = true;
-                verifyMimeType(getData(zip));
+    private void createOpenDocumentManifest() {
+        OpenDocumentManifestBuilder b = new OpenDocumentManifestBuilder();
+        for (String entryName : entries.keySet()) {
+            // ignore mimetype and files in META-INF
+            if (entryName.equalsIgnoreCase(ENTRY_MIMETYPE)
+                    || entryName.startsWith("META-INF")) {
                 continue;
             }
 
-            if (ENTRY_MESSAGE.equalsIgnoreCase(name)) {
-                message = getData(zip);
-                continue;
-            }
-
-            // The signature must reside in a file whose name contains
-            // the string "signatures"
-            if (ENTRY_SIGNATURE_PATTERN.matcher(name).matches()) {
-                signature = getData(zip);
-                continue;
-            }
-
-            if (ENTRY_HASH_CHAIN_RESULT.equalsIgnoreCase(name)) {
-                hashChainResult = getData(zip);
-                continue;
-            }
-
-            if (ENTRY_HASH_CHAIN.equalsIgnoreCase(name)) {
-                hashChain = getData(zip);
-                continue;
-            }
+            b.addFile(entryName, MimeTypes.TEXT_XML); // assume files are XML
         }
 
-        if (!foundMimeType) {
-            throw new CodedException(X_ASIC_MIME_TYPE_NOT_FOUND,
-                    "Mime type not found");
+        put(ENTRY_MANIFEST, b.build());
+    }
+
+    private void createAsicManifest() throws Exception {
+        String tsHashChainResult = get(ENTRY_TS_HASH_CHAIN_RESULT);
+        if (tsHashChainResult == null) {
+            return;
         }
 
-        return new AsicContainer(message, new SignatureData(signature,
-                hashChainResult, hashChain));
+        AsicManifestBuilder b = new AsicManifestBuilder();
+        b.setSigReference(ENTRY_TIMESTAMP, "vnd.etsi.timestamp-token");
+
+        String algoId = SHA512_ID;
+        byte[] digest = calculateDigest(getAlgorithmIdentifier(algoId),
+                tsHashChainResult.getBytes(StandardCharsets.UTF_8));
+        b.addDataObjectReference(ENTRY_TS_HASH_CHAIN_RESULT,
+                MimeTypes.TEXT_XML, getAlgorithmURI(algoId),
+                encodeBase64(digest));
+
+        put(ENTRY_ASIC_MANIFEST, b.build());
     }
 
     private void verifyContents() throws Exception {
-        if (message == null) {
-            throw new CodedException(X_ASIC_MESSAGE_NOT_FOUND,
-                    "Message not found");
+        Helper.verifyMimeType(get(ENTRY_MIMETYPE));
+        Helper.verifyMessage(get(ENTRY_MESSAGE));
+        Helper.verifySignature(get(ENTRY_SIGNATURE),
+                get(ENTRY_SIG_HASH_CHAIN_RESULT), get(ENTRY_SIG_HASH_CHAIN));
+
+        Helper.verifyTimestamp(get(ENTRY_TIMESTAMP),
+                get(ENTRY_TS_HASH_CHAIN_RESULT), get(ENTRY_TS_HASH_CHAIN));
+
+        Helper.verifyManifest(get(ENTRY_MANIFEST), get(ENTRY_ASIC_MANIFEST));
+    }
+
+    String get(String entryName) {
+        switch (entryName) {
+            case ENTRY_TIMESTAMP:
+                return getTimestampValueBase64();
+            default:
+                return entries.get(entryName);
+        }
+    }
+
+    String getTimestampValueBase64() {
+        String timestampValue = entries.get(ENTRY_TIMESTAMP);
+        if (timestampValue == null) {
+            try {
+                timestampValue = Helper.readTimestampFromSignatureXml(
+                        getSignature().getSignatureXml());
+            } catch (Exception e) {
+                throw translateException(e);
+            }
         }
 
-        if (signature == null || signature.getSignatureXml() == null) {
-            throw new CodedException(X_ASIC_SIGNATURE_NOT_FOUND,
-                    "Signature not found");
+        return timestampValue;
+    }
+
+    void put(String entryName, String data) {
+        if (isNotBlank(data)) {
+            this.entries.put(entryName, data);
         }
-    }
-
-    static void verifyMimeType(String data) throws Exception {
-        if (!MIMETYPE.equalsIgnoreCase(data)) {
-            throw new CodedException(X_ASIC_INVALID_MIME_TYPE,
-                    "Invalid mime type: %s", data);
-        }
-    }
-
-    static void addEntry(ZipOutputStream zip, String name, String data)
-            throws IOException {
-        addEntry(zip, name, data.getBytes(StandardCharsets.UTF_8));
-    }
-
-    static void addEntry(ZipOutputStream zip, String name, byte[] data)
-            throws IOException {
-        zip.putNextEntry(new ZipEntry(name));
-        zip.write(data);
-    }
-
-    static String getData(ZipInputStream zip) throws Exception {
-        return IOUtils.toString(zip, StandardCharsets.UTF_8);
-    }
-
-    static String stripSlash(String name) {
-        if (name.startsWith("/")) {
-            return name.substring(1);
-        }
-
-        return name;
     }
 }

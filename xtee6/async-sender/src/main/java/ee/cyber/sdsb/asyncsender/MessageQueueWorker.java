@@ -6,9 +6,9 @@ import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.asyncdb.MessageQueue;
-import ee.cyber.sdsb.asyncdb.QueueInfo;
 import ee.cyber.sdsb.asyncdb.SendingCtx;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
 import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 

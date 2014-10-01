@@ -2,7 +2,7 @@
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:sdsb="http://x-rd.net/xsd/sdsb.xsd"
-        xmlns:id="http://sdsb.net/xsd/identifiers">
+        xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
         <sdsb:client id:objectType="MEMBER">
             <id:sdsbInstance>EE</id:sdsbInstance>

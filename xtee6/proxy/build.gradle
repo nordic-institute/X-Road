@@ -1,3 +1,5 @@
+ext.codeCoverage = true
+
 buildscript {
     repositories {
         mavenCentral()
@@ -10,27 +12,19 @@ buildscript {
 
 apply plugin: 'fatjar'
 
-configurations {
-    provided
-}
-
 dependencies {
-    compile project(':common-util')
+    compile project(':serverconf')
     compile project(':common-verifier')
     compile project(':async-db')
     compile project(':signer-protocol')
-    
-    provided 'org.projectlombok:lombok:0.12.0'
-    
+  
     testCompile project(':common-test')
-}
-
-sourceSets.main.compileClasspath += configurations.provided
-
-eclipse {
-    classpath {
-        plusConfigurations += configurations.provided 
-    }
+    testCompile 'org.mockito:mockito-all:1.9.0'
+    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+    
+    testCompile files(this.project(':common-util').sourceSets.test.output)
+    testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
 }
 
 fatJarPrepareFiles {
@@ -61,10 +55,14 @@ task runProxyMain(type: JavaExec) {
         '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
         '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
         '-Dee.cyber.sdsb.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
-        '-Dee.cyber.sdsb.appLog.path=log'
-
-    main = 'ee.cyber.sdsb.proxy.ProxyMain'
+        '-Dee.cyber.sdsb.appLog.path=log',
+        '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
+        
+    //main = 'ee.cyber.sdsb.proxy.ProxyMain'
+    main = 'ee.cyber.sdsb.proxy.TestProxyMain'
     classpath = sourceSets.main.runtimeClasspath
+    classpath += sourceSets.test.runtimeClasspath
+    classpath += files('src/test/resources')
 }
 
 task runProxyTest(type: JavaExec) {
@@ -73,16 +71,26 @@ task runProxyTest(type: JavaExec) {
         '-Dee.cyber.sdsb.tempFiles.path=build/attach-tmp',
         '-Dee.cyber.sdsb.asyncdb.path=build',
         '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
-        '-Dlogback.configurationFile=src/test/logback-proxytest.xml'
+        '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
+        '-Dee.cyber.sdsb.proxy.clientHandlers=ee.cyber.sdsb.proxy.clientproxy.MetadataHandler',
+        '-Dee.cyber.sdsb.proxy.serverServiceHandlers=ee.cyber.sdsb.proxy.serverproxy.MetadataServiceHandlerImpl'
 //	'-Djava.security.properties==src/main/resources/java.security'
 
     main = 'ee.cyber.sdsb.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
+    classpath += files('../addons/metaservice/build/libs/metaservice-1.0.jar')
 }
 
 task runBatchSigner(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 
     main = 'ee.cyber.sdsb.common.signature.BatchSigner'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runSecureLogPerformanceTest(type: JavaExec) {
+    jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-securelog-performancetest.xml'
+
+    main = 'ee.cyber.sdsb.proxy.newsecurelog.SecureLogPerformanceTest'
     classpath = sourceSets.test.runtimeClasspath
 }

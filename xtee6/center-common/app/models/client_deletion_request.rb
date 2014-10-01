@@ -7,18 +7,20 @@
 #     :comments => comments,
 #     :origin => origin).register()
 class ClientDeletionRequest < DeletionRequest
+  before_create do |rec|
+    Request.set_server_owner_name(rec)
+    Request.set_server_user_name(rec)
+  end
+
   def verify_request()
     require_security_server(security_server)
-    # TODO: in some cases the client does not exist.
-    # In these cases we should look for previous client addition request
-    # require_client(sec_serv_user)
   end
 
   def execute()
     server = SecurityServer.find_server_by_id(security_server)
     client = SecurityServerClient.find_by_id(sec_serv_user)
 
-    cancel_respective_reg_request()
+    revoke_respective_reg_request()
 
     if client != nil && client.security_servers != nil
       client.security_servers.delete(server)
@@ -34,9 +36,9 @@ class ClientDeletionRequest < DeletionRequest
 
   def self.find_by_server_and_client(server_id, client_id)
     logger.info("find_by_server_and_client(#{server_id}, #{client_id})")
-    requests = ClientDeletionRequest
-        .joins(:security_server, :sec_serv_user)
-        .where(
+    requests = ClientDeletionRequest.
+        joins(:security_server, :sec_serv_user).
+        where(
           :identifiers => { # association security_server
             :sdsb_instance => server_id.sdsb_instance,
             :member_class => server_id.member_class,

@@ -1,5 +1,5 @@
 <%= dialog "add_pki_step4_add_top_ca_ocsp_responders", t("pkis.add.step4.title") do %>
-  <fieldset class="top_ca_ocsp_responder">
+  <section class="container top_ca_ocsp_responder">
     <legend>
       <%= t 'pkis.add.step4.top_ca_ocsp_responder' %>
       <% if can?(get_pki_edit_privilege) %>
@@ -8,14 +8,14 @@
         </button>
       <% end %>
     </legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'pkis.add.url' %></td>
-        <td><input id="top_ca_ocsp_responder_url" type="text"/></td>
+        <td class='wide'><input id="top_ca_ocsp_responder_url" type="text"/></td>
       </tr>
       <tr>
         <td><%= t 'pkis.add.cert' %></td>
-        <td>
+        <td class='wide'>
           <%= form_tag "#{controller.controller_name}/upload_ocsp_responder_cert",
               :id => "ocsp_responder_cert_upload_form", :multipart => true,
               :target => "top_ca_ocsp_responder_cert_upload_target" do %>
@@ -31,10 +31,10 @@
         </td>
       </tr>
     </table>
-    <p id="ocsp_responder_cert_temp_id"></p>
-    <p id="ocsp_responder_id"></p>
-  </fieldset>
-
+    <p id="ocsp_responder_cert_temp_id" class="ui-helper-hidden"></p>
+    <p id="ocsp_responder_id" class="ui-helper-hidden"></p>
+  </section>
+  <section class="container">
   <iframe
       id="top_ca_ocsp_responder_cert_upload_target"
       name="top_ca_ocsp_responder_cert_upload_target">
@@ -45,4 +45,5 @@
       <%= t 'pkis.add.step4.add_top_ca_ocsp_responder' %>
     </button>
   <% end %>
+  </section>
 <% end %>

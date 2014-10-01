@@ -12,9 +12,9 @@ import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import ee.cyber.sdsb.asyncdb.MessageQueue;
-import ee.cyber.sdsb.asyncdb.QueueInfo;
 import ee.cyber.sdsb.asyncdb.SendingCtx;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.message.Soap;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;

@@ -1,12 +1,12 @@
 function uploadCallback(response) {
     if (response.success) {
-        if (response.data.init_serverconf) {
+        if ($("#serverconf_form").length > 0) {
             $("#globalconf_form").hide();
             $("#serverconf_form").show();
 
             populateOwnerSelect();
         } else {
-            alert("Security Server configured. Redirecting..", null, function() {
+            alert("init.index.initialized", null, function() {
                 redirect("clients");
             });
         }
@@ -16,6 +16,10 @@ function uploadCallback(response) {
 }
 
 function populateOwnerSelect() {
+    if ($("#owner_class").is("[disabled]")) {
+        return;
+    }
+
     $.get(action("member_classes"), null, function(response) {
         var select = $("#owner_class").html("");
 
@@ -30,6 +34,9 @@ function populateOwnerSelect() {
 }
 
 $(document).ready(function() {
+    $('#sidebar, #server-info').hide();
+    $('#main, #content').css('width', '100%');
+
     if ($("#globalconf_form").length > 0) {
         $("#serverconf_form").hide();
     }
@@ -58,9 +65,9 @@ $(document).ready(function() {
         namefetch(function () {
             var params = $("#owner_class, #owner_code").serialize();
             $.get(action("member_name"), params, function(response) {
-                $("#owner_name").val(response.data.name);
+                $("#owner_name").html(response.data.name);
             });
-        }, 500);        
+        }, 500);
     });
 
     populateOwnerSelect();
@@ -68,7 +75,7 @@ $(document).ready(function() {
     $("#submit_serverconf").click(function() {
         var params = $("#serverconf_form").serialize();
         $.post(action("init_serverconf"), params, function() {
-            alert("Security Server configured. Redirecting..", null, function() {
+            alert("init.index.initialized", null, function() {
                 redirect("clients");
             });
         });

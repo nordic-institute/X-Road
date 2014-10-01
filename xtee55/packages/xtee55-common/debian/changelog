@@ -1,6 +1,13 @@
+xtee55-common (1.0-1) lucid; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 14 Jul 2014 15:47:28 +0300
+
 xtee55-common (0.2-1) lucid; urgency=low
 
   * 12.2013 release
 
- -- Tarmo Oja <toja@tarmo-oja-2652.cyber.ee>  Tue, 31 Dec 2013 11:24:08 +0200
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 31 Dec 2013 11:24:08 +0200
+
 

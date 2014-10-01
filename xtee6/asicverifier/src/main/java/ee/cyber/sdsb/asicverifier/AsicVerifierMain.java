@@ -9,6 +9,7 @@ import java.util.Scanner;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.asic.AsicContainer;
+import ee.cyber.sdsb.common.asic.AsicContainerEntries;
 import ee.cyber.sdsb.common.conf.GlobalConf;
 
 import static java.lang.System.out;
@@ -24,8 +25,8 @@ public final class AsicVerifierMain {
         }
     }
 
-    private static void loadConf(String fileName) {
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE, fileName);
+    private static void loadConf(String file) {
+        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE, file);
         try {
             GlobalConf.reload();
         } catch (CodedException e) {
@@ -38,14 +39,14 @@ public final class AsicVerifierMain {
     private static void verifyAsic(String fileName) throws Exception {
         out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
-        try {
-            FileInputStream file = new FileInputStream(fileName);
-            AsicContainerVerifier verifier = AsicContainerVerifier.create(file);
+        try (FileInputStream is = new FileInputStream(fileName)) {
+            AsicContainerVerifier verifier = AsicContainerVerifier.create(is);
             verifier.verify();
 
             onVerificationSucceeded(verifier);
         } catch (Exception e) {
             onVerificationFailed(e);
+            System.exit(1);
         }
     }
 
@@ -54,16 +55,16 @@ public final class AsicVerifierMain {
         out.println("Verification successful.");
         out.println("Signer");
         out.println("    Certificate:");
-        printCert(verifier.signerCert);
+        printCert(verifier.getSignerCert());
         out.println("    ID: " + verifier.getSignerName());
         out.println("OCSP response");
         out.println("    Signed by:");
-        printCert(verifier.ocspCert);
-        out.println("    Produced at: " + verifier.ocspDate);
+        printCert(verifier.getOcspCert());
+        out.println("    Produced at: " + verifier.getOcspDate());
         out.println("Timestamp");
         out.println("    Signed by:");
-        printCert(verifier.timestampCert);
-        out.println("    Date: " + verifier.timestampDate);
+        printCert(verifier.getTimestampCert());
+        out.println("    Date: " + verifier.getTimestampDate());
 
         for (String log : verifier.getAttachmentHashes()) {
             out.println(log);
@@ -72,8 +73,8 @@ public final class AsicVerifierMain {
         out.print("\nWould you like to extract the signed files? (y/n) ");
 
         if (new Scanner(System.in).nextLine().equalsIgnoreCase("y")) {
-            AsicContainer asic = verifier.getContainer();
-            writeToFile(AsicContainer.ENTRY_MESSAGE, asic.getMessage());
+            AsicContainer asic = verifier.getAsic();
+            writeToFile(AsicContainerEntries.ENTRY_MESSAGE, asic.getMessage());
 
             out.println("Files successfully extracted.");
         }
@@ -104,7 +105,7 @@ public final class AsicVerifierMain {
 
     private static void showUsage() {
         out.println("Usage: AsicVerifier " +
-                "<configuration file> <asic container>");
+                "<global configuration file> <asic container>");
     }
 
     private static String getMessageFromCause(Throwable cause) {

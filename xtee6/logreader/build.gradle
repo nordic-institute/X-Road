@@ -1,10 +1,14 @@
 // TODO FIXME XXX Building of jars and wars, do not include unnecessary dependencies.
 
+ext.codeCoverage = true
+
 apply plugin: 'war'
 
 dependencies {
     compile project(':common-util')
     compile 'org.apache.wicket:wicket:6.1.0'
+    
+    testCompile project(':common-test')
 }
 
 sourceSets {
@@ -31,6 +35,9 @@ sourceSets {
         }
     }
 }
+
+sourceSets.consoleui.compileClasspath += configurations.provided
+sourceSets.webui.compileClasspath += configurations.provided
 
 task logReaderJar(type: Jar) {
     // Build 'fat jar'

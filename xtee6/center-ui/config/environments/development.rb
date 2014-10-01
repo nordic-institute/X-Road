@@ -1,17 +1,8 @@
 $CLASSPATH << "build/libs"
-require "common-util-1.0.jar"
-require "common-verifier-1.0.jar"
-require "center-ui-1.0.jar"
 
-
-# Needed in order to run CryptoUtils class properly in devel mode
-require "bcpkix-jdk15on-1.47.jar"
-require "bcprov-jdk15on-1.47.jar"
-
-require "commons-lang3-3.1.jar"
-require "commons-io-2.4.jar"
-require "slf4j-api-1.6.6.jar"
-require "apache-mime4j-core-0.7.2.jar"
+Dir.glob(File.expand_path("../../../build/libs/*.jar", __FILE__)).each do |file|
+  require file
+end
 
 CenterUi::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb

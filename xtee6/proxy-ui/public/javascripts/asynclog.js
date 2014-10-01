@@ -1,10 +1,7 @@
 var oRecords;
 
 $(document).ready(function() {
-    var opts = defaultOpts(null, 1);
-    opts.sScrollY = "400px";
-    opts.bScrollCollapse = true;
-    opts.bPaginate = false;
+    var opts = scrollableTableOpts(400);
     opts.aaSorting = [];
     opts.aoColumns = [
         { "mData": "no" },

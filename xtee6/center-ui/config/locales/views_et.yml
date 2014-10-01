@@ -9,7 +9,7 @@ et:
     class: "Klass"
     subsystem: "Alamsüsteem"
     auth_cert_hash: "Räsi"
-    filename_empty: "Sa pead sisestama failinime!"
+    filename_empty: "Failinimi puudub"
     cert: "Sertifikaat"
     cert_unreadable: "Sertifikaati failist '%{filename}' ei õnnestunud lugeda"
     cert_details_title: "Sertifikaadi detailid"
@@ -25,6 +25,13 @@ et:
     index:
       name:  "SDSB keskserver"
       version: "versioon"
+
+  backup:
+    index:
+      item:
+        restore_confirm: "Konfiguratsiooni taastamise käigus logitakse välja globaalset konfiguratsiooni signeerivast võtmeseadmest . Oled kindel, et soovid taastada konfiguratsiooni failist '{{file}}'?"
+    upload:
+      file_exists: "Varukoopia fail nimega '{{file}}' on juba olemas. Kas soovid selle üle kirjutada?"
 
   orgs:
     index:
@@ -60,12 +67,16 @@ et:
       global_group_membership:
         legend: "Kuuluvus globaalsetesse gruppidesse"
         group: "Grupp"
-        subsystem: "Alamsüsteem"
+        description: "Grupi kirjeldus"
+        subsystem:
+          table: "Subsystem"
+          add: "Add Member as Subsystem"
         added_to_group: "Gruppi lisatud"
       subsystems:
         legend: "Alamsüsteemid"
         subsystem_code: "Alamsüsteemi kood"
         used_servers: "Kasutatavad serverid"
+        delete: "Kustuta alamsüsteem"
       used_servers:
         legend: "Kasutatavad serverid"
         server_code: "Serveri kood"
@@ -101,7 +112,7 @@ et:
     server_owner_code: "Serveri omaniku kood"
     server_code: "Serveri kood"
     complementary_id: "Kaastaotluse ID"
-    canceling_id: "Tühistava taotluse ID"
+    revoking_id: "Tühistava taotluse ID"
     details:
       auth_cert_deletion:
         title: "Autentimissertifikaadi kustutamise taotluse detailandmed"
@@ -128,6 +139,7 @@ et:
     owner_class: "Omaniku klass"
     owner_code: "Omaniku kood"
     address: "Aadress"
+    registered: "Registreeritud"
     info:
       legend: "Turvaserveri info"
     details:
@@ -148,9 +160,10 @@ et:
       class: "Klass"
       code: "Kood"
       subsystem_code: "Alamsüsteemi kood"
+      add: "Lisa serveri klient"
     auth_cert:
       legend: "Autentimissertifikaadid"
-      csp: "CSP"
+      ca: "CA"
       serial_number: "Seerianumber"
       subject: "Subjekt"
       expires: "Aegub"
@@ -201,6 +214,7 @@ et:
     implementing_service_legend: "Realiseeriv teenus"
     provider_legend: "Teenusepakkuja"
     provider_code: "Teenusepakkuja kood"
+    service_version: "Versioon"
     provider_class: "Teenusepakkuja klass"
     provider_subsystem: "Alamsüsteem"
     details:
@@ -208,8 +222,9 @@ et:
       central_service_code: "Tsentraalse teenuse kood"
       implementing_service:
         legend: "Realiseeriv teenus"
-        code: "Code"
-        provider_name: "Provider Name"
+        code: "Kood"
+        provider_name: "Teenusepakkuja nimi"
+        search_title: "Vali realiseeriv teenus"
 
   layouts:
     application:
@@ -237,5 +252,28 @@ et:
       cert: "Sertifikaat"
       load: "Lae"
 
-  identifier_mapping:
-    upload_file: "Lae üles identifikaatorite teisendusfail"
+  distributed_files:
+    filetype: "Failitüüp"
+    info: "Info"
+    no_file: "Faili ei leitud"
+    identifier_mapping:
+      upload:
+        title: "Lae üles identifikaatorite teisendusfail"
+        enter_file_name: "Sisesta failinimi"
+    last_result: "Viimane tulemus"
+
+  import_v5:
+    upload_file:
+      title: "Lae fail üles"
+      enter_file_name: "Sisesta failinimi"
+    last_import:
+      title: "Viimane importimiskatse"
+      filename: "Tee imporditud failini"
+      time: "Viimase importimise aeg"
+      exit_status: "Viimase importimiskatse väljumisstaatus"
+    last_result: "Viimane tulemus"
+
+  system_status:
+    enter_softtoken_pin: "Kliki siia PIN-i sisestamiseks"
+    softtoken_pin_not_entered: "Signeerimisvõtmehoidla PIN pole sisestatud"
+    signing_token_not_initialized: "Signeerimisvõmehoidla pole algväärtustatud, Sa saad seda teha signer-console'i kasutades."

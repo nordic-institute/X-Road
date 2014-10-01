@@ -1,8 +1,6 @@
 package ee.cyber.sdsb.distributedfiles;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorSystem;
 
 import com.typesafe.config.Config;
@@ -14,37 +12,34 @@ import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.util.AdminPort;
 import ee.cyber.sdsb.common.util.JobManager;
 
+@Slf4j
 public class DistributedFilesClientMain {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DistributedFilesClientMain.class);
 
     private static ActorSystem actorSystem;
     private static JobManager jobManager;
     private static AdminPort adminPort;
 
     public static void main(String[] args) throws Exception {
-        setUp();
-
+        setup();
         startServices();
-
-        tearDown();
+        awaitTermination();
+        shutdown();
     }
 
-    private static void setUp() throws Exception {
-        LOG.trace("setUp()");
+    private static void setup() throws Exception {
+        log.trace("setUp()");
 
         int portNumber = SystemProperties.getDistributedFilesClientPort();
         adminPort = new AdminPort(portNumber + 1);
 
-        adminPort.addStopHandler(new AdminPort.AsynchronousCallback() {
+        adminPort.addShutdownHook(new Runnable() {
             @Override
             public void run() {
-                LOG.info("Shutting down...");
+                log.info("Distributed files client shutting down...");
                 try {
-                    tearDown();
+                    shutdown();
                 } catch (Exception e) {
-                    LOG.error("Error while shutting down", e);
+                    log.error("Error while shutting down", e);
                 }
             }
         });
@@ -52,7 +47,7 @@ public class DistributedFilesClientMain {
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
             public void run() {
-                LOG.info("Execute from admin port...");
+                log.info("Execute from admin port...");
                 try {
                     DistributedFilesClient.execute();
                 } catch (Exception e) {
@@ -63,12 +58,10 @@ public class DistributedFilesClientMain {
 
         actorSystem = ActorSystem.create("DistributedFilesClient",
                 getConf(portNumber));
-
-        DistributedFilesClient.init(actorSystem);
     }
 
     private static void startServices() throws Exception {
-        LOG.trace("startServices()");
+        log.trace("startServices()");
 
         adminPort.start();
 
@@ -76,12 +69,16 @@ public class DistributedFilesClientMain {
         jobManager.registerRepeatingJob(DistributedFilesClient.class, 60);
 
         jobManager.start();
+    }
+
+    private static void awaitTermination() {
+        log.info("DistributedFilesClient started");
 
         actorSystem.awaitTermination();
     }
 
-    private static void tearDown() throws Exception {
-        LOG.trace("tearDown()");
+    private static void shutdown() throws Exception {
+        log.trace("tearDown()");
 
         if (jobManager != null) {
             jobManager.stop();
@@ -99,7 +96,6 @@ public class DistributedFilesClientMain {
 
     private static Config getConf(int port) {
         Config conf = ConfigFactory.load().getConfig("distributed-files");
-
         return conf.withValue("akka.remote.netty.tcp.port",
                 ConfigValueFactory.fromAnyRef(port));
     }

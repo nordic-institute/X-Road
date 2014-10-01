@@ -1,5 +1,6 @@
 package ee.cyber.sdsb.common.request;
 
+import java.io.File;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.Principal;
@@ -12,7 +13,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.util.CryptoUtils;
+import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 public class ManagementRequestServerKeyManager extends X509ExtendedKeyManager {
 
@@ -81,10 +82,10 @@ public class ManagementRequestServerKeyManager extends X509ExtendedKeyManager {
     }
 
     private void loadPkcs12() throws Exception {
-        String fileName = "../proxy/src/test/producer.p12";
+        File file = new File("../proxy/src/test/producer.p12");
         char[] password = "test".toCharArray();
 
-        KeyStore ks = CryptoUtils.loadKeyStore("pkcs12", fileName, password);
+        KeyStore ks = loadPkcs12KeyStore(file, password);
 
         acceptedIssuer = (X509Certificate) ks.getCertificate("producer");
         pkey = (PrivateKey) ks.getKey("producer", password);

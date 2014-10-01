@@ -5,6 +5,6 @@ class CertObjectGenerator
   include RubyCertHelper
 
   def generate(bytes)
-    cert_from_bytes(bytes)
+    cert_object(bytes)
   end
 end

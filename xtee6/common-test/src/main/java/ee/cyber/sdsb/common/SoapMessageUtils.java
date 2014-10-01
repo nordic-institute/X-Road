@@ -38,7 +38,7 @@ public class SoapMessageUtils {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage);
 
         List<SOAPElement> children = SoapUtils.getChildElements(
-                responseMessage.getBody());
+                responseMessage.getSoap().getSOAPBody());
         if (children.isEmpty()) {
             throw new CodedException(ErrorCodes.X_INVALID_SOAP,
                     "Missing response element");
@@ -52,7 +52,7 @@ public class SoapMessageUtils {
 
     public static SOAPElement getResponseElement(SoapMessageImpl responseMessage)
             throws Exception {
-        SOAPBody responseBody = responseMessage.getBody();
+        SOAPBody responseBody = responseMessage.getSoap().getSOAPBody();
 
         List<SOAPElement> children = SoapUtils.getChildElements(responseBody);
         if (children.isEmpty()) {

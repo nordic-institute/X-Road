@@ -8,8 +8,8 @@ Content-Type: text/xml
 Content-Date: 2013-02-04T13:50:18+0000
 
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:tns="http://sdsb.net/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-verifier/src/main/resources/globalconf.xsd ">
+<tns:conf xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-verifier/src/main/resources/globalconf.xsd ">
     <pki>
         <name>pki1</name>
         <!-- Extracted from: systemtest/conf/local_test/admin-ca1.pem -->

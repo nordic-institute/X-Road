@@ -1,0 +1,8 @@
+usr/share/sdsb/bin/signer-console usr/bin/signer-console
+usr/share/sdsb/jlib/signer-1.0.jar usr/share/sdsb/jlib/signer.jar
+usr/share/sdsb/jlib/signer-console-1.0.jar usr/share/sdsb/jlib/signer-console.jar
+
+etc/sdsb/nginx/default-sdsb.conf etc/nginx/sites-enabled/default-sdsb
+etc/sdsb/nginx/nginx-secure-addons.conf etc/nginx/conf.d/sdsb-securing.conf
+
+

@@ -12,11 +12,12 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.util.AtomicSave;
 import ee.cyber.sdsb.common.util.FileContentChangeChecker;
 import ee.cyber.sdsb.common.util.ResourceUtils;
 import ee.cyber.sdsb.common.util.SchemaValidator;
+
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
 /**
  * Base class for XML-based configurations, where underlying classes are
@@ -61,7 +62,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
             load(fileName);
         } catch (Exception e) {
-            throw ErrorCodes.translateException(e);
+            throw translateException(e);
         }
     }
 
@@ -74,7 +75,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
             this.root = root;
             this.confType = root.getValue();
         } catch (Exception e) {
-            throw ErrorCodes.translateException(e);
+            throw translateException(e);
         }
     }
 
@@ -83,7 +84,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         try {
             return confFileChecker.hasChanged();
         } catch (Exception e) {
-            throw ErrorCodes.translateException(e);
+            throw translateException(e);
         }
     }
 
@@ -94,8 +95,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
             throw new IllegalArgumentException("File name must not be null");
         }
 
-        this.confFileName = fileName;
-
+        confFileName = fileName;
         confFileChecker = new FileContentChangeChecker(confFileName);
 
         if (schemaValidator != null) {

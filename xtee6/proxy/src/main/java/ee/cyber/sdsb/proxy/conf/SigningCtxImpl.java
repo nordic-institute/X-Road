@@ -1,12 +1,14 @@
 package ee.cyber.sdsb.proxy.conf;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.cert.CertChain;
+import ee.cyber.sdsb.common.conf.GlobalConf;
 import ee.cyber.sdsb.common.signature.SignatureBuilder;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.common.util.CryptoUtils;
@@ -19,9 +21,6 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
  * such as currently used signing key and cert.
  */
 public class SigningCtxImpl implements SigningCtx {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SigningCtxImpl.class);
 
     /** Capsulates private key of the signer. */
     private final SigningKey key;
@@ -50,24 +49,33 @@ public class SigningCtxImpl implements SigningCtx {
     @Override
     public SignatureData buildSignature(SignatureBuilder builder)
             throws Exception {
-        LOG.trace("buildSignature()");
+        List<X509Certificate> extraCerts = getIntermediateCaCerts();
+        List<OCSPResp> ocspResponses = getOcspResponses(extraCerts);
 
-        // TODO: Add any intermediate certificates and their corresponding OCSP responses
-        // builder.addExtraCertificate(intermediateCaCert);
-        // builder.addExtraOcspResponse(intermediateCaCertOcspResponse);
+        builder.addExtraCertificates(extraCerts);
+        builder.addOcspResponses(ocspResponses);
+        builder.setSigningCert(cert);
 
-        OCSPResp ocspResponse = ServerConf.getOcspResponse(cert);
-        if (ocspResponse == null) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
-                    "Cannot sign, OCSP response for certificate "
-                            + cert.getSerialNumber() +  " is not available");
-        }
-
-        builder.setSigningCert(cert, ocspResponse);
-
-        //return builder.build(cert, key, signerOcspResponse);
-        String signatureAlgorithmId = CryptoUtils.SHA512WITHRSA_ID;
-        return builder.build(key, signatureAlgorithmId);
+        return builder.build(key, CryptoUtils.SHA512WITHRSA_ID);
     }
 
+    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
+            throws Exception {
+        List<X509Certificate> allCerts = new ArrayList<>(certs.size() + 1);
+        allCerts.add(cert);
+        allCerts.addAll(certs);
+
+        return KeyConf.getAllOcspResponses(allCerts);
+    }
+
+    private List<X509Certificate> getIntermediateCaCerts() throws Exception {
+        CertChain chain = GlobalConf.getCertChain(cert);
+        if (chain == null) {
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
+                    "Got empty certificate chain for certificate %s",
+                    cert.getSerialNumber());
+        }
+
+        return chain.getAdditionalCerts();
+    }
 }

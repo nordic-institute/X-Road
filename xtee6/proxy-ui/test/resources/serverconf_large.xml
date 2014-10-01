@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:serverConf xmlns:p="http://sdsb.net/xsd/identifiers" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-util/src/main/resources/serverconf.xsd">
+<tns:serverConf xmlns:p="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/serverconf.xsd">
   <serverCode>experimentalServer</serverCode>
   <owner>idvalue0</owner>
   <client id="idvalue0">

@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -12,10 +13,13 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.EofSensorInputStream;
 import org.apache.http.conn.EofSensorWatcher;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.eclipse.jetty.http.HttpStatus;
@@ -31,7 +35,7 @@ public abstract class AbstractHttpSender implements Closeable {
     private static final Logger LOG =
             LoggerFactory.getLogger(AbstractHttpSender.class);
 
-    private static final int CHUNKED = -1;
+    public static final int CHUNKED_LENGTH = -1;
 
     private final Map<String, String> additionalHeaders = new HashMap<>();
 
@@ -92,14 +96,15 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     public void handleResponse(HttpResponse response) throws Exception {
-        LOG.debug("handleResponse()");
+        LOG.trace("handleResponse()");
 
         checkResponseStatus(response);
 
         responseHeaders = getResponseHeaders(response);
 
         HttpEntity responseEntity = getResponseEntity(response);
-        responseContentType = getResponseContentType(responseEntity);
+        responseContentType = getResponseContentType(responseEntity,
+                this.request instanceof HttpGet);
 
         // Wrap the response input stream in order to catch EOF errors.
         responseContent = new EofSensorInputStream(
@@ -108,8 +113,14 @@ public abstract class AbstractHttpSender implements Closeable {
 
     public abstract void doGet(URI address) throws Exception;
 
-    public abstract void doPost(URI address, InputStream content,
+    public abstract void doPost(URI address, String content,
             String contentType) throws Exception;
+
+    public abstract void doPost(URI address, InputStream content,
+            long contentLength, String contentType) throws Exception;
+
+//    public abstract void doPost(URI address, InputStream content,
+//            String contentType) throws Exception;
 
     @Override
     public void close() {
@@ -132,21 +143,34 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     protected static InputStreamEntity createInputStreamEntity(
-            InputStream content, String contentType) {
-        InputStreamEntity entity = new InputStreamEntity(content, CHUNKED);
-        entity.setChunked(true); // Just in case
+            InputStream content, long contentLength, String contentType) {
+        InputStreamEntity entity =
+                new InputStreamEntity(content, contentLength);
+        if (contentLength < 0) {
+            entity.setChunked(true); // Just in case
+        }
         entity.setContentType(contentType);
         return entity;
     }
 
-    protected static void checkResponseStatus(HttpResponse response) {
-        // TODO: people say that according to SOAP spec, it is possible
-        // to send faults with HTTP 500 error code.
-        int status = response.getStatusLine().getStatusCode();
-        if (status != HttpStatus.OK_200) {
-            throw new CodedException(X_HTTP_ERROR,
-                    "Server responded with error %s: %s", status,
-                    response.getStatusLine().getReasonPhrase());
+    protected static StringEntity createStringEntity(String content,
+            String contentType) {
+        return new StringEntity(content, ContentType.create(contentType,
+                StandardCharsets.UTF_8.name()));
+    }
+
+    protected void checkResponseStatus(HttpResponse response) {
+        switch (response.getStatusLine().getStatusCode()) {
+            case HttpStatus.OK_200: // FALL THROUGH
+            // R1126 An INSTANCE MUST return a "500 Internal Server Error"
+            // HTTP status code if the response envelope is a Fault.
+            case HttpStatus.INTERNAL_SERVER_ERROR_500:
+                return;
+            default:
+                throw new CodedException(X_HTTP_ERROR,
+                        "Server responded with error %s: %s",
+                        response.getStatusLine().getStatusCode(),
+                        response.getStatusLine().getReasonPhrase());
         }
     }
 
@@ -166,15 +190,22 @@ public abstract class AbstractHttpSender implements Closeable {
             throw new CodedException(X_HTTP_ERROR,
                     "Could not get content from response");
         }
+
         return entity;
     }
 
-    protected static String getResponseContentType(HttpEntity entity) {
+    protected String getResponseContentType(HttpEntity entity,
+            boolean isGetRequest) {
         Header contentType = entity.getContentType();
         if (contentType == null) {
+            if (isGetRequest) {
+                return null;
+            }
+
             throw new CodedException(X_INVALID_CONTENT_TYPE,
                     "Could not get content type from response");
         }
+
         return contentType.getValue();
     }
 

@@ -1,6 +1,20 @@
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+}
+
 dependencies {
     compile project(':common-ui')
-    compile project(':common-verifier')
+
+    xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
+    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
 }
 
 clean << {
@@ -11,6 +25,7 @@ clean << {
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
+    exclude '**/build/**'
 }
 
 task copyCenterCommon(type: Copy) {
@@ -23,7 +38,7 @@ task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     from configurations.compile
 }
 
-// TODO - We might want to get rid of warning at .war file generation
+// TODO - We might want to get rid of warning at .war file generation. RM task #3316
 task warble(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
@@ -42,4 +57,22 @@ task runControllerTests(type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:controllers']
 }
 
+task createDirs () {
+    project.ext.schemaTargetDir.mkdirs()
+}
+
+task xjc () {
+    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+
+    // Generate classes for identifier-mapper
+    ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.cyber.sdsb.centerui.identifiermapping',
+        schema: 'src/main/resources/identifier-mapping.xsd',
+        binding: 'src/main/resources/identifiers-bindings.xml'
+    )
+}
+
+xjc.dependsOn createDirs
+compileJava.dependsOn xjc
 build.dependsOn copyDeps

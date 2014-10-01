@@ -2,14 +2,15 @@ package ee.cyber.sdsb.common.util;
 
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.message.SoapFault;
@@ -17,15 +18,11 @@ import ee.cyber.sdsb.common.message.SoapFault;
 /** Convenience base class for proxy HTTP handlers. */
 public abstract class HandlerBase extends AbstractHandler {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(HandlerBase.class);
-
     /**
      * Sends SOAP fault message to the other party.
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
-        LOG.debug("sendErrorResponse()");
         sendErrorResponse(response, ex.getFaultCode(), ex.getFaultString(),
                 ex.getFaultActor(), ex.getFaultDetail());
     }
@@ -36,7 +33,6 @@ public abstract class HandlerBase extends AbstractHandler {
     public static void sendErrorResponse(HttpServletResponse response,
             String faultCode, String faultString, String faultActor,
             String faultDetail) throws IOException {
-        // TODO: handle the case where CodedException has a cause.
         String soapMessageXml = SoapFault.createFaultXml(
                 faultCode, faultString, faultActor,
                 faultDetail);
@@ -55,19 +51,15 @@ public abstract class HandlerBase extends AbstractHandler {
     /**
      * Returns the client certificate from the SSL context.
      */
-    protected X509Certificate getClientCertificate(HttpServletRequest request) {
+    protected List<X509Certificate> getClientCertificates(
+            HttpServletRequest request) {
         Object attribute = request.getAttribute(
                 "javax.servlet.request.X509Certificate");
-
         if (attribute != null) {
-            X509Certificate[] certs = (X509Certificate[]) attribute;
-
-            if (certs.length != 0 && certs[0] != null) {
-                return certs[0];
-            }
+            return Arrays.asList((X509Certificate[]) attribute);
+        } else {
+            return new ArrayList<>();
         }
-
-        return null;
     }
 
     protected void failure(HttpServletResponse response, CodedException ex)

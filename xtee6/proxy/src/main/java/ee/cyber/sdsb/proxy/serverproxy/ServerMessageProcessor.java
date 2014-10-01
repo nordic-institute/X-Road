@@ -2,23 +2,27 @@ package ee.cyber.sdsb.proxy.serverproxy;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertHelper;
 import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -29,73 +33,133 @@ import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MessageInfo.Origin;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessage;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageDecoder;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageEncoder;
-import ee.cyber.sdsb.proxy.securelog.SecureLog;
+import ee.cyber.sdsb.proxy.securelog.MessageLog;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
+@Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ServerMessageProcessor.class);
+    private static final String SERVERPROXY_SERVICE_HANDLERS =
+            SystemProperties.PREFIX + "proxy.serverServiceHandlers";
 
-    private final X509Certificate sslClientCert;
+    private final CertChain clientSslCertChain;
+
+    private final List<ServiceHandler> handlers = new ArrayList<>();
 
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
     private SoapMessageImpl responseSoap;
+    private SoapFault responseFault;
 
     private ProxyMessageDecoder decoder;
     private ProxyMessageEncoder encoder;
 
     ServerMessageProcessor(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, HttpClient httpClient,
-            X509Certificate sslClientCert) {
+            CertChain clientSslCertChain) {
         super(servletRequest, servletResponse, httpClient);
 
-        this.sslClientCert = sslClientCert;
+        this.clientSslCertChain = clientSslCertChain;
+
+        loadServiceHandlers();
     }
 
     @Override
-    protected void process() throws Exception {
-        preprocess();
-
-        LOG.info("process({})", servletRequest.getContentType());
+    public void process() throws Exception {
+        log.info("process({})", servletRequest.getContentType());
         try {
-            cacheConfigurationForCurrentThread();
+            preprocess();
 
             readMessage();
 
-            verifyAccess();
-            verifySignature();
-
-            logSignature();
-
-            processRequest();
+            handleRequest();
 
             sign();
 
             close();
 
-            onSuccess(requestMessage.getSoap());
+            postprocess();
         } catch (Exception ex) {
             handleException(ex);
+        } finally {
+            if (requestMessage != null) {
+                requestMessage.consume();
+            }
         }
     }
 
-    private void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream());
+    @Override
+    protected void preprocess() throws Exception {
+        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(),
+                getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
+        servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
+
+        cacheConfigurationForCurrentThread();
+    }
+
+    private void loadServiceHandlers() {
+        String serviceHandlerNames =
+                System.getProperty(SERVERPROXY_SERVICE_HANDLERS);
+        if (!StringUtils.isBlank(serviceHandlerNames)) {
+            for (String serviceHandlerName : serviceHandlerNames.split(",")) {
+                handlers.add(ServiceHandlerLoader.load(serviceHandlerName));
+
+                log.debug("Loaded service handler: " + serviceHandlerName);
+            }
+        }
+
+        handlers.add(new DefaultServiceHandlerImpl()); // default handler
+    }
+
+    private ServiceHandler getServiceHandler(ProxyMessage requestMessage) {
+        for (ServiceHandler handler : handlers) {
+            if (handler.canHandle(requestServiceId, requestMessage)) {
+                return handler;
+            }
+        }
+
+        return null;
+    }
+
+    private void handleRequest() throws Exception {
+        ServiceHandler handler = getServiceHandler(requestMessage);
+        if (handler == null) {
+            handler = new DefaultServiceHandlerImpl();
+        }
+
+        if (handler.shouldVerifyAccess()) {
+            verifyAccess();
+        }
+
+        if (handler.shouldVerifySignature()) {
+            verifySignature();
+        }
+
+        if (handler.shouldLogSignature()) {
+            logSignature();
+        }
+
+        try {
+            handler.startHandling();
+            parseResponse(handler);
+        } finally {
+            handler.finishHandling();
+        }
     }
 
     private void readMessage() throws Exception {
-        LOG.trace("readMessage()");
+        log.trace("readMessage()");
 
         requestMessage = new ProxyMessage() {
             @Override
@@ -112,11 +176,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
         };
 
         decoder = new ProxyMessageDecoder(requestMessage,
-                servletRequest.getContentType(), false);
+                servletRequest.getContentType(), false,
+                getHashAlgoId(servletRequest));
         try {
             decoder.parse(servletRequest.getInputStream());
-        } catch (CodedException ex) {
-            throw ex.withPrefix(X_SERVICE_FAILED_X);
+        } catch (CodedException e) {
+            throw e.withPrefix(X_SERVICE_FAILED_X);
         }
 
         // Check if the input contained all the required bits.
@@ -125,37 +190,36 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private void checkRequest() throws Exception {
         if (requestMessage.getSoap() == null) {
-            throw new CodedException(
-                    X_MISSING_SOAP, "Request does not have SOAP message");
+            throw new CodedException(X_MISSING_SOAP,
+                    "Request does not have SOAP message");
         }
 
         if (requestMessage.getSignature() == null) {
-            throw new CodedException(
-                    X_MISSING_SIGNATURE, "Request does not have signature");
+            throw new CodedException(X_MISSING_SIGNATURE,
+                    "Request does not have signature");
         }
     }
 
     private void verifySslClientCert() throws Exception {
-        LOG.trace("verifySslClientCert()");
+        log.trace("verifySslClientCert()");
 
-        if (requestMessage.getOcspResponse() == null) {
+        if (requestMessage.getOcspResponses().isEmpty()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
                     "Cannot verify SSL certificate, corresponding " +
                     "OCSP response is missing");
         }
 
         try {
-            CertHelper.verifyAuthCert(sslClientCert, null, /* no other certs */
-                    Arrays.asList(requestMessage.getOcspResponse()),
-                    requestMessage.getSoap().getClient(),
-                    ServerConf.getIdentifier());
+            CertHelper.verifyAuthCert(clientSslCertChain,
+                    requestMessage.getOcspResponses(),
+                    requestMessage.getSoap().getClient());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
     }
 
     private void verifyAccess() throws Exception {
-        LOG.trace("verifyAccess()");
+        log.trace("verifyAccess()");
 
         if (!ServerConf.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE,
@@ -188,7 +252,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         Collection<SecurityCategoryId> provided =
-                GlobalConf.getProvidedCategories(sslClientCert);
+                GlobalConf.getProvidedCategories(getClientAuthCert());
 
         for (SecurityCategoryId cat: required) {
             if (provided.contains(cat)) {
@@ -204,83 +268,91 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void verifySignature() throws Exception {
-        LOG.trace("verifySignature()");
+        log.trace("verifySignature()");
 
         decoder.verify(requestMessage.getSoap().getClient(),
-                requestMessage.getSignature(), GlobalConf.getVerificationCtx());
-    }
-
-    private void logSignature() throws Exception {
-        LOG.trace("logSignature()");
-
-        SecureLog.logSignature(requestMessage.getSoap(),
                 requestMessage.getSignature());
     }
 
-    private void processRequest() throws Exception {
-        LOG.trace("processRequest({})", requestServiceId);
+    private void logSignature() throws Exception {
+        log.trace("logSignature()");
 
-        String serviceAddress = ServerConf.getServiceAddress(requestServiceId);
-        if (serviceAddress == null || serviceAddress.isEmpty()) {
-            throw new CodedException(X_SERVICE_MISSING_URL,
-                    "Service address not specified for '%s'", requestServiceId);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature());
+    }
+
+    private void sendRequest(String serviceAddress, HttpSender httpSender)
+            throws Exception {
+        log.trace("sendRequest({})", serviceAddress);
+
+        URI uri;
+        try {
+            uri = new URI(serviceAddress);
+        } catch (URISyntaxException e) {
+            throw new CodedException(X_SERVICE_MALFORMED_URL,
+                    "Malformed service address '%s': %s", serviceAddress,
+                    e.getMessage());
         }
 
-        int serviceTimeout = ServerConf.getServiceTimeout(requestServiceId);
-        try (HttpSender httpSender = createHttpSender()) {
-            httpSender.setTimeout(serviceTimeout * 1000); // to milliseconds
-            sendRequest(serviceAddress, httpSender);
-            parseResponse(httpSender);
+        log.info("Sending request to {}", uri);
+        try (InputStream in = requestMessage.getSoapContent()) {
+            httpSender.doPost(uri, in, CHUNKED_LENGTH,
+                    requestMessage.getSoapContentType());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender)
-            throws Exception {
-        LOG.trace("sendRequest({})", serviceAddress);
+    private void parseResponse(ServiceHandler handler) throws Exception {
+        log.trace("parseResponse()");
 
-        URI address = new URI(serviceAddress);
-        httpSender.doPost(address, requestMessage.getSoapContent(),
-                requestMessage.getSoapContentType());
-    }
+        try {
+            SoapMessageDecoder soapMessageDecoder =
+                    new SoapMessageDecoder(handler.getResponseContentType(),
+                            new SoapMessageHandler());
+            soapMessageDecoder.parse(handler.getResponseContent());
+        } catch (Exception ex) {
+            throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
+        }
 
-    private void parseResponse(HttpSender httpSender) throws Exception {
-        LOG.trace("parseResponse()");
-
-        SoapMessageDecoder soapMessageDecoder =
-                new SoapMessageDecoder(httpSender.getResponseContentType(),
-                        new SoapMessageHandler());
-        soapMessageDecoder.parse(httpSender.getResponseContent());
+        // If we received a fault from the service, we just send it back
+        // to the client.
+        if (responseFault != null) {
+            throw responseFault.toCodedException();
+        }
 
         // If we did not parse a response message (empty response
         // from server?), it is an error instead.
         if (responseSoap == null) {
             throw new CodedException(X_INVALID_MESSAGE,
-                "No response message received from service");
+                "No response message received from service").withPrefix(
+                        X_SERVICE_FAILED_X);
         }
     }
 
     private void sign() throws Exception {
         ClientId memberId = requestServiceId.getClientId();
-        LOG.trace("sign({})", memberId);
+        log.trace("sign({})", memberId);
 
         encoder.sign(KeyConf.getSigningCtx(memberId));
     }
 
     private void close() throws Exception {
-        LOG.trace("close()");
+        log.trace("close()");
 
         encoder.close();
     }
 
     private void handleException(Exception ex) throws Exception {
-        CodedException translated =
-                translateWithPrefix(SERVER_SERVERPROXY_X, ex);
+        CodedException exception;
+        if (ex instanceof CodedException.Fault) {
+            exception = (CodedException) ex;
+        } else {
+            exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
+        }
 
-        monitorAgentNotifyFailure(translated);
+        monitorAgentNotifyFailure(exception);
 
-        encoder.fault(SoapFault.createFaultXml(translated));
+        encoder.fault(SoapFault.createFaultXml(exception));
     }
 
     private void monitorAgentNotifyFailure(CodedException ex) {
@@ -300,10 +372,98 @@ class ServerMessageProcessor extends MessageProcessorBase {
         MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
     }
 
-    protected MessageInfo createRequestMessageInfo() {
+    @Override
+    public MessageInfo createRequestMessageInfo() {
+        if (requestMessage == null) {
+            return null;
+        }
+
         SoapMessageImpl soap = requestMessage.getSoap();
         return new MessageInfo(Origin.SERVER_PROXY, soap.getClient(),
                 requestServiceId, soap.getUserId(), soap.getQueryId());
+    }
+
+    private X509Certificate getClientAuthCert() {
+        return clientSslCertChain != null ?
+                clientSslCertChain.getEndEntityCert() : null;
+    }
+
+    private static String getHashAlgoId() {
+        // TODO: #2578 make hash function configurable
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    }
+
+    private static String getHashAlgoId(HttpServletRequest servletRequest) {
+        String hashAlgoId = servletRequest.getHeader(HEADER_HASH_ALGO_ID);
+        if (hashAlgoId == null) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not get hash algorithm identifier from message");
+        }
+
+        return hashAlgoId;
+    }
+
+    private class DefaultServiceHandlerImpl implements ServiceHandler {
+
+        private HttpSender sender;
+
+        @Override
+        public boolean shouldVerifyAccess() {
+            return true;
+        }
+
+        @Override
+        public boolean shouldVerifySignature() {
+            return true;
+        }
+
+        @Override
+        public boolean shouldLogSignature() {
+            return true;
+        }
+
+        @Override
+        public boolean canHandle(ServiceId requestServiceId,
+                ProxyMessage requestProxyMessage) {
+            return true;
+        }
+
+        @Override
+        public void startHandling() throws Exception {
+            sender = createHttpSender();
+
+            log.trace("processRequest({})", requestServiceId);
+
+            String address = ServerConf.getServiceAddress(requestServiceId);
+            if (address == null || address.isEmpty()) {
+                throw new CodedException(X_SERVICE_MISSING_URL,
+                        "Service address not specified for '%s'",
+                        requestServiceId);
+            }
+
+            int timeout = ServerConf.getServiceTimeout(requestServiceId);
+
+            sender.setTimeout(timeout * 1000); // to milliseconds
+            sender.setAttribute(ServiceId.class.getName(), requestServiceId);
+
+            sendRequest(address, sender);
+        }
+
+        @Override
+        public void finishHandling() throws Exception {
+            sender.close();
+            sender = null;
+        }
+
+        @Override
+        public String getResponseContentType() {
+            return sender.getResponseContentType();
+        }
+
+        @Override
+        public InputStream getResponseContent() {
+            return sender.getResponseContent();
+        }
     }
 
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
@@ -317,6 +477,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
             encoder.attachment(contentType, content, additionalHeaders);
+        }
+
+        @Override
+        public void fault(SoapFault fault) {
+            responseFault = fault;
         }
 
         @Override

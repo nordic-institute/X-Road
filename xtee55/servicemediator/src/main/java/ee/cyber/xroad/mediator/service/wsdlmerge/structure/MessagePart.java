@@ -4,18 +4,18 @@ import java.io.IOException;
 
 import javax.xml.namespace.QName;
 
-import lombok.Value;
+import lombok.Data;
 import org.stringtemplate.v4.ST;
 
-@Value
-public class MessagePart implements Marshallable {
-    private String name;
-    private QName element;
-    private QName type;
+@Data
+public class MessagePart implements Marshallable, TemplateAware {
+    private final String name;
+    private final QName element;
+    private final QName type;
 
     @Override
     public String getXml() throws IOException {
-        ST template = TemplateUtils.getTemplate("marshal-MessagePart.st");
+        ST template = getTemplate();
 
         template.add("name", name);
         template.add("elem", element);
@@ -25,5 +25,10 @@ public class MessagePart implements Marshallable {
         template.add("type_", type);
 
         return template.render();
+    }
+
+    @Override
+    public ST getTemplate() throws IOException {
+        return TemplateUtils.getTemplate("marshal-MessagePart.st");
     }
 }

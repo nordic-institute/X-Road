@@ -12,5 +12,5 @@ Gem::Specification.new do |s|
 
   s.files = Dir["{app,config,lib}/**/*"] + ["Rakefile"]
 
-  s.add_dependency "rails", "~> 3.2.10"
+  s.add_dependency "rails", "~> 3.2.0"
 end

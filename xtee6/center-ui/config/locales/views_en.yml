@@ -1,15 +1,13 @@
 en:
   common:
     description: "Description"
-    clear: "Clear"
     advanced_search: "Advanced Search Parameters"
-    ok: "OK"
     name: "Name"
     code: "Code"
     class: "Class"
     subsystem: "Subsystem"
     auth_cert_hash: "Hash"
-    filename_empty: "You must provide the filename!"
+    filename_empty: "Filename missing"
     cert: "Certificate"
     cert_unreadable: "Certificate from file '%{filename}' could not be read"
     cert_details_title: "Certificate Details"
@@ -23,8 +21,15 @@ en:
 
   about:
     index:
-      name: "SDSB central server"
+      name: "Central Server"
       version: "version"
+
+  backup:
+    index:
+      item:
+        restore_confirm: "During restore You will be logged out of global configuration signing token. Are you sure you want to restore configuration from file '{{file}}'?"
+    upload:
+      file_exists: "Backup file with name '{{file}}' already exists, do You want to overwrite it?"
 
   orgs:
     index:
@@ -60,12 +65,19 @@ en:
       global_group_membership:
         legend: "Global Group Membership"
         group: "Group"
-        subsystem: "Subsystem"
+        description: "Group description"
+        subsystem:
+          table: "Subsystem"
+          add: "Add Member as Subsystem"
         added_to_group: "Added to Group"
+        add_member_to_group: "Add '{{member}}' to Group"
+        remove_confirm: "Are you sure you want to remove '{{member}}' from global group '{{group}}'?"
       subsystems:
         legend: "Subsystems"
         subsystem_code: "Subsystem Code"
         used_servers: "Used Servers"
+        delete: "Delete Subsystem"
+        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' SDSB member '{{memberCode}}({{memberClass}})'?"
       used_servers:
         legend: "Used Servers"
         server_code: "Server Code"
@@ -81,10 +93,10 @@ en:
             legend: "Client Information"
       name:
         title: "Edit Member Name"
-        legend: "Edit Member Name"
       all_servers:
         search:
-          title: "Server Search Results"
+          title: "Security Servers"
+    remove_confirm: "Are you sure you want to remove SDSB member '{{memberCode}}({{memberClass}})'?"
 
   management_requests:
     legend: "Management Requests"
@@ -94,13 +106,19 @@ en:
     status: "Status"
     request_id: "Request ID"
     request_type: "Request Type"
+    auth_cert_reg: "Certificate registration"
+    client_reg: "Client registration"
+    auth_cert_deletion: "Certificate deletion"
+    client_deletion: "Client deletion"
     source: "Source"
+    source_center: "SDSB center"
+    source_security_server: "Security server"
     server_owner_name: "Server Owner Name"
     server_owner_class: "Server Owner Class"
     server_owner_code: "Server Owner Code"
     server_code: "Server Code"
     complementary_id: "Complementary request ID"
-    canceling_id: "Cancelling request ID"
+    revoking_id: "Revoking request ID"
     details:
       auth_cert_deletion:
         title: "Authentication Certificate Deletion Request Details"
@@ -116,6 +134,9 @@ en:
       client_reg:
         title: "Security Server Client Registration Request Details"
         legend: "Client Submitted for Registration"
+      approve_confirm: "Are you sure you want to approve request?"
+      revoke_confirm: "Are you sure you want to revoke request?"
+      decline_confirm: "Are you sure you want to decline request?"
     request:
       legend: "Request Information"
     securityserver:
@@ -127,6 +148,7 @@ en:
     owner_class: "Owner Class"
     owner_code: "Owner Code"
     address: "Address"
+    registered: "Registered"
     info:
       legend: "Security Server Information"
     details:
@@ -146,9 +168,10 @@ en:
       class: "Class"
       code: "Code"
       subsystem_code: "Subsystem Code"
+      add: "Add Server Client"
     auth_cert:
       legend: "Authentication Certificates"
-      csp: "CSP"
+      ca: "CA"
       serial_number: "Serial Number"
       subject: "Subject"
       expires: "Expires"
@@ -161,6 +184,7 @@ en:
         legend: "Authentication Certificate Information"
       delete:
         title: "Delete Authentication Certificate"
+    remove_confirm: "Are you sure you want to remove security server '{{server}}' belonging to '{{ownerCode}}({{ownerClass}})'?"
 
   groups:
     code: "Code"
@@ -169,8 +193,15 @@ en:
     add:
       button: "Add"
       title: "New Group"
+      selected_members: "Add Selected members"
+    remove:
+      confirm: "Are you sure you want to remove group '{{group}}'?"
+      selected_members_confirm: "Are you sure you want to remove selected members from group '{{group}}'?"
     details:
+      title: "Global group '{{group}}'"
       members: "Group members"
+      members_add_title: "Add Members To Global Group '{{group}}'"
+      members_add_search_show_members: "Show group members in search results"
       name: "Name"
       code: "Code"
       class: "Class"
@@ -190,6 +221,7 @@ en:
     orgs:
       add_all: "Add all SDSB members"
       add_selected: "Add selected SDSB members"
+      remove_confirm: "Are you sure you want to remove SDSB member '{{member}}' from group '{{group}}'?"
 
   central_services:
     service_code: "Code"
@@ -198,6 +230,7 @@ en:
     implementing_service_legend: "Implementing Service"
     provider_legend: "Provider"
     provider_code: "Provider Code"
+    service_version: "Version"
     provider_class: "Provider Class"
     provider_subsystem: "Provider Subsystem"
     details:
@@ -207,6 +240,11 @@ en:
         legend: "Implementing Service"
         code: "Code"
         provider_name: "Provider Name"
+        search_title: "Select Implementing Service Provider"
+    remove_confirm: "Are you sure you want to remove central service '{{service}}'?"
+    new_title: "Add New Central Service"
+    edit_title: "Edit central service '{{service}}'"
+    remove_target_service_confirm: "Are you sure you want to remove target service from central service '{{service}}'?"
 
   layouts:
     application:
@@ -215,6 +253,8 @@ en:
   pkis:
     trusted_certification_service: "Trusted Certification Service"
     intermediate_ca: "Intermediate CA"
+    intermediate_ca_new_title: "Insert intermediate CA"
+    intermediate_ca_edit_title: "Edit intermediate CA"
     add:
       step1:
         title: "Insert Top CA Certificate"
@@ -233,6 +273,37 @@ en:
       url: "URL"
       cert: "Certificate"
       load: "Load"
+      ocsp_responders_uploading: "Top CA OCSP responder cert currently being uploaded, try again"
+    remove_confirm: "Are you sure you want to remove PKI '{{pki}}'?"
 
-  identifier_mapping:
-    upload_file: "Upload identifier mapping file"
+  distributed_files:
+    filetype: "File type"
+    info: "Info"
+    no_file: "No file found"
+    identifier_mapping:
+      upload:
+        title: "Upload identifier mapping file"
+        enter_file_name: "Enter File Name"
+    last_result: "Last Result"
+
+  import_v5:
+    upload_file:
+      title: "Upload File"
+      enter_file_name: "Enter File Name"
+    last_import:
+      title: "Last import attempt"
+      filename: "Path to the imported file"
+      time: "Last time attempted to import"
+      exit_status: "Exit status of the last import attempt"
+    last_result: "Last Result"
+
+  system_status:
+    enter_softtoken_pin: "Click here to enter PIN"
+    softtoken_pin_not_entered: "PIN for signing token is not entered"
+    signing_token_not_initialized: "Signing token is not initialized, You can do it using signer-console."
+
+  tsps:
+    edit_new: "Add Timestamping Service"
+    edit_existing: "Edit Timestamping Service"
+    remove_confirm: "Are you sure you want to remove TSP '{{tsp}}'?"
+

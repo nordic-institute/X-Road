@@ -2,7 +2,7 @@ require 'test_helper'
 
 class RequestProcessingTest < ActiveSupport::TestCase
 
-  test "Cancel waiting ClientRegRequest when deletion request sent" do
+  test "Revoke waiting ClientRegRequest when deletion request sent" do
     # Given
     client_id_registration = ClientId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused")
@@ -31,10 +31,10 @@ class RequestProcessingTest < ActiveSupport::TestCase
     # Then
     saved_processing = RequestProcessing.all.first
 
-    assert_equal(RequestProcessing::CANCELED, saved_processing.status)
+    assert_equal(RequestProcessing::REVOKED, saved_processing.status)
   end
 
-  test "Cancel waiting AuthCertRegRequest when deletion request sent" do
+  test "Revoke waiting AuthCertRegRequest when deletion request sent" do
     # Given
     server_id_registration =  SecurityServerId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused", "securityServer")
@@ -60,16 +60,24 @@ class RequestProcessingTest < ActiveSupport::TestCase
     request_deletion.register()
 
     # Then
+    member_in_vallavalitsused_name = 
+        "This member should belong to group 'vallavalitsused'"
+    
     saved_processing = RequestProcessing.all.first
     saved_auth_cert_reg_request = AuthCertRegRequest.first
 
-    assert_equal(RequestProcessing::CANCELED, saved_processing.status)
+    assert_equal(member_in_vallavalitsused_name,
+        saved_auth_cert_reg_request.server_owner_name)
+
+    assert_equal(RequestProcessing::REVOKED, saved_processing.status)
 
     assert_equal(1, AuthCertDeletionRequest.all.size)
 
     deletion_request = AuthCertDeletionRequest.first
     assert_equal(deletion_request.id, 
-        saved_auth_cert_reg_request.get_canceling_request_id())
+        saved_auth_cert_reg_request.get_revoking_request_id())
+    assert_equal(member_in_vallavalitsused_name,
+        deletion_request.server_owner_name)
   end
 
   test "Do not change ClientRegRequest as origins are different" do
@@ -104,7 +112,7 @@ class RequestProcessingTest < ActiveSupport::TestCase
     assert_equal(RequestProcessing::WAITING, saved_processing.status)
   end
 
-  test "Cancel client reg request" do
+  test "Revoke client reg request" do
     # Given
     client_id_registration = ClientId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused")
@@ -119,20 +127,20 @@ class RequestProcessingTest < ActiveSupport::TestCase
     # When
     request_registration.register()
     saved_client_reg_request = ClientRegRequest.all.first
-    ClientRegRequest.cancel(saved_client_reg_request.id)
+    ClientRegRequest.revoke(saved_client_reg_request.id)
 
     # Then
     processing_status = saved_client_reg_request.request_processing.status
-    assert_equal(RequestProcessing::CANCELED, processing_status)
+    assert_equal(RequestProcessing::REVOKED, processing_status)
 
     assert_equal(1, ClientDeletionRequest.all.size)
 
     deletion_request = ClientDeletionRequest.first
     assert_equal(deletion_request.id, 
-        saved_client_reg_request.get_canceling_request_id())
+        saved_client_reg_request.get_revoking_request_id())
   end
 
-  test "Fail to cancel client reg request from security server" do
+  test "Fail to revoke client reg request from security server" do
     # Given
     client_id_registration = ClientId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused")
@@ -149,12 +157,12 @@ class RequestProcessingTest < ActiveSupport::TestCase
     saved_client_reg_request = ClientRegRequest.all.first
 
     assert_raises(RuntimeError) do
-      ClientRegRequest.cancel(saved_client_reg_request.id)
+      ClientRegRequest.revoke(saved_client_reg_request.id)
     end
 
   end
 
-  test "Cancel auth cert reg request" do
+  test "Revoke auth cert reg request" do
     # Given
     server_id_registration =  SecurityServerId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused", "securityServer")
@@ -169,16 +177,16 @@ class RequestProcessingTest < ActiveSupport::TestCase
     # When
     request_registration.register()
     saved_auth_cert_reg_request = AuthCertRegRequest.all.first
-    AuthCertRegRequest.cancel(saved_auth_cert_reg_request.id)
+    AuthCertRegRequest.revoke(saved_auth_cert_reg_request.id)
 
     # Then
     processing_status = saved_auth_cert_reg_request.request_processing.status
-    assert_equal(RequestProcessing::CANCELED, processing_status)
+    assert_equal(RequestProcessing::REVOKED, processing_status)
 
     assert_equal(1, AuthCertDeletionRequest.all.size)
   end
 
-  test "Raise error when trying to cancel approved request" do
+  test "Raise error when trying to revoke approved request" do
     # Given
     client_id_server = ClientId.from_parts(
         "EE", "riigiasutus", "member_in_vallavalitsused")
@@ -206,7 +214,7 @@ class RequestProcessingTest < ActiveSupport::TestCase
     # When/then
     assert_raises(RuntimeError) do
         first_saved_request = ClientRegRequest.first
-        ClientRegRequest.cancel(first_saved_request.id)
+        ClientRegRequest.revoke(first_saved_request.id)
     end
 
     # Then
@@ -241,6 +249,6 @@ class RequestProcessingTest < ActiveSupport::TestCase
     # Then
     saved_processing = RequestProcessing.all.first
 
-    assert_equal(RequestProcessing::CANCELED, saved_processing.status)
+    assert_equal(RequestProcessing::REVOKED, saved_processing.status)
   end
 end

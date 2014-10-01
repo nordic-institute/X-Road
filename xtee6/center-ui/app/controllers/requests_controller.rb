@@ -1,12 +1,36 @@
-require 'ruby_cert_helper'
-
 class RequestsController < ApplicationController
   include RequestsHelper
-  include RubyCertHelper
+
+  before_filter :verify_get, :only => [
+      :requests_refresh,
+      :get_auth_cert_reg_request_data,
+      :get_client_reg_request_data,
+      :get_auth_cert_deletion_request_data,
+      :get_client_deletion_request_data]
+
+  before_filter :verify_post, :only => [
+      :revoke_client_reg_request,
+      :revoke_auth_cert_reg_request,
+      :approve_reg_request,
+      :decline_reg_request]
+
+  # -- Common GET methods - start ---
 
   def index
     authorize!(:view_management_requests)
   end
+
+  def get_records_count
+    render_json_without_messages(:count => Request.count)
+  end
+
+  def can_see_details
+    render_details_visibility(:view_management_request_details)
+  end
+
+  # -- Common GET methods - end ---
+
+  # -- Specific GET methods - start ---
 
   def requests_refresh
     authorize!(:view_management_requests)
@@ -56,38 +80,56 @@ class RequestsController < ApplicationController
     render_json(get_client_data(request))
   end
 
-  def can_see_details
-    render_details_visibility(:view_management_request_details)
-  end
+  # -- Specific GET methods - end ---
 
-  def cancel_client_reg_request
+  # -- Specific POST methods - start ---
+
+  def revoke_client_reg_request
     request_id = params[:requestId]
-    ClientRegRequest.cancel(request_id)
+    ClientRegRequest.revoke(request_id)
 
-    notice(t("management_requests.client_reg_request_canceled",
+    notice(t("management_requests.client_reg_request_revoked",
         {:id => request_id}))
 
     render_json()
   end
 
-  def cancel_auth_cert_reg_request
+  def revoke_auth_cert_reg_request
     request_id = params[:requestId]
-    AuthCertRegRequest.cancel(request_id)
+    AuthCertRegRequest.revoke(request_id)
 
-    notice(t("management_requests.auth_cert_reg_request_canceled",
+    notice(t("management_requests.auth_cert_reg_request_revoked",
         {:id => request_id}))
 
     render_json()
   end
 
-  def get_records_count
-    render_json(:count => Request.count)
+  def approve_reg_request
+    request_id = params[:requestId]
+    RequestWithProcessing.approve(request_id)
+
+    notice(t("management_requests.request_approved",
+        {:id => request_id}))
+
+    render_json()
   end
+
+  def decline_reg_request
+    request_id = params[:requestId]
+    RequestWithProcessing.decline(request_id)
+
+    notice(t("management_requests.request_declined",
+        {:id => request_id}))
+
+    render_json()
+  end
+
+  # -- Specific POST methods - end ---
 
   private
 
   def get_auth_cert_data(request)
-    cert = cert_from_bytes(request.auth_cert)
+    cert = cert_object(request.auth_cert)
 
     {
       :csp => cert_csp(cert),
@@ -102,11 +144,8 @@ class RequestsController < ApplicationController
     member_class = client_id.member_class
     member_code = client_id.member_code
 
-    saved_member = SdsbMember.find_by_code(member_class, member_code)
-    member_name = saved_member ? saved_member.name : ""
-
     {
-      :member_name => member_name,
+      :member_name => request.server_user_name,
       :member_class => member_class,
       :member_code => member_code,
       :subsystem_code => client_id.subsystem_code

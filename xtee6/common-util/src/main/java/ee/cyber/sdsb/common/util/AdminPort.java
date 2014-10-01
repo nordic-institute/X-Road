@@ -18,6 +18,8 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static javax.servlet.http.HttpServletResponse.*;
+
 public class AdminPort implements StartStop {
 
     public interface AsynchronousCallback extends Runnable {
@@ -67,6 +69,10 @@ public class AdminPort implements StartStop {
         addHandler(REQUEST_STOP, handler);
     }
 
+    public void addShutdownHook(Runnable hook) {
+        Runtime.getRuntime().addShutdownHook(new Thread(hook));
+    }
+
     public void addHandler(String target, SynchronousCallback handler) {
         handlers.put(target, handler);
     }
@@ -96,7 +102,7 @@ public class AdminPort implements StartStop {
                 HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
             if (!CONNECTOR_HOST.equals(request.getRemoteAddr())) {
-                response.setStatus(403);
+                response.setStatus(SC_FORBIDDEN);
                 baseRequest.setHandled(true);
                 return;
             }
@@ -111,12 +117,12 @@ public class AdminPort implements StartStop {
                         new Thread(handler).start();
                     }
                 } else {
-                    response.setStatus(404);
+                    response.setStatus(SC_NOT_FOUND);
                 }
             } catch (Exception e) {
                 LOG.error("Handler got error", e);
 
-                response.setStatus(500);
+                response.setStatus(SC_INTERNAL_SERVER_ERROR);
                 IOUtils.copy(new StringReader(e.toString()),
                         response.getOutputStream());
             } finally {

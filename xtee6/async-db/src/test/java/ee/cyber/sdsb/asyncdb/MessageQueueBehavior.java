@@ -10,6 +10,10 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueueImpl;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
+import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -36,9 +40,6 @@ public class MessageQueueBehavior {
         // Let us do experiments in the sandbox
         System.setProperty(SystemProperties.ASYNC_DB_PATH,
                 "src/test/resources/db");
-
-        System.setProperty(SystemProperties.SERVER_CONFIGURATION_FILE,
-                "src/test/resources/serverconf.xml");
 
         AsyncLogWriter dummyLogWriter = new AsyncLogWriter() {
 

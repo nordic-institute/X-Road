@@ -16,11 +16,14 @@ import ee.cyber.sdsb.common.util.ExpectedCodedException;
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
 import static ee.cyber.sdsb.common.util.CryptoUtils.getAlgorithmId;
-import static ee.cyber.sdsb.common.util.MessageFileNames.*;
+import static ee.cyber.sdsb.common.util.MessageFileNames.MESSAGE;
+import static ee.cyber.sdsb.common.util.MessageFileNames.attachment;
 
 public class HashChainVerifierTest {
     private static final Logger LOG = LoggerFactory.getLogger(
             HashChainVerifierTest.class);
+
+    private static final String HASH_CHAIN = "/hashchain.xml";
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();

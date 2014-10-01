@@ -1,0 +1,71 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "internal_certs" %>
+<% end %>
+
+<% if can?(:view_client_internal_connection_type) %>
+<section class="container">
+  <legend><%= t '.connection_type' %></legend>
+  <p><%= t('.connection_type_hint').html_safe %></p>
+  <div>
+    <%= select_tag "connection_type", options_for_select(
+        [ ["HTTP", "NOSSL"], ["HTTPS", "SSLAUTH"], ["HTTPS no auth", "SSLNOAUTH"] ]) %>
+    <% if can?(:edit_client_internal_connection_type) %>
+      <%= button_tag t('common.save'), :id => 'internal_connection_type_edit' %>
+    <% end %>
+  </div>
+</section>
+<% end %>
+
+<section class="container">
+  <legend>Internal SSL Certificates</legend>
+  <table id="internal_certs">
+    <thead>
+      <th><%= t '.certificate_hash', :alg => "SHA-1" %></th>
+    </thead>
+  </table>
+
+  <div class="dataTables_actions">
+    <% if can?(:view_client_internal_cert_details) %>
+      <%= button_tag t('common.details'), :id => 'internal_cert_details' %>
+    <% end %>
+
+    <% if can?(:add_client_internal_cert) %>
+      <%= button_tag t('common.add'), :id => 'internal_cert_add' %>
+    <% end %>
+
+    <% if can?(:delete_client_internal_cert) %>
+      <%= button_tag t('common.delete'), :id => 'internal_cert_delete' %>
+    <% end %>
+  </div>
+</section>
+
+<% if can?(:view_proxy_internal_cert) %>
+<section class="container">
+  <legend><%= t '.security_server_cert' %></legend>
+
+  <table id="proxy_internal_cert">
+    <thead>
+      <th><%= t '.certificate_hash', :alg => "SHA-1" %></th>
+    </thead>
+  </table>
+
+  <% if can?(:export_proxy_internal_cert) %>
+  <div class="dataTables_actions">
+    <button id="proxy_internal_cert_export"><%= t 'common.export' %></button>
+  </div>
+  <% end %>
+</section>
+<% end %>
+
+<%= dialog "internal_cert_add_dialog", t('.import_certificate') do %>
+  <br/>
+  <%= form_tag "#{controller.controller_name}/internal_cert_add",
+          :multipart => true, :target => "upload_target" do %>
+    <%= t '.certificate_location' %>:
+    <%= file_field_tag "cert" %>
+    <%= hidden_field_tag 'client_id' %>
+  <% end %>
+  <iframe id="upload_target" name="upload_target"></iframe>
+<% end %>
+
+<%= render :partial => "shared/cert_details_dialog" %>

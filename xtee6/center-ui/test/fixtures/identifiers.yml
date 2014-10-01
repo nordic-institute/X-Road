@@ -15,6 +15,20 @@ subsystem_in_vallavalitsused_group_member_identifier:
   subsystem_code: "subsystem_in_vallavalitsused"
   type: "ClientId"
 
+owner_in_vallavalitsused_group_member_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  type: "ClientId"
+
+owner_out_of_vallavalitsused_group_member_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  type: "ClientId"
+
 # Group member identifiers - end
 
 # Client identifiers - start
@@ -47,6 +61,21 @@ subsystem_out_of_vallavalitsused_client_identifier:
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   subsystem_code: "subsystem_out_of_vallavalitsused"
+  type: "ClientId"
+
+member_as_server_client_client_identifier:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_as_server_client"
+  type: "ClientId"
+
+subsystem_as_server_client_client_identifier:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_as_server_client"
+  subsystem_code: "subsystem_as_server_client"
   type: "ClientId"
 
 # Client identifiers - end

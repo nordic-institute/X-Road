@@ -5,13 +5,10 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class AuthTrustManager implements X509TrustManager {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AuthTrustManager.class);
 
     private static final AuthTrustManager instance = new AuthTrustManager();
 
@@ -24,9 +21,14 @@ public class AuthTrustManager implements X509TrustManager {
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
-        LOG.debug("getAcceptedIssuers");
+        log.debug("getAcceptedIssuers");
 
-        return GlobalConf.getAuthTrustChain();
+        try {
+            return GlobalConf.getAuthTrustChain();
+        } catch (Exception e) {
+            log.error("Error getting authentication trust chain", e);
+            return new X509Certificate[] {};
+        }
     }
 
     @Override

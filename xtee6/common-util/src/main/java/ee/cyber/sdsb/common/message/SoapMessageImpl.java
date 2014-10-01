@@ -1,86 +1,42 @@
 package ee.cyber.sdsb.common.message;
 
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
-import ee.cyber.sdsb.common.identifier.AbstractServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.sdsb.common.identifier.ServiceId;
 
-public class SoapMessageImpl implements SoapMessage {
+import static ee.cyber.sdsb.common.message.SoapUtils.isResponseMessage;
+import static ee.cyber.sdsb.common.message.SoapUtils.isRpcMessage;
 
-    // HTTP header field for async messages that are sent from async-sender
-    public static final String X_IGNORE_ASYNC = "X-Ignore-Async";
+/**
+ * This class represents the SDSB SOAP message.
+ */
+public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
-    public static final String NS_SDSB = "http://sdsb.net/xsd/sdsb.xsd";
-    public static final String PREFIX_SDSB = "sdsb";
-
-    final SOAPMessage soap;
-
-    private final String xml;
-
-    protected final SoapHeader header;
-
-    protected final boolean isResponse;
-    protected final boolean isRpcEncoded;
-
-    SoapMessageImpl(String xml, SOAPMessage soap, SoapHeader header,
-            String serviceName) throws Exception {
-        this.soap = soap;
-        this.header = header;
-        this.xml = xml;
-        this.isResponse = SoapUtils.isResponseMessage(serviceName);
-        this.isRpcEncoded = SoapUtils.isRpcMessage(soap);
-    }
-
-    @Override
-    public String getXml() {
-        return xml;
-    }
-
-    @Override
-    public SOAPBody getBody() throws SOAPException {
-        return soap.getSOAPBody();
-    }
-
-    @Override
-    public String getCharset() {
-        return header.charset;
-    }
-
-    @Override
-    public boolean isRpcEncoded() {
-        return isRpcEncoded;
+    SoapMessageImpl(String xml, String charset, SoapHeader header,
+            SOAPMessage soap, String serviceName) throws Exception {
+        super(xml, charset, header, soap, isResponseMessage(serviceName),
+                isRpcMessage(soap));
     }
 
     public ClientId getClient() {
-        return header.client;
+        return getHeader().getClient();
     }
 
-    public AbstractServiceId getService() {
-        return header.service;
+    public ServiceId getService() {
+        return getHeader().getService();
     }
 
     public boolean isAsync() {
-        return header.isAsync;
+        return getHeader().isAsync();
     }
 
     public String getQueryId() {
-        return header.queryId;
+        return getHeader().getQueryId();
     }
 
     public String getUserId() {
-        return header.userId;
-    }
-
-    @Override
-    public boolean isRequest() {
-        return !isResponse;
-    }
-
-    @Override
-    public boolean isResponse() {
-        return isResponse;
+        return getHeader().getUserId();
     }
 
     public byte[] getBytes() throws Exception {

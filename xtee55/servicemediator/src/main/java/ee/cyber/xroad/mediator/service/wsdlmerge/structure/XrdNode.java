@@ -8,18 +8,12 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import org.w3c.dom.Node;
 
-@EqualsAndHashCode
+@Data
 public class XrdNode implements Marshallable {
-    @Getter
-    private Node node;
-
-    public XrdNode(Node node) {
-        this.node = node;
-    }
+    private final Node node;
 
     @Override
     public String getXml() throws Exception {
@@ -28,6 +22,15 @@ public class XrdNode implements Marshallable {
                 .newTransformer();
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
         transformer.transform(new DOMSource(node), new StreamResult(writer));
-        return writer.toString();
+        return writer.toString().trim();
+    }
+
+    public String getName() {
+        Node nameElement = node.getAttributes().getNamedItem("name");
+        if (nameElement == null) {
+            return null;
+        }
+
+        return nameElement.getTextContent();
     }
 }

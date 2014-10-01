@@ -41,21 +41,35 @@ et:
 
   keys:
     index:
-      name: "Nimi"
-      type: "Tüüp"
-      saved: "Salvestatud"
-      save_pin: "Salvesta PIN"
-      auto_deactivate: "Automaatne desaktiveerimine"
-      enter_key_name: "Võtme nimi:"
-      create_csr: "Loo sertifitseerimispäring"
-      load_certificate: "Laadi sertifikaat"
-      change_pin: "Muuda PIN"
-      activate: "Aktiveeri"
-      deactivate: "Desaktiveeri"
-      certificate_file: "Sertifikaadi fail"
-      certreq: "Salvesta sertifitseerimispäring"
-    cert:
-      certificate: "Sertifikaat"
+      certificate: "Certificate"
+      member: "Member"
+      ocsp_response: "OCSP response"
+      expires: "Expires"
+      status: "Status"
+      details: "Details"
+      generate_key: "Generate key"
+      generate_csr: "Generate certificate request"
+      activate: "Activate"
+      register: "Register"
+      unregister: "Unregister"
+      refresh_view: "Refresh view"
+      import_certificate: "Import certificate"
+      enter_pin: "Enter PIN"
+      pin: "PIN"
+      usage: "Usage"
+      usage_sign: "Sign"
+      usage_auth: "Auth"
+      distinguished_name: "Distinguished name"
+      token_details: "Token details"
+      key_details: "Key details"
+      certificate_location: "Certificate location"
+      registration_request: "Registration request"
+      server_dns_or_ip: "Server DNS name or IP address"
+    token_details:
+      friendly_name: "Friendly name"
+    key_details:
+      friendly_name: "Friendly name"
+      friendly_name_hint: "The key can be renamed after importing a certificate or creating a certificate request."
 
   layouts:
     application:

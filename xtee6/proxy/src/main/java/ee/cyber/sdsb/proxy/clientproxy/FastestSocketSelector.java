@@ -10,10 +10,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
+import lombok.AccessLevel;
 import lombok.Data;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Given a list of addresses, selects the first one to respond.
@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
  * wait for any connection events using Selector. We return the first address
  * from the selector or null, if no connections can be made.
  */
+@Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class FastestSocketSelector {
 
     @Data
@@ -29,19 +31,11 @@ class FastestSocketSelector {
         private final Socket socket;
     }
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(FastestSocketSelector.class);
-
     private final URI[] addresses;
     private final int connectTimeout;
 
-    FastestSocketSelector(URI[] addresses, int connectTimeout) {
-        this.addresses = addresses;
-        this.connectTimeout = connectTimeout;
-    }
-
     SocketInfo select() throws IOException {
-        LOG.trace("select()");
+        log.trace("select()");
 
         Selector selector = Selector.open();
 
@@ -62,9 +56,9 @@ class FastestSocketSelector {
             selectedAddress = (URI) key.attachment();
         } finally {
             try {
-                selector.close();
+                closeSelector(selector, channel);
             } catch (Exception e) {
-                LOG.error("Error while closing selector", e);
+                log.error("Error while closing selector", e);
             }
         }
 
@@ -78,7 +72,7 @@ class FastestSocketSelector {
 
     private SelectionKey selectFirstConnectedSocketChannel(Selector selector)
             throws IOException {
-        LOG.trace("selectFirstConnectedSocketChannel()");
+        log.trace("selectFirstConnectedSocketChannel()");
 
         while (!selector.keys().isEmpty()) {
             if (selector.select(connectTimeout) == 0) { // Block until something happens
@@ -98,7 +92,7 @@ class FastestSocketSelector {
                         key.cancel();
                         silentClose(channel);
 
-                        LOG.trace("Error connecting socket channel: {}",
+                        log.trace("Error connecting socket channel: {}",
                                 e.getMessage());
                     }
                 }
@@ -111,7 +105,7 @@ class FastestSocketSelector {
     }
 
     private SocketInfo initConnections(Selector selector) throws IOException {
-        LOG.trace("initConnections()");
+        log.trace("initConnections()");
 
         for (URI target : addresses) {
             SocketChannel channel = SocketChannel.open();
@@ -126,13 +120,23 @@ class FastestSocketSelector {
                 }
             } catch (Exception e) {
                 silentClose(channel);
-
-                LOG.trace("Error connecting socket channel ({}): {}", target,
-                        e);
+                log.trace("Error connecting to '{}': {}", target, e);
             }
         }
 
         return null;
+    }
+
+    private static void closeSelector(Selector selector,
+            SocketChannel selectedChannel) throws IOException {
+        for (SelectionKey key : selector.keys()) {
+            if (selectedChannel == null
+                    || !selectedChannel.equals(key.channel())) {
+                silentClose((SocketChannel) key.channel());
+            }
+        }
+
+        selector.close();
     }
 
     private static void silentClose(SocketChannel channel) {
@@ -140,6 +144,6 @@ class FastestSocketSelector {
             channel.close();
         } catch (Exception ignore) {
         }
-
     }
+
 }

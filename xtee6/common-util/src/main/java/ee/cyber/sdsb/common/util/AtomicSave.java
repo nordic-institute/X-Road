@@ -23,7 +23,7 @@ public final class AtomicSave {
         Path tempFile = DefaultFilepaths.createTempFile(tmpPrefix, null);
 
         SeekableByteChannel channel = Files.newByteChannel(tempFile, CREATE,
-                WRITE, TRUNCATE_EXISTING);
+                WRITE, TRUNCATE_EXISTING, DSYNC);
 
         try (OutputStream out = Channels.newOutputStream(channel)) {
             callback.save(out);

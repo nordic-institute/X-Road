@@ -1,7 +1,7 @@
-<tns:keyConf xmlns:tns="http://sdsb.net/xsd/sdsb.xsd"
+<tns:keyConf xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:id="http://sdsb.net/xsd/identifiers"
-    xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../main/resources/keyconf.xsd ">
+    xmlns:id="http://x-road.eu/xsd/identifiers"
+    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../main/resources/keyconf.xsd ">
     <device>
         <deviceType>softToken</deviceType>
         <id>1</id>

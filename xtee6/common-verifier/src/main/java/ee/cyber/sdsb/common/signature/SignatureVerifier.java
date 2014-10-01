@@ -15,6 +15,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
+import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -24,6 +25,7 @@ import org.w3c.dom.Node;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.cert.CertChain;
+import ee.cyber.sdsb.common.cert.CertChainVerifier;
 import ee.cyber.sdsb.common.cert.CertHelper;
 import ee.cyber.sdsb.common.conf.GlobalConf;
 import ee.cyber.sdsb.common.hashchain.DigestValue;
@@ -34,6 +36,7 @@ import ee.cyber.sdsb.common.util.MessageFileNames;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
+import static ee.cyber.sdsb.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -45,7 +48,7 @@ public class SignatureVerifier {
     private final Signature signature;
 
     /** The parts to be verified. */
-    private final List<PartHash> parts = new ArrayList<>();
+    private final List<MessagePart> parts = new ArrayList<>();
 
     /** The hash chain result. */
     private final String hashChainResult;
@@ -66,9 +69,9 @@ public class SignatureVerifier {
     /** Constructs a new signature verifier using the specified string
      * containing the signature xml. */
     public SignatureVerifier(SignatureData signatureData) throws Exception {
-        this.signature = new Signature(signatureData.getSignatureXml());
-        this.hashChainResult = signatureData.getHashChainResult();
-        this.hashChain = signatureData.getHashChain();
+        this(new Signature(signatureData.getSignatureXml()),
+                signatureData.getHashChainResult(),
+                signatureData.getHashChain());
     }
 
     /** Constructs a new signature verifier for the specified signature. */
@@ -89,9 +92,14 @@ public class SignatureVerifier {
         return signature;
     }
 
-    /** Adds hashes to be signed. */
-    public void addParts(List<PartHash> hashes) {
-        this.parts.addAll(hashes);
+    /** Adds parts to be signed or verifier. */
+    public void addParts(List<MessagePart> parts) {
+        this.parts.addAll(parts);
+    }
+
+    /** Adds part to be signed or verified. */
+    public void addPart(MessagePart part) {
+        this.parts.add(part);
     }
 
     /** Sets whether to use AsicResourceResolver when verifying signature.
@@ -142,7 +150,8 @@ public class SignatureVerifier {
         }
 
         // if this is a batch signature, verify the hash chain
-        if (hashChainResult != null) {
+        if (hashChainResult != null
+                && signature.references(SIG_HASH_CHAIN_RESULT)) {
             verifyHashChain();
         }
 
@@ -205,14 +214,17 @@ public class SignatureVerifier {
 
     private void verifySignatureValue(X509Certificate signingCert)
             throws Exception {
+        XMLSignature s = signature.getXmlSignature();
+
+        s.addResourceResolver(new IdResolver(signature.getDocument()));
+
         if (resourceResolver == null) {
-            signature.getXmlSignature().addResourceResolver(
-                    new SignatureResourceResolverImpl());
+            s.addResourceResolver(new SignatureResourceResolverImpl());
         } else {
-            signature.getXmlSignature().addResourceResolver(resourceResolver);
+            s.addResourceResolver(resourceResolver);
         }
 
-        if (!signature.getXmlSignature().checkSignatureValue(signingCert)) {
+        if (!s.checkSignatureValue(signingCert)) {
             throw new CodedException(X_INVALID_SIGNATURE_VALUE,
                     "Signature is not valid");
         }
@@ -223,6 +235,8 @@ public class SignatureVerifier {
         // to find any existing ts-manifests and verify their digests.
         List<Manifest> tsManifests = signature.getTimestampManifests();
         for (Manifest manifest : tsManifests) {
+            manifest.addResourceResolver(
+                    new IdResolver(signature.getDocument()));
             try {
                 if (!manifest.verifyReferences()) {
                     throw new CodedException(X_INVALID_REFERENCE,
@@ -238,35 +252,43 @@ public class SignatureVerifier {
 
     private void verifyCertificateChain(Date atDate,
             X509Certificate signingCert) {
-        CertChain certChain = CertHelper.buildChain(signingCert,
-                        signature.getExtraCertificates());
-        certChain.verify(signature.getOcspResponses(), atDate);
+        CertChain certChain =
+                CertChain.create(signingCert, signature.getExtraCertificates());
+        new CertChainVerifier(certChain).verify(signature.getOcspResponses(),
+                atDate);
     }
 
     private Map<String, DigestValue> getHashChainInputs() throws Exception {
         Map<String, DigestValue> inputs = new HashMap<>();
-        for (PartHash part : parts) {
-            byte[] data = null;
-
-            // We assume message is not hashed, so we hash it here
-            if (MessageFileNames.MESSAGE.equals(part.getName())) {
-                data = digest(part);
-            } else {
-                data = part.getData(); // attachment hash
-            }
-
-            DigestValue dv = new DigestValue(part.getHashAlgorithmURI(), data);
-            inputs.put(part.getName(), dv);
+        for (MessagePart part : parts) {
+            inputs.put(part.getName(), getDigestValue(part));
         }
 
         return inputs;
     }
 
-    private PartHash getPart(String name) {
-        for (PartHash partHash : parts) {
+    private MessagePart getPart(String name) {
+        for (MessagePart partHash : parts) {
             if (partHash.getName().equals(name)) {
                 return partHash;
             }
+        }
+
+        return null;
+    }
+
+    private static DigestValue getDigestValue(MessagePart part)
+            throws Exception {
+        if (part.getBase64Data() != null) {
+            byte[] data = null;
+            // We assume message is not hashed, so we hash it here
+            if (MessageFileNames.MESSAGE.equals(part.getName())) {
+                data = calculateDigest(part.getHashAlgoId(), part.getData());
+            } else {
+                data = part.getData(); // attachment hash
+            }
+
+            return new DigestValue(part.getHashAlgorithmURI(), data);
         }
 
         return null;
@@ -278,7 +300,7 @@ public class SignatureVerifier {
         public boolean engineCanResolve(Attr uri, String baseUri) {
             switch (uri.getValue()) {
                 case MessageFileNames.MESSAGE:
-                case MessageFileNames.HASH_CHAIN_RESULT:
+                case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return true;
             }
 
@@ -290,12 +312,12 @@ public class SignatureVerifier {
                 throws ResourceResolverException {
             switch (uri.getValue()) {
                 case MessageFileNames.MESSAGE:
-                    PartHash part = getPart(MessageFileNames.MESSAGE);
-                    if (part != null) {
+                    MessagePart part = getPart(MessageFileNames.MESSAGE);
+                    if (part != null && part.getBase64Data() != null) {
                         return new XMLSignatureInput(part.getData());
                     }
                     break;
-                case MessageFileNames.HASH_CHAIN_RESULT:
+                case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return new XMLSignatureInput(is(hashChainResult));
             }
 
@@ -309,11 +331,12 @@ public class SignatureVerifier {
         @Override
         public InputStream resolve(String uri) throws IOException {
             switch (uri) {
-                case MessageFileNames.HASH_CHAIN:
+                case MessageFileNames.SIG_HASH_CHAIN:
                     if (hashChain != null) {
                         return is(hashChain);
                     }
             }
+
             return null;
         }
 
@@ -327,7 +350,4 @@ public class SignatureVerifier {
         return new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static byte[] digest(PartHash part) throws Exception {
-        return calculateDigest(part.getHashAlgoId(), part.getData());
-    }
 }

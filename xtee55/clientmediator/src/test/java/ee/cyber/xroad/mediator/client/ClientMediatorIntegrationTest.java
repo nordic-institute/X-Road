@@ -51,12 +51,13 @@ public class ClientMediatorIntegrationTest {
             mediator.start();
 
             //doPost("xroad-simple.request");
-            doPost("xroad-test.request");
+            //doPost("xroad-test.request");
             //doPost("sdsb-simple.request");
 
-            doGet("?uri=http://www.google.com");
-            doGet("?producer=foobarbaz");
-            doGet("?foo=bar");
+            //doGet("?uri=http://www.google.com");
+            //doGet("?producer=foobarbaz");
+            //doGet("?foo=bar");
+            doGet("listMembers?foo=bar&baz=buzz");
 
             doFault = true;
             doPost("xroad-test.request");

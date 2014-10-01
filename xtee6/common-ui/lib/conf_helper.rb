@@ -37,17 +37,6 @@ module ConfHelper
       @jaxb_element = jaxb_element
     end
 
-    # Returns the full path to a file in temp dir.
-    def temp_file(file)
-      temp_dir = SystemProperties::getTempFilesPath()
-
-      unless File.directory?(temp_dir)
-        FileUtils.mkdir_p(temp_dir)
-      end
-
-      "#{SystemProperties::getTempFilesPath()}/#{file}"
-    end
-
     # Read the XML and store the result in @jaxb_element.
     def read
       @jaxb_context = JAXBContext.newInstance(@factory_class.java_class)

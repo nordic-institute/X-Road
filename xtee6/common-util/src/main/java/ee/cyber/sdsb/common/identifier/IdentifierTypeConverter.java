@@ -8,8 +8,6 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Adapter class for converting between DTO and XML identifier types.
- *
- * TODO: Parse methods might need better validation for field values
  */
 class IdentifierTypeConverter {
 
@@ -151,7 +149,16 @@ class IdentifierTypeConverter {
         @Override
         public ServiceId unmarshal(SdsbServiceIdentifierType v)
                 throws Exception {
-            return v == null ? null : parseServiceId(v);
+            if (v != null) {
+                switch (v.getObjectType()) {
+                    case SERVICE:
+                        return parseServiceId(v);
+                    case CENTRALSERVICE:
+                        return parseCentralServiceId(v);
+                }
+            }
+
+            return null;
         }
     }
 

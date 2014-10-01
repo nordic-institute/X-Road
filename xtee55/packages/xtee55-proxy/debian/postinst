@@ -20,11 +20,28 @@ fi
 
 test -w /usr/xtee/etc/ && touch /usr/xtee/etc/sdsb_installed && chmod 644 /usr/xtee/etc/sdsb_installed
 
+test -f /usr/xtee/etc/sdsb_activated || cat > /etc/nginx/sites-enabled/sdsb_proxy_disabled << EOF
+# direct connection to proxy is disabled when v5.5 is not activated
+server { listen 5577;
+if (\$request_method = HEAD ) {
+return 510;
+} 
+location / {
+ proxy_pass http://localhost:5578;
+}
+}
+server {listen 5500;
+return 510;
+}
+EOF
+
 chmod 0440 /etc/sudoers.d/xtee
 
+service xroad-proxy restart || service xroad-proxy start
 service xtee55-clientmediator restart || service xtee55-clientmediator start
 service xtee55-servicemediator restart || service xtee55-servicemediator start
 service xtee55-monitor restart || service xtee55-monitor start
 service xroad-jetty restart || service xroad-jetty start
+service nginx restart || service nginx start
 
 exit 0  

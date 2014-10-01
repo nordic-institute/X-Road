@@ -14,6 +14,8 @@ require 'fileutils'
 
 require "global_conf_generator"
 
+java_import Java::ee.cyber.sdsb.common.conf.GlobalConfSchemaValidator
+
 class ConfGeneratorController < ApplicationController
 
   ALLOWED_IPS = ['127.0.0.1', 'localhost'].freeze
@@ -23,13 +25,16 @@ class ConfGeneratorController < ApplicationController
   def index
     begin
       xml = generate
+      validate_schema(xml)
       save_to_db(xml)
       save_to_disk(xml)
-      GlobalConfGenerationStatus.write_success()
+      success_msg = "Global configuration generated successfully.\n"
+      GlobalConfGenerationStatus.write_success(success_msg)
       render :text => ""
     rescue Exception => e
       log "#{e.message}"
-      GlobalConfGenerationStatus.write_failure()
+      GlobalConfGenerationStatus.write_failure(
+          DistributedFiles.get_error_log_content(e))
       render :text => "#{e.message}"
     end
   end
@@ -56,10 +61,14 @@ class ConfGeneratorController < ApplicationController
     end
   end
 
-  def save_to_db(data)
+  def validate_schema(xml)
+    GlobalConfSchemaValidator.validate(xml)
+  end
+
+  def save_to_db(xml)
     full_name = Java::ee.cyber.sdsb.common.SystemProperties.getGlobalConfFile()
     file_name = Java::ee.cyber.sdsb.common.util.ResourceUtils.getFileNameFromFullPath(full_name)
-    DistributedFiles.add_file(file_name, data)
+    DistributedFiles.add_file(file_name, xml)
   end
 
   def save_to_disk(xml)

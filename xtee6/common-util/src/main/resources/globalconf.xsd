@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd"
-    targetNamespace="http://sdsb.net/xsd/sdsb.xsd" xmlns:id="http://sdsb.net/xsd/identifiers">
-    <import namespace="http://sdsb.net/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
     <complexType name="GlobalConfType">
         <sequence>
             <element name="instanceIdentifier" type="string">
@@ -60,6 +60,11 @@
                     </documentation>
                 </annotation>
             </element>
+            <element name="centralServerSslCert" type="base64Binary" minOccurs="0">
+                <annotation>
+                    <documentation>SSL certificate of a central server.</documentation>
+                </annotation>
+            </element>
         </sequence>
     </complexType>
 
@@ -96,7 +101,7 @@
         <sequence>
             <element name="owner" type="IDREF">
                 <annotation>
-                    <documentation>Auto-generated xml id for referencing inside xml. Connects sdsb member and security server(s) this member owns.</documentation>
+                    <documentation>id of the member who is responsible for the security server.</documentation>
                 </annotation>
             </element>
             <element name="serverCode" type="string">
@@ -276,7 +281,7 @@ The method takes as argument java.security.cert.X509Certificate object and retur
     </complexType>
     <complexType name="NameExtractorType">
         <sequence>
-            <element name="memberClass" type="string">
+            <element name="memberClass" type="string" minOccurs="0">
                 <annotation>
                     <documentation>Code of the member class of the extracted member code.</documentation>
                 </annotation>

@@ -1,6 +1,8 @@
 class OcspInfo < ActiveRecord::Base
   attr_accessible :ca_info_id, :cert, :url
 
+  validates_with Validators::MaxlengthValidator
+
   before_destroy do |ocsp|
     logger.info("Deleting OCSP: '#{ocsp}'")
   end

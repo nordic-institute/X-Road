@@ -4,40 +4,33 @@ module RestoreHelper
   private
 
   # Invokes configuration restore script and renders result.
+  # TODO (RM #3687): We must implement some manual transaction handling!
   #
-  def restore_and_render(uploaded_file_param)
-    uploaded_conf_file = save_uploaded_conf(uploaded_file_param)
+  def restore_and_render(conf_file, &success_handler)
+    validate_filename(conf_file)
+    commandline = [get_restore_script_file(), backup_file(conf_file)]
 
-    commandline = 
-        "#{get_restore_script_file()} #{uploaded_conf_file}"
+    logger.info("Running configuration restore with command "\
+        "'#{commandline.join(" ")}'")
 
-    logger.debug("About to restore conf with command '#{commandline}'")
+    console_output_lines = run_script(commandline)
 
-    system(commandline)
+    logger.info("Restoring configuration finished with exit status" \
+        " '#{$?.exitstatus}'")
+    logger.info(" --- Restore script console output - START --- ")
+    logger.info("\n#{console_output_lines.join('\n')}")
+    logger.info(" --- Restore script console output - END --- ")
 
-    logger.debug("Restore command executed")
-
-    if $?.exitstatus != 0
-      error(t("restore.error.script_failed", {:exitstatus => $?.exitstatus}))
-      upload_error(nil, "restoreConfiguration.uploadCallback")
-      return
+    if $?.exitstatus == 0
+      notice(t("restore.success", {:conf_file => conf_file}))
+    else
+      error(t("restore.error.script_failed", {:conf_file => conf_file}))
     end
 
-    logger.debug("Restore command was executed successfully")
-
-    notice(t("restore.success"))
-
-    upload_success(nil , "restoreConfiguration.uploadCallback")
-  end
-
-  def save_uploaded_conf(uploaded_file_param)
-    uploaded_conf_file =
-        "/var/tmp/sdsb/#{uploaded_file_param.original_filename}"
-    uploaded_conf = File.open(uploaded_conf_file, "wb")
-    uploaded_conf.write(uploaded_file_param.read())
-
-    return uploaded_conf_file
+    render_json({
+      :console_output => console_output_lines
+    })
   ensure
-    uploaded_conf.close if uploaded_conf
+    yield if success_handler
   end
 end

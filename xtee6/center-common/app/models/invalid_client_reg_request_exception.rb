@@ -1,0 +1,2 @@
+class InvalidClientRegRequestException < Exception
+end

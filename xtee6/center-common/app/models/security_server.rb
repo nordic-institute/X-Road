@@ -1,7 +1,6 @@
 require 'uri'
 
 class SecurityServer < ActiveRecord::Base
-  include Validators
 
   class DuplicateSecurityServerValidator < ActiveModel::Validator
     def validate(new_record)
@@ -54,19 +53,16 @@ class SecurityServer < ActiveRecord::Base
     end
   end
 
-  validates :sdsb_member_id, :present => true
-#  In principle, client servers can share address.
-#  validates :address, :unique => true # Addresses are not URIs, :uri => true
+  validates_with Validators::MaxlengthValidator
+  validates_presence_of :sdsb_member_id
   validates_with DuplicateSecurityServerValidator, :on => :create
 
   belongs_to :owner, :class_name => "SdsbMember", :foreign_key => "sdsb_member_id"
 
-  # TODO: if server is removed, owner should be removed
-  # from the server owners global group.
   has_and_belongs_to_many :security_categories,
-      join_table: "security_servers_security_categories"
+      :join_table => "security_servers_security_categories"
   has_and_belongs_to_many :security_server_clients,
-      join_table: "server_clients"
+      :join_table => "server_clients"
   has_many :auth_certs
 
   before_destroy do |record|
@@ -75,6 +71,7 @@ class SecurityServer < ActiveRecord::Base
     record.security_categories.clear
     record.security_server_clients.clear
     update_request_owner_names(record)
+    update_server_owners_group(record)
   end
 
   def get_identifier
@@ -91,38 +88,50 @@ class SecurityServer < ActiveRecord::Base
   end
 
   def self.get_servers(query_params)
-    get_search_relation(query_params.search_string).
+    return get_search_relation(query_params.search_string).
         order("#{query_params.sort_column} #{query_params.sort_direction}").
         limit(query_params.display_length).
         offset(query_params.display_start)
   end
 
-  def self.get_server_count(searchable)
-    searchable.empty? ?
-        SecurityServer.count :
-        get_search_relation(searchable).count
+  def self.get_servers_advanced(advanced_search_params)
+    logger.info("get_servers_advanced(#{advanced_search_params})")
+
+    return get_search_relation(advanced_search_params)
+  end
+
+  def self.get_server_count(searchable = "")
+    return get_search_relation(searchable).count
   end
 
   private
 
   def self.get_search_relation(searchable)
-
-    search_params = get_search_sql_params(searchable)
+    sql_generator = searchable.is_a?(AdvancedSearchParams) ?
+        AdvancedSearchSqlGenerator.new(map_advanced_search_params(searchable)):
+        SimpleSearchSqlGenerator.new(get_searchable_columns, searchable)
 
     SecurityServer.
         joins(:owner => :member_class).
-        where(get_search_sql, *search_params)
+        where(sql_generator.sql, *sql_generator.params)
   end
 
-  def self.get_search_sql
-    "lower(security_servers.server_code) LIKE ?
-    OR lower(security_server_clients.name) LIKE ?
-    OR lower(member_classes.code) LIKE ?
-    OR lower(security_server_clients.member_code) LIKE ?"
+  def self.map_advanced_search_params(searchable)
+    return {
+        "member_classes.code" => searchable.member_class,
+        "security_server_clients.name" => searchable.name,
+        "security_server_clients.member_code" => searchable.member_code,
+        "security_servers.server_code" => searchable.server_code
+    }
   end
 
-  def self.get_search_sql_params(searchable)
-    ["%#{searchable}%", "%#{searchable}%", "%#{searchable}%", "%#{searchable}%"]
+  def self.get_searchable_columns
+    return [
+      "security_servers.server_code",
+      "security_server_clients.name",
+      "member_classes.code",
+      "security_server_clients.member_code"
+    ]
   end
 
   # -- Before destroy operations - start ---
@@ -151,6 +160,16 @@ class SecurityServer < ActiveRecord::Base
     end
   end
 
+  def update_server_owners_group(security_server)
+    owner = security_server.owner
+    return if owner.owned_servers.size > 1
+
+    server_owners_group_code = SystemParameter.server_owners_group
+    server_owners_group = GlobalGroup.find_by_code(server_owners_group_code)
+
+    server_owners_group.remove_member(owner.server_client)
+  end
+
   def clear_server_auth_certs(security_server)
     server_id = security_server.get_server_id()
     comment = "'#{server_id}' deletion"
@@ -159,6 +178,7 @@ class SecurityServer < ActiveRecord::Base
       request = AuthCertDeletionRequest.new(
         :security_server => server_id,
         :auth_cert => each.certificate,
+        :comments => comment,
         :origin => Request::CENTER).register()
     end
   end

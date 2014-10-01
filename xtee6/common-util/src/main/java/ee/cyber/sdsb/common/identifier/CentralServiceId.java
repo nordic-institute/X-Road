@@ -3,10 +3,15 @@ package ee.cyber.sdsb.common.identifier;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlJavaTypeAdapter(IdentifierTypeConverter.CentralServiceIdAdapter.class)
-public final class CentralServiceId extends AbstractServiceId {
+public final class CentralServiceId extends ServiceId {
+
+    CentralServiceId() { // required by Hibernate
+        this(null, null);
+    }
 
     private CentralServiceId(String sdsbInstance, String serviceCode) {
-        super(SdsbObjectType.CENTRALSERVICE, sdsbInstance, serviceCode);
+        super(SdsbObjectType.CENTRALSERVICE, sdsbInstance, null, null,
+                null, serviceCode);
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
@@ -17,10 +18,25 @@ import ee.cyber.sdsb.common.identifier.ServiceId;
 public interface GlobalConfProvider extends ConfProvider {
 
     /**
+     * Returns the SDSB instance identifier.
+     */
+    String getSdsbInstance();
+
+    /**
      * Returns the service Id that corresponds to the
      * provided central service Id.
      */
     ServiceId getServiceId(CentralServiceId serviceId);
+
+    /**
+     * Returns all members.
+     */
+    List<ClientId> getMembers();
+
+    /**
+     * Returns all central services.
+     */
+    List<CentralServiceId> getCentralServices();
 
     /**
      * Returns address of the given service provider's proxy based on
@@ -34,9 +50,6 @@ public interface GlobalConfProvider extends ConfProvider {
      * @return IP address converted to string, such as "192.168.2.2".
      */
     Collection<String> getProviderAddress(ClientId clientId);
-
-    /** Returns security (verification) context for this server. */
-    VerificationCtx getVerificationCtx();
 
     /**
      * Returns a list of suitable OCSP responder addresses
@@ -56,7 +69,16 @@ public interface GlobalConfProvider extends ConfProvider {
      * */
     X509Certificate getCaCert(X509Certificate memberCert) throws Exception;
 
+    /**
+     * Returns all CA certificates.
+     */
     List<X509Certificate> getAllCaCerts() throws CertificateException;
+
+    /**
+     * Returns the top CA and any intermediate CA certs for a
+     * given end entity.
+     */
+    CertChain getCertChain(X509Certificate subject) throws Exception;
 
     /**
      * Returns true, if the OCSP certificate belongs to the CA certificate's
@@ -116,6 +138,10 @@ public interface GlobalConfProvider extends ConfProvider {
     /** Returns true, if given subject belongs to given global group. */
     boolean isSubjectInGlobalGroup(ClientId subject, GlobalGroupId group);
 
+    /** Returns true, if client belongs to the security server. */
+    boolean  isSecurityServerClient(ClientId client,
+            SecurityServerId securityServer);
+
     /**
      * Returns all CA certificates that are suitable for verification, that is
      * pki elements that are not marked authenticationOnly
@@ -135,4 +161,10 @@ public interface GlobalConfProvider extends ConfProvider {
      * Returns the service id of the management request service.
      */
     ClientId getManagementRequestService();
+
+    /**
+     * Returns SSL certificates of central servers.
+     */
+    X509Certificate getCentralServerSslCertificate() throws Exception;
+
 }

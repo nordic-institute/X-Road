@@ -1,6 +1,7 @@
 class AdvancedSearchParams
   attr_reader :name, :sdsb_instance, :member_class, :member_code,
-      :subsystem_code, :object_type, :service_code, :central_service_code
+      :subsystem_code, :object_type, :service_code, :service_version,
+      :central_service_code, :server_code
 
   def initialize(params = {})
     @name = nil_or_empty?(params[:name]) ?
@@ -17,8 +18,12 @@ class AdvancedSearchParams
         nil : params[:object_type].downcase
     @service_code = nil_or_empty?(params[:service_code]) ?
         nil : params[:service_code].downcase
+    @service_version = nil_or_empty?(params[:service_version]) ?
+        nil : params[:service_version].downcase
     @central_service_code = nil_or_empty?(params[:central_service_code]) ?
         nil : params[:central_service_code].downcase
+    @server_code = nil_or_empty?(params[:server_code]) ?
+        nil : params[:server_code].downcase
   end
 
   private
@@ -37,7 +42,9 @@ class AdvancedSearchParams
     string << "\tSubsystem code: '#@subsystem_code'\n" if @subsystem_code
     string << "\tObject type: '#@object_type'\n" if @object_type
     string << "\tService code: '#@service_code'\n" if @service_code
+    string << "\tService version: '#@service_version'\n" if @service_version
     string << "\tCentral service code: '#@central_service_code'\n" if @central_service_code
+    string << "\tServer code: '#@server_code'\n" if @server_code
 
     string
   end

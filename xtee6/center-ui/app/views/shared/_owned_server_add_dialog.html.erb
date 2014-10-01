@@ -1,7 +1,7 @@
 <%= dialog "owned_server_add_dialog", t("management_requests.details.auth_cert_reg.new.title") do %>
-  <fieldset>
+  <section class="container">
     <legend><%= t 'securityservers.info.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'securityservers.owner_name' %></td>
         <td><input id="owned_server_owner_name" type="text" readonly/></td>
@@ -19,9 +19,9 @@
         <td><input id="owned_server_add_servercode" type="text"/></td>
       </tr>
     </table>
-  </fieldset>
+  </section>
 
-  <fieldset>
+  <section class="container">
     <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
     <table>
       <tr>
@@ -42,7 +42,7 @@
         </td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.csp' %></td>
+        <td><%= t 'securityservers.auth_cert.ca' %></td>
         <td><input id="owned_server_authcert_csp" type="text" readonly/></td>
       </tr>
       <tr class="auth_cert_details">
@@ -58,6 +58,6 @@
         <td><input id="owned_server_authcert_expires" type="text" readonly/></td>
       </tr>
     </table>
-    <p id="owned_server_temp_cert_id"></p>
-  </fieldset>
+    <p id="owned_server_temp_cert_id" class="ui-helper-hidden"></p>
+  </section>
 <% end %>

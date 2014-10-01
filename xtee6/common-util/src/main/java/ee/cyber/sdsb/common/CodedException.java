@@ -2,6 +2,8 @@ package ee.cyber.sdsb.common;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -13,10 +15,23 @@ public class CodedException extends RuntimeException implements Serializable {
 
     private static final long serialVersionUID = 4225113353511950429L;
 
+    @Getter
     protected String faultCode;
+
+    @Getter
     protected String faultActor = "";
+
+    @Getter
     protected String faultDetail = "";
+
+    @Getter
     protected String faultString = "";
+
+    @Getter
+    protected String[] arguments;
+
+    @Getter
+    protected String translationCode;
 
     /**
      * Creates new exception using the fault code.
@@ -50,6 +65,8 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     public CodedException(String faultCode, String format, Object... args) {
         this(faultCode, String.format(format, args));
+
+        setArguments(args);
     }
 
     /**
@@ -83,24 +100,34 @@ public class CodedException extends RuntimeException implements Serializable {
         return ret;
     }
 
-    /** Returns SOAP fault code. */
-    public String getFaultCode() {
-        return faultCode;
+    /**
+     * Creates new exception with translation code for i18n.
+     * @param faultCode the fault code
+     * @param trCode the translation code
+     * @param faultMessage the message
+     */
+    public static CodedException tr(String faultCode, String trCode,
+            String faultMessage) {
+        CodedException ret = new CodedException(faultCode, faultMessage);
+
+        ret.translationCode = trCode;
+
+        return ret;
     }
 
-    /** Returns SOAP fault string. */
-    public String getFaultString() {
-        return faultString;
-    }
+    /**
+     * Creates new exception with translation code for i18n and arguments.
+     * @param faultCode the fault code
+     * @param trCode the translation code
+     * @param faultMessage the message
+     */
+    public static CodedException tr(String faultCode, String trCode,
+            String faultMessage, Object... args) {
+        CodedException ret = new CodedException(faultCode, faultMessage, args);
 
-    /** Returns SOAP fault actor. */
-    public String getFaultActor() {
-        return faultActor;
-    }
+        ret.translationCode = trCode;
 
-    /** Returns SOAP fault detail. */
-    public String getFaultDetail() {
-        return faultDetail;
+        return ret;
     }
 
     /** Simply calls toString(). */
@@ -125,6 +152,17 @@ public class CodedException extends RuntimeException implements Serializable {
         faultCode = StringUtils.join(prefix, ".") + "." + faultCode;
 
         return this;
+    }
+
+    /**
+     * Converts provided arguments to string array.
+     */
+    private void setArguments(Object... args) {
+        arguments = new String[args.length];
+
+        for (int i = 0; i < args.length; i++) {
+            arguments[i] = args[i] != null ? args[i].toString() : "";
+        }
     }
 
     /**

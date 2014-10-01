@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <%= stylesheet_link_tag "style" %>
+    <%= yield :head %>
+    <title><%= t 'layouts.application.title' %></title>
+  </head>
+  <body style="background: #f3f3f3;">
+    <section class="container" id="login-form">
+
+          <section class="container" id="login-form-titles">
+            <h1 class="section-title up"><%= t 'layouts.application.title' %></h1>
+            <h2 class="section-title"><%= @server_id.toShortString if @server_id %></h2>
+          </section>
+
+          <form method="POST" action="j_security_check">
+          
+            <section>
+              <h3 class="section-title up">Username</h3>
+              <%= text_field_tag :j_username %>
+            </section>
+          
+            <section>
+              <h3 class="section-title up">Password</h3>
+              <%= password_field_tag :j_password %>
+            </section>
+            <% if flash[:error] %>
+          
+            <section>
+              <div class="error message" style="display: block;">
+                <%= raw(flash_message(:error)) %>
+              </div>
+            </section>
+            <% end %>
+          
+            <section>
+              <input type="submit" class="btn" value="Login">
+            </section>
+          </form>
+
+        </section>
+  </body>
+</html>

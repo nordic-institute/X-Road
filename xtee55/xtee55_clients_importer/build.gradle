@@ -39,8 +39,10 @@ clean << {
 }
 
 task copyCommonUi(type: Copy) {
-    if (project.SDSB_HOME == null) {
-        throw new GradleException('System environment SDSB_HOME not set')
+    doFirst {
+        if (project.SDSB_HOME == null) {
+            throw new GradleException('System environment SDSB_HOME not set')
+        }
     }
 
     into "$projectDir/lib/sdsb"
@@ -48,8 +50,10 @@ task copyCommonUi(type: Copy) {
 }
 
 task copyCenterCommon(dependsOn: copyCommonUi, type: Copy) {
-    if (project.SDSB_HOME == null) {
-       throw new GradleException('System environment SDSB_HOME not set')
+    doFirst {
+        if (project.SDSB_HOME == null) {
+           throw new GradleException('System environment SDSB_HOME not set')
+        }
     }
 
     into "$projectDir/lib/sdsb"

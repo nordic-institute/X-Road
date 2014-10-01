@@ -1,7 +1,8 @@
 class Identifier < ActiveRecord::Base
-  include Validators
+  validates_with Validators::MaxlengthValidator
+  validates :object_type, :presence => true
+  validates :sdsb_instance, :presence => true
 
-  validates :object_type, :sdsb_instance, :present => true
   # Creates copy of the object with the same data.
   # The copy is not in any way connected to the database.
 #  def clean_copy

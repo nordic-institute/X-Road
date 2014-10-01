@@ -1,45 +1,44 @@
 <%= dialog "securityserver_client_remove_dialog", t("members.edit.used_servers.remove.title") do %>
-  <fieldset>
+  <section class="container">
     <legend><%= t 'members.edit.used_servers.remove.client.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'securityservers.clients.name' %></td>
-        <td><input id="used_server_remove_name" type="text" readonly/></td>
+        <td><input id="server_client_remove_name" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.clients.class' %></td>
-        <td><input id="used_server_remove_class" type="text" readonly/></td>
+        <td><input id="server_client_remove_class" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.clients.code' %></td>
-        <td><input id="used_server_remove_code" type="text" readonly/></td>
+        <td><input id="server_client_remove_code" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.clients.subsystem' %></td>
-        <td><input id="used_server_remove_subsystem_code" type="text" readonly/></td>
+        <td><input id="server_client_remove_subsystem_code" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
-  <fieldset>
+  </section>
+  <section class="container">
     <legend><%= t 'securityservers.info.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td><%= t 'securityservers.owner_name' %></td>
-        <td><input id="used_server_remove_owner_name" type="text" readonly/></td>
+        <td><input id="server_client_remove_owner_name" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.owner_class' %></td>
-        <td><input id="used_server_remove_owner_class" type="text" readonly/></td>
+        <td><input id="server_client_remove_owner_class" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.owner_code' %></td>
-        <td><input id="used_server_remove_owner_code" type="text" readonly/></td>
+        <td><input id="server_client_remove_owner_code" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.server_code' %></td>
-        <td><input id="used_server_remove_server_code" type="text" readonly/></td>
+        <td><input id="server_client_remove_server_code" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
-
+  </section>
 <% end %>

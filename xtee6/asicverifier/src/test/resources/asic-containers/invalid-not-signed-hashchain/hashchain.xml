@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:HashChain xmlns:ns2="http://cyber.ee/hashchain" xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <ns2:DefaultDigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+    <ns2:HashStep id="STEP0">
+        <ns2:StepRef URI="#STEP1"/>
+        <ns2:HashValue>
+            <DigestValue>dynMNVGMaMzd8A/w/XwUOVpPUfnAcH3s/8ccAJlbvyo=</DigestValue>
+        </ns2:HashValue>
+    </ns2:HashStep>
+    <ns2:HashStep id="STEP1">
+        <ns2:HashValue>
+            <DigestValue>AA==</DigestValue>
+        </ns2:HashValue>
+        <ns2:StepRef URI="#STEP2"/>
+    </ns2:HashStep>
+    <ns2:HashStep id="STEP2">
+        <ns2:HashValue>
+            <DigestValue>Cw==</DigestValue>
+        </ns2:HashValue>
+        <ns2:DataRef URI="/attachment1">
+            <DigestValue>DA==</DigestValue>
+        </ns2:DataRef>
+        <ns2:DataRef URI="/attachment2">
+            <DigestValue>DQ==</DigestValue>
+        </ns2:DataRef>
+        <ns2:DataRef URI="/attachment3">
+            <DigestValue>Dg==</DigestValue>
+        </ns2:DataRef>
+    </ns2:HashStep>
+</ns2:HashChain>

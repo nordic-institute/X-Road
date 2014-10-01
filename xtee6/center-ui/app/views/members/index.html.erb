@@ -1,10 +1,11 @@
 <% content_for :head do %>
   <%= javascript_include_tag "centerui_common" %>
   <%= javascript_include_tag "members" %>
-  <%= javascript_include_tag "member_details" %>
-  <%= javascript_include_tag "securityserver_details" %>
-  <%= javascript_include_tag "request_details" %>
-  <%= javascript_include_tag "group_details" %>
+  <%= javascript_include_tag "member_edit" %>
+  <%= javascript_include_tag "securityserver_edit" %>
+  <%= javascript_include_tag "request_edit" %>
+  <%= javascript_include_tag "request_client_deletion" %>
+  <%= javascript_include_tag "group_edit" %>
 <% end %>
 
 <% content_for :content do %>
@@ -18,7 +19,7 @@
       <% end %>
     </div>
 
-    <table id="members" class="display">
+    <table id="members" class="display main-table">
       <thead>
         <tr>
           <th id="member_name"><%= t 'members.name' %></th>

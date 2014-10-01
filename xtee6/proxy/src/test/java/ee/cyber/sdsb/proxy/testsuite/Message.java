@@ -57,12 +57,19 @@ public class Message {
             return false;
         }
 
-        return soap != null
+        if (soap != null
                 && anotherMessage.soap != null
-                && numAttachments == anotherMessage.numAttachments
-                && SoapUtils.checkConsistency((SoapMessageImpl) soap,
+                && numAttachments == anotherMessage.numAttachments) {
+            try {
+                SoapUtils.checkConsistency((SoapMessageImpl) soap,
                         (SoapMessageImpl) anotherMessage.soap);
+                return true;
+            } catch (Exception e) {
+                LOG.error("Inconsistent messages", e);
+            }
+        }
 
+        return false;
     }
 
     public boolean isFault() {

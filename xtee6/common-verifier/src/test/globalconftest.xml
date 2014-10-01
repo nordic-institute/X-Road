@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://sdsb.net/xsd/identifiers" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
     <instanceIdentifier>EE</instanceIdentifier>
 
     <!-- Members - start -->
@@ -17,12 +17,12 @@
         <name>Experimental consumer</name>
     </member>
 
-    <member id="nahavabrikId">
+    <member id="fooId">
         <memberClass>BUSINESS</memberClass>
-        <memberCode>nahavabrik</memberCode>
+        <memberCode>foo</memberCode>
         <name>Org with no address</name>
-        <subsystem id="seanahkId">
-            <subsystemCode>seanahaosakond</subsystemCode>
+        <subsystem id="foosubsystemId">
+            <subsystemCode>foosubsystem</subsystemCode>
         </subsystem>
     </member>
 
@@ -35,7 +35,7 @@
 
     <securityCategory>
         <code>topSecret</code>
-        <description>Explicit content</description>
+        <description>Test</description>
     </securityCategory>
 
     <!-- Security servers - start -->
@@ -48,64 +48,65 @@
         <authCertHash>BnAMEvOVGDx3mIT81J1MpV+khaplYX2lt12EknvsLJE=</authCertHash>
         <!--authCertHash>wJLgXvuewKXyk2FgznDJhKsvemtrnu7M2WkGs8ty2GE=</authCertHash-->
         <client>consumerId</client>
-        <client>nahavabrikId</client>
+        <client>fooId</client>
+        <client>foosubsystemId</client>
         <securityCategory>topSecret</securityCategory>
     </securityServer>
 
     <securityServer>
         <owner>consumerId</owner>
         <serverCode>consumerServerCode</serverCode>
-        <address>https://www.karauul.com/explicitContent</address>
+        <address>https://www.foo.com/bar</address>
         <authCertHash>NS21xw8PH7goeyqkzhT9NdqXi9c=</authCertHash>
         <securityCategory>topSecret</securityCategory>
     </securityServer>
 
     <securityServer>
-        <owner>nahavabrikId</owner>
-        <serverCode>nahavabrikServerCode</serverCode>
+        <owner>fooId</owner>
+        <serverCode>fooServerCode</serverCode>
         <authCertHash>6C4LKxhNQ4fCr9g3CNTP6uuHLPc=</authCertHash>
         <client>producerId</client>
     </securityServer>
 
     <securityServer>
-        <owner>nahavabrikId</owner>
+        <owner>fooId</owner>
         <serverCode>FooBarServerCode</serverCode>
         <address>https://foo.bar.baz</address>
         <authCertHash>S6j8iYRoUfcZEtUu/MPtToSYxLI=</authCertHash>
-        <client>nahavabrikId</client>
+        <client>fooId</client>
     </securityServer>
 
     <!-- Security servers - end -->
 
     <globalGroup>
-        <groupCode>A-Team</groupCode>
-        <description>No need to describe</description>
+        <groupCode>Test group</groupCode>
+        <description>Description</description>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>hannibal</id:memberCode>
-            <id:subsystemCode>underground</id:subsystemCode>
+            <id:memberCode>member1</id:memberCode>
+            <id:subsystemCode>subsys</id:subsystemCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>ba</id:memberCode>
+            <id:memberCode>member2</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>murdock</id:memberCode>
+            <id:memberCode>member3</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>face</id:memberCode>
+            <id:memberCode>member4</id:memberCode>
         </member>
     </globalGroup>
 
     <centralService>
         <serviceCode>central1</serviceCode>
-        <implementingService id:objectType="MEMBER">
+        <implementingService id:objectType="SERVICE">
             <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>foobar</id:memberCode>
@@ -116,7 +117,7 @@
     <pki>
         <name>pki1</name>
         <topCA>
-            <!-- Extracted from: proxy/src/test/certs/admin-ca1.pem -->
+            <!-- Extracted from: common-test/src/test/certs/admin-ca1.pem -->
             <cert>MIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                 AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                 HhcNMTIwNjE0MTAwNDI5WhcNMjIwNjEyMTAwNDI5WjA3MREwDwYDVQQDDAhBZG1p
@@ -138,7 +139,7 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>http://127.0.0.1:8082/ocsp</url>
-                <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
+                <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -215,7 +216,7 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>http://127.0.0.1:8082/ocsp</url>
-                <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
+                <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -237,7 +238,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
             <ocsp>
-                <url>http://nihhuijaa.example.net/ocsp</url>
+                <url>http://www.example.net/ocsp</url>
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -291,9 +292,8 @@
                 ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=</cert>
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
-                <url>
-    http://127.0.0.1:8082/ocsp</url>
-                <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
+                <url>http://127.0.0.1:8082/ocsp</url>
+                <!-- Extracted from: common-test/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
                     HhcNMTIwOTA2MTEzODMwWhcNMTQwOTA2MTEzODMwWjAWMRQwEgYDVQQDDAtPY3Nw
@@ -346,7 +346,7 @@
         <name>pki4</name>
         <authenticationOnly>true</authenticationOnly>
         <topCA>
-            <!-- Extracted from: proxy/src/test/certs/test_chain/ca_2.pem -->
+            <!-- Extracted from: common-test/src/test/certs/test_chain/ca_2.pem -->
             <cert>MIIDZzCCAk+gAwIBAgIBAzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJFRTEU
                 MBIGA1UEChMLQ3liZXJuZXRpY2ExDTALBgNVBAsTBENBIDExGjAYBgkqhkiG9w0B
                 CQEWC2FhYUBiYmIuY2NjMB4XDTEyMDkxNDExNTk0MFoXDTIyMDkxMjExNTk0MFow
@@ -367,6 +367,106 @@
                 Pe5VvXxCL6guFtZtBbnAAtRreTC3bhS+bnxLyj+Hk7oAYyaW441BnzPcVWYeAf56
                 89A9e6HCmXEY1bo=</cert>
         </topCA>
+        <nameExtractor>
+            <memberClass></memberClass>
+            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+        </nameExtractor>
+    </pki>
+
+    <pki>
+        <name>pki5 with intermediate certs</name>
+        <authenticationOnly>true</authenticationOnly>
+        <topCA>
+            <!-- Extracted from: common-test/src/test/certs/test_chain/root_ca.pem -->
+            <cert>MIIDdTCCAl2gAwIBAgIJAOuBNCIUm0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNV
+                BAYTAkVFMRQwEgYDVQQKEwtDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEa
+                MBgGCSqGSIb3DQEJARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIw
+                OTEyMTE1NjM3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2Ex
+                EDAOBgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMIIB
+                IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0THglNHoU
+                T8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80EGwJFAU1IajhELF
+                yRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6BERkrTQi8oRXO7psslbiU
+                4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB814gCpoM6nmK1XR2f3JdCTJxPyE
+                7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XSC6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2
+                Tlx+QHIWhvZ9bDdEGY58O0jWj3lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwID
+                AQABo1AwTjAMBgNVHRMEBTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwS
+                hz1YZzAfBgNVHSMEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0B
+                AQUFAAOCAQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJr
+                pHdUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQnAb6a
+                SJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxTjtcHbTnm/y
+                GPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar3za6UdFEBDX2aHQD
+                4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5Jrr4P9xYprRY1une3IWvviJ
+                NXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==</cert>
+        </topCA>
+        <intermediateCA>
+            <!-- Extracted from: common-test/src/test/certs/test_chain/ca_1.pem -->
+            <cert>MIIDajCCAlKgAwIBAgIBAzANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJFRTEU
+                MBIGA1UEChMLQ3liZXJuZXRpY2ExEDAOBgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG
+                9w0BCQEWC2FhYUBiYmIuY2NjMB4XDTEyMDkxNDExNTY1OFoXDTIyMDkxMjExNTY1
+                OFowTjELMAkGA1UEBhMCRUUxFDASBgNVBAoTC0N5YmVybmV0aWNhMQ0wCwYDVQQL
+                EwRDQSAxMRowGAYJKoZIhvcNAQkBFgthYWFAYmJiLmNjYzCCASIwDQYJKoZIhvcN
+                AQEBBQADggEPADCCAQoCggEBAOnguIBD8dfb4vM73WKR+T2zWKAbFeUu7Wcpio/2
+                CDLJZ3mF2Zo+JWOk8nYSUrZkFpCvH+S5Mhj0Eo4LcCk2PTiRP2fPPABIQmEXgLKU
+                gcqH132fVCyPRKdL+hG+CA7yzDOIO0h8ME/nQBuEJHc+ayGSyKG5/PfsETfseD0f
+                9QoaAXsrztkhH+yNX+JgaPAyxQqFB8p8PLX3DrkD1JtslSjMJTuitVsf4JKb9zmI
+                /lGaMGqkq5ss3c1weF8s38+Zt8rU4FHS+DvFTVJVMHjnTu/emgiRiLJWXioKmijy
+                glMoZvpahgtOieS50Vgn8V+ttL4kLYSBFlAVkNOa0Fbz8eMCAwEAAaNQME4wDAYD
+                VR0TBAUwAwEB/zAdBgNVHQ4EFgQUqV/rN9mEwnTBN+y4Di3aLz4BKj8wHwYDVR0j
+                BBgwFoAUUhWAA6oiACkxiE+OLky8Eoc9WGcwDQYJKoZIhvcNAQEFBQADggEBAKBk
+                ++HBiGxSqDQUVWRjrD/5uBk/RH9oH2C/ZXYUyFCjAvmUWa+dWFyJScyVcZpchnbO
+                SUPKtFR78N3nJp01mbWyvzws4C+DbwPOdwPJHNKqwybn4uz1oWDoNioi1ITkjlYo
+                haDs9uVI9sLrApqQnSgL7Oc4yG2TSoa0YkLmdICHxH9TCK0NEUxW6Sa4aehftLD/
+                7gNORIe8YT9MqPGWDW6Za9f74Vx+H5/ejRkTKUA6jHTLmZCly4L2f+tpDIs22omd
+                0X3Ct9os/XA7ZbbwiMuqAiiXKVGerTmeCrkWcixDkN9ATCI0ur5NZniSVnXGjV6m
+                u3cl4oYr+u2NJVPDgKI=
+            </cert>
+        </intermediateCA>
+        <intermediateCA>
+            <!-- Extracted from: common-test/src/test/certs/test_chain/ca_2.pem -->
+            <cert>MIIDZzCCAk+gAwIBAgIBAzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJFRTEU
+                MBIGA1UEChMLQ3liZXJuZXRpY2ExDTALBgNVBAsTBENBIDExGjAYBgkqhkiG9w0B
+                CQEWC2FhYUBiYmIuY2NjMB4XDTEyMDkxNDExNTk0MFoXDTIyMDkxMjExNTk0MFow
+                TjELMAkGA1UEBhMCRUUxFDASBgNVBAoTC0N5YmVybmV0aWNhMQ0wCwYDVQQLEwRD
+                QSAyMRowGAYJKoZIhvcNAQkBFgthYWFAYmJiLmNjYzCCASIwDQYJKoZIhvcNAQEB
+                BQADggEPADCCAQoCggEBAM1Ex4Bh8zHU+wWyp2fm7U2dAqooUamE4hyLVrmNifvB
+                AjKT7gSMeTB2bxCE38BYfzvnbQCs82piQRC6iCgHE/Ywr1zz86Pa/OI36tBmCCjW
+                NDm/U6MAlwT7s+GL3bpty4aY4pLilQZbmyDsE2hsJ+R82GMBttRku3LMKKE/jyQI
+                26gK9xhYPPF85cfv7hylekcr8fUeGFmxEULLWyFFwhR9pr7HPcKhJR/h4rhJ3e0d
+                EDfROPtVfBSViS5UCh7UNut8Q3kbwwZBIa1NEN9vPUIBhH/ZvKr3a7188y3n1GY8
+                paSVdYmGZYDSyK7ugztEOFWqekiA7gfLdyeCto12K10CAwEAAaNQME4wDAYDVR0T
+                BAUwAwEB/zAdBgNVHQ4EFgQUJDYGHNJmNdoV9S/T4ZLv/ze+JYIwHwYDVR0jBBgw
+                FoAUqV/rN9mEwnTBN+y4Di3aLz4BKj8wDQYJKoZIhvcNAQEFBQADggEBAC63dW7v
+                5J1Yf7ue2ybTfIYVFAN1LOY4Ge+zLai2wkhRjaOqzV67HB/e1zItBbq0M1NkA4DQ
+                DM/aEoave5aMoZtR77JUrFG2KLnTqJZb3AZDWi3qsdYNo1yW0YMgGBVq8pThJ4NH
+                +QV5MdgkMZjDUJArtU0Z6eD7br0BiA4uEx4irr0j8e5oInBbMPb4Orv05yuaXc9n
+                utPIm7iudKcNsHs+16ACAo0KdU38GnwgGW83B0LB0sCVwFMH1OpC435dXLDycvg+
+                Pe5VvXxCL6guFtZtBbnAAtRreTC3bhS+bnxLyj+Hk7oAYyaW441BnzPcVWYeAf56
+                89A9e6HCmXEY1bo=
+            </cert>
+        </intermediateCA>
+        <intermediateCA>
+            <!-- Extracted from: common-test/src/test/certs/test_chain/ca_3.pem -->
+            <cert>MIIDZzCCAk+gAwIBAgIBAzANBgkqhkiG9w0BAQUFADBOMQswCQYDVQQGEwJFRTEU
+                MBIGA1UEChMLQ3liZXJuZXRpY2ExDTALBgNVBAsTBENBIDIxGjAYBgkqhkiG9w0B
+                CQEWC2FhYUBiYmIuY2NjMB4XDTEyMDkxNDEyMDEyNVoXDTIyMDkxMjEyMDEyNVow
+                TjELMAkGA1UEBhMCRUUxFDASBgNVBAoTC0N5YmVybmV0aWNhMQ0wCwYDVQQLEwRD
+                QSAzMRowGAYJKoZIhvcNAQkBFgthYWFAYmJiLmNjYzCCASIwDQYJKoZIhvcNAQEB
+                BQADggEPADCCAQoCggEBALxWxIfonRRiiS+mylDJdep1uyNqeq6LkfLZjJHdrgBB
+                oBi9TB2l4BSHND5jxvyFKpvCDEebx4ye+eWTNdzL+JRP/fstNhM4hb6Ikxjko4nK
+                DsJHkzKH7pV0B6BfTeWTWyO2Lu2hmfkYHYRzXTH0dxTBe9PibHLNoZYTk6aA3rH/
+                q+Wqs+G1adKg9JJ98iCqzcP4dw/6C+EFI1irADu3UB02WXn5LW3r4j3s683EHbg1
+                LVEpYtN/12lMXzPN26D9+AfoW1pCma88K0W4tYMERxTU+TJgZP4QnTO8obANlJKJ
+                NT3NCoFfc5A93hdcz5LZI0toqhf4NVRCYFo8PSwcTyUCAwEAAaNQME4wDAYDVR0T
+                BAUwAwEB/zAdBgNVHQ4EFgQUuAqclcUU2JuYKrI5EBrP7vlheJswHwYDVR0jBBgw
+                FoAUJDYGHNJmNdoV9S/T4ZLv/ze+JYIwDQYJKoZIhvcNAQEFBQADggEBAHmyfjiQ
+                mkjnXxC/Z350Re99WUHqmaSdWoK96yCkeAJrTAe57KV99/ekTGCAeXkicFUothgp
+                eEZ/TGEdtrcl/dKma7XKYc7OcUzxWlA4YM6XkS8ewYue9+Ve+ia1tLEQua62Z/zk
+                GUf+jnHFaVK34jNUdN1FpCJjj3CdLJ3TIkWvQ55pAkc6yXUp3rR0zRjpX/Mcz+Ca
+                8+pBGcKD9DWQQTI7ZMEqOvClDGEFF2TM6Ye0vN4uM/Ye7xyogFGFt9XCBKUi2XPM
+                uk/rtVp9PsdYPCM92EN77lA0iMR5+qvVp1Q17OuF+tEHHI3jaGzchYkkMhmBtVpb
+                1Z2YSB+hTVhscCU=
+            </cert>
+        </intermediateCA>
         <nameExtractor>
             <memberClass></memberClass>
             <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>

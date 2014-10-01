@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiPartWriter;
 
@@ -15,6 +16,8 @@ public class MimeUtils {
     public static final String HEADER_CONTENT_TYPE = "content-type";
     public static final String HEADER_CONTENT_DATE = "content-date";
     public static final String HEADER_SIG_ALGO_ID = "signature-algorithm-id";
+    public static final String HEADER_HASH_ALGO_ID = "x-hash-algorithm";
+    public static final String HEADER_PROXY_VERSION = "x-proxy-version";
 
     public static final String HASH_CHAIN_CONTENT_TYPE =
             "application/hash-chain";
@@ -32,7 +35,6 @@ public class MimeUtils {
      * boundary.
      */
     public static String mpMixedContentType(String boundary) {
-        // TODO: do something with hardcoded charset?
         return contentTypeWithCharsetAndBoundary(
                 MultiPartWriter.MULTIPART_MIXED, UTF8, boundary);
     }
@@ -42,7 +44,6 @@ public class MimeUtils {
      * boundary.
      */
     public static String mpRelatedContentType(String boundary) {
-        // TODO: do something with hardcoded charset?
         return contentTypeWithCharsetAndBoundary(MimeTypes.MULTIPART_RELATED,
                 UTF8, boundary);
     }
@@ -97,6 +98,11 @@ public class MimeUtils {
         }
 
         return result;
+    }
+
+    /** Generates random boundary for use with MIME multiparts. */
+    public static String randomBoundary() {
+        return RandomStringUtils.randomAlphabetic(30);
     }
 }
 

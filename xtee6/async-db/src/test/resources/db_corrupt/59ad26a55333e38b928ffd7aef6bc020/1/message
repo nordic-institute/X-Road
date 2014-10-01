@@ -1,0 +1,31 @@
+--jetty543809700hpffo2ps
+Content-Type: text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://x-rd.net/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <sdsb:client id:objectType="MEMBER">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>XTS1CLIENT</id:memberCode>
+        </sdsb:client>
+        <sdsb:service id:objectType="SERVICE">
+            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>XTS4CLIENT</id:memberCode>
+            <id:serviceCode>sdsbGetRandom</id:serviceCode>
+            <id:serviceVersion>v1</id:serviceVersion>
+        </sdsb:service>
+        <sdsb:userId>EE37702211234</sdsb:userId>
+        <sdsb:id>610310ac-5b9c-4542-a719-5ecb0a513783</sdsb:id>
+        <sdsb:async>true</sdsb:async>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:sdsbGetRandom xmlns:ns1="http://consumer.ee.x-rd.net">
+            <request>
+                <seed>100</seed>
+            </request>
+        </ns1:sdsbGetRandom>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--jetty543809700hpffo2ps--

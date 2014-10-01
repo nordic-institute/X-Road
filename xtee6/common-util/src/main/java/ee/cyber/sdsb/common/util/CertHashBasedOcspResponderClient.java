@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
 
+// TODO: use POST method since there might be many hashes and query string has limit
 public class CertHashBasedOcspResponderClient {
 
     private static final Logger LOG =
@@ -32,12 +34,12 @@ public class CertHashBasedOcspResponderClient {
     private static final String CERT_PARAM = "cert";
 
     public static List<OCSPResp> getOcspResponsesFromServer(
-            String providerAddress, List<String> hashes)
+            String providerAddress, String[] hashes)
                     throws IOException, OCSPException {
         URL url = createUrl(providerAddress, hashes);
 
         LOG.debug("Getting OCSP responses for hashes ({}) from: {}",
-                hashes.toString(), url.getHost());
+                Arrays.toString(hashes), url.getHost());
 
         return getOcspResponsesFromServer(url);
     }
@@ -92,7 +94,7 @@ public class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    public static URL createUrl(String providerAddress, List<String> hashes)
+    public static URL createUrl(String providerAddress, String[] hashes)
             throws MalformedURLException {
         return new URL(HttpSchemes.HTTP, providerAddress,
                 PortNumbers.PROXY_OCSP_PORT, "/?" + CERT_PARAM + "="

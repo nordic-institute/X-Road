@@ -8,7 +8,7 @@ public class ActivateTokenRequestHandler
 
     @Override
     protected Object handle(ActivateToken message) throws Exception {
-        tellTokenManager(message);
+        tellTokenWorker(message, message.getTokenId());
         return nothing();
     }
 

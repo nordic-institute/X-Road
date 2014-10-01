@@ -1,0 +1,1 @@
+{"name":{"memberClass":"GOV","memberCode":"XTS4CLIENT","type":"MEMBER","sdsbInstance":"EE"},"requestCount":3,"firstRequestNo":0,"lastSentTime":1389240220213,"firstRequestSendCount":1521599,"lastSendResult":"Server.ClientProxy.IOError: /etc/sdsb/globalconf.xml (Too many open files)"}

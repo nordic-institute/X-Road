@@ -19,7 +19,7 @@ public class SignatureManifest {
 
     private final String rnd;
 
-    private final List<PartHash> references = new ArrayList<>();
+    private final List<MessagePart> references = new ArrayList<>();
 
     private Manifest base;
 
@@ -33,10 +33,10 @@ public class SignatureManifest {
     /**
      * Creates a new manifest from a given random and list of references.
      */
-    public SignatureManifest(String rnd, List<PartHash> hashes) {
+    public SignatureManifest(String rnd, List<MessagePart> hashes) {
         this.rnd = rnd;
 
-        for (PartHash hash : hashes) {
+        for (MessagePart hash : hashes) {
             addReference(hash);
         }
     }
@@ -60,7 +60,7 @@ public class SignatureManifest {
      * Adds a reference to the manifest
      * @param reference the reference to add
      */
-    public void addReference(PartHash reference) {
+    public void addReference(MessagePart reference) {
         references.add(reference);
     }
 
@@ -71,13 +71,13 @@ public class SignatureManifest {
      * @param hashValue the hash value (digest value)
      */
     public void addReference(String name, String hashMethod, String hashValue) {
-        addReference(new PartHash(name, hashMethod, hashValue));
+        addReference(new MessagePart(name, hashMethod, hashValue));
     }
 
     /**
      * @return all the references contained in this manifest
      */
-    public List<PartHash> getReferences() {
+    public List<MessagePart> getReferences() {
         return references;
     }
 
@@ -104,7 +104,7 @@ public class SignatureManifest {
         Element manifestElement = doc.createElement(
                 Helper.PREFIX_DS + Constants._TAG_MANIFEST);
         manifestElement.setAttribute(Constants._ATT_ID, id);
-        for (PartHash r : references) {
+        for (MessagePart r : references) {
             manifestElement.appendChild(createReference(doc, r));
         }
 
@@ -121,8 +121,8 @@ public class SignatureManifest {
      */
     public void verifyAgainst(SignatureManifest anotherManifest)
             throws Exception {
-        for (PartHash thisRef : references) {
-            PartHash otherRef = anotherManifest.getReference(thisRef.getName());
+        for (MessagePart thisRef : references) {
+            MessagePart otherRef = anotherManifest.getReference(thisRef.getName());
             if (otherRef == null) {
                 throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
                         "Reference for URI '" + thisRef.getName()
@@ -137,8 +137,8 @@ public class SignatureManifest {
         }
     }
 
-    private PartHash getReference(String uri) {
-        for (PartHash ph : references) {
+    private MessagePart getReference(String uri) {
+        for (MessagePart ph : references) {
             if (ph.getName().endsWith(uri)) {
                 return ph;
             }
@@ -155,7 +155,7 @@ public class SignatureManifest {
         return name;
     }
 
-    private Element createReference(Document doc, PartHash ph)
+    private Element createReference(Document doc, MessagePart ph)
             throws Exception {
         Element referenceElement = doc.createElement(
                 Helper.PREFIX_DS + Constants._TAG_REFERENCE);

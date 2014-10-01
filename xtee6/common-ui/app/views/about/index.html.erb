@@ -1,6 +1,7 @@
 <% content_for :content do %>
-  <p style="font-weight: normal;">
-    <big><%= t 'about.index.name' %> <%= t 'about.index.version' %> <%= @version %></big>
-  </p>
-  <br/>
+  <div class="fill">
+  	<fieldset>
+  		<legend><%= t 'about.index.name' %> <%= t 'about.index.version' %> <%= @version %></legend>
+  	</fieldset>
+  </div>
 <% end %>

@@ -16,10 +16,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.message.SoapUtils;
+
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
 public class DummyCentralServiceHandler extends AbstractHandler {
 
@@ -32,8 +33,10 @@ public class DummyCentralServiceHandler extends AbstractHandler {
             throws IOException, ServletException {
         LOG.info("Received request from {}", request.getRemoteAddr());
         try {
-            SoapMessageImpl requestMessage = ManagementRequestHandler.readRequest(
-                    request.getContentType(), request.getInputStream());
+            SoapMessageImpl requestMessage =
+                    ManagementRequestHandler.readRequest(
+                            request.getContentType(),
+                            request.getInputStream());
 
             LOG.info("Got request message: {}", requestMessage.getXml());
 
@@ -55,7 +58,7 @@ public class DummyCentralServiceHandler extends AbstractHandler {
                     throw new RuntimeException("Unknown service " + service);
             }
         } catch (Exception e) {
-            sendErrorResponse(response, ErrorCodes.translateException(e));
+            sendErrorResponse(response, translateException(e));
         } finally {
             baseRequest.setHandled(true);
         }
@@ -122,10 +125,8 @@ public class DummyCentralServiceHandler extends AbstractHandler {
     private static void sendErrorResponse(HttpServletResponse response,
             String faultCode, String faultString, String faultActor,
             String faultDetail) throws IOException {
-        // TODO: handle the case where CodedException has a cause.
         String soapMessageXml = SoapFault.createFaultXml(
-                faultCode, faultString, faultActor,
-                faultDetail);
+                faultCode, faultString, faultActor, faultDetail);
 
         String encoding = StandardCharsets.UTF_8.name();
         byte[] messageBytes = soapMessageXml.getBytes(encoding);

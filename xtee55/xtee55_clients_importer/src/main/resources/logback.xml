@@ -30,7 +30,7 @@
     <logger name="ee.cyber.xroad" level="${xroadLogLevel}" />
 
     <root level="INFO">
-        <!--<appender-ref ref="STDOUT" />-->
+        <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>
 </configuration>

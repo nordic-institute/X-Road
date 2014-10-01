@@ -21,7 +21,8 @@ import ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.protocol.message.ListTokens;
 
-import static ee.cyber.sdsb.common.db.HibernateUtil.doInTransaction;
+import static ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+
 
 public class SDSBChecker {
 
@@ -34,8 +35,7 @@ public class SDSBChecker {
         return doInTransaction(new TransactionCallback<Boolean>() {
             @Override
             public Boolean call(Session session) throws Exception {
-                boolean canActivate = internalCanActivate();
-                return canActivate;
+                return internalCanActivate();
             }
         });
     }
@@ -74,15 +74,15 @@ public class SDSBChecker {
         }
 
         if (!authCertExists) {
-            logAndPrint("A registered authentication certificate is missing!");
+            logAndPrint("The security server does not have a registered authentication certificate. Please create an authentication certificate and register it at the X-Road central server.");
         }
 
         if (!ownerSignCertExists) {
-            logAndPrint("Owner signing certificate is missing!");
+            logAndPrint("Owner of the security server does not have signing certificate. Please create signing certificate for the owner.");
         }
 
         if (!tspExists) {
-            logAndPrint("Time-stamp provider is missing!");
+            logAndPrint("There are no configured time-stamping services. Please configure at least one time-stamping service.");
         }
 
         return authCertExists && ownerSignCertExists && tspExists;

@@ -14,22 +14,18 @@ import static org.apache.commons.io.IOUtils.toByteArray;
 public class FileContentChangeChecker {
 
     private final String fileName;
-
-    private String checksum;
-    private long lastModified;
+    private final String checksum;
 
     public FileContentChangeChecker(String fileName) throws Exception {
         this.fileName = fileName;
 
         File file = getFile();
-        this.lastModified = file.lastModified();
         this.checksum = calculateConfFileChecksum(file);
     }
 
     public boolean hasChanged() throws Exception {
         File file = getFile();
-        return !calculateConfFileChecksum(file).equals(checksum)
-                || file.lastModified() != this.lastModified;
+        return !calculateConfFileChecksum(file).equals(checksum);
     }
 
     protected File getFile() {

@@ -6,19 +6,28 @@
 #     :sec_serv_user => clientId,
 #     :origin => origin).register()
 class ClientRegRequest < RequestWithProcessing
-  def self.find_by_server_and_client(server_id, client_id)
-    Request.find_by_server_and_client(ClientRegRequest, server_id, client_id)
+  before_create do |rec|
+    Request.set_server_owner_name(rec)
+    Request.set_server_user_name(rec)
+  end
+  
+  def self.find_by_server_and_client(server_id, client_id,
+      processing_status = nil)
+    Request.find_by_server_and_client(ClientRegRequest, server_id, client_id,
+        processing_status)
   end
 
-  # Cancels client reg request with specific database id. Raises error if not
+  # Revokes client reg request with specific database id. Raises error if not
   # found.
-  def self.cancel(request_id)
+  def self.revoke(request_id)
     reg_request = ClientRegRequest.find(request_id)
 
-    raise "No client registration request with id '#{id}'" unless reg_request
+    unless reg_request
+      raise "No client registration request with id '#{request_id}'"
+    end
 
-    if !reg_request.can_cancel?
-      raise "Cannot cancel client registration request "\
+    if !reg_request.can_revoke?
+      raise "Cannot revoke client registration request "\
         "in state '#{reg_request.request_processing.status}' and with origin "\
         "'#{reg_request.origin}'"
     end
@@ -26,7 +35,7 @@ class ClientRegRequest < RequestWithProcessing
     del_request_server_id = reg_request.security_server.clean_copy()
     del_request_client_id = reg_request.sec_serv_user.clean_copy()
 
-    comment = "#{request_id} deletion"
+    comment = "Request ID #{request_id} revocation"
 
     ClientDeletionRequest.new(
          :security_server => del_request_server_id,
@@ -49,9 +58,41 @@ class ClientRegRequest < RequestWithProcessing
       require_client(security_server.owner_id)
       require_security_server(security_server)
     end
+
+    verify_against_submitted_requests()
+    verify_against_existing_connections()
   end
 
-  def get_canceling_request_id
+  def verify_against_submitted_requests()
+    processings = ClientRegRequest.find_by_server_and_client(
+        security_server, sec_serv_user,
+        RequestProcessing::SUBMITTED_FOR_APPROVAL)
+    if processings != nil and not processings.empty?
+      previous_request = processings.first
+
+      raise InvalidClientRegRequestException.new(
+          I18n.t("requests.duplicate_requests",
+            :user => sec_serv_user,
+            :security_server => security_server,
+            :received => previous_request.created_at,
+            :id => previous_request.id))
+    end
+  end
+
+  def verify_against_existing_connections()
+    server = SecurityServer.find_server_by_id(security_server)
+    client = SecurityServerClient.find_by_id(sec_serv_user)
+
+    if server != nil and client != nil and
+        client.security_servers.include?(server)
+      raise InvalidClientRegRequestException.new(
+          I18n.t("requests.client_already_registered",
+            :user => sec_serv_user,
+            :security_server => security_server))
+    end
+  end
+
+  def get_revoking_request_id
     requests = ClientDeletionRequest.find_by_server_and_client(
         security_server, sec_serv_user)
 

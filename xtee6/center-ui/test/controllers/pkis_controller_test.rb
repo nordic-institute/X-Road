@@ -62,7 +62,7 @@ class PkisControllerTest < ActionController::TestCase
     ocsp_info_param = {
       :update => [{
         :id => editable_ocsp_info_id,
-        :url => "changed.ocsp.com",
+        :url => " changed.ocsp.com ", # Testing trimming
         :ocspTempCertId => 0 # Session has only one temp cert
       }]
     }.to_json()
@@ -92,7 +92,7 @@ class PkisControllerTest < ActionController::TestCase
     ocsp_info_param = {
       :new => [{
         :caInfoId => top_ca_id,
-        :url => "new.ocsp.com",
+        :url => " new.ocsp.com ",
         :ocspTempCertId => 0 # Session has only one temp cert
       }]
     }.to_json()
@@ -174,7 +174,7 @@ class PkisControllerTest < ActionController::TestCase
     intermediate_cas_param = {
       :new => [{
         :ocspInfos => [{
-          :url => "intermediateCaNewOcsp.com",
+          :url => " intermediateCaNewOcsp.com ",
           :ocspTempCertId => 0 # first in session
         }],
         :intermediateCaTempCertId => 1 # second in session
@@ -268,8 +268,9 @@ class PkisControllerTest < ActionController::TestCase
     {
       :id => editable_pki_id,
       :authOnly => false,
-      :nameExtractorMemberClass => "eraisik",
-      :nameExtractorMethodName => "ee.cyber.sdsb.PkisContollerTest.isChanged"
+      # Trimming must be done as well.
+      :nameExtractorMemberClass => " eraisik ",
+      :nameExtractorMethodName => " ee.cyber.sdsb.PkisContollerTest.isChanged "
     }.to_json()
   end
 

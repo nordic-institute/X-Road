@@ -3,29 +3,35 @@ package ee.cyber.sdsb.common.identifier;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 @XmlJavaTypeAdapter(IdentifierTypeConverter.ServiceIdAdapter.class)
-public final class ServiceId extends AbstractServiceId {
+public class ServiceId extends SdsbId {
 
     private final String memberClass;
     private final String memberCode;
     private final String serviceVersion;
     private final String subsystemCode;
+    protected final String serviceCode;
 
-    private ServiceId(String sdsbInstance,
-            String memberClass, String memberCode, String subsystemCode,
-            String serviceCode) {
-        this(sdsbInstance, memberClass, memberCode, subsystemCode, serviceCode,
-                null);
+    ServiceId() { // required by Hibernate
+        this(null, null, null, null, null, null);
     }
 
-    private ServiceId(String sdsbInstance,
+    protected ServiceId(SdsbObjectType type, String sdsbInstance,
+            String memberClass, String memberCode, String subsystemCode,
+            String serviceCode) {
+        this(type, sdsbInstance, memberClass, memberCode, subsystemCode,
+                serviceCode, null);
+    }
+
+    protected ServiceId(SdsbObjectType type, String sdsbInstance,
             String memberClass, String memberCode, String subsystemCode,
             String serviceCode, String serviceVersion) {
-        super(SdsbObjectType.SERVICE, sdsbInstance, serviceCode);
+        super(type, sdsbInstance);
 
         this.memberClass = memberClass;
         this.memberCode = memberCode;
         this.serviceVersion = serviceVersion;
         this.subsystemCode = subsystemCode;
+        this.serviceCode = serviceCode;
     }
 
     public String getMemberClass() {
@@ -45,6 +51,10 @@ public final class ServiceId extends AbstractServiceId {
 
     public String getServiceVersion() {
         return serviceVersion;
+    }
+
+    public String getServiceCode() {
+        return serviceCode;
     }
 
     public ClientId getClientId() {
@@ -97,7 +107,7 @@ public final class ServiceId extends AbstractServiceId {
         validateField("memberClass", memberClass);
         validateField("memberCode", memberCode);
         validateField("serviceCode", serviceCode);
-        return new ServiceId(sdsbInstance, memberClass, memberCode,
-                subsystemCode, serviceCode, serviceVersion);
+        return new ServiceId(SdsbObjectType.SERVICE, sdsbInstance, memberClass,
+                memberCode, subsystemCode, serviceCode, serviceVersion);
     }
 }

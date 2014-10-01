@@ -8,7 +8,7 @@
         <SOAP-ENV:Envelope
                 xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
                 xmlns:sdsb="http://x-rd.net/xsd/sdsb.xsd"
-                xmlns:id="http://sdsb.net/xsd/identifiers">
+                xmlns:id="http://x-road.eu/xsd/identifiers">
             <SOAP-ENV:Header>
                 <sdsb:client id:objectType="MEMBER">
                     <id:sdsbInstance>EE</id:sdsbInstance>
@@ -31,9 +31,9 @@
     
  -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-    targetNamespace="http://sdsb.net/xsd/sdsb.xsd" xmlns="http://sdsb.net/xsd/sdsb.xsd"
-    xmlns:id="http://sdsb.net/xsd/identifiers">
-    <xs:import namespace="http://sdsb.net/xsd/identifiers" schemaLocation="identifiers.xsd"/>
+    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns="http://x-road.eu/xsd/sdsb.xsd"
+    xmlns:id="http://x-road.eu/xsd/identifiers">
+    <xs:import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd"/>
 
     <xs:complexType name="HeaderType">
         <xs:annotation>

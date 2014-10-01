@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
 import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -17,8 +18,6 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_HTTP_ERROR;
 /**
  * Server proxy responds with HTTP error.
  * Result: clientproxy generates error message.
- *
- * TODO: fails! Check out issue 3422
  */
 public class ServerProxyHttpError extends MessageTestCase {
     public ServerProxyHttpError() {
@@ -41,7 +40,7 @@ public class ServerProxyHttpError extends MessageTestCase {
                 // Read all of the request.
                 IOUtils.readLines(request.getInputStream());
 
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(HttpServletResponse.SC_BAD_GATEWAY);
                 baseRequest.setHandled(true);
             }
         };

@@ -2,6 +2,8 @@ subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'maven'
+    apply plugin: 'idea'
+
 
     group = 'ee.cyber.xroad'
     version = '0.1'
@@ -27,3 +29,5 @@ subprojects {
         }
     }
 }
+
+apply plugin: 'idea'

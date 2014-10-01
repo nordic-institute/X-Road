@@ -17,7 +17,7 @@ public class MockSender extends AsyncHttpSender {
 
     @Override
     public void doPost(URI address, final InputStream content,
-            String contentType) throws Exception {
+            long contentLength, String contentType) throws Exception {
         // Simply consume the content
         new Thread(new Runnable() {
             @Override

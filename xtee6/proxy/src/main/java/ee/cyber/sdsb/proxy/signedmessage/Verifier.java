@@ -1,14 +1,14 @@
 package ee.cyber.sdsb.proxy.signedmessage;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.conf.VerificationCtx;
 import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.signature.PartHash;
+import ee.cyber.sdsb.common.signature.MessagePart;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.common.signature.SignatureVerifier;
 
@@ -25,25 +25,27 @@ public class Verifier {
 
     private static final Logger LOG = LoggerFactory.getLogger(Verifier.class);
 
-    private final List<PartHash> parts = new ArrayList<>();
+    private final List<MessagePart> parts = new ArrayList<>();
 
     /** Adds new hash to be verified.
      * @param name name of the file in the BDOC container.
-     * @param hash hash value.
+     * @param data hash value.
      */
-    public void addHash(String name, String hashMethod, byte[] hash) {
-        parts.add(new PartHash(name, hashMethod, encodeBase64(hash)));
+    public void addPart(String name, String hashMethod, byte[] data) {
+        parts.add(new MessagePart(name, hashMethod, encodeBase64(data)));
     }
 
     /** Verify the signature. */
-    public void verify(ClientId sender, SignatureData signature,
-            VerificationCtx ctx) throws Exception {
+    public void verify(ClientId sender, SignatureData signature)
+            throws Exception {
         LOG.trace("Verify, {} parts. Signature: {}", parts.size(), signature);
         try {
-            SignatureVerifier verifier = new SignatureVerifier(signature);
-            verifier.addParts(parts);
+            SignatureVerifier signatureVerifier =
+                    new SignatureVerifier(signature);
 
-            ctx.verifySignature(sender, verifier);
+            signatureVerifier.addParts(parts);
+
+            signatureVerifier.verify(sender, new Date());
         } catch (Exception ex) {
             throw translateWithPrefix(X_SIGNATURE_VERIFICATION_X, ex);
         }

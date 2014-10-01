@@ -5,6 +5,8 @@ java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
 
 class GlobalConfGenerator
 
+  CENTRAL_SERVER_SSL_CERT = "/etc/sdsb/ssl/internal.crt"
+
   include ConfHelper
 
   def initialize
@@ -37,6 +39,7 @@ class GlobalConfGenerator
     add_pkis
     add_tsps
     add_global_settings
+    add_central_server_ssl_cert
 
     @conf.write_to_string
   end
@@ -155,15 +158,17 @@ class GlobalConfGenerator
       pki_type.authenticationOnly = pki.authentication_only
 
       pki_type.setTopCA(convert_ca(pki.top_ca))
-      
+
       pki.intermediate_cas.each do |cainfo|
         pki_type.getIntermediateCA().add(convert_ca(cainfo))
       end
-      
-      name_extractor_type = @factory.createNameExtractorType
-      name_extractor_type.memberClass = pki.name_extractor_member_class
-      name_extractor_type.methodName = pki.name_extractor_method_name
-      pki_type.nameExtractor = name_extractor_type
+
+      if pki.name_extractor_method_name and not pki.name_extractor_method_name.empty? then 
+        name_extractor_type = @factory.createNameExtractorType
+        name_extractor_type.memberClass = pki.name_extractor_member_class
+        name_extractor_type.methodName = pki.name_extractor_method_name
+        pki_type.nameExtractor = name_extractor_type
+      end
 
       @root.getPki().add(pki_type)
     end
@@ -196,6 +201,13 @@ class GlobalConfGenerator
     @root.globalSettings = gs_type
   end
 
+  def add_central_server_ssl_cert
+    cert_lines = get_central_server_ssl_cert
+    cert_base64 = cert_lines[1..-2].join # exclude --- BEGIN... lines
+
+    @root.centralServerSslCert = Base64.decode64(cert_base64).to_java_bytes
+  end
+
   def convert_ca(cainfo)
     cainfo_type = @factory.createCaInfoType
     if cainfo.cert
@@ -215,12 +227,21 @@ class GlobalConfGenerator
 
   def client_id(c)
     Java::ee.cyber.sdsb.common.identifier.ClientId.create(
-      c.sdsb_instance, c.member_class, c.member_code, nil)
+      c.sdsb_instance, c.member_class, c.member_code, c.subsystem_code)
   end
 
   def service_id(s)
     Java::ee.cyber.sdsb.common.identifier.ServiceId.create(
-      s.sdsb_instance, s.member_class, s.member_code, nil, s.service_code)
+      s.sdsb_instance,
+      s.member_class,
+      s.member_code,
+      s.subsystem_code,
+      s.service_code,
+      s.service_version)
+  end
+
+  def get_central_server_ssl_cert
+    IO.readlines(CENTRAL_SERVER_SSL_CERT)
   end
 
 end

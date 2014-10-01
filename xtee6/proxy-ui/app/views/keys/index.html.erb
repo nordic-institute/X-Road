@@ -15,11 +15,11 @@
           <th></th>
           <th></th>
           <th></th>
-          <th style="width: 22%;">Certificate</th>
-          <th style="width: 10%">Member</th>
-          <th style="width: 13%">OCSP response</th>
-          <th style="width: 13%">Expires</th>
-          <th style="width: 10%">Status</th>
+          <th style="width: 22%"><%= t '.certificate' %></th>
+          <th style="width: 10%"><%= t '.member' %></th>
+          <th style="width: 13%"><%= t '.ocsp_response' %></th>
+          <th style="width: 13%"><%= t '.expires' %></th>
+          <th style="width: 10%"><%= t '.status' %></th>
           <th></th>
           <th></th>
           <th></th>
@@ -27,95 +27,101 @@
       </thead>
     </table>
 
-    <div class="dataTables_actions">
-      <div class="align-right">
-        <button id="details">Details</button>
+    <div class="dataTables_actions cf">
+      <div class="left">
+        <button id="details"><%= t '.details' %></button>
         <% if can?(:generate_key) %>
-        <button id="generate_key">Generate key</button>
+        <button id="generate_key"><%= t '.generate_key' %></button>
         <% end %>
         <% if can?(:generate_auth_cert_req) || can?(:generate_sign_cert_req) %>
-        <button id="generate_csr">Generate certificate request</button>
+        <button id="generate_csr"><%= t '.generate_csr' %></button>
         <% end %>
-        <% if can?(:activate_disable_auth_cert) && can?(:activate_disable_sign_cert) %>
-        <button id="activate" style="display: none;">Activate</button>
-        <button id="disable">Disable</button>
+        <% if can?(:activate_disable_auth_cert) || can?(:activate_disable_sign_cert) %>
+        <button id="activate" style="display: none;"><%= t '.activate' %></button>
+        <button id="disable"><%= t 'common.disable' %></button>
         <% end %>
         <% if can?(:send_auth_cert_reg_req) %>
-        <button id="register">Register</button>
+        <button id="register"><%= t '.register' %></button>
         <% end %>
         <% if can?(:send_auth_cert_del_req) %>
-        <button id="unregister">Unregister</button>
+        <button id="unregister"><%= t '.unregister' %></button>
         <% end %>
-        <% if can?(:delete_auth_cert) && can?(:delete_sign_cert) %>
-        <button id="delete">Delete</button>
+        <% if can?(:delete_auth_cert) || can?(:delete_sign_cert) ||
+              can?(:delete_key) || can?(:delete_auth_key) || can?(:delete_sign_key) %>
+        <button id="delete"><%= t 'common.delete' %></button>
         <% end %>
       </div>
-      <div class="align-right" style="margin-top: 0.4em;">
-        <button id="refresh">Refresh view</button>
-        <% if can?(:import_auth_cert) && can?(:import_sign_cert) %>
-        <button id="import_cert">Import certificate</button>
+      <div class="right">
+        <% if can?(:import_auth_cert) || can?(:import_sign_cert) %>
+        <button id="import_cert"><%= t '.import_certificate' %></button>
         <% end %>
       </div>
     </div>
 
     <div class="clearer"></div>
 
-    <%= dialog "activate_token_dialog", "Enter PIN" do %>
+    <%= dialog "activate_token_dialog", t('.enter_pin') do %>
       <br/>
       <form id="activate_token_form">
         <input name="token_id" id="token_id" type="hidden"/>
-        PIN:
+        <%= t '.pin' %>:
         <input name="pin" id="pin" type="password"/>
       </form>
     <% end %>
 
-    <%= dialog "generate_csr_dialog", "Generate certificate request" do %>
+    <%= dialog "generate_csr_dialog", t('.generate_csr') do %>
       <%= form_tag do %>
         <input name="token_id" id="token_id" type="hidden"/>
         <input name="key_id" id="key_id" type="hidden"/>
         <input name="key_usage" id="key_usage" type="hidden"/>
 
-        <span style="float: left;">Usage:</span>
+        <span style="float: left;"><%= t '.usage' %>:</span>
         <span style="float: right;">
           <select id="key_usage_select" style="width: 10em;">
-            <option value="sign">Sign</option>
-            <option value="auth">Auth</option>
+            <% if can?(:generate_sign_cert_req) %>
+            <option value="sign"><%= t '.usage_sign' %></option>
+            <% end %>
+            <% if can?(:generate_auth_cert_req) %>
+            <option value="auth"><%= t '.usage_auth' %></option>
+            <% end %>
           </select>
         </span><div class="clearer"></div><br/>
 
         <div>
-          <span style="float: left;">Member:</span>
+          <span style="float: left;"><%= t '.client' %>:</span>
           <span style="float: right;">
-            <%= select_tag "member_id", options_for_select(client_options(@client_ids)) %>
+            <%= select_tag "member_id", options_for_select(client_options(@client_ids)),
+                :style => "text-transform: none;" %>
           </span><div class="clearer"></div><br/>
         </div>
 
-        <span style="float: left;">Distinguished name:</span>
+        <span style="float: left;"><%= t '.distinguished_name' %>:</span>
         <span style="float: right;">
           <input id="subject_name" name="subject_name" type="text" style="width: 25em;"/>
         </span>
       <% end %>
     <% end %>
 
-    <%= dialog "token_details_dialog", "Token details" %>
-    <%= dialog "key_details_dialog", "Key details" %>
-    <%= dialog "cert_details_dialog", "Certificate details" %>
+    <%= dialog "token_details_dialog", t('.token_details') %>
+    <%= dialog "key_details_dialog", t('.key_details') %>
+    <%= render :partial => "shared/cert_details_dialog" %>
 
-    <%= dialog "import_cert_dialog", "Import certificate" do %>
-      <br/>
-      <%= form_tag "#{controller.controller_name}/import_cert", :id => "import_cert_form",
-              :multipart => true, :target => "upload_target" do %>
-        Certificate location:
-        <%= file_field_tag "file" %>
-      <% end %>
-      <iframe id="upload_target" name="upload_target"></iframe>
+    <%= dialog "import_cert_dialog", t('.import_certificate') do %>
+      <section class="container">
+        <%= form_tag "#{controller.controller_name}/import_cert", :id => "import_cert_form",
+                :multipart => true, :target => "upload_target" do %>
+          <%= t '.certificate_location' %>:
+          <%= file_field_tag "file" %>
+        <% end %>
+        <iframe id="upload_target" name="upload_target"></iframe>
+      </section>
     <% end %>
 
-    <%= dialog "register_dialog", "Registration request" do %>
+    <%= dialog "register_dialog", t('.registration_request') do %>
       <%= form_tag do %>
       <table style="width: 100%;">
         <tr>
-          <td>Server DNS name or IP address:</td>
+          <td><%= t '.server_dns_or_ip' %>:</td>
           <td><%= text_field_tag "address", nil, :style => "width: 90%;" %></td>
         </tr>
       </table>

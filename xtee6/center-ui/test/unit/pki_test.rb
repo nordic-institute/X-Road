@@ -157,7 +157,7 @@ class PkiTest < ActiveSupport::TestCase
     pki = Pki.new()
     pki.authentication_only = false
     pki.name_extractor_member_class = "riigiasutus"
-    pki.name_extractor_method_name = 
+    pki.name_extractor_method_name =
         "ee.cyber.sdsb.Extractor.extractorToAuthOnly"
 
     top_ca = CaInfo.new()
@@ -189,7 +189,7 @@ class PkiTest < ActiveSupport::TestCase
     # Given
     query_params = ListQueryParams.new(
         "pkis.name","asc", 0, 10)
-        
+
     # When
     pkis = Pki.get_pkis(query_params)
 
@@ -219,6 +219,19 @@ class PkiTest < ActiveSupport::TestCase
     # Then
     assert_equal(1, pkis.size)
     assert_equal("Balletti tehakse siin", pkis[0].name)
+  end
+
+  test "Should find PKI according to datetime" do
+    # Given
+    query_params = ListQueryParams.new(
+        "pkis.name","desc", 0, 10, "2014-08-14 14:14:14")
+
+    # When
+    pkis = Pki.get_pkis(query_params)
+
+    # Then
+    assert_equal(1, pkis.size)
+    assert_equal("C keeles midagi tehakse siin", pkis[0].name)
   end
 
   # Reading tests - end

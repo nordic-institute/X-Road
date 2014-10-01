@@ -16,10 +16,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
+import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
+import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.message.SoapMessageConsumer;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.util.SystemMetrics;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This test is supposed to exercise all the functionality related to async-db.
@@ -27,6 +35,8 @@ import ee.cyber.sdsb.common.message.SoapMessageImpl;
  * every step are verified.
  */
 public class AsyncDBIntegrationTest {
+    private static final String CORRUPT_DB_DIR = "build/db_corrupt";
+
     private static final Logger LOG = LoggerFactory
             .getLogger(AsyncDBIntegrationTest.class);
 
@@ -36,7 +46,7 @@ public class AsyncDBIntegrationTest {
     private static final String LAST_SEND_RESULT_FAILURE = "LAST SEND RESULT FAILURE";
 
     private static final List<String> successfulSteps = new ArrayList<>();
-    private static final MessageQueue queue;
+    private static MessageQueue queue;
 
     static {
         AsyncDBTestUtil.setTestenvProps();
@@ -79,7 +89,11 @@ public class AsyncDBIntegrationTest {
             LOG.warn("Preserving DB file tree after test, be sure to remove them later by yourself!");
         }
 
+        long freeFileDescriptorsAtBeginning = SystemMetrics
+                .getFreeFileDescriptorCount();
+
         try {
+
             addRequestToNonExistentProvider();
             addRequestToExistentProvider();
             markSecondRequestAsRemoved();
@@ -90,7 +104,12 @@ public class AsyncDBIntegrationTest {
             resetSendCountOfSecondRequest();
             skipNotSendingRequest();
             revertWritingFailure();
+
+            // Test cases from real life
+            removeCorruptRequestAndSendNext();
         } finally {
+            validateFileDescriptors(freeFileDescriptorsAtBeginning);
+
             if (!preserveDB) {
                 FileUtils.deleteDirectory(new File(AsyncDBTestUtil
                         .getProviderDirPath()));
@@ -102,7 +121,6 @@ public class AsyncDBIntegrationTest {
     }
 
     // Test cases - start
-
 
     private static void addRequestToNonExistentProvider()
             throws Exception {
@@ -335,6 +353,8 @@ public class AsyncDBIntegrationTest {
 
         validateAsyncLog();
 
+        successfulSteps.add("skipNotSendingRequest");
+
         LOG.info("TEST 9: skipNotSendingRequest - FINISHED");
     }
 
@@ -350,10 +370,68 @@ public class AsyncDBIntegrationTest {
 
         validateQueueInfo(initialQueueInfo);
 
+        successfulSteps.add("revertWritingFailure");
+
         LOG.info("TEST 10: revertWritingFailure - FINISHED");
     }
 
+    private static void removeCorruptRequestAndSendNext() throws Exception {
+        LOG.info("TEST 11: removeCorruptRequestAndSendNext - STARTED");
+
+        // Given
+        setUpCorruptDb();
+
+        // When
+        SendingCtx ctx = queue.startSending();
+        ctx.success(LAST_SEND_RESULT_SUCCESS);
+
+        // Then
+        QueueInfo queueInfo = queue.getQueueInfo();
+
+        assertEquals(1, queueInfo.getRequestCount());
+        assertEquals(2, queueInfo.getFirstRequestNo());
+
+        File corruptMsgDir =
+                new File(CORRUPT_DB_DIR + File.separator
+                        + "59ad26a55333e38b928ffd7aef6bc020" + File.separator
+                        + "CORRUPT_0");
+
+        assertTrue(corruptMsgDir.exists());
+
+        LOG.info("TEST 11: removeCorruptRequestAndSendNext - FINISHED");
+    }
     // Test cases - end
+
+    private static void setUpCorruptDb() throws Exception {
+        File corruptDbDir = new File(CORRUPT_DB_DIR);
+        corruptDbDir.mkdir();
+
+        FileUtils.copyDirectory(
+                new File("src/test/resources/db_corrupt"),
+                corruptDbDir);
+
+        System.setProperty(SystemProperties.ASYNC_DB_PATH, CORRUPT_DB_DIR);
+
+        ClientId provider = ClientId.create("EE", "GOV", "XTS4CLIENT");
+        queue = AsyncDB.getMessageQueue(provider);
+    }
+
+    private static void validateFileDescriptors(
+            long freeFileDescriptorsAtBeginning) {
+        long freeFileDescriptorsAtTheEnd = SystemMetrics
+                .getFreeFileDescriptorCount();
+
+        long leakedFileDescriptors =
+                freeFileDescriptorsAtBeginning
+                        - freeFileDescriptorsAtTheEnd;
+
+        // One file descriptor is taken by native FileDispatcherImpl.init()
+        // at the beginning, so this seems to be allowed.
+        if (leakedFileDescriptors > 1) {
+            throw new RuntimeException("Integration test failed, " +
+                    leakedFileDescriptors + " file descriptors leaked.");
+        }
+    }
 
     private static void validateQueueInfo(QueueInfo expected) {
         QueueInfo actual = null;

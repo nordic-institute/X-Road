@@ -7,6 +7,7 @@ import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
 
@@ -75,6 +76,16 @@ public class SignerCLI {
             System.out.println("Status:        " + token.getStatus());
             System.out.println("Serial number: " + token.getSerialNumber());
             System.out.println("Label:         " + token.getLabel());
+
+            if (verbose) {
+                System.out.println("TokenInfo:");
+                for (Entry<String, String> e :
+                        token.getTokenInfo().entrySet()) {
+                    System.out.println("\t" + e.getKey() + "\t\t"
+                        + e.getValue());
+                }
+            }
+
             System.out.println("Keys:");
             for (KeyInfo key : token.getKeyInfo()) {
                 System.out.println("\tId:        " + key.getId());
@@ -102,6 +113,8 @@ public class SignerCLI {
                                 + cert.getMemberId());
                         System.out.println("\t\t\tHash:          "
                                 + certHash(cert.getCertificateBytes()));
+                        System.out.println("\t\t\tOCSP:          "
+                                + (cert.getOcspBytes() != null ? "yes" : "no"));
                         System.out.println("\t\t\tSaved to conf: "
                                 + cert.isSavedToConfiguration());
                     }
@@ -207,6 +220,7 @@ public class SignerCLI {
         System.out.println("Auth key:");
         System.out.println("\tAlias:\t" + authKey.getAlias());
         System.out.println("\tKeyStore:\t" + authKey.getKeyStoreFileName());
+        System.out.println("\tCert:   " + authKey.getCert());
     }
 
     @Command(description="Returns signing info for member")
@@ -225,11 +239,14 @@ public class SignerCLI {
             @Param(name="file", description="Certificate file (PEM)")
                 String file,
             @Param(name="status", description="Initial status (eg. SAVED)")
-                String status) throws Exception {
+                String status,
+            @Param(name="clientId", description="Member identifier")
+                ClientId clientId) throws Exception {
         try {
             byte[] certBytes = fileToBytes(file);
             ImportCertResponse response =
-                    SignerClient.execute(new ImportCert(certBytes, status));
+                    SignerClient.execute(
+                            new ImportCert(certBytes, status, clientId));
             System.out.println("Imported certificate to key "
                     + response.getKeyId());
         } catch (Exception e) {
@@ -268,9 +285,7 @@ public class SignerCLI {
                 String keyId,
             @Param(name="data", description="Data to sign (<data1> <data2> ...)")
                 String... data) throws Exception {
-        // TODO: Make parameter?
         String algorithm = "SHA512withRSA";
-
         for (String d : data) {
             byte[] digest = calculateDigest(getDigestAlgorithmId(algorithm),
                     d.getBytes(StandardCharsets.UTF_8));
@@ -291,10 +306,31 @@ public class SignerCLI {
         byte[] digest = calculateDigest(
                 getDigestAlgorithmId(algorithm), fileToBytes(fileName));
 
-        SignResponse response = SignerClient.execute(
-                new Sign(keyId, algorithm, digest));
+        SignResponse response =
+                SignerClient.execute(new Sign(keyId, algorithm, digest));
         System.out.println("Signature: " +
                 Arrays.toString(response.getSignature()));
+    }
+
+    @Command(description="Benchmark signing")
+    public void signBenchmark(
+            @Param(name="keyId", description="Key ID")
+                String keyId) throws Exception {
+        String algorithm = "SHA512withRSA";
+        String data = "Hello world!";
+        byte[] digest = calculateDigest(
+                getDigestAlgorithmId(algorithm),
+                data.getBytes(StandardCharsets.UTF_8));
+
+        int iterations = 10;
+        long startTime = System.currentTimeMillis();
+        for (int i = 0 ; i < iterations; i++) {
+             SignerClient.execute(new Sign(keyId, algorithm, digest));
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        System.out.println("Signed " + iterations + " times in "
+                + duration + " milliseconds");
     }
 
     @Command(description="Generate key on token")
@@ -368,6 +404,28 @@ public class SignerCLI {
             System.out.println("Batch signing is NOT enabled");
         }
     }
+
+    @Command(description="Show certificate")
+    public void showCertificate(
+            @Param(name="certId", description="Certificate ID")
+                String certId) throws Exception {
+        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        for (TokenInfo token : tokens) {
+            for (KeyInfo key : token.getKeyInfo()) {
+                for (CertificateInfo cert : key.getCerts()) {
+                    if (certId.equals(cert.getId())) {
+                        X509Certificate x509 =
+                                readCertificate(cert.getCertificateBytes());
+                        System.out.println(x509);
+                        return;
+                    }
+                }
+            }
+        }
+
+        System.out.println("Certificate " + certId + " not found");
+    }
+
 
     // ------------------------------------------------------------------------
 

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
@@ -31,8 +32,6 @@ public class AsyncLogWriterImpl implements AsyncLogWriter {
                         "send count: '%d' and request info: '%s'",
                 lastSendResult, firstRequestSendCount, requestInfo);
         LOG.info(info);
-
-        // TODO: client and provider names can contain spaces.
 
         StringBuilder sb = new StringBuilder();
 

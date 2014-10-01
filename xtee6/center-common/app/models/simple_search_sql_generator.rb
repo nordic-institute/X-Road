@@ -4,7 +4,7 @@ class SimpleSearchSqlGenerator < SearchSqlGenerator
     raise "Searchable must be given as string" if !searchable.is_a?(String)
 
     @columns = columns
-    @searchable = searchable
+    @searchable = searchable.downcase
     generate()
   end
 

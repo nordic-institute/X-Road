@@ -1,6 +1,7 @@
 java_import Java::org.apache.commons.lang3.exception.ExceptionUtils
 
 require "validation_helper"
+require "ruby_cert_helper"
 
 class BaseController < ActionController::Base
 
@@ -20,6 +21,11 @@ class BaseController < ActionController::Base
   rescue_from Exception, :with => :render_error
   rescue_from Warning, :with => :render_warning
 
+  # rescue_from RequiredFieldError, :with => :render_required_field
+
+  around_filter :catch_java_exceptions
+  around_filter :translate_coded_exception
+
   before_filter :strip_params
 
   def index
@@ -30,6 +36,28 @@ class BaseController < ActionController::Base
   end
 
   private
+
+  def catch_java_exceptions
+    yield
+  rescue Java::java.lang.Exception
+    render_java_error($!)
+  end
+
+  def translate_coded_exception
+    yield
+  rescue Java::ee.cyber.sdsb.common.CodedException => e
+    raise e unless e.translationCode
+
+    args_hash = {}
+
+    idx = 0
+    e.arguments.each do |arg|
+      args_hash[idx.to_s.to_sym] = arg
+      idx += 1
+    end if e.arguments
+
+    raise t("coded_exception.#{e.translationCode}", args_hash)
+  end
 
   def handle_unverified_request
     # default behaviour is to reset the session (potential DoS),
@@ -111,6 +139,15 @@ class BaseController < ActionController::Base
     }
   end
 
+  def render_json_without_messages(data = nil)
+    flash.discard
+
+    render :json => {
+      :skipMessages => true,
+      :data => data
+    }
+  end
+
   def render_warning(warning)
     render :json => {
       :messages => flash.discard,
@@ -118,6 +155,12 @@ class BaseController < ActionController::Base
         :code => warning.code,
         :text => warning.text
       }
+    }
+  end
+
+  def render_required_field(error)
+    render :json => {
+      :required => error.field
     }
   end
 
@@ -132,6 +175,7 @@ class BaseController < ActionController::Base
   # for partial requests
   def render_data_table(data, total_records, s_echo)
     render :json => {
+      :skipMessages => true,
       :sEcho => s_echo,
       :iTotalDisplayRecords => total_records,
       :iTotalRecords => total_records,

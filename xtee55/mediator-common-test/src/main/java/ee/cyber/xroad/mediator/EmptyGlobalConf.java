@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.conf.GlobalConfProvider;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -149,12 +150,22 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getCertChain(X509Certificate subject) throws Exception {
+    public CertChain getCertChain(X509Certificate subject) throws Exception {
         return null;
     }
 
     @Override
     public X509Certificate getCentralServerSslCertificate() throws Exception {
+        return null;
+    }
+
+    @Override
+    public List<CentralServiceId> getCentralServices() {
+        return null;
+    }
+
+    @Override
+    public List<ClientId> getMembers() {
         return null;
     }
 }

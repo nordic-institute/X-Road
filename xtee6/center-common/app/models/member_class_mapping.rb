@@ -1,7 +1,6 @@
 class MemberClassMapping < ActiveRecord::Base
-  include Validators
-
-  validates :member_class_id, :present => true
+  validates_with Validators::MaxlengthValidator
+  validates_presence_of :member_class_id
 
   belongs_to :member_class
   belongs_to :federated_sdsb

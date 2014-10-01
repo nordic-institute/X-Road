@@ -78,7 +78,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
         this.httpClientManager = httpClientManager;
 
         this.targetAddress = getTargetAddress(
-                AbstractMediatorMessageProcessor.getTarget(target));
+                AbstractMediatorMessageProcessor.stripSlash(target));
         if (this.targetAddress == null) {
             throw new IllegalArgumentException(
                     "Target address must not be null");

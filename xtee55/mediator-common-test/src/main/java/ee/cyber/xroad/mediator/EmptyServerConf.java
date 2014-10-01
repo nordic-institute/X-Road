@@ -104,4 +104,14 @@ public class EmptyServerConf implements MediatorServerConfProvider {
     public boolean isQueryAllowed(ClientId client, ServiceId service) {
         return false;
     }
+
+    @Override
+    public List<ServiceId> getAllServices(ClientId arg0) {
+        return null;
+    }
+
+    @Override
+    public List<ServiceId> getAllowedServices(ClientId arg0, ClientId arg1) {
+        return null;
+    }
 }

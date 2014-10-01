@@ -31,7 +31,8 @@ public class MessageBehavior {
 
         Message message = new Message(
                 "standardheader",
-                Arrays.asList(consumerPart, producerPart));
+                Arrays.asList(consumerPart, producerPart),
+                true);
 
         // When
         String actualXml = message.getXml();
@@ -58,7 +59,8 @@ public class MessageBehavior {
 
         Message message = new Message(
                 "standardheader",
-                Arrays.asList(consumerPart, producerPart));
+                Arrays.asList(consumerPart, producerPart),
+                true);
 
         // When
         String actualXml = message.getXml();

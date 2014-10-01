@@ -61,7 +61,7 @@ public class SoapFault implements Soap {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<SOAP-ENV:Envelope " +
                     "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\" " +
-                    "xmlns:sdsb=\"" + SoapMessageImpl.NS_SDSB + "\">" +
+                    "xmlns:sdsb=\"" + SoapHeader.NS_SDSB + "\">" +
                     "<SOAP-ENV:Body>" +
                         "<SOAP-ENV:Fault>" +
                             "<faultcode>" + faultCode + "</faultcode>" +

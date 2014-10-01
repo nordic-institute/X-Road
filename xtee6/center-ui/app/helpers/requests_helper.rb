@@ -20,10 +20,10 @@ module RequestsHelper
       :type => request.type,
       :source => request.origin,
       :complementary_id => request.get_complementary_id(),
-      :canceling_id => request.get_canceling_request_id(),
+      :revoking_id => request.get_revoking_request_id(),
       :comments => request.comments,
 
-      :server_owner_name => request.get_server_owner_name(),
+      :server_owner_name => request.server_owner_name,
       :server_owner_class => member_class,
       :server_owner_code => member_code,
       :server_code => server.server_code,

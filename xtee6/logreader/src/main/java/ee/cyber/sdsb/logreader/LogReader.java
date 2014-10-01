@@ -1,40 +1,45 @@
 package ee.cyber.sdsb.logreader;
 
+import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.asic.AsicContainer;
-import ee.cyber.sdsb.common.signature.Signature;
+import ee.cyber.sdsb.common.asic.TimestampData;
+import ee.cyber.sdsb.common.securelog.MessageRecord;
+import ee.cyber.sdsb.common.securelog.TimestampRecord;
+import ee.cyber.sdsb.common.securelog.archive.LogArchiveIndex;
+import ee.cyber.sdsb.common.securelog.archive.LogArchiveReader;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 
-import static ee.cyber.sdsb.common.util.CryptoUtils.MD5_ID;
-import static ee.cyber.sdsb.common.util.CryptoUtils.hexDigest;
-import static ee.cyber.sdsb.logreader.RecordType.*;
+import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.securelog.archive.LogArchiveWriter.INDEX_EXTENSION;
 
-/**
- * Main worker class for log reader.
- */
+@Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class LogReader {
 
-    private static final int FIELD_MESSAGE = 7;
-    private static final int FIELD_SIGNATURE = 6;
-    private static final int FIELD_TIMESTAMP = 7;
-    private static final int FIELD_TIMESTAMP_MANIFEST = 9;
-    private static final int FIELD_HASH_CHAIN_RESULT = 9;
-    private static final int FIELD_HASH_CHAIN = 10;
+    private static final long PERIOD_UNSPECIFIED = -1;
 
-    private final Files logFiles;
+    private final Path path;
 
-    public LogReader() {
-        this(new Files("log"));
+    LogReader() {
+        this(Paths.get("log"));
     }
 
-    public LogReader(String path) {
-        this(new Files(path));
-    }
-
-    public LogReader(Files f) {
-        logFiles = f;
+    LogReader(String path) {
+        this(Paths.get(path));
     }
 
     /**
@@ -46,10 +51,10 @@ class LogReader {
      * @param begin the begin date
      * @param end the end date
      */
-    AsicContainer extractSignature(String queryId, Date begin, Date end)
-            throws Exception {
-        return extractSignature(queryId, getTimeInSeconds(begin),
-                getTimeInSeconds(end));
+    AsicContainer read(String queryId, Date begin, Date end) throws Exception {
+        long beginTime = begin != null ? begin.getTime() : PERIOD_UNSPECIFIED;
+        long endTime = end != null ? end.getTime() : PERIOD_UNSPECIFIED;
+        return read(queryId, beginTime, endTime);
     }
 
     /**
@@ -58,92 +63,49 @@ class LogReader {
      * at <code>end</code>.
      *
      * @param queryId the query ID
-     * @param begin the begin time in seconds
-     * @param end the end time in seconds
+     * @param begin the begin time in milliseconds
+     * @param end the end time in milliseconds
      */
-    AsicContainer extractSignature(String queryId, long begin, long end)
+    AsicContainer read(String queryId, long begin, long end) throws Exception {
+        log.trace("extractSignature({}, {}, {})",
+                new Object[] {queryId, begin, end});
+
+        if (begin > end) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Begin date must be before end date");
+        }
+
+        MessageRecord messageRecord = findMessageRecord(queryId, begin, end);
+        if (messageRecord == null) {
+            throw new CodedException(X_SLOG_RECORD_NOT_FOUND,
+                    "Cannot find SOAP record with ID " + queryId);
+        }
+
+        return createAsic(messageRecord);
+    }
+
+    static AsicContainer createAsic(MessageRecord messageRecord)
             throws Exception {
-        // Refresh directory
-        logFiles.readDirectory();
+        TimestampRecord timestampRecord = messageRecord.getTimestampRecord();
 
-        LogRecord soapRecord = findSoapRecord(queryId, begin, end);
-        if (soapRecord == null) {
-            throw new Exception("Cannot find SOAP record with ID " + queryId);
-        }
+        String messageXml = decodeBase64(messageRecord.getMessage());
 
-        LogRecord signatureRecord = findSignatureRecord(soapRecord);
-        if (signatureRecord == null) {
-            throw new Exception("Cannot find signature record for SOAP with ID "
-                            + queryId);
-        }
+        String signatureXml = decodeBase64(messageRecord.getSignature());
+        String signatureHashChainResult =
+                decodeBase64(messageRecord.getHashChainResult());
+        String signatureHashChain = decodeBase64(messageRecord.getHashChain());
 
-        LogRecord timestampRecord = findTimestampRecord(signatureRecord);
-        if (timestampRecord == null) {
-            throw new Exception("Cannot find timestamp record for SOAP with ID "
-                            + queryId);
-        }
-
-        String messageBase64 = soapRecord.getField(FIELD_MESSAGE);
-        String signatureBase64 = signatureRecord.getField(FIELD_SIGNATURE);
-        String timestampDERBase64 = timestampRecord.getField(FIELD_TIMESTAMP);
-        String timestampManifestBase64 =
-                timestampRecord.getField(FIELD_TIMESTAMP_MANIFEST);
-
-        String hashChainResultBase64 =
-                soapRecord.getField(FIELD_HASH_CHAIN_RESULT);
-        String hashChainBase64 = soapRecord.getField(FIELD_HASH_CHAIN);
-
-        return createAsic(messageBase64, signatureBase64, hashChainResultBase64,
-                hashChainBase64, timestampDERBase64, timestampManifestBase64);
-    }
-
-    static AsicContainer createAsic(String messageBase64,
-            String signatureBase64, String timestampDERBase64,
-            String timestampManifestBase64) throws Exception {
-        return createAsic(messageBase64, signatureBase64, null, null,
-                timestampDERBase64, timestampManifestBase64);
-    }
-
-    static AsicContainer createAsic(String messageBase64,
-            String signatureBase64, String hashChainResultBase64,
-            String hashChainBase64, String timestampDERBase64,
-            String timestampManifestBase64) throws Exception {
-        String messageXml = decodeBase64(messageBase64);
-        String signatureXml = decodeBase64(signatureBase64);
-        String hashChainResult = decodeBase64(hashChainResultBase64);
-        String hashChain = decodeBase64(hashChainBase64);
-        String timestampManifestXml = decodeBase64(timestampManifestBase64);
-
-        Signature signature = new Signature(signatureXml);
-        signature.addTimestampManifest(timestampManifestXml);
-        signature.addXadesTimestamp(timestampDERBase64);
+        String timestampDerBase64 = timestampRecord.getTimestamp();
+        String timestamphashChainResult =
+                decodeBase64(timestampRecord.getHashChainResult());
+        String timestamphashChain =
+                decodeBase64(messageRecord.getTimestampHashChain());
 
         return new AsicContainer(messageXml,
-                new SignatureData(signature.toXml(), hashChainResult,
-                        hashChain));
-    }
-
-    private LogRecord findSoapRecord(String queryId, long beginTime,
-            long endTime) throws Exception {
-        String queryIdHash = hashQueryId(queryId);
-
-        return logFiles.binSearch(beginTime, endTime, SOAP, 6, queryIdHash);
-    }
-
-    private LogRecord findSignatureRecord(LogRecord soapRecord)
-            throws Exception {
-        return logFiles.findByNumber(soapRecord, SIGNATURE,
-                Long.parseLong(soapRecord.getField(8)));
-    }
-
-    private LogRecord findTimestampRecord(LogRecord signatureRecord)
-            throws Exception {
-        // TODO: should actually be:
-        // search forward for Timestamp record whose field no. 6 contains
-        // signatureRecord.getRecordNumber().
-        return logFiles.searchForward(signatureRecord, TIMESTAMP,
-                new CommaSepFieldContains(6,
-                        String.valueOf(signatureRecord.getRecordNumber())));
+                new SignatureData(signatureXml, signatureHashChainResult,
+                        signatureHashChain),
+                new TimestampData(timestampDerBase64, timestamphashChainResult,
+                        timestamphashChain));
     }
 
     static String decodeBase64(String base64Encoded) {
@@ -155,33 +117,91 @@ class LogReader {
         return null;
     }
 
-    static String hashQueryId(String queryId) throws Exception {
-        return hexDigest(MD5_ID, queryId);
-    }
-
-    private static long getTimeInSeconds(Date date) {
-        return date.getTime() / 1000;
-    }
-
-    private static class CommaSepFieldContains extends SearchPredicate {
-        private int fieldNo;
-        private String searchVal;
-
-        CommaSepFieldContains(int fieldNo, String searchVal) {
-            this.fieldNo = fieldNo;
-            this.searchVal = searchVal;
+    private MessageRecord findMessageRecord(String queryId, long begin,
+            long end) throws Exception {
+        List<Path> files = listArchiveFiles(path);
+        for (Path file : files) {
+            if (matchesPeriod(file, begin, end)) {
+                MessageRecord messageRecord = findMessageRecord(file, queryId);
+                if (messageRecord != null) {
+                    return messageRecord;
+                }
+            } else {
+                log.trace("Ignoring {}", file);
+            }
         }
 
-        @Override
-        boolean matches(LogFile file, int recordStart) {
-            String s = file.readField(recordStart, fieldNo);
-            // TODO: optimize with precompiled Regexp.
-            String[] parts = s.split(",");
-            for (String p: parts) {
-                if (searchVal.equals(p)) {
-                    return true;
+        return null;
+    }
+
+    private MessageRecord findMessageRecord(Path archiveFile, String queryId) {
+        log.trace("findMessageRecord({}, {})", archiveFile.getFileName(),
+                queryId);
+
+        Path indexFile = Paths.get(archiveFile + INDEX_EXTENSION);
+        if (!Files.exists(indexFile)) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Cannot read archive file %s, index file is missing",
+                    archiveFile);
+        }
+
+        LogArchiveIndex index;
+        try (InputStream indexIn = Files.newInputStream(indexFile)) {
+            index = new LogArchiveIndex(indexIn);
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+
+        log.debug("Searching for {} in {}", queryId, archiveFile.getFileName());
+        try {
+            String hashedQueryId = MessageRecord.hashQueryId(queryId);
+            return LogArchiveReader.read(archiveFile, index, hashedQueryId);
+        } catch (Exception e) {
+            log.error("Failed to find message record", e);
+            throw translateException(e);
+        }
+    }
+
+    private static List<Path> listArchiveFiles(Path directory)
+            throws Exception {
+        if (!Files.isDirectory(directory)) {
+            throw new Exception(directory + " must be a directory");
+        }
+
+        List<Path> files = new ArrayList<>();
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(directory)) {
+            for (Path p : ds) {
+                if (Files.isRegularFile(p) && matchesArchiveFilePattern(p)) {
+                    files.add(p);
                 }
             }
+        }
+
+        return files;
+    }
+
+    private static boolean matchesArchiveFilePattern(Path p) {
+        return p.getFileName().toString().matches(
+                "slog-([0-9]+)-([0-9]+)-([0-9]+)");
+    }
+
+    private static boolean matchesPeriod(Path file, long begin, long end) {
+        log.trace("matchesPeriod({}, {}, {})",
+                new Object[] {file.getFileName(), begin, end});
+        if (begin == PERIOD_UNSPECIFIED && end == PERIOD_UNSPECIFIED) {
+            return true;
+        }
+
+        String[] parts = file.getFileName().toString().split("-");
+        if (parts.length != 4) {
+            return false;
+        }
+
+        try {
+            long fileBegin = Long.parseLong(parts[1]);
+            long fileEnd = Long.parseLong(parts[2]);
+            return !(fileEnd < begin || fileBegin > end);
+        } catch (NumberFormatException ignore) {
             return false;
         }
     }

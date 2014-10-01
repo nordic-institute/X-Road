@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://sdsb.net/xsd/identifiers" xmlns:tns="http://sdsb.net/xsd/sdsb.xsd"
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://sdsb.net/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd">
+    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd">
     <pki>
         <name>pki1</name>
         <topCA>

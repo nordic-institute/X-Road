@@ -1,259 +1,293 @@
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.GlobalConfDistributorType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.AsyncSenderType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.TspType
+java_import Java::ee.cyber.sdsb.asyncdb.AsyncSenderConf
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.TspType
 
 class SysparamsController < ApplicationController
-  include CertTransformationHelper
+
   def index
     authorize!(:view_sys_params)
   end
 
-  def get_distributors
-    authorize!(:get_global_distributors)
-    render_json(get_dists)
+  def distributors
+    authorize!(:view_distributors)
+
+    render_json(read_distributors)
   end
 
-  def add_distributor
-    authorize!(:add_global_distributor)
+  def distributor_cert_load
+    authorize!(:add_distributor)
 
     validate_params({
-      :dist_address => [],
-      :dist_certificate => [],
-      :dist_dn => [],
-      :dist_serial => []
+      :url => [],
+      :cert => [RequiredValidator.new]
     })
 
-    distributor = GlobalConfDistributorType.new
-    cert = OpenSSL::X509::Certificate.new(get_temp_cert_from_session(params[:dist_certificate])).to_pem
-    distributor.verificationCert = cert.bytes.to_a
-    distributor.url = params[:dist_address]
+    uploaded_cert = pem_to_der(params[:cert].read)
+    cert_obj = cert_object(uploaded_cert)
 
-    serverconf.root.globalConfDistributor.add(distributor)
-    serverconf.write
-
-    render_json(get_dists)
+    upload_success({
+      :subject => cert_obj.subject.to_s,
+      :serial => cert_obj.serial.to_s,
+    }, "distributorCertLoadCallback")
   end
 
-  def upload_distributor_cert
-
-    authorize!(:add_global_distributor)
-
-    validate_params({
-      :dist_certificate => []
-    })
-
-    cert_data = upload_cert(params[:dist_certificate])
-
-    upload_success(cert_data, "certUploadCallback")
-
-  end
-
-  def delete_distributor
-    authorize!(:delete_global_distributor)
+  def distributor_add
+    authorize!(:add_distributor)
 
     validate_params({
-      :dist_address => [],
-      :dist_certificate => []
+      :url => [RequiredValidator.new],
+      :cert => [RequiredValidator.new],
     })
 
-    distributor = nil
+    uploaded_cert = pem_to_der(params[:cert].read)
 
-    serverconf.root.getGlobalConfDistributor.each do |dist|
-      if params[:dist_address] == dist.getUrl && params[:dist_certificate] == get_cert_data_from_bytes(dist.getVerificationCert.to_s, nil)[:issuer]
-        distributor = dist
+    serverconf.globalConfDistributor.each do |distributor|
+      if params[:url] == distributor.url && cert_hash(uploaded_cert) ==
+          cert_hash(distributor.verificationCert.data)
+        raise t('sysparams.distributor_exists')
       end
     end
 
-    serverconf.root.globalConfDistributor.remove(distributor)
-    serverconf.write
+    cert = CertificateType.new
+    cert.data = uploaded_cert.to_java_bytes
 
-    render_json(get_dists)
+    distributor = GlobalConfDistributorType.new
+    distributor.verificationCert = cert
+    distributor.url = params[:url]
+
+    serverconf.globalConfDistributor.add(distributor)
+    serverconf_save
+
+    upload_success(read_distributors, "distributorAddCallback")
   end
 
-  def get_timestamps
-    authorize!(:get_tsps)
+  def distributor_delete
+    authorize!(:delete_distributor)
 
-    tsps = []
-    globalconf.root.getApprovedTsp.each do |tsp|
-      tsps << { :tsp_name => tsp.getName }
+    validate_params({
+      :url => [RequiredValidator.new],
+      :cert_subject => [RequiredValidator.new]
+    })
+
+    deleted_distributor = nil
+
+    serverconf.globalConfDistributor.each do |distributor|
+      if params[:url] == distributor.url && params[:cert_subject] ==
+          cert_object(distributor.verificationCert.data).subject.to_s
+        deleted_distributor = distributor
+      end
     end
-    render_json(tsps)
+
+    serverconf.globalConfDistributor.remove(deleted_distributor)
+    serverconf_save
+
+    render_json(read_distributors)
   end
 
-  def get_timestamping_services
-    authorize!(:get_tsps)
+  def tsps_approved
+    authorize!(:view_tsps)
 
-    render_json(get_tsps)
+    render_json(read_approved_tsps)
   end
 
-  def add_timestamping_service
+  def tsps
+    authorize!(:view_tsps)
+
+    render_json(read_tsps)
+  end
+
+  def tsp_add
     authorize!(:add_tsp)
 
     validate_params({
-      :tsp_name => []
+      :name => [RequiredValidator.new],
+      :url => [RequiredValidator.new]
     })
-    
+
+    added_tsp = {
+      :name => params[:name],
+      :url => params[:url]
+    }
+
+    existing_tsps = read_tsps
+    approved_tsps = read_approved_tsps
+
+    if existing_tsps.include?(added_tsp)
+      raise t('sysparams.tsp_exists')
+    end
+
+    if !approved_tsps.include?(added_tsp)
+      raise t('sysparams.tsp_not_approved')
+    end
+
     tsp = TspType.new
+    tsp.name = added_tsp[:name]
+    tsp.url = added_tsp[:url]
 
-    globalconf.root.getApprovedTsp.each do |timestamp|
-      t = { :tsp_name => timestamp.getName, :tsp_url => timestamp.getUrl }
-      if get_tsps.include?(t) == false && timestamp.getName == params[:tsp_name]
-        tsp.name = timestamp.getName
-        tsp.url = timestamp.getUrl
-      end
-    end
+    serverconf.tsp.add(tsp)
+    serverconf_save
 
-    unless tsp.name.nil?
-      serverconf.root.tsp.add(tsp)
-      serverconf.write
-    end
-    render_json(get_tsps)
+    render_json(read_tsps)
   end
 
-  def delete_timestamping_service
+  def tsp_delete
     authorize!(:delete_tsp)
 
     validate_params({
-      :tsp_name => []
+      :name => [RequiredValidator.new]
     })
 
-    tsp_ = nil
-    serverconf.root.getTsp.each do |tsp|
-      if tsp.getName == params[:tsp_name]
-        tsp_ = tsp
+    deleted_tsp = nil
+
+    serverconf.tsp.each do |tsp|
+      if tsp.name == params[:name]
+        deleted_tsp = tsp
       end
     end
-    serverconf.root.tsp.remove(tsp_)
-    serverconf.write
 
-    render_json(get_tsps)
+    serverconf.tsp.remove(deleted_tsp)
+    serverconf_save
+
+    render_json(read_tsps)
   end
 
-  def edit_timestamping_service
-    authorize!(:edit_tsp)
+  def async_params
+    authorize!(:view_async_params)
+
+    render_json(read_async_params)
+  end
+
+  def async_params_edit
+    authorize!(:edit_async_params)
+    
     validate_params({
-      :tsp_name => [],
-      :tsp_url => []
+      :base_delay => [RequiredValidator.new, IntValidator.new],
+      :max_delay => [RequiredValidator.new, IntValidator.new],
+      :max_senders => [RequiredValidator.new, IntValidator.new]
     })
 
-    tsp = nil
-    serverconf.root.getTsp.each do |tsp_|
-      if tsp_.getName == params[:tsp_name]
-        tsp = tsp_
-      end
-    end
+    async_sender_conf = AsyncSenderConf.new
+    async_sender_conf.baseDelay = params[:base_delay].to_i
+    async_sender_conf.maxDelay = params[:max_delay].to_i
+    async_sender_conf.maxSenders = params[:max_senders].to_i
+    async_sender_conf.save
 
-    serverconf.root.tsp.remove(tsp)
-    tsp = TspType.new
-    tsp.name = params[:tsp_name]
-    tsp.url = params[:tsp_url]
-
-    serverconf.root.tsp.add(tsp)
-    serverconf.write
-
-    render_json(get_tsps)
+    render_json(read_async_params)
   end
 
-  def get_tsps
-    tsps = []
-    serverconf.root.getTsp.each do |tsp|
-      tsps << { :tsp_name => tsp.getName, :tsp_url => tsp.getUrl } unless tsp.getName.nil? && tsp.getUrl.nil?
+  def internal_ssl_cert
+    authorize!(:view_internal_ssl_cert)
+
+    render_json({
+      :hash => cert_hash(read_internal_ssl_cert)
+    })
+  end
+
+  def internal_ssl_cert_details
+    authorize!(:view_internal_ssl_cert)
+
+    cert_obj = read_internal_ssl_cert
+
+    render_json({
+      :dump => cert_dump(cert_obj),
+      :hash => cert_hash(cert_obj)
+    })
+  end
+
+  def internal_ssl_cert_export
+    authorize!(:export_internal_ssl_cert)
+
+    data = export_cert(read_internal_ssl_cert)
+
+    send_data(data, :filename => "certs.tar.gz")
+  end
+
+  def internal_ssl_generate
+    authorize!(:generate_internal_ssl)
+
+    script_path = "/usr/share/sdsb/scripts/generate_certificate.sh"
+
+    output = %x[#{script_path} -n internal -f -S -p 2>&1]
+
+    if $?.exitstatus != 0
+      logger.warn(output)
+      raise t('sysparams.key_generation_failed', :msg => output.split('\n')[-1])
     end
+
+    export_internal_ssl
+
+    reload_nginx
+    restart_service("xroad-proxy")
+
+    if x55_installed?
+      restart_service("xtee55-servicemediator")
+    end
+
+    render_json({
+      :hash => cert_hash(read_internal_ssl_cert)
+    })
+  end
+
+  private
+
+  def reload_nginx
+    output = %x[sudo invoke-rc.d nginx reload 2>&1]
+
+    if $?.exitstatus != 0
+      error(t('application.restart_service_failed',
+              :name => "nginx", :output => output))
+    end
+  end
+
+  def read_distributors
+    distributors = []
+
+    serverconf.globalConfDistributor.each do |distributor|
+      cert_obj = cert_object(distributor.verificationCert.data)
+
+      distributors << {
+        :url => distributor.url,
+        :cert_subject => cert_obj.subject.to_s
+      }
+    end
+
+    distributors
+  end
+
+  def read_approved_tsps
+    approved_tsps = []
+
+    globalconf.root.approvedTsp.each do |tsp|
+      approved_tsps << {
+        :name => tsp.name,
+        :url => tsp.url
+      }
+    end
+
+    approved_tsps
+  end
+
+  def read_tsps
+    tsps = []
+
+    serverconf.tsp.each do |tsp|
+      tsps << {
+        :name => tsp.name,
+        :url => tsp.url
+      }
+    end
+
     tsps
   end
 
-  def get_async_requests
-    authorize!(:get_async_requests)
+  def read_async_params
+    async_sender_conf = AsyncSenderConf.new
 
-    render_json(get_async)
-  end
-
-  def edit_async_requests
-    authorize!(:edit_async_requests)
-    
-    validate_params({
-      :base_delay => [],
-      :max_delay => [],
-      :max_senders => []
-    })
-
-    async = AsyncSenderType.new
-    async.baseDelay = params[:base_delay].to_i
-    async.maxDelay = params[:max_delay].to_i
-    async.maxSenders = params[:max_senders].to_i
-
-    serverconf.root.setAsyncSender(async)
-    serverconf.write
-
-    render_json(get_async)
-  end
-
-  def get_async
-    async_sender = serverconf.root.getAsyncSender
     data = {
-      :base_delay => async_sender.getBaseDelay,
-      :max_delay => async_sender.getMaxDelay,
-      :max_senders => async_sender.getMaxSenders
+      :base_delay => async_sender_conf.baseDelay,
+      :max_delay => async_sender_conf.maxDelay,
+      :max_senders => async_sender_conf.maxSenders
     }
   end
-
-  def get_dists
-    data = []
-    serverconf.root.getGlobalConfDistributor.each do |distributor|
-      data << {
-        :url => distributor.getUrl,
-        :certificate => get_cert_data_from_bytes(distributor.getVerificationCert.to_s, cert_id = nil)[:issuer]
-      }
-    end
-    data
-  end
-
-  def generate_ssl
-    authorize!(:gen_ssl)
-    net = nil
-    Socket.ip_address_list.each do |addr|
-      next unless addr.ip_address.include? '192.168'
-      net = { :ip => addr.ip_address, :host => Socket.gethostname }
-    end
-    cert = create_cert(net[:host], net[:ip])
-    serverconf.root.setInternalSSLCert(cert.to_pem.bytes.to_a)
-    serverconf.write
-    render_json(true)
-  end
-
-  def export_ssl_cert
-    authorize!(:export_ssl)
-    raw_cert = OpenSSL::X509::Certificate.new(serverconf.root.getInternalSSLCert.to_s)
-    data = export_cert(raw_cert)
-    send_data data, :filename => "certs.tar.gz"
-  end
-
-  def get_cert
-    authorize!(:get_ssl)
-
-    cert = nil
-
-    unless serverconf.root.getInternalSSLCert.to_s.empty? || serverconf.root.getInternalSSLCert.nil?
-      raw_cert = OpenSSL::X509::Certificate.new(serverconf.root.getInternalSSLCert.to_s)
-      cert = get_cert_data_from_bytes(raw_cert)
-      cert[:fingerprint] = get_fingerprint(raw_cert.to_der)
-    else
-      cert = { :fingerprint => '' }
-    end
-    render_json(cert)
-  end
-
-  def cert_details
-    authorize!(:get_ssl)
-
-    raw_cert = OpenSSL::X509::Certificate.new(serverconf.root.getInternalSSLCert.to_s)
-    digest = CryptoUtils::certHash(raw_cert.to_der.to_java_bytes)
-    details = {
-      :cert_dump => %x[echo "#{raw_cert.to_s}" | openssl x509 -text -noout 2>&1],
-      :cert_hash => CryptoUtils::encodeBase64(digest)
-    }
-
-    render_json(details)
-  end
-
 end

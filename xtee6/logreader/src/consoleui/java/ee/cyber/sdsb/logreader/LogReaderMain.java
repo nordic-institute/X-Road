@@ -8,8 +8,12 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.LoggerContext;
+
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.asic.AsicContainer;
+import ee.cyber.sdsb.common.asic.AsicContainerEntries;
+
+import static ee.cyber.sdsb.common.securelog.MessageRecord.hashQueryId;
 
 public class LogReaderMain {
 
@@ -45,7 +49,7 @@ public class LogReaderMain {
         System.out.println("\tLog path:\t" + path);
 
         LogReader logReader = new LogReader(path);
-        AsicContainer asic = logReader.extractSignature(id, startDate, endDate);
+        AsicContainer asic = logReader.read(id, startDate, endDate);
         saveAsicContainerToDisk(id, asic);
     }
 
@@ -61,12 +65,12 @@ public class LogReaderMain {
 
     private static void saveAsicContainerToDisk(String queryId,
             AsicContainer asic) throws Exception {
-        String idHash = LogReader.hashQueryId(queryId);
-        String fileName = idHash + AsicContainer.FILENAME_SUFFIX;
+        String idHash = hashQueryId(queryId);
+        String fileName = idHash + AsicContainerEntries.FILENAME_SUFFIX;
 
-        FileOutputStream out = new FileOutputStream(fileName);
-        out.write(asic.getBytes());
-        out.close();
+        try (FileOutputStream out = new FileOutputStream(fileName)) {
+            out.write(asic.getBytes());
+        }
 
         System.out.println("Extracted ASiC container to file " + fileName);
     }

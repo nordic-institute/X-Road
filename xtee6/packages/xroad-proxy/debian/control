@@ -1,0 +1,14 @@
+Source: xroad-proxy
+Section: X-Road
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: xroad-proxy
+Conflicts: xroad-center
+Architecture: all
+Depends: ${misc:Depends}, xroad-jetty8, curl
+Pre-depends: postgresql, xroad-common
+Description: X-Road security server
+ X-Road security server programs and utilities

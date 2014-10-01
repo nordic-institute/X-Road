@@ -2,24 +2,27 @@ package ee.cyber.sdsb.proxy.clientproxy;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertHelper;
 import ee.cyber.sdsb.common.conf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.util.CryptoUtils;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
+import ee.cyber.sdsb.common.util.CertUtils;
+import ee.cyber.sdsb.proxy.conf.KeyConf;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
@@ -37,18 +40,14 @@ import static ee.cyber.sdsb.common.util.CertHashBasedOcspResponderClient.getOcsp
  * the HttpContext (stored there previously by the MultipartSender) and
  * the peer certificates and do the validation of the certificate.
  */
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class AuthTrustVerifier {
 
     public static final String ID_PROVIDERNAME = "request.providerName";
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AuthTrustVerifier.class);
-
-    AuthTrustVerifier() {
-    }
-
     static void verify(HttpContext context, SSLSession sslSession) {
-        LOG.debug("verify()");
+        log.debug("verify()");
 
         ServiceId service = (ServiceId) context.getAttribute(ID_PROVIDERNAME);
         if (service == null) {
@@ -63,27 +62,32 @@ public class AuthTrustVerifier {
         }
 
         try {
-            verifyAuthCert(service.getClientId(), certs[0], certs);
+            verifyAuthCert(service.getClientId(), certs);
         } catch (Exception e) {
-            // since the overridden process() method only allows HttpException
-            // or IOException, we simply catch all exceptions here and translate
-            // them to corresponding CodedExceptions.
             throw translateException(e);
         }
     }
 
     private static void verifyAuthCert(ClientId serviceProvider,
-            X509Certificate authCert, X509Certificate[] certs)
-                    throws Exception {
+            X509Certificate[] certs) throws Exception {
+        CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
-            ocspResponses = getOcspResponses(authCert, serviceProvider, certs);
+            X509Certificate trustAnchor =
+                    GlobalConf.getCaCert(certs[certs.length - 1]);
+            if (trustAnchor == null) {
+                throw new Exception("Unable to find trust anchor");
+            }
+
+            chain = CertChain.create(
+                    (X509Certificate[]) ArrayUtils.add(certs, trustAnchor));
+            ocspResponses = getOcspResponses(chain.getEndEntityCert(),
+                    serviceProvider, chain.getAllCertsWithoutTrustedRoot());
         } catch (CodedException e) {
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 
-        CertHelper.verifyAuthCert(authCert, Arrays.asList(certs),
-                ocspResponses, serviceProvider, ServerConf.getIdentifier());
+        CertHelper.verifyAuthCert(chain, ocspResponses, serviceProvider);
     }
 
     /**
@@ -92,9 +96,9 @@ public class AuthTrustVerifier {
      * from the internal OCSP responder that is located at the service provider.
      */
     private static List<OCSPResp> getOcspResponses(X509Certificate authCert,
-            ClientId serviceProvider, X509Certificate[] chain)
+            ClientId serviceProvider, List<X509Certificate> chain)
                     throws Exception {
-        List<String> hashes = new ArrayList<>();
+        List<X509Certificate> certs = new ArrayList<>();
         List<OCSPResp> responses = new ArrayList<>();
 
         // Check for locally available OCSP responses
@@ -102,11 +106,11 @@ public class AuthTrustVerifier {
             OCSPResp response = null;
             try {
                 // Do we have a cached OCSP response for that cert?
-                response = ServerConf.getOcspResponse(cert);
+                response = KeyConf.getOcspResponse(cert);
             } catch (CodedException e) {
                 // Log it and continue; only thrown if the response could
                 // not be loaded from a file -- not important to us here.
-                LOG.warn("Cached OCSP response could not be found", e);
+                log.warn("Cached OCSP response could not be found", e);
             }
 
             if (response != null) {
@@ -114,15 +118,15 @@ public class AuthTrustVerifier {
             } else {
                 // Did not find response locally, add the hash to be retrieved
                 // from server.
-                hashes.add(CryptoUtils.calculateCertHexHash(cert));
+                certs.add(cert);
             }
         }
 
         // Retrieve OCSP responses for those certs whose responses
         // are not locally available, from ServerProxy
-        if (!hashes.isEmpty()) {
+        if (!certs.isEmpty()) {
             responses.addAll(getAndCacheOcspResponses(authCert,
-                    serviceProvider, hashes));
+                    serviceProvider, certs));
         }
 
         return responses;
@@ -133,7 +137,7 @@ public class AuthTrustVerifier {
      */
     private static List<OCSPResp> getAndCacheOcspResponses(
             X509Certificate authCert, ClientId serviceProvider,
-            List<String> hashes) throws Exception {
+            List<X509Certificate> hashes) throws Exception {
         String address = GlobalConf.getProviderAddress(authCert);
         if (address == null || address.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER,
@@ -142,7 +146,8 @@ public class AuthTrustVerifier {
 
         List<OCSPResp> receivedResponses;
         try {
-            receivedResponses = getOcspResponsesFromServer(address, hashes);
+            receivedResponses = getOcspResponsesFromServer(address,
+                    CertUtils.getCertHashes(hashes));
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
@@ -156,9 +161,7 @@ public class AuthTrustVerifier {
         }
 
         // Cache the responses locally
-        for (int i = 0; i < receivedResponses.size(); i++) {
-            ServerConf.setOcspResponse(hashes.get(i), receivedResponses.get(i));
-        }
+        KeyConf.setOcspResponses(hashes, receivedResponses);
 
         return receivedResponses;
     }
@@ -172,7 +175,10 @@ public class AuthTrustVerifier {
             // Note: assuming X509-based auth
             return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
-            throw new CodedException(X_SSL_AUTH_FAILED, e);
+            log.error("Error while getting peer certificates", e);
+            throw new CodedException(X_SSL_AUTH_FAILED, "Service provider "
+                    + "did not send correct authentication certificate");
         }
     }
+
 }

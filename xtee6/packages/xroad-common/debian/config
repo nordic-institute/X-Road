@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+. /usr/share/debconf/confmodule
+
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+
+
+if [ "$1" = "configure" ] || [ "$1" = "reconfigure" ]; then
+  while :; do
+    RET=""
+    db_input high xroad-common/username || true
+    db_go
+    db_get xroad-common/username
+    if [ -n "$RET" ] &&  getent passwd $RET 2>&1 >/dev/null 
+    then
+      break
+    fi
+    db_input critical xroad-common/non_existing_user
+    db_fset xroad-common/username seen false
+    db_go
+  done
+
+fi
+
+db_stop
+

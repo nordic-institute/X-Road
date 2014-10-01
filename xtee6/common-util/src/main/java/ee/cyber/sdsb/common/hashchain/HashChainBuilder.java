@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import static ee.cyber.sdsb.common.hashchain.DigestList.digestHashStep;
 import static ee.cyber.sdsb.common.util.CryptoUtils.getAlgorithmURI;
-import static ee.cyber.sdsb.common.util.MessageFileNames.*;
+import static ee.cyber.sdsb.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
@@ -43,8 +43,9 @@ import static java.lang.Integer.numberOfLeadingZeros;
  * For incomplete binary trees, some inputs and nodes can be null.
  */
 public final class HashChainBuilder {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            HashChainBuilder.class);
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(HashChainBuilder.class);
 
     /** For accessing JAXB functionality. Shared between all the builders. */
     private static JAXBContext JAXB_CTX;
@@ -57,22 +58,25 @@ public final class HashChainBuilder {
     private static final String STEP = "STEP";
 
     /** Hash algorithm used to hash tree nodes and inputs. */
-    private String hashAlgorithm;
+    private final String hashAlgorithm;
 
     /** Hash algorithm URI used in XML. */
-    private String hashAlgorithmUri;
+    private final String hashAlgorithmUri;
 
     /** Array of input hashes. */
-    private List<byte[]> inputs = new ArrayList<>();
-
-    /** Array of intermediate Merkle tree nodes. */
-    private byte[][] nodes;
+    private final List<byte[]> inputs = new ArrayList<>();
 
     /**
      * If an input consisted of multipart (message + attachments),
      * then this map contains all the parts.
      */
-    private Map<Integer, byte[][]> multiparts = new HashMap<>();
+    private final Map<Integer, byte[][]> multiparts = new HashMap<>();
+
+    /** The file name to be used for data refs. */
+    private String dataRefFileName;
+
+    /** Array of intermediate Merkle tree nodes. */
+    private byte[][] nodes;
 
     /** Maximum index a tree node can have. */
     private int maxIndex;
@@ -160,7 +164,8 @@ public final class HashChainBuilder {
      * Returns the top hash of the Merkle tree, encoded as the HashChainResult
      * XML element. This data can be signed or time-stamped.
      */
-    public String getHashChainResult() throws Exception {
+    public String getHashChainResult(String hashChainFileName)
+            throws Exception {
         if (nodes == null) {
             throw new IllegalStateException("Tree must be finished");
         }
@@ -180,7 +185,7 @@ public final class HashChainBuilder {
 
         result.setDigestValue(getTreeTop());
         result.setDigestMethod(digestMethod());
-        result.setURI(HASH_CHAIN + "#" + STEP + "0");
+        result.setURI(hashChainFileName + "#" + STEP + "0");
 
         return elementToString(objectFactory.createHashChainResult(result));
     }
@@ -188,7 +193,7 @@ public final class HashChainBuilder {
     /**
      * Returns XML-encoded hash chain for every input data item.
      */
-    public String[] getHashChains() throws Exception {
+    public String[] getHashChains(String dataRefFileName) throws Exception {
         if (nodes == null) {
             throw new IllegalStateException("Tree must be finished");
         }
@@ -201,6 +206,12 @@ public final class HashChainBuilder {
             throw new IllegalStateException(
                     "Hash chains cannot be constructed for single input "
                             + "without attachments.");
+        }
+
+        this.dataRefFileName = dataRefFileName;
+        if (dataRefFileName == null) {
+            throw new IllegalArgumentException(
+                    "dataRefFileName must not be null");
         }
 
         String[] ret = new String[inputs.size()];
@@ -438,8 +449,8 @@ public final class HashChainBuilder {
     /**
      * Creates reference to input data.
      */
-    private static DataRefType dataRef(byte[] digest) {
-        return dataRef(MESSAGE, digest);
+    private DataRefType dataRef(byte[] digest) {
+        return dataRef(dataRefFileName, digest);
     }
 
     /**

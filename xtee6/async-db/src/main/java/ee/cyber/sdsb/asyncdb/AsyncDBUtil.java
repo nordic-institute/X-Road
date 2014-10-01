@@ -13,7 +13,7 @@ import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 
-class AsyncDBUtil {
+public class AsyncDBUtil {
 
     public static String[] getDirectoriesList(File file) {
         return file.list(new FilenameFilter() {

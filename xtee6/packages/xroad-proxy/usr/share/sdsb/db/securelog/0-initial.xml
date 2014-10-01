@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+    <changeSet author="toja" id="0-initial">
+        <createTable tableName="LOGRECORD">
+            <column name="NO" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DISCRIMINATOR" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LI" type="VARCHAR(255)"/>
+            <column name="TIME" type="BIGINT"/>
+            <column name="ARCHIVED" type="BOOLEAN"/>
+            <column name="QID" type="VARCHAR(255)"/>
+            <column name="MSG" type="CLOB"/>
+            <column name="SIG" type="CLOB"/>
+            <column name="HC" type="CLOB"/>
+            <column name="HCR" type="CLOB"/>
+            <column name="SIGNATUREHASH" type="CLOB"/>
+            <column name="TSNO" type="BIGINT"/>
+            <column name="TSHC" type="CLOB"/>
+            <column name="TS" type="CLOB"/>
+        </createTable>
+        <addPrimaryKey columnNames="NO" constraintName="LOGRECORDPK" tableName="LOGRECORD"/>
+        <addForeignKeyConstraint baseColumnNames="TSNO" baseTableName="LOGRECORD" constraintName="FK_58769AQFWYPTG1UP1EXS68KW0" deferrable="false" initiallyDeferred="false" referencedColumnNames="NO" referencedTableName="LOGRECORD"/>
+        <createSequence sequenceName="hibernate_sequence"/>
+    </changeSet>
+</databaseChangeLog>

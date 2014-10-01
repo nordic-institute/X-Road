@@ -65,7 +65,7 @@ module BaseHelper
 
   def render_optional(partial)
     if lookup_context.find_all(partial, controller.controller_name, true).any?
-      render :partial => partial 
+      render :partial => partial
     end
   end
 
@@ -76,5 +76,29 @@ module BaseHelper
 
   def dialog(id, title = nil, &block)
     render_partial_with_block("dialog", {:id => id, :title => title}, &block)
+  end
+
+  def server_status_class
+  end
+
+  def available_locales
+    result = []
+
+    I18n.available_locales.each do |locale|
+      text = t("common.locale_#{locale}", :locale => :en, :short => locale)
+      result << [text, locale]
+    end
+
+    result
+  end
+
+  def validate_filename(filename)
+    if !is_filename_valid?(filename)
+      raise t("common.filename_error", :file => filename)
+    end
+  end
+
+  def is_filename_valid?(filename)
+    return filename =~ /\A[\w\.\-]+\z/
   end
 end

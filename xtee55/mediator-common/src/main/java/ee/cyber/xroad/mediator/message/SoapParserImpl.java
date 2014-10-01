@@ -46,29 +46,32 @@ public class SoapParserImpl
         String xml = new String(rawXml, charset);
         LOG.trace("Parsing SOAP: {}", xml);
 
+        Class<?> soapHeaderClass = getSoapHeaderClass(soap);
+
         SOAPElement serviceElement = getServiceElement(soap.getSOAPBody());
 
         // Special cases -- meta services
         String serviceName = serviceElement.getLocalName();
-        if (serviceName.startsWith(XRoadMetaServiceImpl.LIST_METHODS)) {
-            LOG.debug("Reading X-Road 5.0 ListMethods");
+        if (!isSdsbMessage(soapHeaderClass)) {
+            if (serviceName.startsWith(XRoadMetaServiceImpl.LIST_METHODS)) {
+                LOG.debug("Reading X-Road 5.0 ListMethods");
 
-            // TODO: In the future, ServiceMediator should respond to ListMethods
-            return new XRoadListMethods(xml, charset, soap, serviceName,
-                    isRpcMessage(soap));
-        } else if (serviceName.startsWith(XRoadMetaServiceImpl.TEST_SYSTEM)) {
-            LOG.debug("Reading X-Road 5.0 TestSystem");
+                // TODO: In the future, ServiceMediator should respond to ListMethods
+                return new XRoadListMethods(xml, charset, soap, serviceName,
+                        isRpcMessage(soap));
+            } else if (serviceName.startsWith(XRoadMetaServiceImpl.TEST_SYSTEM)) {
+                LOG.debug("Reading X-Road 5.0 TestSystem");
 
-            return new XRoadTestSystem(xml, charset, soap, isRpcMessage(soap));
-        } else if (XRoadMetaServiceImpl.isMetaService(serviceName)) {
-            LOG.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
+                return new XRoadTestSystem(xml, charset, soap, isRpcMessage(soap));
+            } else if (XRoadMetaServiceImpl.isMetaService(serviceName)) {
+                LOG.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
 
-            return createXRoadMetaServiceMessage(xml, soap, charset,
-                    getMetaServiceSoapHeaderClass(soap, serviceElement),
-                    serviceName);
+                return createXRoadMetaServiceMessage(xml, soap, charset,
+                        getMetaServiceSoapHeaderClass(soap, serviceElement),
+                        serviceName);
+            }
         }
 
-        Class<?> soapHeaderClass = getSoapHeaderClass(soap);
         if (soapHeaderClass == null) {
             LOG.error("Unknown SOAP:\n{}", xml);
 
@@ -76,9 +79,9 @@ public class SoapParserImpl
                     "Unable to determine SOAP version");
         }
 
-        if (soapHeaderClass.equals(SoapHeader.class)) {
+        if (isSdsbMessage(soapHeaderClass)) {
             return createSdsbMessage(rawXml, soap, charset);
-        } else if (XRoadSoapHeader.class.isAssignableFrom(soapHeaderClass)) {
+        } else if (isXroadMessage(soapHeaderClass)) {
             return createXRoadMessage(xml, soap, charset, soapHeaderClass);
         }
 
@@ -180,5 +183,15 @@ public class SoapParserImpl
         }
 
         return soapHeaderClass;
+    }
+
+    private static boolean isSdsbMessage(Class<?> soapHeaderClass) {
+        return soapHeaderClass != null
+                && soapHeaderClass.equals(SoapHeader.class);
+    }
+
+    private static boolean isXroadMessage(Class<?> soapHeaderClass) {
+        return soapHeaderClass != null
+                && XRoadSoapHeader.class.isAssignableFrom(soapHeaderClass);
     }
 }

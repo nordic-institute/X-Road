@@ -4,6 +4,8 @@ java_import Java::ee.cyber.sdsb.common.request.ManagementRequestSender
 
 module ManagementRequestHelper
 
+  private
+
   def register_client(client_id)
     request_sender.sendClientRegRequest(server_id, client_id)
   end
@@ -16,23 +18,20 @@ module ManagementRequestHelper
     request_sender.sendAuthCertRegRequest(server_id, address, cert_bytes)
   end
 
-  def unregister_cert(address, cert_bytes)
+  def unregister_cert(cert_bytes)
     request_sender.sendAuthCertDeletionRequest(server_id, cert_bytes)
   end
-
-  private
 
   def request_sender
     receiver = GlobalConf.getManagementRequestService
     sender = owner_identifier
 
-    # TODO: what should userId be?
-    ManagementRequestSender.new("userId", receiver, sender)
+    ManagementRequestSender.new("proxyUi", receiver, sender)
   end
 
   def server_id
     owner = owner_identifier
-    server_code = serverconf.root.serverCode
+    server_code = serverconf.serverCode
 
     SecurityServerId.create(
       owner.sdsbInstance, owner.memberClass,

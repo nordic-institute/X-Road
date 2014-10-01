@@ -1,0 +1,1 @@
+For test GZip validator, wrong extension

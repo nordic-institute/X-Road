@@ -2,6 +2,7 @@ package ee.cyber.sdsb.asyncdb;
 
 import java.util.List;
 
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
 public interface AsyncDBProvider {

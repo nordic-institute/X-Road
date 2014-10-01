@@ -1,32 +1,34 @@
 <!-- Title will be added later dynamically -->
 <%= dialog "intermediate_ca_edit_dialog", "" do %>
-  <table>
-    <tr>
-      <td>
-        <%= form_tag "#{controller.controller_name}/upload_intermediate_ca_cert",
-            :id => "intermediate_ca_cert_upload", :multipart => true,
-            :target => "intermediate_ca_cert_upload_target" do %>
-          <%= file_field_tag "upload_intermediate_ca_cert_file" %>
-        <% end %>
-      </td>
-      <td>
-        <button id="pki_intermediate_ca_cert_upload"><%=t 'common.upload' %></button>
-      </td>
-      <iframe id="intermediate_ca_cert_upload_target" name="intermediate_ca_cert_upload_target"></iframe>
-    </tr>
-  </table>
+  <section class="container">
+    <table>
+      <tr>
+        <td>
+          <%= form_tag "#{controller.controller_name}/upload_intermediate_ca_cert",
+              :id => "intermediate_ca_cert_upload", :multipart => true,
+              :target => "intermediate_ca_cert_upload_target" do %>
+            <%= file_field_tag "upload_intermediate_ca_cert_file" %>
+          <% end %>
+        </td>
+        <td>
+          <button id="pki_intermediate_ca_cert_upload"><%=t 'common.upload' %></button>
+        </td>
+        <iframe id="intermediate_ca_cert_upload_target" name="intermediate_ca_cert_upload_target"></iframe>
+      </tr>
+    </table>
 
-  <p id="itermediate_ca_editing"></p>
+    <p id="itermediate_ca_editing" class="ui-helper-hidden"></p>
 
-  <div id="pki_intermediate_ca_cert_details" class="dialog_dynamic">
-    <p id="pki_add_intermediate_ca_cert_details_subject_dn" class="cert_details_title">
-      <%= t 'common.subject_dn' %>:
-    </p>
-  </div>
+    <div id="pki_intermediate_ca_cert_details" class="dialog_dynamic">
+      <p id="pki_add_intermediate_ca_cert_details_subject_dn" class="cert_details_title">
+        <%= t 'common.subject_dn' %>:
+      </p>
+    </div>
 
-  <div class="clearer"></div>
+    <div class="clearer"></div>
+  </section>
 
-  <fieldset class="intermediate_ca_ocsp_responder">
+  <section class="container intermediate_ca_ocsp_responder">
     <legend>
       <%= t 'pkis.add.step5.intermediate_ca_ocsp_responder' %>
       <% if can?(get_pki_edit_privilege) %>
@@ -58,20 +60,22 @@
         </td>
       </tr>
     </table>
-    <p id="ocsp_responder_cert_temp_id"></p>
-    <p id="ocsp_responder_id"></p>
-  </fieldset>
+    <p id="ocsp_responder_cert_temp_id" class="ui-helper-hidden"></p>
+    <p id="ocsp_responder_id" class="ui-helper-hidden"></p>
+  </section>
 
-  <iframe
-      id="intermediate_ca_ocsp_responder_cert_upload_target"
-      name="intermediate_ca_ocsp_responder_cert_upload_target">
-  </iframe>
+  <section class="container">
+    <iframe
+        id="intermediate_ca_ocsp_responder_cert_upload_target"
+        name="intermediate_ca_ocsp_responder_cert_upload_target">
+    </iframe>
 
-  <% if can?(get_pki_edit_privilege) %>
-    <button id="pki_add_intermediate_ca_ocsp_responder">
-      <%= t 'pkis.add.step5.add_intermediate_ca_ocsp_responder' %>
-    </button>
-  <% end %>
+    <% if can?(get_pki_edit_privilege) %>
+      <button id="pki_add_intermediate_ca_ocsp_responder">
+        <%= t 'pkis.add.step5.add_intermediate_ca_ocsp_responder' %>
+      </button>
+    <% end %>
+  </section>
 
   <div class="dialog_dynamic">
     <%= render :partial => "shared/cert_details_dialog" %>

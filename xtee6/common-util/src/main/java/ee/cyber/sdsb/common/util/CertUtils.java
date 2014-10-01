@@ -1,6 +1,8 @@
 package ee.cyber.sdsb.common.util;
 
 import java.io.IOException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -22,6 +24,7 @@ import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
+import static ee.cyber.sdsb.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.cyber.sdsb.common.util.CryptoUtils.toDERObject;
 
 public class CertUtils {
@@ -106,6 +109,7 @@ public class CertUtils {
                     "Certificate does not contain keyUsage extension");
         }
 
+        // digitalSignature || keyEncipherment || dataEncipherment
         return keyUsage[0] || keyUsage[2] || keyUsage[3];
     }
 
@@ -122,7 +126,20 @@ public class CertUtils {
                     "Certificate does not contain keyUsage extension");
         }
 
-        return keyUsage[1];
+        return keyUsage[1]; // nonRepudiation
+    }
+
+    /**
+     * Checks if the certificate is valid at the current time.
+     */
+    public static boolean isValid(X509Certificate cert) {
+        try {
+            cert.checkValidity();
+            return true;
+        } catch (CertificateExpiredException
+                | CertificateNotYetValidException ignored) {
+            return false;
+        }
     }
 
     /**
@@ -156,9 +173,22 @@ public class CertUtils {
     }
 
     /**
+     * Returns list of certificate hashes for given list of certificates.
+     */
+    public static String[] getCertHashes(List<X509Certificate> certs)
+            throws Exception {
+        String[] certHashes = new String[certs.size()];
+        for (int i = 0; i < certs.size(); i++) {
+            certHashes[i] = calculateCertHexHash(certs.get(i));
+        }
+
+        return certHashes;
+    }
+
+    /**
      * Returns the RDN value from the X500Name.
      */
-    private static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
+    static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
         RDN[] cnList = name.getRDNs(id);
         if (cnList.length == 0) {
             return null;

@@ -35,8 +35,6 @@ class AsyncController < ApplicationController
     end if queues
 
     render_json(providers)
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   def reset
@@ -46,8 +44,6 @@ class AsyncController < ApplicationController
     AsyncDB::getMessageQueue(provider_id).resetCount
 
     render_json
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   def requests
@@ -70,8 +66,6 @@ class AsyncController < ApplicationController
     end
 
     render_json(requests)
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   def remove
@@ -82,8 +76,6 @@ class AsyncController < ApplicationController
     queue.markAsRemoved(params[:request_id])
 
     render_json
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   def restore
@@ -94,8 +86,6 @@ class AsyncController < ApplicationController
     queue.restore(params[:request_id])
 
     render_json
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   private

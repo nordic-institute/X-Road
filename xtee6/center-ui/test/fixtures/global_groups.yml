@@ -1,7 +1,14 @@
 vallavalitsused:
   group_code: "vallavalitsused"
   description: "Igasugu vallavalitsused"
+  member_count: 2
 
 tyhigrupp:
   group_code: "tyhjus"
   description: "Siin pole midagi"
+  member_count: 0
+
+server_owners:
+  group_code: "server-owners"
+  description: "Turvaserverite omanikud"
+  member_count: 2

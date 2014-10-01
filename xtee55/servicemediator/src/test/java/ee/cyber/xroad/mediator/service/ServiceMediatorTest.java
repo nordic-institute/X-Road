@@ -362,6 +362,10 @@ public class ServiceMediatorTest {
                 public InputStream getInputStream() throws Exception {
                     return requestContent;
                 }
+                @Override
+                public String getParameters() {
+                    return null;
+                }
             }, new MediatorResponse() {
                 @Override
                 public void setContentType(String contentType,

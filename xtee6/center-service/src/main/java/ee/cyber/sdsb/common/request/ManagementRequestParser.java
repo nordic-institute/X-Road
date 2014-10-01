@@ -18,7 +18,6 @@ import static ee.cyber.sdsb.common.request.ManagementRequests.*;
  */
 public class ManagementRequestParser {
 
-    // XXX: This logger defaults to NOP, because it cannot initialize
     private static final Logger LOG =
             LoggerFactory.getLogger(ManagementRequestParser.class);
 
@@ -53,7 +52,7 @@ public class ManagementRequestParser {
         LOG.debug("parse(expectedNodeName: {}, message: {})", expectedNodeName,
                 message.getXml());
 
-        Node node = message.getBody().getFirstChild();
+        Node node = message.getSoap().getSOAPBody().getFirstChild();
         if (node == null) {
             LOG.error("Message is missing content node");
             throw new RuntimeException("SoapMessage has no content");
@@ -75,7 +74,6 @@ public class ManagementRequestParser {
             String m = String.format("Failed to parse '%s'", expectedNodeName);
 
             LOG.error(m, e);
-            // TODO: Error code?
             throw new RuntimeException(m, e);
         }
     }

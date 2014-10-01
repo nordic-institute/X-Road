@@ -11,8 +11,10 @@ development:
   <<: *common
   database: centerui_development
 
-  # XXX: Comment following lines in and use proper port for load test
-  # port: 15433 # Assumes that port with this number is forwarded
+  # XXX: Comment following lines in and use proper port for quick
+  # access to iks2-central or some other machine other than Your own
+
+  # port: 15432 # Assumes that port with this number is forwarded
   # database: centerui_production
 
 test:

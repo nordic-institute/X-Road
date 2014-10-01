@@ -1,0 +1,14 @@
+Source: xroad-center
+Section: X-Road
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: xroad-center
+Conflicts:  xroad-proxy
+Architecture: all
+Depends: ${misc:Depends}, xroad-jetty8, curl, unzip, libmhash2
+Pre-depends: postgresql, xroad-common
+Description: X-Road central server
+ X-Road central server programs and utilities

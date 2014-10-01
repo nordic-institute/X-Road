@@ -5,11 +5,14 @@ import java.io.Serializable;
 import lombok.ToString;
 import lombok.Value;
 
+import ee.cyber.sdsb.common.identifier.ClientId;
+
 @Value
 @ToString(exclude = "certData")
 public class ImportCert implements Serializable {
 
     private final byte[] certData;
     private final String initialStatus;
+    private final ClientId memberId;
 
 }

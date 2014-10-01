@@ -1,3 +1,7 @@
 sdsb_instance:
   key: "sdsbInstance"
   value: "EE"
+
+server_owners_group:
+  key: "serverOwnersGroup"
+  value: "server-owners"

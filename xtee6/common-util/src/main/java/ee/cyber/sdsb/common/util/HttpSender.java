@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
  * This class encapsulates the sending and receiving of content via HTTP POST
  * method synchronously.
  */
-public final class HttpSender extends AbstractHttpSender {
+public class HttpSender extends AbstractHttpSender {
 
     private static final Logger LOG = LoggerFactory.getLogger(HttpSender.class);
 
@@ -23,6 +23,29 @@ public final class HttpSender extends AbstractHttpSender {
 
     public HttpSender(HttpClient httpClient) {
         client = httpClient;
+    }
+
+    /**
+     * Sends data using POST method to some address.
+     * Method blocks until response becomes available, after which
+     * {@link #getResponseContent()} and {@link #getResponseContentType()}
+     * can be used to retrieve the response.
+     *
+     * @param address the address to send
+     * @param content the content to send
+     * @param contentType the content type of the input data
+     * @throws Exception if an error occurs
+     */
+    @Override
+    public void doPost(URI address, String content, String contentType)
+            throws Exception {
+        LOG.trace("doPost(address = {}, timeout = {})", address, timeout);
+
+        HttpPost post = new HttpPost(address);
+        post.setConfig(getRequestConfig());
+        post.setEntity(createStringEntity(content, contentType));
+
+        doRequest(post);
     }
 
     /**
@@ -37,20 +60,21 @@ public final class HttpSender extends AbstractHttpSender {
      * @throws Exception if an error occurs
      */
     @Override
-    public void doPost(URI address, InputStream content, String contentType)
-            throws Exception {
-        LOG.debug("doPost(address = {}, timeout = {})", address, timeout);
+    public void doPost(URI address, InputStream content, long contentLength,
+            String contentType) throws Exception {
+        LOG.trace("doPost(address = {}, timeout = {})", address, timeout);
 
         HttpPost post = new HttpPost(address);
         post.setConfig(getRequestConfig());
-        post.setEntity(createInputStreamEntity(content, contentType));
+        post.setEntity(createInputStreamEntity(content, contentLength,
+                contentType));
 
         doRequest(post);
     }
 
     @Override
     public void doGet(URI address) throws Exception {
-        LOG.debug("doGet(address = {}, timeout = {})", address, timeout);
+        LOG.trace("doGet(address = {}, timeout = {})", address, timeout);
 
         HttpGet get = new HttpGet(address);
         get.setConfig(getRequestConfig());

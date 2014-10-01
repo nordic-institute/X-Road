@@ -1,0 +1,5 @@
+xroad-jetty8 (6.0-1) lucid; urgency=low
+
+  * New naming schema, including jetty 8.1.14 v20131031
+
+ -- Tarmo Oja <Tarmo.Oja@cyber.ee>  Fri, 08 Nov 2013 09:32:40 +0200

@@ -1,3 +1,5 @@
+ext.codeCoverage = true
+
 buildscript {
     repositories {
         mavenCentral()
@@ -14,7 +16,6 @@ project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
     xjc
-    provided
 }
 
 sourceSets {
@@ -31,30 +32,20 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':common-util')
     compile project(':common-verifier')
     compile project(':signer-protocol')
 
     // Necessary since there are jars with no adequate Maven dependencies
     compile fileTree(dir: '../libs', include: '*.jar')
 
-    compile 'org.slf4j:jcl-over-slf4j:1.6.6'
-    compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
+    testCompile project(':common-test')
+    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+    testCompile 'org.mockito:mockito-all:1.9.0'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
-    
-    provided 'org.projectlombok:lombok:0.12.0'
 
     testsuiteCompile project(':common-test')
-}
-
-sourceSets.main.compileClasspath += configurations.provided
-
-eclipse {
-    classpath {
-        plusConfigurations += configurations.provided 
-    }
 }
 
 configurations {
@@ -95,15 +86,17 @@ task xjc () {
     )
 }
 
+
 task runSignerMain(type: JavaExec) {
     jvmArgs '-Dee.cyber.sdsb.key.configurationFile=build/tmp/keyconf.xml',
         '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
-        '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
         '-Dee.cyber.sdsb.device.configurationFile=src/main/resources/devices.ini',
         '-Djava.library.path=../legacy/lib',
-        '-Dlogback.configurationFile=src/test/resources/logback-signer.xml'
+        '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
+        '-Dee.cyber.sdsb.signer.moduleManagerImpl=ee.cyber.sdsb.signer.tokenmanager.module.HardwareModuleManagerImpl'
     main = 'ee.cyber.sdsb.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
+    classpath += files('../addons/hwtoken/build/libs/hwtoken-1.0.jar')
 
     description = "Starts singner main program.\nNote: " +
        "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
@@ -112,7 +105,7 @@ task runSignerMain(type: JavaExec) {
        "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
 }
 
-task testsuite(type:Test){
+task runSignerTestsuite(type: Test){
     include '**/SignerTestSuite.class' // for doing only testsuite 
     description = "Run Signer test suite."
     testClassesDir = project.sourceSets.testsuite.output.classesDir

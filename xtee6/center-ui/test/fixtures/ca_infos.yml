@@ -9,3 +9,4 @@ top_ca_baleriinid:
 top_ca_ccm:
   top_ca_id: <%= ActiveRecord::Fixtures.identify(:pki_ccm) %>
   cert: "ccm_cert"
+  valid_from: <%= DateTime::strptime("2014-08-14 14:14:14", "%Y-%m-%d %H:%M:%S") %>

@@ -15,6 +15,7 @@ import ee.cyber.sdsb.common.ExpectedCodedException;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.signature.SignatureData;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.MimeTypes;
 import ee.cyber.sdsb.common.util.MimeUtils;
 
@@ -37,8 +38,7 @@ public class ProxyMessageDecoderTest {
     public void normalRequest() throws Exception {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("normal.request"));
 
         assertNotNull(callback.getMessage());
@@ -49,8 +49,7 @@ public class ProxyMessageDecoderTest {
     public void normalSoapFaultRequest() throws Exception {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("normal-soapfault.request"));
 
         assertNotNull(callback.getFault());
@@ -60,8 +59,7 @@ public class ProxyMessageDecoderTest {
     public void normalAttachmentRequest() throws Exception {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop569125687hcu8vfma");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("attachment.request"));
 
         assertNotNull(callback.getMessage());
@@ -73,8 +71,7 @@ public class ProxyMessageDecoderTest {
     public void normalOcspRequest() throws Exception {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("ocsp.request"));
 
         assertNotNull(callback.getMessage());
@@ -88,8 +85,7 @@ public class ProxyMessageDecoderTest {
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("invalid-signature.request"));
 
         assertNull(callback.getSignature());
@@ -99,8 +95,7 @@ public class ProxyMessageDecoderTest {
     public void notProxyMessage() throws Exception {
         thrown.expectError(ErrorCodes.X_INVALID_MESSAGE);
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                MimeTypes.TEXT_XML, true);
+        ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
         decoder.parse(getQuery("simple.query"));
 
         assertNull(callback.getMessage());
@@ -111,8 +106,7 @@ public class ProxyMessageDecoderTest {
         thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
 
         String contentType = "tsdfsdfsdf";
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(null);
 
         assertNull(callback.getMessage());
@@ -122,8 +116,7 @@ public class ProxyMessageDecoderTest {
     public void faultNotAllowed() throws Exception {
         thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                MimeTypes.TEXT_XML, false);
+        ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
         decoder.parse(null);
 
         assertNull(callback.getMessage());
@@ -131,8 +124,7 @@ public class ProxyMessageDecoderTest {
 
     @Test
     public void parseFault() throws Exception {
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                MimeTypes.TEXT_XML, true);
+        ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
         decoder.parse(getQuery("fault.query"));
 
         assertNotNull(callback.getFault());
@@ -142,8 +134,7 @@ public class ProxyMessageDecoderTest {
     public void invalidContentTypeInMultipart() throws Exception {
         thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                MimeTypes.MULTIPART_MIXED, true);
+        ProxyMessageDecoder decoder = createDecoder(MimeTypes.MULTIPART_MIXED);
         decoder.parse(getQuery("attachm-error.query"));
 
         assertNotNull(callback.getMessage());
@@ -156,8 +147,7 @@ public class ProxyMessageDecoderTest {
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("extracontent.request"));
     }
 
@@ -167,8 +157,7 @@ public class ProxyMessageDecoderTest {
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("invalid-ocsp.request"));
 
         assertNotNull(callback.getMessage());
@@ -181,8 +170,7 @@ public class ProxyMessageDecoderTest {
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("invalid-soap-contenttype.request"));
 
         assertNull(callback.getMessage());
@@ -192,8 +180,7 @@ public class ProxyMessageDecoderTest {
     public void faultInsteadOfSignature() throws Exception {
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("fault-signature.request"));
 
         assertNotNull(callback.getFault());
@@ -206,11 +193,15 @@ public class ProxyMessageDecoderTest {
 
         String contentType =
                 MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(callback,
-                contentType, true);
+        ProxyMessageDecoder decoder = createDecoder(contentType);
         decoder.parse(getMessage("invalid-contenttype-signature.request"));
 
         assertNull(callback.getSignature());
+    }
+
+    private ProxyMessageDecoder createDecoder(String contentType) {
+        return new ProxyMessageDecoder(callback, contentType, true,
+                getHashAlgoId());
     }
 
     private static InputStream getQuery(String fileName) throws Exception {
@@ -219,6 +210,10 @@ public class ProxyMessageDecoderTest {
 
     private static InputStream getMessage(String fileName) throws Exception {
         return new FileInputStream("src/test/proxymessages/" + fileName);
+    }
+
+    private String getHashAlgoId() {
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
     private class DummyMessageConsumer implements ProxyMessageConsumer {

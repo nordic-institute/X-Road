@@ -1,5 +1,6 @@
 java_import Java::ee.cyber.sdsb.common.request.ManagementRequestHandler
 java_import Java::ee.cyber.sdsb.common.request.ManagementRequestParser
+java_import Java::ee.cyber.sdsb.common.request.ManagementRequestUtil
 java_import Java::ee.cyber.sdsb.common.request.ManagementRequests
 java_import Java::ee.cyber.sdsb.common.message.SoapUtils
 java_import Java::ee.cyber.sdsb.common.message.SoapFault
@@ -16,10 +17,10 @@ class ManagementRequestsController < ApplicationController
         request.headers["CONTENT_TYPE"],
         StringIO.new(request.raw_post).to_inputstream)
 
-      handle_request
+      id = handle_request
 
       # Simply convert request message to response message
-      response_soap = SoapUtils.toResponse(@request_soap)
+      response_soap = ManagementRequestUtil.toResponse(@request_soap, id)
       render :text => response_soap.getXml()
     rescue Java::java.lang.Exception => e
       handle_error(ErrorCodes.translateException(e))
@@ -56,11 +57,13 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     verify_owner(security_server)
 
-    AuthCertRegRequest.new(
+    req = AuthCertRegRequest.new(
       :security_server => security_server,
       :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
       :address => req_type.getAddress(),
-      :origin => Request::SECURITY_SERVER).register()
+      :origin => Request::SECURITY_SERVER)
+    req.register()
+    req.id
   end
 
   def handle_auth_cert_deletion
@@ -69,10 +72,12 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     verify_owner(security_server)
 
-    AuthCertDeletionRequest.new(
+    req = AuthCertDeletionRequest.new(
       :security_server => security_server,
       :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
-      :origin => Request::SECURITY_SERVER).register()
+      :origin => Request::SECURITY_SERVER)
+    req.register()
+    req.id
   end
 
   def handle_client_registration
@@ -80,10 +85,12 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     verify_owner(security_server)
 
-    ClientRegRequest.new(
+    req = ClientRegRequest.new(
       :security_server => security_server,
       :sec_serv_user => client_id(req_type.getClient()),
-      :origin => Request::SECURITY_SERVER).register()
+      :origin => Request::SECURITY_SERVER)
+    req.register()
+    req.id
   end
 
   def handle_client_deletion
@@ -91,10 +98,12 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     verify_owner(security_server)
 
-    ClientDeletionRequest.new(
+    req = ClientDeletionRequest.new(
       :security_server => security_server,
       :sec_serv_user => client_id(req_type.getClient()),
-      :origin => Request::SECURITY_SERVER).register()
+      :origin => Request::SECURITY_SERVER)
+    req.register()
+    req.id
   end
 
   def security_server_id(id_type)

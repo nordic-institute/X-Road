@@ -5,6 +5,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -15,12 +16,13 @@ import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Base64;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import ee.cyber.sdsb.common.util.MessageFileNames;
+import ee.cyber.sdsb.common.util.MimeTypes;
 import ee.cyber.sdsb.common.util.XmlUtils;
 
 import static ee.cyber.sdsb.common.signature.Helper.*;
@@ -42,6 +44,7 @@ final class SignatureXmlBuilder {
     private Document document;
     private XMLSignature signature;
     private ObjectContainer objectContainer;
+    private String documentName;
 
     SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId)
             throws Exception {
@@ -54,10 +57,14 @@ final class SignatureXmlBuilder {
 
     byte[] createDataToBeSigned(String documentName,
             ResourceResolverSpi resourceResolver) throws Exception {
+        this.documentName = documentName;
+
         document = createDocument();
 
         signature = createSignatureElement(document);
         signature.addKeyInfo(signingCert);
+
+        signature.addResourceResolver(new IdResolver(document));
         signature.addResourceResolver(resourceResolver);
 
         signature.addDocument(documentName, null, getHashAlgorithmURI());
@@ -138,7 +145,8 @@ final class SignatureXmlBuilder {
         Element signingTime = createXadesElement(signedSignatureProperties,
                 SIGNING_TIME_TAG);
 
-        final Calendar signatureSigningTime = Calendar.getInstance();
+        Calendar signatureSigningTime =
+                Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         signingTime.setTextContent(
                 DatatypeConverter.printDateTime(signatureSigningTime));
 
@@ -148,12 +156,31 @@ final class SignatureXmlBuilder {
         Element cert = createXadesElement(signingCertificate, CERT_TAG);
         createCertDigest(signature.getKeyInfo().getX509Certificate(), cert);
 
-        createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+        Element signedDataObjectProperties =
+                createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+        createSignedDataObjectProperties(signedDataObjectProperties);
 
         signature.addDocument("#" + id, null, getHashAlgorithmURI(), null,
                 NS_SIG_PROP);
 
         return signedProperties;
+    }
+
+    private void createSignedDataObjectProperties(
+            Element signedDataObjectProperties) {
+        Element dataObjectFormat =
+                createXadesElement(signedDataObjectProperties,
+                        DATAOBJECTFORMAT_TAG);
+
+        dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, documentName);
+
+        Element mimeType = createXadesElement(dataObjectFormat, MIMETYPE_TAG);
+
+        if (MessageFileNames.SIG_HASH_CHAIN_RESULT.equals(documentName)) {
+            mimeType.setTextContent(MimeTypes.HASH_CHAIN_RESULT);
+        } else {
+            mimeType.setTextContent(MimeTypes.TEXT_XML);
+       }
     }
 
     private void createCertDigest(X509Certificate cert, Element certElement)
@@ -199,8 +226,6 @@ final class SignatureXmlBuilder {
         if (!extraCertificates.isEmpty()) {
             createCompleteCertificateRefs(unsignedSignatureProperties);
         }
-
-        createCompleteRevocationRefs(unsignedSignatureProperties);
 
         if (!extraCertificates.isEmpty()) {
             createCertificateValues(unsignedSignatureProperties);
@@ -251,54 +276,6 @@ final class SignatureXmlBuilder {
         }
     }
 
-    private void createCompleteRevocationRefs(
-            Element unsignedSignatureProperties) throws Exception {
-        Element completeRevocationRefs = createXadesElement(
-                unsignedSignatureProperties, COMPLETE_REVOCATION_REFS_TAG);
-        completeRevocationRefs.setAttribute(ID_ATTRIBUTE,
-                COMPLETE_REVOCATION_REFS_ID/* + masterHash*/);
-
-        Element ocspRefs =
-                createXadesElement(completeRevocationRefs, OCSP_REFS_TAG);
-
-        int c = 1;
-        for (OCSPResp ocspResp : ocspResponses) {
-            createOcspRef(ocspRefs, ocspResp, OCSP_RESPONSE_ID + (c++));
-        }
-    }
-
-    private void createOcspRef(Element ocspRefs, OCSPResp ocspResponse,
-            String id) throws Exception {
-        Element ocspRef = createXadesElement(ocspRefs, OCSP_REF_TAG);
-
-        Element ocspIdentifier = createXadesElement(ocspRef,
-                OCSP_IDENTIFIER_TAG);
-        ocspIdentifier.setAttribute(URI_ATTRIBUTE, "#" + id);
-
-        BasicOCSPResp resp = (BasicOCSPResp) ocspResponse.getResponseObject();
-
-        Element responderID =
-                createXadesElement(ocspIdentifier, RESPONDER_ID_TAG);
-
-        Element byName = createXadesElement(responderID, BYNAME_TAG);
-
-        byName.setTextContent(encodeBase64(
-                resp.getResponderId().toASN1Object().getEncoded()));
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(resp.getProducedAt());
-        Element producedAt = createXadesElement(ocspIdentifier,
-                PRODUCED_AT_TAG);
-        producedAt.setTextContent(DatatypeConverter.printDateTime(cal));
-
-        Element digestAlgAndValue =
-                createXadesElement(ocspRef, DIGEST_ALG_AND_VALUE_TAG);
-
-        createDigestAlgAndValue(getHashAlgorithmURI(),
-                digest(ocspResponse.getEncoded(),
-                        getHashAlgorithmId()), digestAlgAndValue);
-    }
-
     private void createCompleteCertificateRefs(
             Element unsignedSignatureProperties) throws Exception {
         Element completeCertificateRefs = createXadesElement(
@@ -313,8 +290,8 @@ final class SignatureXmlBuilder {
         int c = 1;
         for (X509Certificate cert : extraCertificates) {
             Element certElement = createXadesElement(certRefs, CERT_TAG);
-            certElement.setAttribute(
-                    URI_ATTRIBUTE, ENCAPSULATED_CERT_ID + (c++));
+            certElement.setAttribute(URI_ATTRIBUTE,
+                    "#" + ENCAPSULATED_CERT_ID + (c++));
             createCertDigest(cert, certElement);
         }
     }
@@ -348,5 +325,4 @@ final class SignatureXmlBuilder {
             throws Exception {
         return encodeBase64(calculateDigest(method, encoded));
     }
-
 }

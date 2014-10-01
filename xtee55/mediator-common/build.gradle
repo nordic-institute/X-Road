@@ -13,7 +13,7 @@ sourceSets {
 
 dependencies {
     // SDSB dependencies
-    //compile 'ee.cyber.sdsb:common-util:1.0'
+    compile 'ee.cyber.sdsb:common-db:1.0'
     compile 'ee.cyber.sdsb:serverconf:1.0'
     
     // Test dependencies
@@ -21,7 +21,7 @@ dependencies {
     // 'sourceSets' trick seems to help to resolve circular dependencies
     testCompile project(':mediator-common-test').sourceSets.main.output
     testCompile 'org.mockito:mockito-all:1.9.0'
-    
+
     // Additional 3rd party dependencies
     compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
     compile 'commons-io:commons-io:2.4'

@@ -1,7 +1,6 @@
 class CentralService < ActiveRecord::Base
-  include Validators
-
-  validates :service_code, :unique => true, :present => true
+  validates_with Validators::MaxlengthValidator
+  validates :service_code, :uniqueness => true, :presence => true
 
   belongs_to :target_service,
     :class_name => "ServiceId",
@@ -15,27 +14,31 @@ class CentralService < ActiveRecord::Base
     end
   end
 
-  def self.save(service_code, target_service_code, provider_id)
+  # Target service is hash consisting of :code and :version.
+  def self.save(service_code, target_service, provider_id)
     logger.info(
-        "CentralService.save(#{service_code}, #{target_service_code}, #{provider_id})")
+        "CentralService.save(#{service_code}, #{target_service}, #{provider_id})")
 
+    target_service_code = get_target_service_code(target_service)
     check_presence_of_provider(target_service_code, provider_id)
 
     CentralService.create!(
         :service_code => service_code,
         :target_service =>
-            get_target_service_id(target_service_code, provider_id)
+            get_target_service_id(target_service, provider_id)
     )
   end
 
-  def self.update(service_code, target_service_code, provider_id)
+  # Target service is hash consisting of :code and :version.
+  def self.update(service_code, target_service, provider_id)
     logger.info(
-        "CentralService.update(#{service_code}, #{target_service_code}, #{provider_id})")
+        "CentralService.update(#{service_code}, #{target_service}, #{provider_id})")
 
     service = find_by_code(service_code)
 
     raise "Service with code '#{service_code}' not found" unless service
 
+    target_service_code = get_target_service_code(target_service)
     check_presence_of_provider(target_service_code, provider_id)
 
     service.remove_target_service()
@@ -43,7 +46,7 @@ class CentralService < ActiveRecord::Base
     service.update_attributes!(
         :service_code => service_code,
         :target_service =>
-            get_target_service_id(target_service_code, provider_id)
+            get_target_service_id(target_service, provider_id)
     )
   end
 
@@ -101,6 +104,7 @@ class CentralService < ActiveRecord::Base
     {
         "central_services.service_code" => searchable.central_service_code,
         "identifiers.service_code" => searchable.service_code,
+        "identifiers.service_version" => searchable.service_version,
         "identifiers.member_class" => searchable.member_class,
         "identifiers.member_code" => searchable.member_code,
         "identifiers.subsystem_code" => searchable.subsystem_code
@@ -110,16 +114,31 @@ class CentralService < ActiveRecord::Base
   def self.get_searchable_columns
     [   "central_services.service_code",
         "identifiers.service_code",
+        "identifiers.service_version",
         "identifiers.member_class",
         "identifiers.member_code",
         "identifiers.subsystem_code"
     ]
   end
 
-  def self.get_target_service_id(target_service_code, provider_id)
-    target_service_code ?
-        ServiceId.from_parts(provider_id, target_service_code):
+  def self.get_target_service_id(target_service, provider_id)
+    target_service_code = get_target_service_code(target_service)
+    target_service_version = get_target_service_version(target_service)
+
+    return target_service_code ?
+        ServiceId.from_parts(
+            provider_id, target_service_code, target_service_version):
         nil
+  end
+
+  def self.get_target_service_code(target_service)
+    puts target_service.inspect
+    return target_service.is_a?(Hash) ? target_service[:code] : nil
+  end
+
+  def self.get_target_service_version(target_service)
+    puts target_service.inspect
+    return target_service.is_a?(Hash) ? target_service[:version] : nil
   end
 
   def self.check_presence_of_provider(target_service_code, provider_id)

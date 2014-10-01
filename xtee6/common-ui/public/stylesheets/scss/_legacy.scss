@@ -1,0 +1,125 @@
+legend {
+    background: transparent;
+    border: none;
+    font-size: 12pt;
+    font-family: "Open Sans";
+    font-weight: 500;
+    line-height: 30px;
+    text-transform: uppercase;
+}
+
+fieldset {
+    border: none;
+    @include reset;
+
+    table {
+        width: 100%;
+
+        tbody {
+            border: none;
+        }
+        tr {
+
+            td {
+                input[readonly="readonly"], input[readonly] {
+                    border: none;
+                    box-shadow: none;
+                    background: transparent;
+
+                    &:focus {
+                        border: none;
+                        box-shadow: none;
+                    }
+                }
+            }
+        }
+    }
+
+    &.borderless {
+        margin-bottom: 20px;
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+        legend {
+            margin-bottom: 10px;
+        }
+    }
+}
+
+div#sysparams-holder {
+    table#async-params-table {
+        input {
+            min-width: 300px;
+        }
+        tr {
+            td:first-child {
+                width: 450px;
+            }
+            border: none;
+        }
+    }
+}
+
+div#backup-holder {
+    legend {
+        margin-bottom: 10px;
+    }
+    #backup {
+        margin-top: 10px;
+    }
+}
+
+#keys {
+    .token {
+        line-height: 34px;
+    }
+    .unsaved {
+        background-color: rgba($base-color-yellow, 0.7);
+    }
+    .token-unavailable,
+    .key.key-unavailable {
+        background-color: #a8a8a8;
+    }
+    .token-active .activate_token {
+        display: none;
+    }
+    .token-active .deactivate_token {
+        display: inline;
+    }
+    .token-inactive .deactivate_token {
+        display: none;
+    }
+    .token-inactive .activate_token {
+        display: inline;
+    }
+    .token .locked,
+    .token.token-available.token-inactive {
+        color: red;
+        font-family: "open_sansbold";
+    }
+}
+
+div.dialog_dynamic {
+    display: none;
+}
+
+.keystate {
+    padding: 0 5px;
+    font-family: monospace;
+}
+
+iframe {
+    width: 0;
+    height: 0;
+    border: 0;
+}
+
+.server_id {
+    color: #FFF;
+    padding-left: 15px;
+}
+
+body.wait *, body.wait {
+    cursor: wait !important;
+}

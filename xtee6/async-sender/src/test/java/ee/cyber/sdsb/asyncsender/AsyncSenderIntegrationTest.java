@@ -19,12 +19,13 @@ import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import ee.cyber.sdsb.asyncdb.MessageQueue;
-import ee.cyber.sdsb.asyncdb.QueueInfo;
 import ee.cyber.sdsb.asyncdb.SendingCtx;
+import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
+import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
 import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -39,8 +40,6 @@ public class AsyncSenderIntegrationTest {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.ASYNC_DB_PATH, "build");
-        System.setProperty(SystemProperties.SERVER_CONFIGURATION_FILE,
-                "src/test/resources/serverconf.xml");
 
         DummyProxy proxy = new DummyProxy();
         proxy.start();
@@ -103,7 +102,7 @@ public class AsyncSenderIntegrationTest {
 
         List<MessageQueue> queues = Arrays.asList(queue1, queue2);
 
-        AsyncSender sender = spy(new AsyncSender());
+        AsyncSender sender = Mockito.mock(AsyncSender.class);
         when(sender.getMessageQueues()).thenReturn(
                 queues, new ArrayList<MessageQueue>());
 

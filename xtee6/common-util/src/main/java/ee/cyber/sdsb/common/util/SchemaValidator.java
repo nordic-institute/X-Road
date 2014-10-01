@@ -24,10 +24,10 @@ public class SchemaValidator {
             URL schemaLocation = ResourceUtils.getClasspathResource(fileName);
             return factory.newSchema(schemaLocation);
         } catch (SAXException e) {
-            LOG.error("Creating signature schema from file '{}' failed",
+            LOG.error("Creating schema from file '{}' failed",
                     fileName, e);
             throw new RuntimeException(
-                    "Unable to create signature schema validator", e);
+                    "Unable to create schema validator", e);
         }
     }
 

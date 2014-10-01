@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions
+    name="mergedWSDL"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    targetNamespace="http://andmed.x-road.ee/producer">
+<wsdl:types>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://andmed.x-road.ee/producer">
+<xsd:import namespace="http://x-road.ee/xsd/x-road.xsd" schemaLocation="http://x-road.ee/xsd/x-road.xsd"/>
+<FirstMockedSchemaElement />
+<SecondMockedSchemaElement />
+</xsd:schema>
+</wsdl:types>
+
+<FirstMockedMessage />
+<SecondMockedMessage />
+
+<MockedPortType />
+
+<MockedBinding />
+
+<MockedService />
+
+</wsdl:definitions>

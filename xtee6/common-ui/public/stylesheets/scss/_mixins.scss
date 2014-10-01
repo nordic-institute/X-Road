@@ -1,0 +1,32 @@
+@mixin normal {
+    font-family: $base-font-family;
+    font-weight: $base-font-weight;
+    font-size: $base-font-size;
+    color: $base-font-color;
+}
+
+@mixin border-radius($radius) {
+  -webkit-border-radius: $radius;
+     -moz-border-radius: $radius;
+      -ms-border-radius: $radius;
+       -o-border-radius: $radius;
+          border-radius: $radius;
+}
+
+@mixin translate-prop($prop, $speed) {
+    -webkit-transition: $prop $speed + ms linear;
+       -moz-transition: $prop $speed + ms linear;
+        -ms-transition: $prop $speed + ms linear;
+         -o-transition: $prop $speed + ms linear;
+            transition: $prop $speed + ms linear;
+}
+
+@mixin lineheight($h) {
+    height: $h + px;
+    line-height: $h + px;
+}
+
+@mixin reset {
+    margin: 0;
+    padding: 0;
+}

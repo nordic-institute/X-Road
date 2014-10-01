@@ -6,10 +6,9 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
 
 import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
 
 /**
  * Base class for message processors.
@@ -38,7 +37,6 @@ public abstract class MessageProcessorBase {
      */
     protected void cacheConfigurationForCurrentThread() {
         GlobalConf.initForCurrentThread();
-        ServerConf.initForCurrentThread();
         KeyConf.initForCurrentThread();
     }
 
@@ -47,10 +45,16 @@ public abstract class MessageProcessorBase {
         return new HttpSender(httpClient);
     }
 
-    /** Called when request message has been successfully processed. */
-    protected void onSuccess(SoapMessageImpl message) {
+    /** Called when processing started. */
+    protected void preprocess() throws Exception {
+    }
+
+    /** Called when processing successfully completed. */
+    protected void postprocess() throws Exception {
     }
 
     /** Processes the incoming message. */
-    protected abstract void process() throws Exception;
+    public abstract void process() throws Exception;
+
+    public abstract MessageInfo createRequestMessageInfo();
 }

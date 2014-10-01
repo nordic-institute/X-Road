@@ -1,10 +1,16 @@
 class Request < ActiveRecord::Base
+
+  before_create do |rec|
+    Request.set_server_owner_name(rec)
+  end
+
   # origin -- submitted by security server
   SECURITY_SERVER = "SECURITY_SERVER"
   # origin -- entered from the central server user interface
   CENTER = "CENTER"
 
-  include Validators
+  validates_with Validators::MaxlengthValidator
+
   belongs_to :security_server,
     :class_name => "SecurityServerId",
     :autosave => true,
@@ -32,7 +38,6 @@ class Request < ActiveRecord::Base
 
   # Checks that the origin is present and is either CENTER or SECURITY_SERVER
   def verify_origin()
-    # TODO: Is translation necessary, since these are essentially programming errors?
     if origin == nil
       raise "Origin must be present"
     end
@@ -55,7 +60,7 @@ class Request < ActiveRecord::Base
     end
   end
 
-  # Throws exception is security server with client_id does not exist
+  # Throws exception is security server with server_id does not exist
   def require_security_server(server_id)
     if SecurityServer.find_server_by_id(server_id) == nil
       raise I18n.t("requests.server_not_found",
@@ -70,17 +75,6 @@ class Request < ActiveRecord::Base
   # Perform the action associated with the request.
   def execute()
     throw "This method must be reimplemented in a subclass"
-  end
-
-  def get_server_owner_name()
-    sdsb_member = SdsbMember.find_by_code(
-        security_server.member_class, security_server.member_code)
-
-    if !sdsb_member
-      return server_owner_name
-    end
-
-    sdsb_member.name
   end
 
   def get_complementary_id()
@@ -98,7 +92,7 @@ class Request < ActiveRecord::Base
     has_processing?() ? request_processing.status : ""
   end
 
-  def get_canceling_request_id()
+  def get_revoking_request_id()
     nil
   end
 
@@ -126,7 +120,7 @@ class Request < ActiveRecord::Base
   private
 
   def self.get_multivalue_search_regex(values)
-    # XXX: Assumes that 'type' and 'origin' are always filled in the database.
+    # Assumes that 'type' and 'origin' are always filled in the database.
     return "\s" if values.empty?
 
     first = true;
@@ -150,23 +144,22 @@ class Request < ActiveRecord::Base
 
   def self.get_search_relation(searchable, converted_search_params)
 
-    search_params = get_search_sql_params(searchable, converted_search_params)
+    search_params = get_search_sql_params(
+        searchable.downcase(), converted_search_params)
 
-    # XXX: Is there more elegant way to perform working left join?
     Request.
         where(get_search_sql, *search_params).
         joins("LEFT JOIN request_processings "\
           "ON request_processings.id = requests.request_processing_id").
-        joins(:security_server).
-        joins(CommonSql::get_identifier_to_member_join_sql)
+        joins(:security_server)
   end
 
   def self.get_search_sql
     "CAST(requests.id AS TEXT) LIKE ?
-    OR CAST(requests.created_at AS TEXT) LIKE ?
+    OR #{CommonSql.turn_timestamp_into_text("requests.created_at")} LIKE ?
     OR (requests.type) SIMILAR TO ?
     OR (requests.origin) SIMILAR TO ?
-    OR lower(security_server_clients.name) LIKE ?
+    OR lower(requests.server_owner_name) LIKE ?
     OR lower(identifiers.member_class) LIKE ?
     OR lower(identifiers.member_code) LIKE ?
     OR lower(identifiers.server_code) LIKE ?
@@ -180,10 +173,16 @@ class Request < ActiveRecord::Base
         "%#{searchable}%", "%#{searchable}%", "%#{searchable}%"]
   end
 
-  def self.find_by_server_and_client(clazz, server_id, client_id)
-    logger.info("find_by_server_and_client(#{clazz}, #{server_id}, #{client_id})")
-    requests = clazz
-        .joins(:security_server, :sec_serv_user, :request_processing)
+  def self.find_by_server_and_client(clazz, server_id, client_id,
+      processing_status = nil)
+    logger.info("find_by_server_and_client(#{clazz}, #{server_id}, #{client_id}, #{processing_status})")
+
+    if processing_status == nil
+      processing_status = RequestProcessing::WAITING
+    end
+
+    requests = clazz \
+        .joins(:security_server, :sec_serv_user, :request_processing)\
         .where(
           :identifiers => { # association security_server
             :sdsb_instance => server_id.sdsb_instance,
@@ -195,7 +194,7 @@ class Request < ActiveRecord::Base
             :member_class => client_id.member_class,
             :member_code => client_id.member_code,
             :subsystem_code => client_id.subsystem_code},
-          :request_processings => {:status => RequestProcessing::WAITING})
+          :request_processings => {:status => processing_status})
 
     # Filter for subsystem codes in sec_serv_user because this is cumbersome
     # to do with the SQL query.
@@ -209,8 +208,8 @@ class Request < ActiveRecord::Base
 
   def self.find_by_server(server_id)
     logger.info("find_by_server(#{server_id})")
-    requests = Request.readonly(false)
-        .joins(:security_server)
+    requests = Request.readonly(false)\
+        .joins(:security_server)\
         .where(
           :identifiers => {
             :sdsb_instance => server_id.sdsb_instance,
@@ -220,5 +219,21 @@ class Request < ActiveRecord::Base
 
     logger.debug("Requests returned: #{requests.inspect}")
     requests
+  end
+
+  def self.set_server_owner_name(rec)
+    server = SecurityServer.find_server_by_id(rec.security_server.clean_copy())
+    return 1 if server == nil # To keep following callbacks running
+
+    rec.server_owner_name = server.owner.name
+  end
+
+  def self.set_server_user_name(rec)
+    client = SecurityServerClient.find_by_id(rec.sec_serv_user.clean_copy())
+    return 1 if client == nil # To keep following callbacks running
+
+    server_user_name = client.is_a?(Subsystem) ? 
+    client.sdsb_member.name : client.name
+    rec.server_user_name = server_user_name
   end
 end

@@ -3,6 +3,8 @@ package ee.cyber.sdsb.proxy.protocol;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.input.ReaderInputStream;
@@ -14,6 +16,7 @@ import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageEncoder;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 import ee.cyber.sdsb.common.signature.SignatureData;
+import ee.cyber.sdsb.common.util.CachingStream;
 import ee.cyber.sdsb.common.util.MimeUtils;
 
 /**
@@ -30,13 +33,16 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyMessage.class);
 
-    private OCSPResp ocspResponse;
+    private final List<OCSPResp> ocspResponses = new ArrayList<>();
+
     private SoapMessageImpl soapMessage;
     private SignatureData signature;
     private SoapFault fault;
 
     private CachingStream attachmentCache;
     private SoapMessageEncoder encoder;
+
+    private boolean hasBeenConsumed;
 
     /** Returns SOAP part of the message. */
     public SoapMessageImpl getSoap() {
@@ -47,8 +53,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
         return signature;
     }
 
-    public OCSPResp getOcspResponse() {
-        return ocspResponse;
+    public List<OCSPResp> getOcspResponses() {
+        return ocspResponses;
     }
 
     public SoapFault getFault() {
@@ -66,6 +72,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
         if (hasAttachments()) {
             // Finish writing to the attachment cache.
             encoder.close();
+
+            hasBeenConsumed = true;
             return attachmentCache.getCachedContents();
         } else {
             // By default write in UTF-8.
@@ -75,23 +83,32 @@ public class ProxyMessage implements ProxyMessageConsumer {
         }
     }
 
+    public void consume() {
+        if (!hasBeenConsumed) {
+            try {
+                getSoapContent().close();
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
     @Override
     public void ocspResponse(OCSPResp ocspResponse) throws Exception {
-        LOG.debug("Read SSL OCSP response");
+        LOG.trace("Read SSL OCSP response");
 
-        this.ocspResponse = ocspResponse;
+        this.ocspResponses.add(ocspResponse);
     }
 
     @Override
     public void signature(SignatureData signature) throws Exception {
-        LOG.debug("Read signature");
+        LOG.trace("Read signature");
 
         this.signature = signature;
     }
 
     @Override
     public void soap(SoapMessageImpl soapMessage) throws Exception {
-        LOG.debug("Read SOAP message");
+        LOG.trace("Read SOAP message");
 
         this.soapMessage = soapMessage;
     }
@@ -99,7 +116,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     @Override
     public void attachment(String contentType, InputStream content,
             Map<String, String> additionalHeaders) throws Exception {
-        LOG.debug("Attachment: {}", contentType);
+        LOG.trace("Attachment: {}", contentType);
 
         if (encoder == null) {
             attachmentCache = new CachingStream();
@@ -114,7 +131,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void fault(SoapFault fault) throws Exception {
-        LOG.debug("Read fault");
+        LOG.trace("Read fault");
 
         this.fault = fault;
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-    targetNamespace="http://sdsb.net/xsd/identifiers" xmlns="http://sdsb.net/xsd/identifiers"
+    targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers"
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.1">
     <xs:complexType name="SdsbIdentifierType">
         <xs:annotation>

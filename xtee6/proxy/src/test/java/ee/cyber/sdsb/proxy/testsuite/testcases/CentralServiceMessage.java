@@ -1,10 +1,10 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
 import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
 import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
 import ee.cyber.sdsb.proxy.testsuite.TestGlobalConf;

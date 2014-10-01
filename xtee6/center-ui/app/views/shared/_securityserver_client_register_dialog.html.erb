@@ -1,59 +1,62 @@
 <%= dialog "securityserver_client_register_dialog", t("members.edit.used_servers.add.title") do %>
-  <fieldset>
+  <section class="container">
     <legend><%= t 'members.edit.used_servers.add.client.legend' %></legend>
-    <table>
-      <tr>
-        <td><%= t 'securityservers.clients.name' %></td>
-        <td><input id="used_server_name" type="text" readonly/></td>
-      </tr>
-      <tr>
-        <td><%= t 'securityservers.clients.class' %></td>
-        <td><input id="used_server_class" type="text" readonly/></td>
-      </tr>
-      <tr>
-        <td><%= t 'securityservers.clients.code' %></td>
-        <td><input id="used_server_code" type="text" readonly/></td>
-      </tr>
-      <tr>
-        <td><%= t 'securityservers.clients.subsystem' %></td>
-        <td><input id="used_server_subsystem_code" type="text"/></td>
-      </tr>
-    </table>
-  </fieldset>
-  <fieldset>
-    <legend><%= t 'securityservers.info.legend' %></legend>
-    <table>
+    <table class="details">
       <tr>
         <td></td>
         <td>
           <% if can?(:view_security_server_details) %>
-            <button id="used_server_server_search" >
+            <button id="securityserver_client_client_search" >
               <%= t 'common.search' %>
             </button>
           <% end %>
         </td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_name' %></td>
-        <td><input id="used_server_owner_name" type="text"/></td>
+        <td><%= t 'securityservers.clients.name' %></td>
+        <td><input id="securityserver_client_name" type="text"/></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_class' %></td>
+        <td><%= t 'securityservers.clients.class' %></td>
         <td><%= select_tag(
-            "used_server_owner_class",
+            "securityserver_client_class",
             options_for_select(create_member_class_select(get_all_member_classes))) %>
         </td>
       </tr>
       <tr>
+        <td><%= t 'securityservers.clients.code' %></td>
+        <td><input id="securityserver_client_code" type="text"/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.clients.subsystem' %></td>
+        <td><input id="securityserver_client_subsystem_code" type="text"/></td>
+      </tr>
+    </table>
+  </section>
+  <section class="container">
+    <legend><%= t 'securityservers.info.legend' %></legend>
+    <table class="details">
+      <tr>
+        <td><%= t 'securityservers.owner_name' %></td>
+        <td><input id="securityserver_client_owner_name" type="text" readonly/></td>
+      </tr>
+      <tr>
+        <td><%= t 'securityservers.owner_class' %></td>
+        <td><input id="securityserver_client_owner_class" type="text"/></td>
+      </tr>
+      <tr>
         <td><%= t 'securityservers.owner_code' %></td>
-        <td><input id="used_server_owner_code" type="text"/></td>
+        <td><input id="securityserver_client_owner_code" type="text" readonly/></td>
       </tr>
       <tr>
         <td><%= t 'securityservers.server_code' %></td>
-        <td><input id="used_server_server_code" type="text"/></td>
+        <td><input id="securityserver_client_server_code" type="text" readonly/></td>
       </tr>
     </table>
-  </fieldset>
-
+  </section>
   <%= render :partial => "shared/securityserver_search_dialog" %>
+
+  <div class="dialog_dynamic">
+    <%= render :partial => "shared/securityserver_client_search_dialog" %>
+  </div>
 <% end %>

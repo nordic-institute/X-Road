@@ -9,29 +9,29 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 
 
-public class RequestInputDataMultipart implements RequestInputData {
+public class RequestInputDataMultipart extends RequestInputData {
 
-    private TestQuery testQuery;
     private byte[] soapBytes;
     private InputStream attachmentInputStream;
+    private int attachmentSize;
 
     /**
      * Creates everything necessary for multipart request. If
      * {@link InputStream} for attachment is provided, it is used, if not, big
      * attachment with random content is created.
      *
-     * @param queryName
      * @param attachmentInputStream
      *            - if null, big attachment with random content will be created.
      */
-    public RequestInputDataMultipart(TestQuery testQuery,
-            InputStream attachmentInputStream) {
-        this.testQuery = testQuery;
-        this.attachmentInputStream = attachmentInputStream;
+    public RequestInputDataMultipart(String clientUrl, TestRequest testRequest,
+            int attachmentSize) {
+        super(clientUrl, testRequest);
+        this.attachmentSize = attachmentSize;
     }
 
     public RequestInputDataMultipart(byte[] soapBytes,
             InputStream attachmentInputStream) {
+        super(null);
         this.soapBytes = soapBytes;
         this.attachmentInputStream = attachmentInputStream;
     }
@@ -40,7 +40,7 @@ public class RequestInputDataMultipart implements RequestInputData {
     public Pair<String, InputStream> getRequestInput() throws IOException {
         PipedOutputStream os = new PipedOutputStream();
         MultipartWriter mpWriter = attachmentInputStream == null
-                ? new BigAttachmentWriter(os, testQuery)
+                ? new BigAttachmentWriter(os, testRequest, attachmentSize)
                 : new CustomAttachmentWriter(os, soapBytes,
                         attachmentInputStream);
 
@@ -51,11 +51,6 @@ public class RequestInputDataMultipart implements RequestInputData {
 
         return Pair.of("multipart/related; charset=UTF-8; "
                 + "boundary=" + mpos.getBoundary(), (InputStream) is);
-    }
-
-    @Override
-    public String getQueryName() {
-        return testQuery.getName();
     }
 
 }

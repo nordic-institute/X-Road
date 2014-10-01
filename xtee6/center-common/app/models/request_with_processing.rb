@@ -2,8 +2,13 @@
 class RequestWithProcessing < Request
   belongs_to :request_processing, :autosave => true, :inverse_of => :requests
 
-  # TODO: change table name and everything that goes with it in Schema!
-  # validates :request_processing_id, :present => true
+  def self.approve(request_id)
+    get_request_with_processing(request_id).request_processing.approve()
+  end
+
+  def self.decline(request_id)
+    get_request_with_processing(request_id).request_processing.decline()
+  end
 
   def register()
     verify_origin()
@@ -29,12 +34,28 @@ class RequestWithProcessing < Request
     throw "This method must be reimplemented in a subclass"
   end
 
-  def can_cancel?
+  def can_revoke?
     request_processing.status.eql?(RequestProcessing::WAITING) &&
         origin.eql?(Request::CENTER)
   end
 
-  def get_canceling_request_id
+  def get_revoking_request_id
     throw "This method must be reimplemented in a subclass"
+  end
+
+  private
+
+  def self.get_request_with_processing(request_id)
+    request = Request.find(request_id)
+
+    unless request
+      raise "No request with id '#{request_id}' found"
+    end
+
+    unless request.respond_to?(:request_processing)
+      raise "Request with id '#{request_id}' does not have processing"
+    end
+
+    return request
   end
 end

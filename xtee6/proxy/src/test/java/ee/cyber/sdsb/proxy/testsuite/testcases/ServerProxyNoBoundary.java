@@ -13,6 +13,8 @@ import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 /**
  * Client sends normal message, SP aborts connection
@@ -41,6 +43,8 @@ public class ServerProxyNoBoundary extends MessageTestCase {
 
                 response.setContentType("multipart/mixed");
                 response.setContentLength(1000);
+                response.setHeader(HEADER_HASH_ALGO_ID,
+                        DEFAULT_DIGEST_ALGORITHM_ID);
                 baseRequest.setHandled(true);
             }
         };

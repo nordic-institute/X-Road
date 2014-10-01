@@ -1,0 +1,7 @@
+<%= dialog "client_deletion_request_edit_dialog", t("management_requests.details.client_deletion.title") do %>
+  <%= render :partial => "shared/common_details" %>
+ 	<section class="container">
+	    <legend><%= t 'management_requests.details.client_deletion.legend' %></legend>
+	    <%= render :partial => "shared/client_details" %>
+	</section>
+<% end %>

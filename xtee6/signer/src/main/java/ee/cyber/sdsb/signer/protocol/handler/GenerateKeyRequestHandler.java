@@ -8,7 +8,7 @@ public class GenerateKeyRequestHandler
 
     @Override
     protected Object handle(GenerateKey message) throws Exception {
-        tellTokenManager(message);
+        tellTokenWorker(message, message.getTokenId());
         return nothing();
     }
 

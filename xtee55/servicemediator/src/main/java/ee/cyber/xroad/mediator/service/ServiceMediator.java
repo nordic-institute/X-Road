@@ -87,7 +87,7 @@ public class ServiceMediator implements StartStop {
 
     @Override
     public void stop() throws Exception {
-        HibernateUtil.closeSessionFactory();
+        HibernateUtil.closeSessionFactories();
 
         clientManager.shutdown();
         server.stop();

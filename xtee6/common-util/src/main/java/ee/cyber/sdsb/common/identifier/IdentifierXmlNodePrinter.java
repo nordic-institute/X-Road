@@ -7,9 +7,12 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import ee.cyber.sdsb.common.message.JaxbUtils;
+
 public class IdentifierXmlNodePrinter {
 
-    private static final JAXBContext jaxbCtx = initJaxbContext();
+    private static final JAXBContext JAXB_CTX =
+            JaxbUtils.initJAXBContext(ObjectFactory.class);
 
     public static void printClientId(ClientId clientId, Node parentNode,
             QName nodeQName) throws Exception {
@@ -44,14 +47,6 @@ public class IdentifierXmlNodePrinter {
     }
 
     private static Marshaller getMarshaller() throws Exception {
-        return jaxbCtx.createMarshaller();
-    }
-
-    private static JAXBContext initJaxbContext() {
-        try {
-            return JAXBContext.newInstance(ObjectFactory.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        return JAXB_CTX.createMarshaller();
     }
 }

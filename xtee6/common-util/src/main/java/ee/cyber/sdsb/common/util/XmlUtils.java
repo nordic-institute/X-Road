@@ -176,16 +176,24 @@ public class XmlUtils {
     }
 
     /**
-     * Pretty prints the document to string.
+     * Pretty prints the document to string using default charset.
      */
     public static String prettyPrintXml(Document document) throws Exception {
+        return prettyPrintXml(document, "UTF-8");
+    }
+
+    /**
+     * Pretty prints the document to string using specified charset.
+     */
+    public static String prettyPrintXml(Document document, String charset)
+            throws Exception {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
         Transformer transformer =
                 TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        transformer.setOutputProperty(OutputKeys.ENCODING, charset);
         transformer.setOutputProperty(
                 "{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.transform(new DOMSource(document), output);

@@ -1,34 +1,11 @@
 <%= dialog "client_select_dialog", t('.select_client') do %>
   <div class="fill">
-    <fieldset style="margin-bottom: 1em;">
-      <legend><%= t '.search_parameters' %></legend>
-      <table>
-        <tr>
-        <td style="width: 10em;"><%= t 'clients.index.member_name' %></td>
-          <td><%= text_field_tag "search_member_name" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.index.member_class' %></td>
-          <td><%= select_tag "search_member_class", options_for_select(@member_classes),
-                    :multiple => true, :size => 3,
-                    :style => "width: 100%; padding-right: 0;" %></td>
-        </tr>
-        <tr>
-          <td style="width: 10em;"><%= t 'clients.index.member_code' %></td>
-          <td><%= text_field_tag "search_member_code" %></td>
-        </tr>
-        <tr>
-          <td><%= t '.show_subsystems' %></td>
-          <td><%= check_box_tag "search_show_subsystems" %></td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <button id="client_select_search"><%= t 'common.search' %></button>
-            <button id="client_select_clear"><%= t 'common.clear' %></button>
-          </td>
-        </tr>
-      </table>
-    </fieldset>
+    <div class="simple_search" style="padding-bottom: 1em;">
+      <%= form_tag(nil, { class: "simple_search_form" }) do %>
+        <%= text_field_tag "search_member" %>
+        <button class="search"><%= t 'common.search' %></button>
+      <% end %>
+    </div>
 
     <table id="clients_global">
       <thead>

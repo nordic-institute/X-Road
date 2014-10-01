@@ -13,6 +13,8 @@ class SystemParameter < ActiveRecord::Base
   # Group name that will automatically be filled with security server owners.
   SERVER_OWNERS_GROUP =  "serverOwnersGroup"
 
+  validates_with Validators::MaxlengthValidator
+
   def self.get(keyId)
     value_in_db = SystemParameter.where(:key => keyId)
     if value_in_db.first

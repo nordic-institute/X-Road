@@ -1,18 +1,24 @@
 class ApprovedTsp < ActiveRecord::Base
   include Validators
 
+  validates_with MaxlengthValidator
   validates :url, :presence => true, :url => true
-  validates_uniqueness_of :url, :message => I18n.t("errors.tsp_url_not_unique")
-
   validates :cert, :presence => true
   validates_uniqueness_of :cert,
-      :message => I18n.t("errors.tsp_cert_not_unique")
+      :message => I18n.t("errors.tsp.cert_and_url_exists"),
+      :scope => :url
 
   before_save do |tsp|
     cert_obj = CertObjectGenerator.new.generate(tsp.cert)
     tsp.valid_from = cert_obj.not_before
     tsp.valid_to = cert_obj.not_after
     tsp.name = cert_obj.subject.to_s
+
+    unless MaxlengthValidator.string_length_valid?(tsp.name)
+      raise I18n.t("errors.tsp.cert_too_long_subject_name", {
+          :max_length => Validators::STRING_MAX_LENGTH,
+          :subject_name => tsp.name})
+    end
 
     logger.info("Saving CA: '#{tsp}'")
   end
@@ -28,7 +34,7 @@ class ApprovedTsp < ActiveRecord::Base
     "ApprovedTsp(name: '#{self.name}', url: '#{self.url}', "\
         "validFrom: '#{self.valid_from}', validTo: '#{self.valid_to}')"
   end
-  
+
   def self.get_approved_tsps(query_params)
     logger.info("get_approved_tsps(#{query_params})")
 
@@ -56,8 +62,8 @@ class ApprovedTsp < ActiveRecord::Base
 
   def self.get_searchable_columns
     [   "approved_tsps.name",
-        "CAST(approved_tsps.valid_from AS TEXT)",
-        "CAST(approved_tsps.valid_to AS TEXT)"
+        "approved_tsps.valid_from",
+        "approved_tsps.valid_to"
     ]
   end
 end

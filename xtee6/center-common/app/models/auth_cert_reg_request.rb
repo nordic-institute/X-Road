@@ -18,23 +18,26 @@ class AuthCertRegRequest < RequestWithProcessing
 
   def verify_request()
     require_client(security_server.owner_id) if from_center?
+    verify_against_waiting_requests()
+    verify_against_submitted_requests()
+    verify_against_existing_server_certs()
   end
 
-  # Cancels auth cert reg request with specific database id. Raises error if not
+  # Revokes auth cert reg request with specific database id. Raises error if not
   # found.
-  def self.cancel(request_id)
+  def self.revoke(request_id)
     reg_request = AuthCertRegRequest.find(request_id)
 
     raise "No auth cert registration request with id '#{id}'" unless reg_request
 
-    if !reg_request.can_cancel?
-      raise "Cannot cancel authentication certificate registration request "\
+    if !reg_request.can_revoke?
+      raise "Cannot revoke authentication certificate registration request "\
         "in state '#{reg_request.request_processing.status}' and with origin "\
         "'#{reg_request.origin}'"
     end
 
     del_request_server_id = reg_request.security_server.clean_copy()
-    comment = "'#{request_id}' cancellation"
+    comment = "'#{request_id}' revocation"
 
     AuthCertDeletionRequest.new(
          :security_server => del_request_server_id,
@@ -43,7 +46,7 @@ class AuthCertRegRequest < RequestWithProcessing
          :origin => reg_request.origin).register()
   end
 
-  def get_canceling_request_id
+  def get_revoking_request_id
     request = AuthCertDeletionRequest.joins(:security_server).where(
       :identifiers => {
         :sdsb_instance => security_server.sdsb_instance,
@@ -54,5 +57,55 @@ class AuthCertRegRequest < RequestWithProcessing
       :origin => origin).first
 
     request ? request.id : nil
+  end
+
+  private
+
+  def verify_against_waiting_requests
+    waiting_requests_with_same_auth_cert = 
+        AuthCertRegRequest.joins(:request_processing).where(
+      :request_processings => {
+          :status => RequestProcessing::WAITING},
+      :auth_cert => self.auth_cert)
+
+    waiting_requests_with_same_auth_cert.each do |each|
+      if has_same_origin?(each)
+        abort_registration(each)
+      end
+    end
+  end
+
+  def verify_against_submitted_requests
+    submitted_request = 
+        AuthCertRegRequest.joins(:request_processing).where(
+      :request_processings => {
+        :status => RequestProcessing::SUBMITTED_FOR_APPROVAL},
+      :auth_cert => self.auth_cert).first
+
+    if submitted_request != nil
+      abort_registration(submitted_request)
+    end
+  end
+
+  def verify_against_existing_server_certs
+    existing_cert = AuthCert.where(:certificate => self.auth_cert).first
+
+    if existing_cert != nil
+      registering_request = AuthCertRegRequest.where(
+        :auth_cert => self.auth_cert).first
+      raise InvalidAuthCertRegRequestException.new(
+          I18n.t("requests.security_server_exists",
+              :id => registering_request.id))
+    end
+  end
+
+  def abort_registration(other_request)
+    raise InvalidAuthCertRegRequestException.new(
+        I18n.t("requests.request_with_same_cert_already_exists",
+            :id => other_request.id))
+  end
+
+  def has_same_origin?(other_request)
+    return other_request.origin == self.origin
   end
 end

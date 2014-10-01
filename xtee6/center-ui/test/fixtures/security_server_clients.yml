@@ -25,3 +25,18 @@ subsystem_out_of_vallavalitsused:
   subsystem_code: "subsystem_out_of_vallavalitsused"
   server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_out_of_vallavalitsused_client_identifier) %>
   type: "Subsystem"
+
+# For testing MembersController
+member_as_server_client:
+  member_class_id: <%= ActiveRecord::Fixtures.identify(:riigiasutus) %>
+  member_code: "member_as_server_client"
+  name: "Testing member as server client"
+  administrative_contact: "a@r.com"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client_client_identifier) %>
+  type: "SdsbMember"
+
+subsystem_as_server_client:
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client) %>
+  subsystem_code: "subsystem_as_server_client"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_as_server_client_client_identifier) %>
+  type: "Subsystem"

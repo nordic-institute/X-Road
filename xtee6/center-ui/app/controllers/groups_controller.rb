@@ -1,9 +1,39 @@
 class GroupsController < ApplicationController
   include BaseHelper
 
+  before_filter :verify_get, :only => [
+      :global_groups_refresh,
+      :group_members,
+      :addable_members,
+      :sdsb_instance_codes,
+      :types,
+      :get_member_count,
+      :find_by_id]
+
+  before_filter :verify_post, :only => [
+      :group_add,
+      :group_edit_description,
+      :delete_group,
+      :remove_selected_members,
+      :add_members_to_group]
+
+  # -- Common GET methods - start ---
+
   def index
     authorize!(:view_global_groups)
   end
+
+  def get_records_count
+    render_json_without_messages(:count => GlobalGroup.count)
+  end
+
+  def can_see_details
+    render_details_visibility(:view_group_details)
+  end
+
+  # -- Common GET methods - end ---
+
+  # -- Specific GET methods - start ---
 
   def global_groups_refresh
     authorize!(:view_global_groups)
@@ -31,20 +61,9 @@ class GroupsController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
-  def group_add
-    authorize!(:add_global_group)
-
-    code = params[:code]
-    description = params[:description]
-
-    GlobalGroup.add_group(code, description)
-    render_json({})
-  end
-
   def group_members
     authorize!(:view_global_groups)
 
-    # XXX: Solution is quite inefficient as lot of database queries are done.
     searchable = params[:sSearch]
 
     advanced_search_params =
@@ -67,7 +86,7 @@ class GroupsController < ApplicationController
       member_code = member_id.member_code
 
       result << {
-        :name => SdsbMember.find_by_code(member_class, member_code).name,
+        :name => SdsbMember.get_name(member_class, member_code),
         :member_code => member_code,
         :member_class => member_class,
         :subsystem => member_id.subsystem_code,
@@ -78,47 +97,6 @@ class GroupsController < ApplicationController
     end
 
     render_data_table(result, count, params[:sEcho])
-  end
-
-  def group_edit_description
-    authorize!(:edit_group_description)
-
-    GlobalGroup.update_description(params[:groupId], params[:description])
-
-    notice(t("groups.change_description"));
-    render_json();
-  end
-
-  def delete_group
-    authorize!(:delete_group)
-
-    GlobalGroup.destroy(params[:groupId])
-
-    notice(t("groups.delete"));
-    render_json();
-  end
-
-  def remove_selected_members
-    authorize!(:add_and_remove_group_members)
-
-    raw_member_ids = params[:removableMemberIds].values
-    group = GlobalGroup.find(params[:groupId])
-
-    raw_member_ids.each do |each|
-      member_id = ClientId.from_parts(
-          each[:sdsbInstance],
-          each[:memberClass],
-          each[:memberCode],
-          each[:subsystemCode]
-      )
-
-      logger.debug(
-          "Removing member '#{member_id}' from global group '#{group.inspect}'")
-      group.remove_member(member_id);
-    end
-
-    notice(t("groups.delete_selected_members"));
-    render_json();
   end
 
   def addable_members
@@ -173,25 +151,6 @@ class GroupsController < ApplicationController
     render_data_table(result, count, s_echo)
   end
 
-  def add_members_to_group
-    authorize!(:add_and_remove_group_members)
-
-    selected_members = params[:selectedMembers].values
-    group = GlobalGroup.find(params[:groupId])
-
-    selected_members.each do |each|
-      new_member_id = ClientId.from_parts(
-          each[:sdsb],
-          each[:member_class],
-          each[:member_code],
-          each[:subsystem]
-      )
-      group.add_member(new_member_id)
-    end
-
-    render_json()
-  end
-
   def sdsb_instance_codes
     authorize!(:view_global_groups)
 
@@ -226,10 +185,6 @@ class GroupsController < ApplicationController
     render_json(types)
   end
 
-  def can_see_details
-    render_details_visibility(:view_group_details)
-  end
-
   def get_member_count
     member_count = GlobalGroup.get_member_count(params[:groupId])
     render_json({:member_count => member_count})
@@ -245,10 +200,82 @@ class GroupsController < ApplicationController
 
     render_json(group_as_json)
   end
-  # Number of GlobalGroup objects in the database
-  def get_records_count
-    render_json(:count => GlobalGroup.count)
+
+  # -- Specific GET methods - end ---
+
+  # -- Specific POST methods - start ---
+
+  def group_add
+    authorize!(:add_global_group)
+
+    code = params[:code]
+    description = params[:description]
+
+    GlobalGroup.add_group(code, description)
+    render_json({})
   end
+
+  def group_edit_description
+    authorize!(:edit_group_description)
+
+    GlobalGroup.update_description(params[:groupId], params[:description])
+
+    notice(t("groups.change_description"));
+    render_json();
+  end
+
+  def delete_group
+    authorize!(:delete_group)
+
+    GlobalGroup.destroy(params[:groupId])
+
+    notice(t("groups.delete"));
+    render_json();
+  end
+
+  def remove_selected_members
+    authorize!(:add_and_remove_group_members)
+
+    raw_member_ids = params[:removableMemberIds].values
+    group = GlobalGroup.find(params[:groupId])
+
+    raw_member_ids.each do |each|
+      member_id = ClientId.from_parts(
+          each[:sdsbInstance],
+          each[:memberClass],
+          each[:memberCode],
+          each[:subsystemCode]
+      )
+
+      logger.debug(
+          "Removing member '#{member_id}' from global group '#{group.inspect}'")
+      group.remove_member(member_id);
+    end
+
+    notice(t("groups.delete_selected_members"));
+    render_json();
+  end
+
+  def add_members_to_group
+    authorize!(:add_and_remove_group_members)
+
+    selected_members = params[:selectedMembers].values
+    group = GlobalGroup.find(params[:groupId])
+
+    selected_members.each do |each|
+      new_member_id = ClientId.from_parts(
+          each[:sdsb],
+          each[:member_class],
+          each[:member_code],
+          each[:subsystem]
+      )
+      group.add_member(new_member_id)
+    end
+
+    render_json()
+  end
+
+  # -- Specific POST methods - end ---
 
   private
 
@@ -270,7 +297,7 @@ class GroupsController < ApplicationController
   def get_group_members_column(index)
     case index
     when 0
-      return 'security_server_client_names.name'
+      return 'security_server_clients.name'
     when 1
       return 'identifiers.member_code'
     when 2
@@ -298,6 +325,10 @@ class GroupsController < ApplicationController
       return 'identifiers.member_class'
     when 3
       return 'identifiers.subsystem_code'
+    when 4
+      return 'identifiers.sdsb_instance'
+    when 5
+      return 'identifiers.object_type'
     else
       raise "Index '#{index}' has no corresponding column."
     end

@@ -1,8 +1,18 @@
 class AuthCert < ActiveRecord::Base
-  include Validators
-
-  validates :security_server_id, :present =>true
-  validates :certificate, :unique => true
+  validates_presence_of :security_server_id
+  validates_uniqueness_of :certificate
 
   belongs_to :security_server
+
+  before_validation do |record|
+    existing_certs = AuthCert.where(:certificate => record.certificate)
+
+    unless existing_certs.empty?
+      existing_cert = existing_certs[0]
+      security_server = existing_cert.security_server
+
+      raise I18n.t("errors.request.auth_cert_not_unique",
+          {:server_id => security_server.get_server_id()})
+    end
+  end
 end

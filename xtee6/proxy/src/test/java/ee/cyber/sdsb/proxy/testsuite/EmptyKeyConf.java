@@ -1,10 +1,10 @@
 package ee.cyber.sdsb.proxy.testsuite;
 
-import java.io.OutputStream;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.cyber.sdsb.common.conf.AuthKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -14,19 +14,8 @@ import ee.cyber.sdsb.proxy.conf.SigningCtx;
 public class EmptyKeyConf implements KeyConfProvider {
 
     @Override
-    public boolean hasChanged() {
-        return false;
-    }
-
-    @Override
     public SigningCtx getSigningCtx(ClientId memberId) {
         return null;
-    }
-
-    @Override
-    public List<X509Certificate> getMemberCerts(ClientId memberId)
-            throws Exception {
-        return Collections.emptyList();
     }
 
     @Override
@@ -35,24 +24,29 @@ public class EmptyKeyConf implements KeyConfProvider {
     }
 
     @Override
-    public X509Certificate getOcspSignerCert() throws Exception {
+    public void setOcspResponses(List<X509Certificate> certs,
+            List<OCSPResp> response) throws Exception {
+    }
+
+    @Override
+    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
         return null;
     }
 
     @Override
-    public PrivateKey getOcspRequestKey(X509Certificate org) throws Exception {
+    public OCSPResp getOcspResponse(String certHash) throws Exception {
         return null;
     }
 
     @Override
-    public void save() throws Exception {
+    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
+            throws Exception {
+        List<OCSPResp> ocspResponses = new ArrayList<>();
+        for (X509Certificate cert : certs) {
+            ocspResponses.add(getOcspResponse(cert));
+        }
+
+        return ocspResponses;
     }
 
-    @Override
-    public void save(OutputStream out) throws Exception {
-    }
-
-    @Override
-    public void load(String fileName) throws Exception {
-    }
 }

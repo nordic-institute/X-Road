@@ -7,7 +7,10 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
+import org.junit.Test;
 import org.mockito.Mockito;
+
+import ee.cyber.xroad.mediator.service.wsdlmerge.TestNS;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,18 +18,15 @@ import static org.junit.Assert.assertEquals;
  * Covers classes {@link PortType} and {@link PortOperation}.
  */
 public class PortTypeBehavior {
-    private static final String XRD_NS = "http://andmed.x-road.ee/producer";
-
-    // TODO
-    // @Test
+    @Test
     public void shouldTurnPortTypeIntoXml() throws Exception {
         // Given
-        QName input = new QName(XRD_NS, "theRequest");
-        QName output = new QName(XRD_NS, "theRequestResponse");
+        QName input = new QName(TestNS.XRDDL_TNS, "theRequest");
+        QName output = new QName(TestNS.XRDDL_TNS, "theRequestResponse");
 
-        XrdNode docNode = Mockito.mock(XrdNode.class);
+        Marshallable docNode = Mockito.mock(Marshallable.class);
         Mockito.when(docNode.getXml())
-                .thenReturn("<xrd:title>Tiitel</xrd:title>");
+                .thenReturn("<xrd:title>Mock op title</xrd:title>");
 
         List<PortOperation> operations = Arrays.asList(
                 new PortOperation(

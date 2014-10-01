@@ -29,18 +29,22 @@ import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.common.conf.VerificationCtx;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.message.SoapUtils;
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.MimeUtils;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.conf.ServerConf;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
+
+import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.cyber.sdsb.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 public class MessageTestCase {
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -84,10 +88,6 @@ public class MessageTestCase {
     }
 
     public SigningCtx getSigningCtx(String sender) {
-        return null;
-    }
-
-    public VerificationCtx getVerificationCtx() {
         return null;
     }
 
@@ -158,6 +158,8 @@ public class MessageTestCase {
         }
 
         AsyncHttpSender sender = new AsyncHttpSender(client);
+        // Needed by some test cases
+        sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
         // Get the input again.
         requestInput = getRequestInput();
@@ -167,7 +169,8 @@ public class MessageTestCase {
             }
 
             if ("post".equalsIgnoreCase(httpMethod)) {
-                sender.doPost(new URI(url), is, requestInput.getLeft());
+                sender.doPost(new URI(url), is, CHUNKED_LENGTH,
+                        requestInput.getLeft());
             } else {
                 sender.doGet(new URI(url));
             }
@@ -182,7 +185,7 @@ public class MessageTestCase {
             if (sentRequest != null && sentRequest.getSoap() != null
                     && sentRequest.getSoap() instanceof SoapMessageImpl
                     && ((SoapMessageImpl) sentRequest.getSoap()).isAsync() &&
-                    !requestHeaders.containsKey(SoapMessageImpl.X_IGNORE_ASYNC)) {
+                    !requestHeaders.containsKey(SoapUtils.X_IGNORE_ASYNC)) {
                 sentResponse = receivedResponse;
             }
         } finally {
@@ -210,7 +213,8 @@ public class MessageTestCase {
             throw new Exception("Received SOAP message is not a response");
         }
 
-        if (!checkConsistency(sentResponse, receivedResponse)) {
+        if (sentResponse != null
+                && !checkConsistency(sentResponse, receivedResponse)) {
             throw new Exception(
                     "Received response is not the same as sent response");
         }
@@ -230,13 +234,13 @@ public class MessageTestCase {
 
     protected void validateNormalResponse(Message receivedResponse)
             throws Exception {
-        throw new Exception("Received normal response were fault was expected");
+        throw new Exception("Received normal response, fault was expected");
     }
 
     protected void validateFaultResponse(Message receivedResponse)
             throws Exception {
         throw new Exception(
-                "Received fault response were normal answer was expected");
+                "Received fault response, answer was expected");
     }
 
     /**
@@ -244,9 +248,8 @@ public class MessageTestCase {
      */
     protected Pair<String, InputStream> getRequestInput() throws Exception {
         if (requestFileName != null) {
-            String queryFileName = QUERIES_DIR + "/" + requestFileName;
-            return Pair.of(requestContentType,
-                    getQueryInputStream(queryFileName));
+            String file = QUERIES_DIR + "/" + requestFileName;
+            return Pair.of(requestContentType, getQueryInputStream(file));
         }
 
         throw new IllegalArgumentException("requestFileName must be specified");

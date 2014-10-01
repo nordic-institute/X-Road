@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
 import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,7 +29,7 @@ public class ServiceHttpError extends MessageTestCase {
             public void handle(String target, Request baseRequest,
                     HttpServletRequest request, HttpServletResponse response)
                     throws IOException {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                response.sendError(HttpServletResponse.SC_BAD_GATEWAY);
                 baseRequest.setHandled(true);
             }
         };

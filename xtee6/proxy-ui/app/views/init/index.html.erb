@@ -3,77 +3,73 @@
 <% end %>
 
 <% content_for :heading do %>
-  <%= heading("Initial configuration") %>
+  <%= heading(t('.heading')) %>
 <% end %>
 
 <% content_for :content do %>
-  <div class="fill">
+  <section class="container" id="init-container">
     <iframe id="upload_target" name="upload_target"></iframe>
 
     <% if @init_globalconf %>
       <%= form_tag "#{controller.controller_name}/init_globalconf",
             :id => "globalconf_form", :multipart => true,
             :target => "upload_target" do %>
-        <fieldset>
-          <legend>Global Configuration</legend>
-          <table style="width: 100%;">
+          <legend><%= t '.global_configuration' %></legend>
+          <table class="details">
             <tr>
-              <td style="width: 15em;">Distributor URL</td>
+              <td style="width: 15em;"><%= t '.distributor_url' %></td>
               <td><%= text_field_tag "globalconf_url", nil, :style => "width: 100%;" %></td>
             </tr>
             <tr>
-              <td>Verification Certificate</td>
+              <td><%= t '.verification_certificate' %></td>
               <td><%= file_field_tag "globalconf_cert" %></td>
             </tr>
           </table>
-        </fieldset>
 
         <br/>
-        <button id="submit_globalconf">Submit</button>
+        <button id="submit_globalconf"><%= t 'common.submit' %></button>
       <% end %>
     <% end %>
 
-    <%= form_tag nil, :id => "serverconf_form" do %>
-      <fieldset>
-        <legend>Security Server Identification</legend>
-        <table style="width: 100%;">
+    <% if @init_serverconf || @init_software_token %>
+      <%= form_tag nil, :id => "serverconf_form" do %>
+        <legend><%= t '.security_server_id' %></legend>
+        <table class="details">
           <tr>
-            <td style="width: 15em;">Member Name</td>
-            <td><%= text_field_tag "owner_name", nil, :disabled => true %></td>
+            <td><%= t '.member_class' %></td>
+            <td><%= select_tag "owner_class", options_for_select([@owner_class], @owner_class),
+                      :disabled => @owner_class %></td>
           </tr>
           <tr>
-            <td>Member Class</td>
-            <td><%= select_tag "owner_class" %></td>
+            <td><%= t '.member_code' %></td>
+            <td><%= text_field_tag "owner_code", @owner_code, :disabled => @owner_code %></td>
           </tr>
           <tr>
-            <td>Member Code</td>
-            <td><%= text_field_tag "owner_code" %></td>
+            <td style="width: 15em;"><%= t '.member_name' %></td>
+            <td id="owner_name"><%= @owner_name %></td>
           </tr>
           <tr>
-            <td>Security Server Code</td>
-            <td><%= text_field_tag "server_code" %></td>
-          </tr>
-        </table>
-      </fieldset>
-
-      <br/>
-
-      <fieldset>
-        <legend>Software Token</legend>
-        <table style="width: 100%;">
-          <tr>
-            <td style="width: 15em;">PIN</td>
-            <td><%= password_field_tag "pin" %></td>
-          </tr>
-          <tr>
-            <td>Repeat PIN</td>
-            <td><%= password_field_tag "pin_repeat" %></td>
+            <td><%= t '.security_server_code' %></td>
+            <td><%= text_field_tag "server_code", @server_code, :disabled => @server_code %></td>
           </tr>
         </table>
-      </fieldset>
 
-      <br/>
-      <button id="submit_serverconf">Submit</button>
+        <br/>
+        <legend><%= t '.software_token' %></legend>
+        <table class="details">
+          <tr>
+            <td style="width: 15em;"><%= t '.pin' %></td>
+            <td><%= password_field_tag "pin", nil, :disabled => !@init_software_token %></td>
+          </tr>
+          <tr>
+            <td><%= t '.repeat_pin' %></td>
+            <td><%= password_field_tag "pin_repeat", nil, :disabled => !@init_software_token %></td>
+          </tr>
+        </table>
+
+        <br/>
+        <button id="submit_serverconf" class="right"><%= t 'common.submit' %></button>
+      <% end %>
     <% end %>
-  </div>
+  </section>
 <% end %>

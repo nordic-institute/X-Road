@@ -2,12 +2,12 @@ require 'json'
 
 class GlobalConfGenerationStatus
 
-  def self.write_success
-    write(true)
+  def self.write_success(log_file_content)
+    write(true, log_file_content)
   end
    
-  def self.write_failure
-    write(false)
+  def self.write_failure(log_file_content)
+    write(false, log_file_content)
   end
 
   def self.get
@@ -17,13 +17,11 @@ class GlobalConfGenerationStatus
       return {:no_status_file => true}
     end
 
-    raw_status = ""
-    File.open(status_file, "r:UTF-8") do |f|
-      raw_status << f.read()
-    end
+    raw_status = SdsbFileUtils.read(status_file)
+
     status_as_json = JSON.parse(raw_status)
 
-    {
+    return {
       :time => Time.at(status_as_json["time"]),
       :success => status_as_json["success"]
     }
@@ -31,18 +29,32 @@ class GlobalConfGenerationStatus
 
   private
 
-  def self.write(success)
+  def self.write(success, log_file_content)
     status_as_hash = {
       :time => Time.now().to_f(),
       :success => success
     }
 
-    File.open(get_status_file, 'w:UTF-8') do |f| 
-      f.write(status_as_hash.to_json())
+    if can_write_status_file?(success)
+      SdsbFileUtils.write(get_status_file(), status_as_hash.to_json())
     end
+
+    SdsbFileUtils.write(get_log_file(), log_file_content)
+  end
+
+  def self.can_write_status_file?(success)
+    previous_successful = get()[:success] 
+    previous_successful = true if previous_successful == nil
+
+    return success || previous_successful
   end
 
   def self.get_status_file
     ENV["HOME"] + "/.global_conf_gen_status"
+  end
+
+  def self.get_log_file
+    log_dir = SdsbFileUtils.get_log_dir()
+    return "#{log_dir}/sdsb_distributed_files-distributed_files-globalconf"
   end
 end

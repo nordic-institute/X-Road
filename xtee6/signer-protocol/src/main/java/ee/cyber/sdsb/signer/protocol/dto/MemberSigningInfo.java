@@ -11,5 +11,5 @@ public class MemberSigningInfo implements Serializable {
 
     private final String keyId;
 
-    private final byte[] cert;
+    private final CertificateInfo cert;
 }

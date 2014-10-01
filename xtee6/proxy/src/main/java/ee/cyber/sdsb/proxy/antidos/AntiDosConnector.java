@@ -3,15 +3,9 @@ package ee.cyber.sdsb.proxy.antidos;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.concurrent.Semaphore;
 
 import org.eclipse.jetty.io.nio.SelectChannelEndPoint;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ee.cyber.sdsb.common.util.SystemMetrics;
 
 /**
  * This class implements a connector that prevents DoS attacks.
@@ -29,34 +23,24 @@ import ee.cyber.sdsb.common.util.SystemMetrics;
  */
 public class AntiDosConnector extends SelectChannelConnector {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AntiDosConnector.class);
+    private final AntiDosConnectorDelegate delegate;
 
-    // TODO: Make configurable?
-    static final int MAX_PARALLEL_CONNECTIONS = 5000;
+    public AntiDosConnector() {
+        super();
 
-    private final AntiDosConnectionManager manager =
-            new AntiDosConnectionManager() {
-        @Override
-        void closeConnection(SocketChannel sock) throws IOException {
-            try {
-                super.closeConnection(sock);
-            } finally {
-                onConnectionClosed();
+        this.delegate = new AntiDosConnectorDelegate(this) {
+            @Override
+            void configure(Socket sock) throws IOException {
+                AntiDosConnector.this.configure(sock);
             }
-        }
-    };
-
-    private final Semaphore semaphore =
-            new Semaphore(MAX_PARALLEL_CONNECTIONS);
+        };
+    }
 
     @Override
     protected void doStart() throws Exception {
-        manager.init();
-
         super.doStart();
 
-        getThreadPool().dispatch(new QueueManager());
+        delegate.doStart();
     }
 
     @Override
@@ -66,55 +50,13 @@ public class AntiDosConnector extends SelectChannelConnector {
             server = _acceptChannel;
         }
 
-        if (canAccept(server) && getSelectorManager().isStarted()) {
-            SocketChannel channel = server.accept();
-            channel.configureBlocking(false);
-
-            Socket socket = channel.socket();
-            configure(socket);
-
-            LOG.debug("Accepted connection: " + channel);
-            manager.accept(channel);
-
-            SystemMetrics.connectionAccepted();
-        }
+        delegate.accept(server);
     }
 
     @Override
     protected void endPointClosed(SelectChannelEndPoint endpoint) {
-        LOG.debug("Closed connection: " + endpoint);
-
         super.endPointClosed(endpoint);
-        onConnectionClosed();
-    }
 
-    private void onConnectionClosed() {
-        semaphore.release();
-
-        SystemMetrics.connectionClosed();
-    }
-
-    private boolean canAccept(ServerSocketChannel server) {
-        return manager.canAccept() && server != null && server.isOpen();
-    }
-
-    private class QueueManager implements Runnable {
-        @Override
-        public void run() {
-            try {
-                while (true) {
-                    // Take the next connection to be processed
-                    SocketChannel channel = manager.takeNextConnection();
-
-                    // Wait until we can start processing
-                    semaphore.acquire();
-
-                    LOG.debug("Processing connection: " + channel.socket());
-                    getSelectorManager().register(channel);
-                }
-            } catch (InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }
-        }
+        delegate.endPointClosed(endpoint);
     }
 }

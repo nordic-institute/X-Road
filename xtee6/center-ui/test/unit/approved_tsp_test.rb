@@ -62,6 +62,65 @@ class ApprovedTspTest < ActiveSupport::TestCase
     assert_not_nil(saved_tsp.valid_to)
   end
 
+  test "Should save two TSPs with same urls but different certs" do
+    # Given
+    common_url = "http://www.sameurldifferentcert.ee"
+    tsp1 = ApprovedTsp.new()
+    tsp1.url = common_url
+    tsp1.cert = read_admin_ca1_cert()
+
+    tsp2 = ApprovedTsp.new()
+    tsp2.url = common_url
+    tsp2.cert = read_admin_ca2_cert()
+
+    # When
+    tsp1.save!
+    tsp2.save!
+
+    # Then
+    saved_tsps = ApprovedTsp.where(:url => common_url)
+    assert_equal(2, saved_tsps.size)
+  end
+
+  test "Should save two TSPs with same certs but different urls" do
+    # Given
+    first_url = "http://www.samecerturl1.ee"
+    tsp1 = ApprovedTsp.new()
+    tsp1.url = first_url
+    tsp1.cert = read_admin_ca1_cert()
+
+    second_url = "http://www.samecerturl2.ee"
+    tsp2 = ApprovedTsp.new()
+    tsp2.url = second_url
+    tsp2.cert = read_admin_ca1_cert()
+
+    # When
+    tsp1.save!
+    tsp2.save!
+
+    # Then
+    saved_tsps = ApprovedTsp.where(:url => [first_url, second_url])
+    assert_equal(2, saved_tsps.size)
+  end
+
+  test "Should not let save TSPS when cert and url are same" do
+    # Given
+    common_url = "http://www.sameurlandcert.ee"
+    tsp1 = ApprovedTsp.new()
+    tsp1.url = common_url
+    tsp1.cert = read_admin_ca1_cert()
+
+    tsp2 = ApprovedTsp.new()
+    tsp2.url = common_url
+    tsp2.cert = read_admin_ca1_cert()
+
+    # When/then
+    assert_raises(ActiveRecord::RecordInvalid) do
+      tsp1.save!
+      tsp2.save!
+    end
+  end
+
   test "Should not let change cert for already existing approved TSP" do
     # Given
     tsp = ApprovedTsp.new()
@@ -101,5 +160,4 @@ class ApprovedTspTest < ActiveSupport::TestCase
     assert_equal("http://www.url1.com", tsps[0].url)
     assert_equal("http://www.url2.com", tsps[1].url)
   end
-
 end

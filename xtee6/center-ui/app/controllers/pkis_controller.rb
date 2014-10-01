@@ -1,12 +1,50 @@
-require 'keys_helper'
-
 class PkisController < ApplicationController
   include BaseHelper
   include CertTransformationHelper
 
+  before_filter :verify_get, :only => [
+      :pkis_refresh,
+      :get_intermediate_ca_temp_cert_details,
+      :get_existing_intermediate_ca_cert_details,
+      :get_existing_intermediate_ca_cert_dump_and_hash,
+      :get_top_ca_cert_details,
+      :get_top_ca_cert_dump_and_hash,
+      :get_name_extractor_data,
+      :get_ocsp_infos,
+      :get_existing_ocsp_cert_details,
+      :get_intermediate_cas]
+
+  before_filter :verify_post, :only => [
+      :upload_top_ca_cert,
+      :upload_ocsp_responder_cert,
+      :upload_intermediate_ca_cert,
+      :save_new_pki,
+      :edit_existing_pki,
+      :delete_pki]
+
+  # -- Common GET methods - start ---
+
   def index
     authorize!(:view_approved_cas)
   end
+
+  def get_cert_details_by_id
+    render_temp_cert_details_by_id(:view_approved_cas)
+  end
+
+  def get_records_count
+    authorize!(:view_approved_cas)
+
+    render_json_without_messages(:count => Pki.count)
+  end
+
+  def can_see_details
+    render_details_visibility(:view_approved_ca_details)
+  end
+
+  # -- Common GET methods - end ---
+
+  # -- Specific GET methods - start ---
 
   def pkis_refresh
     authorize!(:view_approved_cas)
@@ -35,16 +73,111 @@ class PkisController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
+  def get_intermediate_ca_temp_cert_details
+    authorize!(:add_approved_ca)
+
+    render_json(read_temp_cert(params[:intermediateCaTempCertId]))
+  end
+
+  def get_existing_intermediate_ca_cert_details
+    authorize!(:view_approved_ca_details)
+
+    intermediate_ca = CaInfo.find(params[:intermediateCaId])
+    cert_details = get_cert_data_from_bytes(intermediate_ca.cert)
+    render_json(cert_details)
+  end
+
+  def get_existing_intermediate_ca_cert_dump_and_hash
+    authorize!(:view_approved_ca_details)
+
+    intermediate_ca = CaInfo.find(params[:intermediateCaId])
+    render_cert_dump_and_hash(intermediate_ca.cert)
+  end
+
+  def get_top_ca_cert_details
+    authorize!(:view_approved_ca_details)
+
+    cert_bytes = get_top_ca_cert_bytes()
+    cert_details = get_cert_data_from_bytes(cert_bytes)
+    render_json(cert_details)
+  end
+
+  def get_top_ca_cert_dump_and_hash
+    authorize!(:view_approved_ca_details)
+
+    cert_bytes = get_top_ca_cert_bytes()
+    render_cert_dump_and_hash(cert_bytes)
+  end
+
+  def get_name_extractor_data
+    authorize!(:view_approved_ca_details)
+
+    pki = Pki.find(params[:pkiId])
+    render_json({
+      :auth_only => pki.authentication_only,
+      :member_class => pki.name_extractor_member_class,
+      :method_name => pki.name_extractor_method_name
+    })
+  end
+
+  def get_ocsp_infos
+    authorize!(:view_approved_ca_details)
+
+    ca = CaInfo.find(params[:caId])
+    ocsp_infos = []
+
+    ca.ocsp_infos.each do |each|
+      ocsp_infos << {
+        :id => each.id,
+        :url => each.url,
+        :has_cert => each.cert != nil
+      }
+    end
+
+    render_json(ocsp_infos)
+  end
+
+  def get_existing_ocsp_cert_details
+    authorize!(:view_approved_ca_details)
+
+    ocsp_info = OcspInfo.find(params[:ocspInfoId])
+    render_cert_dump_and_hash(ocsp_info.cert)
+  end
+
+  def get_intermediate_cas
+    authorize!(:view_approved_ca_details)
+
+    pki = Pki.find(params[:pkiId])
+    intermediate_cas = []
+
+    pki.intermediate_cas.each do |each|
+      cert_data = get_cert_data_from_bytes(each.cert)
+
+      intermediate_cas << {
+        :id => each.id,
+        :intermediate_ca => cert_data[:subject],
+        :valid_from => cert_data[:valid_from],
+        :valid_to => cert_data[:expires]
+      }
+    end
+
+    render_json(intermediate_cas)
+  end
+
+  # -- Specific GET methods - end ---
+
+  # -- Specific POST methods - start ---
+
   def upload_top_ca_cert
     authorize!(:add_approved_ca)
 
     cert_data = upload_cert(params[:upload_top_ca_cert_file])
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "uploadCallbackPkiAddTopCaCert")
+    upload_success(cert_data, "SDSB_PKI_COMMON.uploadCallbackPkiAddTopCaCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "uploadCallbackPkiAddTopCaCert")
+    upload_error(nil, "SDSB_PKI_COMMON.uploadCallbackPkiAddTopCaCert")
   end
 
   def upload_ocsp_responder_cert
@@ -54,10 +187,11 @@ class PkisController < ApplicationController
 
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "uploadCallbackPkiAddOcspResponderCert")
+    upload_success(cert_data,
+        "SDSB_PKI_COMMON.uploadCallbackPkiAddOcspResponderCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "uploadCallbackPkiAddOcspResponderCert")
+    upload_error(nil, "SDSB_PKI_COMMON.uploadCallbackPkiAddOcspResponderCert")
   end
 
   def upload_intermediate_ca_cert
@@ -67,14 +201,12 @@ class PkisController < ApplicationController
 
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "uploadCallbackPkiAddIntermediateCaCert")
+    upload_success(cert_data,
+        "SDSB_PKI_COMMON.uploadCallbackPkiAddIntermediateCaCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "uploadCallbackPkiAddIntermediateCaCert")
-  end
-
-  def get_cert_details_by_id
-    render_cert_details_by_id(:view_approved_cas)
+    upload_error(nil,
+        "SDSB_PKI_COMMON.uploadCallbackPkiAddIntermediateCaCert")
   end
 
   def save_new_pki
@@ -125,110 +257,7 @@ class PkisController < ApplicationController
     render_json()
   end
 
-  def get_intermediate_ca_temp_cert_details
-    authorize!(:add_approved_ca)
-
-    render_json(read_temp_cert(params[:intermediateCaTempCertId]))
-  end
-
-  def get_existing_intermediate_ca_cert_details
-    authorize!(:edit_approved_ca)
-
-    intermediate_ca = CaInfo.find(params[:intermediateCaId])
-    cert_details = get_cert_data_from_bytes(intermediate_ca.cert)
-    render_json(cert_details)
-  end
-
-  def get_existing_intermediate_ca_cert_dump_and_hash
-    authorize!(:edit_approved_ca)
-
-    intermediate_ca = CaInfo.find(params[:intermediateCaId])
-    render_cert_dump_and_hash(intermediate_ca.cert)
-  end
-
-  def get_top_ca_cert_details
-    authorize!(:edit_approved_ca)
-
-    cert_bytes = get_top_ca_cert_bytes()
-    cert_details = get_cert_data_from_bytes(cert_bytes)
-    render_json(cert_details)
-  end
-
-  def get_top_ca_cert_dump_and_hash
-    authorize!(:edit_approved_ca)
-
-    cert_bytes = get_top_ca_cert_bytes()
-    render_cert_dump_and_hash(cert_bytes)
-  end
-
-  def get_name_extractor_data
-    authorize!(:edit_approved_ca)
-
-    pki = Pki.find(params[:pkiId])
-    render_json({
-      :auth_only => pki.authentication_only,
-      :member_class => pki.name_extractor_member_class,
-      :method_name => pki.name_extractor_method_name
-    })
-  end
-
-  def get_ocsp_infos
-    authorize!(:edit_approved_ca)
-
-    ca = CaInfo.find(params[:caId])
-    ocsp_infos = []
-
-    ca.ocsp_infos.each do |each|
-      ocsp_infos << {
-        :id => each.id,
-        :url => each.url,
-        :has_cert => each.cert != nil
-      }
-    end
-
-    render_json(ocsp_infos)
-  end
-
-  def get_existing_ocsp_cert_details
-    authorize!(:edit_approved_ca)
-
-    ocsp_info = OcspInfo.find(params[:ocspInfoId])
-    render_cert_dump_and_hash(ocsp_info.cert)
-  end
-
-  def get_intermediate_cas
-    authorize!(:edit_approved_ca)
-
-    pki = Pki.find(params[:pkiId])
-    intermediate_cas = []
-
-    pki.intermediate_cas.each do |each|
-      cert_data = get_cert_data_from_bytes(each.cert)
-
-      intermediate_cas << {
-        :id => each.id,
-        :intermediate_ca => cert_data[:subject],
-        :valid_from => cert_data[:valid_from],
-        :valid_to => cert_data[:expires]
-      }
-    end
-
-    render_json(intermediate_cas)
-  end
-
-  def set_editing_pki
-    session[:editing_pki] = true
-    render_json()
-  end
-
-  def clear_editing_pki
-    session[:editing_pki] = nil
-    render_json()
-  end
-
-  def get_records_count
-    render_json(:count => Pki.count)
-  end
+  # -- Specific POST methods - end ---
 
   private
 
@@ -237,7 +266,7 @@ class PkisController < ApplicationController
     result.cert = get_temp_cert_from_session(temp_cert_id)
     result.ocsp_infos = ocsp_infos
 
-    result
+    return result
   end
 
   # Parameter may be either String representing JSON array request parameter or
@@ -249,7 +278,7 @@ class PkisController < ApplicationController
     raw_ocsp_infos.each do |each|
       temp_ocsp_cert_id = each["ocspTempCertId"]
 
-      url = each["url"]
+      url = each["url"].strip()
       logger.debug("OCSP - url: '#{url}',"\
           " temp cert id: '#{temp_ocsp_cert_id}'")
 
@@ -281,10 +310,12 @@ class PkisController < ApplicationController
     pki_param = JSON.parse(params[:pki])
     pki = Pki.find(pki_param["id"])
     pki.authentication_only = pki_param["authOnly"]
-    pki.name_extractor_member_class = pki_param["nameExtractorMemberClass"]
-    pki.name_extractor_method_name = pki_param["nameExtractorMethodName"]
+    pki.name_extractor_member_class =
+        pki_param["nameExtractorMemberClass"].strip()
+    pki.name_extractor_method_name =
+        pki_param["nameExtractorMethodName"].strip()
 
-    pki
+    return pki
   end
 
   def edit_ocsp_infos(pki)
@@ -317,7 +348,7 @@ class PkisController < ApplicationController
 
     ocsp_infos_to_update.each do |each|
       ocsp_info_to_update = OcspInfo.find(each["id"])
-      ocsp_info_to_update.url = each["url"]
+      ocsp_info_to_update.url = each["url"].strip()
       update_ocsp_cert(ocsp_info_to_update, each)
 
       ocsp_info_to_update.save!
@@ -330,7 +361,7 @@ class PkisController < ApplicationController
     ocsp_infos_to_add.each do |each|
       new_ocsp_info = OcspInfo.new()
       new_ocsp_info.ca_info_id = each["caInfoId"]
-      new_ocsp_info.url = each["url"]
+      new_ocsp_info.url = each["url"].strip()
       update_ocsp_cert(new_ocsp_info, each)
 
       new_ocsp_info.save!
@@ -421,7 +452,7 @@ class PkisController < ApplicationController
 
   def get_top_ca_cert_bytes
     pki = Pki.find(params[:pkiId])
-    pki.top_ca.cert
+    return pki.top_ca.cert
   end
 
   def get_pki_list_column(index)

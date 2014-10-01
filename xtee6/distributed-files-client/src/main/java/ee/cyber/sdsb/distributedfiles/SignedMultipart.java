@@ -4,28 +4,26 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static ee.cyber.sdsb.common.util.CryptoUtils.decodeBase64;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
 
+@Getter
+@Slf4j
 class SignedMultipart extends AbstractMultipartContentHandler {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignedMultipart.class);
+    private byte[] signedData;
+    private String signedDataContentType;
 
-    @Getter private byte[] signedData;
-    @Getter private String signedDataContentType;
-
-    @Getter private byte[] signatureValue;
-    @Getter private String signatureAlgoId;
+    private byte[] signatureValue;
+    private String signatureAlgoId;
 
     SignedMultipart(MimeStreamParser parser) {
         super(parser);
@@ -49,12 +47,12 @@ class SignedMultipart extends AbstractMultipartContentHandler {
     public void body(BodyDescriptor bd, InputStream is)
             throws MimeException, IOException {
         if (signedData == null) {
-            LOG.trace("Reading signed data");
+            log.trace("Reading signed data");
 
             signedDataContentType = getHeader(HEADER_CONTENT_TYPE);
             signedData = IOUtils.toByteArray(is);
         } else if (signatureValue == null) {
-            LOG.trace("Reading signature value");
+            log.trace("Reading signature value");
 
             signatureAlgoId = getHeader(HEADER_SIG_ALGO_ID);
             signatureValue = decodeBase64(IOUtils.toString(is));

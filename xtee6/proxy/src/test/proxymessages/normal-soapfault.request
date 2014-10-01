@@ -3,7 +3,7 @@ Content-Type: text/xml
 
 <?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
-    xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd">
+    xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
     <SOAP-ENV:Body>
         <SOAP-ENV:Fault>
             <faultcode>CODE</faultcode>

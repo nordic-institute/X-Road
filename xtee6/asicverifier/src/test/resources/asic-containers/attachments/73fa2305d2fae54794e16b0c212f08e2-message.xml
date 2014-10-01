@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-rd.net/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xrd:consumer>consumer</xrd:consumer>
+        <xrd:producer>producer</xrd:producer>
+        <xrd:userId>EE37702211234</xrd:userId>
+        <xrd:id>1234567890</xrd:id>
+        <xrd:service>producer.test</xrd:service>
+        <xrd:issue>issue</xrd:issue>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:test xmlns:ns1="http://cosumer.ee.x-rd.net"/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -1,0 +1,1 @@
+sdsb	ALL=(root) NOPASSWD: /usr/share/sdsb/scripts/restore_sdsb_real.sh

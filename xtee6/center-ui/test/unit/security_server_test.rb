@@ -11,7 +11,7 @@ class SecurityServerTest < ActiveSupport::TestCase
       :member_code => "member_client",
       :name => "Owner name",
       :administrative_contact => "a@example.com")
-    
+
     subsystem_client = Subsystem.create!(
       :sdsb_member => sdsb_member_client,
       :subsystem_code => "subsystem_client")
@@ -32,14 +32,14 @@ class SecurityServerTest < ActiveSupport::TestCase
     first_client_identifier = first_request.sec_serv_user
     assert_equal("member_client", first_client_identifier.member_code)
     assert_equal("This member should belong to group 'vallavalitsused'",
-        first_request.get_server_owner_name())
+        first_request.server_owner_name)
 
     second_request = client_deletion_requests[1]
     second_client_identifier = second_request.sec_serv_user
     assert_equal("member_client", second_client_identifier.member_code)
     assert_equal("subsystem_client", second_client_identifier.subsystem_code)
     assert_equal("This member should belong to group 'vallavalitsused'",
-        second_request.get_server_owner_name())
+        second_request.server_owner_name)
   end
 
   test "Should preserve owner name in request after owner deleted" do
@@ -70,7 +70,7 @@ class SecurityServerTest < ActiveSupport::TestCase
     assert_equal(1, auth_cert_deletion_requests.size)
 
     deletion_request = auth_cert_deletion_requests[0]
-    assert_equal("Owner name", deletion_request.get_server_owner_name())
+    assert_equal("Owner name", deletion_request.server_owner_name)
   end
 
   test "Should register auth cert deletion requests when destroyed" do
@@ -101,5 +101,51 @@ class SecurityServerTest < ActiveSupport::TestCase
   def get_owner
     id = ActiveRecord::Fixtures.identify(:member_in_vallavalitsused)
     SdsbMember.find(id)
+  end
+
+  test "Should remove owner from owners group if only one owned server" do
+    # Given
+    deletable_server = SecurityServer.find(
+        ActiveRecord::Fixtures.identify(:security_server))
+
+    # When
+    SecurityServer.destroy(deletable_server)
+
+    # Then
+    owners_group = GlobalGroup.find(
+        ActiveRecord::Fixtures.identify(:server_owners))
+    assert_equal(1, owners_group.member_count) # 2 was before
+
+    members = owners_group.global_group_members
+    assert_equal(1, members.size)
+
+    member = members[0]
+    assert_equal("member_out_of_vallavalitsused",
+        member.group_member.member_code)
+  end
+
+  test "Owner should stay in owners group if owner has more than one server" do
+    # Given
+    deletable_server = SecurityServer.find(
+        ActiveRecord::Fixtures.identify(:tuumaserver))
+
+    # When
+    SecurityServer.destroy(deletable_server)
+
+    # Then
+    owners_group = GlobalGroup.find(
+        ActiveRecord::Fixtures.identify(:server_owners))
+    assert_equal(2, owners_group.member_count) # unchanged
+
+    members = owners_group.global_group_members
+    assert_equal(2, members.size)
+
+    member1 = members[0]
+    assert_equal("member_out_of_vallavalitsused",
+        member1.group_member.member_code)
+
+    member2 = members[1]
+    assert_equal("member_in_vallavalitsused",
+        member2.group_member.member_code)
   end
 end

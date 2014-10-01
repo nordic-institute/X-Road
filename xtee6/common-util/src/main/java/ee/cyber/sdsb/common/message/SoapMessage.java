@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.common.message;
 
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
 
 /**
  * Describes a Soap message that is received from the client or service.
@@ -9,9 +8,9 @@ import javax.xml.soap.SOAPException;
 public interface SoapMessage extends Soap {
 
     /**
-     * Returns the body element of the underlying SOAP message.
+     * Returns the underlying SOAPMessage object.
      */
-    SOAPBody getBody() throws SOAPException;
+    SOAPMessage getSoap();
 
     /**
      * Returns the original charset of the message.

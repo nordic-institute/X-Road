@@ -15,7 +15,6 @@ import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 import ee.cyber.xroad.mediator.common.MediatorRequest;
 import ee.cyber.xroad.mediator.common.MediatorResponse;
 import ee.cyber.xroad.mediator.service.wsdlmerge.merger.WSDLProvider;
-import ee.cyber.xroad.mediator.service.wsdlmerge.merger.WSDLStreamsMerger;
 import ee.cyber.xroad.mediator.service.wsdlmerge.merger.WSDLsMerger;
 
 /**
@@ -42,7 +41,7 @@ public class WSDLMergeRequestProcessor implements MediatorMessageProcessor {
         LOG.info("WSDL urls for client '{}': '{}'", clientId, wsdlUrls);
 
         WSDLsMerger merger = new WSDLsMerger(
-                wsdlUrls, new WSDLProvider(), clientId, new WSDLStreamsMerger());
+                wsdlUrls, new WSDLProvider(), clientId);
 
         try (InputStream is = merger.getMergedWsdlAsStream()) {
             IOUtils.copy(is, response.getOutputStream());

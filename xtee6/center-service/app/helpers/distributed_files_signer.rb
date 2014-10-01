@@ -16,7 +16,6 @@ class DistributedFilesSigner
     DistributedFiles.all.each do |distributed_file|
       data << "--#{file_boundary}"
       data << "Content-File-Name: #{distributed_file.file_name}"
-      # TODO: Consider base64 encoding the file data 
       data << "" << distributed_file.file_data
     end
 
@@ -43,8 +42,11 @@ class DistributedFilesSigner
     signature = SignerHelper.sign(sign_key_id, sig_algo_id, data)
 
     DistributedSignedFiles.delete_all
-    DistributedSignedFiles.create(data: data, data_boundary: data_boundary,
-      signature: signature, sig_algo_id: sig_algo_id)
+    DistributedSignedFiles.create(
+        :data => data,
+        :data_boundary => data_boundary,
+        :signature => signature,
+        :sig_algo_id => sig_algo_id)
   end
 
 end

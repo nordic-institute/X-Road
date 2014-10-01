@@ -16,7 +16,6 @@ public class SoapFaultToClientProxy extends MessageTestCase {
 
     @Override
     protected void validateFaultResponse(Message receivedResponse) {
-        // TODO: better error code!
         assertErrorCode(CLIENT_X, "CODE");
 
     }

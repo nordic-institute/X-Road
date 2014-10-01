@@ -1,9 +1,11 @@
 <%= dialog "group_details_dialog" do %>
   <div class="fill">
-    <p><%= t 'client_groups_dialog.description' %></p>
+    <p><%= t 'clients.client_groups_dialog.description' %></p>
     <div style="margin: 0.5em 0;">
       <input id="group_details_description" type="text" style="width: 80%;" readonly="true"/>
+      <% if can?(:edit_local_group_desc) %>
       <button id="edit" class="right"><%= t '.edit' %></button>
+      <% end %>
       <div class="clearer"></div>
     </div>
 
@@ -18,37 +20,17 @@
       <div class="clearer"></div>
 
       <div class="simple_search">
-        <a href="#"><%= t '.advanced_search' %></a>
+        <a href="#"><%= t 'common.advanced_search' %></a>
       </div>
 
       <div class="advanced_search">
         <fieldset style="width: 30%; padding: 0 1em;">
-          <legend><%= t '.advanced_search_parameters' %></legend>
+          <legend><%= t 'common.advanced_search' %></legend>
 
           <table style="width: 100%;">
             <tr>
               <td><%= t 'clients.group_details_dialog.name' %></td>
               <td><%= text_field_tag nil %></td>
-            </tr>
-            <tr>
-              <td><%= t 'clients.group_details_dialog.code' %></td>
-              <td><%= text_field_tag nil %></td>
-            </tr>
-            <tr>
-              <td><%= t 'clients.group_details_dialog.class' %></td>
-              <td><%= select_tag nil, options_for_select(@member_classes),
-                      :include_blank => true %></td>
-            </tr>
-            <tr>
-              <td><%= t 'clients.group_details_dialog.subsystem' %></td>
-              <td><%= text_field_tag nil %></td>
-            </tr>
-            <tr>
-              <td><%= t 'clients.group_details_dialog.sdsb' %></td>
-              <td>
-                <%= select_tag nil, options_for_select(@instances),
-                    :include_blank => true %>
-              </td>
             </tr>
             <tr>
               <td><%= t 'clients.group_details_dialog.type' %></td>
@@ -58,7 +40,28 @@
               </td>
             </tr>
             <tr>
+              <td><%= t 'clients.group_details_dialog.sdsb' %></td>
+              <td>
+                <%= select_tag nil, options_for_select(@instances),
+                    :include_blank => true %>
+              </td>
+            </tr>
+            <tr>
+              <td><%= t 'clients.group_details_dialog.class' %></td>
+              <td><%= select_tag nil, options_for_select(@member_classes),
+                      :include_blank => true %></td>
+            </tr>
+            <tr>
+              <td><%= t 'clients.group_details_dialog.code' %></td>
+              <td><%= text_field_tag nil %></td>
+            </tr>
+            <tr>
+              <td><%= t 'clients.group_details_dialog.subsystem' %></td>
+              <td><%= text_field_tag nil %></td>
+            </tr>
+            <tr>
               <td colspan="2">
+                <button class="search"><%= t 'common.search' %></button>
                 <button class="clear"><%= t 'common.clear' %></button>
               </td>
             </tr>
@@ -73,11 +76,7 @@
       <thead>
         <tr>
           <th><%= t '.name' %></th>
-          <th><%= t '.code' %></th>
-          <th><%= t '.class' %></th>
-          <th><%= t '.subsystem' %></th>
-          <th><%= t '.sdsb' %></th>
-          <th><%= t '.type' %></th>
+          <th>ID</th>
           <th><%= t '.added' %></th>
         </tr>
       </thead>
@@ -85,14 +84,18 @@
   </div>
 
   <div style="margin: 1em 0 0.5em 0;">
+    <% if can?(:delete_local_group) %>
     <button id="group_delete" class="left"><%= t '.delete_group' %></button>
+    <% end %>
+    <% if can?(:edit_local_group_members) %>
     <button id="group_members_remove_selected" class="right"><%= t '.remove_selected_members' %></button>
     <button id="group_members_add" class="right"><%= t '.add_members' %></button>
+    <% end %>
     <div class="clearer"></div>
   </div>
 <% end %>
 
-<%= dialog "group_description_edit_dialog", t('.edit') do %>
+<%= dialog "group_description_edit_dialog", t('.edit_title') do %>
   <textarea id="group_description_edit"></textarea>
 <% end %>
 

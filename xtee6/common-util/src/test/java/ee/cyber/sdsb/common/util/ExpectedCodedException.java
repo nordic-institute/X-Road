@@ -109,10 +109,8 @@ public class ExpectedCodedException implements TestRule {
                             expected, e.getFaultCode());
                 }
                 return;
-            } catch (Throwable th) {
-                fail("Test threw " + th.getClass().getName() +
-                        " instead of CodedException");
             }
+
             if (expected != null) {
                 fail("Expected test to throw CodedException with " +
                     (expectedSuffix ? "error code suffix " : "error code ") +

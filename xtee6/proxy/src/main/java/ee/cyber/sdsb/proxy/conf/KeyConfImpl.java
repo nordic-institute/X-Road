@@ -1,6 +1,6 @@
 package ee.cyber.sdsb.proxy.conf;
 
-import java.io.OutputStream;
+import java.io.File;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
@@ -9,43 +9,44 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.conf.AuthKey;
+import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.util.FileContentChangeChecker;
 import ee.cyber.sdsb.proxy.signedmessage.SignerSigningKey;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 import ee.cyber.sdsb.signer.protocol.dto.AuthKeyInfo;
-import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
 import ee.cyber.sdsb.signer.protocol.dto.MemberSigningInfo;
 import ee.cyber.sdsb.signer.protocol.message.GetAuthKey;
-import ee.cyber.sdsb.signer.protocol.message.GetMemberCerts;
-import ee.cyber.sdsb.signer.protocol.message.GetMemberCertsResponse;
 import ee.cyber.sdsb.signer.protocol.message.GetMemberSigningInfo;
+import ee.cyber.sdsb.signer.protocol.message.GetOcspResponses;
+import ee.cyber.sdsb.signer.protocol.message.GetOcspResponsesResponse;
+import ee.cyber.sdsb.signer.protocol.message.SetOcspResponses;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.sdsb.common.util.CryptoUtils.loadKeyStore;
-import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
+import static ee.cyber.sdsb.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.cyber.sdsb.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static ee.cyber.sdsb.common.util.CertUtils.getCertHashes;
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
 /**
  * Encapsulates KeyConf related functionality.
- *
- * TODO: Better code, optimizations and caching
  */
+@Slf4j
 public class KeyConfImpl implements KeyConfProvider {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(KeyConfImpl.class);
 
     private final FileContentChangeChecker keyConfChangeChecker;
 
     private final Map<ClientId, SigningCtx> signingCtxCache = new HashMap<>();
-    private final Map<ClientId, List<X509Certificate>> memberCertsCache =
-            new HashMap<>();
+
     private AuthKey authKey = new AuthKey(null, null);
 
     protected KeyConfImpl() throws Exception {
@@ -56,15 +57,14 @@ public class KeyConfImpl implements KeyConfProvider {
     @Override
     public SigningCtx getSigningCtx(ClientId clientId) {
         if (hasChanged() || !signingCtxCache.containsKey(clientId)) {
-            LOG.debug("Retrieving signing info for member '{}'", clientId);
+            log.debug("Retrieving signing info for member '{}'", clientId);
             try {
-                MemberSigningInfo signingInfo =
-                        SignerClient.execute(
-                                new GetMemberSigningInfo(clientId));
+                MemberSigningInfo signingInfo = SignerClient.execute(
+                        new GetMemberSigningInfo(clientId));
 
-                X509Certificate cert = readCertificate(signingInfo.getCert());
-                SigningCtx ctx = new SigningCtxImpl(
-                        new SignerSigningKey(signingInfo.getKeyId()), cert);
+                SigningCtx ctx = createSigningCtx(signingInfo.getKeyId(),
+                        signingInfo.getCert().getCertificateBytes());
+
                 signingCtxCache.put(clientId, ctx);
                 return ctx;
             } catch (Exception e) {
@@ -81,63 +81,41 @@ public class KeyConfImpl implements KeyConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getMemberCerts(ClientId clientId)
-            throws Exception {
-        if (hasChanged() || !memberCertsCache.containsKey(clientId)) {
-            try {
-                GetMemberCertsResponse response = SignerClient.execute(
-                        new GetMemberCerts(clientId));
-                List<X509Certificate> certs = new ArrayList<>();
-                for (CertificateInfo certInfo : response.getCerts()) {
-                    if (certInfo.isActive()) { // XXX: only active certs?
-                        certs.add(readCertificate(
-                                certInfo.getCertificateBytes()));
-                    }
-                }
-
-                memberCertsCache.put(clientId, certs);
-                return certs;
-            } catch (Exception e) {
-                throw translateWithPrefix(X_UNKNOWN_MEMBER, e);
-            }
-        } else if (memberCertsCache.containsKey(clientId)) {
-            return memberCertsCache.get(clientId);
-        }
-
-        throw new CodedException(
-                X_UNKNOWN_MEMBER, "Unknown member '%s'", clientId);
-    }
-
-    @Override
     public AuthKey getAuthKey() {
         if (hasChanged() || authKey.getKey() == null) {
+            PrivateKey pkey = null;
+            CertChain certChain = null;
             try {
-                AuthKeyInfo keyInfo = SignerClient.execute(
-                        new GetAuthKey(ServerConf.getIdentifier()));
+                SecurityServerId serverId = ServerConf.getIdentifier();
+                log.debug("Retrieving authentication info for security "
+                        + "server '{}'", serverId);
+
+                AuthKeyInfo keyInfo =
+                        SignerClient.execute(new GetAuthKey(serverId));
 
                 String alias = keyInfo.getAlias();
-                String keyStoreFile = keyInfo.getKeyStoreFileName();
+                File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
                 char[] password = keyInfo.getPassword();
 
-                LOG.trace("Loading authentication key from key store '{}'",
+                log.trace("Loading authentication key from key store '{}'",
                         keyStoreFile);
 
-                KeyStore ks = loadKeyStore("pkcs12", keyStoreFile, password);
-                PrivateKey pkey = (PrivateKey) ks.getKey(alias, password);
-                X509Certificate cert =
-                        readCertificate(keyInfo.getCertificateBytes());
+                KeyStore ks = loadPkcs12KeyStore(keyStoreFile, password);
 
-                if (cert == null) {
-                    LOG.warn("Failed to read authentication certificate");
-                }
-
+                pkey = (PrivateKey) ks.getKey(alias, password);
                 if (pkey == null) {
-                    LOG.warn("Failed to read authentication key");
+                    log.warn("Failed to read authentication key");
                 }
 
-                authKey = new AuthKey(cert, pkey);
+                certChain = getAuthCertChain(
+                        keyInfo.getCert().getCertificateBytes());
+                if (certChain == null) {
+                    log.warn("Failed to read authentication certificate");
+                }
             } catch (Exception e) {
-                LOG.error("Failed to get authentication key", e);
+                log.error("Failed to get authentication key", e);
+            } finally {
+                authKey = new AuthKey(certChain, pkey);
             }
         }
 
@@ -145,43 +123,84 @@ public class KeyConfImpl implements KeyConfProvider {
     }
 
     @Override
-    public X509Certificate getOcspSignerCert() throws Exception {
-        // TODO Implement, ask from Signer
+    public OCSPResp getOcspResponse(X509Certificate cert) throws Exception {
+        return getOcspResponse(calculateCertHexHash(cert));
+    }
+
+    @Override
+    public OCSPResp getOcspResponse(String certHash) throws Exception {
+        GetOcspResponsesResponse response =
+                SignerClient.execute(
+                        new GetOcspResponses(new String[] { certHash }));
+
+        for (String base64Encoded : response.getBase64EncodedResponses()) {
+            return base64Encoded != null ?
+                    new OCSPResp(decodeBase64(base64Encoded)) : null;
+        }
+
         return null;
     }
 
     @Override
-    public PrivateKey getOcspRequestKey(X509Certificate member)
+    public List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
             throws Exception {
-        // TODO Implement, ask from Signer
-        return null;
+        GetOcspResponsesResponse response =
+                SignerClient.execute(
+                        new GetOcspResponses(getCertHashes(certs)));
+
+        List<OCSPResp> ocspResponses = new ArrayList<>();
+        for (String base64Encoded : response.getBase64EncodedResponses()) {
+            if (base64Encoded != null) {
+                ocspResponses.add(new OCSPResp(decodeBase64(base64Encoded)));
+            } else {
+                ocspResponses.add(null);
+            }
+        }
+
+        return ocspResponses;
     }
 
     @Override
-    public boolean hasChanged() {
+    public void setOcspResponses(List<X509Certificate> certs,
+            List<OCSPResp> responses) throws Exception {
+        String[] base64EncodedResponses = new String[responses.size()];
+
+        for (int i = 0; i < responses.size(); i++) {
+            base64EncodedResponses[i] =
+                    encodeBase64(responses.get(i).getEncoded());
+        }
+
+        SignerClient.execute(new SetOcspResponses(getCertHashes(certs),
+                base64EncodedResponses));
+    }
+
+    boolean hasChanged() {
         try {
             boolean changed = keyConfChangeChecker.hasChanged();
-            LOG.debug("KeyConf has{} changed!", !changed ? " not" : "");
+            log.trace("KeyConf has{} changed!", !changed ? " not" : "");
             return changed;
         } catch (Exception e) {
-            LOG.error("Failed to check if key conf has changed", e);
+            log.error("Failed to check if key conf has changed", e);
             return true;
         }
     }
 
-    @Override
-    public void save() throws Exception {
-        throw new RuntimeException("Not implemented");
+    private static SigningCtx createSigningCtx(String keyId, byte[] certBytes)
+            throws Exception {
+        X509Certificate cert = readCertificate(certBytes);
+        return new SigningCtxImpl(new SignerSigningKey(keyId), cert);
     }
 
-    @Override
-    public void save(OutputStream out) throws Exception {
-        throw new RuntimeException("Not implemented");
-    }
+    private static CertChain getAuthCertChain(byte[] authCertBytes)
+            throws Exception {
+        X509Certificate authCert = readCertificate(authCertBytes);
+        try {
+            return GlobalConf.getCertChain(authCert);
+        } catch (Exception e) {
+            log.error("Failed to get cert chain for certificate "
+                    + authCert.getSubjectDN(), e);
+        }
 
-    @Override
-    public void load(String fileName) throws Exception {
-        throw new RuntimeException("Not implemented");
+        return null;
     }
-
 }

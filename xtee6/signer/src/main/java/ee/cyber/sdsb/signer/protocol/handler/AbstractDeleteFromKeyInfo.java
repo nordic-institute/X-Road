@@ -1,14 +1,19 @@
 package ee.cyber.sdsb.signer.protocol.handler;
 
+import lombok.extern.slf4j.Slf4j;
+
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.signer.core.TokenManager;
 import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
+import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
 import ee.cyber.sdsb.signer.protocol.dto.KeyInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
+import ee.cyber.sdsb.signer.protocol.message.DeleteCert;
 import ee.cyber.sdsb.signer.protocol.message.DeleteKey;
+import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.cyber.sdsb.common.ErrorCodes.X_CSR_NOT_FOUND;
 
+@Slf4j
 abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
 
     protected void deleteKeyOnTokenIfNoCertsOrCertRequests() {
@@ -17,8 +22,21 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
                 try {
                     deleteKeyIfNoCertsOrCertRequests(keyInfo.getId());
                 } catch (Exception e) {
-                    LOG.error("Failed to delete key '{}': {}",
+                    log.error("Failed to delete key '{}': {}",
                             keyInfo.getId(), e);
+                }
+            }
+        }
+    }
+
+    protected void deleteCertOnToken(DeleteCert message) {
+        for (TokenInfo tokenInfo : TokenManager.listTokens()) {
+            for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
+                for (CertificateInfo certInfo : keyInfo.getCerts()) {
+                    if (message.getCertId().equals(certInfo.getId())) {
+                        tellTokenWorker(message, tokenInfo.getId());
+                        return;
+                    }
                 }
             }
         }
@@ -33,12 +51,12 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
         if (keyId != null) {
             deleteKeyIfNoCertsOrCertRequests(keyId);
 
-            LOG.info("Deleted certificate request under key '{}'", keyId);
+            log.info("Deleted certificate request under key '{}'", keyId);
             return success();
         }
 
-        throw new CodedException(X_KEY_NOT_FOUND,
-                "Certificate request '%s' not found", certId);
+        throw CodedException.tr(X_CSR_NOT_FOUND,
+                "csr_not_found", "Certificate request '%s' not found", certId);
     }
 
     private boolean hasCertsOrCertRequests(String keyId) throws Exception {
@@ -52,7 +70,7 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
             String tokenId = TokenManager.findTokenIdForKeyId(keyId);
             deleteKeyFile(tokenId, new DeleteKey(keyId));
             if (!TokenManager.removeKey(keyId)) {
-                LOG.warn("Did not remove key '{}' although it has no " +
+                log.warn("Did not remove key '{}' although it has no " +
                         "certificates or certificate requests", keyId);
             }
         }

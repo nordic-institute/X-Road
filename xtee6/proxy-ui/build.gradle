@@ -1,9 +1,7 @@
 dependencies {
+    compile project(':serverconf')
     compile project(':async-db')
     compile project(':common-ui')
-    compile project(':common-util')
-    compile project(':common-verifier')
-    compile project(':signer-protocol')
 
     compile 'wsdl4j:wsdl4j:1.6.3'
 }
@@ -15,6 +13,7 @@ clean << {
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
+    exclude '**/build/**'
 }
 
 task copyDeps(dependsOn: copyCommon, type: Copy) {

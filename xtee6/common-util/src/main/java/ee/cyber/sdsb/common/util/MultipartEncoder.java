@@ -8,7 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.RandomStringUtils;
+
+import static ee.cyber.sdsb.common.util.MimeUtils.randomBoundary;
 
 public class MultipartEncoder {
 
@@ -24,7 +25,7 @@ public class MultipartEncoder {
     protected boolean inPart = false;
 
     public MultipartEncoder(OutputStream out) {
-        this(out, generateBoundary());
+        this(out, randomBoundary());
     }
 
     public MultipartEncoder(OutputStream out, String topBoundary) {
@@ -41,8 +42,15 @@ public class MultipartEncoder {
         return MimeUtils.mpMixedContentType(topBoundary);
     }
 
+    /**
+     * Returns top-level boundary.
+     */
+    public String getBoundary() {
+        return topBoundary;
+    }
+
     public void startNested() throws IOException {
-        startNested(generateBoundary());
+        startNested(randomBoundary());
     }
 
     public void startNested(String boundary) throws IOException {
@@ -117,9 +125,5 @@ public class MultipartEncoder {
 
     private void writeString(String string) throws IOException {
         out.write(string.getBytes(StandardCharsets.ISO_8859_1));
-    }
-
-    private static String generateBoundary() {
-        return RandomStringUtils.randomAlphabetic(24);
     }
 }

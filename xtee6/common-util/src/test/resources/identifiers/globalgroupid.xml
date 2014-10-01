@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <sdsb:group id:objectType="GLOBALGROUP"
-        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
-        xmlns:id="http://sdsb.net/xsd/identifiers">
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
     <id:sdsbInstance>EE</id:sdsbInstance>
     <id:groupCode>perearstid</id:groupCode>
 </sdsb:group>

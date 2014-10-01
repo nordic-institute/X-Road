@@ -4,13 +4,14 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 
-import ee.cyber.sdsb.common.util.MimeUtils;
+import static ee.cyber.sdsb.common.util.MimeUtils.contentTypeWithCharset;
+import static ee.cyber.sdsb.common.util.MimeUtils.mpRelatedContentType;
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 /**
  * Encodes SOAP with attachments as MIME multipart.
@@ -24,7 +25,7 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
     }
 
     public String getContentType() {
-        return MimeUtils.mpRelatedContentType(multipart.getBoundary());
+        return mpRelatedContentType(multipart.getBoundary());
     }
 
     @Override
@@ -34,10 +35,9 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
 
     @Override
     public void soap(SoapMessage soapMessage) throws Exception {
-        // TODO: other headers.
-        // TODO: charset.
-        multipart.startPart(MimeUtils.TEXT_XML_UTF8);
-        multipart.write(soapMessage.getXml().getBytes(StandardCharsets.UTF_8));
+        String charset = soapMessage.getCharset();
+        multipart.startPart(contentTypeWithCharset(TEXT_XML, charset));
+        multipart.write(soapMessage.getXml().getBytes(charset));
     }
 
     @Override
@@ -52,12 +52,10 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
         IOUtils.copy(content, multipart);
     }
 
-    private static String[] convertHeaders(
-            Map<String, String> headers) {
+    private static String[] convertHeaders(Map<String, String> headers) {
         String[] ret = new String[headers.size()];
         int idx = 0;
         for (Map.Entry<String, String> entry: headers.entrySet()) {
-            // TODO: should we escape the keys/values somehow?
             ret[idx++] = entry.getKey() + ": " + entry.getValue();
         }
 

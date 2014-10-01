@@ -39,17 +39,22 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     result = SecurityServerClient.get_clients(query_params)
 
     # Then
-    assert_equal(2, result.size)
+    assert_equal(3, result.size)
 
     first_identifier = result[0][:identifier]
     second_identifier = result[1][:identifier]
+    third_identifier = result[2][:identifier]
 
-    assert_equal("subsystem_in_vallavalitsused", first_identifier.subsystem_code)
-    assert_equal("subsystem_out_of_vallavalitsused", second_identifier.subsystem_code)
+    assert_equal("subsystem_as_server_client",
+        first_identifier.subsystem_code)
+    assert_equal("subsystem_in_vallavalitsused",
+        second_identifier.subsystem_code)
+    assert_equal("subsystem_out_of_vallavalitsused",
+        third_identifier.subsystem_code)
   end
 
   test "Get all clients count" do
-    assert_equal(4, SecurityServerClient.get_clients_count(""))
+    assert_equal(6, SecurityServerClient.get_clients_count(""))
   end
 
   test "Search name from all clients" do
@@ -98,30 +103,29 @@ class SecurityServerClientTest < ActiveSupport::TestCase
         get_remaining_clients_for_group(@group_id, query_params)
 
     #Then
-    assert_equal(2, result.size)
+    assert_equal(4, result.size)
 
-    member = result[0]
-    member_id = member[:identifier]
-    member_name = member[:name]
+    first_member = result[0]
+    first_member_id = first_member[:identifier]
+    first_member_name = first_member[:name]
+
+    assert_equal("Testing member as server client",
+        first_member_name)
+    assert_equal("member_as_server_client", first_member_id.member_code)
+    assert_nil(first_member_id.subsystem_code)
+
+    second_member = result[1]
+    second_member_id = second_member[:identifier]
+    second_member_name = second_member[:name]
 
     assert_equal("This member should NOT belong to group 'vallavalitsused'",
-        member_name)
-    assert_equal("member_out_of_vallavalitsused", member_id.member_code)
-    assert_nil(member_id.subsystem_code)
-
-    subsystem = result[1]
-    subsystem_id = subsystem[:identifier]
-    subsystem_name = subsystem[:name]
-
-    assert_equal("This member should belong to group 'vallavalitsused'",
-        subsystem_name)
-    assert_equal("member_in_vallavalitsused", subsystem_id.member_code)
-    assert_equal("subsystem_out_of_vallavalitsused",
-        subsystem_id.subsystem_code)
+        second_member_name)
+    assert_equal("member_out_of_vallavalitsused", second_member_id.member_code)
+    assert_nil(second_member_id.subsystem_code)
   end
 
   test "Get count of all clients not in group" do
-    assert_equal(2,
+    assert_equal(4,
         SecurityServerClient.get_remaining_clients_count(@group_id, ""))
   end
 
@@ -132,7 +136,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
   test "Get remaining members for empty group" do
     empty_group_id = ActiveRecord::Fixtures.identify(:tyhigrupp)
-    assert_equal(4,
+    assert_equal(6,
         SecurityServerClient.get_remaining_clients_count(empty_group_id, ""))
   end
 
@@ -206,9 +210,9 @@ class SecurityServerClientTest < ActiveSupport::TestCase
         get_clients(query_params)
 
     # Then
-    assert_equal(3, result.size)
+    assert_equal(5, result.size)
 
-    # XXX String ordering in SQLite seems to be case sensitive. As with Postgres
+    # String ordering in SQLite seems to be case sensitive. As with Postgres
     # string ordering is insensitive, this test may fail when using PostgreSQL
     # in test environment.
     assert_equal("This member should belong to group 'vallavalitsused'",
@@ -268,13 +272,46 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     client_deletion_requests = ClientDeletionRequest.all
     assert_equal(2, client_deletion_requests.size)
 
+    member_in_vallavalitsused_name = 
+        "This member should belong to group 'vallavalitsused'"
+
     member_request = client_deletion_requests[0]
     assert_equal("securityServer", member_request.security_server.server_code)
     assert_equal("memberToDestroy", member_request.sec_serv_user.member_code)
+    assert_equal("memberToDestroy", member_request.sec_serv_user.member_code)
+    assert_equal(member_in_vallavalitsused_name,
+        member_request.server_owner_name)
+    assert_equal("DeletableName", member_request.server_user_name)
 
     subsystem_request = client_deletion_requests[1]
     assert_equal("subsystemToDestroy",
         subsystem_request.sec_serv_user.subsystem_code)
+    assert_equal(member_in_vallavalitsused_name,
+        subsystem_request.server_owner_name)
+    assert_equal("DeletableName", subsystem_request.server_user_name)
+  end
+
+  test "Should get addable clients for the server" do
+    # Given
+    query_params = ListQueryParams.new(
+            "identifiers.subsystem_code","asc", 0, 10, "")
+
+    # When
+    clients = SecurityServerClient.get_addable_clients_for_server(
+        "securityServer", query_params)
+
+    # Then
+    assert_equal(5, clients.size)
+
+    clients.each do |each|
+      identifier = each[:identifier]
+      assert_not_equal("subsystem_as_server_client", identifier.subsystem_code)
+    end
+  end
+
+  test "Should get addable clients count for the server" do
+    assert_equal(5, 
+        SecurityServerClient.get_addable_clients_count("securityServer", ""))
   end
 
   private

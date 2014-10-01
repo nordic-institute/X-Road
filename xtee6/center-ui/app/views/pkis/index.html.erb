@@ -1,7 +1,9 @@
 <% content_for :head do %>
   <%= javascript_include_tag "pkis" %>
+  <%= javascript_include_tag "pki_cache" %>
+  <%= javascript_include_tag "pki_common" %>
+  <%= javascript_include_tag "pki_new" %>
   <%= javascript_include_tag "pki_edit" %>
-  <%= javascript_include_tag "pki_edit_wizard_cache" %>
   <%= javascript_include_tag "certs_uploader" %>
   <%= javascript_include_tag "centerui_common" %>
 <% end %>
@@ -38,9 +40,5 @@
     <%= render :partial => "add_pki_step4_add_top_ca_ocsp_responders" %>
     <%= render :partial => "add_pki_step5_add_intermediate_cas" %>
     <%= render :partial => "intermediate_ca_edit_dialog" %>
-  </div>
-
-  <div id="pki_edit">
-    <%= render "edit" %>
   </div>
 <% end %>

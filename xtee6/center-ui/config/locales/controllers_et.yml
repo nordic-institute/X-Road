@@ -19,10 +19,10 @@ et:
     help:
       title: "Abi"
       version: "Versioon"
-    notimplemented: "TODO - Realiseerida!"
 
   common:
     auth_cert_imported: "Sertifikaat edukalt imporditud"
+    db_error: "Andmebaasi vahepeal taastati, palun proovi oma viimast tegevust uuesti."
 
   pki:
     index:
@@ -51,10 +51,9 @@ et:
 
   central_services:
     provider_not_found: "Teenusepakkujat ID-ga '%{provider_id}' ei leitud"
-    no_search_data: "Palun sisesta (osaliselt) teenusepakkuja nimi, kood, klass või alamsüsteem otsingu parameetrina."
     add:
       provider_not_found: "Teenusepakkujat ei leitud"
-      provider_with_no_service_code: "Ei saa salvestada tsentraalset teenust olemasoleva teenusepakkujaga, aga ilma teenuse koodita"
+      provider_with_no_service_code: "Teenuse kood puudub"
 
   identifiers:
     service_code_empty: "Teenuse kood ei tohi olla tühi"
@@ -66,6 +65,7 @@ et:
     delete_selected_members: "Valitud liikmed edukalt eemaldatud"
 
   members:
+    added: "Edukalt lisatud liige liikmeklassiga '%{member_class}' ja liikmekoodiga '%{member_code}'."
     server_already_exists: "Server omaniku klassi '%{member_class}', omaniku koodi '%{member_code}' ja serveri koodiga '%{server_code}' on juba olemas."
     server_code_blank: "Serveri kood ei saa olla tühi"
     auth_cert_request_added: "Uue autentimissertifikaadi päring turvaserverile '%{security_server}' lisatud edukalt"
@@ -79,10 +79,44 @@ et:
      add_auth_cert_deletion_request: "Request of deleting authentication certificate from existing security server '#{security_server_id}' added successfully"
 
   management_requests:
-    client_reg_request_canceled: "Edukalt tühistatud kliendi registreerimise päring id-ga '%{id}'"
-    auth_cert_reg_request_canceled: "Edukalt tühistatud autentimissertifikaadi registreerimise päring id-ga '%{id}'"
+    client_reg_request_revoked: "Edukalt tühistatud kliendi registreerimise päring id-ga '%{id}'"
+    auth_cert_reg_request_revoked: "Edukalt tühistatud autentimissertifikaadi registreerimise päring id-ga '%{id}'"
+    request_approved: "Taotlus id-ga '%{id}' edukalt jõustunud"
+    request_declined: "Taotlus id-ga '%{id}' edukalt tagasi lükatud"
 
   distributed_files:
-    invalid_xml: "Üleslaetud fail ei sisalda korrektselt XML-i. Kontrolli üleslaetud faili."
+    invalid_extension: "Üleslaadimine ebaõnnestus, ebakorrektne faili formaat. Ainult XML-failid on lubatud."
     identifier_mapping_uploaded: "Identifikaatorite teisendustabel on edukalt andmebaasi salvestatud."
+    signed_files:
+      type: "SIGNEERITUD FAILID"
+      description: "'%{file}' signeeritud %{time}"
+    identifier_mapping:
+      type: "IDENTIFIKAATORITE TEISENDUSTABEL"
+      description: "'%{file}' üles laetud %{time}"
+    global_conf:
+      type: "GLOBAALNE KONFIGURATSIOON"
+      description: "'%{file}' genereeritud %{time}"
 
+  import:
+    no_file: "Faili ei leitud."
+    file: "'%{file}' üles laetud %{time}"
+    label: "Versiooni 5.0 andmed"
+    execute:
+      success: "Import õnnestus"
+      warnings: "Import õnnestus mõnede hoiatustega, vaata detaile klikkides nupule 'Viimane tulemus'."
+      failure: "Import ebaõnnestus, vaata detaile klikkides nupule 'Viimane tulemus'."
+      other_error: "Importeri käivitamine ebaõnnestus, kontrolli, kas importer on korrektselt installitud"
+  status:
+    global_conf_gen:
+      no_status_file: "Globaalse konfi genereerimise staatuse fail puudub, kontrolli, kas center-service töötab"
+      out_of_date: "Globaalne konf on vananenud, viimane genereerimise katse: '%{time}', kontrolli, kas center-service töötab"
+      failure: "Globaalse konfi genereerimine ebaõnnestub alates hetkest '%{time}'"
+    signing_token:
+      not_active: "Signeerija PIN on sisestamata. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_locked: "Signeerija PIN on lukustatud (võimalik, et liiga paljude järjestikuste valede sisestuste tõttu), PIN-i avamiseks kontakteeru süsteemiadministraatoriga."
+      user_pin_incorrect: "Signeerija PIN vale. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_invalid: "Signeerija PIN mittevaliidne. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_expired: "Signeerija PIN aegunud. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      not_initialized: "Signeerija pole algväärtustatud, kasuta käsureautiliiti 'signer-console', et seda teha."
+      invocation_failed: "Signeerija kliendi väljakutse ebaõnnestus: '%{message}'"
+      token_activated: "Signeerija edukalt aktiveeritud."

@@ -1,0 +1,27 @@
+# Xroad async-sender
+#
+
+description	"X-Road async message daemon"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+umask 007
+
+expect daemon
+
+pre-start script
+    mkdir -p -m0755 /var/run/sdsb
+    chown sdsb:sdsb /var/run/sdsb
+end script
+
+script
+exec >>/tmp/ddd4.log 2>&1
+set -x
+
+  . /etc/sdsb/services/async-sender.conf
+   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name xroad-async --exec ${JAVA_HOME}/bin/java -- ${ASYNC_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/async-sender.jar 
+end script
+

@@ -24,7 +24,7 @@ import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.ExpectedCodedException;
 import ee.cyber.sdsb.common.PortNumbers;
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.message.SoapUtils;
 import ee.cyber.sdsb.common.util.StartStop;
 
 import static ee.cyber.sdsb.asyncsender.TestUtils.getFaultMessage;
@@ -149,9 +149,9 @@ public class ProxyClientTest {
     }
 
     private static void checkHeader(HttpServletRequest request) {
-        if (request.getHeader(SoapMessageImpl.X_IGNORE_ASYNC) == null) {
+        if (request.getHeader(SoapUtils.X_IGNORE_ASYNC) == null) {
             throw new CodedException(ErrorCodes.X_HTTP_ERROR,
-                    "Request missing header " + SoapMessageImpl.X_IGNORE_ASYNC);
+                    "Request missing header " + SoapUtils.X_IGNORE_ASYNC);
         }
     }
 

@@ -4,14 +4,23 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.namespace.QName;
-import javax.xml.soap.*;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPBody;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+
+import org.apache.commons.lang.ObjectUtils;
 
 import ee.cyber.sdsb.common.CodedException;
 
@@ -21,11 +30,81 @@ import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 public class SoapUtils {
 
-    public static final String RPC_ATTR = "SOAP-ENV:encodingStyle";
+    // HTTP header field for async messages that are sent from async-sender
+    public static final String X_IGNORE_ASYNC = "X-Ignore-Async";
+
+    public static final String PREFIX_SOAPENV = "SOAP-ENV";
+
+    public static final String RPC_ATTR = PREFIX_SOAPENV + ":encodingStyle";
+
     public static final String RPC_ENCODING =
             "http://schemas.xmlsoap.org/soap/encoding/";
 
+    public static final String NS_SOAPENV =
+            "http://schemas.xmlsoap.org/soap/envelope/";
+
+    public static final MessageFactory MESSAGE_FACTORY = initMessageFactory();
+
     private static final String SOAP_SUFFIX_RESPONSE = "Response";
+
+    public interface SOAPCallback {
+        void call(SOAPMessage soap) throws Exception;
+    }
+
+    private SoapUtils() {
+    }
+
+    private static MessageFactory initMessageFactory() {
+        try {
+            return MessageFactory.newInstance();
+        } catch (SOAPException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Returns all namespace prefixes of a gievn SOAP element.
+     */
+    public static List<String> getNamespacePrefixes(SOAPElement element) {
+        List<String> nsPrefixes = new ArrayList<>();
+
+        Iterator<?> it = element.getNamespacePrefixes();
+        while (it.hasNext()) {
+            nsPrefixes.add(it.next().toString());
+        }
+
+        return nsPrefixes;
+    }
+
+    /**
+     * Returns namespace URIs from a SOAPMessage.
+     */
+    public static List<String> getNamespaceURIs(SOAPMessage soap)
+            throws Exception {
+        List<String> nsURIs = new ArrayList<>();
+
+        SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
+        Iterator<?> it = envelope.getNamespacePrefixes();
+        while (it.hasNext()) {
+            nsURIs.add(envelope.getNamespaceURI((String) it.next()));
+        }
+
+        return nsURIs;
+    }
+
+    /**
+     * Returns the XmlElement annotation for the given field, if the annotation
+     * exists. Returns null, if field has no such annotation.
+     */
+    public static XmlElement getXmlElementAnnotation(Field field) {
+        for (Annotation annotation : field.getDeclaredAnnotations()) {
+            if (annotation instanceof XmlElement) {
+                return (XmlElement) annotation;
+            }
+        }
+
+        return null;
+    }
 
     /**
      * Returns true, if the SOAP message is RPC-encoded.
@@ -68,12 +147,26 @@ public class SoapUtils {
         return children.get(0).getLocalName();
     }
 
+    public static void checkConsistency(SoapMessageImpl m1,
+            SoapMessageImpl m2) {
+        checkConsistency(m1.getHeader(), m2.getHeader());
+    }
+
     /**
-     * Checks request and response consistency.
+     * Checks consistency of two soap headers.
      */
-    public static boolean checkConsistency(SoapMessageImpl request,
-            SoapMessageImpl response) {
-        return SoapHeader.checkConsistency(request.header, response.header);
+    public static void checkConsistency(SoapHeader h1, SoapHeader h2) {
+        for (Field field : SoapHeader.class.getDeclaredFields()) {
+            if (field.isAnnotationPresent(CheckConsistency.class)) {
+                Object value1 = getFieldValue(field, h1);
+                Object value2 = getFieldValue(field, h2);
+                if (ObjectUtils.notEqual(value1, value2)) {
+                    throw new CodedException(X_INCONSISTENT_HEADERS,
+                            "Field '%s' does not match in request and response",
+                            field.getName());
+                }
+            }
+        }
     }
 
     /**
@@ -82,10 +175,19 @@ public class SoapUtils {
      */
     public static SoapMessageImpl toResponse(SoapMessageImpl request)
             throws Exception {
+        return toResponse(request, null);
+    }
+
+    /**
+     * Converts a SOAP request to SOAP response, by adding "Response" suffix
+     * to the service name in the body.
+     */
+    public static SoapMessageImpl toResponse(SoapMessageImpl request,
+            SOAPCallback callback) throws Exception {
         String charset = request.getCharset();
 
-        SOAPMessage soap = createSOAPMessage(
-                new ByteArrayInputStream(request.getBytes()), charset);
+        SOAPMessage soap = createSOAPMessage(new ByteArrayInputStream(
+                        getBytes(request.getSoap())), charset);
 
         List<SOAPElement> children = getChildElements(soap.getSOAPBody());
         if (children.size() == 0) {
@@ -94,12 +196,15 @@ public class SoapUtils {
 
         QName name = children.get(0).getElementQName();
         QName newName = new QName(name.getNamespaceURI(),
-                name.getLocalPart() + SOAP_SUFFIX_RESPONSE,
-                name.getPrefix());
+                name.getLocalPart() + SOAP_SUFFIX_RESPONSE, name.getPrefix());
         children.get(0).setElementQName(newName);
 
-        byte[] data = getBytes(soap, charset);
-        return (SoapMessageImpl) new SoapParserImpl().parseMessage(data, soap,
+        if (callback != null) {
+            callback.call(soap);
+        }
+
+        byte[] xml = getBytes(soap);
+        return (SoapMessageImpl) new SoapParserImpl().parseMessage(xml, soap,
                 charset);
     }
 
@@ -107,7 +212,7 @@ public class SoapUtils {
      * Returns the XML representing the SOAP message.
      */
     public static String getXml(SoapMessageImpl message) throws IOException {
-        return getXml(message.soap, message.getCharset());
+        return getXml(message.getSoap(), message.getCharset());
     }
 
     /**
@@ -131,8 +236,7 @@ public class SoapUtils {
     /**
      * Returns the XML representing the SOAP message.
      */
-    public static byte[] getBytes(SOAPMessage soap, String charset)
-            throws IOException {
+    public static byte[] getBytes(SOAPMessage soap) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             soap.setProperty(SOAPMessage.WRITE_XML_DECLARATION, "true");
@@ -197,77 +301,16 @@ public class SoapUtils {
         mimeHeaders.addHeader("Content-type",
                 contentTypeWithCharset(TEXT_XML, charset));
 
-        MessageFactory factory = MessageFactory.newInstance();
-        return factory.createMessage(mimeHeaders, is);
+        return MESSAGE_FACTORY.createMessage(mimeHeaders, is);
     }
 
-    /**
-     * Returns a map of SOAP header elements. Header field name is the key.
-     */
-    public static Map<String, SOAPElement> getHeaderElements(
-            SOAPHeader header) {
-        Map<String, SOAPElement> values = new HashMap<>();
-
-        Iterator<?> it = header.getChildElements();
-        while (it.hasNext()) {
-            Object child = it.next();
-            if (child instanceof SOAPElement) {
-                SOAPElement element = (SOAPElement) child;
-                String name = element.getLocalName();
-                if (values.containsKey(name)) {
-                    throw new CodedException(X_DUPLICATE_HEADER_FIELD,
-                            "Duplicate header field: %s", name);
-                }
-
-                values.put(name, element);
-            }
-        }
-
-        return values;
-    }
-
-    /**
-     * Returns the SOAPElement from the given header element map. If the
-     * element does not exist, throws a CodedException with error code
-     * X_MISSING_HEADER_FIELD.
-     */
-    public static SOAPElement getRequiredHeaderElement(
-            Map<String, SOAPElement> header, String fieldName) {
-        SOAPElement element = header.get(fieldName);
-        checkRequiredField(fieldName, element);
-        return element;
-    }
-
-    /**
-     * Returns the value of the SOAPElement of the header. If the
-     * element does not exist, throws a CodedException with error code
-     * X_MISSING_HEADER_FIELD.
-     */
-    public static String getRequiredHeaderValue(
-            Map<String, SOAPElement> header, String fieldName) {
-        return getRequiredHeaderElement(header, fieldName).getValue();
-    }
-
-    /**
-     * Returns the value of the SOAPElement of the header or empty string,
-     * if the header does not contain that element.
-     */
-    public static String getOptionalHeaderValue(
-            Map<String, SOAPElement> header, String fieldName) {
-        return header.get(fieldName) != null
-                ? header.get(fieldName).getValue() : null;
-    }
-
-    /**
-     * Checks if the header field has a value. Throws a CodedException
-     * with error code X_MISSING_HEADER_FIELD, if the value is null or empty
-     * string.
-     */
-    public static void checkRequiredField(String fieldName, Object value) {
-        if (value == null ||
-                (value instanceof String && ((String) value).isEmpty())) {
-            throw new CodedException(X_MISSING_HEADER_FIELD,
-                    "Missing required header field: %s", fieldName);
+    static Object getFieldValue(Field field, Object object) {
+        field.setAccessible(true);
+        try {
+            return field.get(object);
+        } catch (Exception e) {
+            throw translateException(e);
         }
     }
+
 }

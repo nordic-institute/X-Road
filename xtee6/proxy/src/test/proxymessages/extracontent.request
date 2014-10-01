@@ -1,7 +1,7 @@
 --xtop1357783211hcn1yiro
 Content-Type: text/xml
 
-<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd">
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
     <SOAP-ENV:Header>
         <sdsb:consumer>consumer</sdsb:consumer>
         <sdsb:producer>producer</sdsb:producer>

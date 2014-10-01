@@ -3,8 +3,8 @@
         SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
-        xmlns:sdsb="http://sdsb.net/xsd/sdsb.xsd"
-        xmlns:id="http://sdsb.net/xsd/identifiers">
+        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
         <sdsb:client id:objectType="MEMBER">
             <id:sdsbInstance>EE</id:sdsbInstance>

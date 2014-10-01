@@ -34,6 +34,9 @@ public class SoapMessageDecoder {
 
     public interface Callback extends SoapMessageConsumer {
 
+        /** Called when SoapFault has been completely read. */
+        void fault(SoapFault fault) throws Exception;
+
         /** Called when the message has been completely read. */
         void onCompleted();
 
@@ -84,7 +87,8 @@ public class SoapMessageDecoder {
 
         Soap soap = parser.parse(baseContentType, getCharset(contentType), is);
         if (soap instanceof SoapFault) {
-            throw ((SoapFault) soap).toCodedException();
+            callback.fault((SoapFault) soap);
+            return;
         }
 
         if (!(soap instanceof SoapMessage)) {
@@ -155,7 +159,6 @@ public class SoapMessageDecoder {
                                 MimeUtils.getBaseContentType(partContentType),
                                 MimeUtils.getCharset(partContentType), is);
                         if (!(soap instanceof SoapMessage)) {
-                            // TODO: Better error?
                             throw new CodedException(X_INTERNAL_ERROR,
                                     "Unexpected SOAP message");
                         }

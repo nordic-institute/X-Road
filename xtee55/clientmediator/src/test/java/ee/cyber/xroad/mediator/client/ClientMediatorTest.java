@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ExpectedCodedException;
+import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.message.SoapMessage;
@@ -334,6 +335,10 @@ public class ClientMediatorTest {
                 public InputStream getInputStream() throws Exception {
                     return requestContent;
                 }
+                @Override
+                public String getParameters() {
+                    return null;
+                }
             }, new MediatorResponse() {
                 @Override
                 public void setContentType(String contentType,
@@ -405,6 +410,11 @@ public class ClientMediatorTest {
         @Override
         protected void verifyClientAuthentication(SoapMessage message)
                 throws Exception {
+        }
+
+        @Override
+        boolean isServerProxyActivated(String address) {
+            return true;
         }
 
         void verifyRequest(SoapMessage in, SoapMessage out) {

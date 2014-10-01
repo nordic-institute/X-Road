@@ -33,6 +33,7 @@ dependencies {
 }
 
 sourceSets.main.compileClasspath += configurations.provided
+sourceSets.test.compileClasspath += configurations.provided
 
 eclipse {
     classpath {

@@ -1,14 +1,44 @@
-require 'ruby_cert_helper'
-require 'set'
-
 class MembersController < ApplicationController
-  include RubyCertHelper
   include RequestsHelper
   include SecurityserversHelper
   include AuthCertHelper
 
-  # TODO: Is this necessary?
-  before_filter :load_members, :except => [:member_add]
+  before_filter :verify_get, :only => [
+      :members_refresh,
+      :owned_servers,
+      :global_groups,
+      :subsystems,
+      :used_servers,
+      :management_requests,
+      :remaining_global_groups,
+      :get_member_by_id,
+      :subsystem_codes]
+
+  before_filter :verify_post, :only => [
+      :member_add,
+      :member_edit,
+      :delete,
+      :delete_subsystem,
+      :import_auth_cert,
+      :add_new_owned_server_request,
+      :add_new_server_client_request,
+      :delete_server_client_request,
+      :add_member_to_global_group,
+      :delete_member_from_global_group]
+
+  # -- Common GET methods - start ---
+
+  def get_records_count
+    render_json_without_messages(:count => SdsbMember.count)
+  end
+
+  def can_see_details
+    render_details_visibility(:view_member_details)
+  end
+
+  # -- Common GET methods - end ---
+
+  # -- Specific GET methods - start ---
 
   def members_refresh
     authorize!(:view_members)
@@ -27,39 +57,6 @@ class MembersController < ApplicationController
     end
 
     render_data_table(result, count, params[:sEcho])
-  end
-
-  def member_add
-    authorize!(:add_new_member)
-
-    SdsbMember.create!(
-        :name => params[:memberName],
-        :member_class => MemberClass.find_by_code(params[:memberClass]),
-        :member_code => params[:memberCode])
-
-    render_json({})
-  end
-
-  def member_edit
-    authorize!(:edit_member_name_and_admin_contact)
-
-    member_to_update = find_member(params[:memberClass], params[:memberCode])
-
-    member_to_update.update_attributes!(
-        :name => params[:memberName],
-        :administrative_contact => params[:adminContact])
-
-    render_json({})
-  end
-
-  def delete
-    authorize!(:delete_member)
-
-    member_to_delete = find_member(params[:memberClass], params[:memberCode])
-
-    SdsbMember.destroy(member_to_delete)
-
-    render_json({})
   end
 
   def owned_servers
@@ -87,14 +84,17 @@ class MembersController < ApplicationController
 
   def used_servers
     authorize!(:view_member_details)
+    member_id_param = params[:memberId]
 
-    member = find_member(params[:memberClass], params[:memberCode])
+    if member_id_param.empty?
+      raise "Member id parameter must be provided"
+    end
+      
+    member_id = member_id_param.to_i
 
-    response_json = get_servers_as_json(member.security_servers)
+    servers = SdsbMember.get_used_servers(member_id)
 
-    response_json += get_subsystems_as_json(member.subsystems)
-
-    render_json(response_json)
+    render_json(servers)
   end
 
   def management_requests
@@ -127,6 +127,88 @@ class MembersController < ApplicationController
     render_json(result)
   end
 
+  def remaining_global_groups
+    authorize!(:view_member_details)
+
+    remaining_groups = SdsbMember.get_remaining_global_groups(
+        params[:memberClass], params[:memberCode], params[:subsystemCode])
+
+    result = []
+
+    remaining_groups.each do |each|
+      result << {
+        :code => each.group_code,
+        :description => each.description
+      }
+    end
+
+    render_json(result)
+  end
+
+  def get_member_by_id
+    authorize!(:view_member_details)
+
+    member = SdsbMember.find(params[:memberId])
+    render_json_without_messages(get_all_member_data(member))
+  end
+
+  def subsystem_codes
+    authorize!(:view_member_details)
+
+    member = find_member(params[:memberClass], params[:memberCode])
+    subsystem_codes = []
+
+    member.subsystems.each do |each|
+      subsystem_codes << each.subsystem_code
+    end
+
+    render_json(subsystem_codes)
+  end
+
+  # -- Specific GET methods - end ---
+
+  # -- Specific POST methods - start ---
+
+  def member_add
+    authorize!(:add_new_member)
+
+    member_class = params[:memberClass]
+    member_code = params[:memberCode]
+
+    SdsbMember.create!(
+        :name => params[:memberName],
+        :member_class => MemberClass.find_by_code(member_class),
+        :member_code => member_code)
+
+    notice(t("members.added",
+        {:member_class => member_class, :member_code => member_code}))
+
+    saved_member = SdsbMember.find_by_code(member_class, member_code)
+    render_json(get_all_member_data(saved_member))
+  end
+
+  def member_edit
+    authorize!(:edit_member_name_and_admin_contact)
+
+    member_to_update = find_member(params[:memberClass], params[:memberCode])
+
+    member_to_update.update_attributes!(
+        :name => params[:memberName],
+        :administrative_contact => params[:adminContact])
+
+    render_json({})
+  end
+
+  def delete
+    authorize!(:delete_member)
+
+    member_to_delete = find_member(params[:memberClass], params[:memberCode])
+
+    SdsbMember.destroy(member_to_delete)
+
+    render_json({})
+  end
+
   def delete_subsystem
     authorize!(:remove_member_subsystem)
 
@@ -141,14 +223,17 @@ class MembersController < ApplicationController
   def import_auth_cert
     authorize!(:add_security_server_reg_request)
 
-    auth_cert_data = upload_cert(params[:auth_cert_file])
+    cert_param = params[:auth_cert_file]
+    AuthCertValidator.new(cert_param).validate()
+    auth_cert_data = upload_cert(cert_param)
 
     notice(t("common.cert_imported"))
 
-    upload_success(auth_cert_data, "uploadCallbackOwnedServerAuthCert")
+    upload_success(auth_cert_data,
+        "SDSB_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "uploadCallbackOwnedServerAuthCert")
+    upload_error(nil, "SDSB_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
   end
 
   def add_new_owned_server_request
@@ -182,19 +267,7 @@ class MembersController < ApplicationController
 
     notice(t("members.auth_cert_request_added",
         {:security_server => request.security_server}))
-    render :partial => "application/messages"
-  end
-
-  def cancel_new_owned_server_request
-    authorize!(:add_security_server_reg_request)
-
-    render :partial => "application/messages"
-  end
-
-  def get_all_securityservers
-    authorize!(:view_member_details)
-
-    render_json(get_all_servers_as_json)
+    render_json()
   end
 
   def add_new_server_client_request
@@ -234,7 +307,7 @@ class MembersController < ApplicationController
     notice(t("members.client_add_request_added", 
       {:client_id => client_id, :server_id => server_id}))
 
-    render :partial => "application/messages"
+    render_json()
   end
 
   def delete_server_client_request
@@ -268,25 +341,7 @@ class MembersController < ApplicationController
     notice(t("members.client_deletion_request_added",
         {:client_id => client_id, :server_id => server_id}))
 
-    render :partial => "application/messages"
-  end
-
-  def remaining_global_groups
-    authorize!(:view_member_details)
-
-    remaining_groups = SdsbMember.get_remaining_global_groups(
-        params[:memberClass], params[:memberCode])
-
-    result = []
-
-    remaining_groups.each do |each|
-      result << {
-        :code => each.group_code,
-        :description => each.description
-      }
-    end
-
-    render_json(result)
+    render_json()
   end
 
   def add_member_to_global_group
@@ -326,45 +381,9 @@ class MembersController < ApplicationController
     render_json(get_global_groups_as_json(member_class, member_code))
   end
 
-  def get_member_by_id
-    authorize!(:view_member_details)
-
-    member = SdsbMember.find(params[:memberId])
-    render_json(get_all_member_data(member))
-  end
-
-  def subsystem_codes
-    authorize!(:view_member_details)
-
-    member = find_member(params[:memberClass], params[:memberCode])
-    subsystem_codes = []
-
-    member.subsystems.each do |each|
-      subsystem_codes << each.subsystem_code
-    end
-
-    render_json(subsystem_codes)
-  end
-
-  def can_see_details
-    render_details_visibility(:view_member_details)
-  end
-
-  def get_records_count
-    render_json(:count => SdsbMember.count)
-  end
+  # -- Specific POST methods - end ---
 
   private
-
-  def get_members_as_json
-    members_as_json = []
-
-    @members.each do |member|
-      members_as_json << get_all_member_data(member)
-    end
-
-    members_as_json
-  end
 
   def get_all_member_data(member)
     {
@@ -411,36 +430,14 @@ class MembersController < ApplicationController
       }
     end
 
-    servers_as_json
-  end
-
-  def get_subsystems_as_json(subsystems)
-    # TODO: Is it normal that without Set duplicate subsystems may occur?
-    subsystems_as_json = Set.new
-
-    subsystems.each do |subsystem|
-      subsystem.security_servers.each do |server|
-        subsystems_as_json << {
-          :id => server.id,
-          :server => server.server_code,
-          :client_subsystem_code => subsystem.subsystem_code,
-          :owner_id => server.owner.id,
-          :owner_name => server.owner.name,
-          :owner_class => server.owner.member_class.code,
-          :owner_code => server.owner.member_code
-        }
-      end
-    end
-
-    subsystems_as_json.to_a
+    return servers_as_json
   end
 
   def get_subsystems(member)
     subsystems = []
 
     member.subsystems.each do |subsystem|
-      # TODO: Is it normal that without Set duplicate server codes may occur?
-      used_servers = Set.new
+      used_servers = []
 
       subsystem.security_servers.each do |used_server|
         used_servers << {
@@ -452,16 +449,10 @@ class MembersController < ApplicationController
       subsystems << {
         :subsystem_code => subsystem.subsystem_code,
         :used_servers => used_servers.to_a
-        # TODO: Maybe give additionally mapping with exact coordinates of
-        # security server or make used_servers hierarchical to provide all data
-        # that is needed to identify security server?
       }
     end
-    subsystems
-  end
 
-  def load_members
-    @members = SdsbMember.find(:all)
+    return subsystems
   end
 
   def get_subsystem_code(subsystem_code_param)
@@ -480,14 +471,14 @@ class MembersController < ApplicationController
     raise "Member with member class '#{member_class}' and member code"\
          " '#{member_code}' not found." unless member
 
-    member
+    return member
   end
 
   def find_global_group(group_code)
     global_group = GlobalGroup.find_by_code(group_code)
     raise "Global group with code '#{group_code}' not found" unless global_group
 
-    global_group
+    return global_group
   end
 
   def get_client_id(member_class, member_code, subsystem_code)
@@ -507,6 +498,19 @@ class MembersController < ApplicationController
       return 'member_classes.code'
     when 2
       return 'member_code'
+    else
+      raise "Index '#{index}' has no corresponding column."
+    end
+  end
+
+  def get_used_servers_column(index)
+    case index
+    when 0
+      return 'security_servers.server_code'
+    when 1
+      return 'security_server_clients.subsystem_code'
+    when 2
+      return 'security_server_clients.name'
     else
       raise "Index '#{index}' has no corresponding column."
     end

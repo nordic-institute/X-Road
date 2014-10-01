@@ -5,15 +5,13 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import ee.cyber.sdsb.common.TestCertUtil;
-import ee.cyber.sdsb.common.conf.VerificationCtx;
+import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
-import ee.cyber.sdsb.common.signature.SignatureVerifier;
 import ee.cyber.sdsb.proxy.EmptyGlobalConf;
 
 import static java.util.Collections.emptySet;
@@ -32,34 +30,9 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public Set<SecurityCategoryId> getProvidedCategories(X509Certificate authCert) {
+    public Set<SecurityCategoryId> getProvidedCategories(
+            X509Certificate authCert) {
         return currentTestCase().getProvidedCategories();
-    }
-
-    @Override
-    public VerificationCtx getVerificationCtx() {
-        VerificationCtx ctx = currentTestCase().getVerificationCtx();
-        if (ctx != null) {
-            return ctx;
-        }
-
-        return new VerificationCtx() {
-            @Override
-            public void verifySslCert(X509Certificate cert) {
-                // Declare everything OK.
-            }
-
-            @Override
-            public String getOrganization(X509Certificate cert) {
-                return "TODO";
-            }
-
-            @Override
-            public void verifySignature(ClientId sender,
-                    SignatureVerifier verifier) throws Exception {
-                verifier.verify(sender, new Date());
-            }
-        };
     }
 
     @Override
@@ -83,6 +56,12 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public X509Certificate getCaCert(X509Certificate org) throws Exception {
         return TestCertUtil.getCaCert();
+    }
+
+    @Override
+    public CertChain getCertChain(X509Certificate subject) throws Exception {
+        // TODO: Also add intermediate certs based on the subject...
+        return CertChain.create(subject, null);
     }
 
     @Override

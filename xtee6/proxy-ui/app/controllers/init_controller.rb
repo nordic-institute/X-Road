@@ -1,30 +1,56 @@
 require 'net/http'
 
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.AsyncSenderType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.ClientType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.GlobalConfDistributorType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ClientType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType
+java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ServerConfType
 java_import Java::ee.cyber.sdsb.common.identifier.ClientId
-java_import Java::ee.cyber.sdsb.proxyui.SignerProxy
+java_import Java::ee.cyber.sdsb.commonui.SignerProxy
 
 class InitController < ApplicationController
 
-  skip_before_filter :check_conf, :read_server_id
+  skip_around_filter :transaction, :only =>
+    [:init_globalconf, :member_classes, :member_codes, :member_name]
+
+  skip_before_filter :check_conf, :read_server_id, :read_owner_name
 
   def index
-    authorize!(:init_config)
-
-    if globalconf.exists? && serverconf.exists? && serverconf.root.owner &&
-        !serverconf.root.globalConfDistributor.empty
-      raise "Security Server already initialized"
+    if request.xhr?
+      # come back without ajax
+      render_redirect
+      return
     end
 
-    if !globalconf.exists? || !serverconf.exists? ||
-        serverconf.root.globalConfDistributor.empty
+    if cannot?(:init_config)
+      raise t('init.not_authorized')
+    end
+
+    if initialized?
+      raise t('init.already_initialized')
+    end
+
+    unless globalconf_initialized? && serverconf &&
+        !serverconf.globalConfDistributor.isEmpty
       @init_globalconf = true
     end
 
-  rescue Java::java.lang.Exception
-    render_java_error($!)
+    unless serverconf_initialized?
+      @init_serverconf = true
+    end
+
+    unless software_token_initialized?
+      @init_software_token = true
+    end
+
+    if serverconf
+      if serverconf.owner
+        @owner_class = serverconf.owner.identifier.memberClass
+        @owner_code = serverconf.owner.identifier.memberCode
+        @owner_name = get_member_name(@owner_class, @owner_code)
+      end
+
+      @server_code = serverconf.serverCode
+    end
   end
 
   def init_globalconf
@@ -35,109 +61,119 @@ class InitController < ApplicationController
       :globalconf_cert => [RequiredValidator.new]
     })
 
-    unless serverconf.exists? && serverconf.root.owner
-      @init_serverconf = true
+    # start transaction manually so that it is committed before
+    # globalconf download
+    transaction do
+      new_serverconf = serverconf || ServerConfType.new
+
+      cert = CertificateType.new
+      cert.data = pem_to_der(params[:globalconf_cert].read).to_java_bytes
+
+      distributor = GlobalConfDistributorType.new
+      distributor.url = params[:globalconf_url]
+      distributor.verificationCert = cert
+
+      new_serverconf.globalConfDistributor.clear
+      new_serverconf.globalConfDistributor.add(distributor)
+
+      serverconf_save(new_serverconf)
     end
 
-    unless serverconf.exists?
-      sct = serverconf.factory.createServerConfType
-      sc = serverconf.factory.createServerConf(sct)
-      serverconf.init(sc)
+    begin
+      download_globalconf
+    rescue Exception => e
+      transaction do
+        serverconf.globalConfDistributor.clear
+        serverconf_save
+      end
+
+      raise e
     end
 
-    distributor = GlobalConfDistributorType.new
-    distributor.url = params[:globalconf_url]
-    distributor.verificationCert = params[:globalconf_cert].read.to_java_bytes
-
-    serverconf.root.globalConfDistributor.clear
-    serverconf.root.globalConfDistributor.add(distributor)
-
-    serverconf.write
-
-    download_globalconf
-
-    notice("Successfully downloaded globalconf")
-
-    upload_success({:init_serverconf => @init_serverconf})
-
-  rescue Exception
-    render_error($!)
-  rescue Java::java.lang.Exception
-    render_java_error($!)
+    notice(t('init.globalconf_downloaded'))
+    upload_success
   end
 
   def init_serverconf
     authorize!(:init_config)
 
-    raise "serverconf exists" if serverconf.exists? && serverconf.root.owner
+    required = [RequiredValidator.new]
+
+    init_software_token = required unless software_token_initialized?
+    init_owner = required unless serverconf && serverconf.owner
+    init_server_code = required unless serverconf && serverconf.serverCode
+
+    unless init_software_token || init_owner || init_server_code
+      raise t('init.already_initialized')
+    end
 
     validate_params({
-      :owner_class => [RequiredValidator.new],
-      :owner_code => [RequiredValidator.new],
-      :server_code => [RequiredValidator.new],
-      :pin => [RequiredValidator.new],
-      :pin_repeat => [RequiredValidator.new]
+      :owner_class => init_owner || [],
+      :owner_code => init_owner || [],
+      :server_code => init_server_code || [],
+      :pin => init_software_token || [],
+      :pin_repeat => init_software_token || []
     })
 
-    if params[:pin] != params[:pin_repeat]
-      raise "Software token pins do not match"
-    else
-      pin = Array.new
-      params[:pin].bytes do |b|
-        pin << b
+    if init_software_token
+      if params[:pin] != params[:pin_repeat]
+        raise t('init.mismatching_pins')
+      else
+        pin = Array.new
+        params[:pin].bytes do |b|
+          pin << b
+        end
+
+        SignerProxy::initSoftwareToken(pin.to_java(:char))
+      end
+    end
+
+    new_serverconf = serverconf || ServerConfType.new
+
+    if init_owner
+      owner_id = ClientId.create(
+        globalconf.root.instanceIdentifier,
+        params[:owner_class],
+        params[:owner_code], nil)
+
+      unless get_member_name(params[:owner_class], params[:owner_code])
+        raise t('init.member_not_found', :member => owner_id.toShortString)
+      end
+  
+      owner_id = get_identifier(owner_id)
+
+      owner = nil
+      new_serverconf.client.each do |client|
+        if client.identifier == owner_id
+          owner = client
+          break
+        end
       end
 
-      SignerProxy::initSoftwareToken(pin.to_java(:char))
+      unless owner
+        owner = ClientType.new
+        owner.identifier = owner_id
+        owner.clientStatus = ClientType::STATUS_SAVED
+        owner.isAuthentication = "NOSSL"
+        owner.conf = new_serverconf
+
+        new_serverconf.client.add(owner)
+      end
+
+      new_serverconf.owner = owner
     end
 
-    unless serverconf.exists?
-      sct = serverconf.factory.createServerConfType
-      sc = serverconf.factory.createServerConf(sct)
-      serverconf.init(sc)
+    if init_server_code
+      new_serverconf.serverCode = params[:server_code]
     end
 
-    owner_name = get_member_name(params[:owner_class], params[:owner_code])
+    serverconf_save(new_serverconf)
 
-    unless owner_name
-      raise "Member not found in globalconf"
-    end
-
-    owner_id = ClientId.create(
-      globalconf.root.instanceIdentifier,
-      params[:owner_class],
-      params[:owner_code], nil)
-
-    owner = ClientType.new
-    owner.identifier = owner_id
-    owner.fullName = owner_name
-    owner.clientStatus = ClientsController::STATE_SAVED
-    owner.isAuthentication = "NOSSL"
-    owner.id = "owner"
-
-    async_sender = AsyncSenderType.new
-    async_sender.baseDelay = 300
-    async_sender.maxDelay = 1800
-    async_sender.maxSenders = 1000
-
-    serverconf.root.client.add(owner)
-    serverconf.root.owner = owner
-    serverconf.root.serverCode = params[:server_code]
-    serverconf.root.asyncSender = async_sender
-
-    serverconf.write
-
-    begin
-      import_services
-    rescue
-      error("Failed to import services: #{$!.message}")
+    after_commit do
+      import_services if x55_installed?
     end
 
     render_json
-
-  rescue Exception
-    render_error($!)
-  rescue Java::java.lang.Exception
-    render_java_error($!)
   end
 
   def member_classes
@@ -189,19 +225,11 @@ class InitController < ApplicationController
     port = SystemProperties::getDistributedFilesAdminPort()
     uri = URI("http://localhost:#{port}/execute")
 
-    output = Net::HTTP.get(uri)
-    logger.info(output)
-  end
+    response = Net::HTTP.get_response(uri)
 
-  def get_member_name(member_class, member_code)
-    logger.debug("finding member name for: #{member_class}, #{member_code}")
-
-    globalconf.root.member.each do |member|
-      if member_class == member.memberClass && member_code == member.memberCode
-        return member.name
-      end
-    end if member_class && member_code
-
-    return nil
+    if response.code == '500'
+      logger.error(response.body)
+      raise t('init.globalconf_download_failed', :response => response.body)
+    end
   end
 end

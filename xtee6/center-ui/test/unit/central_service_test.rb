@@ -56,7 +56,11 @@ class CentralServiceTest < ActiveSupport::TestCase
 
   test "Save central service" do
     # Given
-    target_service_code = "target_service_code"
+    target_service = {
+      :code => "target_service_code",
+      :version => "v1"
+    }
+
     member_code = "member_in_vallavalitsused"
     subsystem_code = "subsystem_out_of_vallavalitsused"
 
@@ -68,7 +72,7 @@ class CentralServiceTest < ActiveSupport::TestCase
     )
 
     # When
-    CentralService.save(@service_code, target_service_code, provider_id)
+    CentralService.save(@service_code, target_service, provider_id)
 
     # Then
     central_service = CentralService.where(:service_code => @service_code)[0]
@@ -76,7 +80,8 @@ class CentralServiceTest < ActiveSupport::TestCase
 
     assert_equal(member_code, target_service_id.member_code)
     assert_equal(subsystem_code, target_service_id.subsystem_code)
-    assert_equal(target_service_code, target_service_id.service_code)
+    assert_equal("target_service_code", target_service_id.service_code)
+    assert_equal("v1", target_service_id.service_version)
   end
 
   test "Save central service without target service" do
@@ -95,7 +100,7 @@ class CentralServiceTest < ActiveSupport::TestCase
 
   test "Should fail when trying to save service with non-existent provider" do
     # Given
-    target_service_code = "target_service_code"
+    target_service = {:code => "target_service_code"}
     member_code = "member_in_vallavalitsused"
     subsystem_code = "subsystem_out_of_vallavalitsused"
 
@@ -106,20 +111,15 @@ class CentralServiceTest < ActiveSupport::TestCase
         subsystem_code
     )
 
-    # When
-    begin
-      # TODO: Could we write this assertion somewhat shorter?
-      CentralService.save(@service_code, target_service_code, provider_id)
-      raise "Should have thrown RuntimeError"
-    rescue RuntimeError
-      # Then
-      # Test successful
+    # When/then
+    assert_raises(RuntimeError) do
+      CentralService.save(@service_code, target_service, provider_id)
     end
   end
 
   test "Should fail when trying to save service with no service code" do
     # Given
-    target_service_code = "another_target_service"
+    target_service = {:code => "another_target_service"}
     member_code = "member_out_of_vallavalitsused"
     subsystem_code = "subsystem_in_vallavalitsused"
 
@@ -130,14 +130,9 @@ class CentralServiceTest < ActiveSupport::TestCase
         subsystem_code
     )
 
-    # When
-    begin
-      # TODO: Could we write this assertion somewhat shorter?
-      CentralService.save("", target_service_code, provider_id)
-      raise "Should have thrown RuntimeError"
-    rescue RuntimeError
-      # Then
-      # Test successful
+    # When/then
+    assert_raises(ActiveRecord::RecordInvalid) do
+      CentralService.save("", target_service, provider_id)
     end
   end
 

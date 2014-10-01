@@ -74,7 +74,7 @@ public class ServiceMediatorIntegrationTest {
                 "http://127.0.0.1:" + SERVER_HTTP_PORT);
 
         System.setProperty(
-                SystemProperties.SERVER_CONFIGURATION_DATABASE_PROPERTIES,
+                SystemProperties.DATABASE_PROPERTIES,
                 "src/test/resources/db.properties");
 
         startServer();

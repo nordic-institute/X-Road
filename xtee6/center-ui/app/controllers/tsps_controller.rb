@@ -2,9 +2,38 @@ class TspsController < ApplicationController
   include BaseHelper
   include CertTransformationHelper
 
+  before_filter :verify_get, :only => [
+      :tsps_refresh,
+      :get_existing_tsp_cert_details,
+      :get_existing_tsp_cert_dump_and_hash]
+
+  before_filter :verify_post, :only => [
+      :save_new_tsp, 
+      :edit_existing_tsp,
+      :delete_tsp, 
+      :upload_tsp_cert]
+
+  # -- Common GET methods - start ---
+
   def index
     authorize!(:view_approved_tsps)
   end
+
+  def get_cert_details_by_id
+    render_temp_cert_details_by_id(:view_approved_tsps)
+  end
+
+  def get_records_count
+    render_json_without_messages(:count => ApprovedTsp.count)
+  end
+
+  def can_see_details
+    render_details_visibility(:view_approved_tsp_details)
+  end
+
+  # -- Common GET methods - end ---
+
+  # -- Specific GET methods - start ---
 
   def tsps_refresh
     authorize!(:view_approved_tsps)
@@ -32,6 +61,25 @@ class TspsController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
+  def get_existing_tsp_cert_details
+    authorize!(:add_approved_tsp)
+
+    tsp = ApprovedTsp.find(params[:tspId])
+    cert_details = get_cert_data_from_bytes(tsp.cert)
+    render_json(cert_details)
+  end
+
+  def get_existing_tsp_cert_dump_and_hash
+    authorize!(:edit_approved_tsp)
+
+    tsp = ApprovedTsp.find(params[:tspId])
+    render_cert_dump_and_hash(tsp.cert)
+  end
+
+  # -- Specific GET methods - end ---
+
+  # -- Specific POST methods - start ---
+
   def save_new_tsp
     authorize!(:add_approved_tsp)
     tsp = ApprovedTsp.new()
@@ -43,8 +91,6 @@ class TspsController < ApplicationController
 
     clear_all_temp_certs_from_session()
     render_json()
-  rescue => e
-    handle_tsp_saving_errors(e)
   end
 
   def edit_existing_tsp
@@ -58,8 +104,6 @@ class TspsController < ApplicationController
 
     clear_all_temp_certs_from_session()
     render_json()
-  rescue => e
-    handle_tsp_saving_errors(e)
   end
 
   def delete_tsp
@@ -76,55 +120,15 @@ class TspsController < ApplicationController
     cert_data = upload_cert(params[:upload_tsp_cert_file])
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "uploadCallbackTspCert")
+    upload_success(cert_data, "SDSB_TSP_EDIT.uploadCallbackTspCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "uploadCallbackTspCert")
+    upload_error(nil, "SDSB_TSP_EDIT.uploadCallbackTspCert")
   end
 
-  def get_cert_details_by_id
-    render_cert_details_by_id(:view_approved_tsps)
-  end
-
-  def get_existing_tsp_cert_details
-    authorize!(:add_approved_tsp)
-
-    tsp = ApprovedTsp.find(params[:tspId])
-    cert_details = get_cert_data_from_bytes(tsp.cert)
-    render_json(cert_details)
-  end
-
-  def get_existing_tsp_cert_dump_and_hash
-    authorize!(:edit_approved_tsp)
-
-    tsp = ApprovedTsp.find(params[:tspId])
-    render_cert_dump_and_hash(tsp.cert)
-  end
-
-  def get_records_count
-    render_json(:count => ApprovedTsp.count)
-  end
+  # -- Specific POST methods - end ---
 
   private
-
-  def handle_tsp_saving_errors(e)
-    if !e.is_a?(ActiveRecord::RecordInvalid)
-      raise e
-    end
-
-    error_messages = e.record.errors.messages
-
-    raise_first_error(error_messages[:url])
-    raise_first_error(error_messages[:cert])
-
-    raise e
-  end
-
-  def raise_first_error(errors)
-    if errors != nil && !errors.empty?
-      raise errors[0]
-    end
-  end
 
   def get_tsp_list_column(index)
     case(index)

@@ -15,7 +15,7 @@ public class SignatureBuilder {
     private static final Logger LOG =
             LoggerFactory.getLogger(SignatureBuilder.class);
 
-    private final List<PartHash> parts = new ArrayList<>();
+    private final List<MessagePart> parts = new ArrayList<>();
 
     private final List<X509Certificate> extraCertificates = new ArrayList<>();
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
@@ -23,12 +23,12 @@ public class SignatureBuilder {
     private X509Certificate signingCert;
 
     /** Adds a hash to be signed. */
-    public void addPart(PartHash part) {
+    public void addPart(MessagePart part) {
         this.parts.add(part);
     }
 
     /** Adds hashes to be signed. */
-    public void addParts(List<PartHash> parts) {
+    public void addParts(List<MessagePart> parts) {
         this.parts.addAll(parts);
     }
 
@@ -36,6 +36,11 @@ public class SignatureBuilder {
     public void setSigningCert(X509Certificate signingCert, OCSPResp ocsp) {
         this.signingCert = signingCert;
         this.ocspResponses.add(ocsp);
+    }
+
+    /** Sets the signing certificate. */
+    public void setSigningCert(X509Certificate signingCert) {
+        this.signingCert = signingCert;
     }
 
     /** Adds extra certificates. */

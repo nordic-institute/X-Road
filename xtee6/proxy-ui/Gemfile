@@ -1,7 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'rails', '~>3.2.10'
-
 if File.exists?("../common-ui")
   gem 'common-ui', :path => "../common-ui"
 else

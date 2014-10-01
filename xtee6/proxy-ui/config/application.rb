@@ -33,6 +33,7 @@ module ProxyUi
     # The default locale is :et and all translations from config/locales/*.rb,yml are auto loaded.
     # config.i18n.load_path += Dir[Rails.root.join('config', 'locales', '*.{rb,yml}').to_s]
     config.i18n.default_locale = :en
+    config.i18n.fallbacks = true
 
     # Configure the default encoding used in templates for Ruby 1.9.
     config.encoding = "utf-8"

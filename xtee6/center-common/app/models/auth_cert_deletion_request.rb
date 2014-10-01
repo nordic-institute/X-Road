@@ -12,7 +12,7 @@ class AuthCertDeletionRequest < DeletionRequest
   end
 
   def execute()
-    cancel_respective_reg_request()
+    revoke_respective_reg_request()
 
     server = SecurityServer.find_server_by_id(security_server)
     if server != nil && server.auth_certs != nil

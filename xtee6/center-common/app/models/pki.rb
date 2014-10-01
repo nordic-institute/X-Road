@@ -1,4 +1,8 @@
 class Pki < ActiveRecord::Base
+  include Validators
+
+  validates_with MaxlengthValidator
+  validates :top_ca, :presence => true
 
   has_one :top_ca,
       :class_name => "CaInfo",
@@ -11,8 +15,6 @@ class Pki < ActiveRecord::Base
       :foreign_key => "intermediate_ca_id",
       :dependent => :destroy,
       :autosave => true
-
-  validates :top_ca, :presence => true
 
   before_save do |pki|
     logger.info("Saving PKI: '#{pki}'")
@@ -46,7 +48,15 @@ class Pki < ActiveRecord::Base
     top_ca_cert = self.top_ca.cert
 
     cert_obj = CertObjectGenerator.new.generate(top_ca_cert)
-    self.name = cert_obj.subject.to_s
+    subject_name = cert_obj.subject.to_s
+
+    unless MaxlengthValidator.string_length_valid?(subject_name)
+      raise I18n.t("errors.pki.top_ca_cert_too_long_subject_name", {
+          :max_length => Validators::STRING_MAX_LENGTH,
+          :subject_name => subject_name})
+    end
+
+    self.name = subject_name
   end
 
   def to_s
@@ -80,6 +90,6 @@ class Pki < ActiveRecord::Base
   end
 
   def self.get_searchable_columns
-    ["pkis.name"]
+    ["pkis.name", "ca_infos.valid_from", "ca_infos.valid_to"]
   end
 end
