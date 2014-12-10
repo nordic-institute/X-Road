@@ -1,5 +1,8 @@
 package ee.cyber.sdsb.proxy.serverproxy;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.security.SecureRandom;
 
 import javax.net.ssl.KeyManager;
@@ -25,13 +28,13 @@ import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.xml.XmlConfiguration;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
 
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.AuthTrustManager;
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.globalconf.AuthTrustManager;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.db.HibernateUtil;
 import ee.cyber.sdsb.common.util.CryptoUtils;
@@ -48,12 +51,9 @@ public class ServerProxy implements StartStop {
 
     // Configuration parameters.
     // TODO: #2576 Make configurable in the future
-    private static final int SERVER_THREAD_POOL_SIZE = 5000;
     private static final int CLIENT_TIMEOUT = 300000; // 30 sec.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
-
-    private static final boolean USE_ANTIDOS = true;
 
     static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
@@ -78,11 +78,22 @@ public class ServerProxy implements StartStop {
         createHandlers();
     }
 
-    private void configureServer() {
-        server.setThreadPool(new QueuedThreadPool(SERVER_THREAD_POOL_SIZE));
+    private void configureServer() throws Exception {
+        log.trace("configureServer()");
+
+        File configFile = new File(
+                SystemProperties.getJettyServerProxyConfFile());
+
+        log.debug("Configuring server from {}", configFile);
+        try (InputStream in = new FileInputStream(configFile)) {
+            XmlConfiguration config = new XmlConfiguration(in);
+            config.configure(server);
+        }
     }
 
     private void createClient() throws Exception {
+        log.trace("createClient()");
+
         RegistryBuilder<ConnectionSocketFactory> sfr =
                 RegistryBuilder.<ConnectionSocketFactory>create();
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
@@ -124,12 +135,14 @@ public class ServerProxy implements StartStop {
         log.info("SSL context successfully created");
 
         return new CustomSSLSocketFactory(ctx,
-                CryptoUtils.INCLUDED_CIPHER_SUITES,
+                null,
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
 
     private void createConnectors() throws Exception {
-        int port = SystemProperties.getServerProxyPort();
+        log.trace("createConnectors()");
+
+        int port = SystemProperties.getServerProxyListenPort();
 
         SelectChannelConnector connector = SystemProperties.isSslEnabled()
                 ? createClientProxySslConnector()
@@ -152,6 +165,8 @@ public class ServerProxy implements StartStop {
     }
 
     private void createHandlers() {
+        log.trace("createHandlers()");
+
         RequestLogHandler logHandler = new RequestLogHandler();
         RequestLogImpl reqLog = new RequestLogImpl();
         reqLog.setResource("/logback-access-serverproxy.xml");
@@ -169,12 +184,16 @@ public class ServerProxy implements StartStop {
 
     @Override
     public void start() throws Exception {
+        log.trace("start()");
+
         server.start();
         connMonitor.start();
     }
 
     @Override
     public void join() throws InterruptedException {
+        log.trace("join()");
+
         if (server.getThreadPool() != null) {
             server.join();
         }
@@ -182,6 +201,8 @@ public class ServerProxy implements StartStop {
 
     @Override
     public void stop() throws Exception {
+        log.trace("stop()");
+
         connMonitor.shutdown();
         client.close();
         server.stop();
@@ -194,15 +215,15 @@ public class ServerProxy implements StartStop {
     }
 
     private static SelectChannelConnector createClientProxyConnector() {
-        return USE_ANTIDOS ? new AntiDosConnector()
-                           : new SelectChannelConnector();
+        return SystemProperties.isAntiDosEnabled()
+                            ? new AntiDosConnector()
+                            : new SelectChannelConnector();
     }
 
     private static SslSelectChannelConnector createClientProxySslConnector()
             throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
-
         cf.setIncludeCipherSuites(CryptoUtils.INCLUDED_CIPHER_SUITES);
         cf.setSessionCachingEnabled(true);
 
@@ -213,8 +234,9 @@ public class ServerProxy implements StartStop {
 
         cf.setSslContext(ctx);
 
-        return USE_ANTIDOS ? new AntiDosSslConnector(cf)
-                           : new SslSelectChannelConnector(cf);
+        return SystemProperties.isAntiDosEnabled()
+                            ? new AntiDosSslConnector(cf)
+                            : new SslSelectChannelConnector(cf);
     }
 
     private static KeyManager[] createServiceKeyManager() throws Exception {

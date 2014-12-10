@@ -73,16 +73,16 @@ class SecurityServerClient < ActiveRecord::Base
         '#{server_code}', '#{query_params}')")
 
     identifiers = get_clients_relation(query_params).
-        where(get_excluded_ids_relation(
-            get_excluded_server_client_ids(server_code)))
+        where(get_excluded_ids_relation(server_code ?
+            get_excluded_server_client_ids(server_code) : []))
 
     return get_clients_with_name(identifiers)
   end
 
   def self.get_addable_clients_count(server_code, searchable = "")
     return get_search_relation(searchable).
-        where(get_excluded_ids_relation(
-            get_excluded_server_client_ids(server_code))).count
+        where(get_excluded_ids_relation(server_code ?
+            get_excluded_server_client_ids(server_code) : [])).count
   end
 
   private

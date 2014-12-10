@@ -1,4 +1,6 @@
 dependencies {
+    compile project(':common-ui')
+
     compile project(':common-verifier')
     compile project(':signer-protocol')
 }
@@ -11,6 +13,7 @@ clean << {
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
+    exclude '**/build/**'
 }
 
 task copyCenterCommon(type: Copy) {
@@ -26,6 +29,14 @@ task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
 // TODO - We might want to get rid of warning at .war file generation
 task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
+}
+
+task runModelTests(type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:units']
+}
+
+task runControllerTests(type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:controllers']
 }
 
 build.dependsOn copyDeps

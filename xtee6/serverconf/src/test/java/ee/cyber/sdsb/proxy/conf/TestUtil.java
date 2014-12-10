@@ -3,11 +3,9 @@ package ee.cyber.sdsb.proxy.conf;
 import java.util.Date;
 
 import org.hibernate.Query;
-import org.hibernate.Session;
 
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.serverconf.model.*;
-import ee.cyber.sdsb.common.db.TransactionCallback;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.LocalGroupId;
 import ee.cyber.sdsb.common.identifier.SdsbId;
@@ -44,29 +42,28 @@ public class TestUtil {
     static final int NUM_CLIENTS = 5;
     static final int NUM_WSDLS = 2;
     static final int NUM_SERVICES = 4;
-    static final int NUM_DISTRIBUTORS = 3;
     static final int NUM_TSPS = 2;
 
     static final String BASE64_CERT =
-        "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE" +
-        "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw" +
-        "HhcNMTIxMTE5MDkxNDIzWhcNMTQxMTE5MDkxNDIzWjATMREwDwYDVQQDDAhwcm9k" +
-        "dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKNC381RiACCftv" +
-        "ApBzk5HD5YHw0u9SOkwcIkn4cZ4eQWrlROnqHTpS9IVSBoOz6pjCx/FwxZTdpw0j" +
-        "X+bRYpxnj11I2XKzHfhfa6BvL5VkaDtjGpOdSGMJUtrI6m9jFiYryEmYHWxPlL9V" +
-        "pDK0KknevYm2BR23/xDHweBSZ7tkMENU1kXFWLunoBys+W0waR+Z8HH5WNuBLz8X" +
-        "z2iz/6KQ5BoWSPJc9P5TXNOBB+5XyjBR2ogoAOtX53OJzu0wMgLpjuJGdfcpy1S9" +
-        "ukU27B21i2MfZ6Tjhu9oKrAIgcMWJaHJ/gRX6iX1vXlfhUTkE1ACSfvhZdntKLzN" +
-        "TZGEcxsCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0" +
-        "dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z" +
-        "dGF0dXMvb2NzcDAdBgNVHQ4EFgQUUHtGmEl0Cuh/x/wj+UU5S7Wui48wDAYDVR0T" +
-        "AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B" +
-        "Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACJqqey5Ywoegq+Rjo4v89AN78Ou" +
-        "tKtRzQZtuCZP9+ZhY6ivCPK4F8Ne6qpWZb63OLORyQosDAvj6m0iCFMsUZS3nC0U" +
-        "DR0VyP2WrOihBOFC4CA7H2X4l7pkSyMN73ZC6icXkbj9H0ix5/Bv3Ug64DK9SixG" +
-        "RxMwLxouIzk7WvePQ6ywlhGvZRTXxhr0DwvfZnPXxHDPB2q+9pKzC9h2txG1tyD9" +
-        "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC" +
-        "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
+        "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
+        + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
+        + "HhcNMTIxMTE5MDkxNDIzWhcNMTQxMTE5MDkxNDIzWjATMREwDwYDVQQDDAhwcm9k"
+        + "dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKNC381RiACCftv"
+        + "ApBzk5HD5YHw0u9SOkwcIkn4cZ4eQWrlROnqHTpS9IVSBoOz6pjCx/FwxZTdpw0j"
+        + "X+bRYpxnj11I2XKzHfhfa6BvL5VkaDtjGpOdSGMJUtrI6m9jFiYryEmYHWxPlL9V"
+        + "pDK0KknevYm2BR23/xDHweBSZ7tkMENU1kXFWLunoBys+W0waR+Z8HH5WNuBLz8X"
+        + "z2iz/6KQ5BoWSPJc9P5TXNOBB+5XyjBR2ogoAOtX53OJzu0wMgLpjuJGdfcpy1S9"
+        + "ukU27B21i2MfZ6Tjhu9oKrAIgcMWJaHJ/gRX6iX1vXlfhUTkE1ACSfvhZdntKLzN"
+        + "TZGEcxsCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0"
+        + "dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z"
+        + "dGF0dXMvb2NzcDAdBgNVHQ4EFgQUUHtGmEl0Cuh/x/wj+UU5S7Wui48wDAYDVR0T"
+        + "AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B"
+        + "Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACJqqey5Ywoegq+Rjo4v89AN78Ou"
+        + "tKtRzQZtuCZP9+ZhY6ivCPK4F8Ne6qpWZb63OLORyQosDAvj6m0iCFMsUZS3nC0U"
+        + "DR0VyP2WrOihBOFC4CA7H2X4l7pkSyMN73ZC6icXkbj9H0ix5/Bv3Ug64DK9SixG"
+        + "RxMwLxouIzk7WvePQ6ywlhGvZRTXxhr0DwvfZnPXxHDPB2q+9pKzC9h2txG1tyD9"
+        + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
+        + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
 
     public static void prepareDB() throws Exception {
         System.setProperty(
@@ -81,31 +78,25 @@ public class TestUtil {
             cleanDB();
         }
 
-        doInTransaction(new TransactionCallback<Object>() {
-            @Override
-            public Object call(Session session) throws Exception {
-                ServerConfType conf = createTestData();
-                session.save(conf);
-                return null;
-            }
+        doInTransaction(session -> {
+            ServerConfType conf = createTestData();
+            session.save(conf);
+            return null;
         });
     }
 
     static void cleanDB() throws Exception {
-        doInTransaction(new TransactionCallback<Object>() {
-            @Override
-            public Object call(Session session) throws Exception {
-                Query q = session.createSQLQuery(
-                        // Since we are using HSQLDB for tests, we can use
-                        // special commands to completely wipe out the database
-                        "TRUNCATE SCHEMA public AND COMMIT");
-                q.executeUpdate();
-                return null;
-            }
+        doInTransaction(session -> {
+            Query q = session.createSQLQuery(
+                    // Since we are using HSQLDB for tests, we can use
+                    // special commands to completely wipe out the database
+                    "TRUNCATE SCHEMA public AND COMMIT");
+            q.executeUpdate();
+            return null;
         });
     }
 
-    static ServerConfType createTestData() throws Exception {
+    static ServerConfType createTestData() {
         ServerConfType conf = new ServerConfType();
         conf.setServerCode(SERVER_CODE);
 
@@ -209,16 +200,6 @@ public class TestUtil {
             localGroup.getGroupMember().add(localGroupMember);
 
             client.getLocalGroup().add(localGroup);
-        }
-
-        for (int j = 0; j < NUM_DISTRIBUTORS; j++) {
-            GlobalConfDistributorType d = new GlobalConfDistributorType();
-            d.setUrl("distributor" + j);
-            CertificateType ct = new CertificateType();
-            ct.setData(decodeBase64(BASE64_CERT));
-            d.setVerificationCert(ct);
-
-            conf.getGlobalConfDistributor().add(d);
         }
 
         for (int j = 0; j < NUM_TSPS; j++) {

@@ -3,6 +3,9 @@ package ee.cyber.sdsb.signer.tokenmanager.module;
 import lombok.extern.slf4j.Slf4j;
 import akka.actor.Props;
 
+/**
+ * Default module manager supporting only software modules.
+ */
 @Slf4j
 public class DefaultModuleManagerImpl extends AbstractModuleManager {
 

@@ -1,21 +1,44 @@
 function uploadCallback(response) {
-    if (response.success) {
-        if ($("#serverconf_form").length > 0) {
-            $("#globalconf_form").hide();
-            $("#serverconf_form").show();
-
-            populateOwnerSelect();
-        } else {
-            alert("init.index.initialized", null, function() {
-                redirect("clients");
-            });
-        }
+    if (!response.success) {
+        showMessages(response.messages);
+        return;
     }
 
-    showMessages(response.messages);
+    var row1 = $("<tr>")
+        .append($("<td>").text(_("common.hash")).addClass("semibold"))
+        .append($("<td>").text(response.data.hash));
+
+    var row2 = $("<tr>")
+        .append($("<td>").text(_("common.generated")).addClass("semibold"))
+        .append($("<td>").text(response.data.generated_at));
+
+    var details = $("<table>")
+        .append(row1)
+        .append(row2)
+        .addClass("details")
+        .css("margin", "1em 0");
+
+    var confirmParams = {
+        details: $("<p>").append(details).html()
+    };
+
+    confirm("anchor.upload_confirm", confirmParams, function() {
+        $.post(action("anchor_init"), null, function() {
+            if ($("#serverconf_form").length > 0) {
+                $("#anchor_upload_form").hide();
+                $("#serverconf_form").show();
+
+                populateOwnerClassSelect();
+            } else {
+                alert("init.index.initialized", null, function() {
+                    redirect("clients");
+                });
+            }
+        }, "json");
+    });
 }
 
-function populateOwnerSelect() {
+function populateOwnerClassSelect() {
     if ($("#owner_class").is("[disabled]")) {
         return;
     }
@@ -26,21 +49,32 @@ function populateOwnerSelect() {
         $.each(response.data, function() {
             select.append($("<option />").val(this).text(this));
         });
-    });
 
-    $.get(action("member_codes"), null, function(response) {
-        $("#owner_code").autocomplete("option", "source", response.data);
-    });
+        populateOwnerCodeSelect();
+    }, "json");
 }
 
-$(document).ready(function() {
-    $('#sidebar, #server-info').hide();
-    $('#main, #content').css('width', '100%');
+function populateOwnerCodeSelect() {
+    var params = {
+        member_class: $("#owner_class").val()
+    };
 
-    if ($("#globalconf_form").length > 0) {
-        $("#serverconf_form").hide();
-    }
+    $.get(action("member_codes"), params, function(response) {
+        $("#owner_code").autocomplete("option", "source", response.data);
+    }, "json");
+}
 
+function initConfigurationAnchorActions() {
+    $("#anchor_upload_file").change(function() {
+        if ($(this).val() != "") {
+            $("#anchor_upload_submit").enable();
+        }
+    }).val("");
+
+    $("#anchor_upload_submit").disable();
+}
+
+function initServerConfActions() {
     var namefetch = function() {
         var timer = 0;
         return function(callback, ms) {
@@ -50,6 +84,7 @@ $(document).ready(function() {
     }();
 
     $("#owner_class").change(function() {
+        populateOwnerCodeSelect();
         $("#owner_code").keyup();
     });
 
@@ -70,16 +105,29 @@ $(document).ready(function() {
         }, 500);
     });
 
-    populateOwnerSelect();
+    populateOwnerClassSelect();
 
     $("#submit_serverconf").click(function() {
-        var params = $("#serverconf_form").serialize();
-        $.post(action("init_serverconf"), params, function() {
+        var params = $("#serverconf_form").serializeObject();
+
+        $.post(action("serverconf_init"), params, function() {
             alert("init.index.initialized", null, function() {
                 redirect("clients");
             });
-        });
+        }, "json");
 
         return false;
     });
+}
+
+$(document).ready(function() {
+    $("#sidebar, #server-info").hide();
+    $("#main, #content").css("width", "100%");
+
+    if ($("#anchor_upload_form").length > 0) {
+        $("#serverconf_form").hide();
+    }
+
+    initConfigurationAnchorActions();
+    initServerConfActions();
 });

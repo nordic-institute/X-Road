@@ -3,24 +3,22 @@
 <% end %>
 
 <% content_for :content do %>
-  <section class="container">
-    <div class="clients_actions" style="float: right;">
-      <% if can?(:add_client) %>
-      <button id="client_add"><%= t '.add_client' %></button>
-      <% end %>
-    </div>
+  <div class="clients_actions" style="float: right;">
+    <% if can?(:add_client) %>
+    <button id="client_add"><%= t '.add_client' %></button>
+    <% end %>
+  </div>
 
-    <table id="clients">
-      <thead>
-        <tr>
-          <th class="status" title="State"><i class="fa fa-circle-o"></i></th>
-          <th>Name</th>
-          <th>ID</th>
-          <th></th>
-        </tr>
-      </thead>
-    </table>
-  </section>
+  <table id="clients">
+    <thead>
+      <tr>
+        <th class="status" title="State"><i class="fa fa-circle-o"></i></th>
+        <th>Name</th>
+        <th>ID</th>
+        <th></th>
+      </tr>
+    </thead>
+  </table>
 
   <div class="dialog_dynamic">
     <%= render :partial => "client_add_dialog" %>

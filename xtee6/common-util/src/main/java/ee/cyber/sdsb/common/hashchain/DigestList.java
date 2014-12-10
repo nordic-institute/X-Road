@@ -6,7 +6,7 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
 
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
-import static ee.cyber.sdsb.common.util.CryptoUtils.getAlgorithmURI;
+import static ee.cyber.sdsb.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static org.bouncycastle.asn1.ASN1Encoding.DER;
 
 class DigestList {
@@ -17,7 +17,7 @@ class DigestList {
     static byte[] digestHashStep(String digestMethod, byte[] ...items)
             throws Exception {
         return calculateDigest(digestMethod,
-                concatDigests(getAlgorithmURI(digestMethod), items));
+                concatDigests(getDigestAlgorithmURI(digestMethod), items));
     }
 
     /**

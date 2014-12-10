@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ee.cyber.sdsb.common.TestCertUtil;
+import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.signature.TestSigningKey;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
 import ee.cyber.sdsb.proxy.conf.SigningCtxImpl;
@@ -20,7 +21,7 @@ public class TestUtil {
         }
 
         TestCertUtil.PKCS12 pkcs12 =
-                TestCertUtil.loadPKCS12(orgName + ".p12", orgName, PASSWORD);
+                TestCertUtil.loadPKCS12(orgName + ".p12", "1", PASSWORD);
         cache.put(orgName, pkcs12);
         return pkcs12;
     }
@@ -36,10 +37,12 @@ public class TestUtil {
     }
 
     public static SigningCtx getSigningCtx() {
-        return getSigningCtx(TestCertUtil.getTestOrg());
+        return getSigningCtx(TestCertUtil.getConsumer());
     }
 
     private static SigningCtx getSigningCtx(TestCertUtil.PKCS12 pkcs12) {
-        return new SigningCtxImpl(new TestSigningKey(pkcs12.key), pkcs12.cert);
+        ClientId subject = ClientId.create("EE", "BUSINESS", "foo"); // TODO
+        return new SigningCtxImpl(subject, new TestSigningKey(pkcs12.key),
+                pkcs12.cert);
     }
 }

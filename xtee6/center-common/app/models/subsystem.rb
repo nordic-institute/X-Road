@@ -25,7 +25,7 @@ class Subsystem < SecurityServerClient
   def save_identifier(record)
     sdsb_member = record.sdsb_member
     identifier = ClientId.from_parts(
-        SystemParameter.sdsb_instance,
+        SystemParameter.instance_identifier,
         sdsb_member.member_class.code,
         sdsb_member.member_code,
         record.subsystem_code)

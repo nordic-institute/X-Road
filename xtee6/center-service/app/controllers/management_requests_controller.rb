@@ -13,6 +13,9 @@ class ManagementRequestsController < ApplicationController
     begin
       response.content_type = "text/xml"
 
+      @sdsb_instance = SystemParameter.instance_identifier
+      raise "SDSB instance must exist!" if @sdsb_instance.blank?
+
       @request_soap = ManagementRequestHandler.readRequest(
         request.headers["CONTENT_TYPE"],
         StringIO.new(request.raw_post).to_inputstream)
@@ -55,6 +58,8 @@ class ManagementRequestsController < ApplicationController
   def handle_auth_cert_registration
     req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
     security_server = security_server_id(req_type.getServer())
+
+    verify_sdsb_instance(security_server)
     verify_owner(security_server)
 
     req = AuthCertRegRequest.new(
@@ -70,6 +75,8 @@ class ManagementRequestsController < ApplicationController
     req_type = ManagementRequestParser.parseAuthCertDeletionRequest(
       @request_soap)
     security_server = security_server_id(req_type.getServer())
+
+    verify_sdsb_instance(security_server)
     verify_owner(security_server)
 
     req = AuthCertDeletionRequest.new(
@@ -83,11 +90,16 @@ class ManagementRequestsController < ApplicationController
   def handle_client_registration
     req_type = ManagementRequestParser.parseClientRegRequest(@request_soap)
     security_server = security_server_id(req_type.getServer())
+    server_user = client_id(req_type.getClient())
+
+    verify_sdsb_instance(security_server)
+    verify_sdsb_instance(server_user)
+
     verify_owner(security_server)
 
     req = ClientRegRequest.new(
       :security_server => security_server,
-      :sec_serv_user => client_id(req_type.getClient()),
+      :sec_serv_user => server_user,
       :origin => Request::SECURITY_SERVER)
     req.register()
     req.id
@@ -96,11 +108,16 @@ class ManagementRequestsController < ApplicationController
   def handle_client_deletion
     req_type = ManagementRequestParser.parseClientDeletionRequest(@request_soap)
     security_server = security_server_id(req_type.getServer())
+    server_user = client_id(req_type.getClient())
+
+    verify_sdsb_instance(security_server)
+    verify_sdsb_instance(server_user)
+
     verify_owner(security_server)
 
     req = ClientDeletionRequest.new(
       :security_server => security_server,
-      :sec_serv_user => client_id(req_type.getClient()),
+      :sec_serv_user => server_user,
       :origin => Request::SECURITY_SERVER)
     req.register()
     req.id
@@ -119,10 +136,25 @@ class ManagementRequestsController < ApplicationController
 
   def verify_owner(security_server)
     sender = client_id(@request_soap.getClient())
+    verify_sdsb_instance(sender)
+
     if not security_server.matches_client_id(sender)
       raise I18n.t("requests.serverid.does.not.match.owner",
         :security_server => security_server.to_s,
         :sec_serv_owner => sender.to_s)
+    end
+  end
+
+  # sdsb_id may be either ClientId or ServerId.
+  def verify_sdsb_instance(sdsb_id)
+    logger.debug("Instance verification: #{sdsb_id}")
+
+    actual_instance = sdsb_id.sdsb_instance
+
+    unless @sdsb_instance.eql?(actual_instance)
+      raise t("request.incorrect_instance", {
+          :allowed_instance => @sdsb_instance,
+          :actual_instance => actual_instance})
     end
   end
 end

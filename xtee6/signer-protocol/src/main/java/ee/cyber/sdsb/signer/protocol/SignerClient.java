@@ -29,6 +29,10 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.SIGNER;
 
+/**
+ * Signer client is used to send messages to signer from other components
+ * (running as separate JVM processes).
+ */
 @Slf4j
 public final class SignerClient {
 
@@ -43,20 +47,32 @@ public final class SignerClient {
     private SignerClient() {
     }
 
-    public static void init(ActorSystem actorSystem) throws Exception {
-        log.debug("init()");
+    /**
+     * Initializes the client with the provided actor system.
+     * @param system the actor system
+     * @throws Exception if an error occurs
+     */
+    public static void init(ActorSystem system) throws Exception {
+        log.trace("init()");
 
         if (SignerClient.actorSystem == null) {
-            SignerClient.actorSystem = actorSystem;
+            SignerClient.actorSystem = system;
 
-            requestProcessor = actorSystem.actorSelection(
+            requestProcessor = system.actorSelection(
                     getSignerPath() + "/user/" + REQUEST_PROCESSOR);
 
-            actorSystem.actorOf(Props.create(ConnectionPinger.class),
+            system.actorOf(Props.create(ConnectionPinger.class),
                     "ConnectionPinger");
         }
     }
 
+    /**
+     * Sends a message and waits for any response. Does not return the response.
+     * If the response is an exception, throws it.
+     * @param message the message
+     * @param receiver the receiver actor
+     * @throws Exception if the response is an exception
+     */
     public static void execute(Object message, ActorRef receiver)
             throws Exception {
         verifyInitialized();
@@ -75,6 +91,14 @@ public final class SignerClient {
         }
     }
 
+    /**
+     * Sends a message and waits for a response, returning it. If the response
+     * is an exception, throws it.
+     * @param <T> the type of result
+     * @param message the message
+     * @return the response
+     * @throws Exception if the response is an exception
+     */
     public static <T> T execute(Object message) throws Exception {
         verifyInitialized();
         verifyConnected();
@@ -94,6 +118,14 @@ public final class SignerClient {
         }
     }
 
+    /**
+     * Returns the object as the instance or throws exception, if the object
+     * is throwable.
+     * @param <T> the type of result
+     * @param result the result object
+     * @return result
+     * @throws Exception if the object is throwable
+     */
     @SuppressWarnings("unchecked")
     public static <T> T result(Object result) throws Exception {
         if (result instanceof Throwable) {
@@ -178,6 +210,9 @@ public final class SignerClient {
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
     private static class ConnectionPinger extends UntypedActor {
 
+        private static final FiniteDuration INITIAL_DELAY =
+                FiniteDuration.create(100, TimeUnit.MILLISECONDS);
+
         private final FiniteDuration interval =
                 FiniteDuration.create(5, TimeUnit.SECONDS);
 
@@ -208,6 +243,7 @@ public final class SignerClient {
         private void checkLastPong() {
             if (lastPong == null || hasTimedOut()) {
                 connected = false;
+                log.trace("Connection lost");
             }
         }
 
@@ -219,8 +255,7 @@ public final class SignerClient {
 
         private Cancellable start() {
             return getContext().system().scheduler().schedule(
-                    FiniteDuration.create(100, TimeUnit.MILLISECONDS),
-                    interval, getSelf(), new ConnectionPing(),
+                    INITIAL_DELAY, interval, getSelf(), new ConnectionPing(),
                     getContext().dispatcher(), ActorRef.noSender());
         }
     }

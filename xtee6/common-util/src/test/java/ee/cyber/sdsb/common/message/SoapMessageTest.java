@@ -262,7 +262,7 @@ public class SoapMessageTest {
         assertEquals(service, built.getService());
 
         Soap parsedSoap = new SoapParserImpl().parse(
-                        IOUtils.toInputStream(built.getXml()));
+                        new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         SoapMessageImpl parsed = (SoapMessageImpl) parsedSoap;
@@ -349,7 +349,7 @@ public class SoapMessageTest {
 
         assertTrue(message.isRequest());
         assertEquals(expectedClient, message.getClient());
-        assertEquals(expectedService, message.getService());
+        assertEquals(expectedService, message.getCentralService());
         assertEquals("EE37702211234", message.getUserId());
         assertEquals("1234567890", message.getQueryId());
     }

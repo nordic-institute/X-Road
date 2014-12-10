@@ -14,8 +14,15 @@ import static org.apache.commons.io.IOUtils.toByteArray;
 public class FileContentChangeChecker {
 
     private final String fileName;
-    private final String checksum;
 
+    private String checksum;
+    private String previousChecksum;
+
+    /**
+     * Calculates hash of the input file.
+     * @param fileName the input file
+     * @throws Exception if an error occurs
+     */
     public FileContentChangeChecker(String fileName) throws Exception {
         this.fileName = fileName;
 
@@ -23,9 +30,16 @@ public class FileContentChangeChecker {
         this.checksum = calculateConfFileChecksum(file);
     }
 
+    /**
+     * @return true, if the file has changed
+     * @throws Exception if an error occurs
+     */
     public boolean hasChanged() throws Exception {
         File file = getFile();
-        return !calculateConfFileChecksum(file).equals(checksum);
+
+        previousChecksum = checksum;
+        checksum = calculateConfFileChecksum(file);
+        return !checksum.equals(previousChecksum);
     }
 
     protected File getFile() {
@@ -36,7 +50,7 @@ public class FileContentChangeChecker {
         return new FileInputStream(file);
     }
 
-    private String calculateConfFileChecksum(File file) throws Exception {
+    protected String calculateConfFileChecksum(File file) throws Exception {
         try (InputStream in = getInputStream(file)) {
             return hexDigest(MD5_ID, toByteArray(in));
         }

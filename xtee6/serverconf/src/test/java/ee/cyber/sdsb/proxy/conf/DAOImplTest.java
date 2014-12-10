@@ -135,24 +135,6 @@ public class DAOImplTest {
     }
 
     @Test
-    public void deleteGlobalConfDistributor() throws Exception {
-        ServerConfType conf = getConf();
-        assertEquals(TestUtil.NUM_DISTRIBUTORS,
-                conf.getGlobalConfDistributor().size());
-
-        GlobalConfDistributorType t = conf.getGlobalConfDistributor().get(0);
-        Long id = t.getId();
-
-        assertTrue(conf.getGlobalConfDistributor().remove(t));
-        session.saveOrUpdate(t);
-        session.delete(t);
-
-        assertEquals(TestUtil.NUM_DISTRIBUTORS - 1,
-                conf.getGlobalConfDistributor().size());
-        assertNull(session.get(GlobalConfDistributorType.class, id));
-    }
-
-    @Test
     public void addLocalGroupMember() throws Exception {
         ClientType client = getClient(createTestClientId(client(1)));
         assertTrue(!client.getLocalGroup().isEmpty());

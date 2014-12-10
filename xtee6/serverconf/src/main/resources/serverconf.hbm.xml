@@ -20,11 +20,6 @@
             <one-to-many class="ClientType"/>
         </bag>
 
-        <bag name="globalConfDistributor" access="field" cascade="all-delete-orphan">
-            <key column="conf_id"/>
-            <one-to-many class="GlobalConfDistributorType"/>
-        </bag>
-
         <bag name="tsp" access="field" cascade="all-delete-orphan">
             <key column="conf_id"/>
             <one-to-many class="TspType"/>
@@ -178,18 +173,6 @@
             not-null="true" cascade="save-update" lazy="false"/>
 
         <property name="rightsGiven" access="field" not-null="true"/>
-    </class>
-
-    <class name="GlobalConfDistributorType" table="GLOBALCONFDISTRIBUTOR">
-        <id name="id" type="long" access="field">
-            <generator class="native"/>
-        </id>
-
-        <property name="url" access="field" not-null="true"/>
-
-        <many-to-one name="verificationCert" access="field" 
-            class="CertificateType" not-null="true" cascade="all"
-            lazy="false"/>
     </class>
 
     <class name="TspType" table="TSP">

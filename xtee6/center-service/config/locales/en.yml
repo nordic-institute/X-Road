@@ -3,3 +3,6 @@
 
 en:
   hello: "Hello world"
+
+  request:
+    incorrect_instance: "Invalid SDSB instance in request. Allowed is '%{allowed_instance}', but request contained '%{actual_instance}'."

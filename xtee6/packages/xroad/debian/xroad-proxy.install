@@ -1,0 +1,12 @@
+proxy/etc/* etc/
+proxy/usr/* usr/
+../../proxy-ui/build/libs/proxy-ui.war usr/share/sdsb/jlib/webapps/
+../../proxy/build/libs/proxy-1.0.jar usr/share/sdsb/jlib/
+../../configuration-client/build/libs/configuration-client-1.0.jar usr/share/sdsb/jlib/
+../../async-sender/build/libs/async-sender-1.0.jar usr/share/sdsb/jlib/
+../default-configuration/proxy.ini etc/sdsb/conf.d
+../default-configuration/proxy-ui.ini etc/sdsb/conf.d
+../default-configuration/proxy-logback.xml etc/sdsb/conf.d
+../default-configuration/proxy-ui-logback.xml etc/sdsb/conf.d
+../default-configuration/configuration-client-logback.xml etc/sdsb/conf.d
+../default-configuration/async-sender-logback.xml etc/sdsb/conf.d

@@ -9,6 +9,6 @@ tyhigrupp:
   member_count: 0
 
 server_owners:
-  group_code: "server-owners"
+  group_code: "security-server-owners"
   description: "Turvaserverite omanikud"
   member_count: 2

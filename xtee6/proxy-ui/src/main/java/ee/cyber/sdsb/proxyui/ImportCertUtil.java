@@ -3,7 +3,7 @@ package ee.cyber.sdsb.proxyui;
 import java.security.cert.X509Certificate;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -20,9 +20,9 @@ public class ImportCertUtil {
         }
     }
 
-    public static ClientId getClientIdForSigningCert(X509Certificate cert)
-            throws Exception {
-        return GlobalConf.getSubjectName(cert);
+    public static ClientId getClientIdForSigningCert(String instanceIdentifier,
+            X509Certificate cert) throws Exception {
+        return GlobalConf.getSubjectName(instanceIdentifier, cert);
     }
 
     private static boolean clientExists(ClientId clientId) throws Exception {

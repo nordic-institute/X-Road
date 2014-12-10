@@ -21,7 +21,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.AuthTrustManager;
+import ee.cyber.sdsb.common.conf.globalconf.AuthTrustManager;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.common.util.SystemMetrics;

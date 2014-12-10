@@ -4,7 +4,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -80,6 +80,11 @@ public interface ServerConfProvider {
     List<ClientId> getMembers() throws Exception;
 
     /**
+     * @return the status of the member or null of member is not found
+     */
+    String getMemberStatus(ClientId memberId);
+
+    /**
      * @return true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
@@ -89,11 +94,6 @@ public interface ServerConfProvider {
      * @return set of security category codes required by this service.
      */
     Collection<SecurityCategoryId> getRequiredCategories(ServiceId service);
-
-    /**
-     * @return the file distributors
-     */
-    List<GlobalConfDistributorType> getFileDistributors();
 
     /**
      * @return list of URLs for the Time-stamping providers configured

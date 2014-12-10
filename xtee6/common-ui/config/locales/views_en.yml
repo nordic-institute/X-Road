@@ -22,6 +22,7 @@ en:
     export: "Export"
     finish: "Finish"
     generate: "Generate"
+    generated: "Generated"
     generate_new: "Generate new"
     import: "Import"
     load: "Load"
@@ -39,7 +40,6 @@ en:
     search: "Search"
     select: "Select"
     select_all: "Select/deselect all"
-    session_timed_out: "<div class='align-center'>Session timed out. Redirecting.</div>"
     simple_search: "Simple Search"
     submit: "Submit"
     upload: "Upload"
@@ -48,8 +48,11 @@ en:
     zero_records_none: "None"
     language: "Language (%{current})"
     enter_pin: "Enter PIN"
+    pin: "PIN"
     'yes': "Yes"
     'no': "No"
+    id: "ID"
+    hash: "Hash"
 
   layouts:
     application:
@@ -59,7 +62,7 @@ en:
       confirm_title: "Confirmation Required"
       yesno_title: "Confirmation Required"
       warning_title: "Warning"
-      alert_title: "Alert"
+      alert_title: "Notice"
     menu:
       changes: "Unsaved changes"
 

@@ -1,0 +1,40 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "groups" %>
+<% end %>
+
+<div class="ui-tabs-panel-actions">
+  <button id="group_details"><%= t '.details' %></button>
+  <% if can?(:add_local_group) %>
+  <button id="group_add"><%= t '.add_group' %></button>
+  <% end %>
+</div>
+
+<table id="groups">
+  <thead>
+    <tr>
+      <th id="group_code"><%= t '.code' %></th>
+      <th id="group_description"><%= t '.description' %></th>
+      <th id="group_member_count"><%= t '.member_count' %></th>
+      <th id="group_updated"><%= t '.updated' %></th>
+    </tr>
+  </thead>
+</table>
+
+<%= dialog "group_add_dialog", t('.new_group') do %>
+  <%= form_tag do %>
+  <section class="container">
+    <table class="details">
+      <tr>
+        <td><%= t '.code' %></td>
+        <td><%= text_field_tag "add_group_code", nil %></td>
+      </tr>
+      <tr>
+        <td><%= t '.description' %></td>
+        <td><%= text_area_tag "add_group_description" %></td>
+      </tr>
+    </table>
+  </section>
+  <% end %>
+<% end %>
+
+<%= render :partial => "group_details_dialog" %>

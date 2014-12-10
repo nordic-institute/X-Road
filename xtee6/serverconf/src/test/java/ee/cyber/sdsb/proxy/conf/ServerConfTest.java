@@ -19,7 +19,6 @@ import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfImpl;
 import ee.cyber.sdsb.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -208,18 +207,6 @@ public class ServerConfTest {
         List<ClientId> members = ServerConf.getMembers();
         assertNotNull(members);
         assertEquals(NUM_CLIENTS, members.size());
-    }
-
-    @Test
-    public void getGlobalConfDistributors() throws Exception {
-        List<GlobalConfDistributorType> distributors =
-                ServerConf.getFileDistributors();
-        assertEquals(NUM_DISTRIBUTORS, distributors.size());
-
-        for (GlobalConfDistributorType fd : distributors) {
-            assertEquals(readCertificate(BASE64_CERT),
-                    readCertificate(fd.getVerificationCert().getData()));
-        }
     }
 
     @Test

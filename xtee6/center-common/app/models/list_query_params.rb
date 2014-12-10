@@ -14,10 +14,16 @@ class ListQueryParams
           but is '#{sort_direction}'"
     end
 
+    display_length_as_int = display_length.to_i
+
+    if display_length_as_int < 0
+      raise "Display length must be non-negative integer!"
+    end
+
     @sort_column = sort_column
     @sort_direction = sort_direction
     @display_start = display_start.to_i
-    @display_length = display_length.to_i
+    @display_length = display_length_as_int
     @search_string = search_string != nil ? search_string.downcase : ""
   end
 

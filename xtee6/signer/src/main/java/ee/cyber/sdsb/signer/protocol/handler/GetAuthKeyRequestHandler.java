@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
 import ee.cyber.sdsb.common.util.PasswordStore;
@@ -29,6 +29,9 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.tokenNotInitialized;
 
+/**
+ * Handles authentication key retrieval requests.
+ */
 @Slf4j
 public class GetAuthKeyRequestHandler
         extends AbstractRequestHandler<GetAuthKey> {
@@ -67,8 +70,8 @@ public class GetAuthKeyRequestHandler
 
         throw CodedException.tr(X_KEY_NOT_FOUND,
                 "auth_key_not_found_for_server",
-                "Could not find active authentication key for " +
-                "security server '%s'", message.getSecurityServer());
+                "Could not find active authentication key for "
+                        + "security server '%s'", message.getSecurityServer());
     }
 
     private AuthKeyInfo authKeyResponse(KeyInfo keyInfo,
@@ -93,11 +96,13 @@ public class GetAuthKeyRequestHandler
         X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
         try {
             cert.checkValidity();
-            if (GlobalConf.hasAuthCert(cert, securityServer)) {
-                verifyOcspResponse(cert, certInfo.getOcspBytes());
+
+            if (securityServer.equals(GlobalConf.getServerId(cert))) {
+                verifyOcspResponse(securityServer.getSdsbInstance(), cert,
+                        certInfo.getOcspBytes());
                 return true;
             }
-        } catch (CertificateException e) {
+        } catch (Exception e) {
             log.warn("Ignoring authentication certificate '{}' because: {}",
                     cert.getSubjectX500Principal().getName(),
                     e.getMessage());
@@ -106,15 +111,18 @@ public class GetAuthKeyRequestHandler
         return false;
     }
 
-    private void verifyOcspResponse(X509Certificate subject, byte[] ocspBytes)
-            throws Exception {
+    private void verifyOcspResponse(String instanceIdentifier,
+            X509Certificate subject, byte[] ocspBytes) throws Exception {
         if (ocspBytes == null) {
             throw new CertificateException("OCSP response not found");
         }
 
         OCSPResp ocsp = new OCSPResp(ocspBytes);
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
-        OcspVerifier.verifyValidityAndStatus(ocsp, subject, issuer);
+        X509Certificate issuer =
+                GlobalConf.getCaCert(instanceIdentifier, subject);
+        OcspVerifier verifier =
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+        verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     private static boolean isRegistered(String status) {

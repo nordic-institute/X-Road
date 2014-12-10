@@ -16,7 +16,8 @@ include "center-util"
 include "center-service"
 include "async-db"
 include "async-sender"
-include "distributed-files-client"
+include "configuration-proxy"
+include "configuration-client"
 include "proxy-monitor-agent"
 
 // Utils
@@ -35,8 +36,11 @@ include "sandbox"
 include "addons:hwtoken"
 include "addons:messagelog"
 include "addons:metaservice"
-//include "addons:monitoring"
+include "addons:monitoring-proxy-agent"
 //include "addons:federation"
 
-
-
+// Legacy stuff
+include "legacy:securelog:common"
+include "legacy:securelog:securelog"
+include "legacy:securelog:logreader"
+include "legacy:securelog:asicverifier"

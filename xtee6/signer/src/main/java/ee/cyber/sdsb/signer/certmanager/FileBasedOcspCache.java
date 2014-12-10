@@ -6,7 +6,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +21,10 @@ import ee.cyber.sdsb.common.ocsp.OcspCache;
 
 import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.sdsb.common.SystemProperties.getOcspCachePath;
-import static ee.cyber.sdsb.common.ocsp.OcspVerifier.isExpired;
 
+/**
+ * OCSP cache that holds the OCSP responses on disk.
+ */
 @Slf4j
 public class FileBasedOcspCache extends OcspCache {
 
@@ -32,10 +38,10 @@ public class FileBasedOcspCache extends OcspCache {
      * @return the OCSP response object or null, if no response is available
      */
     @Override
-    public OCSPResp get(Object key) {
+    protected OCSPResp getResponse(Object key, Date atDate) {
         OCSPResp response = null;
-        if (containsKey(key)) { // is the OCSP response in memory?
-            response = super.get(key);
+        if (cache.containsKey(key)) { // is the OCSP response in memory?
+            response = super.getResponse(key, atDate);
             if (response != null) {
                 return response;
             }
@@ -43,23 +49,13 @@ public class FileBasedOcspCache extends OcspCache {
 
         File file = getOcspResponseFile(getOcspCachePath(), key);
         try {
-            response = loadResponseFromFile(file);
-            if (response != null) {
-                if (!isExpired(response)) {
-                    super.put(key.toString(), response); // store in memory
-                    return response;
-                }
-
-                log.trace("Cached OCSP response for certificate '{}' " +
-                        "has expired, deleting the file '{}'", key, file);
-                delete(file);
-            }
+            response = loadResponseFromFileIfNotExpired(file, atDate);
         } catch (Exception e) {
             // Failed to load OCSP response from file
             throw translateException(e);
         }
 
-        return null;
+        return response;
     }
 
     /**
@@ -82,6 +78,22 @@ public class FileBasedOcspCache extends OcspCache {
         return response;
     }
 
+    void reloadFromDisk() throws Exception {
+        Path path = Paths.get(getOcspCachePath());
+
+        try (DirectoryStream<Path> stream =
+                Files.newDirectoryStream(path, this::isOcspFile)) {
+            for (Path entry : stream) {
+                loadResponseFromFileIfNotExpired(entry.toFile(), new Date());
+            }
+        }
+    }
+
+    boolean isOcspFile(Path p) {
+        return Files.isRegularFile(p)
+                && p.toString().endsWith(OCSP_FILE_EXTENSION);
+    }
+
     void saveResponseToFile(File file, OCSPResp ocspResponse)
             throws IOException {
         createIntermediateDirectories(file);
@@ -93,14 +105,34 @@ public class FileBasedOcspCache extends OcspCache {
         log.trace("Saved OCSP response to file '{}'", file);
     }
 
+    OCSPResp loadResponseFromFileIfNotExpired(File file, Date atDate)
+            throws Exception {
+        OCSPResp response = loadResponseFromFile(file);
+        if (response != null) {
+            String key = getFileNameWithoutExtension(file);
+            if (!isExpired(response, atDate)) {
+                log.trace("Loaded OCSP response for cert hash {}", key);
+
+                super.put(key, response); // store in memory
+            } else {
+                log.trace("Cached OCSP response for certificate '{}' "
+                        + "has expired, deleting the file '{}'", key, file);
+                delete(file);
+                return null;
+            }
+        }
+
+        return response;
+    }
+
     OCSPResp loadResponseFromFile(File file) throws IOException {
         if (!file.exists()) {
             return null;
         }
 
         if (file.length() == 0L) {
-            log.error("Cannot load OCSP response from file '{}': " +
-                    "file is empty", file);
+            log.error("Cannot load OCSP response from file '{}': "
+                    + "file is empty", file);
             delete(file);
             return null;
         }
@@ -129,5 +161,9 @@ public class FileBasedOcspCache extends OcspCache {
         } catch (Exception e) {
             log.warn("Failed to delete {}: {}", file, e.getMessage());
         }
+    }
+
+    private static String getFileNameWithoutExtension(File file) {
+        return file.getName().split("[.]")[0];
     }
 }

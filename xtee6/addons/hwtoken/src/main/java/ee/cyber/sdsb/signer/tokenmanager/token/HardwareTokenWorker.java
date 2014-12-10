@@ -41,6 +41,9 @@ import static ee.cyber.sdsb.signer.util.ExceptionHelper.*;
 import static ee.cyber.sdsb.signer.util.SignerUtil.keyId;
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 
+/**
+ * Token worker for hardware tokens.
+ */
 @Slf4j
 public class HardwareTokenWorker extends AbstractTokenWorker {
 
@@ -59,6 +62,10 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     private Session activeSession;
 
+    /**
+     * @param tokenInfo the token info
+     * @param tokenType the token type
+     */
     public HardwareTokenWorker(TokenInfo tokenInfo,
             HardwareTokenType tokenType) {
         super(tokenInfo);
@@ -71,11 +78,18 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         try {
             initialize();
             updateTokenInfo();
-            login();
             setTokenAvailable(tokenId, true);
         } catch (Exception e) {
             setTokenAvailable(tokenId, false);
             log.error("Error initializing token ({}): {}", getWorkerId(), e);
+            return;
+        }
+
+        try {
+            login();
+        } catch (Exception e) {
+            log.error("Failed to log in to token '" + getWorkerId()
+                    + "' at initialization", e);
         }
     }
 
@@ -155,6 +169,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         assertActiveSession();
 
         byte[] id = SignerUtil.generateId();
+        // TODO: maybe use: byte[] id = activeSession.generateRandom(RANDOM_ID_LENGTH);
 
         RSAPublicKey rsaPublicKeyTemplate = new RSAPublicKey();
         rsaPublicKeyTemplate.getId().setByteArrayValue(id);
@@ -207,7 +222,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Failed to delete private key '%s' on token '%s': %s",
-                        new Object[] { keyId, getWorkerId(), e });
+                        new Object[] {keyId, getWorkerId(), e});
             }
         } else {
             log.warn("Could not find private key '{}' on token '{}'", keyId,
@@ -223,7 +238,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Failed to delete public key '%s' on token '%s': %s",
-                        new Object[] { keyId, getWorkerId(), e });
+                        new Object[] {keyId, getWorkerId(), e});
             }
         } else {
             log.warn("Could not find public key '{}' on token '{}'", keyId,
@@ -234,10 +249,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             return;
         }
 
-        for (X509PublicKeyCertificate cert : certs.get(keyId)) {
-            destroyCert(cert);
-        }
-
+        certs.get(keyId).stream().forEach(this::destroyCert);
         certs.remove(keyId);
     }
 
@@ -319,13 +331,21 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     // ------------------------------------------------------------------------
 
     private void findKeysNotInConf() {
+        log.trace("findKeysNotInConf()");
+
         try {
             List<RSAPublicKey> keysOnToken = findPublicKeys(activeSession);
             for (RSAPublicKey keyOnToken : keysOnToken) {
                 String keyId = keyId(keyOnToken);
+                if (keyId == null) {
+                    log.debug("Ignoring public key with no ID");
+                    continue;
+                }
+
                 KeyInfo key = getKeyInfo(keyId);
                 if (key == null) {
                     key = addKey(tokenId, keyId, null);
+                    setKeyAvailable(keyId, true);
 
                     log.debug("Found new key with id '{}' on token '{}'",
                             keyId, getWorkerId());
@@ -334,8 +354,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 if (key.getPublicKey() == null) {
                     updatePublicKey(keyId);
                 }
-
-                setKeyAvailable(keyId, privateKeys.containsKey(keyId));
             }
         } catch (Exception e) {
             log.error("Failed to find keys from token '{}': {}",
@@ -344,14 +362,18 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void findPublicKeysForPrivateKeys() throws Exception {
+        log.trace("findPublicKeysForPrivateKeys()");
+
         for (KeyInfo key : listKeys(tokenId)) {
-            if (key.getPublicKey() == null) {
+            if (key.getPublicKey() == null && key.getId() != null) {
                 updatePublicKey(key.getId());
             }
         }
     }
 
     private void findCertificatesNotInConf() {
+        log.trace("findCertificatesNotInConf()");
+
         try {
             List<X509PublicKeyCertificate> certsOnModule =
                     findPublicKeyCertificates(activeSession);
@@ -375,6 +397,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void updatePublicKey(String keyId) {
+        log.trace("updatePublicKey({})", keyId);
+
         try {
             String publicKeyBase64 = null;
 
@@ -474,6 +498,11 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
         for (RSAPrivateKey keyOnToken: keysOnToken) {
             String keyId = keyId(keyOnToken);
+            if (keyId == null) {
+                log.debug("Ignoring private key with no ID");
+                continue;
+            }
+
             privateKeys.put(keyId, keyOnToken);
 
             log.trace("Private key '{}' added to token '{}'", keyId,
@@ -572,7 +601,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             activeSession.destroyObject(cert);
         } catch (Exception e) {
             log.error("Failed to delete certificate on token '{}': {}",
-                    new Object[] { getWorkerId(), e });
+                    new Object[] {getWorkerId(), e});
         }
     }
 

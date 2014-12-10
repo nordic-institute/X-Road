@@ -23,8 +23,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         return instance;
     }
 
-    public ServiceType getService(Session session, ServiceId id)
-            throws Exception {
+    public ServiceType getService(Session session, ServiceId id) {
         ServiceType serviceType = find(session, id);
         if (serviceType != null) {
             Hibernate.initialize(serviceType.getRequiredSecurityCategory());
@@ -33,8 +32,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         return serviceType;
     }
 
-    public boolean serviceExists(Session session, ServiceId id)
-            throws Exception {
+    public boolean serviceExists(Session session, ServiceId id) {
         return find(session, id) != null;
     }
 

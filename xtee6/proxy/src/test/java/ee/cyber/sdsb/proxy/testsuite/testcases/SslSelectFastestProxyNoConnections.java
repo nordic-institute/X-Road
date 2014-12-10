@@ -3,7 +3,7 @@ package ee.cyber.sdsb.proxy.testsuite.testcases;
 import java.util.Arrays;
 import java.util.Collection;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.SslMessageTestCase;

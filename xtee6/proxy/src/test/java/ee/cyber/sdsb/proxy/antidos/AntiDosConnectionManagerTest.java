@@ -6,8 +6,8 @@ import java.util.Set;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.proxy.EmptyGlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.EmptyGlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;

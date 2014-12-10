@@ -146,8 +146,8 @@ public class SimpleScenario extends TestCase {
     public void t06signFailedThroughMemberSigningInfo()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t06 - Started: Signing random data for member with " +
-                "no active certs.");
+        LOG.info("t06 - Started: Signing random data for member with "
+                + "no active certs.");
         LOG.info("###########################################################");
 
 
@@ -167,8 +167,8 @@ public class SimpleScenario extends TestCase {
     public void t07signAfterCertActivation()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t07 - Started: Signing random data for member with after " +
-                "cert activation.");
+        LOG.info("t07 - Started: Signing random data for member with after "
+                + "cert activation.");
         LOG.info("###########################################################");
 
         for (String keyId : keyCertList.keySet()) {

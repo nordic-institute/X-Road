@@ -1,0 +1,9 @@
+common/etc/*  etc/
+common/usr/*  usr/ 
+../default-configuration/common.ini etc/sdsb/conf.d/
+../default-configuration/signer.ini etc/sdsb/conf.d/
+../default-configuration/signer-logback.xml etc/sdsb/conf.d/
+../../signer/build/libs/signer-1.0.jar usr/share/sdsb/jlib/
+../../signer-console/build/libs/signer-console-1.0.jar usr/share/sdsb/jlib/
+../../libs/libpkcs11wrapper.so usr/share/sdsb/lib/
+../../legacy/lib/libpasswordstore.so usr/share/sdsb/lib/

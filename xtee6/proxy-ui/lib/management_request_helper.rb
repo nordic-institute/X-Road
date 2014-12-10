@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.conf.GlobalConf
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.GlobalConf
 java_import Java::ee.cyber.sdsb.common.identifier.SecurityServerId
 java_import Java::ee.cyber.sdsb.common.request.ManagementRequestSender
 

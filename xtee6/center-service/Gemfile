@@ -20,3 +20,10 @@ if File.exists?("../center-common")
 else
   gem 'center-common', :path => "vendor/engines/center-common"
 end
+
+if ENV["RAILS_ENV"] != "production"
+  group :test do
+    gem 'jdbc-sqlite3', '~>3.7.2.1'
+    gem 'activerecord-jdbcsqlite3-adapter', '~>1.2.9'
+  end
+end

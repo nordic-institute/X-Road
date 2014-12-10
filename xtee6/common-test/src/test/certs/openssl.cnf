@@ -1,0 +1,79 @@
+[ req ]
+default_bits        = 2048 
+default_keyfile     = privkey.pem 
+distinguished_name  = req_distinguished_name
+req_extensions          = v3_req
+x509_extensions         = v3_ca
+
+[req_distinguished_name]
+countryName                     = Country Name (2 letter code)
+countryName_default             = EE
+countryName_min                 = 2
+countryName_max                 = 2
+
+#stateOrProvinceName             = State or Province Name (full name)
+#stateOrProvinceName_default     = Tartumaa
+
+#localityName                    = Locality Name (eg, city)
+#localityName_default    = Tartu
+
+0.organizationName              = Organization Name (eg, company)
+0.organizationName_default	= Cybernetica
+
+# we can do this but it is not needed normally :-)
+#1.organizationName             = Second Organization Name (eg, company)
+#1.organizationName_default     = World Wide Web Pty Ltd
+
+organizationalUnitName          = Organizational Unit Name (eg, section)
+organizationalUnitName_default  = ITO
+
+commonName                      = Common Name (eg, your name or your server\'s hostname)
+commonName_max                  = 64
+commonName_default              = Cyber
+
+emailAddress                    = Email Address
+emailAddress_max                = 64
+emailAddress_default            = aaa@bbb.ccc
+
+
+#C = [Press Enter to Continue]
+#C_default = US 
+#C_min = 2 
+#C_max = 2 
+
+#O = [Press Enter to Continue]
+#O_default = default 
+
+#0.OU=[Press Enter to Continue]
+#0.OU_default = default 
+#1.OU=[Press Enter to Continue]
+#1.OU_default = PKI 
+#2.OU=[Press Enter to Continue] 
+#2.OU_default = ABCD
+#commonName = Public FQDN of server 
+#commonName_max = 64
+#emailAddress = [Press Enter to Continue] 
+#emailAddress_default = myEmail@email.com
+
+[ v3_req ]
+basicConstraints = CA:TRUE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment
+
+[ v3_root_ca ] 
+basicConstraints = CA:TRUE
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+
+[ v3_ca ]
+#basicConstraints = critical,CA:TRUE,pathlen:0
+basicConstraints = CA:TRUE
+subjectKeyIdentifier   = hash
+#authorityKeyIdentifier = keyid:always,issuer:always
+authorityKeyIdentifier = keyid:always,issuer
+#subjectAltName         = email:myEmail@email.com
+#issuerAltName          = issuer:copy
+
+[ usr ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+keyUsage = digitalSignature, nonRepudiation

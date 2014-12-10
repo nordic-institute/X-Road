@@ -1,0 +1,8 @@
+<%= dialog "trusted_anchor_upload_dialog", t("configuration_management.trusted_anchors.upload.dialog_title") do %>
+  <%= form_tag "configuration_management/upload_trusted_anchor",
+      :id => "trusted_anchor_upload_form", :multipart => true,
+      :target => "trusted_anchor_upload_target" do %>
+    <%= file_field_tag "upload_trusted_anchor_file" %>
+  <% end %>
+  <iframe id="trusted_anchor_upload_target" name="trusted_anchor_upload_target"></iframe>
+<% end %>

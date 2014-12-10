@@ -4,16 +4,17 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.proxy.signedmessage.SigningKey;
 
+/**
+ * Collects all the parts to be signed and creates the signature.
+ */
+@Slf4j
 public class SignatureBuilder {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignatureBuilder.class);
 
     private final List<MessagePart> parts = new ArrayList<>();
 
@@ -55,7 +56,7 @@ public class SignatureBuilder {
 
     public SignatureData build(SigningKey signingKey,
             String signatureAlgorithmId) throws Exception {
-        LOG.debug("Sign, {} parts", parts.size());
+        log.trace("Sign, {} part(s)", parts.size());
 
         SigningRequest request = new SigningRequest(signingCert, parts);
         request.getExtraCertificates().addAll(extraCertificates);

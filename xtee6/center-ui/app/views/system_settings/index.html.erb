@@ -1,0 +1,101 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "system_settings" %>
+<% end %>
+
+<% content_for :content do %>
+  <div class="trusted-anchor">
+    <div class="anchor-heading">
+      <span class="anchor-title"><%= t '.system_parameters' %></span>
+    </div>
+    <table class="details">
+      <tr>
+        <td style="width: 18em;"><%= t '.instance_identifier' %></td>
+        <td><%= @instance_identifier %></td>
+        <td style="width: 3em;"></td>
+      </tr>
+      <tr>
+        <td><%= t '.central_server_address' %></td>
+        <td><%= text_field_tag "central_server_address",
+                @central_server_address, :readonly => true %></td>
+        <td>
+          <button id="central_server_address_edit">
+            <%= t 'common.edit' %>
+          </button>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="trusted-anchor">
+    <div class="anchor-heading">
+      <span class="anchor-title"><%= t '.management_services' %></span>
+    </div>
+    <table class="details">
+      <tr>
+        <td style="width: 18em;"><%= t '.service_provider_id' %></td>
+        <td><%= text_field_tag "service_provider_id",
+                @service_provider_id, :readonly => true %></td>
+        <td style="width: 3em;">
+          <button id="service_provider_edit"><%= t 'common.edit' %></button>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t '.service_provider_name' %></td>
+        <td id="service_provider_name"><%= @service_provider_name %></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><%= t '.wsdl_address' %></td>
+        <td id="wsdl_address"><%= @wsdl_address %></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><%= t '.services_address' %></td>
+        <td id="services_address"><%= @services_address %></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><%= t '.security_server_owners_group' %></td>
+        <td><%= @security_server_owners_group %></td>
+        <td></td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="trusted-anchor">
+    <div class="anchor-heading cf">
+      <span class="anchor-title"><%= t '.member_classes' %></span>
+      <button id="member_class_delete" class="right"><%= t 'common.delete' %></button>
+      <button id="member_class_edit" class="right"><%= t 'common.edit' %></button>
+      <button id="member_class_add" class="right"><%= t 'common.add' %></button>
+    </div>
+
+    <table id="member_classes">
+      <thead>
+        <th><%= t '.member_class_code' %></th>
+        <th><%= t '.member_class_description' %></th>
+      </thead>
+    </table>
+  </div>
+
+  <%= dialog "central_server_address_edit_dialog", t(".central_server_address") do %>
+    <%= text_field_tag "central_server_address_new", nil, :class => "fill" %>
+  <% end %>
+
+  <div class="dialog_dynamic">
+    <%= dialog "member_class_edit_dialog" do %>
+      <table class="details">
+        <tr>
+          <td><%= t '.member_class_code' %></td>
+          <td><%= text_field_tag "member_class_code", nil, :class => "fill" %></td>
+        </tr>
+        <tr>
+          <td><%= t '.member_class_description' %></td>
+          <td><%= text_area_tag "member_class_description" %></td>
+        </tr>
+      </table>
+    <% end %>
+
+    <%= render :partial => "shared/member_search_dialog" %>
+  </div>
+<% end %>

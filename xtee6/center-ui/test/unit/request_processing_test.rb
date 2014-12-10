@@ -2,6 +2,12 @@ require 'test_helper'
 
 class RequestProcessingTest < ActiveSupport::TestCase
 
+  def setup
+    # We need no requests here in advance.
+    Request.delete_all()
+    RequestProcessing.delete_all()
+  end
+
   test "Register paired requests" do
     # Given
     clients_count_before = get_server_clients_count()

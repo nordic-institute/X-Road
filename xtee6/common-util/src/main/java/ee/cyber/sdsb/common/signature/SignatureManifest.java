@@ -70,7 +70,7 @@ public class SignatureManifest {
      * @param hashMethod the hash method
      * @param hashValue the hash value (digest value)
      */
-    public void addReference(String name, String hashMethod, String hashValue) {
+    public void addReference(String name, String hashMethod, byte[] hashValue) {
         addReference(new MessagePart(name, hashMethod, hashValue));
     }
 
@@ -165,7 +165,7 @@ public class SignatureManifest {
         referenceElement.appendChild(Helper.createDigestMethodElement(doc,
                 ph.getHashAlgoId()));
         referenceElement.appendChild(Helper.createDigestValueElement(doc,
-                ph.getBase64Data()));
+                ph.getData()));
 
         return referenceElement;
     }
@@ -174,7 +174,7 @@ public class SignatureManifest {
      * Creates and returns a xades:ReferenceInfo element.
      */
     public static Element createReferenceInfoElement(Document doc,
-            String hashMethod, String hashValue) throws Exception {
+            String hashMethod, byte[] hashValue) throws Exception {
         Element referenceElement = doc.createElement(Helper.PREFIX_XADES
                 + Helper.REFERENCE_INFO_TAG);
 

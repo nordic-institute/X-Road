@@ -81,8 +81,7 @@ $(document).ready(function() {
     $("#refresh").click(function() {
         $.get(action("refresh"), null, function(response) {
             oRequests.fnClearTable();
-            oProviders.fnClearTable();
-            oProviders.fnAddData(response.data);
+            oProviders.fnReplaceData(response.data);
             enableActions();
         }, "json");
     }).click();
@@ -122,8 +121,7 @@ $(document).ready(function() {
     $("#remove, #restore").click(function() {
         $.get(action(this.id), params(), function() {
             $.get(action("requests"), params(), function(response) {
-                oRequests.fnClearTable(false);
-                oRequests.fnAddData(response.data);
+                oRequests.fnReplaceData(response.data);
                 enableActions();
             }, "json");
         }, "json");

@@ -1,6 +1,4 @@
 class GroupsController < ApplicationController
-  include BaseHelper
-
   before_filter :verify_get, :only => [
       :global_groups_refresh,
       :group_members,
@@ -13,6 +11,12 @@ class GroupsController < ApplicationController
   before_filter :verify_post, :only => [
       :group_add,
       :group_edit_description,
+      :delete_group,
+      :remove_selected_members,
+      :add_members_to_group]
+
+  before_filter :init_owners_group_code, :only => [
+      :global_groups_refresh,
       :delete_group,
       :remove_selected_members,
       :add_members_to_group]
@@ -49,13 +53,15 @@ class GroupsController < ApplicationController
     result = []
     groups.each do |each|
       member_count = each.member_count ? each.member_count : 0
+      group_code = each.group_code
 
       result << {
         :id => each.id,
-        :code => each.group_code,
+        :code => group_code,
         :member_count => member_count,
         :description => each.description,
-        :updated => format_time(each.updated_at.localtime)
+        :updated => format_time(each.updated_at.localtime),
+        :is_readonly => group_code == @owners_group_code
       }
     end
     render_data_table(result, count, params[:sEcho])
@@ -208,6 +214,8 @@ class GroupsController < ApplicationController
   def group_add
     authorize!(:add_global_group)
 
+    validate_description()
+
     code = params[:code]
     description = params[:description]
 
@@ -218,6 +226,8 @@ class GroupsController < ApplicationController
   def group_edit_description
     authorize!(:edit_group_description)
 
+    validate_description()
+
     GlobalGroup.update_description(params[:groupId], params[:description])
 
     notice(t("groups.change_description"));
@@ -227,7 +237,11 @@ class GroupsController < ApplicationController
   def delete_group
     authorize!(:delete_group)
 
-    GlobalGroup.destroy(params[:groupId])
+    group = GlobalGroup.find(params[:groupId])
+    verify_composition_editability(group)
+
+    group.destroy
+   #GlobalGroup.destroy(params[:groupId])
 
     notice(t("groups.delete"));
     render_json();
@@ -238,6 +252,8 @@ class GroupsController < ApplicationController
 
     raw_member_ids = params[:removableMemberIds].values
     group = GlobalGroup.find(params[:groupId])
+
+    verify_composition_editability(group)
 
     raw_member_ids.each do |each|
       member_id = ClientId.from_parts(
@@ -259,8 +275,11 @@ class GroupsController < ApplicationController
   def add_members_to_group
     authorize!(:add_and_remove_group_members)
 
-    selected_members = params[:selectedMembers].values
     group = GlobalGroup.find(params[:groupId])
+
+    verify_composition_editability(group)
+
+    selected_members = params[:selectedMembers].values
 
     selected_members.each do |each|
       new_member_id = ClientId.from_parts(
@@ -278,6 +297,22 @@ class GroupsController < ApplicationController
   # -- Specific POST methods - end ---
 
   private
+
+  def validate_description
+    return unless params[:description].blank?()
+
+    raise t("groups.description_blank")
+  end
+
+  def init_owners_group_code
+    @owners_group_code = SystemParameter.security_server_owners_group
+  end
+
+  def verify_composition_editability(group)
+    if group.group_code == @owners_group_code
+      raise "Cannot perform this action on server owners group."
+    end
+  end
 
   def get_group_list_column(index)
     case index

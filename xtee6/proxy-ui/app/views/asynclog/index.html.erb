@@ -3,23 +3,21 @@
 <% end %>
 
 <% content_for :content do %>
-  <div class="fill">
-    <table id="records" class="fixed">
-      <thead>
-        <tr>
-          <th><%= t '.no' %></th>
-          <th><%= t '.logged' %></th>
-          <th><%= t '.state' %></th>
-          <th><%= t '.received' %></th>
-          <th><%= t '.removed' %></th>
-          <th><%= t '.send_attempts' %></th>
-          <th><%= t '.producer' %></th>
-          <th><%= t '.sender' %></th>
-          <th><%= t '.request_id' %></th>
-        </tr>
-      </thead>
-    </table>
-  </div>
+  <table id="records">
+    <thead>
+      <tr>
+        <th><%= t '.no' %></th>
+        <th><%= t '.logged' %></th>
+        <th><%= t '.state' %></th>
+        <th><%= t '.received' %></th>
+        <th><%= t '.removed' %></th>
+        <th><%= t '.send_attempts' %></th>
+        <th><%= t '.producer' %></th>
+        <th><%= t '.sender' %></th>
+        <th><%= t '.request_id' %></th>
+      </tr>
+    </thead>
+  </table>
 
   <div class="dataTables_actions">
     <button id="refresh"><%= t 'common.refresh' %></button>

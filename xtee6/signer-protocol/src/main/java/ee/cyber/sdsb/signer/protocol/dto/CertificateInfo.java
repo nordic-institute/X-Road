@@ -7,6 +7,9 @@ import lombok.Value;
 
 import ee.cyber.sdsb.common.identifier.ClientId;
 
+/**
+ * Certificate info DTO.
+ */
 @Value
 @ToString(exclude = { "certificateBytes", "ocspBytes" })
 public class CertificateInfo implements Serializable {

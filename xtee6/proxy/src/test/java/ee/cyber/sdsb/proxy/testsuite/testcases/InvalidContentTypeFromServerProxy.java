@@ -1,8 +1,5 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
 
@@ -14,8 +11,6 @@ import static ee.cyber.sdsb.common.ErrorCodes.*;
  * Result: CP responds with error.
  */
 public class InvalidContentTypeFromServerProxy extends MessageTestCase {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            InvalidContentTypeFromServerProxy.class);
 
     public InvalidContentTypeFromServerProxy() {
         requestFileName = "proxyemulator.query";

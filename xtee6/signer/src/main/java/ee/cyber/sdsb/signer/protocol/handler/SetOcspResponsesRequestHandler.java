@@ -5,6 +5,9 @@ import ee.cyber.sdsb.signer.protocol.message.SetOcspResponses;
 
 import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
 
+/**
+ * Handles requests for setting the OCSP responses for certificates.
+ */
 public class SetOcspResponsesRequestHandler
         extends AbstractRequestHandler<SetOcspResponses> {
 

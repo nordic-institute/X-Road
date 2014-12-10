@@ -85,8 +85,8 @@ class DummyServerProxy extends Server implements StartStop {
                 LOG.error("Could not find answer file: " + file, e);
                 return;
             } catch (Exception e) {
-                LOG.error("An error has occured when sending response " +
-                        "from file " + file, e);
+                LOG.error("An error has occured when sending response "
+                        + "from file " + file, e);
             }
 
             baseRequest.setHandled(true);

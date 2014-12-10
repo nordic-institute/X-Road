@@ -1,5 +1,0 @@
-etc/sdsb/devices.ini
-etc/sdsb/services/global.conf
-etc/sdsb/services/signer.conf
-etc/sdsb/nginx/default-sdsb.conf
-etc/sdsb/nginx/nginx-secure-addons.conf

@@ -11,9 +11,10 @@ var SDSB_TSPS = function() {
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
             { "mData": "name" },
-            { "mData": "valid_from" },
-            { "mData": "valid_to" }
+            { "mData": "valid_from", "sWidth": "14em" },
+            { "mData": "valid_to", "sWidth": "14em" }
         ];
+        opts.asRowId = ["id"];
 
         opts.fnDrawCallback = function() {
             SDSB_CENTERUI_COMMON.updateRecordsCount("tsps");
@@ -45,7 +46,7 @@ var SDSB_TSPS = function() {
     function enableActions() {
         $("#tsp_add").enable();
 
-        if (oTsps.setFocus()) {
+        if (oTsps.getFocus()) {
             $(".tsp-action").enable();
         } else {
             $(".tsp-action").disable();

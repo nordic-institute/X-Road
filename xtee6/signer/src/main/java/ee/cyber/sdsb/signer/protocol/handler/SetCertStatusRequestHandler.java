@@ -4,6 +4,9 @@ import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
 import ee.cyber.sdsb.signer.protocol.message.SetCertStatus;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Handles requests for setting the certificate status.
+ */
 public class SetCertStatusRequestHandler
         extends AbstractRequestHandler<SetCertStatus> {
 

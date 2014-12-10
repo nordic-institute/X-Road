@@ -1,8 +1,7 @@
 require 'net/http'
 
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ClientType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ServerConfType
 java_import Java::ee.cyber.sdsb.common.identifier.ClientId
 java_import Java::ee.cyber.sdsb.commonui.SignerProxy
@@ -10,14 +9,14 @@ java_import Java::ee.cyber.sdsb.commonui.SignerProxy
 class InitController < ApplicationController
 
   skip_around_filter :transaction, :only =>
-    [:init_globalconf, :member_classes, :member_codes, :member_name]
+    [:anchor_upload, :anchor_submit, :member_classes, :member_codes, :member_name]
 
   skip_before_filter :check_conf, :read_server_id, :read_owner_name
 
   def index
     if request.xhr?
       # come back without ajax
-      render_redirect
+      render_redirect(root_path, "common.initialization_required")
       return
     end
 
@@ -29,9 +28,8 @@ class InitController < ApplicationController
       raise t('init.already_initialized')
     end
 
-    unless globalconf_initialized? && serverconf &&
-        !serverconf.globalConfDistributor.isEmpty
-      @init_globalconf = true
+    unless globalconf_initialized?
+      @init_anchor = true
     end
 
     unless serverconf_initialized?
@@ -46,58 +44,45 @@ class InitController < ApplicationController
       if serverconf.owner
         @owner_class = serverconf.owner.identifier.memberClass
         @owner_code = serverconf.owner.identifier.memberCode
-        @owner_name = get_member_name(@owner_class, @owner_code)
+
+        unless @init_anchor
+          @owner_name = get_member_name(@owner_class, @owner_code)
+        end
       end
 
       @server_code = serverconf.serverCode
     end
   end
 
-  def init_globalconf
+  def anchor_upload
     authorize!(:init_config)
 
     validate_params({
-      :globalconf_url => [RequiredValidator.new],
-      :globalconf_cert => [RequiredValidator.new]
+      :anchor_upload_file => [:required]
     })
 
-    # start transaction manually so that it is committed before
-    # globalconf download
-    transaction do
-      new_serverconf = serverconf || ServerConfType.new
+    anchor_details =
+      save_temp_anchor_file(params[:anchor_upload_file].read)
 
-      cert = CertificateType.new
-      cert.data = pem_to_der(params[:globalconf_cert].read).to_java_bytes
-
-      distributor = GlobalConfDistributorType.new
-      distributor.url = params[:globalconf_url]
-      distributor.verificationCert = cert
-
-      new_serverconf.globalConfDistributor.clear
-      new_serverconf.globalConfDistributor.add(distributor)
-
-      serverconf_save(new_serverconf)
-    end
-
-    begin
-      download_globalconf
-    rescue Exception => e
-      transaction do
-        serverconf.globalConfDistributor.clear
-        serverconf_save
-      end
-
-      raise e
-    end
-
-    notice(t('init.globalconf_downloaded'))
-    upload_success
+    upload_success(anchor_details)
   end
 
-  def init_serverconf
+  def anchor_init
     authorize!(:init_config)
 
-    required = [RequiredValidator.new]
+    validate_params
+
+    apply_temp_anchor_file
+
+    notice(t('init.configuration_downloaded'))
+
+    render_json
+  end
+
+  def serverconf_init
+    authorize!(:init_config)
+
+    required = [:required]
 
     init_software_token = required unless software_token_initialized?
     init_owner = required unless serverconf && serverconf.owner
@@ -115,31 +100,22 @@ class InitController < ApplicationController
       :pin_repeat => init_software_token || []
     })
 
-    if init_software_token
-      if params[:pin] != params[:pin_repeat]
-        raise t('init.mismatching_pins')
-      else
-        pin = Array.new
-        params[:pin].bytes do |b|
-          pin << b
-        end
-
-        SignerProxy::initSoftwareToken(pin.to_java(:char))
-      end
-    end
-
     new_serverconf = serverconf || ServerConfType.new
 
     if init_owner
       owner_id = ClientId.create(
-        globalconf.root.instanceIdentifier,
+        sdsb_instance,
         params[:owner_class],
         params[:owner_code], nil)
 
       unless get_member_name(params[:owner_class], params[:owner_code])
-        raise t('init.member_not_found', :member => owner_id.toShortString)
+        warn_message = t('init.unregistered_member', {
+          :member_class => params[:owner_class].upcase,
+          :member_code => params[:owner_code]
+        })
+        warn("unregistered_member", warn_message)
       end
-  
+
       owner_id = get_identifier(owner_id)
 
       owner = nil
@@ -167,6 +143,19 @@ class InitController < ApplicationController
       new_serverconf.serverCode = params[:server_code]
     end
 
+    if init_software_token
+      if params[:pin] != params[:pin_repeat]
+        raise t('init.mismatching_pins')
+      else
+        pin = Array.new
+        params[:pin].bytes do |b|
+          pin << b
+        end
+
+        SignerProxy::initSoftwareToken(pin.to_java(:char))
+      end
+    end
+
     serverconf_save(new_serverconf)
 
     after_commit do
@@ -181,9 +170,9 @@ class InitController < ApplicationController
 
     classes = []
 
-    if globalconf.exists?
-      globalconf.root.memberClass.each do |memberClass|
-        classes << memberClass.code
+    if globalconf_initialized?
+      GlobalConf::getMemberClasses(sdsb_instance).each do |memberClass|
+        classes << memberClass
       end
     end
 
@@ -193,11 +182,18 @@ class InitController < ApplicationController
   def member_codes
     authorize!(:init_config)
 
-    codes = []
+    validate_params({
+      :member_class => []
+    })
 
-    if globalconf.exists?
-      globalconf.root.member.each do |member|
-        codes << member.memberCode
+    codes = Set.new
+
+    if globalconf_initialized?
+      GlobalConf::getMembers(sdsb_instance).each do |member|
+        unless params[:member_class] &&
+            params[:member_class] != member.id.memberClass
+          codes << member.id.memberCode
+        end
       end
     end
 
@@ -215,21 +211,5 @@ class InitController < ApplicationController
     name = get_member_name(params[:owner_class], params[:owner_code])
 
     render_json(:name => name)
-  end
-
-  private
-
-  def download_globalconf
-    logger.info("Starting globalconf download")
-
-    port = SystemProperties::getDistributedFilesAdminPort()
-    uri = URI("http://localhost:#{port}/execute")
-
-    response = Net::HTTP.get_response(uri)
-
-    if response.code == '500'
-      logger.error(response.body)
-      raise t('init.globalconf_download_failed', :response => response.body)
-    end
   end
 end

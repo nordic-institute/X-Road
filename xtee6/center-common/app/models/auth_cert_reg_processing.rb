@@ -45,7 +45,7 @@ class AuthCertRegProcessing < RequestProcessing
           :address => request.address)
 
       # Add owner to special group, if such group exists.
-      owners_group = GlobalGroup.server_owners_group
+      owners_group = GlobalGroup.security_server_owners_group
       owners_group.add_member(server_id.owner_id) if owners_group != nil
     end
 

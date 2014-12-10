@@ -28,7 +28,10 @@ import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.signer.protocol.dto.KeyInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 
-public class SignerUtil {
+/**
+ * Collection of various utility methods.
+ */
+public final class SignerUtil {
 
     private static final int RANDOM_ID_LENGTH = 20;
 
@@ -61,7 +64,10 @@ public class SignerUtil {
                 0x01, 0x65, 0x03, 0x04, 0x02, 0x03, 0x05, 0x00, 0x04, 0x40 });
     }
 
-    public static final Long KEY_SIZE = new Long(2048);
+    public static final Long KEY_SIZE = 2048L;
+
+    private SignerUtil() {
+    }
 
     public static byte[] getDigestInfoPrefix(byte[] digest) {
         if (DIGEST_PREFIX_CACHE.containsKey(digest.length)) {
@@ -92,7 +98,7 @@ public class SignerUtil {
     }
 
     public static String keyId(iaik.pkcs.pkcs11.objects.Key k) {
-        if (k.getId().getByteArrayValue() == null) {
+        if (k.getId() == null || k.getId().getByteArrayValue() == null) {
             return null;
         }
 
@@ -101,7 +107,7 @@ public class SignerUtil {
 
     public static String keyId(
             iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate c) {
-        if (c.getId().getByteArrayValue() == null) {
+        if (c.getId() == null || c.getId().getByteArrayValue() == null) {
             return null;
         }
 

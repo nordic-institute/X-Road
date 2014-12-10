@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public abstract class AbstractSoapMessage<T> implements SoapMessage {
 
-    private final String xml;
+    private final byte[] bytes;
     private final String charset;
     private final T header;
     private final SOAPMessage soap;
@@ -24,5 +24,9 @@ public abstract class AbstractSoapMessage<T> implements SoapMessage {
     public boolean isRequest() {
         return !isResponse;
     }
-
+    
+    @Override
+    public String getXml() throws Exception {
+        return new String(bytes, charset);
+    }
 }

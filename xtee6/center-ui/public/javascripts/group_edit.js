@@ -1,6 +1,6 @@
-SDSB_GROUP_EDIT = function() {
+var SDSB_GROUP_EDIT = function() {
     var oSpecificGroupMembers, oAddableMembers;
-    var groupId, groupCode;
+    var groupId, groupCode, isReadonly;
 
     var skipFillingAddableMembersTable = true;
 
@@ -13,10 +13,10 @@ SDSB_GROUP_EDIT = function() {
     var addableMembersSimpleSearchSelector =
             "#group_addable_members_filter > label";
     var addableMembersSearchLinkSelector = "#group_addable_members_filter > a";
-    var addableMembersContentSelector = 
+    var addableMembersContentSelector =
         "#group_addable_members_wrapper .dataTables_scroll";
 
-    var addableMembersSearchInputSelector = 
+    var addableMembersSearchInputSelector =
         "#group_addable_members_filter input";
 
     var executingExistingMembersAdvancedSearch = false;
@@ -32,7 +32,8 @@ SDSB_GROUP_EDIT = function() {
             var groupData = {
                     id: response.data.id,
                     code: response.data.code,
-                    description: response.data.description
+                    description: response.data.description,
+                    is_readonly: response.data.is_readonly
             };
 
             open(groupData)
@@ -44,6 +45,7 @@ SDSB_GROUP_EDIT = function() {
                 "groups/can_see_details", function(){
             groupId = groupData.id;
             groupCode = groupData.code;
+            isReadonly = groupData.is_readonly;
 
             fillDescription(groupData.description);
 
@@ -288,7 +290,7 @@ SDSB_GROUP_EDIT = function() {
     }
 
     function fillDescription(description) {
-        $("#group_details_description").val(description);
+        $("#group_details_description").text(description);
     }
 
     function fillSdsbInstanceSelect(selectId) {
@@ -335,7 +337,7 @@ SDSB_GROUP_EDIT = function() {
         };
 
         $.post("groups/group_edit_description", params, function(response) {
-            $("#group_details_description").val(newDescription);
+            $("#group_details_description").text(newDescription);
             refreshGlobalGroupsList();
             $(dialog).dialog("close");
         }, "json");
@@ -433,7 +435,7 @@ SDSB_GROUP_EDIT = function() {
 
     function handleAddableMembersSelectAllCheckboxVisibility() {
         var entries = oAddableMembers.fnGetData().length;
-        var selectAllCheckbox = 
+        var selectAllCheckbox =
             $("#group_addable_members_select_all").closest("div");
 
         if (entries > 0) {
@@ -443,12 +445,28 @@ SDSB_GROUP_EDIT = function() {
         }
     }
 
+    function handleActionButtonsVisibility() {
+        if (isReadonly == false) {
+            $("#group_details_delete_group").show();
+            $("#group_details_add_members").show();
+            $("#group_details_remove_selected_members").show();
+        } else {
+            $("#group_details_delete_group").hide();
+            $("#group_details_remove_selected_members").hide();
+            $("#group_details_add_members").hide();
+        }
+    }
+
     /* -- MISC - END -- */
 
     /* -- HANDLERS - START -- */
 
     function initExistingMembersHandlers() {
         $("#group_details_members tbody tr").live("click", function(ev) {
+            if (isReadonly == true) {
+                return;
+            }
+
             if (oSpecificGroupMembers.setFocus(0, ev.target.parentNode, true)) {
                 if (oSpecificGroupMembers.hasSelectedRows()) {
                     enableRemoveSelectedMembersButton();
@@ -548,19 +566,19 @@ SDSB_GROUP_EDIT = function() {
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "300px";
+        opts.sScrollY = "100px";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },
-            { "mData": "member_class" },
+            { "mData": "member_class", "sWidth": "5em" },
             { "mData": "subsystem" },
-            { "mData": "sdsb" },
+            { "mData": "sdsb", "sWidth": "3em" },
             { "mData": "type" },
-            { "mData": "added" }
+            { "mData": "added", "sWidth": "13em" }
         ];
         opts.oTableTools = {
-                "sRowSelect": "multi"
+            "sRowSelect": "multi"
         }
 
         opts.sAjaxSource = "groups/group_members";
@@ -684,21 +702,21 @@ SDSB_GROUP_EDIT = function() {
         });
 
         $("#group_details_edit_description").live("click", function() {
-            var description = $("#group_details_description").val();
+            var description = $("#group_details_description").text();
             $("#group_description_edit_value").val(description);
             $("#group_description_edit_dialog").dialog("open");
         });
     }
 
     function openGroupDetailsDialog(groupCode) {
+        initGroupMembersTable();
+
         $("#group_details_dialog").initDialog({
             title: _("groups.details.title", {group: groupCode}),
-            autoOpen: false,
             modal: true,
+            height: 600,
             minHeight: 600,
             minWidth: 850,
-            height: "auto",
-            width: "auto",
             buttons: [
                 { text: _("common.close"),
                   click: function() {
@@ -707,16 +725,17 @@ SDSB_GROUP_EDIT = function() {
                 }
             ],
             open: function() {
-                initGroupMembersTable();
-
                 addAdvancedSearchLink("group_details_members_filter", function(){
                     toggleExistingMembersSearchMode();
                 });
+
+                handleActionButtonsVisibility();
             },
             close: function() {
                 oSpecificGroupMembers.fnDestroy();
+                isReadonly = false;
             }
-        }).dialog("open");
+        });
     }
 
     function openGroupMembersAddDialog() {

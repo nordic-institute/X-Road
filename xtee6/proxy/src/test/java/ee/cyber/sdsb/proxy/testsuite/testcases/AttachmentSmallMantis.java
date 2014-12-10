@@ -15,9 +15,9 @@ public class AttachmentSmallMantis extends MessageTestCase {
 
     public AttachmentSmallMantis() throws Exception {
         requestFileName = "attachment-small-mantis.query";
-        requestContentType = "multipart/related; start-info=" +
-                MimeTypes.TEXT_XML + "; type='application/xop+xml'; " +
-                "boundary=:gkMa5KAvuHP7ahe9IQHONLgnncvv:";
+        requestContentType = "multipart/related; start-info="
+                + MimeTypes.TEXT_XML + "; type='application/xop+xml'; "
+                + "boundary=:gkMa5KAvuHP7ahe9IQHONLgnncvv:";
 
         responseFileName = "attachment-small-mantis.answer";
     }

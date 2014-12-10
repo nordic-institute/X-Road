@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.Data;
 
@@ -15,6 +16,9 @@ import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo;
 import ee.cyber.sdsb.signer.tokenmanager.token.TokenType;
 
+/**
+ * Model object representing a token.
+ */
 @Data
 public final class Token {
 
@@ -60,15 +64,27 @@ public final class Token {
     /** Contains label-value pairs of information about token. */
     private final Map<String, String> tokenInfo = new LinkedHashMap<>();
 
+    /**
+     * Adds a key to this token.
+     * @param key the key to add
+     */
     public void addKey(Key key) {
         keys.add(key);
     }
 
-    public void setInfo(Map<String, String> tokenInfo) {
+    /**
+     * Sets the token info.
+     * @param info the token info
+     */
+    public void setInfo(Map<String, String> info) {
         this.tokenInfo.clear();
-        this.tokenInfo.putAll(tokenInfo);
+        this.tokenInfo.putAll(info);
     }
 
+    /**
+     * Converts this object to value object.
+     * @return the value object
+     */
     public TokenInfo toDTO() {
         return new TokenInfo(type, friendlyName, id, readOnly, available,
                 active, serialNumber, label, slotIndex, status,
@@ -76,6 +92,10 @@ public final class Token {
                 Collections.unmodifiableMap(tokenInfo));
     }
 
+    /**
+     * @param token a token
+     * @return true, if this token matches another token
+     */
     public boolean matches(TokenType token) {
         if (token == null) {
             return false;
@@ -93,11 +113,6 @@ public final class Token {
     }
 
     private List<KeyInfo> getKeysAsDTOs() {
-        List<KeyInfo> keyInfo = new ArrayList<>();
-        for (Key key : keys) {
-            keyInfo.add(key.toDTO());
-        }
-
-        return keyInfo;
+        return keys.stream().map(k -> k.toDTO()).collect(Collectors.toList());
     }
 }

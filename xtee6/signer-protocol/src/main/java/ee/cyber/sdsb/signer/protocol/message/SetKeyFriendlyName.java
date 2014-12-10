@@ -4,6 +4,9 @@ import java.io.Serializable;
 
 import lombok.Value;
 
+/**
+ * Signer API message.
+ */
 @Value
 public class SetKeyFriendlyName implements Serializable {
 

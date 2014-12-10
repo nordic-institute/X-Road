@@ -8,16 +8,14 @@
     $.fn.dataTableExt.afnFiltering.push(
         function(oSettings, aData, iDataIndex) {
             if (oSettings.sTableId == "services") {
-                return aData[0] || aData[1];
+                var oData = oSettings.oInstance.fnGetData()[iDataIndex];
+                return aData[0] || open.indexOf(oData.wsdl_id) != -1;
             }
             return true;
         }
     );
 
-    function enableActions(restoreOpenRows) {
-        restoreOpenRows = (typeof restoreOpenRows !== 'undefined') ?
-            restoreOpenRows : true;
-
+    function enableActions() {
         if ($(".wsdl:not(.meta).row_selected").length > 0) {
             $("#wsdl_delete, #wsdl_refresh, " +
               "#wsdl_disable, #wsdl_enable").enable();
@@ -46,19 +44,6 @@
             $("#wsdl_disable").hide();
             $("#wsdl_enable").show();
         }
-
-        if (restoreOpenRows) {
-            openRows();
-        }
-    }
-
-    function openRows() {
-        $.each(oServices.fnGetNodes(), function(idx, row) {
-            var service = oServices.fnGetData(row);
-            oServices.fnUpdate(open.indexOf(service.wsdl_id) != -1, row, 2, false);
-        });
-
-        oServices.fnDrawAndScroll();
     }
 
     function wsdlParams() {
@@ -82,14 +67,13 @@
         }
 
         $.post(action("wsdl_refresh"), params, function(response) {
-            oServices.fnClearTable();
-            oServices.fnAddData(response.data);
+            oServices.fnReplaceData(response.data);
             enableActions();
 
             if (onSuccess) {
                 onSuccess();
             }
-        });
+        }, "json");
     }
 
     function initWSDLAddDialog() {
@@ -106,8 +90,7 @@
                       params.client_id = $("#details_client_id").val();
 
                       $.post(action("wsdl_add"), params, function(response) {
-                          oServices.fnClearTable();
-                          oServices.fnAddData(response.data);
+                          oServices.fnReplaceData(response.data);
                           enableActions();
 
                           $(dialog).dialog("close");
@@ -145,8 +128,7 @@
                           $("#adapter_add_sslauth").attr("checked");
 
                       $.post(action("adapter_add"), params, function(response) {
-                          oServices.fnClearTable();
-                          oServices.fnAddData(response.data);
+                          oServices.fnReplaceData(response.data);
                           enableActions();
 
                           $(dialog).dialog("close");
@@ -185,8 +167,7 @@
                           $("#wsdl_disabled_notice", this).val();
 
                       $.post(action("wsdl_disable"), params, function(response) {
-                          oServices.fnClearTable();
-                          oServices.fnAddData(response.data);
+                          oServices.fnReplaceData(response.data);
                           enableActions();
 
                           $(dialog).dialog("close");
@@ -228,12 +209,11 @@
 
                       var doPost = function() {
                           $.post(action("service_params"), params, function(response) {
-                              oServices.fnClearTable(false);
-                              oServices.fnAddData(response.data, false);
+                              oServices.fnReplaceData(response.data);
                               enableActions();
 
                               $(dialog).dialog("close");
-                          });
+                          }, "json");
                       };
 
                       if (params.params_timeout == "0") {
@@ -251,7 +231,8 @@
                 }
             ]
         });
-      handleWSDLUrls('#params_url', '#params_sslauth', serviceParamsDialog);
+
+        handleWSDLUrls('#params_url', '#params_sslauth', serviceParamsDialog);
     }
 
     function initAdapterParamsDialog() {
@@ -268,11 +249,10 @@
 
                       var postParams = function() {
                           $.post(action("adapter_params"), params, function(response) {
-                              oServices.fnClearTable();
-                              oServices.fnAddData(response.data);
+                              oServices.fnReplaceData(response.data);
                               enableActions();
                               $(dialog).dialog("close");
-                          });
+                          }, "json");
                       };
 
                       if (params.params_adapter_url != params.params_adapter_id) {
@@ -334,7 +314,6 @@
     function initServicesTable() {
         var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
-        opts.oLanguage.sSearch = _("clients.client_services_dialog.search_services");
         opts.aaSortingFixed = [[0, 'asc'], [1, 'desc']];
         opts.aoColumns = [
             { "mData": "wsdl_id", "bVisible": false, "bSearchable": false },
@@ -346,20 +325,19 @@
                       var filterValue = $("#services_filter input").val();
                       return filterValue ? filterValue : data;
                   }
-
                   return data;
               }
             },
-            { "mData": "open",
-              "sWidth": "0.5em",
-              "mRender": function(data, type, full) {
-                  if (type == 'filter') {
-                      return data;
+            { "sDefaultContent": "", "bSortable": false,
+              "sWidth": "0.5em", "sClass": "thin-right",
+              "fnCreatedCell": function(nTd, sData, oData) {
+                  if (oData.wsdl) {
+                      $(nTd).addClass(
+                          open.indexOf(oData.wsdl_id) == -1
+                              ? "closed" : "open");
                   }
-                  return full.wsdl ? (data ? "-" : "+") : "";
-              },
-              "bSortable": false, "sClass": "thin-right open" },
-            { "mData": "name", "sClass": "align-left", "sWidth": "9em",
+              } },
+            { "mData": "name",
               "mRender": function(data, type, full) {
                   if (full.wsdl && full.meta) {
                       return data;
@@ -382,9 +360,8 @@
                       $(nTd).addClass("noclip");
                   }
               } },
-            { "mData": "title", "sClass": "align-left", "sWidth": "16em" },
-            { "mData": "url", "sClass": "align-left",
-              "sWidth": "6.5em",
+            { "mData": "title" },
+            { "mData": "url",
               "mRender": function(data, type, full) {
                   if (type == 'filter') {
                       return data;
@@ -396,10 +373,9 @@
 
                   return "<div class='left valign-bottom'><i class='fa "
                       + getConnectionTypeIcon(data, full.sslauth) + "'></i></div>"
-                      + "<div title='" + data + "' class='nowrap rtl'>"
-                      + data + "</div>";
+                      + data;
               } },
-            { "mData": "timeout", "sClass": "align-center", "sWidth": "4.5em",
+            { "mData": "timeout", "sClass": "center", "sWidth": "4em",
               "mRender": function(data, type, full) {
                   if (type == 'filter') {
                       return data;
@@ -407,8 +383,9 @@
                   return (!full.wsdl && full.adapter) ? "" : data;
               },
             },
-            { "mData": "last_refreshed", "sClass": "align-center", "sWidth": "6.5em" }
+            { "mData": "last_refreshed", "sClass": "center", "sWidth": "7em" }
         ];
+
         opts.fnRowCallback = function(nRow, oData) {
             if (oData.wsdl) {
                 $(nRow).addClass("wsdl");
@@ -436,12 +413,14 @@
 
             return nRow;
         };
+        opts.asRowId = ["wsdl_id", "service_id"];
 
         oServices = $("#services").dataTable(opts);
 
         $(".services_actions").prependTo("#services_wrapper .dataTables_header");
 
-        $("#services tbody td.open").live("click", function() {
+        $("#services tbody td.open, #services tbody td.closed").live("click",
+                function() {
             var nRow = $(this).closest("tr").get(0);
             var oData = oServices.fnGetData(nRow);
 
@@ -449,20 +428,16 @@
                 return;
             }
 
-            if (oData.open) {
-                open.splice(open.indexOf(oData.wsdl_id), 1);
+            var openIdx = open.indexOf(oData.wsdl_id);
+            if (openIdx != -1) {
+                open.splice(openIdx, 1);
+                $(this).removeClass("open").addClass("closed");
             } else {
                 open.push(oData.wsdl_id);
+                $(this).removeClass("closed").addClass("open");
             }
 
-            var newOpenState = !oData.open;
-            $.each(oServices.fnGetNodes(), function(idx, row) {
-                if (oServices.fnGetData(row).wsdl_id == oData.wsdl_id) {
-                    oServices.fnUpdate(newOpenState, row, 2, false);
-                }
-            });
-
-            oServices.fnDrawAndScroll();
+            oServices.fnDraw();
 
             oServices.closest(".ui-dialog-content")
                 .trigger("dialogresizestop");
@@ -479,7 +454,7 @@
                 && $(".service.row_selected").length == 0;
 
             oServices.setFocus(0, row, multiselect);
-            enableActions(false);
+            enableActions();
         });
     }
 
@@ -502,10 +477,9 @@
             params.enable = true;
 
             $.post(action("wsdl_disable"), params, function(response) {
-                oServices.fnClearTable();
-                oServices.fnAddData(response.data);
+                oServices.fnReplaceData(response.data);
                 enableActions();
-            });
+            }, "json");
         });
 
         $("#wsdl_refresh").live('click', function() {
@@ -513,11 +487,10 @@
         });
 
         $("#wsdl_delete").live('click', function() {
-            confirm("clients.client_services_dialog.delete_wsdls_confirm", null,
+            confirm("clients.client_services_tab.delete_wsdls_confirm", null,
                     function() {
                 $.post(action("wsdl_delete"), wsdlParams(), function(response) {
-                    oServices.fnClearTable();
-                    oServices.fnAddData(response.data);
+                    oServices.fnReplaceData(response.data);
                     enableActions();
                 }, "json");
             });
@@ -594,8 +567,8 @@
             subsystem: $('#details_subsystem_code').val()
         };
         var title = $('#details_subsystem_code').val() !== ''
-            ? _("clients.client_services_dialog.subsystem_title", titleParams)
-            : _("clients.client_services_dialog.member_title", titleParams);
+            ? _("clients.client_services_tab.subsystem_title", titleParams)
+            : _("clients.client_services_tab.member_title", titleParams);
 
         var params = {
             client_id: $("#details_client_id").val()
@@ -606,15 +579,14 @@
         $.get(action("client_services"), params, function(response) {
             oServices.fnAddData(response.data);
             enableActions();
-        });
+        }, "json");
     };
 
     SERVICES.updateSubjectsCount = function(subjectsCount) {
         var serviceData = oServices.getFocusData();
         serviceData.subjects_count = subjectsCount;
 
-        oServices.fnUpdate(serviceData, oServices.getFocus(), undefined, false);
-        oServices.fnDrawAndScroll();
+        oServices.fnUpdate(serviceData, oServices.getFocus(), undefined);
     };
 
 }(window.SERVICES = window.SERVICES || {}, jQuery));

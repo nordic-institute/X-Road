@@ -3,6 +3,7 @@ class RequestsController < ApplicationController
 
   before_filter :verify_get, :only => [
       :requests_refresh,
+      :get_additional_request_data,
       :get_auth_cert_reg_request_data,
       :get_client_reg_request_data,
       :get_auth_cert_deletion_request_data,
@@ -52,6 +53,21 @@ class RequestsController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
+  def get_additional_request_data
+    authorize!(:view_management_request_details)
+
+    request = Request.find(params[:id])
+
+    additional_data = {
+      :complementary_id => request.get_complementary_id(),
+      :revoking_id => request.get_revoking_request_id(),
+      :comments => request.comments,
+      :server_address => request.address
+    }
+
+    render_json(additional_data)
+  end
+
   def get_auth_cert_reg_request_data
     authorize!(:view_management_request_details)
 
@@ -88,7 +104,7 @@ class RequestsController < ApplicationController
     request_id = params[:requestId]
     ClientRegRequest.revoke(request_id)
 
-    notice(t("management_requests.client_reg_request_revoked",
+    notice(t("requests.client_reg_request_revoked",
         {:id => request_id}))
 
     render_json()
@@ -98,7 +114,7 @@ class RequestsController < ApplicationController
     request_id = params[:requestId]
     AuthCertRegRequest.revoke(request_id)
 
-    notice(t("management_requests.auth_cert_reg_request_revoked",
+    notice(t("requests.auth_cert_reg_request_revoked",
         {:id => request_id}))
 
     render_json()
@@ -108,7 +124,7 @@ class RequestsController < ApplicationController
     request_id = params[:requestId]
     RequestWithProcessing.approve(request_id)
 
-    notice(t("management_requests.request_approved",
+    notice(t("requests.request_approved",
         {:id => request_id}))
 
     render_json()
@@ -118,7 +134,7 @@ class RequestsController < ApplicationController
     request_id = params[:requestId]
     RequestWithProcessing.decline(request_id)
 
-    notice(t("management_requests.request_declined",
+    notice(t("requests.request_declined",
         {:id => request_id}))
 
     render_json()
@@ -129,10 +145,10 @@ class RequestsController < ApplicationController
   private
 
   def get_auth_cert_data(request)
-    cert = cert_object(request.auth_cert)
+    cert = CommonUi::CertUtils.cert_object(request.auth_cert)
 
     {
-      :csp => cert_csp(cert),
+      :csp => CommonUi::CertUtils.cert_csp(cert),
       :serial_number => cert.serial.to_s,
       :subject => cert.subject.to_s,
       :expires => format_time(cert.not_after)
@@ -163,15 +179,15 @@ class RequestsController < ApplicationController
     when 3
       return 'origin'
     when 4
-      return 'security_server_clients.name'
+      return 'server_owner_name'
     when 5
-      return 'identifiers.member_class'
+      return 'server_owner_class'
     when 6
-      return 'identifiers.member_code'
+      return 'server_owner_code'
     when 7
-      return 'identifiers.server_code'
+      return 'server_code'
     when 8
-      return 'request_processings.status'
+      return 'processing_status'
     else
       raise "Index '#{index}' has no corresponding column."
     end

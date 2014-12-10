@@ -2,21 +2,17 @@ package ee.cyber.sdsb.signer.certmanager;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.joda.time.DateTime;
 
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
 import ee.cyber.sdsb.common.util.CertUtils;
 import ee.cyber.sdsb.signer.certmanager.OcspResponseManager.IsCachedOcspResponse;
@@ -40,6 +36,10 @@ import static java.util.Collections.emptyList;
 @Slf4j
 @RequiredArgsConstructor
 public class OcspClientWorker extends AbstractSignerActor {
+
+    private static final int MIN_FRESHNESS_SECONDS = 5;
+    private static final int DEFAULT_FRESHNESS_SECONDS = 600;
+    private static final int FRESHNESS_DIVISOR = 10;
 
     public static final String EXECUTE = "Execute";
 
@@ -101,6 +101,10 @@ public class OcspClientWorker extends AbstractSignerActor {
                 continue;
             }
 
+            if (CertUtils.isSelfSigned(cert)) {
+                continue; // ignore self-signed certificates
+            }
+
             List<X509Certificate> chain = getCertChain(cert);
             for (X509Certificate certChainCert : chain) {
                 try {
@@ -108,8 +112,8 @@ public class OcspClientWorker extends AbstractSignerActor {
                         certs.add(certChainCert);
                     }
                 } catch (Exception e) {
-                    log.error("Unable to check if should fetch status for " +
-                            certChainCert.getSerialNumber(), e);
+                    log.error("Unable to check if should fetch status for "
+                            + certChainCert.getSerialNumber(), e);
                 }
             }
         }
@@ -118,7 +122,8 @@ public class OcspClientWorker extends AbstractSignerActor {
     }
 
     OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+        X509Certificate issuer = GlobalConf.getCaCert(
+                GlobalConf.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = OcspClient.getOcspRequestKey(subject);
         X509Certificate signer = OcspClient.getOcspSignerCert();
@@ -126,9 +131,12 @@ public class OcspClientWorker extends AbstractSignerActor {
         OCSPResp response =
                 OcspClient.fetchResponse(subject, issuer, signerKey, signer);
         try {
-            OcspVerifier.verifyValidity(response, subject, issuer);
+            OcspVerifier verifier =
+                    new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true));
+            verifier.verifyValidity(response, subject, issuer);
+
             log.trace("Received OCSP response for certificate '{}'",
-                    subject.getSubjectX500Principal().toString());
+                    subject.getSubjectX500Principal());
             return response;
         } catch (Exception e) {
             log.warn("Received OCSP response that failed verification", e);
@@ -156,7 +164,8 @@ public class OcspClientWorker extends AbstractSignerActor {
     // or is expired (in which case it is also removed from cache).
     boolean shouldFetchResponse(X509Certificate subject) throws Exception {
         if (!CertUtils.isValid(subject)) {
-            log.warn("Certificate '{}' is not valid", subject.getSubjectDN());
+            log.warn("Certificate '{}' is not valid",
+                    subject.getSubjectX500Principal());
             return false;
         }
 
@@ -166,25 +175,54 @@ public class OcspClientWorker extends AbstractSignerActor {
         } catch (Exception e) {
             // Ignore this error, since any kind of failure to get the response
             // means we should fetch the response from the responder.
-            return false;
+            return true;
         }
     }
 
     boolean isCachedOcspResponse(String certHash) throws Exception {
+        // Check if the OCSP response is in the cache. We need to check if the
+        // OCSP response expires in the future in order to not leave a gap,
+        // where the OCSP is expired, but the new one is currently being
+        // retrieved.
+        Date atDate = new DateTime().plusSeconds(
+                getNextOcspFreshnessSeconds()).toDate();
+
+        log.trace("isCachedOcspResponse(certHash: {}, atDate: {})", certHash,
+                atDate);
+
         return (Boolean) SignerUtil.ask(getOcspResponseManager(getContext()),
-                new IsCachedOcspResponse(certHash));
+                new IsCachedOcspResponse(certHash, atDate));
     }
 
     private List<X509Certificate> getCertChain(X509Certificate cert) {
         try {
-            CertChain chain = GlobalConf.getCertChain(cert);
+            CertChain chain = GlobalConf.getCertChain(
+                    GlobalConf.getInstanceIdentifier(), cert);
+            if (chain == null) {
+                return Arrays.asList(cert);
+            }
+
             return chain.getAllCertsWithoutTrustedRoot();
         } catch (Exception e) {
             log.error("Error getting certificate chain for certificate "
-                    + cert.getSubjectDN(), e);
+                    + cert.getSubjectX500Principal(), e);
         }
 
         return emptyList();
+    }
+
+    /**
+     * @return the next ocsp freshness time in seconds
+     */
+    public static int getNextOcspFreshnessSeconds() {
+        int freshness;
+        try {
+            freshness = GlobalConf.getOcspFreshnessSeconds(true);
+        } catch (Exception ignored) {
+            freshness = DEFAULT_FRESHNESS_SECONDS;
+        }
+
+        return Math.max(freshness / FRESHNESS_DIVISOR, MIN_FRESHNESS_SECONDS);
     }
 
 }

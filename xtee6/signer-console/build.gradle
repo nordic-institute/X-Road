@@ -1,14 +1,7 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
 
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+  id "eu.appsatori.fatjar" version "0.3"
 }
-
-apply plugin: 'fatjar'
 
 dependencies {
     compile 'org.apache.commons:commons-lang3:3.1'
@@ -18,6 +11,8 @@ dependencies {
 
     compile 'com.typesafe.akka:akka-actor_2.10:2.2.1'
     compile 'com.typesafe.akka:akka-remote_2.10:2.2.1'
+    
+    compile 'commons-cli:commons-cli:1.2'
     
     compile project(':common-util')
     compile project(':signer-protocol')
@@ -44,6 +39,7 @@ build.dependsOn fatJar
 buildall.dependsOn fatJar
 
 task runSignerConsole(type: JavaExec) {
+    jvmArgs '-Djava.library.path=../legacy/passwordstore'
     main = 'ee.cyber.sdsb.signer.console.SignerCLI'
     classpath = sourceSets.test.runtimeClasspath
     standardInput = System.in;

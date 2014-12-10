@@ -7,7 +7,7 @@ import org.apache.http.client.HttpClient;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.AuthKey;
+import ee.cyber.sdsb.common.conf.globalconf.AuthKey;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 

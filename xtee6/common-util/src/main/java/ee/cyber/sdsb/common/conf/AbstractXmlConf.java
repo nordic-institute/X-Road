@@ -1,8 +1,10 @@
 package ee.cyber.sdsb.common.conf;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import javax.xml.bind.JAXBContext;
@@ -54,6 +56,11 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         this(objectFactory, fileName, null);
     }
 
+    protected AbstractXmlConf(Class<?> objectFactory,
+            Class<? extends SchemaValidator> schemaValidator) {
+        this(objectFactory, (String) null, schemaValidator);
+    }
+
     protected AbstractXmlConf(Class<?> objectFactory, String fileName,
             Class<? extends SchemaValidator> schemaValidator) {
         try {
@@ -82,7 +89,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     @Override
     public boolean hasChanged() {
         try {
-            return confFileChecker.hasChanged();
+            return confFileChecker == null || confFileChecker.hasChanged();
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -92,14 +99,16 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     @SuppressWarnings("unchecked")
     public void load(String fileName) throws Exception {
         if (fileName == null) {
-            throw new IllegalArgumentException("File name must not be null");
+            return;
         }
 
         confFileName = fileName;
         confFileChecker = new FileContentChangeChecker(confFileName);
 
         if (schemaValidator != null) {
-            validateSchemaWithValidator(schemaValidator);
+            try (InputStream in = new FileInputStream(confFileName)) {
+                validateSchemaWithValidator(in);
+            }
         }
 
         try (InputStream in = new FileInputStream(confFileName)) {
@@ -111,12 +120,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     @Override
     public void save() throws Exception {
-        AtomicSave.execute(confFileName, "tmpconf", new AtomicSave.Callback() {
-            @Override
-            public void save(OutputStream out) throws Exception {
-                AbstractXmlConf.this.save(out);
-            }
-        });
+        AtomicSave.execute(confFileName, "tmpconf",
+                out -> AbstractXmlConf.this.save(out));
     }
 
     @Override
@@ -126,22 +131,55 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         marshaller.marshal(root, out);
     }
 
+    /**
+     * Loads the configuration from a byte array.
+     * @param data the data
+     * @throws Exception if an error occurs
+     */
+    @SuppressWarnings("unchecked")
+    public void load(byte[] data) throws Exception {
+        if (data == null) {
+            return;
+        }
+
+        if (schemaValidator != null) {
+            try (InputStream in = new ByteArrayInputStream(data)) {
+                validateSchemaWithValidator(in);
+            }
+        }
+
+        try (InputStream in = new ByteArrayInputStream(data)) {
+            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+            root = (JAXBElement<T>) unmarshaller.unmarshal(in);
+            confType = root.getValue();
+        }
+    }
+
+    /**
+     * Reloads the configuration from the file.
+     * @throws Exception the file cannot be loaded
+     */
+    public void reload() throws Exception {
+        load(confFileName);
+    }
+
     protected String getConfFileDir() {
         return ResourceUtils.getFullPathFromFileName(confFileName);
     }
 
-    private void validateSchemaWithValidator(
-            Class<? extends SchemaValidator> schemaValidator) throws Exception {
+    private void validateSchemaWithValidator(InputStream in) throws Exception {
         try {
             Method validateMethod =
                     schemaValidator.getMethod("validate", Source.class);
-            try (InputStream in = new FileInputStream(confFileName)) {
+            try {
                 validateMethod.invoke(null, new StreamSource(in));
+            } catch (InvocationTargetException e) {
+                throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException("SchemaValidator '" +
-                    schemaValidator.getName() + "' must implement static " +
-                        "method 'void validate(Source)'");
+            throw new RuntimeException("SchemaValidator '"
+                    + schemaValidator.getName() + "' must implement static "
+                        + "method 'void validate(Source)'");
         }
     }
 }

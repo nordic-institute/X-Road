@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.commonui.jaas;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.Map;
 
 import javax.security.auth.Subject;
@@ -14,12 +13,14 @@ import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
 import org.jvnet.libpam.PAM;
-import org.jvnet.libpam.PAMException;
 import org.jvnet.libpam.UnixUser;
 
+/**
+ * The PAM login module implementation.
+ */
 public class PAMLoginModule implements LoginModule {
 
-    private static String PAM_SERVICE_NAME = "sdsb";
+    private static final String PAM_SERVICE_NAME = "sdsb";
 
     private Subject subject;
     private CallbackHandler callbackHandler;
@@ -27,10 +28,10 @@ public class PAMLoginModule implements LoginModule {
     private UnixUser currentUser;
 
     @Override
-    public void initialize(Subject subject, CallbackHandler callbackHandler,
-            Map<String,?> sharedState, Map<String,?> options) {
-        this.subject = subject;
-        this.callbackHandler = callbackHandler;
+    public void initialize(Subject subj, CallbackHandler callback,
+            Map<String, ?> sharedState, Map<String, ?> options) {
+        this.subject = subj;
+        this.callbackHandler = callback;
     }
 
     @Override
@@ -39,7 +40,7 @@ public class PAMLoginModule implements LoginModule {
 
         try {
             if (callbackHandler == null) {
-                throw new LoginException ("No callback handler");
+                throw new LoginException("No callback handler");
             }
 
             Callback[] callbacks = getCallbacks();
@@ -49,7 +50,7 @@ public class PAMLoginModule implements LoginModule {
             String webPassword = new String(
                 ((PasswordCallback) callbacks[1]).getPassword());
 
-            if (webName == null || webPassword == null) {
+            if (webName == null) {
                 return false;
             }
 

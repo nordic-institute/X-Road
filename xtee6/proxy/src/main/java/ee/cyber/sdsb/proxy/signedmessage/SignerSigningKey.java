@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.proxy.signedmessage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.cyber.sdsb.common.signature.BatchSigner;
 import ee.cyber.sdsb.common.signature.SignatureData;
@@ -13,10 +12,8 @@ import static ee.cyber.sdsb.common.ErrorCodes.translateWithPrefix;
 /**
  * Signing key that is located in SSCD (secure signature creation device).
  */
+@Slf4j
 public class SignerSigningKey implements SigningKey {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignerSigningKey.class);
 
     /** The private key ID. */
     private final String keyId;
@@ -36,7 +33,7 @@ public class SignerSigningKey implements SigningKey {
     @Override
     public SignatureData calculateSignature(SigningRequest request,
             String algorithmId) throws Exception {
-        LOG.debug("Calculating signature using algorithm {}", algorithmId);
+        log.trace("Calculating signature using algorithm {}", algorithmId);
         try {
             return BatchSigner.sign(keyId, algorithmId, request);
         } catch (Exception e) {

@@ -8,6 +8,11 @@ import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.certWithIdNotFound;
 
+/**
+ * Handles certificate deletions. If certificate is not saved in configuration,
+ * we delete it on the token. Otherwise we remove the certificate from the
+ * configuration.
+ */
 public class DeleteCertRequestHandler
         extends AbstractDeleteFromKeyInfo<DeleteCert> {
 
@@ -19,8 +24,6 @@ public class DeleteCertRequestHandler
             throw certWithIdNotFound(message.getCertId());
         }
 
-        // If certificate is not saved in configuration, we delete it on the
-        // token. Otherwise we remove the cert from the configuration.
         if (!certInfo.isSavedToConfiguration()) {
             deleteCertOnToken(message);
             return success();

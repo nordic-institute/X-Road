@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+  <SOAP-ENV:Header>
+    <sdsb:client id:objectType="MEMBER">
+      <id:sdsbInstance>EE</id:sdsbInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>codeOfMember</id:memberCode>
+      <id:subsystemCode>codeOfSubsystem</id:subsystemCode>
+    </sdsb:client>
+    <sdsb:service id:objectType="SERVICE">
+      <id:sdsbInstance>EE</id:sdsbInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>managementServiceCode</id:memberCode>
+      <id:subsystemCode>managementServiceSubsystemCode</id:subsystemCode>
+      <id:serviceCode>clientReg</id:serviceCode>
+    </sdsb:service>
+    <sdsb:userId>proxyUi</sdsb:userId>
+    <sdsb:id>9b2fa334-c227-4439-8a80-e22c87317196</sdsb:id>
+    <sdsb:async>false</sdsb:async>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <sdsb:clientReg>
+      <sdsb:server id:objectType="SERVER">
+        <id:sdsbInstance>EE</id:sdsbInstance>
+        <id:memberClass>GOV</id:memberClass>
+        <id:memberCode>codeOfMember</id:memberCode>
+        <id:serverCode>serverCode</id:serverCode>
+      </sdsb:server>
+      <sdsb:client id:objectType="SUBSYSTEM">
+        <id:sdsbInstance>XAXACA</id:sdsbInstance>
+        <id:memberClass>GOV</id:memberClass>
+        <id:memberCode>codeOfMember</id:memberCode>
+        <id:subsystemCode>codeOfSubsystem</id:subsystemCode>
+      </sdsb:client>
+    </sdsb:clientReg>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

@@ -2,6 +2,14 @@ class Request < ActiveRecord::Base
 
   before_create do |rec|
     Request.set_server_owner_name(rec)
+
+    server = rec.security_server
+
+    return 1 unless server # To keep following callbacks running
+
+    rec.server_owner_class = server.member_class
+    rec.server_owner_code = server.member_code
+    rec.server_code = server.server_code
   end
 
   # origin -- submitted by security server
@@ -148,10 +156,7 @@ class Request < ActiveRecord::Base
         searchable.downcase(), converted_search_params)
 
     Request.
-        where(get_search_sql, *search_params).
-        joins("LEFT JOIN request_processings "\
-          "ON request_processings.id = requests.request_processing_id").
-        joins(:security_server)
+        where(get_search_sql, *search_params)
   end
 
   def self.get_search_sql
@@ -160,10 +165,10 @@ class Request < ActiveRecord::Base
     OR (requests.type) SIMILAR TO ?
     OR (requests.origin) SIMILAR TO ?
     OR lower(requests.server_owner_name) LIKE ?
-    OR lower(identifiers.member_class) LIKE ?
-    OR lower(identifiers.member_code) LIKE ?
-    OR lower(identifiers.server_code) LIKE ?
-    OR lower(request_processings.status) LIKE ?"
+    OR lower(requests.server_owner_class) LIKE ?
+    OR lower(requests.server_owner_code) LIKE ?
+    OR lower(requests.server_code) LIKE ?
+    OR lower(requests.processing_status) LIKE ?"
   end
 
   def self.get_search_sql_params(searchable, converted_params)
@@ -232,7 +237,7 @@ class Request < ActiveRecord::Base
     client = SecurityServerClient.find_by_id(rec.sec_serv_user.clean_copy())
     return 1 if client == nil # To keep following callbacks running
 
-    server_user_name = client.is_a?(Subsystem) ? 
+    server_user_name = client.is_a?(Subsystem) ?
     client.sdsb_member.name : client.name
     rec.server_user_name = server_user_name
   end

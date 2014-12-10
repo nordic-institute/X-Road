@@ -40,8 +40,8 @@ public class IdentifierMappingChecker implements Job {
     }
 
     private void checkIdentifierMapping() throws Exception {
-        if (identifierMappingChecker != null &&
-                !identifierMappingChecker.hasChanged()) {
+        if (identifierMappingChecker != null
+                && !identifierMappingChecker.hasChanged()) {
             LOG.debug("Identifier mapping has not been changed");
             return;
         }

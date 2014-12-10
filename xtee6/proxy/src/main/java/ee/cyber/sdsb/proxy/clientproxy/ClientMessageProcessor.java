@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -15,13 +14,18 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPMessage;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
 import org.eclipse.jetty.http.MimeTypes;
+import org.w3c.dom.Node;
 
 import ee.cyber.sdsb.asyncdb.AsyncDB;
 import ee.cyber.sdsb.asyncdb.WritingCtx;
@@ -29,17 +33,14 @@ import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
+import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
+import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.message.SoapFault;
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.message.SoapMessageConsumer;
-import ee.cyber.sdsb.common.message.SoapMessageDecoder;
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
-import ee.cyber.sdsb.common.message.SoapUtils;
+import ee.cyber.sdsb.common.message.*;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MessageInfo.Origin;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
@@ -48,14 +49,15 @@ import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.common.util.MimeUtils;
 import ee.cyber.sdsb.proxy.ProxyMain;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
+import ee.cyber.sdsb.proxy.messagelog.MessageLog;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessage;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageDecoder;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageEncoder;
-import ee.cyber.sdsb.proxy.securelog.MessageLog;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_PROXY_VERSION;
 import static ee.cyber.sdsb.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
@@ -99,6 +101,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private volatile PipedOutputStream reqOuts;
     private volatile String outputContentType;
 
+    /** Holds the request to the server proxy. */
+    private ProxyMessageEncoder request;
+
     /** Holds the response from server proxy. */
     private ProxyMessage response;
 
@@ -122,6 +127,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         cacheConfigurationForCurrentThread();
 
         HandlerThread handlerThread = new HandlerThread();
+        handlerThread.setName(Thread.currentThread().getName() + "-soap");
+
         handlerThread.start();
         try {
             // Wait for the request SOAP message to be parsed before we can
@@ -130,6 +137,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             // If the handler thread excepted, do not continue.
             checkError();
+
+            // Verify that the client is registered
+            verifyClientStatus();
 
             // Check client authentication mode
             verifyClientAuthentication();
@@ -170,7 +180,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         checkConsistency();
 
-        logSignature();
+        logRequestMessage();
+        logResponseMessage();
     }
 
     private void sendRequest(HttpSender httpSender) throws Exception {
@@ -217,6 +228,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
+
         response = new ProxyMessage();
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
@@ -236,6 +248,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void checkResponse() throws Exception {
         log.trace("checkResponse()");
+
         if (response.getFault() != null) {
             throw response.getFault().toCodedException();
         }
@@ -263,14 +276,47 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     "Response from server proxy is not consistent with request")
                     .withPrefix(X_SERVICE_FAILED_X);
         }
+
+        checkRequestHash();
     }
 
-    private void logSignature() throws Exception {
+    private void checkRequestHash() throws Exception {
+        RequestHash requestHashFromResponse =
+                response.getSoap().getHeader().getRequestHash();
+        if (requestHashFromResponse != null) {
+            byte[] requestHash = calculateDigest(
+                    getAlgorithmId(
+                            requestHashFromResponse.getAlgorithmId()),
+                    requestSoap.getBytes());
+            if (!Arrays.areEqual(requestHash, decodeBase64(
+                    requestHashFromResponse.getHash()))) {
+                throw new CodedException(X_INCONSISTENT_RESPONSE,
+                        "Request message hash does not match request message");
+            }
+        } else {
+            throw new CodedException(X_INCONSISTENT_RESPONSE,
+                    "Response from server proxy is missing request message "
+                            + "hash");
+        }
+    }
+
+    private void logRequestMessage() throws Exception {
+        if (SystemProperties.shouldLogBothMessages() && request != null) {
+            log.trace("logRequestMessage()");
+
+            MessageLog.log(requestSoap, request.getSignature());
+        }
+    }
+
+    private void logResponseMessage() throws Exception {
+        log.trace("logResponseMessage()");
+
         MessageLog.log(response.getSoap(), response.getSignature());
     }
 
     private void sendResponse() throws Exception {
         log.trace("sendResponse()");
+
         servletResponse.setStatus(HttpServletResponse.SC_OK);
         servletResponse.setHeader("SOAPAction", "");
         servletResponse.setCharacterEncoding(MimeUtils.UTF8);
@@ -290,24 +336,28 @@ class ClientMessageProcessor extends MessageProcessorBase {
                         "Reading SOAP from request timed out");
             }
         } catch (InterruptedException e) {
+            log.error("waitForSoapMessage interrupted", e);
             Thread.currentThread().interrupt();
         }
     }
 
     private void continueProcessing() {
         log.trace("continueProcessing()");
+
         requestHandlerGate.countDown();
     }
 
     private void checkError() throws Exception {
         if (executionException != null) {
-            log.error("checkError(): ", executionException);
+            log.trace("checkError(): ", executionException);
+
             throw executionException;
         }
     }
 
-    private void setError(Exception ex) {
+    private void setError(Throwable ex) {
         log.trace("setError()");
+
         if (executionException == null) {
             executionException = translateException(ex);
         }
@@ -322,6 +372,16 @@ class ClientMessageProcessor extends MessageProcessorBase {
         return new MessageInfo(Origin.CLIENT_PROXY, requestSoap.getClient(),
                 requestServiceId, requestSoap.getUserId(),
                 requestSoap.getQueryId());
+    }
+
+    protected void verifyClientStatus() throws Exception {
+        ClientId client = requestSoap.getClient();
+
+        String status = ServerConf.getMemberStatus(client);
+        if (!ClientType.STATUS_REGISTERED.equals(status)) {
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
+                    client);
+        }
     }
 
     protected void verifyClientAuthentication() throws Exception {
@@ -386,13 +446,14 @@ class ClientMessageProcessor extends MessageProcessorBase {
             try {
                 SoapMessageDecoder soapMessageDecoder =
                         new SoapMessageDecoder(servletRequest.getContentType(),
-                                new SoapMessageHandler());
+                                new SoapMessageHandler(),
+                                new RequestSoapParserImpl());
                 try {
                     soapMessageDecoder.parse(servletRequest.getInputStream());
                 } catch (Exception ex) {
                     throw new ClientException(translateException(ex));
                 }
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
                 setError(ex);
             } finally {
                 continueProcessing();
@@ -411,9 +472,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void soap(SoapMessage message) throws Exception {
             log.trace("soap({})", message.getXml());
+
             requestSoap = (SoapMessageImpl) message;
-            requestServiceId =
-                    GlobalConf.getServiceId(requestSoap.getService());
+            requestServiceId = requestSoap.getService();
 
             if (handler == null) {
                 chooseHandler();
@@ -426,6 +487,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
             log.trace("attachment({})", contentType);
+
             if (handler != null) {
                 handler.attachment(contentType, content, additionalHeaders);
             } else {
@@ -454,6 +516,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void onCompleted() {
             log.trace("onCompleted()");
+
             if (requestSoap == null) {
                 setError(new ClientException(X_MISSING_SOAP,
                         "Request does not contain SOAP message"));
@@ -468,6 +531,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void onError(Exception e) throws Exception {
             log.error("onError(): ", e);
+
             if (handler != null) {
                 handler.onError(e);
             } else {
@@ -479,13 +543,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private class DefaultSoapMessageHandler
             implements SoapMessageDecoder.Callback {
 
-        private ProxyMessageEncoder encoder;
-
         @Override
         public void soap(SoapMessage message) throws Exception {
-            if (encoder == null) {
-                encoder = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
-                outputContentType = encoder.getContentType();
+            if (request == null) {
+                request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
+                outputContentType = request.getContentType();
             }
 
             // We have the request SOAP message, we can start sending the
@@ -497,13 +559,13 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 writeOcspResponses();
             }
 
-            encoder.soap(requestSoap);
+            request.soap(requestSoap);
         }
 
         @Override
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
-            encoder.attachment(contentType, content, additionalHeaders);
+            request.attachment(contentType, content, additionalHeaders);
         }
 
         @Override
@@ -514,14 +576,14 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void onCompleted() {
             try {
-                encoder.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
+                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
             } catch (Exception ex) {
                 setError(ex);
             }
 
-            if (encoder != null) {
+            if (request != null) {
                 try {
-                    encoder.close();
+                    request.close();
                 } catch (Exception e) {
                     setError(e);
                 }
@@ -530,8 +592,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void onError(Exception e) throws Exception {
-            if (encoder != null) {
-                encoder.close();
+            if (request != null) {
+                request.close();
             }
 
             // Simply re-throw
@@ -543,7 +605,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot()); // exclude TopCA
             for (OCSPResp ocsp : ocspResponses) {
-                encoder.ocspResponse(ocsp);
+                request.ocspResponse(ocsp);
             }
         }
     }
@@ -630,10 +692,54 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 @Override
                 public InputStream getSoapContent() throws Exception {
                     SoapMessageImpl soap = SoapUtils.toResponse(requestSoap);
-                    return new ByteArrayInputStream(soap.getXml().getBytes(
-                                    StandardCharsets.UTF_8));
+                    return new ByteArrayInputStream(soap.getBytes());
                 }
             };
+        }
+    }
+
+    /**
+     * Soap parser that changes the CentralServiceId to ServiceId in message
+     * header.
+     */
+    private class RequestSoapParserImpl extends SoapParserImpl {
+
+        @Override
+        protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
+                String charset) throws Exception {
+            if (soap.getSOAPHeader() != null) {
+                SoapHeader header =
+                        unmarshalHeader(SoapHeader.class, soap.getSOAPHeader());
+                if (header.getCentralService() != null) {
+                    if (header.getService() != null) {
+                        throw new CodedException(X_MALFORMED_SOAP,
+                                "Message header must contain either service id"
+                                        + " or central service id");
+                    }
+
+                    ServiceId serviceId =
+                            GlobalConf.getServiceId(header.getCentralService());
+                    header.setService(serviceId);
+
+                    SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
+                    envelope.removeChild(soap.getSOAPHeader());
+
+                    Node soapBody = envelope.removeChild(soap.getSOAPBody());
+                    envelope.removeContents(); // removes newlines etc.
+
+                    Marshaller marshaller =
+                            JaxbUtils.createMarshaller(SoapHeader.class,
+                                    new SoapNamespacePrefixMapper());
+                    marshaller.marshal(header, envelope);
+
+                    envelope.appendChild(soapBody);
+                }
+
+                byte[] newRawXml = SoapUtils.getBytes(soap);
+                return super.createMessage(newRawXml, soap, charset);
+            } else {
+                return super.createMessage(rawXml, soap, charset);
+            }
         }
     }
 }

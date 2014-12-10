@@ -22,10 +22,23 @@ import ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo;
 import ee.cyber.sdsb.signer.tokenmanager.module.ModuleInstanceProvider;
 import ee.cyber.sdsb.signer.util.SignerUtil;
 
-public class HardwareTokenUtil {
+/**
+ * Utility methods for hardware token.
+ */
+public final class HardwareTokenUtil {
 
     private static final int MAX_OBJECTS = 64;
 
+    private HardwareTokenUtil() {
+    }
+
+    /**
+     * Returns the module instance. The module provider class can be specified
+     * by system parameter 'ee.cyber.sdsb.signer.module-instance-provider'.
+     * @param libraryPath the pkcs11 library path
+     * @return the module instance
+     * @throws Exception if an error occurs
+     */
     public static Module moduleGetInstance(String libraryPath)
             throws Exception {
         String providerClass = System.getProperty(
@@ -51,8 +64,8 @@ public class HardwareTokenUtil {
         try {
             session.login(Session.UserType.USER, password);
         } catch (PKCS11Exception ex) {
-            if (ex.getErrorCode() !=
-                    PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
+            if (ex.getErrorCode()
+                    != PKCS11Constants.CKR_USER_ALREADY_LOGGED_IN) {
                 throw ex;
             }
         }
@@ -121,7 +134,7 @@ public class HardwareTokenUtil {
 
     static void setPublicKeyAttributes(RSAPublicKey keyTemplate) {
         keyTemplate.getModulusBits().setLongValue(SignerUtil.KEY_SIZE);
-        byte[] publicExponentBytes = { 0x01, 0x00, 0x01 }; // 2^16 + 1
+        byte[] publicExponentBytes = {0x01, 0x00, 0x01}; // 2^16 + 1
         keyTemplate.getPublicExponent().setByteArrayValue(publicExponentBytes);
         keyTemplate.getToken().setBooleanValue(Boolean.TRUE);
 
@@ -130,8 +143,8 @@ public class HardwareTokenUtil {
     }
 
     static TokenStatusInfo getTokenStatus(TokenInfo tokenInfo, long errorCode) {
-        if (tokenInfo.isUserPinLocked() ||
-                errorCode == PKCS11Constants.CKR_PIN_LOCKED) {
+        if (tokenInfo.isUserPinLocked()
+                || errorCode == PKCS11Constants.CKR_PIN_LOCKED) {
             return TokenStatusInfo.USER_PIN_LOCKED;
         }
 

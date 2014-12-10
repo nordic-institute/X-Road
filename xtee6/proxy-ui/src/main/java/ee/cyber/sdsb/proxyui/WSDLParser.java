@@ -1,9 +1,10 @@
 package ee.cyber.sdsb.proxyui;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -33,16 +34,25 @@ import javax.wsdl.xml.WSDLLocator;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.MimeTypes;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.message.Soap;
+import ee.cyber.sdsb.common.message.SoapFault;
+import ee.cyber.sdsb.common.message.SoapParser;
+import ee.cyber.sdsb.common.message.SoapParserImpl;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
+@Slf4j
 @SuppressWarnings("unchecked")
 public class WSDLParser {
 
@@ -99,8 +109,8 @@ public class WSDLParser {
                 }
 
                 String url = getUrl(port);
-                for (BindingOperation operation :
-                        (List<BindingOperation>)
+                for (BindingOperation operation
+                        : (List<BindingOperation>)
                             port.getBinding().getBindingOperations()) {
                     String title = getChildValue("title",
                         operation.getOperation().getDocumentationElement());
@@ -133,8 +143,8 @@ public class WSDLParser {
     }
 
     private static String getUrl(Port port) {
-        for (ExtensibilityElement ext :
-                (List<ExtensibilityElement>) port.getExtensibilityElements()) {
+        for (ExtensibilityElement ext
+                : (List<ExtensibilityElement>) port.getExtensibilityElements()) {
             if (ext.getElementType().equals(SOAP_ADDRESS)) {
                 return ((SOAPAddress) ext).getLocationURI();
             }
@@ -148,8 +158,8 @@ public class WSDLParser {
     }
 
     private static String getVersion(BindingOperation operation) {
-        for (ExtensibilityElement ext :
-                (List<ExtensibilityElement>)
+        for (ExtensibilityElement ext
+                : (List<ExtensibilityElement>)
                     operation.getExtensibilityElements()) {
             if (ext.getElementType().getLocalPart().equals(VERSION)) {
                 return getValue(
@@ -212,7 +222,6 @@ public class WSDLParser {
             implements WSDLLocator {
 
         private final String wsdlUrl;
-        private InputStream is;
 
         TrustAllSslCertsWsdlLocator(String wsdlUrl) {
             this.wsdlUrl = wsdlUrl;
@@ -226,10 +235,36 @@ public class WSDLParser {
                     configureHttps((HttpsURLConnection) conn);
                 }
 
-                this.is = conn.getInputStream();
-                return new InputSource(this.is);
+                // cache the response
+                byte[] response;
+                try (InputStream in = conn.getInputStream()) {
+                    response = IOUtils.toByteArray(in);
+                }
+
+                log.trace("Received WSDL response: {}", new String(response));
+                checkForSoapFault(response);
+
+                return new InputSource(new ByteArrayInputStream(response));
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
+            }
+        }
+
+        private void checkForSoapFault(byte[] response) {
+            SoapParser parser = new SoapParserImpl();
+            Soap soap = null;
+            try {
+                soap = parser.parse(MimeTypes.TEXT_XML,
+                        StandardCharsets.UTF_8.name(),
+                        new ByteArrayInputStream(response));
+            } catch (Exception e) {
+                // Ignore exceptions, since the response might have
+                // been a valid WSDL, which SoapParser cannot parse.
+                return;
+            }
+
+            if (soap instanceof SoapFault) {
+                throw ((SoapFault) soap).toCodedException();
             }
         }
 
@@ -251,13 +286,6 @@ public class WSDLParser {
 
         @Override
         public void close() {
-            if (this.is != null) {
-                try {
-                    this.is.close();
-                    this.is = null;
-                } catch (IOException ignored) {
-                }
-            }
         }
 
         private void configureHttps(HttpsURLConnection conn)

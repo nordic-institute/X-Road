@@ -1,36 +1,24 @@
 <%= dialog "acl_subject_open_services_dialog",
-    t('clients.client_acl_subjects_dialog.open_services') do %>
+    t('clients.client_acl_subjects_tab.open_services') do %>
 
-  <div class="fill" style="margin-top: 1em;">
-    <table id="services_open">
-      <thead>
-        <tr>
-          <th><%= t '.service_code' %></th>
-          <th><%= t '.service_title' %></th>
-          <th><%= t '.rights_given' %></th>
-        </tr>
-      </thead>
-    </table>
-
-    <% if can?(:edit_acl_subject_open_services) %>
-    <div class="dataTables_actions">
-      <button id="acl_subject_open_services_add"><%= t '.add_services' %></button>
-      <button id="acl_subject_open_services_remove"><%= t 'common.remove_selected' %></button>
-      <button id="acl_subject_open_services_remove_all"><%= t 'common.remove_all' %></button>
-    </div>
-    <% end %>
-  </div>
+  <table id="services_open">
+    <thead>
+      <tr>
+        <th><%= t '.service_code' %></th>
+        <th><%= t '.service_title' %></th>
+        <th><%= t '.rights_given' %></th>
+      </tr>
+    </thead>
+  </table>
 <% end %>
 
 <%= dialog "acl_subject_open_services_add_dialog", t('.add_services') do %>
-  <div class="fill" style="margin-top: 1em;">
-    <table id="services_all">
-      <thead>
-        <tr>
-          <th><%= t '.service_code' %></th>
-          <th><%= t '.service_title' %></th>
-        </tr>
-      </thead>
-    </table>
-  </div>
+  <table id="services_all">
+    <thead>
+      <tr>
+        <th><%= t '.service_code' %></th>
+        <th><%= t '.service_title' %></th>
+      </tr>
+    </thead>
+  </table>
 <% end %>

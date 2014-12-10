@@ -3,15 +3,18 @@ package ee.cyber.sdsb.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.management.UnixOperatingSystemMXBean;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FileUtils;
+
+import com.sun.management.UnixOperatingSystemMXBean;
 
 import ee.cyber.sdsb.common.SystemProperties;
 
@@ -28,6 +31,8 @@ public class SystemMetrics {
 
     private static UnixOperatingSystemMXBean stats;
 
+    private static MemoryMXBean memoryStats;
+
     private static Integer numConnections = 0;
 
     private SystemMetrics() {
@@ -42,6 +47,7 @@ public class SystemMetrics {
             throw new RuntimeException(
                     "Unexpected OperatingSystemMXBean " + osStatsBean);
         }
+        memoryStats = ManagementFactory.getMemoryMXBean();
     }
 
     public static UnixOperatingSystemMXBean getStats() {
@@ -50,6 +56,15 @@ public class SystemMetrics {
         }
 
         return stats;
+    }
+
+    public static double getHeapUsage() {
+        if (memoryStats == null) {
+            init();
+        }
+        long max = memoryStats.getHeapMemoryUsage().getMax();
+        long used = memoryStats.getHeapMemoryUsage().getUsed();
+        return ((double) used) / max;
     }
 
     public static void connectionAccepted() {

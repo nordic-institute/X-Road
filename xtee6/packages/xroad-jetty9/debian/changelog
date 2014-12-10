@@ -1,0 +1,13 @@
+xroad-jetty9 (6.1-0) trusty; urgency=low
+
+  * use jetty 9.2.5.v20141112
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 01 Dec 2014 13:42:06 +0200
+
+xroad-jetty9 (6.0-3) lucid; urgency=low
+
+  * use jetty 9.2
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 27 Oct 2014 09:26:42 +0300
+
+

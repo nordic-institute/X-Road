@@ -1,209 +1,118 @@
 # This table will hold files to be distributed by the Central. It contains
 # file name and file data (as blob) pairs.
+
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.SharedParameters
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.PrivateParameters
+
 class DistributedFiles < ActiveRecord::Base
   validates_with Validators::MaxlengthValidator
   validates :file_name, :uniqueness => true
 
-  FILE_ID_GLOBALCONF = "globalconf"
-  FILE_ID_IDENTIFIERMAPPING = "identifiermapping"
-  FILE_ID_SIGNED = "signed"
+  EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = [
+    SharedParameters::CONTENT_ID_SHARED_PARAMETERS
+  ]
 
-  ALLOWED_FILE_IDS = [
-      FILE_ID_GLOBALCONF,
-      FILE_ID_IDENTIFIERMAPPING,
-      FILE_ID_SIGNED
-  ].freeze()
+  INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS = [
+    PrivateParameters::CONTENT_ID_PRIVATE_PARAMETERS,
+    SharedParameters::CONTENT_ID_SHARED_PARAMETERS
+  ]
 
-  TABLE_NAME_DISTRIBUTED = "distributed_files"
-  TABLE_NAME_SIGNED = "distributed_signed_files"
+  def self.save_configuration_part(file_name, file_data)
+    content_identifier = get_content_identifier(file_name)
 
-  ALLOWED_TABLE_NAMES = [
-      TABLE_NAME_DISTRIBUTED,
-      TABLE_NAME_SIGNED
-  ].freeze()
-
-  def self.get_files(can_import_v5_data = false)
-    result = []
-    result << get_distributed_file(FILE_ID_GLOBALCONF)
-
-    if can_import_v5_data
-      result << get_distributed_file(FILE_ID_IDENTIFIERMAPPING)
-    end
-
-    result << get_first_signed_file()
-    return result
-  end
-
-  def self.add_file(file_name, file_data, original_filename = nil)
     DistributedFiles.where(:file_name => file_name).destroy_all
     DistributedFiles.create!(
         :file_name => file_name,
+        :content_identifier => content_identifier,
         :file_data => file_data,
-        :original_filename_last_successful => original_filename)
+        :file_updated_at => Time.now())
   end
 
-  def self.mark_failed_last_identifier_mapping_upload(original_filename)
-    file_name = get_file_name(FILE_ID_IDENTIFIERMAPPING)
+  # Gets configuration parts as hash including:
+  # :content_identifier, :file_name, :updated_at and :optional.
+  def self.get_configuration_parts_as_json(source_type)
+    source_external =
+        ConfigurationSource::SOURCE_TYPE_EXTERNAL.eql?(source_type)
 
-    DistributedFiles.where(:file_name => file_name).
-        limit(1).update_all(
-            :last_successful => false,
-            :updated_at => Time.now,
-            :original_filename_last_failed => original_filename)
+    if source_external
+      return get_required_configuration_parts_as_json(
+          EXTERNAL_SOURCE_CONTENT_IDENTIFIERS)
+    end
+
+    result = get_required_configuration_parts_as_json(
+        INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS)
+
+    result.push(*get_optional_configuration_parts_as_json())
+
+    return result
   end
 
-  # Returns log file content as array of file lines.
-  def self.get_log_file_content(table_name, file_id)
-    logger.debug(
-        "DistributedFiles.get_log_file_content(#{table_name}, #{file_id})")
-    verify_file_args(table_name, file_id)
+  def self.get_internal_source_content_identifiers
+    result = INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS
 
-    log_file = get_log_file(table_name, file_id)
-
-    return [] if !File.exist?(log_file)
-
-    return SdsbFileUtils.read_to_array(log_file)
-  end
-
-  def self.log_file_exists?(table_name, file_id)
-    return File.exist?(get_log_file(table_name, file_id))
-  end
-
-  # Gets name and content of the file.
-  def self.get_file(table_name, file_id)
-    logger.debug(
-        "DistributedFiles.get_file_content(#{table_name}, #{file_id})")
-    verify_file_args(table_name, file_id)
-
-    result = {}
-
-    if TABLE_NAME_DISTRIBUTED == table_name
-      file_entry = DistributedFiles.
-          where(:file_name => get_file_name(file_id)).first()
-      file_name = file_entry.original_filename_last_successful.blank? ?
-          file_entry.file_name : file_entry.original_filename_last_successful
-
-      result[:name] = file_name
-      result[:content] = file_entry.file_data
-    else
-      file_entry = DistributedSignedFiles.first()
-      result[:name] = "signed"
-      result[:content] = file_entry.data
+    get_optional_parts_conf().getAllParts().each do |each|
+      result << each.contentIdentifier
     end
 
     return result
   end
 
-  def self.get_exception_ctx(ex)
-    result = "EXCEPTION MESSAGE:\n"
-    result << "#{ex.message}\n\n"
-
-    result << "EXCEPTION BACKTRACE:\n"
-    result << ex.backtrace.join("\n\t")
-    result << "\n"
-
-    return result
-  end
-
-  def self.write_identifier_mapping_log(writable, first_line = nil)
-    write_to_log(
-        writable, TABLE_NAME_DISTRIBUTED, FILE_ID_IDENTIFIERMAPPING, first_line)
-  end
-
-  def self.write_signed_files_log(writable)
-    write_to_log(writable, TABLE_NAME_SIGNED, FILE_ID_SIGNED)
+  def self.get_optional_parts_conf
+    return Java::ee.cyber.sdsb.commonui.OptionalPartsConf.new(
+        Java::ee.cyber.sdsb.common.SystemProperties::CONF_FILE_OPTIONAL_PARTS)
   end
 
   private
 
-  def self.verify_file_args(table_name, file_id)
-    if !ALLOWED_FILE_IDS.include?(file_id)
-      raise "Invalid file id '#{file_id}', allowed ones are: "\
-          "'#{ALLOWED_FILE_IDS.join(", ")}'"
-    end
+  def self.get_content_identifier(file_name)
+    raise "File name MUST be provided" if file_name.blank?()
 
-    if !ALLOWED_TABLE_NAMES.include?(table_name)
-      raise "Invalid table name '#{table_name}', allowed ones are: "\
-          "'#{ALLOWED_TABLE_NAMES.join(", ")}'"
+    case file_name
+    when PrivateParameters::FILE_NAME_PRIVATE_PARAMETERS
+      return PrivateParameters::CONTENT_ID_PRIVATE_PARAMETERS
+    when SharedParameters::FILE_NAME_SHARED_PARAMETERS
+      return SharedParameters::CONTENT_ID_SHARED_PARAMETERS
+    else
+      return get_optional_parts_conf().getContentIdentifier(file_name)
     end
   end
 
-  def self.get_distributed_file(file_id)
-    file_name = get_file_name(file_id)
-    raw_file = DistributedFiles.where(:file_name => file_name).first()
+  def self.get_required_configuration_parts_as_json(content_identifiers)
+    result = []
 
-    if raw_file == nil
-      return {
-        :table => "distributed_files",
-        :file_name => "#{file_id}.xml",
-        :file_id => file_id,
-        :empty => true,
-        :log_exists => log_file_exists?(TABLE_NAME_DISTRIBUTED, file_id)
+    content_identifiers.each do |each_identifier|
+      DistributedFiles.where(
+          :content_identifier => each_identifier).each do |each_file|
+        result << {
+          :content_identifier => each_file.content_identifier,
+          :file_name => each_file.file_name,
+          :updated_at => CenterUtils::format_time(
+              each_file.file_updated_at.localtime),
+          :optional => false
+        }
+      end
+    end
+
+    return result
+  end
+
+  def self.get_optional_configuration_parts_as_json()
+    result = []
+
+    get_optional_parts_conf().getAllParts().each do |each|
+      file_name = each.fileName
+      file_in_db = DistributedFiles.where(:file_name => file_name).first()
+      update_time = file_in_db ?
+          CenterUtils::format_time(file_in_db.file_updated_at.localtime) : nil
+
+      result << {
+        :content_identifier => each.contentIdentifier,
+        :file_name => file_name,
+        :updated_at => update_time ,
+        :optional => true
       }
     end
 
-    return {
-        :table => "distributed_files",
-        :file_name => raw_file.file_name,
-        :file_id => file_id,
-        :time => raw_file.created_at.localtime,
-        :last_attempt_successful => raw_file.last_successful,
-        :last_successful_name => raw_file.original_filename_last_successful,
-        :last_failed_name => raw_file.original_filename_last_failed,
-        :log_exists => true
-    }
-  end
-
-  def self.get_first_signed_file()
-    raw_file = DistributedSignedFiles.first()
-
-    if raw_file == nil
-      return {
-        :table => "distributed_signed_files",
-        :file_name => "signed",
-        :file_id => FILE_ID_SIGNED,
-        :empty => true,
-        :log_exists => log_file_exists?(TABLE_NAME_DISTRIBUTED, FILE_ID_SIGNED)
-      }
-    end
-
-    return {
-        :table => "distributed_signed_files",
-        :file_name => "signed",
-        :file_id => FILE_ID_SIGNED,
-        :time => raw_file.created_at.localtime,
-        :log_exists => true
-    }
-  end
-
-  def self.get_log_file(table_name, file_id)
-    return "#{SdsbFileUtils.get_log_dir()}/"\
-        "sdsb_distributed_files-#{table_name}-#{file_id}"
-  end
-
-  def self.write_to_log(writable, table_name, file_id, first_line = nil)
-    logger.debug(
-        "write_to_log(#{writable}, #{table_name}, #{file_id}, #{first_line})")
-
-    log_file_content = ""
-    log_file_content << "#{first_line}\n\n" if first_line
-
-    log_file_content << (writable.is_a?(Exception) ?
-        get_exception_ctx(writable): writable)
-
-    identifier_mapping_log_file = get_log_file(table_name, file_id)
-
-    SdsbFileUtils.write(identifier_mapping_log_file, log_file_content)
-  end
-
-  def self.get_file_name(file_id)
-    case file_id
-    when FILE_ID_GLOBALCONF
-      return "globalconf.xml"
-    when FILE_ID_IDENTIFIERMAPPING
-      return "identifiermapping.xml"
-    end
-
-    return nil
+    return result
   end
 end

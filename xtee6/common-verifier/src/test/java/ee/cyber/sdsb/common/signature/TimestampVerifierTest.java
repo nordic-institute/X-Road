@@ -17,7 +17,7 @@ import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.ExpectedCodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.TestSecurityUtil;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -30,8 +30,10 @@ public class TimestampVerifierTest {
     public static void setUpBeforeClass() {
         TestSecurityUtil.initSecurity();
 
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
-                "src/test/globalconftest.xml");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH,
+                "../common-util/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
+                "../common-util/src/test/resources/configuration-anchor1.xml");
         GlobalConf.reload();
     }
 

@@ -44,11 +44,10 @@ var SDSB_MEMBERS = function() {
         opts.bProcessing = true;
         opts.bServerSide = true;
         opts.sScrollY = "400px";
-        opts.sScrollX = "100%";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
-            { "mData": "name" },
-            { "mData": "member_class" },
+            { "mData": "name", "sWidth": "50%" },
+            { "mData": "member_class", "sWidth": "15%" },
             { "mData": "member_code" }
         ];
 
@@ -58,6 +57,8 @@ var SDSB_MEMBERS = function() {
         }
 
         opts.bScrollInfinite = true;
+        opts.bScrollCollapse = true;
+
         opts.sAjaxSource = "members/members_refresh";
 
         opts.aaSorting = [ [0,'asc'] ];
@@ -135,10 +136,6 @@ var SDSB_MEMBERS = function() {
 
         $("#member_details").click(function() {
             SDSB_MEMBER_EDIT.open(oMembers.getFocusData());
-        });
-
-        $("#member_delete").click(function() {
-              SDSB_CENTERUI_COMMON.deleteMember(reqParams(oMembers.getFocus()));
         });
     });
 

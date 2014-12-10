@@ -3,8 +3,6 @@ require 'securerandom'
 java_import Java::ee.cyber.sdsb.common.SystemProperties
 
 class ImportController < ApplicationController
-  include BaseHelper
-  include ScriptsHelper
 
   IMPORTED_FILE_NAME = "xtee55_clients_importer_last"
 
@@ -110,7 +108,7 @@ class ImportController < ApplicationController
 
   def write_imported_file(file)
     file_name = get_v5_import_file()
-    SdsbFileUtils.write_binary(file_name, file.read)
+    CommonUi::IOUtils.write_binary(file_name, file.read)
     logger.debug("Importable data file saved to '#{file_name}'")
 
     return file_name
@@ -135,7 +133,7 @@ class ImportController < ApplicationController
         "-d", data_file, "-b", database, "-u", user, "-p", pass]
     logger.debug("Executing V5 clients import")
 
-    console_output_lines = run_script(commandline)
+    console_output_lines = CommonUi::ScriptUtils.run_script(commandline)
     V5Import.write(original_filename, console_output_lines)
 
     exit_status = $?.exitstatus
@@ -148,7 +146,7 @@ class ImportController < ApplicationController
   end
   
   def write_last_attempt(console_output_lines)
-    SdsbFileUtils.write(
+    CommonUi::IOUtils.write(
         get_last_attempt_log_path(), console_output_lines.join("\n"))
   end
 end

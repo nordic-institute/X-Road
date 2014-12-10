@@ -36,8 +36,8 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
 
         @Override
         public boolean equals(Object obj) {
-            if (obj instanceof ApiCall &&
-                    (((ApiCall) obj).params == null || params == null)) {
+            if (obj instanceof ApiCall
+                    && (((ApiCall) obj).params == null || params == null)) {
                 return ((ApiCall) obj).name.equals(name);
             }
 

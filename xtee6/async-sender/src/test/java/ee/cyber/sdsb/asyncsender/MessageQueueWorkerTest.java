@@ -91,7 +91,7 @@ public class MessageQueueWorkerTest {
         };
     }
 
-    private static final Date getDate(int min, int sec) {
+    private static Date getDate(int min, int sec) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MINUTE, min);
         cal.add(Calendar.SECOND, sec);

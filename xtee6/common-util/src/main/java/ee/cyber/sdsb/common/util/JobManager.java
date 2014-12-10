@@ -59,6 +59,24 @@ public class JobManager implements StartStop {
         jobScheduler.scheduleJob(job, trigger);
     }
 
+    public void registerRepeatingJob(Class<? extends Job> jobClass,
+            int intervalInSeconds, JobDataMap data) throws SchedulerException {
+        JobDetail job = newJob(jobClass)
+                .withIdentity(jobClass.getSimpleName(), DEFAULT_JOB_GROUP)
+                .usingJobData(data)
+                .build();
+
+        Trigger trigger = newTrigger()
+                .withIdentity(jobClass.getSimpleName(), DEFAULT_JOB_GROUP)
+                .withSchedule(simpleSchedule()
+                    .withIntervalInSeconds(intervalInSeconds)
+                    .repeatForever())
+                .startNow()
+                .build();
+
+        jobScheduler.scheduleJob(job, trigger);
+    }
+
     public void registerJob(Class<? extends Job> jobClass,
             String identity, String cronExpression, JobDataMap data)
                     throws SchedulerException {

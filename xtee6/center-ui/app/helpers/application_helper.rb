@@ -41,27 +41,31 @@ module ApplicationHelper
           :view_global_groups),
       MenuItem.new(t('menu.configuration.central_service'),
           :central_services, :view_central_services),
-      MenuItem.new(t('menu.configuration.pki'), :pkis, :view_approved_cas),
-      MenuItem.new(t('menu.configuration.tsp'), :tsps, :view_approved_tsps),
+      MenuItem.new(t('menu.configuration.approved_ca'),
+          :approved_cas, :view_approved_cas),
+      MenuItem.new(t('menu.configuration.tsp'), :tsps, :view_approved_tsas),
     ]
   end
 
   def get_management_submenu_items
     result = []
-    result << MenuItem.new(t('menu.management.request'), :requests,
-        :view_management_requests)
 
-    if can_import_V5_data?
-      result << MenuItem.new(t('menu.management.import_v5'), :import,
-          :execute_v5_import)
-    end
+    result << MenuItem.new(t('menu.management.request'),
+        :requests, :view_management_requests)
 
-    result << MenuItem.new(t('menu.management.distributed_file'),
-        :distributed_files, :view_distributed_files)
+    result << MenuItem.new(t('menu.management.configuration_management'),
+        :configuration_management, :view_configuration_management)
+
+    result << MenuItem.new(t('menu.management.system_settings'),
+        :system_settings, :view_system_settings)
+
+    result << MenuItem.new(t('menu.management.import_v5'),
+        :import, :execute_v5_import) if can_import_V5_data?
+
     result << MenuItem.new(t('menu.management.backup_and_restore'),
-        :backup_and_restore,
-        :backup_configuration)
-    return result
+        :backup, :backup_configuration)
+
+    result
   end
 
   def can_see_menu_item?(submenu_items)
@@ -72,9 +76,9 @@ module ApplicationHelper
     return false
   end
 
-  def get_pki_subject_names(pki_top_CAs)
+  def get_approved_ca_subject_names(approved_ca_top_CAs)
     subject_names = []
-    pki_top_CAs.each do |top_ca|
+    approved_ca_top_CAs.each do |top_ca|
       cert = CryptoUtils.readCertificate(top_ca.cert)
       subject_names << cert.getSubjectDN.getName
     end

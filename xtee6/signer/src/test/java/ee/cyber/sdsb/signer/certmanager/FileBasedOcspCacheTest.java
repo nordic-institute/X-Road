@@ -14,6 +14,8 @@ import org.mockito.Mockito;
 
 import ee.cyber.sdsb.common.OcspTestUtils;
 import ee.cyber.sdsb.common.TestCertUtil;
+import ee.cyber.sdsb.common.conf.globalconf.EmptyGlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -43,6 +45,8 @@ public class FileBasedOcspCacheTest {
 
         Mockito.verify(spy).saveResponseToFile(Mockito.any(File.class),
                 Mockito.any(OCSPResp.class));
+
+        assertNotNull(cache.get("foo"));
     }
 
     @Test
@@ -113,4 +117,10 @@ public class FileBasedOcspCacheTest {
         subject = TestCertUtil.getCertChainCert("user_0.p12");
         assertNotNull(subject);
     }
+
+    @BeforeClass
+    public static void beforeClass() {
+        GlobalConf.reload(new EmptyGlobalConf());
+    }
+
 }

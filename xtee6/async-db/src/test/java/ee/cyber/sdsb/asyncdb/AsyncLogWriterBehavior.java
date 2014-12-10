@@ -47,14 +47,14 @@ public class AsyncLogWriterBehavior {
         // Initialize
         String firstLastSendResult = "OK";
         int firstFirstRequestSendCount = 0;
-        
+
         Date firstReceivedTime = new Date(1292509011);
 
         ClientId kirvetehas =
                 ClientId.create("EE", "tankist", "kirvetehas");
         ServiceId tehasSalajane = ServiceId.create("EE", "tankist", "tehas",
                 null, "salajane");
-        
+
         RequestInfo firstRequest = new RequestInfo(0,
                 "d41d8cd98f00b204e9800998ecf8427e", firstReceivedTime, null,
                 kirvetehas, "EE27001010001", tehasSalajane);
@@ -93,10 +93,10 @@ public class AsyncLogWriterBehavior {
                 .readLines(new File(ASYNC_LOG_PATH), StandardCharsets.UTF_8);
 
         assertEquals(2, logFileLines.size());
-        
+
         String[] firstLineData = logFileLines.get(0)
                 .split(Character.toString(AsyncLogWriter.FIELD_SEPARATOR));
-        ;
+
         assertEquals(AsyncDBTestUtil.LOG_FILE_FIELDS, firstLineData.length);
 
         assertTrue(StringUtils.isNotBlank(firstLineData[FIELD_LOGGING_TIME]));

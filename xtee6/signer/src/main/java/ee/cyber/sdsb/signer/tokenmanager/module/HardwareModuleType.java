@@ -2,6 +2,9 @@ package ee.cyber.sdsb.signer.tokenmanager.module;
 
 import lombok.Data;
 
+/**
+ * Module type for hardware modules.
+ */
 @Data
 public class HardwareModuleType implements ModuleType {
 

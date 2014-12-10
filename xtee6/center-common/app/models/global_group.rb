@@ -38,8 +38,8 @@ class GlobalGroup < ActiveRecord::Base
   # Returns global group that contains security server owners.
   # Returns null, if system parameter is not defined or the
   # group does not exist.
-  def self.server_owners_group
-    group_code = SystemParameter.server_owners_group
+  def self.security_server_owners_group
+    group_code = SystemParameter.security_server_owners_group
     if group_code == nil
       nil
     else
@@ -98,7 +98,7 @@ class GlobalGroup < ActiveRecord::Base
   end
 
   def self.get_search_relation(searchable)
-    sql_generator = 
+    sql_generator =
         SimpleSearchSqlGenerator.new(get_searchable_columns(), searchable)
 
     GlobalGroup.where(sql_generator.sql, *sql_generator.params)

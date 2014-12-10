@@ -4,9 +4,15 @@ import iaik.pkcs.pkcs11.TokenInfo;
 
 import java.util.Map;
 
-public class HardwareTokenInfo {
+/**
+ * Fills out the token information for a hardware token.
+ */
+public final class HardwareTokenInfo {
 
     private static final long CK_UNAVAILABLE_INFORMATION = -1;
+
+    private HardwareTokenInfo() {
+    }
 
     static void fillInTokenInfo(TokenInfo info, Map<String, String> data) {
         data.clear();

@@ -18,6 +18,9 @@ import static ee.cyber.sdsb.signer.protocol.ComponentNames.TOKEN_WORKER;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.cyber.sdsb.signer.util.SignerUtil.getWorkerId;
 
+/**
+ * Token base class.
+ */
 @Slf4j
 public abstract class AbstractToken extends AbstractSignerActor {
 
@@ -56,8 +59,8 @@ public abstract class AbstractToken extends AbstractSignerActor {
                 signer.tell(message, getSender());
             } else {
                 sendErrorResponse(new CodedException(X_INTERNAL_ERROR,
-                        "Cannot sign, signing actor of token '%s' " +
-                        "not initialized", getWorkerId(tokenInfo)));
+                        "Cannot sign, signing actor of token '%s' "
+                                + "not initialized", getWorkerId(tokenInfo)));
             }
         } else {
             if (worker != null) {

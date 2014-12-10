@@ -36,8 +36,8 @@ public class SignatureBuilderTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        subjectCert = TestCertUtil.getTestOrg().cert;
-        subjectKey = TestCertUtil.getTestOrg().key;
+        subjectCert = TestCertUtil.getConsumer().cert;
+        subjectKey = TestCertUtil.getConsumer().key;
         issuerCert = TestCertUtil.getCaCert();
         signerCert = TestCertUtil.getOcspSigner().cert;
         signerKey = TestCertUtil.getOcspSigner().key;
@@ -100,7 +100,7 @@ public class SignatureBuilderTest {
         assertNotNull(data.getHashChain());
     }
 
-    private static String hash(String input) {
-        return CryptoUtils.encodeBase64(input.getBytes());
+    private static byte[] hash(String input) {
+        return input.getBytes();
     }
 }

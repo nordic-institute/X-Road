@@ -4,13 +4,20 @@ import java.util.Set;
 
 import ee.cyber.sdsb.common.TestCertUtil;
 import ee.cyber.sdsb.common.TestCertUtil.PKCS12;
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
+import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
 public class TestServerConf extends EmptyServerConf {
+
+    @Override
+    public SecurityServerId getIdentifier() {
+        return SecurityServerId.create("EE", "BUSINESS", "consumer",
+                "proxytest");
+    }
 
     @Override
     public String getServiceAddress(ServiceId service) {

@@ -47,29 +47,6 @@ fieldset {
     }
 }
 
-div#sysparams-holder {
-    table#async-params-table {
-        input {
-            min-width: 300px;
-        }
-        tr {
-            td:first-child {
-                width: 450px;
-            }
-            border: none;
-        }
-    }
-}
-
-div#backup-holder {
-    legend {
-        margin-bottom: 10px;
-    }
-    #backup {
-        margin-top: 10px;
-    }
-}
-
 #keys {
     .token {
         line-height: 34px;
@@ -78,7 +55,7 @@ div#backup-holder {
         background-color: rgba($base-color-yellow, 0.7);
     }
     .token-unavailable,
-    .key.key-unavailable {
+    .key-unavailable {
         background-color: #a8a8a8;
     }
     .token-active .activate_token {

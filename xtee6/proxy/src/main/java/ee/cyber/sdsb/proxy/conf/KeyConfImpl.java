@@ -16,8 +16,8 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.AuthKey;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.AuthKey;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -62,7 +62,8 @@ public class KeyConfImpl implements KeyConfProvider {
                 MemberSigningInfo signingInfo = SignerClient.execute(
                         new GetMemberSigningInfo(clientId));
 
-                SigningCtx ctx = createSigningCtx(signingInfo.getKeyId(),
+                SigningCtx ctx = createSigningCtx(clientId,
+                        signingInfo.getKeyId(),
                         signingInfo.getCert().getCertificateBytes());
 
                 signingCtxCache.put(clientId, ctx);
@@ -107,7 +108,7 @@ public class KeyConfImpl implements KeyConfProvider {
                     log.warn("Failed to read authentication key");
                 }
 
-                certChain = getAuthCertChain(
+                certChain = getAuthCertChain(serverId.getSdsbInstance(),
                         keyInfo.getCert().getCertificateBytes());
                 if (certChain == null) {
                     log.warn("Failed to read authentication certificate");
@@ -134,8 +135,8 @@ public class KeyConfImpl implements KeyConfProvider {
                         new GetOcspResponses(new String[] { certHash }));
 
         for (String base64Encoded : response.getBase64EncodedResponses()) {
-            return base64Encoded != null ?
-                    new OCSPResp(decodeBase64(base64Encoded)) : null;
+            return base64Encoded != null
+                    ? new OCSPResp(decodeBase64(base64Encoded)) : null;
         }
 
         return null;
@@ -185,17 +186,17 @@ public class KeyConfImpl implements KeyConfProvider {
         }
     }
 
-    private static SigningCtx createSigningCtx(String keyId, byte[] certBytes)
-            throws Exception {
+    private static SigningCtx createSigningCtx(ClientId subject, String keyId,
+            byte[] certBytes) throws Exception {
         X509Certificate cert = readCertificate(certBytes);
-        return new SigningCtxImpl(new SignerSigningKey(keyId), cert);
+        return new SigningCtxImpl(subject, new SignerSigningKey(keyId), cert);
     }
 
-    private static CertChain getAuthCertChain(byte[] authCertBytes)
-            throws Exception {
+    private static CertChain getAuthCertChain(String instanceIdentifier,
+            byte[] authCertBytes) throws Exception {
         X509Certificate authCert = readCertificate(authCertBytes);
         try {
-            return GlobalConf.getCertChain(authCert);
+            return GlobalConf.getCertChain(instanceIdentifier, authCert);
         } catch (Exception e) {
             log.error("Failed to get cert chain for certificate "
                     + authCert.getSubjectDN(), e);

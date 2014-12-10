@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
@@ -62,6 +62,8 @@ public class MessageTestCase {
     protected String responseFileName;
     protected String requestContentType = MimeUtils.TEXT_XML_UTF8;
     protected String responseContentType = MimeUtils.TEXT_XML_UTF8;
+    protected String responseServiceContentType;
+
     protected String url = "http://localhost:" + PortNumbers.CLIENT_HTTP_PORT;
     protected final Map<String, String> requestHeaders = new HashMap<>();
 
@@ -127,6 +129,11 @@ public class MessageTestCase {
         return responseContentType;
     }
 
+    public String getResponseServiceContentType() {
+        return responseServiceContentType != null
+                ? responseServiceContentType : getResponseContentType();
+    }
+
     public String getId() {
         return id;
     }
@@ -184,8 +191,8 @@ public class MessageTestCase {
 
             if (sentRequest != null && sentRequest.getSoap() != null
                     && sentRequest.getSoap() instanceof SoapMessageImpl
-                    && ((SoapMessageImpl) sentRequest.getSoap()).isAsync() &&
-                    !requestHeaders.containsKey(SoapUtils.X_IGNORE_ASYNC)) {
+                    && ((SoapMessageImpl) sentRequest.getSoap()).isAsync()
+                    && !requestHeaders.containsKey(SoapUtils.X_IGNORE_ASYNC)) {
                 sentResponse = receivedResponse;
             }
         } finally {
@@ -297,10 +304,10 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
-    void onReceiveRequest(Message receivedRequest) throws Exception {
+    protected void onReceiveRequest(Message receivedRequest) throws Exception {
         if (!checkConsistency(sentRequest, receivedRequest)) {
-            LOG.error("Sent request and received request are not " +
-                    "consistent, sending fault response.");
+            LOG.error("Sent request and received request are not "
+                    + "consistent, sending fault response.");
             testFailed = true;
         }
     }

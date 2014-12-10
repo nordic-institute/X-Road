@@ -6,10 +6,7 @@ import java.util.List;
 
 import lombok.Data;
 import lombok.Getter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -41,12 +38,10 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.*;
  * signing certificate, which means there is essentially one batch signer
  * per signing certificate.
  */
+@Slf4j
 public class BatchSigner extends UntypedActor {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(BatchSigner.class);
-
-    private static final Timeout DEFAULT_TIMEOUT = new Timeout(10000);
+    private static final Timeout DEFAULT_TIMEOUT = new Timeout(30000);
 
     // Holds the actor instance, which sends and receives messages.
     private static ActorRef instance;
@@ -76,11 +71,11 @@ public class BatchSigner extends UntypedActor {
             if (message instanceof SigningRequestWrapper) {
                 handle((SigningRequestWrapper) message);
             } else {
-                LOG.trace("unhandled({})", message);
+                log.trace("unhandled({})", message);
                 unhandled(message);
             }
         } catch (Exception e) {
-            LOG.error("Error in signing worker", e);
+            log.error("Error in signing worker", e);
 
             getSender().tell(e, getSelf());
         }
@@ -103,7 +98,7 @@ public class BatchSigner extends UntypedActor {
 
         ActorRef worker = getContext().getChild(name);
         if (worker == null) {
-            LOG.trace("Creating new worker for cert '{}'", name);
+            log.trace("Creating new worker for cert '{}'", name);
 
             worker = getContext().actorOf(Props.create(WorkerImpl.class), name);
         }
@@ -129,7 +124,7 @@ public class BatchSigner extends UntypedActor {
 
         @Override
         public void onReceive(Object message) throws Exception {
-            LOG.trace("onReceive({})", message);
+            log.trace("onReceive({})", message);
 
             if (message instanceof SigningRequestWrapper) {
                 handleSignRequest((SigningRequestWrapper) message);
@@ -144,7 +139,7 @@ public class BatchSigner extends UntypedActor {
 
         private void handleSignRequest(SigningRequestWrapper signRequest)
                 throws Exception {
-            LOG.trace("handleSignRequest()");
+            log.trace("handleSignRequest()");
 
             // If we do not know whether batch signing is enabled for the token,
             // we ask from Signer. This call will block until response is
@@ -162,7 +157,7 @@ public class BatchSigner extends UntypedActor {
                 if (batchSigningEnabled) {
                     doBatchSign(signRequest);
                 } else {
-                    LOG.trace("Batch signing not enabled, stashing request");
+                    log.trace("Batch signing not enabled, stashing request");
                     // Batch signing not enabled, but currently busy,
                     // so stash this message for future.
                     stash();
@@ -178,14 +173,13 @@ public class BatchSigner extends UntypedActor {
                         SignerClient.execute(
                                 new GetTokenBatchSigningEnabled(keyId));
             } catch (Exception e) {
-                LOG.error("Failed to query if batch signing is enabled for " +
-                        "token with key {}: {}", keyId, e.getMessage());
-                batchSigningEnabled = false;
+                log.error("Failed to query if batch signing is enabled for "
+                        + "token with key {}: {}", keyId, e.getMessage());
             }
         }
 
         private void doBatchSign(SigningRequestWrapper wrapper) {
-            LOG.trace("doBatchSign()");
+            log.trace("doBatchSign()");
 
             if (nextSigningCtx == null) {
                 nextSigningCtx = new BatchSignatureCtx(wrapper.getKeyId(),
@@ -196,7 +190,7 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void doSign(SigningRequestWrapper wrapper) throws Exception {
-            LOG.trace("doSign()");
+            log.trace("doSign()");
 
             BatchSignatureCtx ctx = new BatchSignatureCtx(wrapper.getKeyId(),
                     wrapper.getSignatureAlgorithmId());
@@ -209,7 +203,7 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void handleSignResponse(SignResponse signResponse) {
-            LOG.trace("handleSignResponse()");
+            log.trace("handleSignResponse()");
 
             workerBusy = false;
 
@@ -228,7 +222,7 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void handleException(Exception exception) {
-            LOG.trace("handleException()");
+            log.trace("handleException()");
 
             workerBusy = false;
 
@@ -236,7 +230,7 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void startNextBatchSigning() {
-            LOG.trace("startNextBatchSigning()");
+            log.trace("startNextBatchSigning()");
 
             workingSigningCtx = nextSigningCtx;
             nextSigningCtx = null;
@@ -255,8 +249,8 @@ public class BatchSigner extends UntypedActor {
 
         private boolean isWorkerBusy() {
             if (workerBusy) {
-                if (System.currentTimeMillis() - signStartTime >=
-                        DEFAULT_TIMEOUT.duration().length()) {
+                if (System.currentTimeMillis() - signStartTime
+                        >= DEFAULT_TIMEOUT.duration().length()) {
                     workerBusy = false;
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Signature creation timed out");
@@ -280,7 +274,7 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void sendResponse(Object message) {
-            LOG.trace("sendResponse({})", message);
+            log.trace("sendResponse({})", message);
 
             if (workingSigningCtx != null) {
                 try {

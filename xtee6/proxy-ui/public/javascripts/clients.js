@@ -19,20 +19,33 @@
         if (oClients && oClients.getFocus()) {
             var client = oClients.getFocusData();
 
+            var clientActions =
+                $("#client_register, #client_unregister, #client_delete");
+
+            clientActions.css("visibility", "visible");
+
             if (client.register_enabled) {
                 $("#client_register").enable();
             } else {
                 $("#client_register").disable();
             }
+
             if (client.unregister_enabled) {
                 $("#client_unregister").show();
             } else {
                 $("#client_unregister").hide();
             }
+
             if (client.delete_enabled) {
                 $("#client_delete").show();
             } else {
                 $("#client_delete").hide();
+            }
+
+            if (client.owner) {
+                // let's not hide, positioning the empty div would
+                // give wrong results
+                clientActions.css("visibility", "hidden");
             }
 
             adjustDetailsTitle();
@@ -125,8 +138,7 @@
                       var params = $("form", this).serializeObject();
 
                       $.post(action("client_add"), params, function(response) {
-                          oClients.fnClearTable();
-                          oClients.fnAddData(response.data);
+                          oClients.fnReplaceData(response.data);
 
                           $(dialog).dialog("close");
 
@@ -221,8 +233,7 @@
         $("#client_select_dialog .simple_search_form .search").click(function() {
             var params = $("#search_member").serialize();
             $.get(action("clients_search"), params, function(response) {
-                oClientsGlobal.fnClearTable();
-                oClientsGlobal.fnAddData(response.data);
+                oClientsGlobal.fnReplaceData(response.data);
                 oClientsGlobal.trigger("dialogresizestop");
             }, "json");
 
@@ -261,8 +272,7 @@
 
     function refreshClients() {
         $.get(action("clients_refresh"), null, function(response) {
-            oClients.fnClearTable();
-            oClients.fnAddData(response.data);
+            oClients.fnReplaceData(response.data);
         }, "json");
     }
 
@@ -295,11 +305,10 @@
         };
         confirm(text, null, function() {
             $.post(action("client_delete"), params, function(response) {
-                oClients.fnClearTable();
-                oClients.fnAddData(response.data.clients);
+                oClients.fnReplaceData(response.data.clients);
 
                 if (response.data.ask_delete_certs) {
-                    yesno("clients.client_details_dialog.delete_certs", params,
+                    yesno("clients.client_details_tab.delete_certs", params,
                         function(yes) {
                             if (yes) {
                                 $.post(action("client_delete_certs"), params);
@@ -380,6 +389,7 @@
 
     function initClientsTable() {
         var opts = scrollableTableOpts(410);
+        opts.asRowId = ["client_id"];
         opts.fnDrawCallback = enableActions;
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
         opts.aoColumns = [
@@ -390,10 +400,24 @@
                     }
 
                     return generateStateElement(s.state);
-                }
+                },
+                sClass: "noclip"
+
             },
             {
-                mData: 'member_name'
+                mData: "member_name",
+                mRender: function(data, type, full) {
+                    if (type == 'display') {
+                        return clientName(data);
+                    }
+                    return data;
+                },
+                fnCreatedCell: function(nTd, sData, oData) {
+                    if (!oData.member_name) {
+                        $(nTd).addClass("missing");
+                    }
+                },
+                sWidth: "30%"
             },
             {
                 mData: function(source, type, val) {
@@ -452,7 +476,8 @@
                     }
 
                     return generateTableActions(actions);
-                }
+                },
+                sWidth: "130px"
             },
             {
                 mData: 'owner',
@@ -469,8 +494,6 @@
         opts.aaSorting = [[1,'asc']];
 
         oClients = $("#clients").dataTable(opts);
-
-        $(".clients_actions").prependTo("#clients_wrapper .dataTables_header");
 
         $("#clients tbody tr").live("dblclick", function() {
             var clientData = oClients.fnGetData(this);
@@ -494,8 +517,8 @@
         opts.sDom = "t";
         opts.bFilter = false;
         opts.aoColumns = [
-            { "mData": "member_name" },
-            { "mData": "member_class" },
+            { "mData": "member_name", "sWidth": "40%" },
+            { "mData": "member_class", "sWidth": "15%"  },
             { "mData": "member_code" },
             { "mData": "subsystem_code" }
         ];
@@ -540,7 +563,7 @@
                 member_code: $("#details_member_code").val(),
                 subsystem_code: $("#details_subsystem_code").val()
             };
-            confirm("clients.client_details_dialog.send_regreq_confirm", null,
+            confirm("clients.client_details_tab.send_regreq_confirm", null,
                     function() {
                 $.post(action("client_regreq"), params, function(response) {
                     oClients.fnUpdate(response.data, oClients.getFocus());
@@ -554,18 +577,18 @@
                 member_code: $("#details_member_code").val(),
                 subsystem_code: $("#details_subsystem_code").val()
             };
-            confirm("clients.client_details_dialog.send_delreq_confirm", null,
+            confirm("clients.client_details_tab.send_delreq_confirm", null,
                     function() {
                 $.post(action("client_delreq"), params, function(response) {
                     oClients.fnUpdate(response.data, oClients.getFocus());
 
-                    confirmDelete("clients.client_details_dialog.delete_client");
+                    confirmDelete("clients.client_details_tab.delete_client");
                 }, "json");
             });
         });
 
         $("#client_delete").live('click', function() {
-            confirmDelete("clients.client_details_dialog.delete_client_confirm");
+            confirmDelete("clients.client_details_tab.delete_client_confirm");
         });
     });
 

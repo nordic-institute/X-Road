@@ -35,8 +35,19 @@ import static ee.cyber.sdsb.asyncsender.TestUtils.getSimpleMessage;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-public class AsyncSenderIntegrationTest {
+/**
+ * Integration test class.
+ */
+public final class AsyncSenderIntegrationTest {
 
+    private AsyncSenderIntegrationTest() {
+    }
+
+    /**
+     * Entry point.
+     * @param args arguments
+     * @throws Exception if an error occurs
+     */
     @SuppressWarnings("unchecked")
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.ASYNC_DB_PATH, "build");
@@ -130,7 +141,7 @@ public class AsyncSenderIntegrationTest {
         return sendingCtx;
     }
 
-    private static final Date getDate(int min, int sec) {
+    private static Date getDate(int min, int sec) {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.MINUTE, min);
         cal.add(Calendar.SECOND, sec);

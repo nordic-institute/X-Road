@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.common.request;
 
 import java.io.File;
-import java.net.URI;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
@@ -9,9 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 
@@ -23,8 +21,8 @@ public class ManagementMessageTest {
             LoggerFactory.getLogger(ManagementMessageTest.class);
 
     public static void main(String[] args) throws Exception {
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
-                "../signer/src/test/resources/globalconf.xml");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH,
+                "../signer/src/test/resources/globalconf");
 
         try {
             ManagementRequestClient.getInstance().start();
@@ -36,19 +34,20 @@ public class ManagementMessageTest {
             ClientId receiver = GlobalConf.getManagementRequestService();
 
             ManagementRequestSender requestSender =
-                    new ManagementRequestSender(userId, sender, receiver) {
+                    new ManagementRequestSender(userId, sender, receiver);
+            /*{
                 @Override
                 protected URI getCentralServiceURI() throws Exception {
-                    return new URI("https://iks2-central.cyber.ee:8443" +
-                            "/center-service/");
+                    return new URI("https://iks2-central.cyber.ee:8443"
+                            + "/center-service/");
                 }
 
                 @Override
                 protected URI getSecurityServerURI() throws Exception {
-                    return new URI("http://localhost:" +
-                            PortNumbers.CENTER_SERVICE_HTTP_PORT);
+                    return new URI("http://localhost:"
+                            + PortNumbers.CENTER_SERVICE_HTTP_PORT);
                 }
-            };
+            };*/
 
             sendAuthCertRegRequest(requestSender);
             //sendAuthCertDeletionRequest(requestSender);

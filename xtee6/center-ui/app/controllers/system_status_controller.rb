@@ -1,143 +1,92 @@
-# Checks status of central components
-
-java_import Java::java.util.ArrayList
-
 java_import Java::ee.cyber.sdsb.commonui.SignerProxy
 
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenInfo
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo
-
+# Checks status of central components
 class SystemStatusController < ApplicationController
-  include BaseHelper
+
+  CONF_GENERATION_TIMEOUT_SECS = 300
+
+  skip_before_filter :check_conf, :only => [:check_status]
 
   before_filter :verify_get, :only => [:check_status]
-
-  before_filter :verify_post, :only => [:enter_signing_token_pin]
 
   def index
   end
 
   def check_status
-    error_messages = []
+    alerts = []
 
-    check_global_conf_generation_status(error_messages)
-    token_pin_required = check_signing_token_status(error_messages)
+    if initialized?
+      check_global_conf_generation_status(alerts)
 
-    render_json_without_messages({
-      :error_messages => error_messages,
-      :token_pin_required => token_pin_required})
-  end
-
-  def enter_signing_token_pin
-    authorize!(:enter_signing_token_pin)
-
-    pin = Array.new
-    params[:pin].bytes do |b|
-      pin << b
+      begin
+        check_configuration_signing_keys(
+          ConfigurationSource::SOURCE_TYPE_INTERNAL, alerts)
+        check_configuration_signing_keys(
+          ConfigurationSource::SOURCE_TYPE_EXTERNAL, alerts)
+      rescue
+        alerts << t("status.signing_key.signer_error", :message => $!.message)
+      end
     end
 
-    # "0" is for software token.
-    SignerProxy::activateToken("0", pin.to_java(:char))
-    notice(t("status.signing_token.token_activated"))
-    render_json();
+    render :json => {
+      :alerts => alerts
+    }
   end
 
   private
 
-  # error_messages is an array collecting error messages
-  def check_global_conf_generation_status(error_messages)
-    generation_status = GlobalConfGenerationStatus.get()
+  def check_global_conf_generation_status(alerts)
+    generation_status = GlobalConfGenerationStatus.get
 
-    logger.info("Global configuration generation status from file: "\
+    logger.info("Global configuration generation status from file: " \
         "'#{generation_status}'")
 
     last_attempt_time = generation_status[:time]
 
     if generation_status[:success] == true
-      if conf_generated_more_than_minute_ago?(last_attempt_time)
-        error_messages << {:text => t("status.global_conf_gen.out_of_date",
-            {:time => format_time(last_attempt_time)})}
-      end
+      alerts << t("status.global_conf_gen.out_of_date", {
+        :time => format_time(last_attempt_time)
+      }) if conf_expired?(last_attempt_time)
 
       return
     end
 
     if generation_status[:no_status_file] == true
-      error_messages << {:text => t("status.global_conf_gen.no_status_file")}
+      alerts << t("status.global_conf_gen.no_status_file")
     else
-      error_messages << {:text => t("status.global_conf_gen.failure",
-          {:time => format_time(last_attempt_time)})}
+      alerts << t("status.global_conf_gen.failure", {
+        :time => format_time(last_attempt_time)
+      })
     end
   end
 
-  def conf_generated_more_than_minute_ago?(generation_time)
-    generation_time < Time.now() - 60
-  end
+  def check_configuration_signing_keys(source_type, alerts)
+    signing_key = ConfigurationSource.get_source_by_type(source_type).active_key
 
-  # Returns whether token PIN is required or not.
-  def check_signing_token_status(error_messages)
-    key_id = SystemParameter.conf_sign_key_id()
-    token = get_token_for_active_signing_key(key_id)
-
-    if !token
-      error_messages << {:text => "Key with id #{key_id} not found."}
+    unless signing_key
+      alerts << t("status.signing_key.#{source_type}.missing")
       return
     end
 
-    return handle_token_status(token, error_messages)
-  rescue java.lang.Exception => e
-    error_messages << {:text => t("status.signing_token.invocation_failed",
-        :message => e.message)}
-  end
+    SignerProxy::getTokens.each do |token|
+      token.key_info.each do |key|
+        next unless signing_key.key_identifier == key.id
 
-  def get_token_for_active_signing_key(key_id)
-    tokens = SignerProxy::getTokens()
+        signing_key_found = true
 
-    tokens.each do |each_token|
-      each_token.key_info.each do |each_key|
-        if is_active_signing_key?(each_key, key_id)
-          return each_token
+        unless token.active
+          alerts <<
+            t("status.signing_key.#{source_type}.token_not_active")
         end
+
+        return
       end
     end
 
-    return nil
+    alerts << t("status.signing_key.#{source_type}.token_not_found")
   end
 
-  def is_active_signing_key?(key, key_id)
-    return key.id == key_id && key.usage == KeyUsageInfo::SIGNING
-  end
-
-  def handle_token_status(token, error_messages)
-    logger.info("Handling status of token with id '#{token.id}'")
-
-    if !token.active
-      error_messages << {:text => t("status.signing_token.not_active"),
-        :signing_token_pin_required => can_enter_signing_token_pin?()}
-      return
-    end
-
-    case token.status
-    when TokenStatusInfo::OK
-      return
-    when TokenStatusInfo::USER_PIN_LOCKED
-      error_messages << {:text => t("status.signing_token.user_pin_locked")}
-    when TokenStatusInfo::USER_PIN_INCORRECT
-      error_messages << {:text => t("status.signing_token.user_pin_incorrect"),
-        :signing_token_pin_required => can_enter_signing_token_pin?()}
-    when TokenStatusInfo::USER_PIN_INVALID
-      error_messages << {:text => t("status.signing_token.user_pin_invalid"),
-        :signing_token_pin_required => can_enter_signing_token_pin?()}
-    when TokenStatusInfo::USER_PIN_EXPIRED
-      error_messages << {:text => t("status.signing_token.user_pin_expired"),
-        :signing_token_pin_required => can_enter_signing_token_pin?()}
-    when TokenStatusInfo::NOT_INITIALIZED
-      error_messages << {:text => t("status.signing_token.not_initialized")}
-    end
-  end
-
-  def can_enter_signing_token_pin?
-    return can?(:enter_signing_token_pin)
+  def conf_expired?(generation_time)
+    generation_time < Time.now() - SystemParameter.conf_expire_interval_seconds
   end
 end

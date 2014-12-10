@@ -5,30 +5,46 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
 import static ee.cyber.sdsb.common.ErrorCodes.translateWithPrefix;
 
+/**
+ * Holds the certificate chain containing the trusted root certificate,
+ * any intermediate certificates and end entity certificate.
+ */
+@Getter
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public class CertChain {
 
+    /** Holds the instanceIdentifier. */
+    private final String instanceIdentifier;
+
     /** Holds the end entity certificate. */
-    private final X509Certificate cert;
+    private final X509Certificate endEntityCert;
 
     /** Holds the trusted root certificate. */
-    private final X509Certificate trustedCert;
+    private final X509Certificate trustedRootCert;
 
     /** Holds any additional certificates (intermediates). */
-    private final List<X509Certificate> additionalCerts;
+    private List<X509Certificate> additionalCerts = new ArrayList<>();
 
     /**
      * Builds certificate chain form the given array of certificates
      * (ordered with the user's certificate first and the root
      * certificate authority last).
+     * @param instanceIdentifier the instance identifier
      * @param chain the certificate chain
+     * @return the certificate chain
      */
-    public static CertChain create(X509Certificate[] chain) {
+    public static CertChain create(String instanceIdentifier,
+            X509Certificate[] chain) {
         if (chain.length < 2) {
             throw new CodedException(X_CANNOT_CREATE_CERT_PATH,
                     "Chain must have at least user's certificate "
@@ -43,7 +59,8 @@ public class CertChain {
         }
 
         try {
-            return new CertChain(chain[0], trustAnchor, additionalCerts);
+            return new CertChain(instanceIdentifier, chain[0], trustAnchor,
+                    additionalCerts);
         } catch (Exception ex) {
             throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
         }
@@ -51,54 +68,31 @@ public class CertChain {
 
     /**
      * Builds certificate chain from cert to trusted root.
+     * @param instanceIdentifier the instance identifier
+     * @param cert the end entity certificate
      * @param additionalCerts additional certificates that can be used to
-     *                   construct the cert chain.
+     * construct the cert chain.
+     * @return the certificate chain
      */
-    public static CertChain create(X509Certificate cert,
-            List<X509Certificate> additionalCerts) {
+    public static CertChain create(String instanceIdentifier,
+            X509Certificate cert, List<X509Certificate> additionalCerts) {
         try {
-            X509Certificate trustAnchor = GlobalConf.getCaCert(cert);
+            X509Certificate trustAnchor =
+                    GlobalConf.getCaCert(instanceIdentifier, cert);
             if (trustAnchor == null) {
                 throw new Exception("Unable to find trust anchor");
             }
 
-            return new CertChain(cert, trustAnchor, additionalCerts);
+            return new CertChain(instanceIdentifier, cert, trustAnchor,
+                    additionalCerts != null
+                        ? additionalCerts : new ArrayList<X509Certificate>());
         } catch (Exception ex) {
             throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
         }
     }
 
     /**
-     * Builds the certificate path for the target certificate using a list
-     * of trust anchors and a list of intermediate certificates.
-     * @param cert the target certificate
-     * @param trustedCerts the list of trust anchors
-     * @param additionalCerts a list of intermediate certificates
-     */
-    CertChain(X509Certificate cert, X509Certificate trustedCert,
-            List<X509Certificate> additionalCerts) throws Exception {
-        this.cert = cert;
-        this.trustedCert = trustedCert;
-        this.additionalCerts = additionalCerts != null
-                ? additionalCerts : new ArrayList<X509Certificate>();
-    }
-
-    /** Returns the end entity certificate. */
-    public X509Certificate getEndEntityCert() {
-        return cert;
-    }
-
-    /** Returns the trusted root certificate. */
-    public X509Certificate getTrustedRootCert() {
-        return trustedCert;
-    }
-
-    /** Returns the additional certificates (intermediates). */
-    public List<X509Certificate> getAdditionalCerts() {
-        return additionalCerts;
-    }
-
-    /** Returns the complete chain used to create this instance,
+     * @return the complete chain used to create this instance,
      * starting with the end entity and ending with trusted root. */
     public List<X509Certificate> getAllCerts() {
         List<X509Certificate> allCerts = new ArrayList<>();
@@ -109,7 +103,8 @@ public class CertChain {
         return allCerts;
     }
 
-    /** Returns the chain used to create this instance withouth the trusted root,
+    /**
+     * @return the chain used to create this instance withouth the trusted root,
      * starting with the end entity followed by any additional certs. */
     public List<X509Certificate> getAllCertsWithoutTrustedRoot() {
         List<X509Certificate> allCerts = new ArrayList<>();
@@ -117,5 +112,17 @@ public class CertChain {
         allCerts.addAll(getAdditionalCerts());
 
         return allCerts;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Trusted root certificate:\n").append(trustedRootCert);
+        sb.append("\n\n");
+        sb.append("Intermediate certificates:\n");
+        additionalCerts.forEach(c -> sb.append(c));
+        sb.append("\n\n");
+        sb.append("End entity certificate:\n").append(endEntityCert);
+        return sb.toString();
     }
 }

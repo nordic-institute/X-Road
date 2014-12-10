@@ -1,8 +1,13 @@
 package ee.cyber.sdsb.common.db;
 
 
+import java.util.function.Function;
+
 import org.hibernate.Session;
 
-public interface TransactionCallback<T> {
-    T call(Session session) throws Exception;
+/**
+ * Callback that can be called during a transaction.
+ * @param <R> the type of the callback result
+ */
+public interface TransactionCallback<R> extends Function<Session, R> {
 }

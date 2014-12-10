@@ -40,8 +40,8 @@ public class TestIdentificators extends TestCase {
     public synchronized void t01genKeysWithCertsToClassRiigiasutus()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t01 - Generate and import certs and csrs for " +
-                "MemberClass riigiasutus");
+        LOG.info("t01 - Generate and import certs and csrs for "
+                + "MemberClass riigiasutus");
         LOG.info("###########################################################");
 
         activateDevice(softToken, true);
@@ -62,8 +62,8 @@ public class TestIdentificators extends TestCase {
     public synchronized void t02memberSigningInfoForClassRiigiasutus()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t02 - Check signer capability to give signing info for " +
-                "MemberClass riigiasutus");
+        LOG.info("t02 - Check signer capability to give signing info for "
+                + "MemberClass riigiasutus");
         LOG.info("###########################################################");
 
         getMemberSignInfo(client3);

@@ -67,8 +67,8 @@ public class DisableAndActivateBetweenKeys extends TestCase {
     public void t02deleteCertsUnderKeyAndSignWithThisKey()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t02 - Started: Deleting all certs under one key and " +
-                "checking ability to sign afterwards. Failure expected");
+        LOG.info("t02 - Started: Deleting all certs under one key and "
+                + "checking ability to sign afterwards. Failure expected");
         LOG.info("###########################################################");
 
         // only under one key to have some keys with certs in the next test
@@ -97,8 +97,8 @@ public class DisableAndActivateBetweenKeys extends TestCase {
     @Test
     public void t03memberSigningInfoTransferring() throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t03 - Started: check memeber signing info after " +
-                "disabling previously used cert ");
+        LOG.info("t03 - Started: check memeber signing info after "
+                + "disabling previously used cert ");
         LOG.info("###########################################################");
 
         // TODO: Try transferring to cert under same key and
@@ -136,8 +136,8 @@ public class DisableAndActivateBetweenKeys extends TestCase {
     public void t04disableDeviceAndSignWithKeyUnderIt()
             throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t04 - Started: Disabling certs under key and " +
-                "checking ability to sign afterwards. Failure expected");
+        LOG.info("t04 - Started: Disabling certs under key and "
+                + "checking ability to sign afterwards. Failure expected");
         LOG.info("###########################################################");
 
         LOG.trace(listDevices());
@@ -161,8 +161,8 @@ public class DisableAndActivateBetweenKeys extends TestCase {
     @Test
     public void t05deleteAllKeys() throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t05 - Started: Deleting all certs under one key and " +
-                "checking ability to sign afterwards. Failure expected");
+        LOG.info("t05 - Started: Deleting all certs under one key and "
+                + "checking ability to sign afterwards. Failure expected");
         LOG.info("###########################################################");
 
         TokenInfo softToken = initializeSoftToken("1234");

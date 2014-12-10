@@ -96,75 +96,31 @@ function enableActions() {
 
 function refreshTokens() {
     $.get(action("refresh"), null, function(response) {
-        oKeys.fnClearTable(false);
-        oKeys.fnAddData(response.data, false);
-        oKeys.fnDrawAndScroll();
+        oKeys.fnReplaceData(response.data);
         enableActions();
     }, "json");
 }
 
 function initDialogs() {
-    $("#activate_token_dialog").initDialog({
-        autoOpen: false,
-        modal: true,
-        width: 350,
-        buttons: [
-            { text: _("common.ok"),
-              click: function() {
-                  var dialog = this;
-                  var params = $("#activate_token_form").serialize();
-
-                  $.post(action("activate_token"), params, function(response) {
-                      oKeys.fnClearTable(false);
-                      oKeys.fnAddData(response.data);
-                      enableActions();
-                      $(dialog).dialog("close");
-
-                      if ($("#token_id", dialog).val() == SOFTTOKEN_ID) {
-                          PERIODIC_JOBS.refreshAlerts();
-                      }
-
-                      $("#token_id, #pin", dialog).val("");
-                  }, "json").fail(function() {
-                      $.ajax({
-                          url: action("refresh"),
-                          global: false,
-                          success: function(response) {
-                              var selectedId = oKeys.getFocus().dataset.id;
-
-                              oKeys.fnClearTable(false);
-                              oKeys.fnAddData(response.data, false);
-                              oKeys.fnDrawAndScroll();
-
-                              $("#keys tr").each(function(idx, row) {
-                                  if (selectedId == row.dataset.id) {
-                                      oKeys.setFocus(0, row);
-                                      return false;
-                                  }
-                              });
-
-                              enableActions();
-                          },
-                          dataType: "json"
-                      });
-                  });
-              }
-            },
-            { text: _("common.cancel"),
-              click: function() {
-                  $("#token_id, #pin", this).val("");
-                  $(this).dialog("close");
-              }
-            }
-        ]
-    });
-
     $(document).on('click', ".activate_token", function() {
-        $("#activate_token_form #pin").val('');
-        $("#activate_token_form #token_id").val(
-            $(this).closest(".token").attr("data-id"));
+        var tokenId = $(this).closest(".token").attr("data-id");
 
-        $("#activate_token_dialog").dialog("open");
+        activateToken(tokenId, function() {
+            refreshTokens();
+            if (tokenId == SOFTTOKEN_ID) {
+                PERIODIC_JOBS.refreshAlerts();
+            }
+        }, function() {
+            $.ajax({
+                url: action("refresh"),
+                global: false,
+                success: function(response) {
+                    oKeys.fnReplaceData(response.data);
+                    enableActions();
+                },
+                dataType: "json"
+            });
+        });
     });
 
     $("#generate_csr_dialog").initDialog({
@@ -185,9 +141,7 @@ function initDialogs() {
                   var params = $("form", this).serializeObject();
 
                   $.post(action("generate_csr"), params, function(response) {
-                      oKeys.fnClearTable(false);
-                      oKeys.fnAddData(response.data.tokens, false);
-                      oKeys.fnDrawAndScroll();
+                      oKeys.fnReplaceData(response.data.tokens);
                       enableActions();
 
                       location.href = action("download_csr")
@@ -274,7 +228,7 @@ function initDialogs() {
         buttons: [
             { text: _("common.ok"),
               click: function() {
-                  if ($("#friendly_name", this).is(":disabled")) {
+                  if ($("input[name=friendly_name]", this).is(":disabled")) {
                       $(this).dialog("close");
                       return;
                   }
@@ -283,8 +237,8 @@ function initDialogs() {
                   var params = $("form", this).serialize();
 
                   $.post(action("friendly_name"), params, function(response) {
-                      oKeys.fnClearTable(false);
-                      oKeys.fnAddData(response.data);
+                      oKeys.fnReplaceData(response.data);
+
                       enableActions();
 
                       $(dialog).dialog("close");
@@ -374,8 +328,7 @@ function initDialogs() {
                   params.cert_id = focusData.cert_id;
 
                   $.post(action("register"), params, function(response) {
-                      oKeys.fnClearTable();
-                      oKeys.fnAddData(response.data);
+                      oKeys.fnReplaceData(response.data);
                       enableActions();
 
                       $(dialog).dialog("close");
@@ -470,8 +423,8 @@ function deleteKey(row) {
 
     confirm(confirmText, confirmTextParams, function() {
         $.post(action("delete_key"), params, function(response) {
-            oKeys.fnClearTable(true);
-            oKeys.fnAddData(response.data);
+            oKeys.fnReplaceData(response.data);
+
             enableActions();
         }, "json");
     });
@@ -492,8 +445,8 @@ function deleteCert(row) {
             { hash: focusData.cert_friendly_name },
             function() {
                 $.post(url, params, function(response) {
-                    oKeys.fnClearTable(true);
-                    oKeys.fnAddData(response.data);
+                    oKeys.fnReplaceData(response.data);
+
                     enableActions();
                 }, "json");
             });
@@ -502,92 +455,90 @@ function deleteCert(row) {
 $(document).ready(function() {
     $("#addkey_form, #loadcert_form").hide();
 
-    oKeys = $("#keys").dataTable({
-        "bSort": true,
-        "bFilter": true,
-        "sScrollY": "400px",
-        "bScrollCollapse": true,
-        "bPaginate": false,
-        "bAutoWidth": false,
-        "sDom": "t<'dataTables_footer'fp<'clearer'>>",
-        "oLanguage": {
-            "sZeroRecords": _("keys.index.no_keys")
-        },
-        "asStripeClasses": [],
-        "aoColumns": [
-            { "mData": "token_id",
-              "bVisible": false },
-            { "mData": "token_friendly_name",
-              "bVisible": false },
-            { "mData": "token_available",
-              "bVisible": false },
-            { "mData": "token_active",
-              "bVisible": false },
-            { "mData": "key_id",
-              "bVisible": false },
-            { "mData": "key_friendly_name",
-              "bVisible": false },
-            { "mData": "key_usage",
-              "bVisible": false },
-            { "mData": "cert_id",
-              "bVisible": false },
-            { "mData": "cert_friendly_name",
-              "sClass": "cert-friendly-name" },
-            { "mData": "cert_member_code" },
-            { "mData": "cert_ocsp_response",
-              "sClass": "cert-ocsp-response align-center" },
-            { "mData": "cert_expires",
-              "sClass": "cert-expires align-center" },
-            { "mData": "cert_status",
-              "sClass": "align-center" },
-            { "mData": "cert_saved_to_conf",
-              "bVisible": false },
-            { "mData": "cert_request",
-              "bVisible": false },
-            { "mData": "buttons",
-              "sClass": "buttons",
-              "mRender": function(data, type, full) {
-                  if (!full.cert_saved_to_conf && full.cert_importable) {
-                      return "<button class='import'>" + _("common.import") + "</button>";
-                  } else {
-                      return "";
-                  }
-              }}
-        ],
-        "fnRowCallback": function(nRow, oData) {
-            if (oData.cert_id) {
-                if (!oData.cert_saved_to_conf) {
-                    $(nRow).addClass("unsaved");
-                }
-
-                if (oData.cert_request) {
-                    $(nRow).addClass("cert-request");
-                } else {
-                    $(nRow).addClass(oData.cert_active ?
-                        "cert-active" : "cert-inactive");
-                }
-
-                if (oData.cert_ocsp_response) {
-                    $(nRow).addClass(
-                        "ocsp-response-" + oData.cert_ocsp_response.toLowerCase());
-                }
-                if (oData.cert_expires_in < 0) {
-                    $(nRow).addClass("expired");
-                } else if (oData.cert_expires_in < 10) {
-                    $(nRow).addClass("expiring");
-                }
-            } else {
-                // mark the rows used to create empty groups
-                $(nRow).addClass("empty");
+    var opts = scrollableTableOpts(400);
+    opts.asRowId = ["token_id", "key_id", "cert_id"];
+    opts.sDom = "<'dataTables_header'f<'clearer'>>t";
+    opts.oLanguage.sZeroRecords = _("keys.index.no_keys");
+    opts.asStripeClasses = [];
+    opts.aoColumns = [
+        { "mData": "token_id",
+          "bVisible": false },
+        { "mData": "token_friendly_name",
+          "bVisible": false },
+        { "mData": "token_available",
+          "bVisible": false },
+        { "mData": "token_active",
+          "bVisible": false },
+        { "mData": "key_id",
+          "bVisible": false },
+        { "mData": "key_friendly_name",
+          "bVisible": false },
+        { "mData": "key_usage",
+          "bVisible": false },
+        { "mData": "cert_id",
+          "bVisible": false },
+        { "mData": "cert_friendly_name",
+          "sClass": "cert-friendly-name" },
+        { "mData": "cert_member_code" },
+        { "mData": "cert_ocsp_response",
+          "sClass": "cert-ocsp-response align-center" },
+        { "mData": "cert_expires",
+          "sClass": "cert-expires align-center" },
+        { "mData": "cert_status",
+          "sClass": "align-center" },
+        { "mData": "cert_saved_to_conf",
+          "bVisible": false },
+        { "mData": "cert_request",
+          "bVisible": false },
+        { "mData": "buttons",
+          "sClass": "buttons",
+          "mRender": function(data, type, full) {
+              if (!full.cert_saved_to_conf && full.cert_importable) {
+                  return "<button class='import'>" + _("common.import") + "</button>";
+              } else {
+                  return "";
+              }
+          }}
+    ];
+    opts.fnRowCallback = function(nRow, oData) {
+        if (oData.cert_id) {
+            if (!oData.cert_saved_to_conf) {
+                $(nRow).addClass("unsaved");
             }
 
-            return nRow;
-        },
-        "fnDrawCallback": function(oSettings) {
-            // hide rows used to create empty groups
-            this.$("tr.empty", {"filter": "applied"}).hide();
+            if (!oData.key_available) {
+                $(nRow).addClass("key-unavailable");
+            }
+
+            if (oData.cert_request) {
+                $(nRow).addClass("cert-request");
+            } else {
+                $(nRow).addClass(oData.cert_active ?
+                                 "cert-active" : "cert-inactive");
+            }
+
+            if (oData.cert_ocsp_response) {
+                $(nRow).addClass(
+                    "ocsp-response-" + oData.cert_ocsp_response.toLowerCase());
+            }
+            if (oData.cert_expires_in < 0) {
+                $(nRow).addClass("expired");
+            } else if (oData.cert_expires_in < 10) {
+                $(nRow).addClass("expiring");
+            }
+        } else {
+            // mark the rows used to create empty groups
+            $(nRow).addClass("empty");
         }
-    });
+
+        return nRow;
+    };
+    opts.fnDrawCallback = function(oSettings) {
+        // hide rows used to create empty groups
+        this.$("tr.empty", {"filter": "applied"}).hide();
+    };
+
+    oKeys = $("#keys").dataTable(opts);
 
     oKeys.rowGrouping({
         "asGroupingColumnName": [ "token_id", "key_id" ],
@@ -600,11 +551,11 @@ $(document).ready(function() {
                 var locked = " <span class='locked'>" + _("keys.index.locked") + "</span>";
 
                 var buttons = "<div class='right'>"
-                    + "<button class='activate_token'>" + _("keys.index.enter_pin") + "</button>"
+                    + "<button class='activate_token'>" + _("common.enter_pin") + "</button>"
                     + "<button class='deactivate_token'>" + _("keys.index.logout") + "</button>"
                     + "</div>";
 
-                return "<div class='left'>" + _("keys.index.token") + friendlyName +
+                return "<div class='left token-name'>" + _("keys.index.token") + friendlyName +
                     (oData.token_locked ? locked : "") + "</div>" +
                     (oData.token_activatable ? buttons : "");
             },
@@ -672,16 +623,12 @@ $(document).ready(function() {
     });
 
     $(document).on('click', ".deactivate_token", function() {
-        var params = {
-            token_id: $(this).closest(".token").attr("data-id")
-        };
-        $.post(action("deactivate_token"), params, function(response) {
-            oKeys.fnClearTable(false);
-            oKeys.fnAddData(response.data);
-            enableActions();
+        var tokenId = $(this).closest(".token").attr("data-id");
 
+        deactivateToken(tokenId, function() {
+            refreshTokens();
             PERIODIC_JOBS.refreshAlerts();
-        }, "json");
+        });
     });
 
     $("#generate_key").click(function() {
@@ -717,8 +664,7 @@ $(document).ready(function() {
             cert_id: data.cert_id
         };
         $.post(action("import"), params, function(response) {
-            oKeys.fnClearTable(false);
-            oKeys.fnAddData(response.data);
+            oKeys.fnReplaceData(response.data);
             enableActions();
         }, "json");
     });
@@ -742,8 +688,7 @@ $(document).ready(function() {
         };
 
         $.post(action("activate_cert"), params, function(response) {
-            oKeys.fnClearTable(false);
-            oKeys.fnAddData(response.data);
+            oKeys.fnReplaceData(response.data);
             enableActions();
         }, "json");
     });
@@ -757,8 +702,7 @@ $(document).ready(function() {
         };
 
         $.post(action("deactivate_cert"), params, function(response) {
-            oKeys.fnClearTable();
-            oKeys.fnAddData(response.data);
+            oKeys.fnReplaceData(response.data);
             enableActions();
         }, "json");
     });
@@ -772,8 +716,7 @@ $(document).ready(function() {
         };
 
         $.post(action("unregister"), params, function(response) {
-            oKeys.fnClearTable();
-            oKeys.fnAddData(response.data);
+            oKeys.fnReplaceData(response.data);
             enableActions();
         }, "json");
     });

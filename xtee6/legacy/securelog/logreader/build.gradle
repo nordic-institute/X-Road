@@ -1,0 +1,73 @@
+// TODO FIXME XXX Building of jars and wars, do not include unnecessary dependencies.
+apply plugin: 'war'
+
+version = 
+
+dependencies {
+    compile project(':legacy:securelog:common')
+    compile 'org.apache.wicket:wicket:6.1.0'
+    
+    testCompile project(':common-test')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+    }
+    consoleui {
+        java {
+            srcDir 'src/consoleui/java'
+            compileClasspath = sourceSets.main.output + configurations.compile
+            runtimeClasspath = output + compileClasspath
+        }
+    }
+    webui {
+        java {
+            srcDir 'src/webui/java'
+            compileClasspath = sourceSets.main.output + configurations.compile
+            runtimeClasspath = output + compileClasspath
+        }
+        resources {
+            srcDir 'src/webui/java'
+        }
+    }
+}
+
+sourceSets.consoleui.compileClasspath += configurations.provided
+sourceSets.webui.compileClasspath += configurations.provided
+
+task logReaderJar(type: Jar) {
+    // Build 'fat jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} {
+        // remove all signature files (necessary to make it run)
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    from sourceSets.consoleui.runtimeClasspath
+    
+    manifest {
+        attributes 'Main-Class': 'ee.cyber.xroad.logreader.LogReaderMain'
+    }
+    
+    description = "Creates the command line ASiC container extractor jar";
+}
+
+task logReaderWar(type: War) {
+    classpath sourceSets.webui.output
+    webXml = file('src/webui/web.xml')
+
+    description = "Creates the deployable ASiC container extractor web service war";
+}
+
+task runLogReader(type: JavaExec) {
+    main = 'ee.cyber.xroad.logreader.LogReaderMain'
+    classpath = sourceSets.consoleui.runtimeClasspath
+    standardInput = System.in;
+
+    description = "Starts LogReader main program.";
+}
+
+build.dependsOn logReaderJar, logReaderWar

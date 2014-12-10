@@ -11,6 +11,9 @@ import org.w3c.dom.Element;
 
 import static ee.cyber.sdsb.common.util.XmlUtils.getElementById;
 
+/**
+ * DOM element resolver that resolves by the element id.
+ */
 @RequiredArgsConstructor
 public class IdResolver extends ResourceResolverSpi {
 

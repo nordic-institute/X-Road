@@ -3,7 +3,6 @@ package ee.cyber.sdsb.common.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
@@ -11,7 +10,7 @@ import org.apache.commons.io.IOUtils;
 
 import static ee.cyber.sdsb.common.util.MimeUtils.randomBoundary;
 
-public class MultipartEncoder {
+public class MultipartEncoder implements AutoCloseable {
 
     private static final byte[] CRLF = {'\r', '\n'};
     private static final byte[] DASHDASH = {'-', '-'};
@@ -59,6 +58,13 @@ public class MultipartEncoder {
         parts.add(boundary);
     }
 
+    public void startNested(String boundary, String[] headers)
+            throws IOException {
+        startPart(MimeUtils.mpMixedContentType(boundary), headers);
+
+        parts.add(boundary);
+    }
+
     public void endNested() throws IOException {
         String currentBoundary = parts.pop();
         if (currentBoundary != null) {
@@ -70,33 +76,39 @@ public class MultipartEncoder {
         }
     }
 
+    /**
+     * Starts new MIME part. Use write() method to write content of the part.
+     */
     public void startPart(String contentType) throws IOException {
         startPart(contentType, null);
     }
 
+    /**
+     * Starts new MIME part. Use write() method to write content of the part.
+     */
     public void startPart(String contentType, String[] headers)
             throws IOException {
-        String boundary = parts.peek();
+        writeCurrentBoundary();
 
-        if (inPart) {
+        if (contentType != null) {
+            writeString(MimeUtils.HEADER_CONTENT_TYPE + ": " + contentType);
             out.write(CRLF);
         }
-
-        inPart = true;
-
-        out.write(DASHDASH);
-        writeString(boundary);
-        out.write(CRLF);
-
-        writeString(MimeUtils.HEADER_CONTENT_TYPE + ": " + contentType);
-        out.write(CRLF);
 
         for (int i = 0; headers != null && i < headers.length; i++) {
             writeString(headers[i]);
             out.write(CRLF);
         }
-
         out.write(CRLF);
+    }
+
+    /**
+     * Assumes that content contains already encoded MIME part
+     * (header + body). It then writes the whole part in one operation.
+     */
+    public void writeRawPart(InputStream content) throws IOException {
+        writeCurrentBoundary();
+        write(content);
     }
 
     public void write(byte[] content) throws IOException {
@@ -107,10 +119,7 @@ public class MultipartEncoder {
         IOUtils.copy(content, out);
     }
 
-    public void write(Reader content) throws IOException {
-        IOUtils.copy(content, out);
-    }
-
+    @Override
     public void close() throws IOException {
         while (!parts.isEmpty()) {
             endNested();
@@ -121,6 +130,20 @@ public class MultipartEncoder {
         } catch (IOException ignored) {
         }
         out.close();
+    }
+
+    private void writeCurrentBoundary() throws IOException {
+        if (inPart) {
+            // Write CRLF to ensure that the boundary starts on new line.
+            out.write(CRLF);
+        }
+
+        inPart = true;
+
+        String boundary = parts.peek();
+        out.write(DASHDASH);
+        writeString(boundary);
+        out.write(CRLF);
     }
 
     private void writeString(String string) throws IOException {

@@ -4,6 +4,9 @@ import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
 import ee.cyber.sdsb.signer.protocol.message.ActivateCert;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Handles certificate activations and deactivations.
+ */
 public class ActivateCertRequestHandler
         extends AbstractRequestHandler<ActivateCert> {
 

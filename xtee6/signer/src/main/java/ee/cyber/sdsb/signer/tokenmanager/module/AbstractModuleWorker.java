@@ -8,8 +8,6 @@ import akka.actor.ActorRef;
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
-import akka.actor.SupervisorStrategy.Directive;
-import akka.japi.Function;
 
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
@@ -17,18 +15,18 @@ import ee.cyber.sdsb.signer.tokenmanager.token.TokenType;
 import ee.cyber.sdsb.signer.util.AbstractUpdateableActor;
 import ee.cyber.sdsb.signer.util.Update;
 
+/**
+ * Module worker base class.
+ */
 @Slf4j
 public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
-        return new OneForOneStrategy(10, Duration.create("1 minute"),
-                new Function<Throwable, Directive>() {
-            @Override
-            public Directive apply(Throwable t) {
-                return SupervisorStrategy.resume();
-            }
-        });
+        return new OneForOneStrategy(-1, Duration.create("1 minute"),
+                (t) -> {
+                    return SupervisorStrategy.resume();
+                });
     }
 
     @Override
@@ -92,13 +90,8 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     private boolean hasToken(List<TokenType> tokens, ActorRef token) {
         String tokenId = token.path().name();
-        for (TokenType tokenType : tokens) {
-            if (tokenType.getId().equals(tokenId)) {
-                return true;
-            }
-        }
-
-        return false;
+        return tokens.stream().filter(t -> t.getId().equals(tokenId))
+                .findFirst().isPresent();
     }
 
     private boolean hasToken(TokenType tokenType) {

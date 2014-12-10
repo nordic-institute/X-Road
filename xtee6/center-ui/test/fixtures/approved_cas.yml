@@ -1,0 +1,17 @@
+approved_ca_autotehas:
+  name: "Autosid valmistatakse siin"
+  authentication_only: false
+  identifier_decoder_member_class: "riigiasutus"
+  identifier_decoder_method_name: "ee.cyber.sdsb.extractor.method"
+
+approved_ca_baleriinid:
+  name: "Balletti tehakse siin"
+  authentication_only: true
+  identifier_decoder_member_class: "riigiasutus"
+  identifier_decoder_method_name: "ee.cyber.sdsb.extractor.method"
+
+approved_ca_ccm:
+  name: "C keeles midagi tehakse siin"
+  authentication_only: false
+  identifier_decoder_member_class: "riigiasutus"
+  identifier_decoder_method_name: "ee.cyber.sdsb.extractor.method"

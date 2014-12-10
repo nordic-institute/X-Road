@@ -41,10 +41,10 @@ def prepare_database()
       :sdsb_member => member_b,
       :subsystem_code => "SUBSYS_B")
 
-  GlobalGroup.create(:group_code => "server-owners")
+  GlobalGroup.create(:group_code => "security-server-owners")
   SystemParameter.create(
-      :key => SystemParameter::SERVER_OWNERS_GROUP,
-      :value => "server-owners")
+      :key => SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
+      :value => "security-server-owners")
 end
 
 def cleanup_database()

@@ -5,7 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.client.HttpClient;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.proxy.conf.KeyConf;

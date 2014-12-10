@@ -6,6 +6,9 @@ import java.util.Map;
 
 import lombok.Value;
 
+/**
+ * Token info DTO.
+ */
 @Value
 public final class TokenInfo implements Serializable {
 

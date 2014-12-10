@@ -101,9 +101,8 @@ public class ExpectedCodedException implements TestRule {
                     throw e;
                 }
                 if (expectedSuffix) {
-                    assertTrue("CodedException with error code suffix " +
-                                expected,
-                            e.getFaultCode().endsWith(expected));
+                    assertTrue("CodedException with error code suffix "
+                            + expected, e.getFaultCode().endsWith(expected));
                 } else {
                     assertEquals("CodedException with error code",
                             expected, e.getFaultCode());
@@ -112,9 +111,10 @@ public class ExpectedCodedException implements TestRule {
             }
 
             if (expected != null) {
-                fail("Expected test to throw CodedException with " +
-                    (expectedSuffix ? "error code suffix " : "error code ") +
-                    expected);
+                fail("Expected test to throw CodedException with "
+                        + (expectedSuffix
+                                ? "error code suffix " : "error code ")
+                        + expected);
             }
         }
     }

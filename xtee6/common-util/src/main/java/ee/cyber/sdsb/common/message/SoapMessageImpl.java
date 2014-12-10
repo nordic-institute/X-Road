@@ -2,6 +2,7 @@ package ee.cyber.sdsb.common.message;
 
 import javax.xml.soap.SOAPMessage;
 
+import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
@@ -13,9 +14,9 @@ import static ee.cyber.sdsb.common.message.SoapUtils.isRpcMessage;
  */
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
-    SoapMessageImpl(String xml, String charset, SoapHeader header,
+    SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
             SOAPMessage soap, String serviceName) throws Exception {
-        super(xml, charset, header, soap, isResponseMessage(serviceName),
+        super(rawXml, charset, header, soap, isResponseMessage(serviceName),
                 isRpcMessage(soap));
     }
 
@@ -25,6 +26,10 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     public ServiceId getService() {
         return getHeader().getService();
+    }
+
+    public CentralServiceId getCentralService() {
+        return getHeader().getCentralService();
     }
 
     public boolean isAsync() {
@@ -37,9 +42,5 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     public String getUserId() {
         return getHeader().getUserId();
-    }
-
-    public byte[] getBytes() throws Exception {
-        return getXml().getBytes(getCharset());
     }
 }

@@ -57,8 +57,8 @@ public class SoapBuilder {
         String serviceName = getServiceName(soap.getSOAPBody());
         validateServiceName(header.getService().getServiceCode(), serviceName);
 
-        String xml = SoapUtils.getXml(soap, charset);
-        return new SoapMessageImpl(xml, charset, header, soap, serviceName);
+        return new SoapMessageImpl(SoapUtils.getBytes(soap), charset, header,
+                soap, serviceName);
     }
 
     protected void addNamespaces(SOAPMessage soapMessage, boolean rpcEncoded)

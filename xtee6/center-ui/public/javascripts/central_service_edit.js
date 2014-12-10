@@ -227,7 +227,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "300px";
+        opts.sScrollY = "100px";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
             { "mData": "name", "sWidth": "10em" },
@@ -271,10 +271,10 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
 
     function openSearchableProvidersDialog() {
         $("#central_service_member_search_dialog").initDialog({
-            autoOpen: false,
             modal: true,
-            height: "auto",
-            width: "auto",
+            height: 400,
+            minHeight: 300,
+            width: 800,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -291,7 +291,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
             open: function() {
                 isSearchableProvidersDialogOpen = true;
 
-                initSearchableProvidersTable()
+                initSearchableProvidersTable();
                 focusSearchableProvidersFiltering();
             },
             close: function() {
@@ -299,7 +299,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
 
                 oProviders.fnDestroy();
             }
-        }).dialog("open");
+        });
     }
 
     function openEditDialog() {

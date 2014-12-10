@@ -35,6 +35,9 @@ import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.keyNotAvailable;
 
+/**
+ * Handles certificate request generations.
+ */
 @Slf4j
 public class GenerateCertRequestRequestHandler
         extends AbstractRequestHandler<GenerateCertRequest> {
@@ -51,8 +54,8 @@ public class GenerateCertRequestRequestHandler
                 && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
                     "auth_cert_under_softtoken",
-                    "Authentication certificate requests can only be created" +
-                    " under software tokens");
+                    "Authentication certificate requests can only be created"
+                            + " under software tokens");
         }
 
         if (tokenAndKey.getKey().getPublicKey() == null) {
@@ -87,6 +90,8 @@ public class GenerateCertRequestRequestHandler
     }
 
     private class TokenContentSigner implements ContentSigner {
+
+        private static final int SIGNATURE_TIMEOUT_SECONDS = 10;
 
         private static final String SIGNATURE_ALGORITHM = SHA1WITHRSA_ID;
 
@@ -147,7 +152,7 @@ public class GenerateCertRequestRequestHandler
 
         private void waitForSignature() {
             try {
-                if (!latch.await(10, TimeUnit.SECONDS)) {
+                if (!latch.await(SIGNATURE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
                     throw new CodedException(X_INTERNAL_ERROR,
                             "Signature calculation timed out");
                 }
@@ -156,8 +161,8 @@ public class GenerateCertRequestRequestHandler
             }
         }
 
-        void setSignature(CalculatedSignature signature) {
-            this.signature = signature;
+        void setSignature(CalculatedSignature sig) {
+            this.signature = sig;
             latch.countDown();
         }
     }

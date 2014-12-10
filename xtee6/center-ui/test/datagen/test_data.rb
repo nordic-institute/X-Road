@@ -1,40 +1,58 @@
+require 'common-ui'
+
 def create_all_test_data
   create_system_parameters()
   create_members_and_security_servers()
   create_requests()
-  create_pkis()
+  create_approved_cas()
   create_tsps()
   create_global_groups()
+  create_signed_files()
+  create_configuration_sources()
+  create_configuration_anchors()
+  create_identifier_mapping()
 end
 
 private
 
 def create_system_parameters
   SystemParameter.create(
-      :key => SystemParameter::SDSB_INSTANCE,
+      :key => SystemParameter::INSTANCE_IDENTIFIER,
       :value => "EE")
 
   SystemParameter.create(
-      :key => SystemParameter::CONF_SIGN_KEY_ID,
-      :value => "D1A5E3B757AEDDA3BB92464B1F4A128CE945EFC2")
-
-  SystemParameter.create(
       :key => SystemParameter::CONF_SIGN_ALGO_ID,
-      :value => "SHA-256")
+      :value => "SHA512withRSA")
 
   SystemParameter.create(
-      :key => SystemParameter::MGMT_SERVICE_URL,
-      :value => "https://iks2-central.cyber.ee:8443/center-service/")
+      :key => SystemParameter::CONF_HASH_ALGO_URI,
+      :value => "http://www.w3.org/2001/04/xmlenc#sha512")
+
   SystemParameter.create(
-      :key => SystemParameter::MGMT_SERVICE_ID_CLASS,
-      :value => "riigiasutus")
+      :key => SystemParameter::CONF_SIGN_CERT_HASH_ALGO_URI,
+      :value => "http://www.w3.org/2001/04/xmlenc#sha512")
+
+  central_server_address = "127.0.0.1"
+
   SystemParameter.create(
-      :key => SystemParameter::MGMT_SERVICE_ID_CODE,
+      :key => SystemParameter::CENTRAL_SERVER_ADDRESS,
+      :value => central_server_address)
+
+  SystemParameter.create(
+      :key => SystemParameter::AUTH_CERT_REG_URL,
+      :value => "https://#{central_server_address}:3000/center-service/")
+
+  SystemParameter.create(
+      :key => SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CLASS ,
+      :value => "GOV")
+
+  SystemParameter.create(
+      :key => SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CODE ,
       :value => "sdsbkeskus")
 
   SystemParameter.create(
-      :key => SystemParameter::SERVER_OWNERS_GROUP,
-      :value => "server-owners")
+      :key => SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
+      :value => "security-server-owners")
 end
 
 def create_members_and_security_servers
@@ -88,12 +106,12 @@ def create_members_and_security_servers
 end
 
 def create_requests
-  client_id = ClientId.from_parts("EE", "riigiasutus", "12345678")
-  server_id = SecurityServerId.from_parts("EE", "riigiasutus",
+  client_id = ClientId.from_parts("EE", "GOV", "12345678")
+  server_id = SecurityServerId.from_parts("EE", "GOV",
       "12345678", "owned1")
 
   first_auth_cert_reg_request = AuthCertRegRequest.new(
-      :security_server => SecurityServerId.from_parts("EE", "riigiasutus",
+      :security_server => SecurityServerId.from_parts("EE", "GOV",
           "12345678", "owned1"),
       :auth_cert => get_third_auth_cert,
       :address => "www.authcertreg.com",
@@ -102,7 +120,7 @@ def create_requests
   first_auth_cert_reg_request.register()
 
   second_auth_cert_reg_request = AuthCertRegRequest.new(
-      :security_server => SecurityServerId.from_parts("EE", "riigiasutus",
+      :security_server => SecurityServerId.from_parts("EE", "GOV",
           "12345678", "owned1"),
       :auth_cert => get_third_auth_cert,
       :address => "www.authcertreg.com",
@@ -110,10 +128,10 @@ def create_requests
 
   second_auth_cert_reg_request.register()
 
-  # This one is supposed to cancel third_auth_cert_reg_request 
+  # This one is supposed to cancel third_auth_cert_reg_request
   auth_cert_deletion_request = AuthCertDeletionRequest.new(
       :security_server =>
-        SecurityServerId.from_parts("EE", "riigiasutus","87654321", "used1"),
+        SecurityServerId.from_parts("EE", "GOV","87654321", "used1"),
       :auth_cert => get_second_auth_cert,
       :comments => "Registered experimentally",
       :origin => Request::CENTER)
@@ -121,35 +139,35 @@ def create_requests
   auth_cert_deletion_request.register()
 end
 
-def create_pkis
+def create_approved_cas
   # Actual data (especially certs) taken from:
   # systemtest/conf/testservers/clientmember/globalconf_NEW.xml
-  first_pki_certs = get_first_pki_certs
+  first_approved_ca_certs = get_first_approved_ca_certs
 
-  pki = Pki.new
-  pki.authentication_only = false
-  pki.name_extractor_member_class = "riigiasutus"
-  pki.name_extractor_method_name = "ee.cyber.sdsb.Extractor.extract"
+  approved_ca = ApprovedCa.new
+  approved_ca.authentication_only = false
+  approved_ca.identifier_decoder_member_class = "GOV"
+  approved_ca.identifier_decoder_method_name = "ee.cyber.sdsb.Extractor.extract"
 
   top_ca_ocsp = OcspInfo.new()
   top_ca_ocsp.url = "http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp"
-  top_ca_ocsp.cert = first_pki_certs[:top_ca_ocsp_cert]
-  
-  top_ca = CaInfo.new()
-  top_ca.cert = first_pki_certs[:top_ca_cert]
-  top_ca.ocsp_infos = [top_ca_ocsp]
-  pki.top_ca = top_ca
+  top_ca_ocsp.cert = first_approved_ca_certs[:top_ca_ocsp_cert]
 
-  pki.save!
+  top_ca = CaInfo.new()
+  top_ca.cert = first_approved_ca_certs[:top_ca_cert]
+  top_ca.ocsp_infos = [top_ca_ocsp]
+  approved_ca.top_ca = top_ca
+
+  approved_ca.save!
 end
 
 def create_tsps
-  first_tsp = ApprovedTsp.new()
+  first_tsp = ApprovedTsa.new()
   first_tsp.url = "http://www.url2.com"
   first_tsp.cert = get_first_auth_cert()
   first_tsp.save!
 
-  second_tsp = ApprovedTsp.new()
+  second_tsp = ApprovedTsa.new()
   second_tsp.url = "http://www.url1.com"
   second_tsp.cert = get_second_auth_cert()
   second_tsp.save!
@@ -157,14 +175,14 @@ end
 
 def create_global_groups
   # Create global group for "riigiasutused"
-  client_id = ClientId.from_parts("EE", "riigiasutus", "12345678")
+  client_id = ClientId.from_parts("EE", "GOV", "12345678")
   group = GlobalGroup.create!(
       :group_code => "riigiasutused",
       :description => "Paljud riigiasutused kuuluvad siia")
 
   # Create global group for owners of security servers.
   group = GlobalGroup.create!(
-      :group_code => "server-owners",
+      :group_code => "security-server-owners",
       :description => "Security server owners")
 
   # Add all the security server owners to the group.
@@ -177,18 +195,26 @@ def create_global_groups
     group.add_member(client_id)
   end
 
-  # Save the system parameter for server-owners group.
-  if SystemParameter.server_owners_group == nil
+  # Save the system parameter for security-server-owners group.
+  if SystemParameter.security_server_owners_group == nil
     SystemParameter.create!(
-        :key => SystemParameter::SERVER_OWNERS_GROUP,
-        :value => "server-owners")
+        :key => SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
+        :value => "security-server-owners")
   end
+end
+
+def create_identifier_mapping
+  DistributedFiles.create!(
+    :file_name => "identifiermapping.xml",
+    :file_data => "<identifierMapping>",
+    :content_identifier => "IDENTIFIERMAPPING"
+  )
 end
 
 # Data unit generation methods - end
 
 def create_member_classes
-  riigiasutus = MemberClass.create!(:code => "riigiasutus",
+  riigiasutus = MemberClass.create!(:code => "GOV",
       :description => "Riigiasutuse klassi kirjeldus")
   ettevote = MemberClass.create!(:code => "ettevote",
       :description => "Ettevotte klassi kirjeldus")
@@ -224,6 +250,60 @@ def create_security_servers(first_member, second_member)
       :security_server_id => used1.id)
 
   [owned1, used1, used2]
+end
+
+def create_signed_files
+    DistributedSignedFiles.create(
+        :data => "Data to sign",
+        :data_boundary => "aasdasfasdfasdfasdfdsaf",
+        :signature => "Signaturo",
+        :sig_algo_id => "sha-5")
+end
+
+def create_configuration_sources
+  internal_signing_key = ConfigurationSigningKey.new(
+    :key_identifier => "keyIdentifierInternal",
+    :certificate => get_first_verification_cert()
+  )
+
+  internal_source = ConfigurationSource.new(
+    :source_type => "internal",
+    :configuration_signing_keys => [internal_signing_key],
+    :active_key => internal_signing_key
+  )
+
+  internal_source.save!
+
+  external_signing_key = ConfigurationSigningKey.new(
+    :key_identifier => "keyIdentifierExternal",
+    :certificate => get_second_verification_cert()
+  )
+
+  external_source = ConfigurationSource.new(
+    :source_type => "external",
+    :configuration_signing_keys => [external_signing_key],
+    :active_key => external_signing_key
+  )
+
+  external_source.save!
+end
+
+def create_configuration_anchors
+  anchor_url_cert = AnchorUrlCert.new(
+    :certificate => get_first_auth_cert()
+  )
+
+  anchor_url = AnchorUrl.new(
+    :url => "http://anchorurl.example.com",
+    :anchor_url_certs => [anchor_url_cert]
+  )
+
+  configuration_anchor = TrustedAnchor.new(
+    :instance_identifier => "EE",
+    :anchor_urls => [anchor_url]
+  )
+
+  configuration_anchor.save!
 end
 
 # Auth certs - start
@@ -306,9 +386,21 @@ def get_third_auth_cert
 end
 # Auth certs - end
 
-# Certs related to pkis - start
+# Verification certs - start
 
-def get_first_pki_certs
+def get_first_verification_cert
+  return read_cert_file("test/resources/cert_sign_internal_AAA.pem")
+end
+
+def get_second_verification_cert
+  return read_cert_file("test/resources/cert_sign_internal_BBB.pem")
+end
+
+# Verification certs - end
+
+# Certs related to approved_cas - start
+
+def get_first_approved_ca_certs
   top_ca_cert_base64 =
   "MIIDUzCCAjugAwIBAgIIU1eWoysptjUwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW
   5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwNjE0MTAwNDI5W
@@ -349,7 +441,7 @@ def get_first_pki_certs
       :top_ca_ocsp_cert => Base64.decode64(top_ca_ocsp_cert_base64)}
 end
 
-# Certs related to pkis - end
+# Certs related to approved_cas - end
 
 def get_tsp_cert
   tsp_cert_base64 =
@@ -368,4 +460,15 @@ def get_tsp_cert
   e3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs="
 
   Base64.decode64(tsp_cert_base64)
+end
+
+
+def self.read_cert_file(filename)
+  result = []
+
+  IO.foreach(filename) do |each|
+    result << each.strip()
+  end
+
+  return result.join("")
 end

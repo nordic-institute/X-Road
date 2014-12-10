@@ -1,19 +1,45 @@
 package ee.cyber.sdsb.commonui;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.typesafe.config.ConfigValueFactory.fromAnyRef;
+import akka.actor.ActorSystem;
 
-public class UIServices {
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
+
+import static com.typesafe.config.ConfigValueFactory.fromAnyRef;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
+
+/**
+ * Encapsulates actor system management in UI.
+ */
+public final class UIServices {
+
     private static final Logger LOG = LoggerFactory.getLogger(UIServices.class);
+
+    static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(CONF_FILE_CENTER);
+                load(CONF_FILE_SIGNER);
+            }
+        };
+    }
 
     private String configName;
     private ActorSystem actorSystem;
 
+    /**
+     * Creates the instance using the provided actor system name and
+     * configuration name.
+     * @param actorSystemName the actor system name
+     * @param configName the configuration name
+     */
     public UIServices(String actorSystemName, String configName) {
         this.configName = configName;
 
@@ -22,18 +48,25 @@ public class UIServices {
         // TODO: this hardcoded configuration should ideally be loaded from
         // application.conf file
         Config config = config(new String[][] {
-                { "akka.remote.quarantine-systems-for", "off" },
-                { "akka.remote.gate-invalid-addresses-for", "2s" },
+                {"akka.remote.quarantine-systems-for", "off"},
+                {"akka.remote.gate-invalid-addresses-for", "2s"},
         });
 
         LOG.debug("Akka using configuration: {}", config);
         actorSystem = ActorSystem.create(actorSystemName, config);
     }
 
+    /**
+     * @return the actor system
+     */
     public ActorSystem getActorSystem() {
         return actorSystem;
     }
 
+    /**
+     * Stops the actor system.
+     * @throws Exception if an error occurs
+     */
     public void stop() throws Exception {
         LOG.info("stop()");
 

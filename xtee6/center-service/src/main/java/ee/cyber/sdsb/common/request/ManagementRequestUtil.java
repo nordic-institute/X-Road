@@ -26,13 +26,13 @@ public final class ManagementRequestUtil {
     private static void addRequestId(int requestId, SoapMessageImpl response)
             throws SOAPException {
         QName qname = new QName(NS_SDSB, "requestId", PREFIX_SDSB);
-        
-        List<SOAPElement> children = 
+
+        List<SOAPElement> children =
                 SoapUtils.getChildElements(response.getSoap().getSOAPBody());
         if (children.isEmpty()) {
             return;
         }
-        
+
         SOAPElement element = children.get(0).addChildElement(qname);
         element.setTextContent(Integer.toString(requestId));
     }

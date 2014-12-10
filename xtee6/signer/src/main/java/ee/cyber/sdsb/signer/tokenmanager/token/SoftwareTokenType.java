@@ -1,9 +1,12 @@
 package ee.cyber.sdsb.signer.tokenmanager.token;
 
-import ee.cyber.sdsb.signer.tokenmanager.module.SoftwareModuleType;
-
 import lombok.Data;
 
+import ee.cyber.sdsb.signer.tokenmanager.module.SoftwareModuleType;
+
+/**
+ * The software token type TDO.
+ */
 @Data
 public final class SoftwareTokenType implements TokenType {
 

@@ -9,9 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.HibernateException;
@@ -26,8 +24,10 @@ import ee.cyber.sdsb.common.util.PrefixedProperties;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_DATABASE_ERROR;
 
+/**
+ * Hibernate utility methods.
+ */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class HibernateUtil {
 
     @Data
@@ -36,10 +36,20 @@ public final class HibernateUtil {
         private final StandardServiceRegistry serviceRegistry;
     }
 
+    private HibernateUtil() {
+    }
+
     private static Map<String, SessionFactoryCtx> sessionFactoryCache =
             new HashMap<>();
 
-    public static final synchronized SessionFactory getSessionFactory(
+    /**
+     * Returns the session factory for the given session factory name.
+     * If the session factory has not been already created, it is created
+     * and stored in the cache.
+     * @param name the name of the session factory
+     * @return the session factory
+     */
+    public static synchronized SessionFactory getSessionFactory(
             String name) {
         if (sessionFactoryCache.containsKey(name)) {
             return sessionFactoryCache.get(name).getSessionFactory();
@@ -55,7 +65,11 @@ public final class HibernateUtil {
         }
     }
 
-    public static final synchronized void closeSessionFactory(String name) {
+    /**
+     * Closes the session factory.
+     * @param name the name of the session factory to close
+     */
+    public static synchronized void closeSessionFactory(String name) {
         log.trace("closeSessionFactory({})", name);
 
         if (sessionFactoryCache.containsKey(name)) {
@@ -64,7 +78,11 @@ public final class HibernateUtil {
         }
     }
 
-    public static final synchronized void closeSessionFactories() {
+    /**
+     * Closes all session factories in the cache. Should be called when the
+     * main program exits.
+     */
+    public static synchronized void closeSessionFactories() {
         log.trace("closeSessionFactories()");
 
         Collection<SessionFactoryCtx> sessionFactories =

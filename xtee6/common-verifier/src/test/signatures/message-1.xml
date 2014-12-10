@@ -13,13 +13,17 @@
             <id:sdsbInstance>EE</id:sdsbInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer</id:memberCode>
-            <id:serviceCode>test</id:serviceCode>
+            <id:serviceCode>testQuery</id:serviceCode>
         </sdsb:service>
         <sdsb:userId>EE37702211234</sdsb:userId>
         <sdsb:id>1234567890</sdsb:id>
-        <sdsb:issue>issue</sdsb:issue>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:test xmlns:ns1="http://cosumer.ee.sdsb.net" />
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.sdsb.net">
+            <request>
+                <name>foo</name>
+                <age>35</age>
+            </request>
+        </ns1:testQuery>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

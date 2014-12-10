@@ -21,7 +21,7 @@ public class ManagementRequestParser {
     private static final Logger LOG =
             LoggerFactory.getLogger(ManagementRequestParser.class);
 
-    private static final JAXBContext jaxbCtx = initJaxbContext();
+    private static final JAXBContext JAXB_CTX = initJaxbContext();
 
     // -- Public API methods --------------------------------------------------
 
@@ -60,12 +60,12 @@ public class ManagementRequestParser {
 
         String nodeName = node.getLocalName();
         if (!expectedNodeName.equalsIgnoreCase(nodeName)) {
-            LOG.error("Content node name ({}) does not match " +
-                    "expected name ({})", nodeName, expectedNodeName);
+            LOG.error("Content node name ({}) does not match "
+                    + "expected name ({})", nodeName, expectedNodeName);
             throw new RuntimeException("Unexpected content: " + nodeName);
         }
 
-        Unmarshaller um = jaxbCtx.createUnmarshaller();
+        Unmarshaller um = JAXB_CTX.createUnmarshaller();
         try {
             @SuppressWarnings("unchecked")
             JAXBElement<T> req = (JAXBElement<T>) um.unmarshal(node);

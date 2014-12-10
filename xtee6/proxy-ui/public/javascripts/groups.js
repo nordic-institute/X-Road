@@ -11,6 +11,13 @@
 
                 return show_existing_members || !$(row).hasClass("unselectable");
             }
+
+            if (oSettings.sTableId == "group_members") {
+                var row = oSettings.aoData[iDataIndex].nTr;
+
+                return show_existing_members || !$(row).hasClass("unselectable");
+            }
+
             return true;
         }
     );
@@ -44,58 +51,9 @@
             client_id: $("#details_client_id").val()
         };
 
-        oGroups.fnClearTable();
-
         $.get(action("client_groups"), params, function(response) {
-            var selected_group = oGroups.getFocusData();
-
-            oGroups.fnAddData(response.data);
-
-            if (selected_group) {
-                $.each(oGroups.fnGetNodes(), function(idx, val) {
-                    if (oGroups.fnGetData(val).code == selected_group.code) {
-                        oGroups.setFocus(0, val);
-                        return false;
-                    }
-                });
-            }
-
+            oGroups.fnReplaceData(response.data);
             enableGroupsActions();
-
-            oGroups.fnAdjustColumnSizing();
-        });
-    }
-
-    function initClientGroupsDialog() {
-        $("#client_groups_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 450,
-            width: 700,
-            buttons: [
-                { text: _("common.close"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        });
-
-        $("#client_groups").live('click', function() {
-            oGroups.fnClearTable();
-            refreshGroups();
-
-            var memberName = $('#details_member_name').val();
-            var subsystemCode = $('#details_subsystem_code').val();
-
-            var title = $('#details_subsystem_code').val() !== ''
-                ? _("clients.client_groups_dialog.subsystem_title",
-                    { member: memberName, subsystem: subsystemCode })
-                : _("clients.client_groups_dialog.member_title",
-                    { member: memberName });
-            
-            $("#client_groups_dialog").dialog("option", "title", title);
-            $("#client_groups_dialog").dialog("open");
         });
     }
 
@@ -113,8 +71,7 @@
                       params.client_id = $("#details_client_id").val();
 
                       $.post(action("group_add"), params, function(response) {
-                          oGroups.fnClearTable();
-                          oGroups.fnAddData(response.data);
+                          oGroups.fnReplaceData(response.data);
                           enableGroupsActions();
 
                           $(dialog).dialog("close");
@@ -147,7 +104,89 @@
                       refreshGroups();
                       $(this).dialog("close");
                   }
-                }
+                },
+                { id: "group_delete",
+                  text: _("clients.group_details_dialog.delete_group"),
+                  privilege: "delete_local_group",
+                  click: function() {
+                      var group = oGroups.getFocusData();
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          group_code: group.code
+                      };
+
+                      confirm("clients.group_details_dialog.delete_group_confirm",
+                              {group: group.code}, function() {
+
+                          $.post(action("group_delete"), params, function(response) {
+                              oGroups.fnReplaceData(response.data);
+                              enableGroupsActions();
+
+                              $("#group_details_dialog").dialog("close");
+                          }, "json");
+                      });
+                  }
+                },
+                { id: "group_members_remove_all",
+                  text: _("clients.group_details_dialog.remove_all_members"),
+                  privilege: "edit_local_group_members",
+                  click: function() {
+                      var group = oGroups.getFocusData();
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          group_code: group.code
+                      };
+
+                      $.post(action("group_members_remove"), params, function(response) {
+                          oGroupMembers.fnReplaceData(response.data);
+                          enableGroupMembersActions();
+
+                          $("#group_details_member_count").html(
+                              oGroupMembers.fnSettings().fnRecordsTotal());
+                      }, "json");
+                  }
+                },
+                { id: "group_members_remove_selected",
+                  text: _("clients.group_details_dialog.remove_selected_members"),
+                  privilege: "edit_local_group_members",
+                  click: function() {
+                      var group = oGroups.getFocusData();
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          group_code: group.code,
+                          member_ids: []
+                      };
+
+                      $.each(oGroupMembers.fnGetNodes(), function(idx, val) {
+                          if ($(val).hasClass("row_selected")) {
+                              var member = oGroupMembers.fnGetData(val);
+                              params.member_ids.push(member.member_id);
+                          }
+                      });
+
+                      $.post(action("group_members_remove"), params, function(response) {
+                          oGroupMembers.fnReplaceData(response.data);
+                          enableGroupMembersActions();
+
+                          $("#group_details_member_count").html(
+                              oGroupMembers.fnSettings().fnRecordsTotal());
+                      }, "json");
+                  }
+                },
+                { id: "group_members_add",
+                  text: _("clients.group_details_dialog.add_members"),
+                  privilege: "edit_local_group_members",
+                  click: function() {
+                      var group = oGroups.getFocusData();
+                      var title = _("clients.group_members_add_dialog.title", {group: group.code});
+
+                      $("#group_members_add_dialog").dialog("option", "title", title);
+                      $("#group_members_add_dialog").dialog("open");
+
+                      oMembersSearch.fnClearTable();
+                      enableMembersAddActions();
+                  }
+                },
             ]
         });
 
@@ -161,8 +200,7 @@
             };
 
             $.get(action("group_members"), params, function(response) {
-                oGroupMembers.fnClearTable();
-                oGroupMembers.fnAddData(response.data);
+                oGroupMembers.fnReplaceData(response.data);
                 enableGroupMembersActions();
 
                 $("#group_details_description").val(group.description);
@@ -175,52 +213,7 @@
                 $("#group_details_dialog").dialog("open");
 
                 oGroupMembers.fnAdjustColumnSizing();
-            });
-        });
-
-        $("#group_delete").live('click', function() {
-            var group = oGroups.getFocusData();
-            var params = {
-                client_id: $("#details_client_id").val(),
-                group_code: group.code
-            };
-
-            confirm("clients.group_details_dialog.delete_group_confirm",
-                    {group: group.code}, function() {
-
-                        $.post(action("group_delete"), params, function(response) {
-                            oGroups.fnClearTable();
-                            oGroups.fnAddData(response.data);
-                            enableGroupsActions();
-
-                            $("#group_details_dialog").dialog("close");
-                        }, "json");
-                    });
-        });
-
-        $("#group_members_remove_selected").live('click', function() {
-            var group = oGroups.getFocusData();
-            var params = {
-                client_id: $("#details_client_id").val(),
-                group_code: group.code,
-                member_ids: []
-            };
-
-            $.each(oGroupMembers.fnGetNodes(), function(idx, val) {
-                if ($(val).hasClass("row_selected")) {
-                    var member = oGroupMembers.fnGetData(val);
-                    params.member_ids.push(member.member_id);
-                }
-            });
-
-            $.post(action("group_members_remove"), params, function(response) {
-                oGroupMembers.fnClearTable();
-                oGroupMembers.fnAddData(response.data);
-                enableGroupMembersActions();
-
-                $("#group_details_member_count").html(
-                    oGroupMembers.fnSettings().fnRecordsTotal());
-            });
+            }, "json");
         });
     }
 
@@ -269,8 +262,47 @@
             height: 700,
             width: "95%",
             buttons: [
-                { text: _("clients.group_members_add_dialog.add_selected"),
-                  id: "group_members_add_selected",
+                { text: _("common.cancel"),
+                  click: function() {
+                      $(this).dialog("close");
+                  }
+                },
+                { id: "group_members_add_all",
+                  text: _("clients.group_members_add_dialog.add_all"),
+                  click: function() {
+                      var dialog = this;
+                      var group = oGroups.getFocusData();
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          group_code: group.code,
+                          member_ids: []
+                      };
+
+                      $.each(oMembersSearch.fnGetNodes(), function(idx, val) {
+                          if (!$(val).hasClass("unselectable")) {
+                              var member = oMembersSearch.fnGetData(val);
+                              params.member_ids.push(member.subject_id);
+                          }
+                      });
+
+                      if (params.member_ids.length == 0) {
+                          $(dialog).dialog("close");
+                          return false;
+                      }
+
+                      $.post(action("group_members_add"), params, function(response) {
+                          oGroupMembers.fnReplaceData(response.data);
+                          enableGroupMembersActions();
+
+                          $("#group_details_member_count").html(
+                              oGroupMembers.fnSettings().fnRecordsTotal());
+
+                          $(dialog).dialog("close");
+                      }, "json");
+                  }
+                },
+                { id: "group_members_add_selected",
+                  text: _("clients.group_members_add_dialog.add_selected"),
                   click: function() {
                       var dialog = this;
                       var group = oGroups.getFocusData();
@@ -288,34 +320,17 @@
                       });
 
                       $.post(action("group_members_add"), params, function(response) {
-                          oGroupMembers.fnClearTable();
-                          oGroupMembers.fnAddData(response.data);
+                          oGroupMembers.fnReplaceData(response.data);
                           enableGroupMembersActions();
 
                           $("#group_details_member_count").html(
                               oGroupMembers.fnSettings().fnRecordsTotal());
 
                           $(dialog).dialog("close");
-                      });
-                  }
-                },
-                { text: _("common.cancel"),
-                  click: function() {
-                      $(this).dialog("close");
+                      }, "json");
                   }
                 }
             ]
-        });
-
-        $("#group_members_add").live('click', function() {
-            var group = oGroups.getFocusData();
-            var title = _("clients.group_members_add_dialog.title", {group: group.code});
-
-            $("#group_members_add_dialog").dialog("option", "title", title);
-            $("#group_members_add_dialog").dialog("open");
-
-            oMembersSearch.fnClearTable();
-            enableMembersAddActions();
         });
 
         $(".advanced_search_form .search", dialog).live('click', function() {
@@ -324,8 +339,7 @@
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
-                oMembersSearch.fnClearTable();
-                oMembersSearch.fnAddData(response.data);
+                oMembersSearch.fnReplaceData(response.data);
 
                 // let's draw again so we can filter based on added classes
                 oMembersSearch.fnDraw();
@@ -341,8 +355,7 @@
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
-                oMembersSearch.fnClearTable();
-                oMembersSearch.fnAddData(response.data);
+                oMembersSearch.fnReplaceData(response.data);
 
                 // let's draw again so we can filter based on added classes
                 oMembersSearch.fnDraw();
@@ -380,6 +393,7 @@
             { "mData": "member_count" },
             { "mData": "updated" }
         ];
+        opts.asRowId = ["code"];
 
         oGroups = $("#groups").dataTable(opts);
 
@@ -399,19 +413,36 @@
         var opts = scrollableTableOpts(250);
         opts.sDom = "<'dataTables_header'f>t";
         opts.aoColumns = [
-            { "mData": "name" },
-            {
-                mData: function(source, type, val) {
-                    return generateIdElement({
-                        "Type": source.type,
-                        "Instance": source.sdsb,
-                        "Class": source.class,
-                        "Code": source.code,
-                        "Subsystem": source.subsystem
-                    });
-                }
+            { "mData": "name",
+              "mRender": function(data, type, full) {
+                  if (type == 'display') {
+                      return clientName(data);
+                  }
+                  return data;
+              },
+              "fnCreatedCell": function(nTd, sData, oData) {
+                  if (!oData.name) {
+                      $(nTd).addClass("missing");
+                  }
+              },
+              "sWidth": "30%"
             },
-            { "mData": "added" }
+            { "mData": "type", "bVisible": false },
+            { "mData": "instance", "bVisible": false },
+            { "mData": "class", "bVisible": false },
+            { "mData": "code", "bVisible": false },
+            { "mData": "subsystem", "bVisible": false },
+            { "mData": function(source, type, val) {
+                  return generateIdElement({
+                      "Type": source.type,
+                      "Instance": source.instance,
+                      "Class": source.class,
+                      "Code": source.code,
+                      "Subsystem": source.subsystem
+                  });
+              }
+            },
+            { "mData": "added", "sWidth": "15%" }
         ];
 
         oGroupMembers = $("#group_members").dataTable(opts);
@@ -419,27 +450,9 @@
         $("#group_members_actions")
             .appendTo("#group_members_wrapper .dataTables_header");
 
-        $("#group_members_actions .select_all").change(function() {
-            var select = $(this).attr("checked");
-
-            oGroupMembers.$('tr', {"filter": "applied"}).each(function(idx, val) {
-                if (select) {
-                    $(val).addClass("row_selected");
-                } else {
-                    $(val).removeClass("row_selected");
-                }
-            });
-
-            enableGroupMembersActions();
-        });
-
         $("#group_members tbody tr").live("click", function() {
             oGroupMembers.setFocus(0, this, true);
             enableGroupMembersActions();
-
-            if (!$(this).hasClass(".row_selected")) {
-                $("#group_members_actions .select_all").removeAttr("checked");
-            }
         });
 
         var dialog = $("#group_details_dialog");
@@ -458,11 +471,9 @@
         }).click();
 
         $(".advanced_search .search", dialog).live('click', function() {
-            var map = [0, 5, 4, 2, 1, 3];
-
             $(".advanced_search input, .advanced_search select", dialog).each(
                 function(idx, val) {
-                    oGroupMembers.fnFilter($(this).val(), map[idx]);
+                    oGroupMembers.fnFilter($(this).val(), idx);
                 });
             return false;
         });
@@ -483,10 +494,10 @@
                 mData: function(source, type, val) {
                     return generateIdElement({
                         "Type": source.type,
-                        "Instance": source.sdsb,
-                        "Class": source.class,
-                        "Code": source.code,
-                        "Subsystem": source.subsystem
+                        "Instance": source.instance,
+                        "Class": source.member_class,
+                        "Code": source.member_group_code,
+                        "Subsystem": source.subsystem_code
                     });
                 }
             }
@@ -495,7 +506,7 @@
             var unselectable = false;
 
             $.each(oGroupMembers.fnGetData(), function(idx, val) {
-                if (val.sdsb == oData.sdsb &&
+                if (val.instance == oData.instance &&
                     val.type == oData.type &&
                     val.class == oData.member_class &&
                     val.code == oData.member_group_code &&
@@ -520,20 +531,6 @@
         $("#members_search_actions")
             .prependTo("#members_search_wrapper .dataTables_header");
 
-        $("#members_search_actions .select_all").change(function() {
-            var select = $(this).attr("checked");
-
-            oMembersSearch.$("tr.selectable").each(function(idx, val) {
-                if (select) {
-                    $(val).addClass("row_selected");
-                } else {
-                    $(val).removeClass("row_selected");
-                }
-            });
-
-            enableMembersAddActions();
-        });
-
         $("#members_search_actions .show_existing").change(function() {
             oMembersSearch.fnDraw();
         });
@@ -541,10 +538,6 @@
         $("#members_search tbody .selectable").live("click", function() {
             oMembersSearch.setFocus(0, this, true);
             enableMembersAddActions();
-
-            if (!$(this).hasClass(".row_selected")) {
-                $("#members_search_actions .select_all").removeAttr("checked");
-            }
         });
     }
 
@@ -553,7 +546,6 @@
         initGroupMembersTable();
         initMembersSearchTable();
 
-        // initClientGroupsDialog();
         initGroupAddDialog();
         initGroupDetailsDialog();
         initGroupDescriptionEditDialog();

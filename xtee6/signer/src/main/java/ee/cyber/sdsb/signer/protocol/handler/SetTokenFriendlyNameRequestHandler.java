@@ -4,6 +4,9 @@ import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
 import ee.cyber.sdsb.signer.protocol.message.SetTokenFriendlyName;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Handles requests for setting the token friendly name.
+ */
 public class SetTokenFriendlyNameRequestHandler
         extends AbstractRequestHandler<SetTokenFriendlyName> {
 

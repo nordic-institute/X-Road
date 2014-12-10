@@ -7,7 +7,20 @@ import com.typesafe.config.ConfigValueFactory;
 
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
+
 public class CenterServices {
+
+    static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(CONF_FILE_CENTER);
+                load(CONF_FILE_SIGNER);
+            }
+        };
+    }
 
     private static ActorSystem actorSystem;
 

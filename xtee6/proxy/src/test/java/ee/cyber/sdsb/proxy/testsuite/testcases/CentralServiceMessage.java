@@ -1,6 +1,6 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -40,4 +40,11 @@ public class CentralServiceMessage extends MessageTestCase {
             throws Exception {
         // Normal response, nothing more to check here.
     }
+
+    @Override
+    protected void onReceiveRequest(Message receivedRequest) throws Exception {
+        // Message inconsistency at this point is expected, since client
+        // proxy will modify the request message
+    }
+
 }

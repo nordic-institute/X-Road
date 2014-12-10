@@ -6,6 +6,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -31,7 +32,7 @@ public enum IsAuthentication {
                     "Client '%s' not found", client);
         }
 
-        log.debug("IS authentication for client '{}' is: {}", client,
+        log.trace("IS authentication for client '{}' is: {}", client,
                 isAuthentication);
 
         if (isAuthentication == IsAuthentication.SSLNOAUTH) {
@@ -45,6 +46,11 @@ public enum IsAuthentication {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) specifies SSLAUTH but did not supply"
                                 + " SSL certificate", client);
+            }
+
+            if (cert.getCert().equals(InternalSSLKey.load().getCert())) {
+                // do not check certificates for local TLS connections
+                return;
             }
 
             List<X509Certificate> isCerts = ServerConf.getIsCerts(client);

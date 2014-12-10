@@ -32,7 +32,7 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
      * also looks for clients whose identifier is a subsystem
      */
     public boolean clientExists(Session session, ClientId id,
-            boolean includeSubsystems) throws Exception {
+            boolean includeSubsystems) {
         Example ex = Example.create(id);
 
         if (includeSubsystems) {
@@ -45,14 +45,13 @@ public class ClientDAOImpl extends AbstractDAOImpl<ClientType> {
         return criteria.list().size() > 0;
     }
 
-    public ClientType getClient(Session session, ClientId id) throws Exception {
+    public ClientType getClient(Session session, ClientId id) {
         Criteria criteria = session.createCriteria(ClientType.class);
         criteria.createCriteria("identifier").add(Example.create(id));
         return findOne(criteria);
     }
 
-    public List<CertificateType> getIsCerts(Session session, ClientId id)
-            throws Exception {
+    public List<CertificateType> getIsCerts(Session session, ClientId id) {
         Criteria criteria = session.createCriteria(ClientType.class);
         criteria.createCriteria("identifier").add(Example.create(id));
 

@@ -5,6 +5,9 @@ import ee.cyber.sdsb.signer.protocol.message.GetOcspResponses;
 
 import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
 
+/**
+ * Handles OCSP requests.
+ */
 public class GetOcspResponsesRequestHandler
         extends AbstractRequestHandler<GetOcspResponses> {
 

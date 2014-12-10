@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://cyber.ee/hashchain"
+    xmlns:tns="http://cyber.ee/hashchain"
+    elementFormDefault="qualified"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+    <import
+        schemaLocation="xmldsig-core-schema.xsd"
+        namespace="http://www.w3.org/2000/09/xmldsig#"/>
+
+    <complexType name="HashChainType">
+        <sequence>
+            <element name="DefaultDigestMethod"
+                type="ds:DigestMethodType" minOccurs="0"> </element>
+            <element name="HashStep" type="tns:HashStepType"
+                minOccurs="0" maxOccurs="unbounded"> </element>
+        </sequence>
+    </complexType>
+
+    <complexType name="HashStepType">
+        <sequence>
+            <choice maxOccurs="unbounded" minOccurs="0">
+                <element name="HashValue" type="tns:HashValueType"/>
+                <element name="StepRef" type="tns:StepRefType"/>
+                <element name="DataRef" type="tns:DataRefType"/>
+            </choice>
+        </sequence>
+        <attribute name="id" type="ID"/>
+    </complexType>
+    <complexType name="AbstractValueType">
+        <sequence>
+            <element minOccurs="0" ref="ds:DigestMethod"/>
+        </sequence>
+    </complexType>
+    <complexType name="StepRefType">
+        <complexContent>
+            <extension base="tns:AbstractValueType">
+                <attribute name="URI" type="anyURI" use="required"/>
+            </extension>
+        </complexContent>
+    </complexType>
+    <complexType name="DataRefType">
+        <complexContent>
+            <extension base="tns:AbstractValueType">
+                <sequence>
+                    <element minOccurs="0" ref="ds:Transforms"/>
+                    <element ref="ds:DigestValue"/>
+                </sequence>
+                <attribute name="URI" type="anyURI" use="required"/>
+            </extension>
+        </complexContent>
+    </complexType>
+    <complexType name="HashValueType">
+        <complexContent>
+            <extension base="tns:AbstractValueType">
+                <sequence>
+                    <element minOccurs="0" ref="ds:Transforms"/>
+                    <element ref="ds:DigestValue"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <complexType name="HashChainResultType">
+        <complexContent>
+            <extension base="tns:StepRefType">
+                <sequence>
+                    <element ref="ds:DigestValue"/>
+                </sequence>
+            </extension>
+        </complexContent>
+    </complexType>
+
+    <element name="HashChain" type="tns:HashChainType"/>
+    <element name="HashChainResult" type="tns:HashChainResultType"/>
+</schema>

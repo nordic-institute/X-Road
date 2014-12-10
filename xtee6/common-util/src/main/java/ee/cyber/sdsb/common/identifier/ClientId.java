@@ -47,8 +47,8 @@ public final class ClientId extends SdsbId {
      * class and code.
      */
     public boolean subsystemContainsMember(ClientId member) {
-        if (getObjectType() == SdsbObjectType.SUBSYSTEM &&
-                member.getObjectType() == SdsbObjectType.MEMBER) {
+        if (getObjectType() == SdsbObjectType.SUBSYSTEM
+                && member.getObjectType() == SdsbObjectType.MEMBER) {
             return getSdsbInstance().equals(member.getSdsbInstance())
                     && getMemberClass().equals(member.getMemberClass())
                     && getMemberCode().equals(member.getMemberCode());
@@ -64,6 +64,10 @@ public final class ClientId extends SdsbId {
      * SUBSYSTEM:XX/YY/ZZ/TT and MEMBER:XX/YY/ZZ.
      */
     public boolean memberEquals(ClientId other) {
+        if (other == null) {
+            return false;
+        }
+
         return getSdsbInstance().equals(other.getSdsbInstance())
                 && getMemberClass().equals(other.getMemberClass())
                 && getMemberCode().equals(other.getMemberCode());

@@ -1,0 +1,8 @@
+<%= dialog "activate_token_dialog", t('common.enter_pin') do %>
+  <table class="details">
+    <tr>
+      <td><%= t 'common.pin' %></td>
+      <td><%= password_field_tag "activate_token_pin" %></td>
+    </tr>
+  </table>
+<% end %>

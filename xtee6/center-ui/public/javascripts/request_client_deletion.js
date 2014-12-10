@@ -24,7 +24,7 @@ var SDSB_REQUEST_CLIENT_DELETION = function(){
 
     /**
      * requestData must be in the following format:
-     * 
+     *
      *  client: {
      *      name: ...,
      *      memberClass: ...,
@@ -41,28 +41,32 @@ var SDSB_REQUEST_CLIENT_DELETION = function(){
     function fillRemovableClientData(requestData) {
         var client = requestData.client;
         var server = requestData.server;
- 
-        $("#server_client_remove_name").val(client.name);
-        $("#server_client_remove_class").val(client.memberClass);
-        $("#server_client_remove_code").val(client.memberCode);
-        $("#server_client_remove_subsystem_code").val(client.subsystemCode);
 
-        $("#server_client_remove_owner_name").val(server.ownerName);
-        $("#server_client_remove_owner_class").val(server.ownerClass);
-        $("#server_client_remove_owner_code").val(server.ownerCode);
-        $("#server_client_remove_server_code").val(server.serverCode);
+        var subsystemCode = client.subsystemCode != null ?
+            client.subsystemCode : "";
+
+        $("#server_client_remove_name").text(client.name);
+        $("#server_client_remove_class").text(client.memberClass);
+        $("#server_client_remove_code").text(client.memberCode);
+        $("#server_client_remove_subsystem_code").text(subsystemCode);
+
+        $("#server_client_remove_owner_name").text(server.ownerName);
+        $("#server_client_remove_owner_class").text(server.ownerClass);
+        $("#server_client_remove_owner_code").text(server.ownerCode);
+        $("#server_client_remove_server_code").text(server.serverCode);
     }
 
     /* -- PUBLIC - END -- */
 
     function clearServerClientRemoveData() {
-        $("#server_client_remove_name").val(""), $("#server_client_remove_class")
-                .val(""), $("#server_client_remove_code").val(""), $(
-                "#server_client_remove_subsystem_code").val(""), $(
-                "#server_client_remove_owner_name").val(""), $(
-                "#server_client_remove_owner_class").val(""), $(
-                "#server_client_remove_owner_code").val(""), $(
-                "#server_client_remove_server_code").val("")
+        $("#server_client_remove_name").text("");
+        $("#server_client_remove_class").text("");
+        $("#server_client_remove_code").text("");
+        $("#server_client_remove_subsystem_code").text("");
+        $("#server_client_remove_owner_name").text("");
+        $("#server_client_remove_owner_class").text("");
+        $("#server_client_remove_owner_code").text("");
+        $("#server_client_remove_server_code").text("");
     }
 
     function addServerClientDeletionRequest(dialog, fnAfterRequestAdded) {
@@ -82,12 +86,12 @@ var SDSB_REQUEST_CLIENT_DELETION = function(){
 
     function getClientRemovingRequestParams() {
         return {
-            memberClass : $("#server_client_remove_class").val(),
-            memberCode : $("#server_client_remove_code").val(),
-            subsystemCode : $("#server_client_remove_subsystem_code").val(),
-            ownerClass : $("#server_client_remove_owner_class").val(),
-            ownerCode : $("#server_client_remove_owner_code").val(),
-            serverCode : $("#server_client_remove_server_code").val()
+            memberClass : $("#server_client_remove_class").text(),
+            memberCode : $("#server_client_remove_code").text(),
+            subsystemCode : $("#server_client_remove_subsystem_code").text(),
+            ownerClass : $("#server_client_remove_owner_class").text(),
+            ownerCode : $("#server_client_remove_owner_code").text(),
+            serverCode : $("#server_client_remove_server_code").text()
         };
     }
 

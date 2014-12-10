@@ -14,13 +14,11 @@ module Clients::Services
 
   XROADV5_METASERVICES = ["getProducerACL", "getServiceACL"]
 
-  include ValidationHelper
-
   def client_services
     authorize!(:view_client_services)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -32,9 +30,9 @@ module Clients::Services
     authorize!(:add_wsdl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :adapter_add_url => [RequiredValidator.new],
-      :adapter_add_wsdl_uri => [RequiredValidator.new],
+      :client_id => [:required],
+      :adapter_add_url => [:required],
+      :adapter_add_wsdl_uri => [:required],
       :adapter_add_sslauth => []
     })
 
@@ -62,7 +60,9 @@ module Clients::Services
 
     serverconf_save
 
-    export_services
+    after_commit do
+      export_services
+    end
 
     render_json(read_services(client))
   end
@@ -71,8 +71,8 @@ module Clients::Services
     authorize!(:add_wsdl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :wsdl_add_url => [RequiredValidator.new]
+      :client_id => [:required],
+      :wsdl_add_url => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -103,8 +103,8 @@ module Clients::Services
     authorize!(:enable_disable_wsdl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :wsdl_ids => [RequiredValidator.new],
+      :client_id => [:required],
+      :wsdl_ids => [:required],
       :wsdl_disabled_notice => [],
       :enable => []
     })
@@ -127,8 +127,8 @@ module Clients::Services
     authorize!(:refresh_wsdl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :wsdl_ids => [RequiredValidator.new],
+      :client_id => [:required],
+      :wsdl_ids => [:required],
       :new_url => []
     })
 
@@ -267,8 +267,8 @@ module Clients::Services
     authorize!(:delete_wsdl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :wsdl_ids => [RequiredValidator.new]
+      :client_id => [:required],
+      :wsdl_ids => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -299,13 +299,12 @@ module Clients::Services
     authorize!(:edit_service_params)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :params_wsdl_id => [RequiredValidator.new],
-      :params_service_id => [RequiredValidator.new],
-      :params_url => [RequiredValidator.new, URLValidator.new],
+      :client_id => [:required],
+      :params_wsdl_id => [:required],
+      :params_service_id => [:required],
+      :params_url => [:required, :url],
       :params_url_all => [],
-      :params_timeout => [RequiredValidator.new,
-        IntValidator.new("clients.timeout_error")],
+      :params_timeout => [:required, :timeout],
       :params_timeout_all => [],
       :params_security_category => [],
       :params_security_category_all => [],
@@ -336,8 +335,7 @@ module Clients::Services
           service.requiredSecurityCategory.clear
 
           params[:params_security_category].each do |category|
-            sdsb = globalconf.root.instanceIdentifier
-            category_id = SecurityCategoryId.create(sdsb, category)
+            category_id = SecurityCategoryId.create(sdsb_instance, category)
             service.requiredSecurityCategory.add(category_id)
           end if params[:params_security_category]
         end
@@ -361,12 +359,11 @@ module Clients::Services
     authorize!(:edit_service_params)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :params_adapter_id => [RequiredValidator.new],
-      :params_adapter_timeout => [RequiredValidator.new,
-        IntValidator.new("clients.timeout_error")],
+      :client_id => [:required],
+      :params_adapter_id => [:required],
+      :params_adapter_timeout => [:required, :timeout],
       :params_adapter_sslauth => [],
-      :params_adapter_wsdl_uri => [RequiredValidator.new]
+      :params_adapter_wsdl_uri => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -397,8 +394,8 @@ module Clients::Services
     authorize!(:view_service_acl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :service_code => [RequiredValidator.new]
+      :client_id => [:required],
+      :service_code => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -413,7 +410,7 @@ module Clients::Services
     authorize!(:view_service_acl)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -446,9 +443,9 @@ module Clients::Services
     authorize!(:edit_service_acl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :service_code => [RequiredValidator.new],
-      :subject_ids => [RequiredValidator.new]
+      :client_id => [:required],
+      :service_code => [:required],
+      :subject_ids => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -483,8 +480,8 @@ module Clients::Services
     authorize!(:edit_service_acl)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :service_code => [RequiredValidator.new],
+      :client_id => [:required],
+      :service_code => [:required],
       :subject_ids => []
     })
 
@@ -543,8 +540,7 @@ module Clients::Services
         :last_published => format_time(wsdl.publishedDate),
         :last_refreshed => format_time(wsdl.refreshedDate),
         :disabled => wsdl.disabled,
-        :disabled_notice => wsdl.disabledNotice,
-        :open => false
+        :disabled_notice => wsdl.disabledNotice
       }
 
       wsdl.service.each do |service|
@@ -569,8 +565,7 @@ module Clients::Services
           :last_published => format_time(wsdl.publishedDate),
           :last_refreshed => format_time(wsdl.refreshedDate),
           :disabled => wsdl.disabled,
-          :subjects_count => subjects_count(client, service.serviceCode),
-          :open => false
+          :subjects_count => subjects_count(client, service.serviceCode)
         } unless x55_installed? && XROADV5_METASERVICES.include?(service.serviceCode)
       end
     end
@@ -599,8 +594,7 @@ module Clients::Services
       :last_published => nil,
       :last_refreshed => nil,
       :disabled => false,
-      :disabled_notice => nil,
-      :open => false
+      :disabled_notice => nil
     }
 
     XROADV5_METASERVICES.each do |service_code|
@@ -620,8 +614,7 @@ module Clients::Services
         :last_published => nil,
         :last_refreshed => nil,
         :disabled => false,
-        :subjects_count => subjects_count(client, service_code),
-        :open => false          
+        :subjects_count => subjects_count(client, service_code)
       }
     end
 
@@ -653,7 +646,11 @@ module Clients::Services
 
     wsdl.client.wsdl.each do |other_wsdl|
       if get_wsdl_id(other_wsdl) == get_wsdl_id(wsdl)
-        raise t('clients.wsdl_exists')
+        if wsdl.backend == BACKEND_TYPE_XROADV5
+          raise t('clients.adapter_exists')
+        else
+          raise t('clients.wsdl_exists')
+        end
       end
 
       other_wsdl.service.each do |service|

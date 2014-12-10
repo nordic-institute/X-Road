@@ -1,0 +1,13 @@
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+    <Set name="ThreadPool">
+        <New class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+            <!-- specify a bounded queue -->
+            <Arg>
+                <New class="java.util.concurrent.ArrayBlockingQueue">
+                    <Arg type="int">1500</Arg>
+                </New>
+            </Arg>
+            <Set name="maxThreads">4500</Set>
+        </New>
+    </Set>
+</Configure>

@@ -3,7 +3,6 @@ package ee.cyber.sdsb.proxy.protocol;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
@@ -68,6 +67,11 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         return mpEncoder.getContentType();
     }
 
+    /** Returns the signature. */
+    public SignatureData getSignature() {
+        return signer.getSignatureData();
+    }
+
     @Override
     public void ocspResponse(OCSPResp resp) throws Exception {
         byte[] responseEncoded = resp.getEncoded();
@@ -97,9 +101,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     @Override
     public void soap(SoapMessageImpl message) throws Exception {
-        String soapMessage = message.getXml();
-
-        LOG.trace("writeSoapMessage({})", soapMessage);
+        LOG.trace("writeSoapMessage({})", message.getXml());
 
         byte[] data = message.getBytes();
         try {
@@ -191,16 +193,16 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
     private void signature(String signatureData) throws Exception {
         mpEncoder.startPart(MimeTypes.SIGNATURE_BDOC);
-        mpEncoder.write(new StringReader(signatureData)); // TODO: #2573
+        mpEncoder.write(signatureData.getBytes(StandardCharsets.UTF_8));
     }
 
     private void hashChain(String hashChainResult, String hashChain)
             throws Exception {
         mpEncoder.startPart(MimeTypes.HASH_CHAIN_RESULT);
-        mpEncoder.write(new StringReader(hashChainResult)); // TODO: #2573
+        mpEncoder.write(hashChainResult.getBytes(StandardCharsets.UTF_8));
 
         mpEncoder.startPart(MimeTypes.HASH_CHAIN);
-        mpEncoder.write(new StringReader(hashChain)); // TODO: #2573
+        mpEncoder.write(hashChain.getBytes(StandardCharsets.UTF_8));
     }
 
     protected void endAttachments() throws IOException {

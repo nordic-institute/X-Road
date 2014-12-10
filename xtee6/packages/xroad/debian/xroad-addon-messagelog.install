@@ -1,0 +1,4 @@
+addon/proxy/messagelog.conf usr/share/sdsb/jlib/addon/proxy/
+../../addons/messagelog/build/libs/messagelog-1.0.jar usr/share/sdsb/jlib/addon/proxy/
+addon/proxy/logreader.xml etc/sdsb/jetty/contexts-admin/
+../../logreader/build/libs/logreader-1.0.war usr/share/sdsb/jlib/webapps/

@@ -10,7 +10,7 @@
     <Set name="securityHandler">
         <New class="org.eclipse.jetty.security.ConstraintSecurityHandler">
             <Set name="loginService">
-                <New class="org.eclipse.jetty.plus.jaas.JAASLoginService">
+                <New class="org.eclipse.jetty.jaas.JAASLoginService">
                     <Set name="name">sdsb</Set>
                     <Set name="loginModuleName">pam</Set>
                     <Set name="roleClassNames">

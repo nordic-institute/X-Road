@@ -1,20 +1,26 @@
 package ee.cyber.sdsb.signer.protocol;
 
-public interface ComponentNames {
+/**
+ * Holds the names of actors in signer.
+ */
+public final class ComponentNames {
 
-    String SIGNER = "Signer";
+    public static final String SIGNER = "Signer";
 
-    String SIGNER_CLIENT = "SignerClient";
+    public static final String SIGNER_CLIENT = "SignerClient";
 
-    String REQUEST_PROCESSOR = "RequestProcessor";
+    public static final String REQUEST_PROCESSOR = "RequestProcessor";
 
-    String TOKEN_SIGNER = "TokenSigner";
+    public static final String TOKEN_SIGNER = "TokenSigner";
 
-    String TOKEN_WORKER = "TokenWorker";
+    public static final String TOKEN_WORKER = "TokenWorker";
 
-    String OCSP_RESPONSE_MANAGER = "OcspResponseManager";
+    public static final String OCSP_RESPONSE_MANAGER = "OcspResponseManager";
 
-    String OCSP_CLIENT = "OcspClient";
+    public static final String OCSP_CLIENT = "OcspClient";
 
-    String MODULE_MANAGER = "ModuleManager";
+    public static final String MODULE_MANAGER = "ModuleManager";
+
+    private ComponentNames() {
+    }
 }

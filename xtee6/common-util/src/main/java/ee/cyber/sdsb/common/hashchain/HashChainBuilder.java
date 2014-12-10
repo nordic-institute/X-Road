@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static ee.cyber.sdsb.common.hashchain.DigestList.digestHashStep;
-import static ee.cyber.sdsb.common.util.CryptoUtils.getAlgorithmURI;
+import static ee.cyber.sdsb.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.cyber.sdsb.common.util.MessageFileNames.attachment;
 import static java.lang.Integer.numberOfLeadingZeros;
 
@@ -96,7 +96,7 @@ public final class HashChainBuilder {
      */
     public HashChainBuilder(String hashAlgorithm) throws Exception {
         this.hashAlgorithm = hashAlgorithm;
-        hashAlgorithmUri = getAlgorithmURI(hashAlgorithm);
+        hashAlgorithmUri = getDigestAlgorithmURI(hashAlgorithm);
 
         marshaller = JAXB_CTX.createMarshaller();
         // Format the XML, good for debugging.

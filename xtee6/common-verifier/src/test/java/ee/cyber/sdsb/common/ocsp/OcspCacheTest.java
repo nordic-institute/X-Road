@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import ee.cyber.sdsb.common.OcspTestUtils;
 import ee.cyber.sdsb.common.TestCertUtil;
+import ee.cyber.sdsb.common.conf.globalconf.EmptyGlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 
 import static org.junit.Assert.*;
 
@@ -21,6 +23,11 @@ public class OcspCacheTest {
     static X509Certificate issuer;
     static X509Certificate signer;
     static PrivateKey signerKey;
+
+    @BeforeClass
+    public static void beforeClass() {
+        GlobalConf.reload(new EmptyGlobalConf());
+    }
 
     @Test
     public void putGet() throws Exception {

@@ -25,11 +25,9 @@ public final class TestCertUtil {
 
     /** Lazily initialized cached instances of the certs. */
     private static X509Certificate caCert;
-    private static X509Certificate ca2Cert;
     private static X509Certificate tspCert;
     private static PKCS12 producer;
     private static PKCS12 consumer;
-    private static PKCS12 testOrg;
     private static PKCS12 ca2TestOrg;
     private static PKCS12 ocspSigner;
 
@@ -44,23 +42,10 @@ public final class TestCertUtil {
     /** AdminCA1. */
     public static X509Certificate getCaCert() {
         if (caCert == null) {
-            KeyStore caKeyStore =
-                    loadJKSKeyStore(CERT_PATH + "admin-ca1.jks", "changeit");
-            caCert = getCert(caKeyStore, "adminca1");
+            caCert = loadPKCS12("root-ca.p12", "1", "test").cert;
         }
 
         return caCert;
-    }
-
-    /** AdminCA2. */
-    public static X509Certificate getCa2Cert() {
-        if (ca2Cert == null) {
-            KeyStore caKeyStore =
-                    loadJKSKeyStore(CERT_PATH + "admin-ca2.jks", "changeit");
-            ca2Cert = getCert(caKeyStore, "adminca2");
-        }
-
-        return ca2Cert;
     }
 
     /** TSP cert. */
@@ -75,7 +60,7 @@ public final class TestCertUtil {
     /** Producer org, signed by AdminCA1. */
     public static PKCS12 getProducer() {
         if (producer == null) {
-            producer = loadPKCS12("producer.p12", "producer", "test");
+            producer = loadPKCS12("producer.p12", "1", "test");
         }
 
         return producer;
@@ -84,19 +69,10 @@ public final class TestCertUtil {
     /** Consumer org, signed by AdminCA1. */
     public static PKCS12 getConsumer() {
         if (consumer == null) {
-            consumer = loadPKCS12("consumer.p12", "consumer", "test");
+            consumer = loadPKCS12("consumer.p12", "1", "test");
         }
 
         return consumer;
-    }
-
-    /** Test org, signed by AdminCA1. */
-    public static PKCS12 getTestOrg() {
-        if (testOrg == null) {
-            testOrg = loadPKCS12("testorg.p12", "test org", "test");
-        }
-
-        return testOrg;
     }
 
     /** Test org signed by AdminCA2. */
@@ -111,7 +87,7 @@ public final class TestCertUtil {
     /** Ocsp signer, signed by AdminCA1. */
     public static PKCS12 getOcspSigner() {
         if (ocspSigner == null) {
-            ocspSigner = loadPKCS12("ocspsigner.p12", "ocsp signer", "ocsp");
+            ocspSigner = loadPKCS12("ocspsigner.p12", "1", "test");
         }
 
         return ocspSigner;
@@ -216,17 +192,4 @@ public final class TestCertUtil {
 
         return is;
     }
-
-/*
-    public static final void main(String[] args) throws Exception {
-        X509Certificate ca = getCaCert();
-        X509Certificate ca2 = getCa2Cert();
-        PKCS12 producer = getProducer();
-        PKCS12 consumer = getConsumer();
-        PKCS12 testOrg = getTestOrg();
-        PKCS12 ca2TestOrg = getCa2TestOrg();
-        PKCS12 ocspSigner = getOcspSigner();
-        System.out.println("Successfully loaded all certs!");
-    }
-*/
 }

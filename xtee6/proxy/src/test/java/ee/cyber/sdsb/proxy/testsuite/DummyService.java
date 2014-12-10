@@ -9,6 +9,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Enumeration;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -101,6 +102,7 @@ class DummyService extends Server implements StartStop {
                 throws IOException, ServletException {
             LOG.debug("Service simulator received request {}, contentType={}",
                     target, request.getContentType());
+            debugRequestHeaders(request);
             try {
                 // check if the test case implements custom service response
                 AbstractHandler handler = currentTestCase().getServiceHandler();
@@ -123,8 +125,8 @@ class DummyService extends Server implements StartStop {
                     try {
                         sendResponseFromFile(responseFile, response);
                     } catch (Exception e) {
-                        LOG.error("An error has occurred when sending response " +
-                                "from file '{}': {}", responseFile, e);
+                        LOG.error("An error has occurred when sending response"
+                                + " from file '{}': {}", responseFile, e);
                     }
                 } else {
                     LOG.error("Unknown request {}", target);
@@ -133,6 +135,17 @@ class DummyService extends Server implements StartStop {
                 LOG.error("Error when reading request", ex);
             } finally {
                 baseRequest.setHandled(true);
+            }
+        }
+
+        private void debugRequestHeaders(HttpServletRequest request) {
+            LOG.debug("Request headers:");
+
+            Enumeration<String> headerNames = request.getHeaderNames();
+            while (headerNames.hasMoreElements()) {
+                String headerName = headerNames.nextElement();
+                LOG.debug("\t{} = {}", headerName,
+                        request.getHeader(headerName));
             }
         }
 
@@ -152,13 +165,16 @@ class DummyService extends Server implements StartStop {
             try (InputStream fileIs = new FileInputStream(file);
                     InputStream responseIs =
                             currentTestCase().changeQueryId(fileIs)) {
+
                 IOUtils.copy(responseIs, response.getOutputStream());
             }
 
-            try (InputStream fis = currentTestCase().changeQueryId(
-                    new FileInputStream(file))) {
+            try (InputStream fileIs = new FileInputStream(file);
+                    InputStream responseIs =
+                            currentTestCase().changeQueryId(fileIs)) {
                 currentTestCase().onSendResponse(
-                        new Message(fis, responseContentType));
+                        new Message(responseIs, currentTestCase()
+                                .getResponseServiceContentType()));
             } catch (Exception e) {
                 LOG.error("Error when sending response from file '{}': {}",
                         file, e.toString());

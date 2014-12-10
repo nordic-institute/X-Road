@@ -10,14 +10,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.GlobalConf;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
 import ee.cyber.sdsb.common.util.HandlerBase;
@@ -57,7 +54,7 @@ class ServerProxyHandler extends HandlerBase {
             ServerMessageProcessor processor =
                     createRequestProcessor(request, response, start);
             processor.process();
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             log.error("Request processing error", ex);
 
             failure(response,
@@ -108,20 +105,12 @@ class ServerProxyHandler extends HandlerBase {
         return !StringUtils.isBlank(value) ? value : UNKNOWN_VERSION;
     }
 
-    private static CertChain getClientSslCertChain(HttpServletRequest request)
-            throws Exception {
+    private static X509Certificate[] getClientSslCertChain(
+            HttpServletRequest request) throws Exception {
         Object attribute = request.getAttribute(
                 "javax.servlet.request.X509Certificate");
         if (attribute != null) {
-            X509Certificate[] certs = (X509Certificate[]) attribute;
-            X509Certificate trustAnchor =
-                    GlobalConf.getCaCert(certs[certs.length - 1]);
-            if (trustAnchor == null) {
-                throw new Exception("Unable to find trust anchor");
-            }
-
-            return CertChain.create(
-                    (X509Certificate[]) ArrayUtils.add(certs, trustAnchor));
+            return (X509Certificate[]) attribute;
         } else {
             return null;
         }

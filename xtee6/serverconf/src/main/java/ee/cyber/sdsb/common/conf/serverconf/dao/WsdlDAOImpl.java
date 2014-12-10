@@ -18,7 +18,7 @@ public class WsdlDAOImpl extends AbstractDAOImpl<WsdlType> {
         return instance;
     }
 
-    public WsdlType getWsdl(Session session, ServiceId id) throws Exception {
+    public WsdlType getWsdl(Session session, ServiceId id) {
         ServiceType service =
                 ServiceDAOImpl.getInstance().getService(session, id);
         if (service != null) {

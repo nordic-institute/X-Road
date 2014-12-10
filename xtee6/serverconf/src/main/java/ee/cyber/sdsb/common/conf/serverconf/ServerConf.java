@@ -6,7 +6,7 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -19,7 +19,9 @@ public class ServerConf {
 
     private static volatile ServerConfProvider instance = null;
 
-    /** Returns the singleton instance of the configuration. */
+    /**
+     * Returns the singleton instance of the configuration.
+     */
     protected static ServerConfProvider getInstance() {
         if (instance == null) {
             instance = new ServerConfImpl();
@@ -28,7 +30,9 @@ public class ServerConf {
         return instance;
     }
 
-    /** Reloads the configuration with given configuration instance. */
+    /**
+     * Reloads the configuration with given configuration instance.
+     */
     public static void reload(ServerConfProvider conf) {
         log.trace("reload({})", conf.getClass());
 
@@ -56,7 +60,8 @@ public class ServerConf {
         return getInstance().serviceExists(service);
     }
 
-    /** Returns true, if member <code>sender</code> is allowed
+    /**
+     * Returns true, if member <code>sender</code> is allowed
      * to invoke service <code>serviceName</code>
      */
     public static boolean isQueryAllowed(ClientId sender, ServiceId service) {
@@ -75,7 +80,8 @@ public class ServerConf {
         return getInstance().getDisabledNotice(service);
     }
 
-    /** Return URL for corresponding to service provider for given
+    /**
+     * Return URL for corresponding to service provider for given
      * service name.
      */
     public static String getServiceAddress(ServiceId service) {
@@ -84,7 +90,8 @@ public class ServerConf {
         return getInstance().getServiceAddress(service);
     }
 
-    /** Return service timeout in seconds.
+    /**
+     * Return service timeout in seconds.
      */
     public static int getServiceTimeout(ServiceId service) {
         log.trace("getServiceTimeout({})", service);
@@ -92,7 +99,8 @@ public class ServerConf {
         return getInstance().getServiceTimeout(service);
     }
 
-    /** Return all the services offered by a service provider.
+    /**
+     * Return all the services offered by a service provider.
      */
     public static List<ServiceId> getAllServices(ClientId serviceProvider) {
         log.trace("getAllServices({})", serviceProvider);
@@ -100,7 +108,8 @@ public class ServerConf {
         return getInstance().getAllServices(serviceProvider);
     }
 
-    /** Return all the services by a service provider that the caller
+    /**
+     * Return all the services by a service provider that the caller
      * has permission to invoke.
      */
     public static List<ServiceId> getAllowedServices(ClientId serviceProvider,
@@ -121,21 +130,26 @@ public class ServerConf {
     }
 
     /**
-     * Returns time (in minutes) where validity information is considered valid.
-     * After that time, OCSP responses must be refreshed.
+     * Returns all members.
      */
-    public static int getValidationFreshnessTime() {
-        return 60;
-    }
-
-    /** Returns certificates for all members. */
     public static List<ClientId> getMembers() throws Exception {
         log.trace("getMembers()");
 
         return getInstance().getMembers();
     }
 
-    /** Returns whether the SSL certificate of the service provider is verified. */
+    /**
+     * Returns the status of the member or null if member is not found.
+     */
+    public static String getMemberStatus(ClientId memberId) {
+        log.trace("getMemberStatus({})", memberId);
+
+        return getInstance().getMemberStatus(memberId);
+    }
+
+    /**
+     * Returns whether the SSL certificate of the service provider is verified.
+     */
     public static boolean isSslAuthentication(ServiceId service) {
         log.trace("isSslAuthentication({})", service);
 
@@ -151,15 +165,6 @@ public class ServerConf {
         log.trace("getIsCerts({})", client);
 
         return getInstance().getIsCerts(client);
-    }
-
-    /**
-     * Returns the URL of the GlobalConf distributor.
-     */
-    public static List<GlobalConfDistributorType> getFileDistributors() {
-        log.trace("getGlobalConfDistributors()");
-
-        return getInstance().getFileDistributors();
     }
 
     /**

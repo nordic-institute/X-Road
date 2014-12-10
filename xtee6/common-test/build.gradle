@@ -1,5 +1,5 @@
 dependencies {
-    compile project(':common-util')
+    compile project(':common-verifier')
     compile 'org.antlr:ST4:4.0.7'
     // JUnit is needed for ExpectedCodedException
     compile 'junit:junit:4.11'

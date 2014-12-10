@@ -13,6 +13,10 @@ import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getTokenSigner;
 import static ee.cyber.sdsb.signer.tokenmanager.ServiceLocator.getTokenWorker;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.tokenNotInitialized;
 
+/**
+ * An abstract request handler.
+ * @param <T> the type of message this handler handles
+ */
 @SuppressWarnings("unchecked")
 @Slf4j
 public abstract class AbstractRequestHandler<T> extends UntypedActor {

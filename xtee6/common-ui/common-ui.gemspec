@@ -7,10 +7,11 @@ require "common-ui/version"
 Gem::Specification.new do |s|
   s.name        = "common-ui"
   s.version     = CommonUi::VERSION
-  s.summary     = "TODO: Summary of CommonUi."
-  s.description = "TODO: Description of CommonUi."
+  s.summary     = "Common UI parts"
+  s.author      = "Cybernetica AS"
 
   s.files = Dir["{app,config,lib}/**/*"] + ["Rakefile"]
 
   s.add_dependency "rails", "~> 3.2.0"
+  s.add_dependency "addressable"
 end

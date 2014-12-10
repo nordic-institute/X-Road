@@ -8,32 +8,22 @@
 
 <% content_for :content do %>
   <section class="container" id="init-container">
-    <iframe id="upload_target" name="upload_target"></iframe>
-
-    <% if @init_globalconf %>
-      <%= form_tag "#{controller.controller_name}/init_globalconf",
-            :id => "globalconf_form", :multipart => true,
-            :target => "upload_target" do %>
-          <legend><%= t '.global_configuration' %></legend>
-          <table class="details">
-            <tr>
-              <td style="width: 15em;"><%= t '.distributor_url' %></td>
-              <td><%= text_field_tag "globalconf_url", nil, :style => "width: 100%;" %></td>
-            </tr>
-            <tr>
-              <td><%= t '.verification_certificate' %></td>
-              <td><%= file_field_tag "globalconf_cert" %></td>
-            </tr>
-          </table>
-
+    <% if @init_anchor %>
+      <%= form_tag "init/anchor_upload", :id => "anchor_upload_form",
+        :multipart => true, :target => "upload_target", :class => "cf" do %>
+        <legend><%= t 'anchor.import_title' %></legend>
         <br/>
-        <button id="submit_globalconf"><%= t 'common.submit' %></button>
+        <%= file_field_tag "anchor_upload_file" %>
+        <br/>
+        <button id="anchor_upload_submit" class="right"><%= t 'common.import' %></button>
       <% end %>
+
+      <iframe id="upload_target" name="upload_target"></iframe>
     <% end %>
 
     <% if @init_serverconf || @init_software_token %>
       <%= form_tag nil, :id => "serverconf_form" do %>
-        <legend><%= t '.security_server_id' %></legend>
+        <legend><%= t '.security_server_owner' %></legend>
         <table class="details">
           <tr>
             <td><%= t '.member_class' %></td>
@@ -48,8 +38,13 @@
             <td style="width: 15em;"><%= t '.member_name' %></td>
             <td id="owner_name"><%= @owner_name %></td>
           </tr>
+        </table>
+
+        <br/>
+        <legend><%= t '.security_server' %></legend>
+        <table class="details">
           <tr>
-            <td><%= t '.security_server_code' %></td>
+            <td style="width: 15em;"><%= t '.security_server_code' %></td>
             <td><%= text_field_tag "server_code", @server_code, :disabled => @server_code %></td>
           </tr>
         </table>

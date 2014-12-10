@@ -4,11 +4,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
 
 import ee.cyber.sdsb.common.CodedException;
@@ -29,13 +32,13 @@ import static ee.cyber.sdsb.common.util.MessageFileNames.*;
  * is a XML signature with one referenced message or a referenced hash chain
  * result with corresponding hash chains.
  */
+@Slf4j
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class SignatureCtx {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignatureCtx.class);
 
     private final List<SigningRequest> requests = new ArrayList<>();
 
+    @Getter(AccessLevel.PACKAGE)
     private final String signatureAlgorithmId;
 
     private String hashChainResult;
@@ -43,31 +46,38 @@ class SignatureCtx {
 
     private SignatureXmlBuilder builder;
 
-    SignatureCtx(String signatureAlgorithmId) {
-        this.signatureAlgorithmId = signatureAlgorithmId;
-    }
-
-    String getSignatureAlgorithmId() {
-        return signatureAlgorithmId;
-    }
-
+    /**
+     * Adds a new signing request to this context.
+     */
     synchronized void add(SigningRequest request) {
         requests.add(request);
     }
 
+    /**
+     * Produces the XML signature from the given signed data.
+     */
     synchronized String createSignatureXml(byte[] signatureValue)
             throws Exception {
         return builder.createSignatureXml(signatureValue);
     }
 
+    /**
+     * Returns the signature data for a given signer -- either normal signature
+     * or batch signature with corresponding hash chain and hash chain result.
+     */
     synchronized SignatureData createSignatureData(String signature,
             int signerIndex) {
         return new SignatureData(signature, hashChainResult,
                 hashChains != null ? hashChains[signerIndex] : null);
     }
 
+    /**
+     * Returns the data to be signed -- if there is only one signing request
+     * and the request is simple message (no attachments), then no hash chain
+     * is used.
+     */
     synchronized byte[] getDataToBeSigned() throws Exception {
-        LOG.trace("getDataToBeSigned(requests = {})", requests.size());
+        log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.size() == 0) {
             throw new CodedException(X_INTERNAL_ERROR,
@@ -98,7 +108,7 @@ class SignatureCtx {
     }
 
     private void buildHashChain() throws Exception {
-        LOG.trace("buildHashChain()");
+        log.trace("buildHashChain()");
 
         HashChainBuilder hashChainBuilder = new HashChainBuilder(
                 getDigestAlgorithmId(signatureAlgorithmId));

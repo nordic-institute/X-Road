@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertChainVerifier;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.util.CertUtils;
 import ee.cyber.sdsb.signer.certmanager.OcspResponseManager;
@@ -25,6 +26,9 @@ import ee.cyber.sdsb.signer.util.SignerUtil;
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
+/**
+ * Handles certificate import requests.
+ */
 @Slf4j
 public class ImportCertRequestHandler
         extends AbstractDeleteFromKeyInfo<ImportCert> {
@@ -173,8 +177,14 @@ public class ImportCertRequestHandler
     }
 
     private void verifyCertForImport(X509Certificate cert) {
+        if (CertUtils.isSelfSigned(cert)) {
+            // do not verify self-signed certs
+            return;
+        }
+
         try {
-            CertChain chain = CertChain.create(cert, null);
+            CertChain chain = CertChain.create(
+                    GlobalConf.getInstanceIdentifier(), cert, null);
             new CertChainVerifier(chain).verifyChainOnly(new Date());
         } catch (Exception e) {
             throw CodedException.tr(X_CERT_VALIDATION,

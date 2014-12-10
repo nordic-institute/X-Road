@@ -24,6 +24,20 @@ en:
       name: "Central Server"
       version: "version"
 
+  init:
+    index:
+      heading: "Initial configuration"
+      central_server_identification: "Central Server Identification"
+      instance_identifier: "Instance Identifier"
+      instance_identifier_help: "X-Road instance code, uniquely identifies this X-Road instance."
+      central_server_address: "Central Server Address"
+      central_server_address_help: "Central server's public DNS name or external IP address. Used for inbound connections from the external network to the central server."
+      software_token: "Software Token"
+      pin: "PIN"
+      pin_help: "PIN for accessing software token."
+      repeat_pin: "Repeat PIN"
+      initialized: "Central Server initialized"
+
   backup:
     index:
       item:
@@ -34,9 +48,9 @@ en:
   orgs:
     index:
       name: "Registry code"
-      fullname: "SDSB member's name"
+      fullname: "X-Road member's name"
       enter_name: "Registry code:"
-      enter_fullname: "SDSB member's name:"
+      enter_fullname: "X-Road member's name:"
       add_address: "Add address"
       delete: "Delete"
       add_contact: "Add E-mail"
@@ -49,6 +63,7 @@ en:
     class: "Member class"
     code: "Member code"
     admin_contact: "Administrative Contact"
+    search: "Search Member"
     add:
       title: "Add Member"
       load_from_file: "Load Data from File"
@@ -77,7 +92,7 @@ en:
         subsystem_code: "Subsystem Code"
         used_servers: "Used Servers"
         delete: "Delete Subsystem"
-        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' SDSB member '{{memberCode}}({{memberClass}})'?"
+        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' X-Road member '{{memberCode}}({{memberClass}})'?"
       used_servers:
         legend: "Used Servers"
         server_code: "Server Code"
@@ -96,22 +111,25 @@ en:
       all_servers:
         search:
           title: "Security Servers"
-    remove_confirm: "Are you sure you want to remove SDSB member '{{memberCode}}({{memberClass}})'?"
+    remove_confirm: "Are you sure you want to remove X-Road member '{{memberCode}}({{memberClass}})'? {{ownedServersMessage}}"
+    removable_owned_servers: "Following servers owned by this member will also be removed: '{{serversToRemove}}'"
 
   management_requests:
     legend: "Management Requests"
     process_id: "Request ID"
+    received: "Received"
     process_type: "Request type"
     created: "Created"
     status: "Status"
     request_id: "Request ID"
     request_type: "Request Type"
+    comments: "Comments"
     auth_cert_reg: "Certificate registration"
     client_reg: "Client registration"
     auth_cert_deletion: "Certificate deletion"
     client_deletion: "Client deletion"
     source: "Source"
-    source_center: "SDSB center"
+    source_center: "X-Road center"
     source_security_server: "Security server"
     server_owner_name: "Server Owner Name"
     server_owner_class: "Server Owner Class"
@@ -206,7 +224,7 @@ en:
       code: "Code"
       class: "Class"
       subsystem: "Subsystem"
-      sdsb: "SDSB"
+      sdsb: "Instance"
       type: "Type"
       added: "Added"
       description:
@@ -214,14 +232,14 @@ en:
           title: "Edit Description"
     index:
       group_name: "Group name"
-      org_name: "SDSB member's name"
+      org_name: "X-Road member's name"
       group_to_org: "Show by groups"
-      org_to_group: "Show by SDSB members"
-      org_not_in_group: "SDSB members that don't belong to selected group"
+      org_to_group: "Show by X-Road members"
+      org_not_in_group: "X-Road members that don't belong to selected group"
     orgs:
-      add_all: "Add all SDSB members"
-      add_selected: "Add selected SDSB members"
-      remove_confirm: "Are you sure you want to remove SDSB member '{{member}}' from group '{{group}}'?"
+      add_all: "Add all X-Road members"
+      add_selected: "Add selected X-Road members"
+      remove_confirm: "Are you sure you want to remove X-Road member '{{member}}' from group '{{group}}'?"
 
   central_services:
     service_code: "Code"
@@ -250,22 +268,22 @@ en:
     application:
       title: "Central Server Administration"
 
-  pkis:
+  approved_cas:
     trusted_certification_service: "Trusted Certification Service"
     intermediate_ca: "Intermediate CA"
     intermediate_ca_new_title: "Insert intermediate CA"
     intermediate_ca_edit_title: "Edit intermediate CA"
     add:
       step1:
-        title: "Insert Top CA Certificate"
+        title: "Insert Service CA Certificate"
       step2:
-        title: "View Top CA Certificate Info"
+        title: "View Service CA Certificate Info"
       step3:
         title: "Insert Name Extractor"
       step4:
-        title: "Insert Top CA OCSP Responders"
-        top_ca_ocsp_responder: "Top CA OCSP responder"
-        add_top_ca_ocsp_responder: "Add top CA OCSP responder"
+        title: "Insert Service CA OCSP Responders"
+        top_ca_ocsp_responder: "Service CA OCSP responder"
+        add_top_ca_ocsp_responder: "Add service CA OCSP responder"
       step5:
         title: "Intermediate CAs"
         intermediate_ca_ocsp_responder: "Intermediate CA OCSP responder"
@@ -273,8 +291,8 @@ en:
       url: "URL"
       cert: "Certificate"
       load: "Load"
-      ocsp_responders_uploading: "Top CA OCSP responder cert currently being uploaded, try again"
-    remove_confirm: "Are you sure you want to remove PKI '{{pki}}'?"
+      ocsp_responders_uploading: "Service CA OCSP responder cert currently being uploaded, try again"
+    remove_confirm: "Are you sure you want to remove approved CA '{{approvedCa}}'?"
 
   distributed_files:
     filetype: "File type"
@@ -307,3 +325,57 @@ en:
     edit_existing: "Edit Timestamping Service"
     remove_confirm: "Are you sure you want to remove TSP '{{tsp}}'?"
 
+  configuration_management:
+    source_tab:
+      internal_configuration: "Internal Configuration"
+      external_configuration: "External Configuration"
+      recreate: "Re-Create"
+      anchor: "Anchor"
+      anchor_file_not_found: "Anchor file not found"
+      download_url: "Download URL"
+      signing_keys: "Signing Keys"
+      login: "Login"
+      logout: "Logout"
+      device_not_found: "device not found"
+      activate: "Activate"
+      new_key: "New Key"
+      device_key: "Device ID: Key ID"
+      configuration_parts: "Configuration Parts"
+      file_name: "File"
+      content_identifier: "Content Identifier"
+      updated: "Updated"
+      upload_configuration_part: "Upload Configuration Part"
+      activate_signing_key_confirm: "Activate key '{{key_id}}'?"
+      delete_signing_key_confirm: "Delete key '{{key_id}}'?"
+      part_validator_stderr_title: "Standard error of part validation"
+    trusted_anchors:
+      title: "Trusted Anchors"
+      none: "No trusted anchors found."
+      download: "Download"
+      delete: "Delete"
+      delete_confirm: "Are you sure you want to remove configuration anchor for instance '{{instanceIdentifier}}'?"
+      hash: "Hash:"
+      generated: "Generated:"
+      upload:
+        button_title: "Upload Anchor"
+        dialog_title: "Upload Trusted Anchor"
+        confirm: "Are you sure you want to upload new trusted anchor?"
+      save:
+        dialog_title: "Confirm upload"
+
+  system_settings:
+    index:
+      system_parameters: "System Parameters"
+      instance_identifier: "Instance Identifier"
+      central_server_address: "Central Server Address"
+      management_services: "Management Services"
+      service_provider_id: "Service Provider Identifier"
+      service_provider_name: "Service Provider Name"
+      wsdl_address: "WSDL Address"
+      services_address: "Services Address"
+      security_server_owners_group: "Security Server Owners Group Code"
+      member_classes: "Member Classes"
+      member_class_code: "Code"
+      member_class_description: "Description"
+      member_class_add: "Add Member Class"
+      member_class_edit: "Edit Member Class"

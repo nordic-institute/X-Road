@@ -28,26 +28,7 @@
         }
     }
 
-    function initClientAclSubjectsDialog() {
-        $("#client_acl_subjects_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 600,
-            width: "95%",
-            open: function() {
-                oAclSubjects.fnAdjustColumnSizing();
-                oAclSubjects.fnFilter('');
-                enableActions();
-            },
-            buttons: [
-                { text: _("common.close"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        });
-
+    function initClientAclSubjectsTab() {
         $("#acl_subjects_add").click(function() {
             ACL_SUBJECTS_SEARCH.openDialogWithNext(oAclSubjects.fnGetData(), function(subject) {
                 // add the new subject to subjects table...
@@ -70,8 +51,9 @@
                 subject_id: oAclSubjects.getFocusData().subject_id
             };
 
+            oServicesOpen.fnClearTable();
+
             $.get(action("acl_subject_open_services"), params, function(response) {
-                oServicesOpen.fnClearTable();
                 oServicesOpen.fnAddData(response.data);
 
                 openAclSubjectOpenServicesDialog();
@@ -86,88 +68,92 @@
             height: 500,
             width: "95%",
             open: function() {
-                oServicesOpen.fnAdjustColumnSizing();
                 oServicesOpen.fnFilter('');
                 enableActions();
             },
             buttons: [
                 { text: _("common.close"),
                   click: function() {
+                      // In case a new subject is added to
+                      // #acl_subjects, we need a clean #services_open
+                      // table to display openable services correctly.
                       oServicesOpen.fnClearTable();
                       $(this).dialog("close");
                   }
+                },
+                { id: "acl_subject_open_services_remove_all",
+                  text: _("common.remove_all"),
+                  privilege: "edit_acl_subject_open_services",
+                  click: function() {
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          subject_id: oAclSubjects.getFocusData().subject_id
+                      };
+
+                      confirm("clients.acl_subject_open_services_dialog.delete_all_confirm",
+                              null, function() {
+                          $.post(action("acl_subject_open_services_remove"), params,
+                                 function(response) {
+                              oServicesOpen.fnReplaceData(response.data);
+                              enableActions();
+                          }, "json");
+                      });
+                  }
+                },
+                { id: "acl_subject_open_services_remove",
+                  text: _("common.remove_selected"),
+                  privilege: "edit_acl_subject_open_services",
+                  click: function() {
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          subject_id: oAclSubjects.getFocusData().subject_id,
+                          service_codes: []
+                      };
+
+                      $("#services_open .row_selected").each(function(idx, row) {
+                          var service = oServicesOpen.fnGetData(row);
+                          params.service_codes.push(service.service_code);
+                      });
+
+                      var serviceCodesJoined = "<p class='align-center bold'>" +
+                          params.service_codes.join(", ") + "</p>";
+
+                      confirm("clients.acl_subject_open_services_dialog.delete_selected_confirm",
+                              {services: serviceCodesJoined}, function() {
+                          $.post(action("acl_subject_open_services_remove"), params,
+                                 function(response) {
+                              oServicesOpen.fnReplaceData(response.data);
+                              enableActions();
+                          }, "json");
+                      });
+                  }
+                },
+                { id: "acl_subject_open_services_add",
+                  text: _("clients.acl_subject_open_services_dialog.add_services"),
+                  privilege: "edit_acl_subject_open_services",
+                  click: function() {
+                      var params = {
+                          client_id: $("#details_client_id").val()
+                      };
+
+                      $.get(action("acl_services"), params, function(response) {
+                          oServicesAll.fnReplaceData(response.data);
+                          $("#acl_subject_open_services_add_dialog").dialog("open");
+                      });
+                  }
                 }
             ]
-        });
-
-        $("#acl_subject_open_services_add").click(function() {
-            var params = {
-                client_id: $("#details_client_id").val()
-             };
-
-            $.get(action("acl_services"), params, function(response) {
-                oServicesAll.fnClearTable();
-                oServicesAll.fnAddData(response.data);
-                $("#acl_subject_open_services_add_dialog").dialog("open");
-            });
-        });
-
-        $("#acl_subject_open_services_remove").click(function() {
-            var params = {
-                client_id: $("#details_client_id").val(),
-                subject_id: oAclSubjects.getFocusData().subject_id,
-                service_codes: []
-            };
-
-            $("#services_open .row_selected").each(function(idx, row) {
-                var service = oServicesOpen.fnGetData(row);
-                params.service_codes.push(service.service_code);
-            });
-
-            var serviceCodesJoined = "<p class='align-center bold'>" +
-                params.service_codes.join(", ") + "</p>";
-
-            confirm("clients.acl_subject_open_services_dialog.delete_selected_confirm",
-                    {services: serviceCodesJoined}, function() {
-
-                $.post(action("acl_subject_open_services_remove"), params,
-                       function(response) {
-                    oServicesOpen.fnClearTable();
-                    oServicesOpen.fnAddData(response.data);
-                    enableActions();
-                });
-            });
-        });
-
-        $("#acl_subject_open_services_remove_all").click(function() {
-            var params = {
-                client_id: $("#details_client_id").val(),
-                subject_id: oAclSubjects.getFocusData().subject_id
-            };
-
-            confirm("clients.acl_subject_open_services_dialog.delete_all_confirm",
-                    null, function() {
-                $.post(action("acl_subject_open_services_remove"), params,
-                       function(response) {
-                    oServicesOpen.fnClearTable();
-                    oServicesOpen.fnAddData(response.data);
-                    enableActions();
-                });
-            });
         });
     }
 
     function openAclSubjectOpenServicesDialog() {
         var selected = oAclSubjects.getFocusData();
         var titleParams = {
-            type: selected.type,
-            name: selected.name_description,
-            code: selected.member_group_code,
-            subsystem: selected.subsystem_code
+            name: selected.name_description ? selected.name_description : "",
+            id: $(".sdsb-id", oAclSubjects.getFocus()).text()
         };
-        var title = selected.subsystem_code != null
-            ? _("clients.acl_subject_open_services_dialog.subsystem_title", titleParams)
-            : _("clients.acl_subject_open_services_dialog.other_title", titleParams);
+        var title =
+            _("clients.acl_subject_open_services_dialog.title", titleParams);
 
         $("#acl_subject_open_services_dialog").dialog("option", "title", title);
         $("#acl_subject_open_services_dialog").dialog("open");
@@ -203,8 +189,7 @@
                       });
 
                       $.post(action("acl_subject_open_services_add"), params, function(response) {
-                          oServicesOpen.fnClearTable();
-                          oServicesOpen.fnAddData(response.data);
+                          oServicesOpen.fnReplaceData(response.data);
                           enableActions();
 
                           $(dialog).dialog("close");
@@ -212,7 +197,7 @@
                           if (!$("#acl_subject_open_services_dialog").is(":visible")) {
                               openAclSubjectOpenServicesDialog();
                           }
-                      });
+                      }, "json");
                   }
                 },
                 { text: _("clients.acl_subject_open_services_dialog.add_all"),
@@ -235,8 +220,7 @@
                       });
 
                       $.post(action("acl_subject_open_services_add"), params, function(response) {
-                          oServicesOpen.fnClearTable();
-                          oServicesOpen.fnAddData(response.data);
+                          oServicesOpen.fnReplaceData(response.data);
                           enableActions();
 
                           $(dialog).dialog("close");
@@ -244,7 +228,7 @@
                           if (!$("#acl_subject_open_services_dialog").is(":visible")) {
                               openAclSubjectOpenServicesDialog();
                           }
-                      });
+                      }, "json");
                   }
                 },
 
@@ -261,12 +245,25 @@
         var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
         opts.aoColumns = [
-            { "mData": "name_description" },
+            { mData: "name_description",
+              mRender: function(data, type, full) {
+                  if (type == 'display') {
+                      return full.member_class ?
+                          clientName(data) : groupDesc(data);
+                  }
+                  return data;
+              },
+              fnCreatedCell: function(nTd, sData, oData) {
+                  if (!oData.name_description) {
+                      $(nTd).addClass("missing");
+                  }
+              },
+            },
             {
                 mData: function(source, type, val) {
                     return generateIdElement({
                         "Type": source.type,
-                        "Instance": source.sdsb,
+                        "Instance": source.instance,
                         "Class": source.member_class,
                         "Code": source.member_group_code,
                         "Subsystem": source.subsystem_code
@@ -291,7 +288,7 @@
         opts.aoColumns = [
             { "mData": "service_code" },
             { "mData": "title" },
-            { "mData": "rights_given" }
+            { "mData": "rights_given", "sWidth": "15%" }
         ];
 
         oServicesOpen = $("#services_open").dataTable(opts);
@@ -336,7 +333,7 @@
     }
 
     $(document).ready(function() {
-        // initClientAclSubjectsDialog();
+        initClientAclSubjectsTab();
         initAclSubjectOpenServicesDialog();
         initAclSubjectOpenServicesAddDialog();
 
@@ -354,41 +351,9 @@
 
         $.get(action("client_acl_subjects"), params, function(response) {
             oAclSubjects.fnAddData(response.data);
-            oAclSubjects.fnAdjustColumnSizing();
             oAclSubjects.fnFilter('');
             enableActions();
         }, "json");
-
-        $("#acl_subjects_add").click(function() {
-            ACL_SUBJECTS_SEARCH.openDialogWithNext(oAclSubjects.fnGetData(), function(subject) {
-                // add the new subject to subjects table...
-                oAclSubjects.fnAddData(subject);
-
-                // ...and select it
-                $.each(oAclSubjects.fnGetData(), function(i, val) {
-                    if (val.subject_id == subject.subject_id) {
-                        oAclSubjects.setFocus(0, oAclSubjects.fnGetNodes(i));
-                    }
-                });
-
-                $("#acl_subject_open_services_add").click();
-            });
-        });
-
-        $("#acl_subject_open_services").click(function() {
-            var params = {
-                client_id: $("#details_client_id").val(),
-                subject_id: oAclSubjects.getFocusData().subject_id
-            };
-
-            oServicesOpen.fnClearTable();
-
-            $.get(action("acl_subject_open_services"), params, function(response) {
-                oServicesOpen.fnAddData(response.data);
-
-                openAclSubjectOpenServicesDialog();
-            }, "json");
-        });
     };
 
 }(window.ACL_SUBJECTS = window.ACL_SUBJECTS || {}, jQuery));

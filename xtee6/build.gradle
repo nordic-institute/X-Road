@@ -1,11 +1,9 @@
 subprojects {
-    // Indicates whether to measure code coverage when running unit tests
-    ext.codeCoverage = false
-
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'idea'
+    apply plugin: 'checkstyle'
 
     group = 'ee.cyber.sdsb'
     version = '1.0'
@@ -26,17 +24,28 @@ subprojects {
     }
 
     configurations {
-        emma
         provided
     }
-    
+
+    configurations.all {
+//        resolutionStrategy.failOnVersionConflict()
+
+        // Let's replace the c3p0 ver. 0.9.1.1 required by Quartz
+        // with ver. 0.9.2.1 used by Hibernate
+        resolutionStrategy.eachDependency {
+            DependencyResolveDetails details ->
+                if (details.requested.group == 'c3p0' &&
+                        details.requested.name == 'c3p0' &&
+                        details.requested.version == '0.9.1.1') {
+                    details.useTarget "com.mchange:c3p0:0.9.2.1"
+                }
+        }
+    }
+
     dependencies {
         testCompile 'junit:junit:4.11'
-        
-        provided 'org.projectlombok:lombok:0.12.0'
-        
-        emma 'emma:emma:2.1.5320'
-        emma 'emma:emma_ant:2.1.5320'
+
+        provided 'org.projectlombok:lombok:1.14.8'
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -44,10 +53,10 @@ subprojects {
         from sourceSets.main.allSource
     }
 
-    tasks.withType(Compile) {
+    tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
-        sourceCompatibility = 1.7
-        targetCompatibility = 1.7
+        sourceCompatibility = 1.8
+        targetCompatibility = 1.8
     }
 
     tasks.withType(JavaExec) {
@@ -63,71 +72,23 @@ subprojects {
     artifacts {
         archives sourcesJar
     }
-    
+
     sourceSets.main.compileClasspath += configurations.provided
     sourceSets.test.compileClasspath += configurations.provided
-    
+
     eclipse {
         classpath {
-            plusConfigurations += configurations.provided 
+            plusConfigurations += [configurations.provided]
         }
-    }   
-    
-    afterEvaluate { Project project ->
-        if (project.codeCoverage) {
-            test {
-                // add EMMA related JVM args to our tests
-                jvmArgs "-XX:-UseSplitVerifier", 
-                        "-Demma.coverage.out.file=$buildDir/tmp/emma/metadata.emma", 
-                        "-Demma.coverage.out.merge=true"
+    }
 
-                doFirst {
-                   // define the custom EMMA ant tasks
-                   ant.taskdef(resource: "emma_ant.properties", classpath: configurations.emma.asPath)
-             
-                   ant.path(id: "run.classpath") {
-                      pathelement(location: sourceSets.main.output.classesDir.absolutePath)
-                   }
-
-                   def emmaInstDir = new File(sourceSets.main.output.classesDir.parentFile.parentFile, "tmp/emma/instr")
-                   emmaInstDir.mkdirs()
-
-                   // instruct our compiled classes and store them at $buildDir/tmp/emma/instr
-                   ant.emma(enabled: 'true', verbosity: 'info') {
-                       instr(merge: "true",
-                           destdir: emmaInstDir.absolutePath,
-                           instrpathref: "run.classpath",
-                           metadatafile: new File(emmaInstDir, '/metadata.emma').absolutePath) {
-                               instrpath {
-                                   fileset(dir: sourceSets.main.output.classesDir.absolutePath, includes:"**/*.class")
-                               }
-                       }
-                   }
-
-                   setClasspath(files("$buildDir/tmp/emma/instr") + configurations.emma + getClasspath())
-                }
-
-                // The report should be generated directly after the tests are done.
-                doLast {
-                   def srcDir = sourceSets.main.java.srcDirs.toArray()[0]
-                   //println "Creating test coverage reports for classes " + srcDir
-
-                   def emmaInstDir = new File(sourceSets.main.output.classesDir.parentFile.parentFile, "tmp/emma")
-
-                   ant.emma(enabled:"true") {
-                      new File("$buildDir/reports/emma").mkdirs()
-                      report(sourcepath: srcDir) {
-                         fileset(dir: emmaInstDir.absolutePath) {
-                            include(name: "**/*.emma")
-                         }
-                         html(outfile: "$buildDir/reports/emma/coverage.html", encoding: "UTF-8")
-                      }
-                   }
-
-                   //println "Test coverage reports available at $buildDir/reports/emma."
-                }
-            }
-        }
+    checkstyle {
+        toolVersion = "6.1.1"
+        configFile = new File(rootDir, "doc/checkstyle.xml")
+        //configProperties = new File(rootDir, "doc/checkstyle.properties")
+        configProperties.config_loc = "$rootDir/doc"
+        ignoreFailures = true
+        showViolations = false
     }
 }
 

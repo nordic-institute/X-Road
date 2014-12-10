@@ -4,6 +4,9 @@ import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
 import ee.cyber.sdsb.signer.protocol.message.ListTokens;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Handles requests for token list.
+ */
 public class ListTokensRequestHandler
         extends AbstractRequestHandler<ListTokens> {
 

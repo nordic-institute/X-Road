@@ -43,7 +43,7 @@ class AuthCertRegRequest implements ManagementRequest {
         this.owner = owner;
         this.requestMessage = request;
 
-        this.dataToSign = request.getXml().getBytes(request.getCharset());
+        this.dataToSign = request.getBytes();
     }
 
     @Override
@@ -83,7 +83,7 @@ class AuthCertRegRequest implements ManagementRequest {
     }
 
     private void writeSignatures() throws Exception {
-        String[] partHeader = { HEADER_SIG_ALGO_ID + ": " + SIG_AGLO_ID };
+        String[] partHeader = {HEADER_SIG_ALGO_ID + ": " + SIG_AGLO_ID};
 
         multipart.startPart(MimeTypes.BINARY, partHeader);
         multipart.write(getAuthSignature());

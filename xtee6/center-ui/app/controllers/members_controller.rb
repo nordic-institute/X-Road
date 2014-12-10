@@ -4,6 +4,7 @@ class MembersController < ApplicationController
   include AuthCertHelper
 
   before_filter :verify_get, :only => [
+      :index,
       :members_refresh,
       :owned_servers,
       :global_groups,
@@ -26,7 +27,15 @@ class MembersController < ApplicationController
       :add_member_to_global_group,
       :delete_member_from_global_group]
 
+  before_filter :init_owners_group_code, :only => [:global_groups]
+
   # -- Common GET methods - start ---
+
+  def index
+    if cannot?(:view_members)
+      redirect_to :controller => :configuration_management
+    end
+  end
 
   def get_records_count
     render_json_without_messages(:count => SdsbMember.count)
@@ -59,6 +68,38 @@ class MembersController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
+  def member_search
+    authorize!(:search_members)
+
+    searchable = params[:sSearch]
+    security_server_code = params[:securityServerCode]
+
+    query_params = get_list_query_params(
+      get_member_search_column(get_sort_column_no))
+
+    # TODO: does not seem to exclude clients of security_server_code
+    providers = SecurityServerClient.get_addable_clients_for_server(
+        security_server_code, query_params)
+    count = SecurityServerClient.get_addable_clients_count(
+        security_server_code, searchable)
+
+    result = []
+    providers.each do |each|
+      provider_id = each[:identifier]
+
+      result << {
+        :name => each[:name],
+        :member_class => provider_id.member_class,
+        :member_code => provider_id.member_code,
+        :subsystem_code => provider_id.subsystem_code,
+        :sdsb_instance => provider_id.sdsb_instance,
+        :type => provider_id.object_type
+      }
+    end
+
+    render_data_table(result, count, params[:sEcho])
+  end
+
   def owned_servers
     authorize!(:view_member_details)
 
@@ -84,17 +125,10 @@ class MembersController < ApplicationController
 
   def used_servers
     authorize!(:view_member_details)
-    member_id_param = params[:memberId]
 
-    if member_id_param.empty?
-      raise "Member id parameter must be provided"
-    end
-      
-    member_id = member_id_param.to_i
+    member = find_member(params[:memberClass], params[:memberCode])
 
-    servers = SdsbMember.get_used_servers(member_id)
-
-    render_json(servers)
+    render_json(SdsbMember.get_used_servers(member.id))
   end
 
   def management_requests
@@ -103,28 +137,17 @@ class MembersController < ApplicationController
     member_class = params[:memberClass]
     member_code = params[:memberCode]
 
-    user_requests = Request.joins(:sec_serv_user).where(
-      :identifiers => {
-        :member_class => member_class,
-        :member_code => member_code
-      }
-    )
+    query_params = get_list_query_params(
+      get_management_requests_column(get_sort_column_no))
+
+    requests = SdsbMember.get_management_requests(
+        member_class, member_code, query_params)
+    count = SdsbMember.get_management_requests_count(member_class, member_code)
 
     result = []
-    add_requests_to_result(user_requests, result)
+    add_requests_to_result(requests, result)
 
-    owned_server_requests = Request.joins(:security_server).where(
-      :identifiers => {
-        :member_class => member_class,
-        :member_code => member_code
-      }
-    )
-
-    add_requests_to_result(owned_server_requests, result)
-
-    result.uniq!
-
-    render_json(result)
+    render_data_table(result, count, params[:sEcho])
   end
 
   def remaining_global_groups
@@ -287,7 +310,7 @@ class MembersController < ApplicationController
     end
 
     server_id = SecurityServerId.from_parts(
-        SystemParameter.sdsb_instance,
+        SystemParameter.instance_identifier,
         params[:ownerClass],
         params[:ownerCode],
         params[:serverCode])
@@ -304,7 +327,7 @@ class MembersController < ApplicationController
     logger.debug("Client reg request '#{client_reg_request.inspect}'"\
             "registered successfully")
 
-    notice(t("members.client_add_request_added", 
+    notice(t("members.client_add_request_added",
       {:client_id => client_id, :server_id => server_id}))
 
     render_json()
@@ -317,7 +340,7 @@ class MembersController < ApplicationController
     subsystem_code = get_subsystem_code(subsystem_code_param)
 
     server_id = SecurityServerId.from_parts(
-        SystemParameter.sdsb_instance,
+        SystemParameter.instance_identifier,
         params[:ownerClass],
         params[:ownerCode],
         params[:serverCode])
@@ -385,6 +408,10 @@ class MembersController < ApplicationController
 
   private
 
+  def init_owners_group_code
+    @owners_group_code = SystemParameter.security_server_owners_group
+  end
+
   def get_all_member_data(member)
     {
       :id => member.id,
@@ -404,12 +431,15 @@ class MembersController < ApplicationController
     group_members.each do |each|
       group = each.global_group
       member_id = each.group_member
+      group_code = group.group_code
+
       result << {
         :group_id => group.id,
-        :group_code => group.group_code,
+        :group_code => group_code,
         :subsystem => member_id.subsystem_code,
         :identifier => member_id.to_s,
-        :added_to_group => format_time(member_id.created_at.localtime)
+        :added_to_group => format_time(member_id.created_at.localtime),
+        :is_readonly => group_code == @owners_group_code
       }
     end
     result
@@ -426,7 +456,8 @@ class MembersController < ApplicationController
         :owner_id => server.owner.id,
         :owner_name => server.owner.name,
         :owner_class => server.owner.member_class.code,
-        :owner_code => server.owner.member_code
+        :owner_code => server.owner.member_code,
+        :identifier => server.get_identifier()
       }
     end
 
@@ -483,7 +514,7 @@ class MembersController < ApplicationController
 
   def get_client_id(member_class, member_code, subsystem_code)
     ClientId.from_parts(
-        SystemParameter.sdsb_instance,
+        SystemParameter.instance_identifier,
         member_class,
         member_code,
         subsystem_code
@@ -503,6 +534,25 @@ class MembersController < ApplicationController
     end
   end
 
+  def get_member_search_column(index)
+    case index
+    when 0
+      return 'security_server_client_names.name'
+    when 1
+      return 'identifiers.member_code'
+    when 2
+      return 'identifiers.member_class'
+    when 3
+      return 'identifiers.subsystem_code'
+    when 4
+      return 'identifiers.sdsb_instance'
+    when 5
+      return 'identifiers.object_type'
+    else
+      raise "Index '#{index}' has no corresponding column."
+    end
+  end
+
   def get_used_servers_column(index)
     case index
     when 0
@@ -511,6 +561,21 @@ class MembersController < ApplicationController
       return 'security_server_clients.subsystem_code'
     when 2
       return 'security_server_clients.name'
+    else
+      raise "Index '#{index}' has no corresponding column."
+    end
+  end
+
+  def get_management_requests_column(index)
+    case index
+    when 0
+      return 'requests.id'
+    when 1
+      return 'requests.type'
+    when 2
+      return 'requests.created_at'
+    when 3
+      return 'requests.processing_status'
     else
       raise "Index '#{index}' has no corresponding column."
     end

@@ -1,8 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<SOAP-ENV:Envelope
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
-        xmlns:id="http://x-road.eu/xsd/identifiers">
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
     <SOAP-ENV:Header>
         <sdsb:client id:objectType="MEMBER">
             <id:sdsbInstance>EE</id:sdsbInstance>
@@ -16,7 +12,7 @@
             <id:serviceCode>getState</id:serviceCode>
         </sdsb:service>
         <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
-        <sdsb:id>411d6755661409fed365ad8135f8210be07613da</sdsb:id>
+        <sdsb:id>0113822191372dc79b094c13c4b7e567</sdsb:id>
         <sdsb:issue/>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>

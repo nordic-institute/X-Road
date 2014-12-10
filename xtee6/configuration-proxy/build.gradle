@@ -1,0 +1,64 @@
+plugins {
+    id "eu.appsatori.fatjar" version "0.3"
+}
+
+dependencies {
+    compile project(':common-util')
+    compile project(':signer-protocol')
+
+    compile 'commons-cli:commons-cli:1.2'
+
+    testCompile project(':common-test')
+}
+
+fatJarPrepareFiles {
+    include '*'
+}
+
+fatJar {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    manifest {
+        attributes 'Main-Class': 'ee.cyber.sdsb.confproxy.ConfProxyMain'
+    }
+}
+
+jar.enabled = false
+build.dependsOn fatJar
+buildall.dependsOn fatJar
+
+task runConfigurationProxyTest(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.conf.path=src/test/resources/',
+            '-Dee.cyber.sdsb.common.configuration-path=src/test/resources/test-conf-simple',
+            '-Dee.cyber.sdsb.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+    
+    main = 'ee.cyber.sdsb.confproxy.ConfProxyTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runConfigurationProxyMain(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.conf.path=src/test/resources/',
+            '-Dee.cyber.sdsb.common.configuration-path=build/',
+            '-Dee.cyber.sdsb.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+    
+    main = 'ee.cyber.sdsb.confproxy.ConfProxyMain'
+    classpath = sourceSets.test.runtimeClasspath
+
+    args 'PROXY1'
+}
+
+task runConfigurationProxyUtilTest(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.conf.path=src/test/resources/',
+            '-Dee.cyber.sdsb.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+
+    main = 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilMain'
+    classpath = sourceSets.test.runtimeClasspath
+
+    args 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilGenerateAnchor', '-p', 'PROXY1', '-f', 'test.xml'
+    //args 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilAddSigningKey', '-p', 'PROXY1', '-t', '0'
+    //args 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilDelSigningKey', '-p', 'PROXY1', '-k', 'B8F553EC0944EB8022B29166D5C13E6298FB6616'
+    //args 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilViewConf', '-a'
+    //args 'ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilCreateInstance', '-p', 'PROXY2'
+}

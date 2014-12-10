@@ -89,6 +89,7 @@ div.dialog-bgr {
             @include normal;
         }
     }
+
     .ui-dialog-buttonpane {
         padding: 0;
         background: $base-color-light;
@@ -146,6 +147,10 @@ div.dialog-bgr {
         float: none;
         color: $base-color-dark;
         font-size: 11pt;
+    }
+
+    .ui-dialog-content {
+        padding-top: 1em;
     }
 
     header.dialog-header {

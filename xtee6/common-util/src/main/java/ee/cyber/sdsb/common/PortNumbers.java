@@ -21,7 +21,7 @@ public interface PortNumbers {
     public static final int ADMIN_PORT = 5566;
 
     /** Signer listens for HTTP queries. */
-    public static final int SIGNER_PORT = 5556;
+    public static final int SIGNER_PORT = 5558;
 
     /** Center-Service HTTP port. */
     public static final int CENTER_SERVICE_HTTP_PORT = 3333;
@@ -30,7 +30,7 @@ public interface PortNumbers {
     public static final int CENTER_SERVICE_HTTPS_PORT = 3443;
 
     /** Port for Distributed Files Client. */
-    public static final int DISTRIBUTED_FILES_CLIENT_PORT = 5665;
+    public static final int CONFIGURATION_CLIENT_PORT = 5665;
 
     /** Admin port for proxy monitor agent */
     public static final int PROXY_MONITOR_AGENT_ADMIN_PORT = 5588;

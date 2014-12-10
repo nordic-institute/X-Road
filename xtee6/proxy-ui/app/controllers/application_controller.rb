@@ -1,8 +1,7 @@
-require "fileutils"
 require "management_request_helper"
-require "conf_helper"
 
 java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.GlobalConf
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.IdentifierDAOImpl
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.ServerConfDAOImpl
@@ -40,7 +39,6 @@ class ApplicationController < BaseController
 
   INTERNAL_SSL_CERT_PATH = "/etc/sdsb/ssl/internal.crt"
 
-  include ConfHelper
   include ManagementRequestHelper
 
   around_filter :transaction
@@ -67,12 +65,8 @@ class ApplicationController < BaseController
     if initialized?
       @alerts = []
 
-      if serverconf.globalConfDistributor.isEmpty
-        @alerts << t('application.distributor_not_configured')
-      end
-
       SignerProxy::getTokens.each do |token|
-        if token.id == KeysController::SSL_TOKEN_ID
+        if token.id == SignerProxy::SSL_TOKEN_ID
           unless token.active
             link = url_for(:controller => :keys, :only_path => true)
             text = t('application.softtoken_pin_not_entered')
@@ -187,23 +181,17 @@ class ApplicationController < BaseController
   end
 
   def globalconf_initialized?
-    globalconf.exists?
+    conf_anchor_file = SystemProperties::getConfigurationAnchorFile()
+    logger.debug("Checking existence of configuration anchor file "\
+        "'#{conf_anchor_file}'")
+
+    File.exists?(conf_anchor_file)
   end
 
   def serverconf_initialized?
     serverconf &&
       serverconf.owner &&
       serverconf.serverCode
-  end
-
-  def software_token_initialized?
-    SignerProxy::getTokens.each do |token|
-      if token.id == KeysController::SSL_TOKEN_ID
-        return token.status != TokenStatusInfo::NOT_INITIALIZED
-      end
-    end
-
-    false
   end
 
   def after_commit(&block)
@@ -215,6 +203,7 @@ class ApplicationController < BaseController
       @serverconf = ServerConfDAOImpl.instance.conf
     end
 
+    logger.debug("Serverconf is nil? #{@serverconf == nil}")
     @serverconf
   end
 
@@ -222,13 +211,12 @@ class ApplicationController < BaseController
     ServerConfDatabaseCtx.session.saveOrUpdate(serverconf)
   end
 
-  def globalconf
-    @globalconf ||= Conf.new(SystemProperties::getGlobalConfFile(),
-      Java::ee.cyber.sdsb.common.conf.globalconf.ObjectFactory)
-  end
-
   def owner_identifier
     @owner_identifier ||= serverconf.owner.identifier
+  end
+
+  def sdsb_instance
+    GlobalConf::getInstanceIdentifier
   end
 
   def read_server_id
@@ -251,54 +239,6 @@ class ApplicationController < BaseController
     @owner_name = get_member_name(id.memberClass, id.memberCode)
   end
 
-  ##
-  # Converts ClientId to it's globalconf member id, by omitting the
-  # subsystem code.
-  #
-  def to_member_id(client_id)
-    ClientId.create(client_id.sdsbInstance,
-      client_id.memberClass, client_id.memberCode, nil)
-  end
-
-  ##
-  # Converts a globalconf member (or a reference to member) to ClientId.
-  #
-  def globalconf_member_to_client_id(globalconf_member)
-    if globalconf_member.java_kind_of?(Java::javax.xml.bind.JAXBElement)
-      globalconf_member = globalconf_member.getValue
-    end
-
-    if globalconf_member.java_kind_of?(
-        Java::ee.cyber.sdsb.common.conf.globalconf.MemberType)
-      return ClientId.create(
-        globalconf.root.instanceIdentifier,
-        globalconf_member.memberClass,
-        globalconf_member.memberCode, nil)
-    else
-      globalconf.root.member.each do |member|
-        member.subsystem.each do |subsystem|
-          if subsystem.id == globalconf_member.id
-            return ClientId.create(
-              globalconf.root.instanceIdentifier,
-              member.memberClass, member.memberCode,
-              subsystem.subsystemCode)
-          end
-        end
-      end
-    end
-  end
-
-  ##
-  # Extracts SecurityServerId from globalconf's SecurityServerType.
-  #
-  def extract_server_id(server)
-    owner_id = globalconf_member_to_client_id(server.owner)
-
-    SecurityServerId.create(
-      owner_id.sdsbInstance, owner_id.memberClass,
-      owner_id.memberCode, server.serverCode)
-  end
-
   def import_services
     if sdsb_promoted?
       logger.info("SDSB promoted, skipping services import")
@@ -312,8 +252,7 @@ class ApplicationController < BaseController
 
       if $?.exitstatus != 0
         logger.error(output)
-        output = output[-200, 200] if output.length > 200
-        error(t('application.services_import_failed', :output => output))
+        error(t('application.services_import_failed'))
       end
     else
       logger.warn("Service importer unspecified, skipping import")
@@ -349,8 +288,7 @@ class ApplicationController < BaseController
 
       if $?.exitstatus != 0
         logger.error(output)
-        output = output[-200, 200] if output.length > 200
-        error(t('application.services_export_failed', :output => output))
+        error(t('application.services_export_failed'))
       end
     else
       logger.warn("Service exporter unspecified, skipping")
@@ -368,8 +306,7 @@ class ApplicationController < BaseController
 
       if $?.exitstatus != 0
         logger.error(output)
-        output = output[-200, 200] if output.length > 200
-        error(t('application.internal_ssl_export_failed', :output => output))
+        error(t('application.internal_ssl_export_failed'))
       end
     else
       logger.warn("Internal SSL exporter unspecified, skipping")
@@ -444,15 +381,62 @@ class ApplicationController < BaseController
     cert
   end
 
-  # Returns the full path to a file in temp dir.
-  def temp_file(file)
-    temp_dir = SystemProperties::getTempFilesPath()
+  def temp_anchor_file
+    CommonUi::IOUtils.temp_file(
+      "/#{params[:controller]}_anchor_#{request.session_options[:id]}")
+  end
 
-    unless File.directory?(temp_dir)
-      FileUtils.mkdir_p(temp_dir)
+  def save_temp_anchor_file(content)
+    File.open(temp_anchor_file, 'wb') do |file|
+      file.write(content)
     end
 
-    "#{SystemProperties::getTempFilesPath()}/#{file}"
+    # TODO: add constructor for byte[]
+    begin
+      anchor = ConfigurationAnchor.new(temp_anchor_file)
+    rescue
+      log_stacktrace($!)
+      raise t("application.invalid_anchor_file")
+    end
+
+    hash = CryptoUtils::hexDigest(
+      CryptoUtils::SHA224_ID, content.to_java_bytes)
+    generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
+
+    return {
+      :hash => hash.upcase.scan(/.{1,2}/).join(':'),
+      :generated_at => format_time(generated_at, true)
+    }
+  end
+
+  def apply_temp_anchor_file
+    unless File.exists?(temp_anchor_file)
+      raise "Could not find temporary anchor file"
+    end
+
+    CommonUi::ScriptUtils.verify_internal_configuration(temp_anchor_file)
+    File.rename(temp_anchor_file, SystemProperties::getConfigurationAnchorFile)
+
+    download_configuration
+  end
+
+  def download_configuration
+    logger.info("Starting globalconf download")
+
+    port = SystemProperties::getConfigurationClientPort() + 1
+    uri = URI("http://localhost:#{port}/execute")
+
+    begin
+      response = Net::HTTP.get_response(uri)
+    rescue
+      log_stacktrace($!)
+      raise t('application.configuration_download_failed', :response => $!.message)
+    end
+
+    if response.code == '500'
+      logger.error(response.body)
+      raise t('application.configuration_download_failed', :response => response.body)
+    end
   end
 
   def get_identifier(id)
@@ -462,16 +446,12 @@ class ApplicationController < BaseController
   end
 
   def get_member_name(member_class, member_code)
-    logger.debug("finding member name for: #{member_class}, #{member_code}")
-
-    globalconf.root.member.each do |member|
-      if member_class == member.memberClass && member_code == member.memberCode
-        logger.debug("found: #{member.name}")
-        return member.name
-      end
-    end if member_class && member_code
-
-    return nil
+    if !member_class.blank? && !member_code.blank?
+      return GlobalConf::getMemberName(
+        ClientId.create(sdsb_instance, member_class, member_code, nil))
+    else
+      return nil
+    end
   end
 
   def read_locale

@@ -111,6 +111,8 @@ public class ErrorCodes {
     public static final String X_MALFORMED_SERVERCONF = "MalformedServerConf";
     public static final String X_MALFORMED_KEYCONF = "MalformedKeyConf";
     public static final String X_MALFORMED_GLOBALCONF = "MalformedGlobalConf";
+    public static final String X_MALFORMED_OPTIONAL_PARTS_CONF =
+            "MalformedOptionalPartsConf";
     public static final String X_OUTDATED_GLOBALCONF = "OutdatedGlobalConf";
     public static final String X_SERVICE_MISSING_URL = "ServiceMissingUrl";
     public static final String X_SERVICE_MALFORMED_URL = "ServiceMalformedUrl";

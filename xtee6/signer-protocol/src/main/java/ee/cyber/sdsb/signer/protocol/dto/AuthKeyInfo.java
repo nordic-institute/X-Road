@@ -5,6 +5,9 @@ import java.io.Serializable;
 import lombok.ToString;
 import lombok.Value;
 
+/**
+ * Authentication key info DTO.
+ */
 @Value
 @ToString(exclude = { "password" })
 public class AuthKeyInfo implements Serializable {

@@ -1,0 +1,4 @@
+configurationSigningKey_first:
+  configuration_source_id: <%= ActiveRecord::Fixtures.identify(:configurationSource_first) %>
+  key_identifier: "confSigningKeyIdentifier"
+  certificate: "==confsigningkeycert=="

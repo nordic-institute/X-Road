@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://www.example.org/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice" targetNamespace="http://www.example.org/centralservice/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://www.example.org/centralservice/">
+      <xsd:element name="clientRegRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="in" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="clientRegResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="out" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="clientRegRequest">
+    <wsdl:part element="tns:clientReg" name="parameters"/>
+  </wsdl:message>
+  <wsdl:message name="clientRegResponse">
+    <wsdl:part element="tns:clientRegResponse" name="parameters"/>
+  </wsdl:message>
+  <wsdl:portType name="centralservice">
+    <wsdl:operation name="clientReg">
+      <wsdl:input message="tns:clientRegRequest"/>
+      <wsdl:output message="tns:clientRegResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
+  	<soap:binding style="document"
+  		transport="http://schemas.xmlsoap.org/soap/http" />
+  	<wsdl:operation name="clientReg">
+  		<soap:operation
+  			soapAction="http://www.example.org/centralservice/clientReg" />
+  		<wsdl:input>
+  			<soap:body use="literal" />
+  		</wsdl:input>
+  		<wsdl:output>
+  			<soap:body use="literal" />
+  		</wsdl:output>
+  	</wsdl:operation>
+
+      <wsdl:operation name="clientDeletion">
+          <soap:operation
+                  soapAction="http://www.example.org/centralservice/clientReg" />
+          <wsdl:input>
+              <soap:body use="literal" />
+          </wsdl:input>
+          <wsdl:output>
+              <soap:body use="literal" />
+          </wsdl:output>
+      </wsdl:operation>
+
+      <wsdl:operation name="authCertDeletion">
+          <soap:operation
+                  soapAction="http://www.example.org/centralservice/clientReg" />
+          <wsdl:input>
+              <soap:body use="literal" />
+          </wsdl:input>
+          <wsdl:output>
+              <soap:body use="literal" />
+          </wsdl:output>
+      </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="centralservice">
+    <wsdl:port binding="tns:centralserviceSOAP" name="centralserviceSOAP">
+      <soap:address location="http://INSERT_MANAGEMENT_SERVICE_ADDRESS_HERE"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -9,6 +9,6 @@ public interface Soap {
     /**
      * Returns the XML representation of this message.
      */
-    String getXml();
+    String getXml() throws Exception;
 
 }

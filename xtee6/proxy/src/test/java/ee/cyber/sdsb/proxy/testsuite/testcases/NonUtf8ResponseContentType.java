@@ -15,9 +15,11 @@ public class NonUtf8ResponseContentType extends MessageTestCase {
     public NonUtf8ResponseContentType() {
         requestFileName = "getstate.query";
 
-        responseFileName = "getstate.answer";
-        responseContentType = contentTypeWithCharset(TEXT_XML,
-                ISO_8859_1.name());
+        responseFileName = "getstate-iso88591.answer";
+        responseContentType = TEXT_XML;
+
+        responseServiceContentType =
+                contentTypeWithCharset(TEXT_XML, ISO_8859_1.name());
 
         // Currently the 'getstate.answer' contains different encoding -- should this be an error?
     }

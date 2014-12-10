@@ -1,11 +1,20 @@
-java_import Java::org.apache.commons.lang3.exception.ExceptionUtils
+require "fileutils"
 
-require "validation_helper"
-require "ruby_cert_helper"
+require "common-ui/io_utils"
+require "common-ui/cert_utils"
+require "common-ui/script_utils"
+require "common-ui/backup_utils"
+require "common-ui/validation_utils"
+
+java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo
+
+java_import Java::org.apache.commons.lang3.exception.ExceptionUtils
 
 class BaseController < ActionController::Base
 
-  include ValidationHelper
+  include CommonUi::UserUtils
+  include CommonUi::ValidationUtils
 
   protect_from_forgery
 
@@ -20,13 +29,16 @@ class BaseController < ActionController::Base
 
   rescue_from Exception, :with => :render_error
   rescue_from Warning, :with => :render_warning
+  rescue_from ValidationError, :with => :render_validation_error
 
-  # rescue_from RequiredFieldError, :with => :render_required_field
+  before_filter :check_restore
 
   around_filter :catch_java_exceptions
   around_filter :translate_coded_exception
 
   before_filter :strip_params
+
+  helper_method :format_time
 
   def index
   end
@@ -35,7 +47,106 @@ class BaseController < ActionController::Base
     render :partial => "layouts/menu"
   end
 
+  def activate_token
+    authorize!(:activate_token)
+
+    validate_params({
+      :token_id => [:required],
+      :pin => [:required]
+    })
+
+    pin = Array.new
+    params[:pin].bytes do |b|
+      pin << b
+    end
+
+    token = SignerProxy::getToken(params[:token_id])
+
+    if token.status == TokenStatusInfo::USER_PIN_LOCKED
+      raise t("activate.pin_locked")
+    end
+
+    token.tokenInfo.each do |key, val|
+      if (key == "Min PIN length" && pin.size < val.to_i) ||
+          (key == "Max PIN length" && pin.size > val.to_i)
+        raise t("activate_token.pin_format_incorrect")
+      end
+    end
+
+    begin
+      translate_coded_exception do
+        SignerProxy::activateToken(params[:token_id], pin.to_java(:char))
+      end
+    rescue
+      if SignerProxy::getToken(params[:token_id]).status ==
+          TokenStatusInfo::USER_PIN_FINAL_TRY
+        raise "#{$!.message}, #{t('activate_token.final_try')}"
+      end
+
+      raise $!
+    end
+
+    render_json
+  end
+
+  def deactivate_token
+    authorize!(:deactivate_token)
+
+    validate_params({
+      :token_id => [:required]
+    })
+
+    SignerProxy::deactivateToken(params[:token_id])
+
+    render_json
+  end
+
   private
+
+  def verify_get
+    return if request.get?
+
+    raise "Expected HTTP method 'GET', but was: '#{request.method}'"
+  end
+
+  def verify_post
+    return if request.post?
+
+    raise "Expected HTTP method 'POST', but was: '#{request.method}'"
+  end
+
+  def software_token_initialized?
+    SignerProxy::getTokens.each do |token|
+      if token.id == SignerProxy::SSL_TOKEN_ID
+        return token.status != TokenStatusInfo::NOT_INITIALIZED
+      end
+    end
+
+    false
+  rescue Java::java.lang.Exception
+    logger.warn("Failed to check software token status: #{$!.message}")
+    logger.warn(ExceptionUtils.getStackTrace($!))
+
+    return true
+  end
+
+  def check_restore
+    if CommonUi::BackupUtils.restore_in_progress?
+      logger.info("restore in progress, logging out user")
+
+      reset_session
+
+      url = url_for(:controller => :login, :params => {
+        :restore => true
+      })
+
+      if request.xhr?
+        render_redirect(url, "common.restore_in_progress")
+      else
+        redirect_to(url)
+      end
+    end
+  end
 
   def catch_java_exceptions
     yield
@@ -87,21 +198,44 @@ class BaseController < ActionController::Base
     end
   end
 
-  def render_error(exception)
-    logger.error("#{exception.message}\n#{exception.backtrace.join("\n")}")
-    error(exception.message)
+  def render_validation_error(exception)
+    log_stacktrace(exception)
 
-    render_error_response
+    prefix = "#{params[:controller]}.#{params[:action]}_params."
+
+    logger.debug("\n\n\n\nlooking up #{prefix}#{exception.param}.#{exception.validator}\n\n\n\n")
+
+    message = t("#{prefix}#{exception.param}.#{exception.validator}", {
+      :default => exception.message
+    })
+
+    render_error_response(message)
+  end
+
+  def render_error(exception)
+    log_stacktrace(exception)
+
+    render_error_response(exception.message)
+  end
+
+  def log_stacktrace(exception)
+    logger.error("#{exception.message}\n#{exception.backtrace.join("\n")}")
   end
 
   def render_java_error(exception)
     logger.error(ExceptionUtils.getStackTrace(exception))
-    error(ExceptionUtils.getRootCauseMessage(exception))
 
-    render_error_response
+    exception_message =
+            exception.is_a?(Java::ee.cyber.sdsb.common.CodedException) ?
+        exception.getFaultString() :
+        ExceptionUtils.getRootCauseMessage(exception)
+
+    render_error_response(exception_message)
   end
 
-  def render_error_response
+  def render_error_response(exception_message)
+    error(get_full_error_message(exception_message))
+
     if request.content_type == "multipart/form-data"
       upload_error
       return
@@ -115,6 +249,23 @@ class BaseController < ActionController::Base
       # regular request gets the whole layout with messages
       render :template => "application/index"
     end
+  end
+
+  def get_full_error_message(exception_message)
+    controller_name = params[:controller]
+    action_name = params[:action]
+
+    begin
+      translated_action_name =
+        t("#{controller_name}.action.#{action_name}", :raise => true)
+    rescue
+      return exception_message
+    end
+
+    return t("common.user_action_error", {
+      :translated_action_name => translated_action_name,
+      :error_message => exception_message
+    })
   end
 
   def notice(text)
@@ -158,15 +309,10 @@ class BaseController < ActionController::Base
     }
   end
 
-  def render_required_field(error)
-    render :json => {
-      :required => error.field
-    }
-  end
-
-  def render_redirect
+  def render_redirect(url, reason)
     render :json => {
       :messages => flash.discard,
+      :reason => reason,
       :redirect => root_path
     }
   end
@@ -201,5 +347,15 @@ class BaseController < ActionController::Base
       :callback => callback,
       :json_response => json_response
     }
+  end
+
+  def format_time(time, with_timezone = false)
+    return nil if time.to_i == 0
+
+    if with_timezone
+      time.strftime(t('common.time_format_with_timezone'))
+    else
+      time.localtime.strftime(t('common.time_format'))
+    end
   end
 end

@@ -4,10 +4,10 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
 
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfProvider;
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
+import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -21,6 +21,8 @@ import static java.util.Collections.emptySet;
  * can extend this class and override only the more interesting methods.
  */
 public class EmptyServerConf implements ServerConfProvider {
+
+    private static final int SERVICE_TIMEOUT = 300;
 
     @Override
     public boolean serviceExists(ServiceId service) {
@@ -54,7 +56,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public int getServiceTimeout(ServiceId service) {
-        return 300;
+        return SERVICE_TIMEOUT;
     }
 
     @Override
@@ -88,11 +90,6 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public List<GlobalConfDistributorType> getFileDistributors() {
-        return null;
-    }
-
-    @Override
     public List<ServiceId> getAllServices(ClientId serviceProvider) {
         return emptyList();
     }
@@ -101,6 +98,11 @@ public class EmptyServerConf implements ServerConfProvider {
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
         return emptyList();
+    }
+
+    @Override
+    public String getMemberStatus(ClientId memberId) {
+        return ClientType.STATUS_REGISTERED;
     }
 
 }

@@ -11,9 +11,12 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.SOAPMessage;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 
@@ -21,29 +24,29 @@ import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertHelper;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
+import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.message.SoapFault;
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.message.SoapMessageDecoder;
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
+import ee.cyber.sdsb.common.message.*;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MessageInfo.Origin;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
+import ee.cyber.sdsb.proxy.conf.SigningCtx;
+import ee.cyber.sdsb.proxy.messagelog.MessageLog;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessage;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageDecoder;
 import ee.cyber.sdsb.proxy.protocol.ProxyMessageEncoder;
-import ee.cyber.sdsb.proxy.securelog.MessageLog;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 @Slf4j
@@ -52,7 +55,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private static final String SERVERPROXY_SERVICE_HANDLERS =
             SystemProperties.PREFIX + "proxy.serverServiceHandlers";
 
-    private final CertChain clientSslCertChain;
+    private final X509Certificate[] clientSslCerts;
 
     private final List<ServiceHandler> handlers = new ArrayList<>();
 
@@ -64,12 +67,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private ProxyMessageDecoder decoder;
     private ProxyMessageEncoder encoder;
 
+    private SigningCtx responseSigningCtx;
+
     ServerMessageProcessor(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, HttpClient httpClient,
-            CertChain clientSslCertChain) {
+            X509Certificate[] clientSslCerts) {
         super(servletRequest, servletResponse, httpClient);
 
-        this.clientSslCertChain = clientSslCertChain;
+        this.clientSslCerts = clientSslCerts;
 
         loadServiceHandlers();
     }
@@ -106,6 +111,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
 
         cacheConfigurationForCurrentThread();
+    }
+
+    @Override
+    protected void postprocess() throws Exception {
+        logResponseMessage();
     }
 
     private void loadServiceHandlers() {
@@ -147,7 +157,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         if (handler.shouldLogSignature()) {
-            logSignature();
+            logRequestMessage();
         }
 
         try {
@@ -166,8 +176,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
             public void soap(SoapMessageImpl soapMessage) throws Exception {
                 super.soap(soapMessage);
 
-                requestServiceId =
-                        GlobalConf.getServiceId(soapMessage.getService());
+                requestServiceId = soapMessage.getService();
+
+                verifyClientStatus();
+
+                responseSigningCtx =
+                        KeyConf.getSigningCtx(requestServiceId.getClientId());
 
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
@@ -200,17 +214,40 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    private void verifyClientStatus() {
+        ClientId client = requestServiceId.getClientId();
+
+        String status = ServerConf.getMemberStatus(client);
+        if (!ClientType.STATUS_REGISTERED.equals(status)) {
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
+                    client);
+        }
+    }
+
     private void verifySslClientCert() throws Exception {
         log.trace("verifySslClientCert()");
 
         if (requestMessage.getOcspResponses().isEmpty()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Cannot verify SSL certificate, corresponding " +
-                    "OCSP response is missing");
+                    "Cannot verify SSL certificate, corresponding "
+                            + "OCSP response is missing");
+        }
+
+        String instanceIdentifier =
+                requestMessage.getSoap().getClient().getSdsbInstance();
+
+        X509Certificate trustAnchor =
+                GlobalConf.getCaCert(instanceIdentifier,
+                        clientSslCerts[clientSslCerts.length - 1]);
+        if (trustAnchor == null) {
+            throw new Exception("Unable to find trust anchor");
         }
 
         try {
-            CertHelper.verifyAuthCert(clientSslCertChain,
+            CertChain chain = CertChain.create(instanceIdentifier,
+                    (X509Certificate[]) ArrayUtils.add(clientSslCerts,
+                            trustAnchor));
+            CertHelper.verifyAuthCert(chain,
                     requestMessage.getOcspResponses(),
                     requestMessage.getSoap().getClient());
         } catch (Exception e) {
@@ -261,8 +298,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         throw new CodedException(X_SECURITY_CATEGORY,
-                "Service requires security categories (%s), " +
-                        "but client only satisfies (%s)",
+                "Service requires security categories (%s), "
+                        + "but client only satisfies (%s)",
                 StringUtils.join(required, ", "),
                 StringUtils.join(provided, ", "));
     }
@@ -274,10 +311,19 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 requestMessage.getSignature());
     }
 
-    private void logSignature() throws Exception {
-        log.trace("logSignature()");
+    private void logRequestMessage() throws Exception {
+        log.trace("logRequestMessage()");
 
         MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature());
+    }
+
+    private void logResponseMessage() throws Exception {
+        if (SystemProperties.shouldLogBothMessages()
+                && responseSoap != null && encoder != null) {
+            log.trace("logResponseMessage()");
+
+            MessageLog.log(responseSoap, encoder.getSignature());
+        }
     }
 
     private void sendRequest(String serviceAddress, HttpSender httpSender)
@@ -308,7 +354,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         try {
             SoapMessageDecoder soapMessageDecoder =
                     new SoapMessageDecoder(handler.getResponseContentType(),
-                            new SoapMessageHandler());
+                            new SoapMessageHandler(),
+                            new ResponseSoapParserImpl());
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -330,10 +377,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void sign() throws Exception {
-        ClientId memberId = requestServiceId.getClientId();
-        log.trace("sign({})", memberId);
+        log.trace("sign({})", requestServiceId.getClientId());
 
-        encoder.sign(KeyConf.getSigningCtx(memberId));
+        encoder.sign(responseSigningCtx);
     }
 
     private void close() throws Exception {
@@ -384,8 +430,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private X509Certificate getClientAuthCert() {
-        return clientSslCertChain != null ?
-                clientSslCertChain.getEndEntityCert() : null;
+        return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
     private static String getHashAlgoId() {
@@ -446,6 +491,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             sender.setTimeout(timeout * 1000); // to milliseconds
             sender.setAttribute(ServiceId.class.getName(), requestServiceId);
 
+            sender.addHeader("accept-encoding", "");
+
             sendRequest(address, sender);
         }
 
@@ -492,6 +539,33 @@ class ServerMessageProcessor extends MessageProcessorBase {
         @Override
         public void onError(Exception t) throws Exception {
             throw t;
+        }
+    }
+
+    /**
+     * Soap parser that adds the request message hash to the response
+     * message header.
+     */
+    private class ResponseSoapParserImpl extends SoapParserImpl {
+
+        @Override
+        protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
+                String charset) throws Exception {
+            if (soap.getSOAPHeader() != null) {
+                String hash = encodeBase64(calculateDigest(getHashAlgoId(),
+                        requestMessage.getSoap().getBytes()));
+
+                Marshaller m = JaxbUtils.createMarshaller(RequestHash.class);
+                m.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
+                m.marshal(new RequestHash(
+                                getDigestAlgorithmURI(getHashAlgoId()), hash),
+                        soap.getSOAPHeader());
+
+                byte[] newRawXml = SoapUtils.getBytes(soap);
+                return super.createMessage(newRawXml, soap, charset);
+            } else {
+                return super.createMessage(rawXml, soap, charset);
+            }
         }
     }
 }

@@ -4,8 +4,6 @@ java_import Java::org.bouncycastle.cert.ocsp.RevokedStatus
 
 module KeysHelper
 
-  include RubyCertHelper
-
   def columns(tokens)
     result = []
 
@@ -35,7 +33,7 @@ module KeysHelper
       :token_friendly_name => token.friendlyName,
       :token_available => token.available,
       :token_active => token.active,
-      :token_activatable => can?(:login_logout_tokens),
+      :token_activatable => can?(:activate_token),
       :token_locked => token.status == TokenStatusInfo::USER_PIN_LOCKED,
       :token_saved_to_conf => token_saved_to_configuration?(token),
       :key_id => nil,
@@ -70,7 +68,7 @@ module KeysHelper
     token_columns(token).merge!({
       :key_id => key.id,
       :key_friendly_name => key.friendlyName,
-      :key_available => key.available,
+      :key_available => key.available && token.active,
       :key_usage => key_usage_to_sym(key.usage),
       :key_deletable => can_delete_key?(token, key, saved_to_conf),
       :key_saved_to_conf => saved_to_conf
@@ -78,7 +76,7 @@ module KeysHelper
   end
 
   def cert_columns(token, key, cert)
-    cert_obj = cert_object(cert.certificateBytes)
+    cert_obj = CommonUi::CertUtils.cert_object(cert.certificateBytes)
 
     key_columns(token, key).merge!({
       :cert_id => cert.id,

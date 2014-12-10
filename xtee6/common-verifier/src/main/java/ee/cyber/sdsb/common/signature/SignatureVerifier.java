@@ -27,11 +27,12 @@ import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertChainVerifier;
 import ee.cyber.sdsb.common.cert.CertHelper;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.hashchain.DigestValue;
 import ee.cyber.sdsb.common.hashchain.HashChainReferenceResolver;
 import ee.cyber.sdsb.common.hashchain.HashChainVerifier;
 import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.cyber.sdsb.common.util.CertUtils;
 import ee.cyber.sdsb.common.util.MessageFileNames;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
@@ -66,20 +67,31 @@ public class SignatureVerifier {
     /** Indicates whether to verify against Xades schema or not. */
     private boolean verifySchema = true;
 
-    /** Constructs a new signature verifier using the specified string
-     * containing the signature xml. */
-    public SignatureVerifier(SignatureData signatureData) throws Exception {
+    /**
+     * Constructs a new signature verifier using the specified string
+     * containing the signature xml.
+     * @param signatureData the signature data
+     */
+    public SignatureVerifier(SignatureData signatureData) {
         this(new Signature(signatureData.getSignatureXml()),
                 signatureData.getHashChainResult(),
                 signatureData.getHashChain());
     }
 
-    /** Constructs a new signature verifier for the specified signature. */
+    /**
+     * Constructs a new signature verifier for the specified signature.
+     * @param signature the signature
+     */
     public SignatureVerifier(Signature signature) {
         this(signature, null, null);
     }
 
-    /** Constructs a new signature verifier for the specified signature. */
+    /**
+     * Constructs a new signature verifier for the specified signature.
+     * @param signature the signature
+     * @param hashChainResult the hash chain result
+     * @param hashChain the hash chain
+     */
     public SignatureVerifier(Signature signature, String hashChainResult,
             String hashChain) {
         this.signature = signature;
@@ -87,17 +99,25 @@ public class SignatureVerifier {
         this.hashChain = hashChain;
     }
 
-    /** Returns the signature object. */
+    /**
+     * @return the signature object.
+     */
     public Signature getSignature() {
         return signature;
     }
 
-    /** Adds parts to be signed or verifier. */
-    public void addParts(List<MessagePart> parts) {
-        this.parts.addAll(parts);
+    /**
+     * Adds parts to be signed or verifier.
+     * @param messageParts the parts to add
+     */
+    public void addParts(List<MessagePart> messageParts) {
+        this.parts.addAll(messageParts);
     }
 
-    /** Adds part to be signed or verified. */
+    /**
+     * Adds part to be signed or verified.
+     * @param part the part to add
+     */
     public void addPart(MessagePart part) {
         this.parts.add(part);
     }
@@ -108,19 +128,57 @@ public class SignatureVerifier {
         this.resourceResolver = resolver;
     }
 
-    /** Sets the hash chain resource resolver to be used when verifying
+    /**
+     * Sets the hash chain resource resolver to be used when verifying
      * hash chain.
-     * @param resourceResolver the resource resolver */
+     * @param resolver the resource resolver
+     */
     public void setHashChainResourceResolver(
             HashChainReferenceResolver resolver) {
         this.hashChainReferenceResolver = resolver;
     }
 
-    /** Sets whether to verify the signature XML against the Xades schema.
-     * @param verifySchema if true, the signature XML will be verified against
-     *        the schema */
-    public void setVerifySchema(boolean verifySchema) {
-        this.verifySchema = verifySchema;
+    /**
+     * Sets whether to verify the signature XML against the Xades schema.
+     * @param shouldVerifySchema if true, the signature XML will be verified
+     * against the schema */
+    public void setVerifySchema(boolean shouldVerifySchema) {
+        this.verifySchema = shouldVerifySchema;
+    }
+
+    /**
+     * @return the signing certificate
+     * @throws Exception if an error occurs
+     */
+    public X509Certificate getSigningCertificate() throws Exception {
+        X509Certificate cert = signature.getSigningCertificate();
+        if (cert == null) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Signature does not contain signing certificate");
+        }
+
+        if (!CertUtils.isSigningCert(cert)) {
+            throw new CodedException(X_MALFORMED_SIGNATURE,
+                    "Certificate %s is not a signing certificate",
+                    cert.getSubjectX500Principal().getName());
+        }
+
+        return cert;
+    }
+
+    /**
+     * Returns the OCSP response for the signing certificate
+     * @param instanceIdentifier the instance identifier
+     * @return the OCSP response of the signing certificate
+     * @throws Exception if an error occurs
+     */
+    public OCSPResp getSigningOcspResponse(String instanceIdentifier)
+            throws Exception {
+        X509Certificate cert = signature.getSigningCertificate();
+        List<OCSPResp> responses = signature.getOcspResponses();
+        X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, cert);
+
+        return CertHelper.getOcspResponseForCert(cert, issuer, responses);
     }
 
     /** Verifies the signature. The verification process is as follows:
@@ -141,6 +199,7 @@ public class SignatureVerifier {
      * @param signer names the subject that claims to have been signed
      *                   the message.
      * @param atDate Date that is used to check validity of the certificates.
+     * @throws Exception if verification fails
      */
     public void verify(ClientId signer, Date atDate) throws Exception {
         // first, validate the signature against the Xades schema
@@ -161,7 +220,7 @@ public class SignatureVerifier {
 
         verifySignatureValue(signingCert);
         verifyTimestampManifests();
-        verifyCertificateChain(atDate, signingCert);
+        verifyCertificateChain(atDate, signer, signingCert);
     }
 
     private void verifySchema() throws Exception {
@@ -184,27 +243,10 @@ public class SignatureVerifier {
         }
     }
 
-    public X509Certificate getSigningCertificate() throws Exception {
-        X509Certificate cert = signature.getSigningCertificate();
-        if (cert == null) {
-            throw new CodedException(X_MALFORMED_SIGNATURE,
-                    "Signature does not contain signing certificate");
-        }
-
-        return cert;
-    }
-
-    public OCSPResp getSigningOcspResponse() throws Exception {
-        X509Certificate cert = signature.getSigningCertificate();
-        List<OCSPResp> responses = signature.getOcspResponses();
-        X509Certificate issuer = GlobalConf.getCaCert(cert);
-
-        return CertHelper.getOcspResponseForCert(cert, issuer, responses);
-    }
-
     private static void verifySignerName(ClientId signer,
             X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(signingCert);
+        ClientId cn = GlobalConf.getSubjectName(signer.getSdsbInstance(),
+                signingCert);
         if (!signer.memberEquals(cn)) {
             throw new CodedException(X_INCORRECT_CERTIFICATE,
                     "Name in certificate (%s) does not match "
@@ -240,8 +282,8 @@ public class SignatureVerifier {
             try {
                 if (!manifest.verifyReferences()) {
                     throw new CodedException(X_INVALID_REFERENCE,
-                            "Timestamp manifest verification failed for " +
-                                    manifest.getId());
+                            "Timestamp manifest verification failed for "
+                                    + manifest.getId());
                 }
             } catch (MissingResourceFailureException e) {
                 throw new CodedException(X_INVALID_REFERENCE,
@@ -250,10 +292,11 @@ public class SignatureVerifier {
         }
     }
 
-    private void verifyCertificateChain(Date atDate,
+    private void verifyCertificateChain(Date atDate, ClientId signer,
             X509Certificate signingCert) {
         CertChain certChain =
-                CertChain.create(signingCert, signature.getExtraCertificates());
+                CertChain.create(signer.getSdsbInstance(), signingCert,
+                        signature.getExtraCertificates());
         new CertChainVerifier(certChain).verify(signature.getOcspResponses(),
                 atDate);
     }
@@ -279,8 +322,9 @@ public class SignatureVerifier {
 
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
-        if (part.getBase64Data() != null) {
+        if (part.getData() != null) {
             byte[] data = null;
+
             // We assume message is not hashed, so we hash it here
             if (MessageFileNames.MESSAGE.equals(part.getName())) {
                 data = calculateDigest(part.getHashAlgoId(), part.getData());
@@ -302,9 +346,9 @@ public class SignatureVerifier {
                 case MessageFileNames.MESSAGE:
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return true;
+                default:
+                    return false;
             }
-
-            return false;
         }
 
         @Override
@@ -313,12 +357,13 @@ public class SignatureVerifier {
             switch (uri.getValue()) {
                 case MessageFileNames.MESSAGE:
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
-                    if (part != null && part.getBase64Data() != null) {
+                    if (part != null && part.getData() != null) {
                         return new XMLSignatureInput(part.getData());
                     }
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return new XMLSignatureInput(is(hashChainResult));
+                default: // do nothing
             }
 
             return null;
@@ -334,10 +379,10 @@ public class SignatureVerifier {
                 case MessageFileNames.SIG_HASH_CHAIN:
                     if (hashChain != null) {
                         return is(hashChain);
-                    }
+                    } // $FALL-THROUGH$
+                default:
+                    return null;
             }
-
-            return null;
         }
 
         @Override

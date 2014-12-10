@@ -8,6 +8,9 @@ import lombok.Value;
 
 import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
 
+/**
+ * Signer API message.
+ */
 @Value
 @ToString(exclude = "certs")
 public class GetMemberCertsResponse implements Serializable {

@@ -3,10 +3,12 @@ require 'zlib'
 class GzipFileValidator < UploadedFileValidator
   ALLOWED_EXTENSIONS = ["gz", "tgz"]
   ALLOWED_CONTENT_TYPES = [
+      "application/octet-stream",
       "application/x-compressed-tar",
       "application/x-compressed",
       "application/gnutar",
-      "application/x-gzip"
+      "application/x-gzip",
+      "application/gzip"
   ]
 
   def validate

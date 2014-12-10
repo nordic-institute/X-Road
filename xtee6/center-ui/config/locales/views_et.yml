@@ -230,7 +230,7 @@ et:
     application:
       title: "Keskserveri haldusliides"
 
-  pkis:
+  approved_cas:
     trusted_certification_service: "Usaldatud sertifitseerimisteenus"
     intermediate_ca: "Vahepealne sertifitseerimisteenus"
     add:

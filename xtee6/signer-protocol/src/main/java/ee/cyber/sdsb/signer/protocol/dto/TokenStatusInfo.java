@@ -2,6 +2,9 @@ package ee.cyber.sdsb.signer.protocol.dto;
 
 import java.io.Serializable;
 
+/**
+ * Token status info DTO.
+ */
 public enum TokenStatusInfo implements Serializable {
 
     OK, // Normal operation status

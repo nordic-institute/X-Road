@@ -10,7 +10,7 @@
         }
     }
 
-    function initServiceAclDialogs() {
+    function initServiceAclDialog() {
         $("#service_acl_dialog").initDialog({
             autoOpen: false,
             modal: true,
@@ -20,11 +20,96 @@
                 oSubjects.fnAdjustColumnSizing();
             },
             buttons: [
-                { text: _("common.close"),
-                  click: function() {
-                      SERVICES.updateSubjectsCount(oSubjects.fnGetData().length);
-                      $(this).dialog("close");
-                  }
+                {
+                    text: _("common.close"),
+                    click: function() {
+                        SERVICES.updateSubjectsCount(oSubjects.fnGetData().length);
+                        $(this).dialog("close");
+                    }
+                },
+                {
+                    id: "service_acl_subjects_remove_all",
+                    text: _("clients.service_acl_dialog.remove_all"),
+                    privilege: "edit_service_acl",
+                    click: function() {
+                        var service = $("#service_acl_dialog #service option:selected");
+                        var params = {
+                            client_id: $("#details_client_id").val(),
+                            service_code: service.val()
+                        };
+
+                        confirm("clients.service_acl_dialog.remove_all_confirm", null,
+                                function() {
+                            $.post(action("service_acl_subjects_remove"), params,
+                                   function(response) {
+                                oSubjects.fnReplaceData(response.data);
+                                enableActions();
+                            }, "json");
+                        });
+                    }
+                },
+                {
+                    id: "service_acl_subjects_remove_selected",
+                    text: _("clients.service_acl_dialog.remove_selected"),
+                    privilege: "edit_service_acl",
+                    click: function() {
+                        var service = $("#service_acl_dialog #service option:selected");
+                        var params = {
+                            client_id: $("#details_client_id").val(),
+                            service_code: service.val(),
+                            subject_ids: []
+                        };
+
+                        var subjects = [];
+                        $("#subjects .row_selected").each(function(i, row) {
+                            var selected = oSubjects.fnGetData(row);
+                            var subject = [
+                                selected.type,
+                                selected.name_description,
+                                selected.member_group_code];
+
+                            if (oSubjects.fnGetData(row).subsystem_code !== null) {
+                                subject.push(oSubjects.fnGetData(row).subsystem_code);
+                            }
+
+                            subjects.push('<li>' + subject.join(', ') + '</li>');
+                        });
+
+                        var joinedSubjects = '<ol class="alert-ol">' + subjects.join('') + '</ol>';
+
+                        confirm("clients.service_acl_dialog.remove_selected_confirm",
+                                {subjects: joinedSubjects}, function() {
+
+                            $("#subjects .row_selected").each(function(idx, row) {
+                                params.subject_ids.push(oSubjects.fnGetData(row).subject_id);
+                            });
+
+                            $.post(action("service_acl_subjects_remove"), params,
+                                   function(response) {
+                                oSubjects.fnReplaceData(response.data);
+                                enableActions();
+                            }, "json");
+                        });
+                    }
+                },
+                {
+                    id: "service_acl_subjects_add",
+                    text: _("clients.service_acl_dialog.add_subjects"),
+                    privilege: "edit_service_acl",
+                    click: function() {
+                        ACL_SUBJECTS_SEARCH.openDialog(oSubjects.fnGetData(), function(subjectIds) {
+                            var service = $("#service_acl_dialog #service option:selected");
+                            var params = {
+                                client_id: $("#details_client_id").val(),
+                                service_code: service.val(),
+                                subject_ids: subjectIds
+                            };
+
+                            $.post(action("service_acl_subjects_add"), params, function(response) {
+                                oSubjects.fnReplaceData(response.data);
+                            }, "json");
+                        });
+                    }
                 }
             ]
         });
@@ -35,38 +120,29 @@
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
         opts.aoColumns = [
             { "mData": "name_description" },
+            { "mData": "type", "bVisible": false },
+            { "mData": "instance", "bVisible": false },
+            { "mData": "member_class", "bVisible": false },
+            { "mData": "member_group_code", "bVisible": false },
+            { "mData": "subsystem_code", "bVisible": false },
             {
                 mData: function(source, type, val) {
                     return generateIdElement({
                         "Type": source.type,
-                        "Instance": source.sdsb,
+                        "Instance": source.instance,
                         "Class": source.member_class,
                         "Code": source.member_group_code,
                         "Subsystem": source.subsystem_code
                     });
                 }
             },
-            { "mData": "rights_given" }
+            { "mData": "rights_given", "sWidth": "15%" }
         ];
 
         oSubjects = $("#subjects").dataTable(opts);
 
         $("#subjects_actions")
             .appendTo("#subjects_wrapper .dataTables_header");
-
-        $("#subjects_actions .select_all").change(function() {
-            var select = $(this).attr("checked");
-
-            oSubjects.$('tr', {"filter": "applied"}).each(function(idx, val) {
-                if (select) {
-                    $(val).addClass("row_selected");
-                } else {
-                    $(val).removeClass("row_selected");
-                }
-            });
-
-            enableActions();
-        });
 
         var dialog = $("#service_acl_dialog");
 
@@ -88,11 +164,9 @@
         }).click();
 
         $(".advanced_search .search", dialog).click(function() {
-            var map = [0, 5, 4, 1, 2, 3];
-
             $(".advanced_search input, .advanced_search select", dialog).each(
                 function(idx, val) {
-                    oSubjects.fnFilter($(this).val(), map[idx]);
+                    oSubjects.fnFilter($(this).val(), idx);
                 });
             return false;
         });
@@ -113,8 +187,6 @@
             };
 
             $.get(action("service_acl"), params, function(response) {
-                oSubjects.fnClearTable();
-
                 var titleText = selected.data("title")
                     ? "clients.service_acl_dialog.title_with_service_title"
                     : "clients.service_acl_dialog.title";
@@ -124,10 +196,9 @@
                     title: selected.data("title")
                 });
 
-                $("#subjects_actions .select_all").removeAttr("checked");
                 $("#service_acl_dialog").dialog("option", "title", title);
 
-                oSubjects.fnAddData(response.data);
+                oSubjects.fnReplaceData(response.data);
                 enableActions();
 
                 $("#service_acl_dialog").dialog("open");
@@ -136,89 +207,12 @@
 
         $("#subjects tbody tr").live("click", function() {
             oSubjects.setFocus(0, this, true);
-            if ($("#subjects_actions .select_all").prop('checked'))
-                $("#subjects_actions .select_all").prop('checked', false);
             enableActions();
-        });
-
-        $("#service_acl_subjects_add").click(function() {
-            ACL_SUBJECTS_SEARCH.openDialog(oSubjects.fnGetData(), function(subjectIds) {
-                var service = $("#service_acl_dialog #service option:selected");
-                var params = {
-                    client_id: $("#details_client_id").val(),
-                    service_code: service.val(),
-                    subject_ids: subjectIds
-                };
-
-                $.post(action("service_acl_subjects_add"), params, function(response) {
-                    oSubjects.fnClearTable();
-                    oSubjects.fnAddData(response.data);
-                });
-            });
-        });
-
-        $("#service_acl_subjects_remove_selected").click(function() {
-            var service = $("#service_acl_dialog #service option:selected");
-            var params = {
-                client_id: $("#details_client_id").val(),
-                service_code: service.val(),
-                subject_ids: []
-            };
-
-            var subjects = [];
-            $("#subjects .row_selected").each(function(i, row) {
-                var selected = oSubjects.fnGetData(row);
-                var subject = [
-                    selected.type,
-                    selected.name_description,
-                    selected.member_group_code];
-
-                if (oSubjects.fnGetData(row).subsystem_code !== null) {
-                    subject.push(oSubjects.fnGetData(row).subsystem_code);
-                }
-
-                subjects.push('<li>' + subject.join(', ') + '</li>');
-            });
-
-            var joinedSubjects = '<ol class="alert-ol">' + subjects.join('') + '</ol>';
-
-            confirm("clients.service_acl_dialog.remove_selected_confirm",
-                    {subjects: joinedSubjects}, function() {
-
-                $("#subjects .row_selected").each(function(idx, row) {
-                    params.subject_ids.push(oSubjects.fnGetData(row).subject_id);
-                });
-
-                $.post(action("service_acl_subjects_remove"), params, function(response) {
-                    oSubjects.fnClearTable();
-                    oSubjects.fnAddData(response.data);
-                    enableActions();
-                });
-            });
-
-        });
-
-        $("#service_acl_subjects_remove_all").click(function() {
-            var service = $("#service_acl_dialog #service option:selected");
-            var params = {
-                client_id: $("#details_client_id").val(),
-                service_code: service.val()
-            };
-
-            confirm("clients.service_acl_dialog.remove_all_confirm", null,
-                    function() {
-                $.post(action("service_acl_subjects_remove"), params,
-                       function(response) {
-                    oSubjects.fnClearTable();
-                    oSubjects.fnAddData(response.data);
-                    enableActions();
-                });
-            });
         });
     }
 
     $(document).ready(function() {
-        initServiceAclDialogs();
+        initServiceAclDialog();
         initServiceAclSubjectsTable();
         initServiceAclActions();
         enableActions();

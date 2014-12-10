@@ -37,8 +37,8 @@ import akka.testkit.TestActorRef;
 
 import ee.cyber.sdsb.common.OcspTestUtils;
 import ee.cyber.sdsb.common.TestCertUtil;
-import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.common.conf.GlobalConfProvider;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConfProvider;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
 
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateCertHexHash;
@@ -77,7 +77,7 @@ public class OcspClientTest {
         Date thisUpdate = new DateTime().plusDays(1).toDate();
 
         responseData = OcspTestUtils.createOCSPResponse(subject,
-                GlobalConf.getCaCert(subject), ocspResponderCert,
+                GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate,
                 null).getEncoded();
 
@@ -86,8 +86,10 @@ public class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier.verifyValidityAndStatus(ocsp, subject,
-                GlobalConf.getCaCert(subject));
+        OcspVerifier verifier =
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+        verifier.verifyValidityAndStatus(ocsp, subject,
+                GlobalConf.getCaCert("EE", subject));
     }
 
     @Test
@@ -103,7 +105,7 @@ public class OcspClientTest {
         Date thisUpdate = new DateTime().plusDays(1).toDate();
 
         responseData = OcspTestUtils.createOCSPResponse(subject,
-                GlobalConf.getCaCert(subject), ocspResponderCert,
+                GlobalConf.getCaCert("EE", subject), ocspResponderCert,
                 getOcspSignerKey(), CertificateStatus.GOOD, thisUpdate,
                 null).getEncoded();
 
@@ -112,8 +114,10 @@ public class OcspClientTest {
         OCSPResp ocsp = getOcspResponse(subject);
         assertNotNull(ocsp);
 
-        OcspVerifier.verifyValidityAndStatus(ocsp, subject,
-                GlobalConf.getCaCert(subject));
+        OcspVerifier verifier =
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+        verifier.verifyValidityAndStatus(ocsp, subject,
+                GlobalConf.getCaCert("EE", subject));
     }
 
     @Test
@@ -124,7 +128,7 @@ public class OcspClientTest {
 
         responseData = null;
 
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
 
         thrown.expect(IOException.class);
         OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null);
@@ -138,7 +142,7 @@ public class OcspClientTest {
 
         responseData = "abcdefgh".getBytes();
 
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
 
         thrown.expect(OCSPException.class);
         OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null);
@@ -170,7 +174,7 @@ public class OcspClientTest {
 
         GlobalConf.reload(getTestGlobalConf());
 
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
 
         thrown.expect(IOException.class);
         try {
@@ -190,7 +194,7 @@ public class OcspClientTest {
         responseData =
                 OcspTestUtils.createSigRequiredOCSPResponse().getEncoded();
 
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+        X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
         thrown.expect(OCSPException.class);
         OcspClient.fetchResponse(RESPONDER_URI, subject, issuer, null, null);
     }
@@ -236,7 +240,7 @@ public class OcspClientTest {
     }
 
     private static X509Certificate getDefaultClientCert() throws Exception {
-        return TestCertUtil.getTestOrg().cert;
+        return TestCertUtil.getConsumer().cert;
     }
 
     private static String hash(X509Certificate cert) throws Exception {
@@ -257,7 +261,7 @@ public class OcspClientTest {
         when(testConf.getOcspResponderCertificates()).thenReturn(
                 Arrays.asList(ocspResponderCert));
 
-        when(testConf.getCaCert(
+        when(testConf.getCaCert(Mockito.any(String.class),
                 Mockito.any(X509Certificate.class))).thenReturn(
                         TestCertUtil.getCaCert());
 

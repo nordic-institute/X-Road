@@ -151,11 +151,11 @@ class SecurityserversController < ApplicationController
     auth_certs = []
 
     server.auth_certs.each do |cert|
-      cert_obj = cert_object(cert.certificate)
+      cert_obj = CommonUi::CertUtils.cert_object(cert.certificate)
 
       auth_certs << {
         :id => cert.id,
-        :csp => cert_csp(cert_obj),
+        :csp => CommonUi::CertUtils.cert_csp(cert_obj),
         :serial_number => cert_obj.serial.to_s,
         :subject => cert_obj.subject.to_s,
         :expires => format_time(cert_obj.not_after)
@@ -168,19 +168,22 @@ class SecurityserversController < ApplicationController
   def management_requests
     authorize!(:view_security_server_details)
 
+    server = {
+      :member_class => params[:ownerClass],
+      :member_code => params[:ownerCode],
+      :server_code => params[:serverCode]
+    }
+
+    query_params = get_list_query_params(
+      get_management_requests_column(get_sort_column_no))
+
+    requests = SecurityServer.get_management_requests(server, query_params)
+    count = SecurityServer.get_management_requests_count(server)
+
     result = []
-
-    requests = Request.joins(:security_server).where(
-      :identifiers => {
-        :member_class => params[:ownerClass],
-        :member_code => params[:ownerCode],
-        :server_code => params[:serverCode]
-      }
-    )
-
     add_requests_to_result(requests, result)
 
-    render_json(result)
+    render_data_table(result, count, params[:sEcho])
   end
 
   def get_server_by_id
@@ -188,36 +191,6 @@ class SecurityserversController < ApplicationController
 
     server = SecurityServer.find(params[:serverId])
     render_json(get_full_server_data_as_json(server))
-  end
-
-  def addable_clients
-    authorize!(:add_security_server_client_reg_request)
-
-    searchable = params[:sSearch]
-    server_code = params[:serverCode]
-
-    query_params = get_list_query_params(
-      get_client_sort_column(get_sort_column_no))
-
-    providers = SecurityServerClient.get_addable_clients_for_server(
-        server_code, query_params)
-    count = SecurityServerClient.get_addable_clients_count(
-        server_code, searchable)
-
-    result = []
-    providers.each do |each|
-      provider_id = each[:identifier]
-      result << {
-        :name => each[:name],
-        :member_class => provider_id.member_class,
-        :member_code => provider_id.member_code,
-        :subsystem_code => provider_id.subsystem_code,
-        :sdsb_instance => provider_id.sdsb_instance,
-        :type => provider_id.object_type
-      }
-    end
-
-    render_data_table(result, count, params[:sEcho])
   end
 
   # -- Specific GET methods - end ---
@@ -300,7 +273,7 @@ class SecurityserversController < ApplicationController
     auth_cert = AuthCert.find(params[:certId])
 
     security_server_id = SecurityServerId.from_parts(
-      SystemParameter.sdsb_instance,
+      SystemParameter.instance_identifier,
       params[:ownerClass],
       params[:ownerCode],
       params[:serverCode])
@@ -365,20 +338,16 @@ class SecurityserversController < ApplicationController
     end
   end
 
-  def get_client_sort_column(index)
-    case(index)
+  def get_management_requests_column(index)
+    case index
     when 0
-      return 'security_server_client_names.name'
+      return 'id'
     when 1
-      return 'identifiers.member_code'
+      return 'type'
     when 2
-      return 'identifiers.member_class'
+      return 'created_at'
     when 3
-      return 'identifiers.subsystem_code'
-    when 4
-      return 'identifiers.sdsb_instance'
-    when 5
-      return 'identifiers.object_type'
+      return 'processing_status'
     else
       raise "Index '#{index}' has no corresponding column."
     end

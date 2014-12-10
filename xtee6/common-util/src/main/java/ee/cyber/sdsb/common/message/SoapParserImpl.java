@@ -15,11 +15,13 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.StringUtils;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.util.MimeUtils;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
@@ -27,11 +29,8 @@ import static ee.cyber.sdsb.common.message.SoapUtils.*;
 import static ee.cyber.sdsb.common.util.MimeUtils.UTF8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
-
+@Slf4j
 public class SoapParserImpl implements SoapParser {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SoapParserImpl.class);
 
     @Override
     public Soap parse(String mimeType, String charset, InputStream is) {
@@ -54,11 +53,9 @@ public class SoapParserImpl implements SoapParser {
 
     protected Soap parseMessage(String mimeType, String charset,
             InputStream is) throws Exception {
-        LOG.debug("parseMessage({}, {})", mimeType, charset);
+        String theCharset = StringUtils.isNotBlank(charset) ? charset : UTF8;
 
-        if (charset == null) {
-            charset = UTF8;
-        }
+        log.trace("parseMessage({}, {})", mimeType, theCharset);
 
         // We need to keep the original XML around for various logging reasons.
         byte[] rawXml = IOUtils.toByteArray(is);
@@ -70,8 +67,8 @@ public class SoapParserImpl implements SoapParser {
         }
 
         SOAPMessage soap =
-                createSOAPMessage(new ByteArrayInputStream(rawXml), charset);
-        return parseMessage(rawXml, soap, charset);
+                createSOAPMessage(new ByteArrayInputStream(rawXml), theCharset);
+        return parseMessage(rawXml, soap, theCharset);
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
@@ -117,10 +114,19 @@ public class SoapParserImpl implements SoapParser {
         }
 
         String serviceName = getServiceName(soap.getSOAPBody());
-        validateServiceName(header.getService().getServiceCode(), serviceName);
+        ServiceId service = header.getService() != null
+                ? header.getService()
+                : header.getCentralService();
+        if (service == null) {
+            throw new CodedException(X_MISSING_HEADER_FIELD,
+                    "Message header must contain either service id"
+                            + " or central service id");
+        }
 
-        String xml = new String(rawXml, charset);
-        return new SoapMessageImpl(xml, charset, header, soap, serviceName);
+        validateServiceName(service.getServiceCode(), serviceName);
+
+        return new SoapMessageImpl(rawXml, charset, header, soap,
+                serviceName);
     }
 
     protected void validateAgainstSoapSchema(SOAPMessage soap)

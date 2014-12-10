@@ -58,27 +58,27 @@ public class SoapFault implements Soap {
     /** Creates a SOAP fault message. */
     public static String createFaultXml(String faultCode, String faultString,
             String faultActor, String detail) {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                "<SOAP-ENV:Envelope " +
-                    "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\" " +
-                    "xmlns:sdsb=\"" + SoapHeader.NS_SDSB + "\">" +
-                    "<SOAP-ENV:Body>" +
-                        "<SOAP-ENV:Fault>" +
-                            "<faultcode>" + faultCode + "</faultcode>" +
-                            "<faultstring>" +
-                            StringEscapeUtils.escapeXml(faultString) +
-                            "</faultstring>" +
-                            (faultActor != null
-                             ? ("<faultactor>" +
-                                 StringEscapeUtils.escapeXml(faultActor) +
-                                 "</faultactor>") : "") +
-                            (detail != null
-                             ? ("<detail><sdsb:faultDetail>" +
-                                 StringEscapeUtils.escapeXml(detail) +
-                                 "</sdsb:faultDetail>" + "</detail>") : "") +
-                        "</SOAP-ENV:Fault>" +
-                    "</SOAP-ENV:Body>" +
-                "</SOAP-ENV:Envelope>";
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<SOAP-ENV:Envelope "
+                    + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\" "
+                    + "xmlns:sdsb=\"" + SoapHeader.NS_SDSB + "\">"
+                    + "<SOAP-ENV:Body>"
+                        + "<SOAP-ENV:Fault>"
+                            + "<faultcode>" + faultCode + "</faultcode>"
+                            + "<faultstring>"
+                            + StringEscapeUtils.escapeXml(faultString)
+                            + "</faultstring>"
+                            + (faultActor != null
+                             ? ("<faultactor>"
+                                     + StringEscapeUtils.escapeXml(faultActor)
+                                     + "</faultactor>") : "")
+                                     + (detail != null
+                             ? ("<detail><sdsb:faultDetail>"
+                                     + StringEscapeUtils.escapeXml(detail)
+                                 + "</sdsb:faultDetail>" + "</detail>") : "")
+                         + "</SOAP-ENV:Fault>"
+                     + "</SOAP-ENV:Body>"
+                 + "</SOAP-ENV:Envelope>";
     }
 
     private static String getFaultDetail(SOAPFault soapFault) {

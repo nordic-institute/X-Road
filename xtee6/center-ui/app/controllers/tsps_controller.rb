@@ -1,5 +1,4 @@
 class TspsController < ApplicationController
-  include BaseHelper
   include CertTransformationHelper
 
   before_filter :verify_get, :only => [
@@ -16,19 +15,19 @@ class TspsController < ApplicationController
   # -- Common GET methods - start ---
 
   def index
-    authorize!(:view_approved_tsps)
+    authorize!(:view_approved_tsas)
   end
 
   def get_cert_details_by_id
-    render_temp_cert_details_by_id(:view_approved_tsps)
+    render_temp_cert_details_by_id(:view_approved_tsas)
   end
 
   def get_records_count
-    render_json_without_messages(:count => ApprovedTsp.count)
+    render_json_without_messages(:count => ApprovedTsa.count)
   end
 
   def can_see_details
-    render_details_visibility(:view_approved_tsp_details)
+    render_details_visibility(:view_approved_tsa_details)
   end
 
   # -- Common GET methods - end ---
@@ -36,15 +35,15 @@ class TspsController < ApplicationController
   # -- Specific GET methods - start ---
 
   def tsps_refresh
-    authorize!(:view_approved_tsps)
+    authorize!(:view_approved_tsas)
 
     searchable = params[:sSearch]
 
     query_params = get_list_query_params(
       get_tsp_list_column(get_sort_column_no))
 
-    tsps = ApprovedTsp.get_approved_tsps(query_params)
-    count = ApprovedTsp.get_approved_tsp_count(searchable)
+    tsps = ApprovedTsa.get_approved_tsas(query_params)
+    count = ApprovedTsa.get_approved_tsa_count(searchable)
 
     result = []
 
@@ -62,17 +61,17 @@ class TspsController < ApplicationController
   end
 
   def get_existing_tsp_cert_details
-    authorize!(:add_approved_tsp)
+    authorize!(:add_approved_tsa)
 
-    tsp = ApprovedTsp.find(params[:tspId])
+    tsp = ApprovedTsa.find(params[:tspId])
     cert_details = get_cert_data_from_bytes(tsp.cert)
     render_json(cert_details)
   end
 
   def get_existing_tsp_cert_dump_and_hash
-    authorize!(:edit_approved_tsp)
+    authorize!(:edit_approved_tsa)
 
-    tsp = ApprovedTsp.find(params[:tspId])
+    tsp = ApprovedTsa.find(params[:tspId])
     render_cert_dump_and_hash(tsp.cert)
   end
 
@@ -81,8 +80,8 @@ class TspsController < ApplicationController
   # -- Specific POST methods - start ---
 
   def save_new_tsp
-    authorize!(:add_approved_tsp)
-    tsp = ApprovedTsp.new()
+    authorize!(:add_approved_tsa)
+    tsp = ApprovedTsa.new()
     tsp.url = params[:url]
     tsp.cert = get_temp_cert_from_session(params[:tempCertId])
 
@@ -94,9 +93,9 @@ class TspsController < ApplicationController
   end
 
   def edit_existing_tsp
-    authorize!(:edit_approved_tsp)
+    authorize!(:edit_approved_tsa)
 
-    tsp = ApprovedTsp.find(params[:id])
+    tsp = ApprovedTsa.find(params[:id])
     tsp.url = params[:url]
 
     tsp.save!
@@ -107,15 +106,15 @@ class TspsController < ApplicationController
   end
 
   def delete_tsp
-    authorize!(:delete_approved_tsp)
+    authorize!(:delete_approved_tsa)
 
-    ApprovedTsp.find(params[:id]).destroy
+    ApprovedTsa.find(params[:id]).destroy
 
     render_json()
   end
 
   def upload_tsp_cert
-    authorize!(:add_approved_tsp)
+    authorize!(:add_approved_tsa)
 
     cert_data = upload_cert(params[:upload_tsp_cert_file])
     notice(t("common.cert_imported"))
@@ -133,11 +132,11 @@ class TspsController < ApplicationController
   def get_tsp_list_column(index)
     case(index)
     when 0
-      return "approved_tsps.name"
+      return "approved_tsas.name"
     when 1
-      return "approved_tsps.valid_from"
+      return "approved_tsas.valid_from"
     when 2
-      return "approved_tsps.valid_to"
+      return "approved_tsas.valid_to"
     else
       raise "Index '#{index}' has no corresponding column."
     end

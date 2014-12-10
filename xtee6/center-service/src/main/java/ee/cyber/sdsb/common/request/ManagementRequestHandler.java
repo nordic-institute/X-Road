@@ -45,7 +45,7 @@ public class ManagementRequestHandler {
         LOG.info("verifyAuthCertRegRequest");
 
         SoapMessageImpl soap = cb.getMessage();
-        byte[] dataToVerify = soap.getXml().getBytes(soap.getCharset());
+        byte[] dataToVerify = soap.getBytes();
 
         LOG.info("Verifying auth signature");
 
@@ -202,8 +202,9 @@ public class ManagementRequestHandler {
         }
 
         private static void verifyMessagePart(Object value, String message) {
-            if (value == null ||
-                    (value instanceof String && ((String) value).isEmpty())) {
+            if (value == null
+                    || (value instanceof String
+                            && ((String) value).isEmpty())) {
                 throw new CodedException(X_INVALID_REQUEST, message);
             }
         }

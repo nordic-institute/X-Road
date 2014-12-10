@@ -2,13 +2,14 @@ package ee.cyber.sdsb.signer.protocol.handler;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.signer.protocol.dto.CertRequestInfo;
-import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
 import ee.cyber.sdsb.signer.protocol.dto.KeyInfo;
 import ee.cyber.sdsb.signer.protocol.message.DeleteKey;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 import ee.cyber.sdsb.signer.util.TokenAndKey;
 
+/**
+ * Handles key deletions.
+ */
 @Slf4j
 public class DeleteKeyRequestHandler
         extends AbstractDeleteFromKeyInfo<DeleteKey> {
@@ -41,24 +42,19 @@ public class DeleteKeyRequestHandler
             return true;
         }
 
-        for (CertificateInfo certInfo : keyInfo.getCerts()) {
-            if (certInfo.isSavedToConfiguration()) {
-                return true;
-            }
-        }
-
-        return false;
+        return keyInfo.getCerts().stream()
+                .filter(c -> c.isSavedToConfiguration())
+                .findFirst().isPresent();
     }
 
     private static void removeCertsFromKey(KeyInfo keyInfo) throws Exception {
-        for (CertificateInfo certInfo : keyInfo.getCerts()) {
-            if (certInfo.isSavedToConfiguration()) {
+        keyInfo.getCerts().stream().filter(c -> c.isSavedToConfiguration())
+            .forEach(certInfo -> {
                 TokenManager.removeCert(certInfo.getId());
-            }
-        }
+            });
 
-        for (CertRequestInfo certReqInfo : keyInfo.getCertRequests()) {
+        keyInfo.getCertRequests().stream().forEach(certReqInfo -> {
             TokenManager.removeCertRequest(certReqInfo.getId());
-        }
+        });
     }
 }

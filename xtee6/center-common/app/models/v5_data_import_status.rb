@@ -9,7 +9,7 @@ class V5DataImportStatus
       :exit_status => exit_status
     }
 
-    SdsbFileUtils.write(get_status_file(), status_as_hash.to_json())
+    CommonUi::IOUtils.write(get_status_file(), status_as_hash.to_json())
   end
 
   def self.get
@@ -19,7 +19,7 @@ class V5DataImportStatus
       return {:no_status_file => true}
     end
 
-    raw_status = SdsbFileUtils.read(status_file)
+    raw_status = CommonUi::IOUtils.read(status_file)
 
     status_as_json = JSON.parse(raw_status)
 
@@ -33,6 +33,9 @@ class V5DataImportStatus
   private
 
   def self.get_status_file
-    ENV["HOME"] + "/.v5_data_import_status"
+    home_dir = ENV["HOME"]
+    import_dir = home_dir != nil ? home_dir : "."
+
+    return "#{import_dir}/.v5_data_import_status"
   end
 end

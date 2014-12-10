@@ -1,8 +1,10 @@
 package ee.cyber.sdsb.common.signature;
 
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.cms.SignerInformation;
@@ -17,6 +19,7 @@ import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateDigest;
 import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
 
+@Slf4j
 public class TimestampVerifier {
 
     /**
@@ -82,7 +85,12 @@ public class TimestampVerifier {
 
     private static X509Certificate getTspCertificate(SignerId signerId,
             List<X509Certificate> tspCerts) throws Exception {
+        log.trace("getTspCertificate({}, {}, {})",
+                new Object[] { signerId.getIssuer(), signerId.getSerialNumber(),
+                Arrays.toString(signerId.getSubjectKeyIdentifier()) });
         for (X509Certificate cert : tspCerts) {
+            log.trace("Comparing with cert: {}, {}",
+                    cert.getIssuerDN(), cert.getSerialNumber());
             if (signerId.match(new X509CertificateHolder(cert.getEncoded()))) {
                 return cert;
             }

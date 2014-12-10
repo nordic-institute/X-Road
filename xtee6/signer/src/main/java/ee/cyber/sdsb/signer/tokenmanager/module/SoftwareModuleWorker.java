@@ -10,6 +10,9 @@ import ee.cyber.sdsb.signer.tokenmanager.token.SoftwareToken;
 import ee.cyber.sdsb.signer.tokenmanager.token.SoftwareTokenType;
 import ee.cyber.sdsb.signer.tokenmanager.token.TokenType;
 
+/**
+ * Worker for software module. Always lists only one software token.
+ */
 public class SoftwareModuleWorker extends AbstractModuleWorker {
 
     private static final List<TokenType> TOKENS =

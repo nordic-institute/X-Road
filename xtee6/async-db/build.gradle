@@ -1,5 +1,3 @@
-ext.codeCoverage = true
-
 dependencies {
     compile project(':common-util'),
     'com.google.code.gson:gson:2.2.3'

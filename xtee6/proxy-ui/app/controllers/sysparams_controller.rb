@@ -1,6 +1,5 @@
 java_import Java::ee.cyber.sdsb.asyncdb.AsyncSenderConf
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType
+java_import Java::ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.TspType
 
 class SysparamsController < ApplicationController
@@ -9,80 +8,62 @@ class SysparamsController < ApplicationController
     authorize!(:view_sys_params)
   end
 
-  def distributors
-    authorize!(:view_distributors)
+  def sysparams
+    authorize!(:view_sys_params)
 
-    render_json(read_distributors)
-  end
+    sysparams = {}
 
-  def distributor_cert_load
-    authorize!(:add_distributor)
-
-    validate_params({
-      :url => [],
-      :cert => [RequiredValidator.new]
-    })
-
-    uploaded_cert = pem_to_der(params[:cert].read)
-    cert_obj = cert_object(uploaded_cert)
-
-    upload_success({
-      :subject => cert_obj.subject.to_s,
-      :serial => cert_obj.serial.to_s,
-    }, "distributorCertLoadCallback")
-  end
-
-  def distributor_add
-    authorize!(:add_distributor)
-
-    validate_params({
-      :url => [RequiredValidator.new],
-      :cert => [RequiredValidator.new],
-    })
-
-    uploaded_cert = pem_to_der(params[:cert].read)
-
-    serverconf.globalConfDistributor.each do |distributor|
-      if params[:url] == distributor.url && cert_hash(uploaded_cert) ==
-          cert_hash(distributor.verificationCert.data)
-        raise t('sysparams.distributor_exists')
-      end
+    if can?(:view_anchor)
+      sysparams[:anchor] = read_anchor
     end
 
-    cert = CertificateType.new
-    cert.data = uploaded_cert.to_java_bytes
-
-    distributor = GlobalConfDistributorType.new
-    distributor.verificationCert = cert
-    distributor.url = params[:url]
-
-    serverconf.globalConfDistributor.add(distributor)
-    serverconf_save
-
-    upload_success(read_distributors, "distributorAddCallback")
-  end
-
-  def distributor_delete
-    authorize!(:delete_distributor)
-
-    validate_params({
-      :url => [RequiredValidator.new],
-      :cert_subject => [RequiredValidator.new]
-    })
-
-    deleted_distributor = nil
-
-    serverconf.globalConfDistributor.each do |distributor|
-      if params[:url] == distributor.url && params[:cert_subject] ==
-          cert_object(distributor.verificationCert.data).subject.to_s
-        deleted_distributor = distributor
-      end
+    if can?(:view_tsps)
+      sysparams[:tsps] = read_tsps
     end
 
-    serverconf.globalConfDistributor.remove(deleted_distributor)
-    serverconf_save
+    if can?(:view_async_params)
+      sysparams[:async] = read_async_params
+    end
 
-    render_json(read_distributors)
+    if can?(:view_internal_ssl_cert)
+      sysparams[:internal_ssl_cert] = {
+        :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
+      }
+    end
+
+    render_json(sysparams)
+  end
+
+  def anchor_upload
+    authorize!(:upload_anchor)
+
+    validate_params({
+      :anchor_upload_file => [:required]
+    })
+
+    anchor_details =
+      save_temp_anchor_file(params[:anchor_upload_file].read)
+
+    upload_success(anchor_details)
+  end
+
+  def anchor_apply
+    authorize!(:upload_anchor)
+
+    validate_params
+
+    apply_temp_anchor_file
+
+    render_json
+  end
+
+  def anchor_download
+    authorize!(:download_anchor)
+
+    generated_at = read_anchor[:generated_at].gsub(" ", "_")
+
+    send_file(SystemProperties::getConfigurationAnchorFile, :filename =>
+      "configuration_anchor_#{generated_at}.xml")
   end
 
   def tsps_approved
@@ -91,18 +72,12 @@ class SysparamsController < ApplicationController
     render_json(read_approved_tsps)
   end
 
-  def tsps
-    authorize!(:view_tsps)
-
-    render_json(read_tsps)
-  end
-
   def tsp_add
     authorize!(:add_tsp)
 
     validate_params({
-      :name => [RequiredValidator.new],
-      :url => [RequiredValidator.new]
+      :name => [:required],
+      :url => [:required]
     })
 
     added_tsp = {
@@ -135,7 +110,7 @@ class SysparamsController < ApplicationController
     authorize!(:delete_tsp)
 
     validate_params({
-      :name => [RequiredValidator.new]
+      :name => [:required]
     })
 
     deleted_tsp = nil
@@ -152,19 +127,13 @@ class SysparamsController < ApplicationController
     render_json(read_tsps)
   end
 
-  def async_params
-    authorize!(:view_async_params)
-
-    render_json(read_async_params)
-  end
-
   def async_params_edit
     authorize!(:edit_async_params)
     
     validate_params({
-      :base_delay => [RequiredValidator.new, IntValidator.new],
-      :max_delay => [RequiredValidator.new, IntValidator.new],
-      :max_senders => [RequiredValidator.new, IntValidator.new]
+      :base_delay => [:required, :int],
+      :max_delay => [:required, :int],
+      :max_senders => [:required, :int]
     })
 
     async_sender_conf = AsyncSenderConf.new
@@ -176,22 +145,14 @@ class SysparamsController < ApplicationController
     render_json(read_async_params)
   end
 
-  def internal_ssl_cert
-    authorize!(:view_internal_ssl_cert)
-
-    render_json({
-      :hash => cert_hash(read_internal_ssl_cert)
-    })
-  end
-
   def internal_ssl_cert_details
     authorize!(:view_internal_ssl_cert)
 
     cert_obj = read_internal_ssl_cert
 
     render_json({
-      :dump => cert_dump(cert_obj),
-      :hash => cert_hash(cert_obj)
+      :dump => CommonUi::CertUtils.cert_dump(cert_obj),
+      :hash => CommonUi::CertUtils.cert_hash(cert_obj)
     })
   end
 
@@ -225,11 +186,27 @@ class SysparamsController < ApplicationController
     end
 
     render_json({
-      :hash => cert_hash(read_internal_ssl_cert)
+      :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
     })
   end
 
   private
+
+  def read_anchor
+    file = SystemProperties::getConfigurationAnchorFile
+    content = IO.read(file)
+
+    hash = CryptoUtils::hexDigest(
+      CryptoUtils::SHA224_ID, content.to_java_bytes)
+
+    anchor = ConfigurationAnchor.new(file)
+    generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
+
+    return {
+      :hash => hash.upcase.scan(/.{1,2}/).join(':'),
+      :generated_at => format_time(generated_at, true)
+    }
+  end
 
   def reload_nginx
     output = %x[sudo invoke-rc.d nginx reload 2>&1]
@@ -240,28 +217,13 @@ class SysparamsController < ApplicationController
     end
   end
 
-  def read_distributors
-    distributors = []
-
-    serverconf.globalConfDistributor.each do |distributor|
-      cert_obj = cert_object(distributor.verificationCert.data)
-
-      distributors << {
-        :url => distributor.url,
-        :cert_subject => cert_obj.subject.to_s
-      }
-    end
-
-    distributors
-  end
-
   def read_approved_tsps
     approved_tsps = []
 
-    globalconf.root.approvedTsp.each do |tsp|
+    GlobalConf::getApprovedTsps(sdsb_instance).each do |tsp|
       approved_tsps << {
-        :name => tsp.name,
-        :url => tsp.url
+        :name => GlobalConf::getApprovedTspName(sdsb_instance, tsp),
+        :url => tsp
       }
     end
 

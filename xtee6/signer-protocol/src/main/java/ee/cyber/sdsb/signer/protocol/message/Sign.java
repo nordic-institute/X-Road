@@ -5,6 +5,9 @@ import java.io.Serializable;
 import lombok.ToString;
 import lombok.Value;
 
+/**
+ * Signer API message.
+ */
 @Value
 @ToString(exclude = "digest")
 public class Sign implements Serializable {

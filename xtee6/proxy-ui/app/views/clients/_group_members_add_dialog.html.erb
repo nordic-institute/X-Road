@@ -1,90 +1,75 @@
 <%= dialog "group_members_add_dialog" do %>
   <div class="simple_search">
-    <fieldset style="width: 30%; padding: 0 1em;">
-      <legend><%= t 'common.simple_search' %></legend>
-
-      <%= form_tag(nil, { class: "simple_search_form" }) do %>
-      <table style="width: 100%;">
-        <tr>
-          <td><%= text_field_tag "subject_search_all" %></td>
-          <td><button class="search"><%= t 'common.search' %></button></td>
-        </tr>
-      </table>
-      <% end %>
-    </fieldset>
+    <%= form_tag(nil, { class: "simple_search_form" }) do %>
+    <table class="details">
+      <tr>
+        <td></td>
+        <td><%= text_field_tag "subject_search_all" %></td>
+        <td><button class="search"><%= t 'common.search' %></button></td>
+      </tr>
+    </table>
+    <% end %>
 
     <a href="#"><%= t 'common.advanced_search' %></a>
   </div>
 
   <div class="advanced_search">
-    <fieldset style="width: 30%; padding: 0 1em;">
-      <legend><%= t 'common.advanced_search' %></legend>
-
-      <%= form_tag(nil, { class: "advanced_search_form" }) do %>
-      <table style="width: 100%;">
-        <tr>
-          <td><%= t 'clients.group_details_dialog.name' %></td>
-          <td><%= text_field_tag "subject_search_description" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.type' %></td>
-          <td>
-            <%= select_tag "subject_search_type",
-                options_for_select(@member_types), :include_blank => true %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.sdsb' %></td>
-          <td>
-            <%= select_tag "subject_search_sdsb",
-                options_for_select(@instances), :include_blank => true %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.class' %></td>
-          <td><%= select_tag "subject_search_class",
-                  options_for_select(@member_classes), :include_blank => true %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.code' %></td>
-          <td><%= text_field_tag "subject_search_code" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'clients.group_details_dialog.subsystem' %></td>
-          <td><%= text_field_tag "subject_search_subsystem_code" %></td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <button class="search"><%= t 'common.search' %></button>
-            <button class="clear"><%= t 'common.clear' %></button>
-          </td>
-        </tr>
-      </table>
-      <% end %>
-    </fieldset>
+    <%= form_tag(nil, { class: "advanced_search_form" }) do %>
+    <table class="details">
+      <tr>
+        <td><%= t 'clients.group_details_dialog.name' %></td>
+        <td><%= text_field_tag "subject_search_description" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.group_details_dialog.type' %></td>
+        <td>
+          <%= select_tag "subject_search_type",
+              options_for_select(@member_types), :include_blank => true %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.group_details_dialog.instance' %></td>
+        <td>
+          <%= select_tag "subject_search_instance",
+              options_for_select(@instances), :include_blank => true %>
+        </td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.group_details_dialog.class' %></td>
+        <td><%= select_tag "subject_search_class",
+                options_for_select(@member_classes), :include_blank => true %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.group_details_dialog.code' %></td>
+        <td><%= text_field_tag "subject_search_code" %></td>
+      </tr>
+      <tr>
+        <td><%= t 'clients.group_details_dialog.subsystem' %></td>
+        <td><%= text_field_tag "subject_search_subsystem_code" %></td>
+      </tr>
+      <tr>
+        <td class="align-right" colspan="2">
+          <button class="search"><%= t 'common.search' %></button>
+          <button class="clear"><%= t 'common.clear' %></button>
+        </td>
+      </tr>
+    </table>
+    <% end %>
 
     <a href="#"><%= t 'common.simple_search' %></a>
   </div> 
 
-  <div class="fill" style="margin-top: 1em;">
-    <div id="members_search_actions">
-      <div class="left">
-        <input class="show_existing" type="checkbox"/>
-        <span><%= t '.show_existing' %></span>
-      </div>
-      <div class="right">
-        <span><%= t 'common.select_all' %></span>
-        <input class="select_all" type="checkbox"/>
-      </div>
-    </div>
-
-    <table id="members_search">
-      <thead>
-        <tr>
-          <th><%= t '.name' %></th>
-          <th>ID</th>
-        </tr>
-      </thead>
-    </table>
+  <div id="members_search_actions">
+    <input class="show_existing" type="checkbox"/>
+    <span><%= t '.show_existing' %></span>
   </div>
+
+  <table id="members_search">
+    <thead>
+      <tr>
+        <th><%= t '.name' %></th>
+        <th><%= t 'common.id' %></th>
+      </tr>
+    </thead>
+  </table>
 <% end %>

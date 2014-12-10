@@ -46,14 +46,14 @@ public class Message {
     }
 
     public boolean checkConsistency(Message anotherMessage) {
-        if (soap == null &&
-                (anotherMessage == null ||
-                        anotherMessage.soap == null)) {
+        if (soap == null
+                && (anotherMessage == null
+                    || anotherMessage.soap == null)) {
             return true;
         }
 
-        if (!(soap instanceof SoapMessageImpl) ||
-                !(anotherMessage.soap instanceof SoapMessageImpl)) {
+        if (!(soap instanceof SoapMessageImpl)
+                || !(anotherMessage.soap instanceof SoapMessageImpl)) {
             return false;
         }
 
@@ -77,8 +77,8 @@ public class Message {
     }
 
     public boolean isResponse() {
-        return soap != null && soap instanceof SoapMessageImpl &&
-                ((SoapMessageImpl) soap).isResponse();
+        return soap != null && soap instanceof SoapMessageImpl
+                && ((SoapMessageImpl) soap).isResponse();
     }
 
     private class ContentHandler extends AbstractContentHandler {

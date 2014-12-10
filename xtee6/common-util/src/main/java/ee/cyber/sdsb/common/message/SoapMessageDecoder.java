@@ -5,14 +5,14 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.util.MimeUtils;
@@ -22,10 +22,8 @@ import static ee.cyber.sdsb.common.util.MimeTypes.MULTIPART_RELATED;
 import static ee.cyber.sdsb.common.util.MimeUtils.*;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
+@Slf4j
 public class SoapMessageDecoder {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SoapMessageDecoder.class);
 
     private final String contentType;
     private final Callback callback;
@@ -83,7 +81,7 @@ public class SoapMessageDecoder {
     }
 
     private void readSoapMessage(InputStream is) throws Exception {
-        LOG.debug("readSoapMessage");
+        log.trace("readSoapMessage");
 
         Soap soap = parser.parse(baseContentType, getCharset(contentType), is);
         if (soap instanceof SoapFault) {
@@ -92,7 +90,7 @@ public class SoapMessageDecoder {
         }
 
         if (!(soap instanceof SoapMessage)) {
-            LOG.error("Expected SoapMessage, but got: {}", soap.getXml());
+            log.error("Expected SoapMessage, but got: {}", soap.getXml());
             throw new CodedException(
                     X_INTERNAL_ERROR, "Unexpected SOAP message");
         }
@@ -101,7 +99,7 @@ public class SoapMessageDecoder {
     }
 
     private void readMultipart(InputStream is) throws Exception {
-        LOG.debug("readMultipart");
+        log.trace("readMultipart");
 
         MimeConfig config = new MimeConfig();
         config.setHeadlessParsing(contentType);
@@ -142,7 +140,7 @@ public class SoapMessageDecoder {
         public void body(BodyDescriptor bd, InputStream is)
                 throws MimeException, IOException {
             if (!headers.isEmpty()) {
-                LOG.debug("headers: {}", headers);
+                log.trace("headers: {}", headers);
             }
 
             if (partContentType == null) {
@@ -153,7 +151,7 @@ public class SoapMessageDecoder {
             try {
                 if (soapMessage == null) {
                     // First part, consisting of the SOAP message.
-                    LOG.debug("Read SOAP from multipart: {}", partContentType);
+                    log.trace("Read SOAP from multipart: {}", partContentType);
                     try {
                         Soap soap = parser.parse(
                                 MimeUtils.getBaseContentType(partContentType),
@@ -170,7 +168,7 @@ public class SoapMessageDecoder {
                     }
                 } else {
                     // Attachment
-                    LOG.debug("Read attachment from multipart: {}",
+                    log.trace("Read attachment from multipart: {}",
                             partContentType);
                     callback.attachment(partContentType, is, headers);
                 }

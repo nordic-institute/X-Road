@@ -18,9 +18,6 @@ public class ServerConfType {
 
     private final List<ClientType> client = new ArrayList<>();
 
-    private final List<GlobalConfDistributorType> globalConfDistributor =
-            new ArrayList<>();
-
     private final List<TspType> tsp = new ArrayList<>();
 
 }

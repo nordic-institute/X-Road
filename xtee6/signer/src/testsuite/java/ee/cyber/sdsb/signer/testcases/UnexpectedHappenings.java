@@ -11,9 +11,6 @@ import org.junit.runners.MethodSorters;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.ExpectedCodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.common.conf.GlobalConfImpl;
-import ee.cyber.sdsb.common.conf.GlobalConfProvider;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.signer.CsrCertStructure;
 import ee.cyber.sdsb.signer.KeyCertStructCheckRep;
@@ -95,7 +92,7 @@ public class UnexpectedHappenings extends TestCase {
                 keys, certs, KeyUsageInfo.SIGNING,
                 secUntilExpired, clientExpire, initializeSoftToken("1234"));
         Thread.sleep(2000); // 2000ms to wait until cert expires
-        
+
         thrown.expectError(withSignerPrefix(X_CERT_VALIDATION));
         importCerts(keyCert);
         new KeyCertStructCheckRep(keyCertStruct, softToken);
@@ -186,8 +183,8 @@ public class UnexpectedHappenings extends TestCase {
     @Test
     public void t06getNoMemberCerts() throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t06 - Started: Get all certs from member, " +
-                "not in configuration. Failure expected");
+        LOG.info("t06 - Started: Get all certs from member, "
+                + "not in configuration. Failure expected");
         LOG.info("###########################################################");
 
         thrown.expectError(withSignerPrefix(X_UNKNOWN_MEMBER));
@@ -205,9 +202,9 @@ public class UnexpectedHappenings extends TestCase {
                 new File("src/testsuite/resources/globalconf_2.xml"),
                 new File(confDir));
         listDevices();
-        GlobalConfProvider globalConf =
-                new GlobalConfImpl(confDir + "globalconf_2.xml");
-        GlobalConf.reload(globalConf);
+        //GlobalConfProvider globalConf =
+        //        new GlobalConfImpl(confDir + "globalconf_2.xml");
+        //GlobalConf.reload(globalConf);
 
         listDevices();
         softSign(getMemberSignInfo(client2));

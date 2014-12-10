@@ -15,11 +15,6 @@ java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo
 
 class KeysController < ApplicationController
 
-  SSL_TOKEN_ID = "0"
-
-  MIN_PIN_LENGTH_ATTR = "Min PIN length"
-  MAX_PIN_LENGTH_ATTR = "Max PIN length"
-
   def index
     authorize!(:view_keys)
 
@@ -30,56 +25,6 @@ class KeysController < ApplicationController
     authorize!(:view_keys)
 
     cache_client_ids
-    render_tokens
-  end
-
-  def activate_token
-    authorize!(:login_logout_tokens)
-
-    validate_params({
-      :pin => [RequiredValidator.new],
-      :token_id => [RequiredValidator.new]
-    })
-
-    pin = Array.new
-    params[:pin].bytes do |b|
-      pin << b
-    end
-
-    token = get_token(params[:token_id])
-
-    if token.status == TokenStatusInfo::USER_PIN_LOCKED
-      raise t('keys.pin_locked')
-    end
-
-    token.tokenInfo.each do |key,val|
-      if (key == MIN_PIN_LENGTH_ATTR && pin.size < val.to_i) ||
-          (key == MAX_PIN_LENGTH_ATTR && pin.size > val.to_i)
-        raise t('keys.pin_format_incorrect')
-      end
-    end
-
-    begin
-      translate_coded_exception do
-        SignerProxy::activateToken(params[:token_id], pin.to_java(:char))
-      end
-    rescue
-      if get_token(params[:token_id]).status ==
-          TokenStatusInfo::USER_PIN_FINAL_TRY
-        raise "#{$!.message}, #{t('keys.final_try')}"
-      end
-
-      raise $!
-    end
-
-    render_tokens
-  end
-
-  def deactivate_token
-    authorize!(:login_logout_tokens)
-
-    SignerProxy::deactivateToken(params[:token_id])
-
     render_tokens
   end
 
@@ -128,7 +73,7 @@ class KeysController < ApplicationController
 
     csr_file = SecureRandom.hex(4)
 
-    File.open(temp_file(csr_file), 'wb') do |f|
+    File.open(CommonUi::IOUtils.temp_file(csr_file), 'wb') do |f|
       f.write(csr)
     end
 
@@ -140,11 +85,11 @@ class KeysController < ApplicationController
 
   def download_csr
     validate_params({
-      :csr => [RequiredValidator.new, FilenameValidator.new],
-      :key_usage => [RequiredValidator.new]
+      :csr => [:required, :filename],
+      :key_usage => [:required]
     })
 
-    file = temp_file(params[:csr])
+    file = CommonUi::IOUtils.temp_file(params[:csr])
 
     # file name parts
     subject = get_csr_subject(file)
@@ -156,10 +101,10 @@ class KeysController < ApplicationController
 
   def import_cert
     validate_params({
-      :file => [RequiredValidator.new]
+      :file => [:required]
     })
 
-    uploaded_cert = pem_to_der(params[:file].read)
+    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file].read)
 
     java_cert_obj = CryptoUtils::readCertificate(uploaded_cert.to_java_bytes)
 
@@ -168,10 +113,14 @@ class KeysController < ApplicationController
 
     if CertUtils::isAuthCert(java_cert_obj)
       authorize!(:import_auth_cert)
+
       cert_state = CertificateInfo::STATUS_SAVED
     else
       authorize!(:import_sign_cert)
-      client_id = ImportCertUtil::getClientIdForSigningCert(java_cert_obj)
+
+      client_id = ImportCertUtil::getClientIdForSigningCert(
+        sdsb_instance, java_cert_obj)
+
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
     end
@@ -185,9 +134,9 @@ class KeysController < ApplicationController
 
   def import
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
@@ -201,7 +150,10 @@ class KeysController < ApplicationController
       cert_state = CertificateInfo::STATUS_SAVED
     else
       authorize!(:import_sign_cert)
-      client_id = ImportCertUtil::getClientIdForSigningCert(java_cert_obj)
+
+      client_id = ImportCertUtil::getClientIdForSigningCert(
+        sdsb_instance, java_cert_obj)
+
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
     end
@@ -213,9 +165,9 @@ class KeysController < ApplicationController
 
   def activate_cert
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
@@ -233,9 +185,9 @@ class KeysController < ApplicationController
 
   def deactivate_cert
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
@@ -255,10 +207,10 @@ class KeysController < ApplicationController
     authorize!(:send_auth_cert_reg_req)
 
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new],
-      :address => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required],
+      :address => [:required]
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
@@ -275,9 +227,9 @@ class KeysController < ApplicationController
     authorize!(:send_auth_cert_del_req)
 
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
@@ -295,27 +247,27 @@ class KeysController < ApplicationController
 
   def delete_key
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
 
     if key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:delete_auth_key)
+
+      key.certs.each do |cert|
+        if [CertificateInfo::STATUS_REGINPROG,
+            CertificateInfo::STATUS_REGISTERED].include?(cert.status)
+          authorize!(:send_auth_cert_del_req)
+          unregister_cert(cert.certificateBytes)
+          SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
+        end
+      end
     elsif key.usage == KeyUsageInfo::SIGNING
       authorize!(:delete_sign_key)
     else
       authorize!(:delete_key)
-    end
-
-    key.certs.each do |cert|
-      if [CertificateInfo::STATUS_REGINPROG,
-          CertificateInfo::STATUS_REGISTERED].include?(cert.status)
-        authorize!(:send_auth_cert_del_req)
-        unregister_cert(cert.certificateBytes)
-        SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
-      end
     end
 
     SignerProxy::deleteKey(params[:key_id])
@@ -325,9 +277,9 @@ class KeysController < ApplicationController
 
   def delete_cert_request
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
@@ -345,9 +297,9 @@ class KeysController < ApplicationController
 
   def delete_cert
     validate_params({
-      :token_id => [RequiredValidator.new],
-      :key_id => [RequiredValidator.new],
-      :cert_id => [RequiredValidator.new]
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
@@ -365,7 +317,7 @@ class KeysController < ApplicationController
 
   def friendly_name
     validate_params({
-      :friendly_name => [RequiredValidator.new],
+      :friendly_name => [:required],
       :token_id => [],
       :key_id => []
     })
@@ -397,8 +349,8 @@ class KeysController < ApplicationController
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
 
     render_json({
-      :dump => cert_dump(cert.certificateBytes),
-      :hash => cert_hash(cert.certificateBytes)
+      :dump => CommonUi::CertUtils.cert_dump(cert.certificateBytes),
+      :hash => CommonUi::CertUtils.cert_hash(cert.certificateBytes)
     })
   end
 
@@ -440,7 +392,11 @@ class KeysController < ApplicationController
 
     serverconf.client.each do |client|
       # no certs for subsystems
-      client_id = to_member_id(client.identifier)
+      client_id = ClientId.create(
+        client.identifier.sdsbInstance,
+        client.identifier.memberClass,
+        client.identifier.memberCode, nil)
+
       session[:client_ids][client_id.toString] = client_id
     end
 

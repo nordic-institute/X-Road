@@ -1,0 +1,101 @@
+#!/bin/bash
+
+. /usr/share/debconf/confmodule
+
+
+chmod 0440 /etc/sudoers.d/sdsb
+
+case "$1" in
+    configure)
+    test -d /var/spool/sdsb && test -w /var/spool/sdsb || mkdir /var/spool/sdsb ; chown sdsb:sdsb /var/spool/sdsb
+    test -d /var/cache/sdsb && test -w /var/cache/sdsb || mkdir /var/cache/sdsb ; chown sdsb:sdsb /var/cache/sdsb
+    test -d /etc/sdsb/globalconf && test -w /etc/sdsb/globalconf || mkdir /etc/sdsb/globalconf ; chown sdsb:sdsb  /etc/sdsb/globalconf
+
+    test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown sdsb /etc/authbind/byport/80; chown sdsb /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+
+    test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
+    test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
+  
+    
+    #add groups
+    groups="sdsb-security-officer sdsb-registration-officer sdsb-service-administrator sdsb-system-administrator sdsb-system-auditor sdsb-users-administrator"
+    #dbs
+    dbs="serverconf securelog"
+
+    if ! netstat -na | grep -q :5432
+      then echo  "Is postgres running on port 5432 ?"
+       echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+      exit 100
+    fi
+
+     if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+      then echo "postgreSQL is not UTF8 compatible."
+       echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+       exit 101
+    fi
+
+    for db in $dbs
+    do 
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db'\" "` == "1" ]]
+      then
+        echo  "$db user exists, skipping schema creation"
+      else 
+    	echo "CREATE ROLE $db LOGIN PASSWORD '$db';" | su - postgres -c psql postgres
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db'\""`  == "1" ]] 
+      then
+  	echo "database $db exists"
+      else 
+  	su - postgres -c "createdb $db -O $db -E UTF-8"
+      fi
+    if dpkg --compare-versions "$2" le "6.0-99.3-201410021200" &&  [[ "$2x" != "x"  ]] && [[ "$db" == "serverconf" ]]
+    then
+      echo "converting instance information"
+      PGPASSWORD=serverconf psql -tA -h 0 -U serverconf serverconf <<EOF > /etc/sdsb/configuration-anchor.xml
+select xmlroot(xmlelement(name "tns:configurationAnchor", xmlattributes('http://x-road.eu/xsd/identifiers' as "xmlns:id", 'http://x-road.eu/xsd/sdsb.xsd' as "xmlns:tns", 'http://www.w3.org/2001/XMLSchema-instance' as "xmlns:xsi", 'http://x-road.eu/xsd/sdsb.xsd' as "xsi:schemaLocation" ), xmlelement(name "instanceIdentifier", sdsbinstance),  xmlelement(name source, xmlelement(name "downloadURL", regexp_replace(url, '/conf$', '/internalconf')), xmlelement(name "verificationCert", encode(cert.data, 'base64')))), VERSION '1.0', standalone yes) from identifier i join client c on i.id=c.identifier join serverconf s on c.id=s.owner join globalconfdistributor g on s.id=g.conf_id join certificate cert on cert.id=g.verificationcert;
+EOF
+      chown sdsb:sdsb /etc/sdsb/configuration-anchor.xml
+      chmod 644 /etc/sdsb/configuration-anchor.xml
+    fi
+
+    echo "running ${db} migrations"
+	cd /usr/share/sdsb/db/
+	/usr/share/sdsb/db/liquibase --classpath=/usr/share/sdsb/jlib/proxy.jar --url="jdbc:postgresql://localhost/${db}?dialect=ee.cyber.sdsb.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/sdsb/db/${db}-changelog.xml --password=${db} --username=${db}  update
+
+    done
+
+    RET=""
+    db_get xroad-common/username
+    AUSER="$RET"
+    
+
+    for groupname in $groups
+    do
+      if ! getent group $groupname > /dev/null; then
+        addgroup --system --quiet  $groupname
+      fi
+        adduser $AUSER $groupname
+    done
+
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+    
+invoke-rc.d nginx restart
+service xroad-confclient restart || service xroad-confclient start
+service xroad-proxy restart || service xroad-proxy start
+service xroad-async restart || service xroad-async start
+service xroad-jetty restart || service xroad-jetty start
+
+db_stop
+
+exit 0

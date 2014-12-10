@@ -140,7 +140,7 @@ final class Helper {
         Element digestMethodElement =
                 doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
         digestMethodElement.setAttribute(Constants._ATT_ALGORITHM,
-                getAlgorithmURI(hashMethod));
+                getDigestAlgorithmURI(hashMethod));
 
         return digestMethodElement;
     }
@@ -148,10 +148,10 @@ final class Helper {
     /**
      * Creates and returns a ds:DigestValue element.
      */
-    static Element createDigestValueElement(Document doc, String hashValue) {
+    static Element createDigestValueElement(Document doc, byte[] hashValue) {
         Element digestValueElement =
                 doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
-        digestValueElement.setTextContent(hashValue);
+        digestValueElement.setTextContent(encodeBase64(hashValue));
 
         return digestValueElement;
     }

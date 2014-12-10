@@ -1,3 +1,3 @@
-require '../../common-ui/etc/privilege_generator.rb'
+require "#{ENV["SDSB_HOME"]}/common-ui/etc/privilege_generator.rb"
 
 generate_privileges("sdsb-security-officer")

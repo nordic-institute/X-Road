@@ -4,7 +4,9 @@ import org.hibernate.dialect.PostgreSQL82Dialect;
 import org.hibernate.type.descriptor.sql.BinaryTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
 
-// Handle incompatibility between postgres blob => oid|bytea
+/**
+ * Handle incompatibility between postgres blob => oid|bytea
+ */
 public class CustomPostgreSQLDialect extends PostgreSQL82Dialect {
 
     @Override

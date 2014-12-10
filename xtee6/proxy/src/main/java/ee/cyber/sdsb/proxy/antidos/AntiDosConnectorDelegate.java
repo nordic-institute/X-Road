@@ -7,19 +7,16 @@ import java.nio.channels.SocketChannel;
 import java.util.concurrent.Semaphore;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jetty.io.nio.SelectChannelEndPoint;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.util.SystemMetrics;
 
+@Slf4j
 @RequiredArgsConstructor
 class AntiDosConnectorDelegate {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AntiDosSslConnector.class);
 
     private static final AntiDosConfiguration CONF =
             new AntiDosConfiguration();
@@ -55,7 +52,7 @@ class AntiDosConnectorDelegate {
             Socket socket = channel.socket();
             configure(socket);
 
-            LOG.trace("Accepted connection: " + channel);
+            log.trace("Accepted connection: " + channel);
             manager.accept(new SocketChannelWrapperImpl(channel));
 
             SystemMetrics.connectionAccepted();
@@ -63,7 +60,7 @@ class AntiDosConnectorDelegate {
     }
 
     void endPointClosed(SelectChannelEndPoint endpoint) {
-        LOG.trace("Closed connection: " + endpoint);
+        log.trace("Closed connection: " + endpoint);
 
         onConnectionClosed();
     }
@@ -71,6 +68,8 @@ class AntiDosConnectorDelegate {
     void onConnectionClosed() {
         semaphore.release();
 
+        log.trace("Released a permit, current total: {}",
+                semaphore.availablePermits());
         SystemMetrics.connectionClosed();
     }
 
@@ -89,11 +88,13 @@ class AntiDosConnectorDelegate {
                     // Take the next connection to be processed
                     SocketChannel channel =
                             manager.takeNextConnection().getChannel();
-
+                    
+                    log.trace("Looking to acquire permit, current total: {}",
+                            semaphore.availablePermits());
                     // Wait until we can start processing
                     semaphore.acquire();
 
-                    LOG.trace("Processing connection: " + channel.socket());
+                    log.trace("Processing connection: " + channel.socket());
                     connector.getSelectorManager().register(channel);
                 }
             } catch (InterruptedException ex) {

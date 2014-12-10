@@ -20,7 +20,7 @@ import ee.cyber.sdsb.common.message.SoapMessageImpl;
 
 import static ee.cyber.sdsb.common.request.ManagementRequests.*;
 
-public class ManagementRequestBuilder {
+final class ManagementRequestBuilder {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ManagementRequestBuilder.class);
@@ -32,7 +32,7 @@ public class ManagementRequestBuilder {
     private final ClientId sender;
     private final ClientId receiver;
 
-    public ManagementRequestBuilder(String userId, ClientId sender,
+    ManagementRequestBuilder(String userId, ClientId sender,
             ClientId receiver) {
         this.userId = userId;
         this.sender = sender;
@@ -41,11 +41,11 @@ public class ManagementRequestBuilder {
 
     // -- Public API methods --------------------------------------------------
 
-    public SoapMessageImpl buildAuthCertRegRequest(
+    SoapMessageImpl buildAuthCertRegRequest(
             SecurityServerId securityServer, String address, byte[] authCert)
                     throws Exception {
         LOG.debug("buildAuthCertRegRequest(server: {}, address: {})",
-                new Object[] { securityServer, address });
+                new Object[] {securityServer, address});
 
         AuthCertRegRequestType request =
                 FACTORY.createAuthCertRegRequestType();
@@ -57,7 +57,7 @@ public class ManagementRequestBuilder {
                 AuthCertRegRequestType.class, request));
     }
 
-    public SoapMessageImpl buildAuthCertDeletionRequest(
+    SoapMessageImpl buildAuthCertDeletionRequest(
             SecurityServerId securityServer, byte[] authCert)
                     throws Exception {
         LOG.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
@@ -71,7 +71,7 @@ public class ManagementRequestBuilder {
                 AuthCertDeletionRequestType.class, request));
     }
 
-    public SoapMessageImpl buildClientRegRequest(
+    SoapMessageImpl buildClientRegRequest(
             SecurityServerId securityServer, ClientId client)
                     throws Exception {
         LOG.debug("buildClientRegRequest(server: {}, client: {})",
@@ -85,7 +85,7 @@ public class ManagementRequestBuilder {
                 ClientRequestType.class, request));
     }
 
-    public SoapMessageImpl buildClientDeletionRequest(
+    SoapMessageImpl buildClientDeletionRequest(
             SecurityServerId securityServer, ClientId client)
                     throws Exception {
         LOG.debug("buildClientDeletionRequest(server: {}, client: {})",

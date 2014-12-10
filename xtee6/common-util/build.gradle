@@ -1,5 +1,3 @@
-ext.codeCoverage = true
-
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
@@ -27,9 +25,10 @@ dependencies {
     compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
     compile 'org.eclipse.jetty:jetty-continuation:8.1.7.v20120910'
     compile 'org.eclipse.jetty:jetty-io:8.1.7.v20120910'
+    compile 'org.eclipse.jetty:jetty-xml:8.1.7.v20120910'
 
     compile 'ch.qos.logback:logback-access:1.0.7'
-    compile 'ch.qos.logback:logback-classic:1.0.6'
+    compile 'ch.qos.logback:logback-classic:1.0.7'
     compile 'org.quartz-scheduler:quartz:2.1.6'
     compile 'joda-time:joda-time:2.1'
     compile 'xalan:serializer:2.7.1'
@@ -43,9 +42,10 @@ dependencies {
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
 
+    testCompile 'org.mockito:mockito-core:1.9.0'
+
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
-    xjc 'net.java.dev.vcc.thirdparty:collection-setter-injector:0.5.0-1'
 }
 
 test {
@@ -76,15 +76,21 @@ task xjc() {
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
 
-    // Generate classes for globalconf, using identifier classes
+    // Generate classes for federateable global external conf
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.conf.globalconf',
-        schema: 'src/main/resources/globalconf.xsd',
+        package: 'ee.cyber.sdsb.common.conf.globalconf.sharedparameters',
+        schema: 'src/main/resources/globalconf/external-conf.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
-    ) {
-        arg(value: '-Xcollection-setter-injector')
-    }
+    )
+
+    // Generate classes for federateable global internal conf
+    ant.xjc(
+        destdir: project.ext.schemaTargetDir,
+        package: 'ee.cyber.sdsb.common.conf.globalconf.privateparameters',
+        schema: 'src/main/resources/globalconf/internal-conf.xsd',
+        binding: 'src/main/resources/identifiers-bindings.xml'
+    )
 
     // Generate classes for request, using identifier classes
     ant.xjc(
@@ -101,7 +107,7 @@ task xjc() {
         schema: 'src/main/resources/hashchain.xsd',
     )
 
-    // Generate classes service metainfo
+    // Generate classes for service metainfo
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
         package: 'ee.cyber.sdsb.common.metadata',

@@ -1,4 +1,4 @@
-require 'user_helper'
+require "common-ui/user_utils"
 
 module CommonUi
   class Engine < ::Rails::Engine
@@ -16,7 +16,7 @@ module CommonUi
           privileges = YAML.load_file(privileges_file)
 
           # convert array of hashes to a single hash of privilege -> roles
-          UserHelper.privilege_roles = privileges.reduce({}) do |acc, privilege|
+          UserUtils.privilege_roles = privileges.reduce({}) do |acc, privilege|
             acc[privilege.first[0]] = privilege.first[1]
             acc
           end

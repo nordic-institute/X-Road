@@ -1,84 +1,45 @@
 package ee.cyber.sdsb.common.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
+/**
+ * Unit test for FileContentChangeChecker.
+ */
 public class FileContentChangeCheckerTest {
 
-    private static final String INITIAL_DATA = "initial data";
-
+    /**
+     * Tests whether the file content changes are detected
+     * @throws Exception if error occurs
+     */
     @Test
-    public void shouldDetectContentChange() throws Exception {
-        MockedChecker checker = new MockedChecker();
-
-        assertFalse("Should not have changed yet", checker.hasChanged());
-
-        checker.setData("foobar");
-
-        assertTrue("Should have changed", checker.hasChanged());
-    }
-
-    @Test
-    public void shouldNotDetectContentChangeForLastModified() throws Exception {
-        MockedChecker checker = new MockedChecker();
-
-        assertFalse("Should not have changed yet", checker.hasChanged());
-
-        checker.getFile().setLastModified(System.currentTimeMillis() + 1000);
-
-        assertFalse("Should not have changed", checker.hasChanged());
-    }
-
-    @Test
-    public void shouldNotDetectContentChange() throws Exception {
-        MockedChecker checker = new MockedChecker();
-
-        assertFalse("Should not have changed yet", checker.hasChanged());
-
-        checker.setData("foobar");
-        checker.setData(INITIAL_DATA);
-
-        assertFalse("Should not have changed", checker.hasChanged());
-    }
-
-    private class MockedChecker extends FileContentChangeChecker {
-
-        private String data;
-        private File file;
-
-        public MockedChecker() throws Exception {
-            super("");
-        }
-
-        public void setData(String data) {
-            this.data = data;
-        }
-
-        @Override
-        protected File getFile() {
-            if (file == null) {
-                try {
-                    file = File.createTempFile(
-                            FileContentChangeCheckerTest.class.getName(),
-                            ".tmp");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+    public void checkChanges() throws Exception {
+        FileContentChangeChecker checker =
+                new FileContentChangeChecker("mock") {
+            @Override
+            protected String calculateConfFileChecksum(File file)
+                    throws Exception {
+                return "foo";
             }
-            return file;
-        }
+        };
 
-        @Override
-        protected InputStream getInputStream(File file) throws Exception {
-            return new ByteArrayInputStream(
-                    data == null ? INITIAL_DATA.getBytes() : data.getBytes());
-        }
+        FileContentChangeChecker spy = spy(checker);
+
+        assertFalse("Should not have changed yet", spy.hasChanged());
+
+        when(spy.calculateConfFileChecksum(Mockito.any())).thenReturn("bar");
+
+        assertTrue("Should have changed", spy.hasChanged());
+
+        when(spy.calculateConfFileChecksum(Mockito.any())).thenReturn("foo");
+
+        assertTrue("Should have changed", spy.hasChanged());
     }
 }

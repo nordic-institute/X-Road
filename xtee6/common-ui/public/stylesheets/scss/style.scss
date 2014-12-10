@@ -20,66 +20,18 @@ body {
 }
 
 td.wide {
-  min-width: 200px;
+    min-width: 200px;
 }
 
 td.deletable_subsystem {
-  color: #f00;
-  font-weight: bold;
+    color: #f00;
+    font-weight: bold;
 }
 
 div#main-wrapper {
     width: 100%;
     height: 100%;
     position: relative;
-}
-
-textarea {
-    resize: none;
-    width: calc(100% - 10px);
-
-    .dump {
-        background: $base-color-light;
-        width: 100%;
-        height: 350px;
-        text-align: left;
-        font-family: $fixed-font-family;
-        font-size: 10pt;
-    }
-
-    &:focus {
-        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(85, 85, 85, 0);
-    }
-}
-
-table.details {
-    tbody {
-        border: none;
-        tr {
-            border: none;
-
-            td {
-
-                &:first-of-type {
-                    width: 1px;
-                    white-space: nowrap;
-                }
-                input:not([type="checkbox"]), textarea,
-                p.input {
-                    width: calc(100% - 10px);
-                }
-                select {
-                    width: 100%;
-                }
-            }
-
-            &:hover {
-                td {
-                    background: transparent !important;
-                }
-            }
-        }
-    }
 }
 
 header#main-header {
@@ -315,7 +267,8 @@ section#main {
 }
 
 section#content {
-    width: calc(100% - 270px);
+    width: calc(100% - 270px - 20px);
+    margin: 10px;
 }
 
 @media only screen and (max-width: 767px) {
@@ -353,7 +306,7 @@ section#content {
     }
 
     section#content {
-        width: calc(100% - 215px);
+        width: calc(100% - 215px - 20px);
     }
 }
 
@@ -407,8 +360,9 @@ div#confirm, div#yesno, div#warning, div#alert {
 }
 
 .simple_search, .advanced_search {
-    width: 30%;
+    width: 50%;
     min-width: 400px;
+    margin-bottom: 1em;
 }
 
 .ui-state-disabled {
@@ -543,6 +497,37 @@ table#keys {
     }
 }
 
+div.trusted-anchor, .anchor {
+    clear: both;
+    padding: $base-padding;
+    margin: 0 10px 20px 0;
+    background: $base-color-light;
+    box-shadow: 5px 5px 5px #888;
+
+    .anchor-heading {
+        margin-bottom: 10px;
+    }
+
+    button {
+      margin-left: 10px;
+    }
+
+    div {
+        clear: both;
+    }
+
+    span.anchor-title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    label.anchor-property {
+        padding-left: $base-padding;
+        width: 120px;
+        display: inline-block;
+    }
+}
+
 #member_edit_dialog {
     .dialog-body {
         min-width: 75em;
@@ -555,7 +540,8 @@ table#keys {
     }
 }
 
-#openCertDetailsDialog {
+#openCertDetailsDialog,
+button#upload_trusted_anchor {
     display: none;
 }
 

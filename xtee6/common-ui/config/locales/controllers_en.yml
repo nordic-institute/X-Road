@@ -1,4 +1,9 @@
 en:
+  base_login:
+    action:
+      index: "login"
+      logout: "logout"
+
   common:
     params_error: "Error in query parameters"
     changes_saved: "Changes saved"
@@ -7,9 +12,14 @@ en:
     present: "Present"
     missing: "Not available"
     time_format: "%Y-%m-%d %H:%M:%S"
+    time_format_with_timezone: "%Z %Y-%m-%d %H:%M:%S"
     locale_en: "English (%{short})"
     locale_et: "Eesti (%{short})"
     filename_error: "Upload failed: filename '%{file}' contains invalid characters. Valid characters include: (A-Z), (a-z), (0-9), (_), (.), (-)."
+    user_action_error: "Failed to %{translated_action_name}: %{error_message}"
+    session_timed_out: "<div class='align-center'>Session timed out. Redirecting.</div>"
+    restore_in_progress: "<div class='align-center'>Restore in progress. Redirecting.</div>"
+    initialization_required: "<div class='align-center'>Initialization required. Redirecting.</div>"
 
   coded_exception:
     pin_incorrect: "PIN incorrect"
@@ -46,8 +56,10 @@ en:
     unexpected_param: "Unknown parameter: %{param}"
     invalid_email: "Invalid e-mail address: '%{addr}'"
     invalid_filename: "Invalid filename: '%{val}'"
-    int_error: "Invalid integer: '%{val}'"
+    invalid_int: "Invalid integer: '%{val}'"
+    invalid_timeout: "Timeout value must be a positive integer."
     invalid_url: "Invalid URL format, must begin with 'http' or 'https'"
+    invalid_host_address: "Invalid host address"
     invalid_cert: "Upload failed: incorrect file format. Only PEM and DER files allowed."
 
   menu:
@@ -57,12 +69,33 @@ en:
   about:
     unknown: "unknown"
 
+  activate_token:
+    pin_locked: "PIN locked"
+    pin_format_incorrect: "PIN format incorrect"
+    final_try: "tries left: 1"
+
   backup:
+    action:
+      index: "display backup and restore page"
+      check_backup_file_existence: "check backup file existence"
+      refresh_files: "refresh backup files"
+      download: "download backup file"
+      backup: "back up configuration"
+      restore: "restore configuration"
+      delete_file: "delete backup file"
+      upload_new: "upload new backup file"
     success:
       delete: "Selected backup deleted successfully"
       upload: "New backup file uploaded successfully"
     error:
       delete: "Deletion of backup files failed, reason: '%{reason}'"
+
+  conf_verification:
+    missing_private_params: "Configuration anchor import failed: invalid anchor file"
+    unreachable: "Configuration source cannot be reached, check source URL in uploaded anchor file"
+    outdated: "Configuration from source is out of date"
+    signature_invalid: "Signature of configuration cannot be verified"
+    other: "Configuration from source failed verification"
 
   restore:
     success: "Configuration restored successfully from file '%{conf_file}'."

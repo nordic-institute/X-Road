@@ -1,30 +1,21 @@
-ext.codeCoverage = true
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+    id "eu.appsatori.fatjar" version "0.3"
 }
-
-apply plugin: 'fatjar'
 
 dependencies {
     compile project(':serverconf')
-    compile project(':common-verifier')
     compile project(':async-db')
     compile project(':signer-protocol')
-  
+
     testCompile project(':common-test')
     testCompile 'org.mockito:mockito-all:1.9.0'
     testCompile 'org.hsqldb:hsqldb:2.3.2'
     testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
-    
+
     testCompile files(this.project(':common-util').sourceSets.test.output)
     testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
+
+    testCompile project(':common-verifier').sourceSets.test.output
 }
 
 fatJarPrepareFiles {
@@ -48,8 +39,7 @@ buildall.dependsOn fatJar
 task runProxyMain(type: JavaExec) {
     jvmArgs '-Dee.cyber.sdsb.proxy.sslEnabled=false',
         '-Dee.cyber.sdsb.proxy.globalConfDistributor.enabled=false',
-        '-Dee.cyber.sdsb.secureLog.path=build/slog', 
-        '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache', 
+        '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache',
         '-Dee.cyber.sdsb.tempFiles.path=build/attach-tmp',
         '-Dee.cyber.sdsb.asyncdb.path=build',
         '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
@@ -57,7 +47,7 @@ task runProxyMain(type: JavaExec) {
         '-Dee.cyber.sdsb.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
         '-Dee.cyber.sdsb.appLog.path=log',
         '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
-        
+
     //main = 'ee.cyber.sdsb.proxy.ProxyMain'
     main = 'ee.cyber.sdsb.proxy.TestProxyMain'
     classpath = sourceSets.main.runtimeClasspath
@@ -66,11 +56,12 @@ task runProxyMain(type: JavaExec) {
 }
 
 task runProxyTest(type: JavaExec) {
-    jvmArgs '-Dee.cyber.sdsb.secureLog.path=build/slog', 
-        '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache', 
+    jvmArgs '-Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache',
         '-Dee.cyber.sdsb.tempFiles.path=build/attach-tmp',
         '-Dee.cyber.sdsb.asyncdb.path=build',
         '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
+        '-Dee.cyber.sdsb.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
+        '-Dee.cyber.sdsb.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
         '-Dee.cyber.sdsb.proxy.clientHandlers=ee.cyber.sdsb.proxy.clientproxy.MetadataHandler',
         '-Dee.cyber.sdsb.proxy.serverServiceHandlers=ee.cyber.sdsb.proxy.serverproxy.MetadataServiceHandlerImpl'

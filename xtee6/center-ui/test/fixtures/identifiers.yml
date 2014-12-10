@@ -108,3 +108,52 @@ ceramic_service_identifier:
   type: "ServiceId"
 
 # Central service identifiers - end
+
+# Request identifiers - start
+
+identifier_owned_server_request_user:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  type: "ClientId"
+
+identifier_owned_server_request_server:
+  object_type: "SERVER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  server_code: "securityServer"
+  type: "SecurityServerId"
+
+identifier_used_server_request_user:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_in_vallavalitsused"
+  type: "ClientId"
+
+identifier_used_server_request_server:
+  object_type: "SERVER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  server_code: "tuumaserver"
+  type: "SecurityServerId"
+
+identifier_nobody_request_user:
+  object_type: "MEMBER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  type: "ClientId"
+
+identifier_nobody_request_server:
+  object_type: "SERVER"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_out_of_vallavalitsused"
+  server_code: "tuumaserver"
+  type: "SecurityServerId"
+
+# Request identifiers - end

@@ -6,6 +6,9 @@ import lombok.Value;
 
 import ee.cyber.sdsb.common.identifier.ClientId;
 
+/**
+ * Signer API message.
+ */
 @Value
 public class GetMemberCerts implements Serializable {
 

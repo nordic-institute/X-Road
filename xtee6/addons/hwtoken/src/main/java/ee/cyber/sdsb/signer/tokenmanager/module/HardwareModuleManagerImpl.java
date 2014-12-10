@@ -3,6 +3,9 @@ package ee.cyber.sdsb.signer.tokenmanager.module;
 import lombok.extern.slf4j.Slf4j;
 import akka.actor.Props;
 
+/**
+ * Module manager that supports hardware tokens.
+ */
 @Slf4j
 public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
 
@@ -24,7 +27,7 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
                         hardwareModule).withDispatcher(DISPATCHER);
                 initializeModuleWorker(hardwareModule.getType(), props);
             } catch (Exception e) {
-                log.error("Error initializing module '"
+                log.error("Error initializing hardware module '"
                         + hardwareModule.getType() + "'", e);
             }
         }

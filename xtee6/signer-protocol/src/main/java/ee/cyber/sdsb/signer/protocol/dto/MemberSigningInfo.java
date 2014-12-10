@@ -5,6 +5,9 @@ import java.io.Serializable;
 import lombok.ToString;
 import lombok.Value;
 
+/**
+ * Member signing info DTO.
+ */
 @Value
 @ToString(exclude = "cert")
 public class MemberSigningInfo implements Serializable {

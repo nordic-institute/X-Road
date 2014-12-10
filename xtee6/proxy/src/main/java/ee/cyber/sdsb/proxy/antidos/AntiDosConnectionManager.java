@@ -9,24 +9,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.util.SystemMetrics;
 
 /**
  * Manages the incoming connections and prevents system resource exhaustion.
  */
+@Slf4j
 class AntiDosConnectionManager<T extends SocketChannelWrapper> {
 
     // Tiny wrapper class for active connections of a partner
     private class HostData {
         final Deque<T> connections = new ArrayDeque<>();
     }
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AntiDosConnectionManager.class);
 
     // The IP used for unknown members
     private static final String UNKNOWN_ORG_IP = "0.0.0.0";
@@ -66,7 +63,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
      */
     boolean canAccept() {
         long freeFileHandles = getFreeFileDescriptorCount();
-        LOG.trace("canAccept({})", freeFileHandles);
+        log.trace("canAccept({})", freeFileHandles);
         return freeFileHandles > 0;
     }
 
@@ -131,11 +128,11 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
             return sock;
         }
 
-        LOG.warn("Insufficient resources, closing connection " + sock);
+        log.warn("Insufficient resources, closing connection " + sock);
         try {
             closeConnection(sock);
         } catch (IOException e) {
-            LOG.error("Error closing connection " + sock, e);
+            log.error("Error closing connection " + sock, e);
         }
 
         return null;
@@ -149,9 +146,13 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         return SystemMetrics.getStats().getSystemCpuLoad();
     }
 
+    protected double getHeapUsage() {
+        return SystemMetrics.getHeapUsage();
+    }
+
     private HostData getHostData(String ip) {
-        return database.containsKey(ip) ?
-                database.get(ip) : database.get(UNKNOWN_ORG_IP);
+        return database.containsKey(ip)
+                ? database.get(ip) : database.get(UNKNOWN_ORG_IP);
     }
 
     private void syncDatabase() {
@@ -174,7 +175,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         // Add new members
         for (String knownAddress : knownAddresses) {
             if (!database.containsKey(knownAddress)) {
-                LOG.trace("Registering HostData for " + knownAddress);
+                log.trace("Registering HostData for " + knownAddress);
                 newDatabase.put(knownAddress, new HostData());
             }
         }
@@ -184,9 +185,23 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
     }
 
     private boolean hasSufficientResources() {
-        return getFreeFileDescriptorCount()
-                    >= configuration.getMinFreeFileHandles()
-                && getCpuLoad() < configuration.getMaxCpuLoad();
+        long freeFileDescriptorCount = getFreeFileDescriptorCount();
+        int minFreeFileHandles = configuration.getMinFreeFileHandles();
+        double cpuLoad = getCpuLoad();
+        double maxCpuLoad = configuration.getMaxCpuLoad();
+        double heapUsage = getHeapUsage();
+        double maxHeapUsage = configuration.getMaxHeapUsage();
+
+        log.trace("Resource usage when considering connection:\n"
+                + "freeFileDescriptorCount: {} ( >= {})\n"
+                + "cpuLoad: {} ( < {})\n"
+                + "heapUsage: {} ( < {})",
+                new Object[] { freeFileDescriptorCount, minFreeFileHandles,
+                    cpuLoad, maxCpuLoad, heapUsage, maxHeapUsage});
+
+        return freeFileDescriptorCount >= minFreeFileHandles
+                && cpuLoad < maxCpuLoad
+                && heapUsage < maxHeapUsage;
     }
 
     private static Set<String> getAllAddresses() {

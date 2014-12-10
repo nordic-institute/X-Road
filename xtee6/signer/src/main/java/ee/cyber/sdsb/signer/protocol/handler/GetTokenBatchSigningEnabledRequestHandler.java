@@ -4,6 +4,9 @@ import ee.cyber.sdsb.signer.protocol.AbstractRequestHandler;
 import ee.cyber.sdsb.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Handles queries for batch signing capabilities of a token.
+ */
 public class GetTokenBatchSigningEnabledRequestHandler
         extends AbstractRequestHandler<GetTokenBatchSigningEnabled> {
 

@@ -1,0 +1,47 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "centerui_common" %>
+  <%= javascript_include_tag "configuration_management" %>
+<% end %>
+
+<% content_for :content do %>
+  <div id="configuration_management_tabs">
+    <!-- TODO: Put respective privileges around viewing and rendering tabs! -->
+    <ul>
+      <% if can?(:view_internal_configuration_source) %>
+      <li>
+        <a href="#source_tab" data-source-type="internal">
+          <%= t 'configuration_management.source_tab.internal_configuration' %>
+        </a>
+      </li>
+      <% end %>
+
+      <% if can?(:view_external_configuration_source) %>
+      <li>
+        <a href="#source_tab" data-source-type="external">
+          <%= t 'configuration_management.source_tab.external_configuration' %>
+        </a>
+      </li>
+      <% end %>
+
+      <% if can?(:view_trusted_anchors) %>
+      <li>
+        <a href="#trusted_anchors_tab">
+          <%= t 'configuration_management.trusted_anchors.title' %>
+        </a>
+      </li>
+      <% end %>
+    </ul>
+
+    <% if can?(:view_internal_configuration_source) || can?(:view_external_configuration_source) %>
+    <div id="source_tab">
+      <%= render :partial => "source_tab" %>
+    </div>
+    <% end %>
+
+    <% if can?(:view_trusted_anchors) %>
+    <div id="trusted_anchors_tab">
+        <%= render :partial => "trusted_anchors_tab" %>
+    </div>
+    <% end %>
+  </div>
+<% end %>

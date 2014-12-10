@@ -21,6 +21,8 @@
       I18n.defaultLocale = "<%= I18n.default_locale %>";
       I18n.locale = "<%= I18n.locale %>";
       I18n.fallbacks = true;
+
+      var PRIVILEGES = <%= raw(current_user.privileges.to_json) %>;
     </script>
 
     <%= yield :head %>
@@ -88,10 +90,6 @@
         <section id="content" class="left">
           <%= yield :content %>
           <%= render :partial => "application/messages" %>
-          <!-- XXX: Is this the best place for the dialog? -->
-          <div class="ui-helper-hidden">
-            <%= render :partial => "application/enter_pin_dialog" %>
-          </div>
         </section>
       </section>
 

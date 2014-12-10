@@ -8,17 +8,41 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.common.util.AdminPort;
 
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.SIGNER;
 
+/**
+ * Signer main program.
+ */
 @Slf4j
-public class SignerMain {
+public final class SignerMain {
+
+    static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(CONF_FILE_PROXY);
+                load(CONF_FILE_SIGNER);
+            }
+        };
+    }
 
     private static ActorSystem actorSystem;
     private static Signer signer;
     private static AdminPort adminPort;
 
+    private SignerMain() {
+    }
+
+    /**
+     * Entry point to Signer.
+     * @param args the arguments
+     * @throws Exception if an error occurs
+     */
     public static void main(String[] args) throws Exception {
         try {
             startup();
@@ -52,28 +76,30 @@ public class SignerMain {
         try {
             signer.stop();
             signer.join();
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            log.error("Error stopping signer", e);
         }
 
         try {
             adminPort.stop();
             adminPort.join();
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            log.error("Error stopping admin port", e);
         }
 
         actorSystem.shutdown();
     }
 
     private static AdminPort createAdminPort(int signerPort) {
-        AdminPort adminPort = new AdminPort(signerPort);
-        adminPort.addShutdownHook(new Runnable() {
+        AdminPort port = new AdminPort(signerPort);
+        port.addShutdownHook(new Runnable() {
             @Override
             public void run() {
                 shutdown();
             }
         });
 
-        return adminPort;
+        return port;
     }
 
     private static Config getConf(int signerPort) {

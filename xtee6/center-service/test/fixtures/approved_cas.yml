@@ -1,0 +1,9 @@
+pki_first:
+  name: "Name of experimental CA"
+  authentication_only: false
+  identifier_decoder_member_class: "ee.cyber.sdsb.NameExtractorMemberClass"
+  identifier_decoder_method_name: "extractName"
+
+pki_auth_only:
+  name: "Name of auth only CA"
+  authentication_only: true

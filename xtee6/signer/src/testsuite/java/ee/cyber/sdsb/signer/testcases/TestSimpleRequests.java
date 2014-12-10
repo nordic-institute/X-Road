@@ -155,8 +155,8 @@ public class TestSimpleRequests extends TestCase {
     @Test
     public void t04genAndDeleteCsrs() throws Exception {
         LOG.info("###########################################################");
-        LOG.info("t04 - Started: Delete Csrs under on key + one " +
-                "to see it fail");
+        LOG.info("t04 - Started: Delete Csrs under on key + one "
+                + "to see it fail");
         LOG.info("###########################################################");
 
         int keys = 2;

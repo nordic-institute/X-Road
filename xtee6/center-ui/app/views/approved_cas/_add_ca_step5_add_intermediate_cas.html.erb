@@ -1,0 +1,34 @@
+<%= dialog "add_ca_step5_add_intermediate_cas", t("approved_cas.add.step5.title") do %>
+  <section class="container">
+    <div class="intermediate_cas_actions">
+      <% if can?(get_approved_ca_edit_privilege) %>
+        <button id="intermediate_ca_edit" class="intermediate_ca-action">
+          <%= t 'common.edit' %>
+        </button>
+      <% end %>
+      <% if can?(get_approved_ca_edit_privilege) %>
+        <button id="intermediate_ca_add">
+          <%= t 'common.add' %>
+        </button>
+      <% end %>
+      <% if can?(get_approved_ca_edit_privilege) %>
+        <button id="intermediate_ca_delete" class="intermediate_ca-action">
+          <%= t 'common.delete' %>
+        </button>
+      <% end %>
+    </div>
+    </section>
+
+    <section class="container">
+    <table id="intermediate_cas">
+      <thead>
+        <tr>
+          <th><%= t 'approved_cas.intermediate_ca' %></th>
+          <th><%= t 'approved_cas.valid_from' %></th>
+          <th><%= t 'approved_cas.valid_to' %></th>
+        </tr>
+      </thead>
+    </table>
+  </section>
+
+<% end %>

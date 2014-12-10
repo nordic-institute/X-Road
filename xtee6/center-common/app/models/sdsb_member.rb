@@ -91,17 +91,32 @@ class SdsbMember < SecurityServerClient
       member_type = each.group_member.object_type
       next if member_type.eql?("SUBSYSTEM") && is_sdsb_member
 
-      result.delete(member_group) 
+      result.delete(member_group)
     end
+
+    result.delete(GlobalGroup.security_server_owners_group)
 
     logger.debug("Remaining global groups: '#{result}'")
     return result
   end
 
+  def self.get_management_requests(member_class, member_code, query_params)
+    request_ids = get_management_request_ids(member_class, member_code)
+
+    return get_management_requests_relation(member_class, member_code).
+        order("#{query_params.sort_column} #{query_params.sort_direction}").
+        limit(query_params.display_length).
+        offset(query_params.display_start)
+  end
+
+  def self.get_management_requests_count(member_class, member_code)
+    get_management_requests_relation(member_class, member_code).count()
+  end
+
   private
 
   def self.get_search_relation(searchable)
-    sql_generator = 
+    sql_generator =
             SimpleSearchSqlGenerator.new(get_searchable_columns(), searchable)
 
     SdsbMember.
@@ -133,6 +148,29 @@ class SdsbMember < SecurityServerClient
         joins(:security_server)
   end
 
+  def self.get_management_requests_relation(member_class, member_code)
+    request_ids = get_management_request_ids(member_class, member_code)
+
+    return Request.where(:id => request_ids)
+  end
+
+  def self.get_management_request_ids(member_class, member_code)
+    result = []
+
+    [:sec_serv_user, :security_server].each do |each|
+      ids = Request.joins(each).where(
+        :identifiers => {
+          :member_class => member_class,
+          :member_code => member_code
+        }
+      ).map { |x| x.id }
+
+      result.push(*ids)
+    end
+
+    return result
+  end
+
   def self.get_used_servers_as_json(raw_server_clients)
     servers_as_json = []
 
@@ -159,7 +197,7 @@ class SdsbMember < SecurityServerClient
 
   def save_identifier(record)
     identifier = ClientId.from_parts(
-        SystemParameter.sdsb_instance,
+        SystemParameter.instance_identifier,
         record.member_class.code,
         record.member_code)
     record.server_client = identifier

@@ -1,0 +1,9 @@
+ocspInfo_topCa:
+  url: "http://www.topCaOcspUrl.com"
+  cert: "topCaOcspCert"
+  ca_info_id: <%= ActiveRecord::Fixtures.identify(:caInfo_firstApprovedCaTopCa) %>
+
+ocspInfo_intermediateCa:
+  url: "http://www.intermediateCaOcspUrl.com"
+  cert: "intermediateCaOcspCert"
+  ca_info_id: <%= ActiveRecord::Fixtures.identify(:caInfo_firstApprovedCaIntermediateCa) %>

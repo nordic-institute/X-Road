@@ -18,6 +18,16 @@ public class MimeUtils {
     public static final String HEADER_SIG_ALGO_ID = "signature-algorithm-id";
     public static final String HEADER_HASH_ALGO_ID = "x-hash-algorithm";
     public static final String HEADER_PROXY_VERSION = "x-proxy-version";
+    public static final String HEADER_CONTENT_TRANSFER_ENCODING =
+            "content-transfer-encoding";
+    public static final String HEADER_VERIFICATION_CERT_HASH =
+            "verification-certificate-hash";
+    public static final String HEADER_CONTENT_IDENTIFIER = "content-identifier";
+    public static final String HEADER_CONTENT_LOCATION = "content-location";
+    public static final String HEADER_HASH_ALGORITHM_ID = "hash-algorithm-id";
+    public static final String HEADER_CONTENT_FILE_NAME = "content-file-name";
+    public static final String HEADER_EXPIRE_DATE = "expire-date";
+    public static final String PARAM_INSTANCE = "instance";
 
     public static final String HASH_CHAIN_CONTENT_TYPE =
             "application/hash-chain";

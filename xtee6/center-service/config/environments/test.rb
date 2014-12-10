@@ -1,3 +1,9 @@
+$CLASSPATH << "build/libs"
+
+Dir.glob(File.expand_path("../../../build/libs/*.jar", __FILE__)).each do |file|
+  require file
+end
+
 CenterService::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
 

@@ -1,5 +1,6 @@
 package ee.cyber.sdsb.commonui;
 
+import java.util.Date;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -17,10 +18,15 @@ import ee.cyber.sdsb.signer.protocol.message.*;
  * Responsible for managing cryptographic tokens (smartcards, HSMs,
  * etc.) through the signer.
  */
-public class SignerProxy {
+public final class SignerProxy {
+
+    private SignerProxy() {
+    }
 
     private static final Logger LOG =
             LoggerFactory.getLogger(SignerProxy.class);
+
+    public static final String SSL_TOKEN_ID = "0";
 
     public static void initSoftwareToken(char[] password) throws Exception {
         LOG.trace("Initializing software token");
@@ -28,10 +34,11 @@ public class SignerProxy {
     }
 
     public static List<TokenInfo> getTokens() throws Exception {
-        List<TokenInfo> tokens = execute(new ListTokens());
+        return execute(new ListTokens());
+    }
 
-        LOG.trace("Received tokens: {}", tokens.toString());
-        return tokens;
+    public static TokenInfo getToken(String tokenId) throws Exception {
+        return execute(new GetTokenInfo(tokenId));
     }
 
     public static void activateToken(String tokenId, char[] password)
@@ -71,6 +78,22 @@ public class SignerProxy {
                 keyInfo.getId(), keyInfo.getPublicKey());
 
         return keyInfo;
+    }
+
+    public static byte[] generateSelfSignedCert(String keyId, ClientId memberId,
+            KeyUsageInfo keyUsage, String commonName, Date notBefore,
+            Date notAfter) throws Exception {
+        LOG.trace("Generate self-signed cert for key '{}'", keyId);
+        GenerateSelfSignedCertResponse response =
+                execute(new GenerateSelfSignedCert(keyId, commonName,
+                        notBefore, notAfter, keyUsage, memberId));
+
+        byte[] certificateBytes = response.getCertificateBytes();
+
+        LOG.trace("Certificate with length of {} bytes generated",
+                certificateBytes.length);
+
+        return certificateBytes;
     }
 
     public static String importCert(byte[] certBytes, String initialStatus)

@@ -170,7 +170,7 @@ class CentralServicesController < ApplicationController
 
     target_service_code ?
         ClientId.from_parts(
-            SystemParameter.sdsb_instance,
+            SystemParameter.instance_identifier,
             provider_class,
             provider_code,
             params[:targetProviderSubsystem]

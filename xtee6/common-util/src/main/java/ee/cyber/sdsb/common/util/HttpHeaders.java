@@ -12,9 +12,6 @@ public final class HttpHeaders {
     public static final String CONTENT_TRANSFER_ENCODING =
             "content-transfer-encoding";
 
-    public static final String X_SSL_CLIENT_CERT = "x_ssl_client_cert";
-    public static final String X_SSL_CLIENT_VERIFY = "x_ssl_client_verify";
-
     private HttpHeaders() {
     }
 

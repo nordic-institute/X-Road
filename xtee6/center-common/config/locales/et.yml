@@ -1,7 +1,7 @@
 et:
   activerecord:
     attributes:
-      approved_tsp:
+      approved_tsa:
         url: "TSP URL"
       central_service:
         service_code: "Keskse teenuse kood"
@@ -35,8 +35,8 @@ et:
         url: "URL"
       pki:
         name: "Nimi"
-        name_extractor_member_class: "Nimeteisendaja liikmeklass"
-        name_extractor_method_name: "Nimeteisendaja meetodi nimi"
+        identifier_decoder_member_class: "Nimeteisendaja liikmeklass"
+        identifier_decoder_method_name: "Nimeteisendaja meetodi nimi"
       request_processing:
         type: "Tüüp"
         status: "Staatus"

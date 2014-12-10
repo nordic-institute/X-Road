@@ -48,7 +48,7 @@ public class SoapMessageTestUtil {
 
     public static byte[] messageToBytes(Soap soap) throws Exception {
         if (soap instanceof SoapMessage) {
-            return soap.getXml().getBytes(((SoapMessage) soap).getCharset());
+            return ((SoapMessage)soap).getBytes();
         }
 
         return soap.getXml().getBytes();

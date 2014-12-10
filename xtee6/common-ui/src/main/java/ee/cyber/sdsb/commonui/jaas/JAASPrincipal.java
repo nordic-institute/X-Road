@@ -3,20 +3,23 @@ package ee.cyber.sdsb.commonui.jaas;
 import java.security.Principal;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * JAAS principal.
+ */
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class JAASPrincipal implements Principal {
 
-    private String name;
+    private final String name;
+
+    @Getter
     private Set<String> roles;
 
-    public JAASPrincipal(String name) {
-        this.name = name;
-    }
-
-    public JAASPrincipal(String name, Set<String> roles) {
-        this.name = name;
-        this.roles = roles;
-    }
-
+    @Override
     public boolean equals(Object other) {
         if (!(other instanceof JAASPrincipal)) {
             return false;
@@ -25,18 +28,17 @@ public class JAASPrincipal implements Principal {
         return name.equals(((JAASPrincipal) other).getName());
     }
 
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
-    public Set<String> getRoles() {
-        return roles;
-    }
-
+    @Override
     public String toString() {
         return name;
     }

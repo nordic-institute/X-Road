@@ -1,0 +1,39 @@
+plugins {
+    id "eu.appsatori.fatjar" version "0.3"
+}
+
+def mainClass = 'ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain'
+
+dependencies {
+    compile project(':common-verifier')
+    
+    compile 'commons-cli:commons-cli:1.2'
+    
+    testCompile project(':common-test')
+}
+
+fatJarPrepareFiles {
+    include '*'
+}
+
+fatJar {
+    exclude "META-INF/*.SF"
+    exclude "META-INF/*.DSA"
+    exclude "META-INF/*.RSA"
+
+    manifest {
+        attributes 'Main-Class': mainClass
+    }
+}
+
+jar.enabled = false
+build.dependsOn fatJar
+buildall.dependsOn fatJar
+
+task runConfigurationClient(type: JavaExec) {
+    jvmArgs '-Dee.cyber.sdsb.conf.path=build/',
+            '-Dee.cyber.sdsb.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+    
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+}

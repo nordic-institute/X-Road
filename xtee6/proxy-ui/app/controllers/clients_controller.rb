@@ -14,18 +14,11 @@ class ClientsController < ApplicationController
   def index
     authorize!(:view_clients)
 
-    @instances = [globalconf.root.instanceIdentifier]
+    @instances = GlobalConf::getInstanceIdentifiers
 
-    @member_classes = []
-    globalconf.root.memberClass.each do |memberClass|
-      @member_classes << memberClass.code
-    end
-
-    @security_categories = []
-    globalconf.root.securityCategory.each do |category|
-      @security_categories << category
-    end
-
+    @member_classes = GlobalConf::getMemberClasses
+    @member_classes_instance = GlobalConf::getMemberClasses(sdsb_instance)
+    
     @subject_types = [
       SdsbObjectType::MEMBER.toString(),
       SdsbObjectType::SUBSYSTEM.toString(),
@@ -53,28 +46,18 @@ class ClientsController < ApplicationController
     })
 
     members = []
-    globalconf.root.member.each do |member|
-      if match(member.memberClass, params[:search_member]) ||
-          match(member.memberCode, params[:search_member]) ||
+    GlobalConf::getMembers(sdsb_instance).each do |member|
+      if match(member.id.memberClass, params[:search_member]) ||
+          match(member.id.memberCode, params[:search_member]) ||
+          match(member.id.subsystemCode, params[:search_member]) ||
           match(member.name, params[:search_member])
 
         members << {
           :member_name => member.name,
-          :member_class => member.memberClass,
-          :member_code => member.memberCode,
-          :subsystem_code => nil
+          :member_class => member.id.memberClass,
+          :member_code => member.id.memberCode,
+          :subsystem_code => member.id.subsystemCode
         }
-      end
-
-      member.subsystem.each do |subsystem|
-        if match(subsystem.subsystemCode, params[:search_member])
-          members << {
-            :member_name => member.name,
-            :member_class => member.memberClass,
-            :member_code => member.memberCode,
-            :subsystem_code => subsystem.subsystemCode
-          }
-        end
       end
     end
 
@@ -98,8 +81,8 @@ class ClientsController < ApplicationController
     authorize!(:add_client)
 
     validate_params({
-      :add_member_class => [RequiredValidator.new],
-      :add_member_code => [RequiredValidator.new],
+      :add_member_class => [:required],
+      :add_member_code => [:required],
       :add_subsystem_code => []
     })
 
@@ -108,7 +91,7 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      globalconf.root.instanceIdentifier,
+      sdsb_instance,
       params[:add_member_class],
       params[:add_member_code],
       params[:add_subsystem_code])
@@ -130,9 +113,15 @@ class ClientsController < ApplicationController
       warn("new_member", t('clients.unregistered_member', :member => member_string))
     end
 
-    if params[:add_subsystem_code] && !globalconf_subsystems.include?(client_id)
-      warn("new_subsys", t('clients.new_subsystem',
-        :subsystem => params[:add_subsystem_code], :member => member_string))
+    if params[:add_subsystem_code]
+      member_found = GlobalConf::getMembers(sdsb_instance).index do |member|
+        member.id == client_id
+      end
+
+      unless member_found
+        warn("new_subsys", t('clients.new_subsystem',
+          :subsystem => params[:add_subsystem_code], :member => member_string))
+      end
     end
 
     client = ClientType.new
@@ -155,11 +144,10 @@ class ClientsController < ApplicationController
     authorize!(:view_client_details)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client_id = get_client(params[:client_id]).identifier
-    member_id = to_member_id(client_id)
 
     tokens = SignerProxy::getTokens
 
@@ -167,13 +155,13 @@ class ClientsController < ApplicationController
     tokens.each do |token|
       token.keyInfo.each do |key|
         key.certs.each do |cert|
-          next if cert.memberId != member_id
+          next unless client_id.memberEquals(cert.memberId)
 
           cert_bytes = String.from_java_bytes(cert.certificateBytes)
           cert_obj = OpenSSL::X509::Certificate.new(cert_bytes)
 
           certs << {
-            :csp => cert_csp(cert_obj),
+            :csp => CommonUi::CertUtils.cert_csp(cert_obj),
             :serial => cert_obj.serial.to_s,
             :state => cert.active ?
               t('clients.cert_in_use') : t('clients.cert_disabled'),
@@ -190,8 +178,8 @@ class ClientsController < ApplicationController
     authorize!(:send_client_reg_req)
 
     validate_params({
-      :member_class => [RequiredValidator.new],
-      :member_code => [RequiredValidator.new],
+      :member_class => [:required],
+      :member_code => [:required],
       :subsystem_code => []
     })
 
@@ -200,13 +188,16 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      globalconf.root.instanceIdentifier,
+      sdsb_instance,
       params[:member_class],
       params[:member_code],
       params[:subsystem_code])
 
+    if client_id == owner_identifier
+      raise t('clients.cannot_register_owner')
+    end
+
     if x55_installed?
-      member_id = to_member_id(client_id)
       sign_cert_exists = false
 
       catch :cert_checked do
@@ -215,7 +206,7 @@ class ClientsController < ApplicationController
             next unless key.usage == KeyUsageInfo::SIGNING
 
             key.certs.each do |cert|
-              if cert.memberId == member_id
+              if client_id.memberEquals(cert.memberId)
                 sign_cert_exists = true
                 throw :cert_checked
               end
@@ -243,8 +234,8 @@ class ClientsController < ApplicationController
     authorize!(:send_client_del_req)
 
     validate_params({
-      :member_class => [RequiredValidator.new],
-      :member_code => [RequiredValidator.new],
+      :member_class => [:required],
+      :member_code => [:required],
       :subsystem_code => []
     })
 
@@ -253,7 +244,7 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      globalconf.root.instanceIdentifier,
+      sdsb_instance,
       params[:member_class],
       params[:member_code],
       params[:subsystem_code])
@@ -276,7 +267,7 @@ class ClientsController < ApplicationController
     authorize!(:delete_client)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -301,9 +292,35 @@ class ClientsController < ApplicationController
 
       if client_id.memberClass == deleted_id.memberClass &&
           client_id.memberCode == deleted_id.memberCode
+        # other clients using same cert
         ask_delete_certs = false
       end
     end
+
+    catch(:done) do
+      SignerProxy::getTokens.each do |token|
+        token.keyInfo.each do |key|
+          key.certs.each do |cert|
+            if cert.memberId &&
+                cert.memberId.memberClass == deleted_id.memberClass &&
+                cert.memberId.memberCode == deleted_id.memberCode
+              throw :done
+            end
+          end
+
+          key.certRequests.each do |cert_request|
+            if cert_request.memberId &&
+                cert_request.memberId.memberClass == deleted_id.memberClass &&
+                cert_request.memberId.memberCode == deleted_id.memberCode
+              throw :done
+            end
+          end
+        end
+      end
+
+      # no certs or requests found for deleted client
+      ask_delete_certs = false
+    end if ask_delete_certs
 
     after_commit do
       export_services(client.identifier)
@@ -319,22 +336,21 @@ class ClientsController < ApplicationController
     authorize!(:delete_client)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client_id = get_cached_client_id(params[:client_id])
-    member_id = to_member_id(client_id)
 
     SignerProxy::getTokens.each do |token|
       token.keyInfo.each do |key|
         key.certs.each do |cert|
-          if cert.memberId == member_id
+          if client_id.memberEquals(cert.memberId)
             SignerProxy::deleteCert(cert.id)
           end
         end
 
         key.certRequests.each do |cert_request|
-          if cert_request.memberId == member_id
+          if client_id.memberEquals(cert_request.memberId)
             SignerProxy::deleteCertRequest(cert_request.id)
           end
         end
@@ -361,8 +377,7 @@ class ClientsController < ApplicationController
   def client_to_json(client)
     {
       :client_id => client.identifier.toString,
-      :member_name => get_member_name(
-        client.identifier.memberClass, client.identifier.memberCode),
+      :member_name => GlobalConf::getMemberName(client.identifier),
       :type => client.identifier.objectType.toString,
       :instance => client.identifier.sdsbInstance,
       :member_class => client.identifier.memberClass,
@@ -409,31 +424,5 @@ class ClientsController < ApplicationController
   def get_client(key)
     ClientDAOImpl.instance.getClient(
       ServerConfDatabaseCtx.session, session[:client_ids][key])
-  end
-
-  def globalconf_subsystems
-    subsystems = []
-
-    globalconf.root.member.each do |member|
-      member.subsystem.each do |subsystem|
-        subsystems << ClientId.create(
-          globalconf.root.instanceIdentifier,
-          member.memberClass, member.memberCode,
-          subsystem.subsystemCode)
-      end
-    end
-
-    subsystems
-  end
-
-  def cert_csp(cert)
-    issuer_cn = ""
-    cert.issuer.to_a.each do |part|
-      if part[0] == "CN"
-        issuer_cn = part[1]
-        break
-      end
-    end
-    issuer_cn
   end
 end

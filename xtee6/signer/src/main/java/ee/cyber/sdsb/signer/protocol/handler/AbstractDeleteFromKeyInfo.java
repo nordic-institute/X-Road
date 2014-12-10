@@ -70,8 +70,8 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
             String tokenId = TokenManager.findTokenIdForKeyId(keyId);
             deleteKeyFile(tokenId, new DeleteKey(keyId));
             if (!TokenManager.removeKey(keyId)) {
-                log.warn("Did not remove key '{}' although it has no " +
-                        "certificates or certificate requests", keyId);
+                log.warn("Did not remove key '{}' although it has no "
+                        + "certificates or certificate requests", keyId);
             }
         }
     }

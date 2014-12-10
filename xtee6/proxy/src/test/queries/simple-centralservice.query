@@ -9,10 +9,10 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </sdsb:client>
-        <sdsb:service id:objectType="CENTRALSERVICE">
+        <sdsb:centralService id:objectType="CENTRALSERVICE">
             <id:sdsbInstance>EE</id:sdsbInstance>
             <id:serviceCode>centralservice</id:serviceCode>
-        </sdsb:service>
+        </sdsb:centralService>
         <sdsb:userId>EE37702211234</sdsb:userId>
         <sdsb:id>1234567890</sdsb:id>
     </SOAP-ENV:Header>

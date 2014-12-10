@@ -17,6 +17,9 @@ import ee.cyber.sdsb.signer.tokenmanager.token.TokenType;
 
 import static ee.cyber.sdsb.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
+/**
+ * Module worker for hardware tokens.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class HardwareModuleWorker extends AbstractModuleWorker {
@@ -81,7 +84,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
                     module.isBatchSingingEnabled());
 
             log.trace("Module '{}' slot #{} has token: {}",
-                    new Object[] { module.getPkcs11LibraryPath(), slotIndex,
+                    new Object[] {module.getPkcs11LibraryPath(), slotIndex,
                     t });
             tokens.add(t);
         }

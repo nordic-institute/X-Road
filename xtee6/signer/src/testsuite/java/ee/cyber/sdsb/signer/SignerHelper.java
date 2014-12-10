@@ -30,9 +30,6 @@ public class SignerHelper {
     private static final String KEY_CONFIGURATION_FILE =
             "build/conf/keyconf.xml";
 
-    private static final String GLOBAL_CONFIGURATION_FILE =
-            "build/conf/globalconf.xml";
-
     private static Signer signer;
 
     private static ActorSystem actorSystem;
@@ -95,8 +92,6 @@ public class SignerHelper {
         FileUtils.copyFileToDirectory(
                 new File("src/testsuite/resources/devices.ini"), confDir);
 
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
-                GLOBAL_CONFIGURATION_FILE);
         System.setProperty(SystemProperties.KEY_CONFIGURATION_FILE,
                 KEY_CONFIGURATION_FILE);
         System.setProperty(SystemProperties.DEVICE_CONFIGURATION_FILE,

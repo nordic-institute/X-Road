@@ -1,0 +1,104 @@
+class PrivateParametersGenerator
+
+  def initialize
+    @marshaller = ConfMarshaller.new(
+        get_object_factory(), get_root_type_creator())
+
+    Rails.logger.debug(
+      "Initialized private parameters generator: #{self.inspect()}")
+  end
+
+  def generate
+    add_instance_identifier()
+    add_configuration_sources()
+    add_management_service()
+    add_time_stamping_interval()
+
+    return @marshaller.write_to_string()
+  end
+
+  private
+
+  def get_object_factory
+    return \
+      Java::ee.cyber.sdsb.common.conf.globalconf.privateparameters.ObjectFactory
+  end
+
+  def get_root_type_creator
+    return Proc.new() do |factory|
+      factory.createConf(factory.createPrivateParametersType())
+    end
+  end
+
+  def add_instance_identifier
+    @marshaller.root.instanceIdentifier = SystemParameter.instance_identifier
+  end
+
+  def add_configuration_sources
+    TrustedAnchor.find_each do |each_anchor|
+      anchor_type = @marshaller.factory.createConfigurationAnchorType()
+      anchor_type.instanceIdentifier = each_anchor.instance_identifier
+
+      add_source_locations(each_anchor, anchor_type)
+
+      @marshaller.root.getConfigurationAnchor.add(anchor_type)
+    end
+  end
+
+  def add_source_locations(raw_anchor, anchor_type)
+    raw_anchor.anchor_urls.find_each do |each_location|
+      source_type = @marshaller.factory.createConfigurationSourceType()
+      source_type.downloadURL = each_location.url
+
+      each_location.anchor_url_certs.find_each do |each_cert|
+        source_type.getVerificationCert().add(
+            each_cert.certificate.to_java_bytes())
+      end
+
+      anchor_type.getSource().add(source_type)
+    end
+  end
+
+  def add_management_service
+    management_service_type = @marshaller.factory.createManagementServiceType()
+    management_service_type.authCertRegServiceAddress =
+        SystemParameter.auth_cert_reg_url
+
+    add_central_server_ssl_cert(management_service_type)
+
+    provider_id_type = Java::ee.cyber.sdsb.common.identifier.ClientId.create(
+        @marshaller.root.instanceIdentifier,
+        SystemParameter.management_service_provider_class,
+        SystemParameter.management_service_provider_code,
+        SystemParameter.management_service_provider_subsystem)
+
+    management_service_type.managementRequestServiceProviderId =
+      provider_id_type
+
+    @marshaller.root.managementService = management_service_type
+  end
+
+  def add_time_stamping_interval
+    @marshaller.root.timeStampingIntervalSeconds =
+        SystemParameter.time_stamping_interval_seconds
+  end
+
+  def add_central_server_ssl_cert(management_service_type)
+    cert_file = get_central_server_ssl_cert_file()
+    cert = extract_cert(cert_file)
+
+    management_service_type.authCertRegServiceCert = cert
+  end
+
+  def get_central_server_ssl_cert_file
+    # XXX Can we assume that it remains like this?
+    return "/etc/sdsb/ssl/internal.crt"
+  end
+
+  def extract_cert(cert_file)
+    raw_cert = CommonUi::IOUtils.read(cert_file)
+    cert_obj = CommonUi::CertUtils.cert_object(raw_cert)
+
+    return cert_obj.to_der().to_java_bytes()
+  end
+end

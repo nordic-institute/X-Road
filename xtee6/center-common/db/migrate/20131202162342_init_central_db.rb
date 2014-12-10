@@ -199,29 +199,29 @@ class InitCentralDb < ActiveRecord::Migration
   end
 
   def down
-    drop_table :approved_tsps 
-    drop_table :auth_certs 
-    drop_table :ca_infos 
-    drop_table :central_services 
-    drop_table :federated_sdsbs 
-    drop_table :global_group_members 
-    drop_table :global_groups 
-    drop_table :identifiers 
-    drop_table :member_class_mappings 
-    drop_table :member_classes 
-    drop_table :ocsp_infos 
-    drop_table :pkis 
-    drop_table :requests 
-    drop_table :request_processings 
-    drop_table :security_categories 
-    drop_table :security_category_mappings 
-    drop_table :security_server_clients 
-    drop_table :security_server_client_names 
-    drop_table :security_servers 
-    drop_table :security_servers_security_categories 
-    drop_table :server_clients 
-    drop_table :system_parameters 
-    drop_table :distributed_files 
-    drop_table :distributed_signed_files 
+    drop_table :approved_tsps
+    drop_table :auth_certs
+    drop_table :ca_infos
+    drop_table :central_services
+    drop_table :federated_sdsbs
+    drop_table :global_group_members
+    drop_table :global_groups
+    drop_table :identifiers
+    drop_table :member_class_mappings
+    drop_table :member_classes
+    drop_table :ocsp_infos
+    drop_table :pkis
+    drop_table :requests
+    drop_table :request_processings
+    drop_table :security_categories
+    drop_table :security_category_mappings
+    drop_table :security_server_clients
+    drop_table :security_server_client_names
+    drop_table :security_servers
+    drop_table :security_servers_security_categories
+    drop_table :server_clients
+    drop_table :system_parameters
+    drop_table :distributed_files
+    drop_table :distributed_signed_files
   end
 end

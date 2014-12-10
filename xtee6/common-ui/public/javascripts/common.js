@@ -2,6 +2,10 @@
 
 var DEFAULT_DISPLAY_LENGTH = 100;
 
+function can(privilege) {
+    return PRIVILEGES.indexOf(privilege) != -1;
+}
+
 $.fn.disable = function() {
     return this.attr("disabled", "true").addClass("ui-state-disabled");
 };
@@ -19,6 +23,7 @@ $.fn.initDialog = function(opts) {
             .addClass('ui-action ui-action-maximize')
             .click(function() {
                 var options = dialog.dialog("option");
+                delete options.buttons;
 
                 if (options["maximized"]) {
                     options["width"] = options["originalWidth"];
@@ -40,15 +45,8 @@ $.fn.initDialog = function(opts) {
                     options["maximized"] = true;
                 }
 
-                var cssOverflow = dialog.css("overflow");
-
-                // JQuery-UI needs overflow hidden to calculate
-                // correct size for maximized dialog.
-                dialog.css("overflow", "hidden");
                 dialog.dialog("option", options);
                 dialog.trigger("dialogresizestop");
-
-                dialog.css("overflow", cssOverflow)
             });
 
         var close = $('<button/>')
@@ -84,30 +82,37 @@ $.fn.initDialog = function(opts) {
             // clean old width properties of table header to stretch it
             tableHeader.css("width", "auto");
 
-            // make the table body to use up all the width
-            table.fnAdjustColumnSizing();
-
             // store the heights before measuring...
             var contentHeight = dialogContent.outerHeight();
             var cssHeight = dialogContent.css("height");
+            var cssMinHeight = dialogContent.css("min-height");
 
             // ...measure the height of everything except table rows
             // in dialog content
             $(this).closest(".dataTables_scrollBody").css("height", 0);
-            dialogContent.css("height", "auto");
+            dialogContent.css("min-height", 0).css("height", "auto");
             var nonRowsHeight = dialogContent.outerHeight();
 
             // restore the height of dialog
             dialogContent.css("height", cssHeight);
+            dialogContent.css("min-height", cssMinHeight);
 
             // set table to use available height
-            table.fnSettings().oScroll.sY = contentHeight - nonRowsHeight;
-            table.fnAdjustColumnSizing();
+            table.fnSettings().oScroll.sY =
+                Math.max(100, contentHeight - nonRowsHeight);
 
-            // adjust the width of the header to match the width of
-            // table with scrollbar, 12 = 5px paddings + 1px borders
-            tableHeader.css("width", $(this).outerWidth() - 12);
+            table.fnAdjustColumnSizing(false);
+
+            resizeTableHeader(table.fnSettings());
         });
+    });
+
+    opts.buttons = $.grep(opts.buttons, function(val, idx) {
+        if (val.privilege == null || can(val.privilege)) {
+            return true;
+        }
+
+        return false;
     });
 
     return this.dialog(opts);
@@ -131,11 +136,17 @@ $.fn.initTabs = function(opts) {
 
         $(".ui-tabs-panel-actions", titleBar).hide();
 
-        $($("a", ui.newTab).attr("href") + "_actions").show().position({
-            my: "right center",
-            at: "left center",
-            of: titleBar.find(".dialog-buttonbar")
-        });
+        // check if tabs are in a dialog
+        if (!tabs.closest(".ui-dialog").length > 0) {
+            return;
+        }
+
+        $($("a", ui.newTab).attr("href") + "_actions", titleBar).show()
+            .position({
+                my: "right center",
+                at: "left center",
+                of: titleBar.find(".dialog-buttonbar")
+            });
 
         tabs.closest(".ui-dialog-content").trigger("dialogresizestop");
     });
@@ -189,6 +200,11 @@ $.fn.dataTableExt.oApi.setFocus =
 
         if (row) {
             $(row, this).toggleClass("row_selected");
+
+            var rowId = $(row, this).data("id");
+            if (typeof rowId != 'undefined') {
+                $(this).data("selectedRowId", rowId);
+            }
         } else {
             $("tbody tr:first", this).addClass("row_selected");
         }
@@ -252,54 +268,54 @@ $.fn.dataTableExt.oApi.fnSetFilteringDelay = function ( oSettings, iDelay ) {
     return this;
 };
 
-$.fn.dataTableExt.oApi.fnReloadAjax = function ( oSettings, sNewSource, fnCallback, bStandingRedraw )
-{
-    if ( sNewSource !== undefined && sNewSource !== null ) {
+$.fn.dataTableExt.oApi.fnReloadAjax = function(oSettings, sNewSource,
+        fnCallback, bStandingRedraw) {
+
+    if (sNewSource !== undefined && sNewSource !== null) {
         oSettings.sAjaxSource = sNewSource;
     }
 
     // Server-side processing should just call fnDraw
-    if ( oSettings.oFeatures.bServerSide ) {
+    if (oSettings.oFeatures.bServerSide) {
         this.fnDraw();
         return;
     }
 
-    this.oApi._fnProcessingDisplay( oSettings, true );
+    this.oApi._fnProcessingDisplay(oSettings, true);
     var that = this;
     var iStart = oSettings._iDisplayStart;
     var aData = [];
 
-    this.oApi._fnServerParams( oSettings, aData );
+    this.oApi._fnServerParams(oSettings, aData);
 
-    oSettings.fnServerData.call( oSettings.oInstance, oSettings.sAjaxSource, aData, function(json) {
+    oSettings.fnServerData.call(oSettings.oInstance, oSettings.sAjaxSource,
+            aData, function(json) {
+
         /* Clear the old information from the table */
-        that.oApi._fnClearTable( oSettings );
+        that.oApi._fnClearTable(oSettings);
 
         /* Got the data - add it to the table */
-        var aData =  (oSettings.sAjaxDataProp !== "") ?
-            that.oApi._fnGetObjectDataFn( oSettings.sAjaxDataProp )( json ) : json;
+        var aData = (oSettings.sAjaxDataProp !== "") ?
+            that.oApi._fnGetObjectDataFn(oSettings.sAjaxDataProp)(json) : json;
 
-        for ( var i=0 ; i<aData.length ; i++ )
-        {
-            that.oApi._fnAddData( oSettings, aData[i] );
+        for (var i = 0; i < aData.length; i++) {
+            that.oApi._fnAddData(oSettings, aData[i]);
         }
 
         oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
 
         that.fnDraw();
 
-        if ( bStandingRedraw === true )
-        {
+        if (bStandingRedraw === true) {
             oSettings._iDisplayStart = iStart;
-            that.oApi._fnCalculateEnd( oSettings );
-            that.fnDraw( false );
+            that.oApi._fnCalculateEnd(oSettings);
+            that.fnDraw(false);
         }
 
-        that.oApi._fnProcessingDisplay( oSettings, false );
+        that.oApi._fnProcessingDisplay(oSettings, false);
 
         /* Callback user function - for event handlers etc */
-        if ( typeof fnCallback == 'function' && fnCallback !== null )
-        {
+        if (typeof fnCallback == 'function' && fnCallback !== null) {
             fnCallback( oSettings );
         }
     }, oSettings );
@@ -330,11 +346,9 @@ $.fn.dataTableExt.oApi.fnFilterClear = function(oSettings) {
     this.fnDraw();
 };
 
-$.fn.dataTableExt.oApi.fnDrawAndScroll = function(oSettings) {
-    var scrollBody = $(this).closest(".dataTables_scrollBody");
-    var scrollPos = scrollBody.scrollTop();
-    this.fnDraw();
-    scrollBody.scrollTop(scrollPos);
+$.fn.dataTableExt.oApi.fnReplaceData = function(oSettings, aoData) {
+    this.fnClearTable(aoData == null || aoData.length == 0);
+    this.fnAddData(aoData);
 };
 
 $.fn.serializeObject = function() {
@@ -374,24 +388,26 @@ function notice(msg) {
     addMessage("notice", msg);
 }
 
-function addMessage(type, msg) {
-    if (msg == null || msg == "") {
+function addMessage(type, message) {
+    if (message == null || message == "") {
         return;
     }
 
-    var messages;
-    if ($(".ui-dialog").is(":visible")) {
-        messages = ".ui-dialog-buttonpane:visible:last ." + type;
+    var messageContainer = "." + type;
 
-        if ($(".ui-dialog-buttonpane ." + type).length == 0) {
-            $(".ui-dialog-buttonpane").prepend(
-                "<div class='" + type + " message'></div>");
+    if ($(".ui-dialog:visible").length > 0) {
+        var buttonPane = ".ui-dialog-buttonpane:visible:last ";
+        messageContainer = buttonPane + messageContainer;
+
+        if ($(messageContainer).length == 0) {
+            $("<div>")
+                .addClass(type)
+                .addClass("message")
+                .prependTo(buttonPane);
         }
-    } else {
-        messages = "." + type;
     }
 
-    $(messages).append(msg + "<br/>");
+    $(messageContainer).append(message + "<br/>");
 }
 
 function clearMessages() {
@@ -459,6 +475,88 @@ function redirect(path) {
     window.location.href = $("meta[name='root_path']").attr("content") + path;
 }
 
+// Adjust the width of the header to match the width of the table with
+// or without the scrollbar, 12 = 5px paddings + 1px borders.
+function resizeTableHeader(oSettings) {
+    var table = oSettings.oInstance;
+
+    table.closest(".dataTables_wrapper")
+        .find(".dataTables_header")
+        .css("width", table.outerWidth() - 12);
+}
+
+function registerCallbacks(oSettings) {
+    var table = $(oSettings.nTable).dataTable();
+
+    if (table.data("callbacksRegistered")) {
+        return;
+    }
+
+    oSettings.aoRowCallback.push({
+        "sName": "calculateRowId",
+        "fn": function(nRow, oData) {
+            if (typeof oSettings.oInit.asRowId == 'undefined') {
+                return;
+            }
+
+            var idParts = [];
+            $.each(oSettings.oInit.asRowId, function(idx, val) {
+                idParts.push(oData[val]);
+            });
+
+            $(nRow).data("id", idParts.join(";"));
+        }
+    });
+
+    oSettings.aoPreDrawCallback.push({
+        "sName": "saveScrollPosition",
+        "fn": function(oSettings) {
+            table.data("scrollPosition",
+                       table.closest(".dataTables_scrollBody").scrollTop());
+        }
+    });
+
+    oSettings.aoDrawCallback.unshift({
+        "sName": "restoreScrollPosition",
+        "fn": function(oSettings) {
+            table.closest(".dataTables_scrollBody").scrollTop(
+                table.data("scrollPosition"));
+        }
+    });
+
+    oSettings.aoDrawCallback.push({
+        "sName": "restoreSelectedRow",
+        "fn": function(oSettings) {
+            var selectedRowId = table.data("selectedRowId");
+
+            if (typeof selectedRowId == 'undefined') {
+                return;
+            }
+
+            $("tbody tr:visible", oSettings.nTable).each(function(idx, val) {
+                if ($(val).data("id") == selectedRowId) {
+                    table.setFocus(0, val);
+                    return false;
+                }
+            });
+        }
+    });
+
+    oSettings.aoDrawCallback.push({
+        "sName": "resizeTableHeader",
+        "fn": resizeTableHeader
+    });
+
+    table.data("callbacksRegistered", true);
+}
+
+$.extend($.fn.dataTable.defaults, {
+    "fnInitComplete": function(oSettings) {
+        registerCallbacks(oSettings);
+        resizeTableHeader(oSettings);
+    }
+});
+
 /* default options for dataTables */
 function defaultTableOpts() {
     return {
@@ -478,6 +576,45 @@ function defaultTableOpts() {
                 "sNext": "&gt;",
                 "sLast": "&gt;&gt;"
             }
+        },
+        // Adds registerCallbacks() to make the callbacks available on
+        // first draw in case of ajax source, and resizeTableHeader().
+        "fnServerData": function(sUrl, aoData, fnCallback, oSettings) {
+            registerCallbacks(oSettings);
+
+            oSettings.jqXHR = $.ajax({
+                "url":  sUrl,
+                "data": aoData,
+                "success": function(json) {
+                    if (json.sError) {
+                        oSettings.oApi._fnLog(oSettings, 0, json.sError);
+                    }
+
+                    $(oSettings.oInstance).trigger('xhr', [oSettings, json]);
+                    fnCallback(json);
+
+                    var dialog =
+                        oSettings.oInstance.closest(".ui-dialog-content");
+
+                    if (dialog.length > 0) {
+                        // in case data arrives after dialog is opened
+                        dialog.trigger("dialogresizestop");
+                    } else {
+                        resizeTableHeader(oSettings);
+                    }
+                },
+                "dataType": "json",
+                "cache": false,
+                "type": oSettings.sServerMethod,
+                "error": function (xhr, error, thrown) {
+                    if (error == "parsererror") {
+                        oSettings.oApi._fnLog(oSettings, 0,
+                            "DataTables warning: JSON data from " +
+                            "server could not be parsed. This is caused " +
+                            "by a JSON formatting error.");
+                    }
+                }
+            });
         }
     }
 }
@@ -488,16 +625,6 @@ function scrollableTableOpts(maxY) {
     result.bPaginate = false;
     result.bScrollCollapse = true;
     result.sScrollY = maxY != null ? maxY : 200;
-
-    result.fnInitComplete = function(oSettings) {
-        var scroll = $(oSettings.nTable).closest(".dataTables_scroll");
-        var scrollBody = $(".dataTables_scrollBody", scroll)[0];
-        var scrollHead = $(".dataTables_scrollHead", scroll)[0];
-
-        $(scrollBody).scroll(function() {
-            scrollHead.scrollLeft = scrollBody.scrollLeft;
-        });
-    };
 
     return result;
 }
@@ -515,9 +642,11 @@ function confirm(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
-        width: 500,
+        width: "auto",
+        minWidth: 500,
         buttons: [
             { text: _("common.confirm"),
+              id: "confirm",
               click: function() {
                   success();
                   $(this).dialog("close");
@@ -539,7 +668,8 @@ function yesno(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
-        width: 500,
+        width: "auto",
+        minWidth: 500,
         buttons: [
             { text: _("common.yes"),
               click: function() {
@@ -564,6 +694,8 @@ function warning(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
+        width: "auto",
+        minWidth: 500,
         buttons: [
             { text: _("common.continue"),
               click: function() {
@@ -599,12 +731,14 @@ function alert(text, params, success) {
 
 // -- Functionality related to console output - start
 
-function openConsoleOutputDialog(dialogTitle) {
+function openConsoleOutputDialog(dialogTitle, dialogHeight) {
+    var height = dialogHeight != null ? dialogHeight : "600";
+
     $("#console_output_dialog").initDialog({
         autoOpen: false,
         modal: true,
         title: dialogTitle,
-        height: "600",
+        height: height,
         width: "900px",
         buttons: [
             { text: _("common.ok"),
@@ -626,9 +760,9 @@ function fillConsoleOutputDialog(consoleOutput) {
     }
 }
 
-function initConsoleOutput(consoleOutput, dialogTitle) {
+function initConsoleOutput(consoleOutput, dialogTitle, dialogHeight) {
     fillConsoleOutputDialog(consoleOutput);
-    openConsoleOutputDialog(dialogTitle);
+    openConsoleOutputDialog(dialogTitle, dialogHeight);
 }
 
 // -- Functionality related to console output - end
@@ -641,10 +775,9 @@ function isInputFilled(inputSelector) {
 $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
     options.success = function(_data, _textStatus, _jqXHR) {
         if (_data.redirect) {
-            alert("common.session_timed_out", null,
-                function() {
-                    window.location.href = _data.redirect;
-                });
+            alert(_data.reason, null, function() {
+                window.location.href = _data.redirect;
+            });
         } else if (_data.warning) {
             warning("common.warning", {text: _data.warning.text},
                 function() {
@@ -693,29 +826,18 @@ function addAdvancedSearchLink(filterId, onClick) {
     advancedSearchLink.appendTo(filterElement);
 }
 
-function arePeriodicJobsExecuting() {
-    return typeof SDSB_PERIODIC_JOBS != 'undefined'
-            && SDSB_PERIODIC_JOBS.areExecuting();
-}
-
 $(document).ajaxSend(function(ev, xhr) {
     xhr.setRequestHeader("X-CSRF-Token",
             $("meta[name=csrf-token]").attr("content"));
 });
 
 $(document).ajaxStart(function(ev, xhr) {
-    if (!arePeriodicJobsExecuting()) {
-        clearMessages();
-    }
-
+    clearMessages();
     $("body").addClass("wait");
 });
 
 $(document).ajaxStop(function(ev, xhr) {
     $("body").removeClass("wait");
-    if (arePeriodicJobsExecuting()) {
-        SDSB_PERIODIC_JOBS.clearExecution();
-    }
 });
 
 $(document).ajaxSuccess(function(ev, xhr, opts) {
@@ -725,7 +847,7 @@ $(document).ajaxSuccess(function(ev, xhr, opts) {
 
     var response = $.parseJSON(xhr.responseText);
 
-    if (response.skipMessages || arePeriodicJobsExecuting()) {
+    if (response.skipMessages) {
         return;
     }
 
@@ -746,11 +868,11 @@ function uploadCallback(response) {
     showMessages(response.messages);
 }
 
-function getTableRowButton(buttonText, handler) {
+function getTableRowButton(buttonText, onClick) {
     return $('<button/>', {
         text: buttonText,
         class: 'right',
-        click: function () { handler() }
+        click: onClick
     });
 }
 
@@ -791,6 +913,52 @@ function initLocaleSelectDialog() {
     });
 }
 
+function activateToken(tokenId, onSuccess, onFail) {
+    $("#activate_token_pin").val("");
+
+    $("#activate_token_dialog").initDialog({
+        title: _("common.enter_pin"),
+        autoOpen: true,
+        modal: true,
+        height: 200,
+        width: 400,
+        buttons: [
+            { text: _("common.ok"),
+              click: function() {
+                  var self = this;
+                  var params = {
+                      token_id: tokenId,
+                      pin: $("#activate_token_pin").val()
+                  };
+
+                  $.post("/application/activate_token", params, function() {
+                      $(self).dialog("close");
+
+                      if (onSuccess != null) {
+                          onSuccess();
+                      }
+                  }, "json").fail(onFail);
+              }
+            },
+            { text: _("common.close"),
+              click: function() {
+                  $("#activate_token_pin").val("");
+                  $(this).dialog("close");
+              }
+            }
+        ],
+        close: function() {
+            $(this).dialog("destroy");
+        }
+    });
+}
+
+function deactivateToken(tokenId, onSuccess) {
+    $.post("/application/deactivate_token", {
+        token_id: tokenId
+    }, onSuccess, "json");
+}
+
 $(document).ready(function() {
     initMenu();
 
@@ -813,9 +981,27 @@ $(document).ready(function() {
 
     // correct thead alignment with tbody on browser zoom
     $(window).resize(function() {
-        $(".dataTable:has(tbody)").each(function() {
-            $(this).dataTable().fnAdjustColumnSizing(false);
+        $($.fn.dataTable.fnTables(true)).each(function() {
+            var table = $(this).dataTable();
+
+            table.fnAdjustColumnSizing(false);
+            resizeTableHeader(table.fnSettings());
         });
+    });
+
+    // Manually increase the size of scrollBody to accomodate the
+    // increased size of the table after selecting a row (which makes
+    // clipped data visible for that row). Redrawing the whole table
+    // would cause several troubles.
+    $(document).on("click", ".dataTables_scrollBody", function() {
+        var table = $("table", this).dataTable();
+        var tableHeight = $("table", this).height();
+        var visibleHeight = $(this).height();
+
+        if (tableHeight > visibleHeight) {
+            $(this).css("height", Math.min(
+                tableHeight, table.fnSettings().oScroll.sY));
+        }
     });
 
     $('.' + $('#ctrl').val() + '_actions').find('button').each(function() {

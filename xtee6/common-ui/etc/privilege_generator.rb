@@ -5,7 +5,7 @@ def get_sdsb_home
 end
 
 def is_privilege_row?(row)
-  return /\A-\s*\w*:\s*\[.*\]\z/ =~ row
+  return /\A-\s*\w*:\s*\[.*\]\z/ =~ row.strip()
 end
 
 def get_filepath(subproject, file)

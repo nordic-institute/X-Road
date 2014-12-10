@@ -2,6 +2,8 @@ package ee.cyber.sdsb.signer.certmanager;
 
 import java.io.Serializable;
 import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.Map.Entry;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
@@ -12,8 +14,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import akka.actor.Props;
 import akka.actor.UntypedActorContext;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
-import ee.cyber.sdsb.common.ocsp.OcspCache;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.signer.protocol.message.GetOcspResponses;
 import ee.cyber.sdsb.signer.protocol.message.GetOcspResponsesResponse;
 import ee.cyber.sdsb.signer.protocol.message.SetOcspResponses;
@@ -43,25 +44,44 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 @Slf4j
 public class OcspResponseManager extends AbstractSignerActor {
 
+    /**
+     * Value object for checking if certificate has OCSP response at
+     * specified date.
+     */
     @Value
     public static class IsCachedOcspResponse implements Serializable {
         private final String certHash;
+        private final Date atDate;
     }
 
     /** Maps a certificate hash to an OCSP response. */
-    private final OcspCache responseCache = new FileBasedOcspCache();
+    private final FileBasedOcspCache responseCache = new FileBasedOcspCache();
 
     // ------------------------------------------------------------------------
 
+    /**
+     * Utility method for getting OCSP response for a certificate.
+     * @param ctx the actor context
+     * @param cert the certificate
+     * @return OCSP response as byte array
+     * @throws Exception if an error occurs
+     */
     public static byte[] getOcspResponse(UntypedActorContext ctx,
             X509Certificate cert) throws Exception {
         return getOcspResponse(ctx, calculateCertHexHash(cert));
     }
 
+    /**
+     * Utility method for getting OCSP response for a certificate hash.
+     * @param ctx the actor context
+     * @param certHash the certificate hash
+     * @return OCSP response as byte array
+     * @throws Exception if an error occurs
+     */
     public static byte[] getOcspResponse(UntypedActorContext ctx,
             String certHash) throws Exception {
         GetOcspResponses message =
-                new GetOcspResponses(new String[] { certHash });
+                new GetOcspResponses(new String[] {certHash});
 
         GetOcspResponsesResponse result =
                 (GetOcspResponsesResponse) SignerUtil.ask(
@@ -76,6 +96,20 @@ public class OcspResponseManager extends AbstractSignerActor {
     }
 
     // ------------------------------------------------------------------------
+
+    @Override
+    public void preStart() throws Exception {
+        super.preStart();
+        try {
+            responseCache.reloadFromDisk();
+
+            for (Entry<String, OCSPResp> e : responseCache.entrySet()) {
+                TokenManager.setOcspResponse(e.getKey(), e.getValue());
+            }
+        } catch (Exception e) {
+            log.error("Failed to load OCSP responses from disk", e);
+        }
+    }
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -116,9 +150,17 @@ public class OcspResponseManager extends AbstractSignerActor {
             throws Exception {
         log.trace("handleIsCachedOcspResponse()");
 
-        OCSPResp response = responseCache.get(message.getCertHash());
+        OCSPResp response =
+                responseCache.get(message.getCertHash(), message.getAtDate());
+
+        TokenManager.setOcspResponse(message.getCertHash(), response);
+
         Boolean isCached = response != null;
-        log.trace("'{}' cached: {}", message.getCertHash(), isCached);
+
+        log.trace("'{}' (at: {}) cached: {}",
+                new Object[] {message.getCertHash(), message.getAtDate(),
+                    isCached });
+
         sendResponse(isCached);
     }
 

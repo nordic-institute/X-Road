@@ -41,7 +41,6 @@
                 }
 
                 oAclSubjectsSearch.fnClearTable();
-                oAclSubjectsSearch.fnAdjustColumnSizing();
                 enableActions();
             },
             buttons: [
@@ -102,7 +101,7 @@
                 mData: function(source, type, val) {
                     return generateIdElement({
                         "Type": source.type,
-                        "Instance": source.sdsb,
+                        "Instance": source.instance,
                         "Class": source.member_class,
                         "Code": source.member_group_code,
                         "Subsystem": source.subsystem_code
@@ -114,7 +113,7 @@
             var unselectable = false;
 
             $.each(unselectableAclSubjects, function(idx, val) {
-                if (oData.sdsb == val.sdsb &&
+                if (oData.instance == val.instance &&
                     oData.type == val.type &&
                     oData.member_class == val.member_class &&
                     oData.member_group_code == val.member_group_code &&
@@ -143,8 +142,7 @@
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
-                oAclSubjectsSearch.fnClearTable();
-                oAclSubjectsSearch.fnAddData(response.data);
+                oAclSubjectsSearch.fnReplaceData(response.data);
                 enableActions();
             }, "json");
 
@@ -156,8 +154,7 @@
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
-                oAclSubjectsSearch.fnClearTable();
-                oAclSubjectsSearch.fnAddData(response.data);
+                oAclSubjectsSearch.fnReplaceData(response.data);
                 enableActions();
             }, "json");
 

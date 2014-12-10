@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.AuthKey;
+import ee.cyber.sdsb.common.conf.globalconf.AuthKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;

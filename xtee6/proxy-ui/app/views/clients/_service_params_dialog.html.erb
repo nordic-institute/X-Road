@@ -15,19 +15,9 @@
           <td class="center"><%= check_box_tag "params_url_all", nil %></td>
         </tr>
         <tr>
-          <td><%= t 'clients.client_services_dialog.timeout' %></td>
+          <td><%= t 'clients.client_services_tab.timeout' %></td>
           <td><%= text_field_tag "params_timeout", nil %></td>
           <td class="center"><%= check_box_tag "params_timeout_all", nil %></td>
-        </tr>
-        <tr style="display: none;">
-          <td><%= t '.required_sec_cat' %></td>
-          <td>
-            <% @security_categories.each do |sc| %>
-              <%= check_box_tag "params_security_category[]",
-                  sc.code, nil, :id => nil %> <%= sc.description %><br/>
-            <% end %>
-          </td>
-          <td class="center"><%= check_box_tag "params_security_category_all", nil %></td>
         </tr>
         <tr>
           <td><%= t '.sslauth' %></td>

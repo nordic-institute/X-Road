@@ -13,7 +13,8 @@ import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
 import ee.cyber.sdsb.common.signature.BatchSigner;
 import ee.cyber.sdsb.common.util.AdminPort;
@@ -21,10 +22,13 @@ import ee.cyber.sdsb.common.util.JobManager;
 import ee.cyber.sdsb.common.util.StartStop;
 import ee.cyber.sdsb.common.util.SystemMonitor;
 import ee.cyber.sdsb.proxy.clientproxy.ClientProxy;
-import ee.cyber.sdsb.proxy.securelog.MessageLog;
+import ee.cyber.sdsb.proxy.messagelog.MessageLog;
 import ee.cyber.sdsb.proxy.serverproxy.ServerProxy;
 import ee.cyber.sdsb.proxy.util.CertHashBasedOcspResponder;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
+
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Main program for the proxy server.
@@ -33,6 +37,14 @@ import ee.cyber.sdsb.signer.protocol.SignerClient;
 public class ProxyMain {
 
     static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(CONF_FILE_PROXY);
+                load(CONF_FILE_SIGNER);
+            }
+        };
+
         org.apache.xml.security.Init.init();
     }
 
@@ -47,10 +59,16 @@ public class ProxyMain {
     }
 
     public static void main(String args[]) throws Exception {
-        startup();
-        loadConfigurations();
-        startServices();
-        shutdown();
+        try {
+            startup();
+            loadConfigurations();
+            startServices();
+        } catch (Throwable t) {
+            log.error("Proxy failed to start", t);
+            throw t;
+        } finally {
+            shutdown();
+        }
     }
 
     private static void startServices() throws Exception {

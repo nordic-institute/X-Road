@@ -23,17 +23,29 @@
     <div id="details_tab">
       <%= render :partial => "client_details_tab" %>
     </div>
+
+    <% if can?(:view_client_acl_subjects) %>
     <div id="acl_subjects_tab">
-      <%= render :partial => "client_acl_subjects_dialog" %>
+      <%= render :partial => "client_acl_subjects_tab" %>
     </div>
+    <% end %>
+
+    <% if can?(:view_client_services) %>
     <div id="services_tab">
-      <%= render :partial => "client_services_dialog" %>
+      <%= render :partial => "client_services_tab" %>
     </div>
+    <% end %>
+
+    <% if can?(:view_client_internal_certs) %>
     <div id="internal_certs_tab">
-      <%= render :partial => "client_internal_certs_dialog" %>
+      <%= render :partial => "client_internal_certs_tab" %>
     </div>
+    <% end %>
+
+    <% if can?(:view_client_local_groups) %>
     <div id="local_groups_tab">
-      <%= render :partial => "client_groups_dialog" %>
+      <%= render :partial => "client_groups_tab" %>
     </div>
+    <% end %>
   </div>
 <% end %>

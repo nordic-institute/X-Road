@@ -17,6 +17,9 @@ import static ee.cyber.sdsb.common.ErrorCodes.SIGNER_X;
 import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
 // TODO: #2577 resource management -- make sure every key gets to sign on this token.
+/**
+ * Token signer actor. Handles signing requests and calculated signatures.
+ */
 @Slf4j
 public class TokenSigner extends UntypedActor {
 

@@ -150,18 +150,6 @@ public class RandomTester extends TestCase {
                         continue;
                     }
                     LOG.info("Importing cert.");
-                    LOG.debug("\nConf: " +
-                            getCsrMembers(token, randKeyImport).size() +
-                            " csr(s) for members: "  +
-                            Arrays.toString(getCsrMembers(
-                                    token, randKeyImport).toArray()) +
-                            "\nTest: " + Integer.toString(keyCertStruct.get(
-                                    randKeyImport).getCsrMemList().size()) +
-                            " csr(s) for members: " + keyCertStruct.get(
-                                    randKeyImport).objListToString("csrMem") +
-                            "\nUnder key: " + randKeyImport + "\n");
-
-
 
                     int randIndex = rand.nextInt(keyCertsToImport.get(
                             randKeyImport).getCertListCerts().size());
@@ -182,18 +170,6 @@ public class RandomTester extends TestCase {
                     keyCertStruct.get(randKeyImport).addToCertList(
                             newCertI, member);
 
-
-
-                    LOG.debug("\nConf: " +
-                            getCsrMembers(token, randKeyImport).size() +
-                            " csr(s) for members: "  +
-                            Arrays.toString(getCsrMembers(
-                                    token, randKeyImport).toArray()) +
-                            "\nTest: " + Integer.toString(keyCertStruct.get(
-                                    randKeyImport).getCsrMemList().size()) +
-                            " csr(s) for members: " + keyCertStruct.get(
-                                    randKeyImport).objListToString("csrMem") +
-                            "\nUnder key: " + randKeyImport + "\n");
                     break;
                 default:
                     throw new Exception("Cannot happen");
@@ -206,13 +182,8 @@ public class RandomTester extends TestCase {
             }
         } catch (Exception ex) {
             seedList.add(task);
-            LOG.debug("Last task: " + task + "\n" +
-                    "Last Key: " + randKey + "\n" +
-                    "Last Cert Imported to key: " + randKeyImport + "\n" +
-                    "Last Active Member: {}\n" +
-                    "SeedList: " + stringArrayListToString(seedList), client);
-            LOG.error("Exception cause was:\n{}\n" +
-                    "Stacktrace: \n{}", ex.getCause(), ex.fillInStackTrace());
+            LOG.error("Exception cause was:\n{}\n"
+                    + "Stacktrace: \n{}", ex.getCause(), ex.fillInStackTrace());
             throw new Exception("Test finished UNsuccessfully.");
         }
     }

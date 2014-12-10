@@ -20,6 +20,9 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_CANNOT_SIGN;
 import static ee.cyber.sdsb.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
 import static ee.cyber.sdsb.signer.tokenmanager.TokenManager.setTokenAvailable;
 
+/**
+ * Token worker base class.
+ */
 @Slf4j
 public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 

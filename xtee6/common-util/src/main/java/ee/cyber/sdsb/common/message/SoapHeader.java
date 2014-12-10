@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
@@ -31,8 +32,11 @@ public class SoapHeader {
     private ClientId client;
 
     @CheckConsistency
-    @XmlElement(name = "service", required = true, namespace = NS_SDSB)
+    @XmlElement(name = "service", required = false, namespace = NS_SDSB)
     private ServiceId service;
+
+    @XmlElement(name = "centralService", required = false, namespace = NS_SDSB)
+    private CentralServiceId centralService;
 
     @CheckConsistency
     @XmlElement(name = "userId", required = true, namespace = NS_SDSB)
@@ -41,6 +45,9 @@ public class SoapHeader {
     @CheckConsistency
     @XmlElement(name = "id", required = true, namespace = NS_SDSB)
     private String queryId;
+
+    @XmlElement(name = "requestHash", required = false, namespace = NS_SDSB)
+    private RequestHash requestHash;
 
     @XmlElement(name = "async", required = false, namespace = NS_SDSB)
     private boolean async;

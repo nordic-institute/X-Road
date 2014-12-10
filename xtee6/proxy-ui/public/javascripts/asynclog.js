@@ -19,8 +19,7 @@ $(document).ready(function() {
 
     $("#refresh").click(function() {
         $.get(action("refresh"), null, function(response) {
-            oRecords.fnClearTable(false);
-            oRecords.fnAddData(response.data);
+            oRecords.fnReplaceData(response.data);
         }, "json");
     }).click();
 });

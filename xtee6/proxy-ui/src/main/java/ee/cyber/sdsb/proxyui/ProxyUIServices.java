@@ -3,14 +3,28 @@ package ee.cyber.sdsb.proxyui;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.common.util.JobManager;
 import ee.cyber.sdsb.commonui.UIServices;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
+
+import static ee.cyber.sdsb.common.SystemProperties.*;
 
 public class ProxyUIServices {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(ProxyUIServices.class);
+
+    static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(CONF_FILE_PROXY);
+                load(CONF_FILE_PROXY_UI);
+                load(CONF_FILE_SIGNER);
+            }
+        };
+    }
 
     private static UIServices uiActorSystem;
     private static JobManager jobManager;

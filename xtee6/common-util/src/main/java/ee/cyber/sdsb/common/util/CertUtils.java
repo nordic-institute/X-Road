@@ -143,6 +143,14 @@ public class CertUtils {
     }
 
     /**
+     * Checks if the certificate is self-signed.
+     */
+    public static boolean isSelfSigned(X509Certificate cert) {
+        return cert.getIssuerX500Principal().equals(
+                cert.getSubjectX500Principal());
+    }
+
+    /**
      * Returns OCSP responder URI from given certificate.
      */
     public static String getOcspResponderUriFromCert(X509Certificate subject)

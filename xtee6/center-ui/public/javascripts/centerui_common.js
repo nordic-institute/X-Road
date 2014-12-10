@@ -46,23 +46,6 @@ var SDSB_CENTERUI_COMMON = function() {
         }, "json");
     }
 
-    function deleteMember(requestParams) {
-        var confirmParams = {
-            memberCode: requestParams["memberCode"],
-            memberClass: requestParams["memberClass"]
-        };
-
-        confirm("members.remove_confirm", confirmParams, function() {
-            $.post("members/delete", requestParams, function() {
-                $("#member_edit_dialog").dialog("close");
-
-                if (typeof SDSB_MEMBERS != "undefined") {
-                    SDSB_MEMBERS.redrawMembersTable();
-                }
-            }, "json");
-        });
-    }
-
     /* Functions related to cert details - start */
 
     function addCertDetailsParts(parts, titleSelector) {
@@ -159,7 +142,6 @@ var SDSB_CENTERUI_COMMON = function() {
         openTempCertDetailsById: openTempCertDetailsById,
         openCertDetailsWindow: openCertDetailsWindow,
         showSimpleSearchElement: showSimpleSearchElement,
-        setSearchLinkText: setSearchLinkText,
-        deleteMember: deleteMember
+        setSearchLinkText: setSearchLinkText
     };
 }();

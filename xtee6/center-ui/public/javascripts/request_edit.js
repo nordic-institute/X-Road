@@ -4,50 +4,7 @@ var SDSB_REQUEST_EDIT = function(){
     function open(requestData) {
         SDSB_CENTERUI_COMMON.openDetailsIfAllowed("requests/can_see_details",
                 function(){
-            fillCommonRequestDetails(requestData);
-
-            var params = {
-                id: requestData.id
-            };
-
-            switch (requestData.type) {
-            case 'AuthCertRegRequest':
-                $.get("requests/get_auth_cert_reg_request_data", params,
-                        function(response) {
-                    $("#auth_cert_reg_request_edit_dialog").dialog("open");
-                    fillRequestAuthCertData(response.data);
-                    blurInputs();
-                }, "json");
-                break;
-            case 'ClientRegRequest':
-                $.get("requests/get_client_reg_request_data", params,
-                        function(response) {
-                    $("#client_reg_request_edit_dialog").dialog("open");
-                    fillClientData(response.data);
-                    blurInputs();
-                }, "json");
-                break;
-            case 'AuthCertDeletionRequest':
-                $.get("requests/get_auth_cert_deletion_request_data", params,
-                        function(response) {
-                    $("#auth_cert_deletion_request_edit_dialog").dialog("open");
-                    fillRequestAuthCertData(response.data)
-                    blurInputs();
-                }, "json");
-                break;
-            case 'ClientDeletionRequest':
-                $.get("requests/get_client_deletion_request_data", params,
-                        function(response) {
-                    $("#client_deletion_request_edit_dialog").dialog("open");
-                    fillClientData(response.data);
-                    blurInputs();
-                }, "json");
-                break;
-            default:
-                // Should not reach this point!
-                alert("Type '" + requestData.type + "'is not supported");
-                break;
-            };
+            fillRequestDetails(requestData);
         });
     }
 
@@ -55,45 +12,109 @@ var SDSB_REQUEST_EDIT = function(){
 
     /* -- REFRESH DATA - START -- */
 
+    function fillRequestDetails(requestData) {
+        var params = {
+            id: requestData.id
+        };
+
+        $.get("requests/get_additional_request_data", params,
+                function(response) {
+            var completeRequestData = $.extend({}, requestData, response.data);
+
+            fillCommonRequestDetails(completeRequestData);
+            fillSpecificRequestDetails(requestData);
+        }, "json");
+    }
+
     function fillCommonRequestDetails(requestData) {
-        $(".management_request_id").val(requestData.id);
-        $(".management_request_received").val(requestData.received);
-        $(".management_request_source").val(requestData.source);
-        $(".management_request_status").val(requestData.status);
+        var comments = requestData.comments != null ? requestData.comments : "";
+        var serverAddress = requestData.server_address != null ?
+            requestData.server_address : "";
+
+        $(".management_request_id").text(requestData.id);
+        $(".management_request_received").text(requestData.received);
+        $(".management_request_source").text(requestData.source);
+        $(".management_request_status").text(requestData.status);
         $(".management_request_complementary_id")
-                .val(requestData.complementary_id);
-        $(".management_request_revoking_id").val(requestData.revoking_id);
-        $(".management_request_comments").val(requestData.comments);
+                .text(requestData.complementary_id);
+        $(".management_request_revoking_id").text(requestData.revoking_id);
+        $(".management_request_comments").text(comments);
 
         $(".management_request_server_owner_name")
-                .val(requestData.server_owner_name);
+                .text(requestData.server_owner_name);
         $(".management_request_server_owner_class")
-                .val(requestData.server_owner_class);
+                .text(requestData.server_owner_class);
         $(".management_request_server_owner_code")
-                .val(requestData.server_owner_code);
-        $(".management_request_server_code").val(requestData.server_code);
-        $(".management_request_server_address").val(requestData.server_address);
+                .text(requestData.server_owner_code);
+        $(".management_request_server_code").text(requestData.server_code);
+        $(".management_request_server_address").text(serverAddress);
 
         initializeRequestDetailsForm(requestData);
     }
 
+    function fillSpecificRequestDetails(requestData) {
+        var params = {
+            id: requestData.id
+        };
+
+        switch (requestData.type) {
+        case 'AuthCertRegRequest':
+            $.get("requests/get_auth_cert_reg_request_data", params,
+                    function(response) {
+                $("#auth_cert_reg_request_edit_dialog").dialog("open");
+                fillRequestAuthCertData(response.data);
+                blurInputs();
+            }, "json");
+            break;
+        case 'ClientRegRequest':
+            $.get("requests/get_client_reg_request_data", params,
+                    function(response) {
+                $("#client_reg_request_edit_dialog").dialog("open");
+                fillClientData(response.data);
+                blurInputs();
+            }, "json");
+            break;
+        case 'AuthCertDeletionRequest':
+            $.get("requests/get_auth_cert_deletion_request_data", params,
+                    function(response) {
+                $("#auth_cert_deletion_request_edit_dialog").dialog("open");
+                fillRequestAuthCertData(response.data)
+                blurInputs();
+            }, "json");
+            break;
+        case 'ClientDeletionRequest':
+            $.get("requests/get_client_deletion_request_data", params,
+                    function(response) {
+                $("#client_deletion_request_edit_dialog").dialog("open");
+                fillClientData(response.data);
+                blurInputs();
+            }, "json");
+            break;
+        default:
+            // Should not reach this point!
+            alert("Type '" + requestData.type + "'is not supported");
+            break;
+        };
+    }
+
     function initializeRequestDetailsForm(requestData) {
-        var complementary_id = $(".complementary_id");
-        var revoking_id = $(".revoking_id");
+        var complementaryId = $(".complementary_id");
+        var revokingId = $(".revoking_id");
         var status = requestData.status
 
-        complementary_id.show();
-        revoking_id.hide();
+        complementaryId.show();
+        revokingId.hide();
         $(".reg_request_post_submit").hide();
         $(".reg_request_revoke").hide();
 
         if (status == "WAITING") {
             $(".reg_request_revoke").show();
+            complementaryId.hide();
         } else if (status == "SUBMITTED FOR APPROVAL") {
             $(".reg_request_post_submit").show();
         } else if (status == "REVOKED") {
-            complementary_id.hide();
-            revoking_id.show();
+            complementaryId.hide();
+            revokingId.show();
         }
 
         if (requestData.source == "SECURITY_SERVER") {
@@ -102,23 +123,26 @@ var SDSB_REQUEST_EDIT = function(){
 
         if (requestData.type == "ClientDeletionRequest"
                 || requestData.type == "AuthCertDeletionRequest") {
-            complementary_id.hide();
+            complementaryId.hide();
             $(".request_status").hide();
         }
     }
 
     function fillRequestAuthCertData(certData) {
-        $(".auth_cert_details_csp").val(certData.csp);
-        $(".auth_cert_details_serial_number").val(certData.serial_number);
-        $(".auth_cert_details_subject").val(certData.subject);
-        $(".auth_cert_details_expires").val(certData.expires);
+        $(".auth_cert_details_csp").text(certData.csp);
+        $(".auth_cert_details_serial_number").text(certData.serial_number);
+        $(".auth_cert_details_subject").text(certData.subject);
+        $(".auth_cert_details_expires").text(certData.expires);
     }
 
     function fillClientData(clientData) {
-        $(".client_details_name").val(clientData.member_name);
-        $(".client_details_class").val(clientData.member_class);
-        $(".client_details_code").val(clientData.member_code);
-        $(".client_details_subsystem_code").val(clientData.subsystem_code);
+        var subsystemCode = clientData.subsystem_code != null ?
+            clientData.subsystem_code : "";
+
+        $(".client_details_name").text(clientData.member_name);
+        $(".client_details_class").text(clientData.member_class);
+        $(".client_details_code").text(clientData.member_code);
+        $(".client_details_subsystem_code").text(subsystemCode );
     }
 
     function updateManagementRequestsTable() {
@@ -127,7 +151,8 @@ var SDSB_REQUEST_EDIT = function(){
         }
 
         if (typeof SDSB_MEMBER_EDIT != 'undefined') {
-            SDSB_MEMBER_EDIT.refreshManagementRequests();
+            // TODO: need to refresh requests for topmost member_edit dialog
+            // SDSB_MEMBER_EDIT.refreshManagementRequests();
         }
 
         if (typeof SDSB_SECURITYSERVER_EDIT != 'undefined') {
@@ -141,7 +166,7 @@ var SDSB_REQUEST_EDIT = function(){
 
     function getManagementRequestId() {
         return $("#management_request_edit_common")
-                .find("#management_request_id").val();
+                .find("#management_request_id").text();
     }
 
     /* -- GET DATA - END -- */

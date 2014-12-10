@@ -5,14 +5,15 @@ class ApplicationController < BaseController
 
   around_filter :wrap_in_transaction
 
-  rescue_from ActiveRecord::StatementInvalid, 
+  rescue_from ActiveRecord::StatementInvalid,
       ActiveRecord::ConnectionNotEstablished do
     ActiveRecord::Base.establish_connection
     error(t("common.db_error"))
-    render_error_response()
+    render_error_response($!.message)
   end
 
   before_filter :read_locale
+  before_filter :check_conf, :except => [:menu]
   before_filter :read_server_id, :except => [:menu]
   before_filter :verify_get, :only => [
       :index,
@@ -49,22 +50,24 @@ class ApplicationController < BaseController
 
   private
 
+  def check_conf
+    redirect_to :controller => :init unless initialized?
+  end
+
+  def initialized?
+    SystemParameter.instance_identifier &&
+      SystemParameter.central_server_address &&
+      software_token_initialized?
+  end
+
   def wrap_in_transaction
+    # TODO (task #5619):
+    # Find more appropriate isolation level or remove it altogether!
+#   ActiveRecord::Base.isolation_level(:serializable) do
     ActiveRecord::Base.transaction do
       yield
     end
-  end
-
-  def verify_get
-    return if request.get?
-
-    raise "Expected HTTP method 'GET', but was: '#{request.method}'"
-  end
-
-  def verify_post
-    return if request.post?
-
-    raise "Expected HTTP method 'POST', but was: '#{request.method}'"
+#   end
   end
 
   def get_sort_column_no
@@ -113,8 +116,8 @@ class ApplicationController < BaseController
 
   def render_cert_dump_and_hash(raw_cert)
     render_json({
-      :cert_dump => cert_dump(raw_cert),
-      :cert_hash => cert_hash(raw_cert)
+      :cert_dump => CommonUi::CertUtils.cert_dump(raw_cert),
+      :cert_hash => CommonUi::CertUtils.cert_hash(raw_cert)
     })
   end
 
@@ -128,7 +131,7 @@ class ApplicationController < BaseController
   def read_server_id
     return @server_id if @server_id
 
-    @server_id = CentralServerId.new(SystemParameter.sdsb_instance())
+    @server_id = CentralServerId.new(SystemParameter.instance_identifier)
   end
 
   class CentralServerId

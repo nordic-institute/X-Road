@@ -7,6 +7,9 @@ import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
 
+/**
+ * Handles requests for software token initialization.
+ */
 public class InitSoftwareTokenRequestHandler
         extends AbstractRequestHandler<InitSoftwareToken> {
 

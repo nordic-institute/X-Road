@@ -5,6 +5,9 @@ import java.io.Serializable;
 import lombok.Data;
 import lombok.ToString;
 
+/**
+ * Signature calculation result.
+ */
 @Data
 @ToString(exclude = "signature")
 public class CalculatedSignature implements Serializable {

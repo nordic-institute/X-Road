@@ -210,9 +210,9 @@ public class TestSuiteHelper {
     }
 
     public static String subjectName(ClientId member) {
-        String cocn = "C=" + member.getSdsbInstance() + ", " +
-                "O=" + member.getMemberClass() + ", " +
-                "CN=" + member.getMemberCode();
+        String cocn = "C=" + member.getSdsbInstance() + ", "
+                + "O=" + member.getMemberClass() + ", "
+                + "CN=" + member.getMemberCode();
         return cocn;
     }
 
@@ -365,8 +365,8 @@ public class TestSuiteHelper {
                     }
                 }
                 if (!tempSuccess) {
-                    LOG.debug("There wasn't cert with bytes[]: {} " +
-                            "\n under key: {}", Arrays.toString(cert), key);
+                    LOG.debug("There wasn't cert with bytes[]: {} "
+                            + "\n under key: {}", Arrays.toString(cert), key);
                     return false;
                 }
             }
@@ -561,8 +561,8 @@ public class TestSuiteHelper {
         }
 
         public boolean equals(Pair pair) {
-            return keyId.equals(pair.getId()) &&
-                    (this.cert.equals(pair.getCert()));
+            return keyId.equals(pair.getId())
+                    && (this.cert.equals(pair.getCert()));
         }
     }
 }

@@ -3,7 +3,7 @@ et:
     configuration:
       title: "Konfiguratsioon"
       tsp: "Ajatempliteenus"
-      pki: "Sertifitseerimiskeskused"
+      approved_ca: "Sertifitseerimiskeskused"
       org: "Liikmed"
       group: "Grupid"
       member: "Liikmed"
@@ -24,12 +24,12 @@ et:
     auth_cert_imported: "Sertifikaat edukalt imporditud"
     db_error: "Andmebaasi vahepeal taastati, palun proovi oma viimast tegevust uuesti."
 
-  pki:
+  approved_ca:
     index:
       name: "Nimi"
       rootCA_SN: "Tipmise CA sertifikaadi subjektinimi"
     add:
-      no_name_extractor: "Identifikaatori dekodeerimisreegli meetod peab olemas olema signeerimiseks kasutataval PKI-l"
+      no_name_extractor: "Identifikaatori dekodeerimisreegli meetod peab olemas olema signeerimiseks kasutataval approved_ca-l"
     edit:
       no_ca_cert: "Ei saa salvestada SK-d ilma sertifikaadita"
 
@@ -75,8 +75,8 @@ et:
     member_deleted_from_global_group: "Liige '%{member_code}' edukalt kustutatud globaalsest grupist '%{group_code}'"
 
   securityservers:
-     add_auth_cert_adding_request: "Request of adding authentication certificate to existing security server '%{security_server}' added successfully"
-     add_auth_cert_deletion_request: "Request of deleting authentication certificate from existing security server '#{security_server_id}' added successfully"
+     add_auth_cert_adding_request: "Taotlus autentimissertifikaadi lisamiseks olemasolevale turvaserverile '%{security_server}' edukalt lisatud"
+     add_auth_cert_deletion_request: "Taotlus autentimissertifikaadi kustutamiseks turvaserverilt '%{security_server_id}' edukalt lisatud."
 
   management_requests:
     client_reg_request_revoked: "Edukalt tühistatud kliendi registreerimise päring id-ga '%{id}'"
@@ -108,15 +108,16 @@ et:
       other_error: "Importeri käivitamine ebaõnnestus, kontrolli, kas importer on korrektselt installitud"
   status:
     global_conf_gen:
-      no_status_file: "Globaalse konfi genereerimise staatuse fail puudub, kontrolli, kas center-service töötab"
-      out_of_date: "Globaalne konf on vananenud, viimane genereerimise katse: '%{time}', kontrolli, kas center-service töötab"
-      failure: "Globaalse konfi genereerimine ebaõnnestub alates hetkest '%{time}'"
+      no_status_file: "Globaalse konfiguratsiooni genereerimise staatuse fail puudub, kontrolli, kas center-service töötab"
+      out_of_date: "Globaalne konfiguratsioon on vananenud, viimane genereerimise katse: '%{time}', kontrolli, kas center-service töötab"
+      failure: "Globaalse konfiguratsiooni genereerimine ebaõnnestub alates hetkest '%{time}'"
     signing_token:
-      not_active: "Signeerija PIN on sisestamata. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
-      user_pin_locked: "Signeerija PIN on lukustatud (võimalik, et liiga paljude järjestikuste valede sisestuste tõttu), PIN-i avamiseks kontakteeru süsteemiadministraatoriga."
-      user_pin_incorrect: "Signeerija PIN vale. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
-      user_pin_invalid: "Signeerija PIN mittevaliidne. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
-      user_pin_expired: "Signeerija PIN aegunud. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      key_not_found: "Võtit id-ga '%{signing_key_id}' ei leitud üheltki võtmeseadmelt."
+      not_active: "Signeerija võtmeseadme id-ga '%{token_id}' PIN on sisestamata. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_locked: "Signeerija võtmeseadme id-ga '%{token_id}' PIN on lukustatud (võimalik, et liiga paljude järjestikuste valede sisestuste tõttu), PIN-i avamiseks kontakteeru süsteemiadministraatoriga."
+      user_pin_incorrect: "Signeerija võtmeseadme id-ga '%{token_id}' PIN vale. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_invalid: "Signeerija võtmeseadme id-ga '%{token_id}' PIN mittevaliidne. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
+      user_pin_expired: "Signeerija võtmeseadme id-ga '%{token_id}' PIN aegunud. PIN-i sisestamiseks saate kasutada käsureautiliiti 'signer-console' või järgnevat linki: "
       not_initialized: "Signeerija pole algväärtustatud, kasuta käsureautiliiti 'signer-console', et seda teha."
       invocation_failed: "Signeerija kliendi väljakutse ebaõnnestus: '%{message}'"
-      token_activated: "Signeerija edukalt aktiveeritud."
+      token_activated: "Signeerija võtmeseade id-ga '%{token_id}' edukalt aktiveeritud."

@@ -1,0 +1,49 @@
+package ee.cyber.sdsb.confproxy.commandline;
+
+import org.apache.commons.cli.CommandLine;
+
+import ee.cyber.sdsb.confproxy.ConfProxyProperties;
+import ee.cyber.sdsb.signer.protocol.SignerClient;
+import ee.cyber.sdsb.signer.protocol.message.DeleteKey;
+
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.*;
+
+/**
+ * Utility tool for deleting signing keys from a configuration proxy instance.
+ */
+public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
+
+    ConfProxyUtilDelSigningKey() {
+        super("confproxy-del-signing-key");
+        getOptions()
+            .addOption(PROXY_INSTANCE)
+            .addOption("k", "key-id", true, "Id of the signing key to delete");
+    }
+
+    @Override
+    void execute(CommandLine commandLine)
+            throws Exception {
+        ensureProxyExists(commandLine);
+        final ConfProxyProperties conf = loadConf(commandLine);
+
+        if (commandLine.hasOption("key-id")) {
+            String keyId = commandLine.getOptionValue("k");
+            if (keyId.equals(conf.getActiveSigningKey())) {
+                fail("Not allowed to delete an active signing key!");
+            }
+            if (!conf.removeKeyId(keyId)) {
+                fail("The key ID '" + keyId
+                        + "' could not be found in '" + CONF_INI + "'.");
+            }
+            System.out.println("Deleted key from '" + CONF_INI + "'.");
+            conf.deleteCert(keyId);
+            System.out.println("Deleted self-signed certificate 'cert_"
+                    + keyId + ".pem'");
+            SignerClient.execute(new DeleteKey(keyId));
+            System.out.println("Deleted key from signer");
+        } else {
+            printHelp();
+            System.exit(0);
+        }
+    }
+}

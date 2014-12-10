@@ -20,9 +20,13 @@ import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 import ee.cyber.sdsb.signer.tokenmanager.module.AbstractModuleManager;
 import ee.cyber.sdsb.signer.tokenmanager.module.DefaultModuleManagerImpl;
 import ee.cyber.sdsb.signer.util.Update;
+import ee.cyber.sdsb.signer.util.VariableIntervalPeriodicJob;
 
 import static ee.cyber.sdsb.signer.protocol.ComponentNames.*;
 
+/**
+ * Signer application.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class Signer implements StartStop {
@@ -106,18 +110,25 @@ public class Signer implements StartStop {
     /**
      * Periodically executes the OcspClient
      */
-    private static class OcspClientJob extends PeriodicJob {
+    private static class OcspClientJob extends VariableIntervalPeriodicJob {
 
-        private static final FiniteDuration OCSP_CLIENT_INTERVAL =
-                Duration.create(1, TimeUnit.MINUTES); // TODO: system parameter
+        private static final FiniteDuration INITIAL_DELAY =
+                FiniteDuration.create(100, TimeUnit.MILLISECONDS);
 
         public OcspClientJob() {
-            super(OCSP_CLIENT, OcspClientWorker.EXECUTE, OCSP_CLIENT_INTERVAL);
+            super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
         }
 
         @Override
         protected FiniteDuration getInitialDelay() {
-            return Duration.create(10, TimeUnit.SECONDS);
+            return INITIAL_DELAY;
+        }
+
+        @Override
+        protected FiniteDuration getNextDelay() {
+            return FiniteDuration.create(
+                    OcspClientWorker.getNextOcspFreshnessSeconds(),
+                    TimeUnit.SECONDS);
         }
     }
 }

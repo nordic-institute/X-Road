@@ -69,8 +69,8 @@ public class AsicContainer {
     }
 
     public TimestampData getTimestamp() {
-        if (entries.containsKey(ENTRY_TS_HASH_CHAIN_RESULT) &&
-                entries.containsKey(ENTRY_TS_HASH_CHAIN)) {
+        if (entries.containsKey(ENTRY_TS_HASH_CHAIN_RESULT)
+                && entries.containsKey(ENTRY_TS_HASH_CHAIN)) {
             return new TimestampData(get(ENTRY_TIMESTAMP),
                     get(ENTRY_TS_HASH_CHAIN_RESULT),
                     get(ENTRY_TS_HASH_CHAIN));
@@ -156,7 +156,7 @@ public class AsicContainer {
         byte[] digest = calculateDigest(getAlgorithmIdentifier(algoId),
                 tsHashChainResult.getBytes(StandardCharsets.UTF_8));
         b.addDataObjectReference(ENTRY_TS_HASH_CHAIN_RESULT,
-                MimeTypes.TEXT_XML, getAlgorithmURI(algoId),
+                MimeTypes.TEXT_XML, getDigestAlgorithmURI(algoId),
                 encodeBase64(digest));
 
         put(ENTRY_ASIC_MANIFEST, b.build());

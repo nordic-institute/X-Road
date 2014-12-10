@@ -52,7 +52,7 @@ final class SignatureXmlBuilder {
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
         this.hashAlgorithmId = hashAlgorithmId;
-        this.hashAlgorithmURI = getAlgorithmURI(hashAlgorithmId);
+        this.hashAlgorithmURI = getDigestAlgorithmURI(hashAlgorithmId);
     }
 
     byte[] createDataToBeSigned(String documentName,
@@ -85,8 +85,8 @@ final class SignatureXmlBuilder {
         }
 
         String base64codedValue = Base64.encode(signatureValue);
-        if (base64codedValue.length() > 76 &&
-                !org.apache.xml.security.utils.XMLUtils.ignoreLineBreaks()) {
+        if (base64codedValue.length() > 76
+                && !org.apache.xml.security.utils.XMLUtils.ignoreLineBreaks()) {
             base64codedValue = "\n" + base64codedValue + "\n";
         }
 

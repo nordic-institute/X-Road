@@ -1,0 +1,68 @@
+Source: xroad
+Section: X-Road
+Priority: extra
+Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: xroad-center
+Conflicts:  xroad-proxy, xroad-confproxy
+Architecture: all
+Depends: ${misc:Depends}, xroad-jetty9, curl, unzip, libmhash2
+Pre-depends: postgresql, xroad-common
+Description: X-Road central server
+ X-Road central server programs and utilities
+
+Package: xroad-common
+Architecture: amd64
+Depends: ${misc:Depends}, daemontools, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10)
+Description: X-Road shared components
+ X-Road shared components and utilities
+
+Package: xroad-proxy
+Conflicts: xroad-center, xroad-confproxy
+Architecture: all
+Depends: ${misc:Depends}, xroad-jetty9, curl, authbind
+Pre-depends: postgresql, xroad-common
+Description: X-Road security server
+ X-Road security server programs and utilities
+
+Package: xroad-confproxy
+Conflicts: xroad-center, xroad-proxy
+Architecture: all
+Depends: ${misc:Depends}
+Pre-depends: xroad-common
+Description: X-Road configuration proxy
+ X-Road configuration proxy
+
+Package: xroad-addon-monitor
+Architecture: all
+Depends: ${misc:Depends}, daemontools, java8-runtime-headless, xroad-common
+Description: X-Road monitoring agent
+ X-Road monitoring agent
+
+Package: xroad-addon-hwtokens
+Architecture: all
+Depends: ${misc:Depends}, xroad-common
+Description: X-Road AddOn: hwtokens
+ AddOn for hardware tokens
+
+Package: xroad-addon-messagelog
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy
+Conflicts: xroad-addon-legacy-securelog
+Description: X-Road AddOn: messagelog
+ AddOn for secure message log
+
+Package: xroad-addon-metaservices
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy
+Description: X-Road AddOn: metaservices
+ AddOn for metaservice reponders
+
+Package: xroad-addon-legacy-securelog
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy
+Conflicts: xroad-addon-messagelog
+Description: X-Road AddOn: Legacy securelog
+ Legacy securelog

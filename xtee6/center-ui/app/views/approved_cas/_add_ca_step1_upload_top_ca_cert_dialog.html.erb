@@ -1,0 +1,18 @@
+<%= dialog "add_ca_step1_upload_top_ca_cert_dialog", t("approved_cas.add.step1.title") do %>
+  <section class="container">
+    <table>
+      <tr>
+        <td></td>
+        <td>
+          <%= form_tag "#{controller.controller_name}/upload_top_ca_cert",
+              :id => "top_ca_cert_upload", :multipart => true,
+              :target => "top_ca_cert_upload_target" do %>
+            <%= file_field_tag "upload_top_ca_cert_file" %>
+          <% end %>
+        </td>
+        <iframe id="top_ca_cert_upload_target" name="top_ca_cert_upload_target"></iframe>
+      </tr>
+    </table>
+    <p id="top_ca_cert_temp_id" class="ui-helper-hidden"></p>
+  </section>
+<% end %>

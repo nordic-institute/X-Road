@@ -1,10 +1,10 @@
 package ee.cyber.sdsb.proxy.testsuite.testcases;
 
-import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.proxy.testsuite.Message;
 import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
+import static ee.cyber.sdsb.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.cyber.sdsb.common.ErrorCodes.X_MISSING_SIGNATURE;
 
 /**
  * Client sends normal request. We emulate server proxy and send multipart

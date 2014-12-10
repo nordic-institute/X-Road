@@ -14,6 +14,7 @@ import static java.nio.file.StandardOpenOption.*;
 
 public final class AtomicSave {
 
+    @FunctionalInterface
     public interface Callback {
         void save(OutputStream out) throws Exception;
     }
@@ -31,5 +32,10 @@ public final class AtomicSave {
 
         Path target = Paths.get(fileName);
         Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public static void execute(String fileName, String tmpPrefix,
+            final byte[] data) throws Exception {
+        execute(fileName, tmpPrefix, out -> out.write(data));
     }
 }

@@ -11,7 +11,12 @@ public interface SoapMessage extends Soap {
      * Returns the underlying SOAPMessage object.
      */
     SOAPMessage getSoap();
-
+    
+    /**
+     * Returns the raw byte content of the message.
+     */
+    byte[] getBytes();
+    
     /**
      * Returns the original charset of the message.
      */

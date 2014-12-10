@@ -55,39 +55,27 @@ public class ServerConfCRUDTest {
                 initDB();
                 return true;
             case "create":
-                doInTransaction(new TransactionCallback<Object>() {
-                    @Override
-                    public Object call(Session session) throws Exception {
-                        createClient(session);
-                        return null;
-                    }
+                doInTransaction(session -> {
+                    createClient(session);
+                    return null;
                 });
                 return true;
             case "read":
-                doInTransaction(new TransactionCallback<Object>() {
-                    @Override
-                    public Object call(Session session) throws Exception {
-                        readClient(session);
-                        return null;
-                    }
+                doInTransaction(session -> {
+                    readClient(session);
+                    return null;
                 });
                 return true;
             case "update":
-                doInTransaction(new TransactionCallback<Object>() {
-                    @Override
-                    public Object call(Session session) throws Exception {
-                        updateClient(session);
-                        return null;
-                    }
+                doInTransaction(session -> {
+                    updateClient(session);
+                    return null;
                 });
                 return true;
             case "delete":
-                doInTransaction(new TransactionCallback<Object>() {
-                    @Override
-                    public Object call(Session session) throws Exception {
-                        deleteClient(session);
-                        return null;
-                    }
+                doInTransaction(session -> {
+                    deleteClient(session);
+                    return null;
                 });
                 return true;
             case "exit":
@@ -99,19 +87,19 @@ public class ServerConfCRUDTest {
         return true;
     }
 
-    private static void createClient(Session session) throws Exception {
+    private static void createClient(Session session) {
         out.println("Creating client...");
 
         // TODO
     }
 
-    private static void deleteClient(Session session) throws Exception {
+    private static void deleteClient(Session session) {
         out.println("Deleting client...");
 
         // TODO
     }
 
-    private static void updateClient(Session session) throws Exception {
+    private static void updateClient(Session session) {
         out.println("Updating client...");
 
         String contacts = readFromConsole("Contacts");
@@ -129,7 +117,7 @@ public class ServerConfCRUDTest {
         client.setClientStatus(status);
     }
 
-    private static void readClient(Session session) throws Exception {
+    private static void readClient(Session session) {
         out.println("Reading client...");
 
         ClientId clientId = TestUtil.createTestClientId(TestUtil.client(1));

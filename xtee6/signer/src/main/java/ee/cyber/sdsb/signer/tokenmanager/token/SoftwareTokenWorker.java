@@ -32,6 +32,10 @@ import static ee.cyber.sdsb.signer.tokenmanager.TokenManager.*;
 import static ee.cyber.sdsb.signer.tokenmanager.token.SoftwareTokenUtil.*;
 import static ee.cyber.sdsb.signer.util.ExceptionHelper.*;
 
+/**
+ * Encapsulates the software token worker which handles software signing and key
+ * management.
+ */
 @Slf4j
 public class SoftwareTokenWorker extends AbstractTokenWorker {
 
@@ -40,6 +44,11 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
 
+    /**
+     * Creates new worker.
+     * @param tokenInfo the token info
+     * @param ignored token type (not used)
+     */
     public SoftwareTokenWorker(TokenInfo tokenInfo, SoftwareTokenType ignored) {
         super(tokenInfo);
     }
@@ -75,6 +84,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected void activateToken(ActivateToken message) throws Exception {
         if (message.isActivate()) {
             activateToken();
+        } else {
+            deactivateToken();
         }
 
         setTokenStatus(tokenId, TokenStatusInfo.OK);
@@ -84,6 +95,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected GenerateKeyResult generateKey(GenerateKey message)
             throws Exception {
         log.trace("generateKeys()");
+
+        if (!isTokenActive(tokenId)) {
+            throw tokenNotActive(tokenId);
+        }
 
         java.security.KeyPair keyPair =
                 generateKeyPair(SignerUtil.KEY_SIZE.intValue());
@@ -121,6 +136,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     @Override
     protected byte[] sign(String keyId, byte[] data) throws Exception {
         log.trace("sign({})", keyId);
+
+        if (!isTokenActive(tokenId)) {
+            throw tokenNotActive(tokenId);
+        }
 
         if (!isKeyAvailable(keyId)) {
             throw keyNotAvailable(keyId);
@@ -248,6 +267,17 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw CodedException.tr(X_PIN_INCORRECT,
                     "pin_incorrect", "PIN incorrect");
         }
+    }
+
+    private void deactivateToken() {
+        privateKeys.forEach((k, v) -> {
+            try {
+                v.destroy();
+            } catch (Exception e) {
+                log.error("Failed to destroy private key", e);
+            }
+        });
+        privateKeys.clear();
     }
 
     private PrivateKey loadPrivateKey(String keyId) throws Exception {

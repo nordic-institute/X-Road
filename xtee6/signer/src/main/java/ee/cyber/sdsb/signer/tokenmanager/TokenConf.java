@@ -1,9 +1,11 @@
 package ee.cyber.sdsb.signer.tokenmanager;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.ObjectUtils;
 
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.AbstractXmlConf;
@@ -23,11 +25,17 @@ import ee.cyber.sdsb.signer.util.SignerUtil;
 
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
+/**
+ * Holds the current keys & certificates in XML.
+ */
 @Slf4j
-public class TokenConf extends AbstractXmlConf<KeyConfType> {
+public final class TokenConf extends AbstractXmlConf<KeyConfType> {
 
     private static TokenConf instance;
 
+    /**
+     * @return the singleton instance
+     */
     public static TokenConf getInstance() {
         if (instance == null) {
             instance = new TokenConf();
@@ -36,28 +44,24 @@ public class TokenConf extends AbstractXmlConf<KeyConfType> {
         return instance;
     }
 
-    public static void reload() {
-        try {
-            getInstance().load();
-        } catch (Exception e) {
-            log.error("Failed to load token conf", e);
-        }
-    }
-
     private TokenConf() {
         super(ObjectFactory.class,
                 new ObjectFactory().createKeyConf(new KeyConfType()), null);
     }
 
+    /**
+     * @return all tokens
+     */
     public List<Token> getTokens() {
-        List<Token> tokens = new ArrayList<>();
-        for (DeviceType token : confType.getDevice()) {
-            tokens.add(from(token));
-        }
-
-        return tokens;
+        return confType.getDevice().stream()
+                .map(TokenConf::from)
+                .collect(Collectors.toList());
     }
 
+    /**
+     * @param tokenType the token type
+     * @return token for a specific type or null, if not found
+     */
     public Token getToken(TokenType tokenType) {
         for (DeviceType d : confType.getDevice()) {
             if (tokenType.getModuleType().equals(SoftwareModuleType.TYPE)
@@ -74,52 +78,50 @@ public class TokenConf extends AbstractXmlConf<KeyConfType> {
         return null;
     }
 
+    /**
+     * @param id the token id
+     * @return true if configuration contains token with given token id
+     */
     public boolean hasToken(String id) {
-        for (DeviceType token : confType.getDevice()) {
-            if (token.getId().equals(id)) {
-                return true;
-            }
-        }
-
-        return false;
+        return confType.getDevice().stream().filter(t -> t.getId().equals(id))
+                .findFirst().isPresent();
     }
 
+    /**
+     * Loads the tokens from the XML file.
+     * @throws Exception if an error occurs
+     */
     public synchronized void load() throws Exception {
         load(getConfFileName());
     }
 
+    /**
+     * Saves the tokens to the XML file.
+     * @param tokens the tokens to save
+     * @throws Exception if an error occurs
+     */
     public synchronized void save(List<Token> tokens) throws Exception {
         confType.getDevice().clear();
 
-        for (Token token : tokens) {
-            // Only save the token if it has keys which have certificates or
-            // certificate requests
-            if (hasKeysWithCertsOfCertRequests(token)) {
+        // Only save the token if it has keys which have certificates or
+        // certificate requests
+        tokens.stream().filter(TokenConf::hasKeysWithCertsOfCertRequests)
+            .forEach(token -> {
                 confType.getDevice().add(from(token));
-            }
-        }
+            });
 
         save();
     }
 
     private static boolean hasKeysWithCertsOfCertRequests(Token token) {
-        for (Key key : token.getKeys()) {
-            if (hasCertsOrCertRequests(key)) {
-                return true;
-            }
-        }
-
-        return false;
+        return token.getKeys().stream()
+                .filter(TokenConf::hasCertsOrCertRequests)
+                .findFirst().isPresent();
     }
 
     private static boolean hasCertsOrCertRequests(Key key) {
-        for (Cert cert : key.getCerts()) {
-            if (cert.isSavedToConfiguration()) {
-                return true;
-            }
-        }
-
-        return !key.getCertRequests().isEmpty();
+        return key.getCerts().stream().map(c -> c.isSavedToConfiguration())
+                .findFirst().orElse(!key.getCertRequests().isEmpty());
     }
 
     // ------------------ Conversion helpers ----------------------------------
@@ -133,11 +135,10 @@ public class TokenConf extends AbstractXmlConf<KeyConfType> {
         deviceType.setTokenId(token.getSerialNumber());
         deviceType.setSlotId(token.getLabel());
 
-        for (Key key : token.getKeys()) {
-            if (hasCertsOrCertRequests(key)) {
+        token.getKeys().stream().filter(TokenConf::hasCertsOrCertRequests)
+            .forEach(key -> {
                 deviceType.getKey().add(from(key));
-            }
-        }
+            });
 
         return deviceType;
     }
@@ -247,7 +248,7 @@ public class TokenConf extends AbstractXmlConf<KeyConfType> {
     }
 
     private static String getCertReqId(CertRequestType type) {
-        return type.getId() != null ? type.getId() : SignerUtil.randomId();
+        return ObjectUtils.defaultIfNull(type.getId(), SignerUtil.randomId());
     }
 
     private static String getConfFileName() {

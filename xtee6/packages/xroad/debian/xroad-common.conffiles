@@ -1,0 +1,8 @@
+etc/sdsb/devices.ini
+etc/sdsb/services/global.conf
+etc/sdsb/services/signer.conf
+etc/sdsb/nginx/default-sdsb.conf
+etc/sdsb/nginx/nginx-secure-addons.conf
+etc/sdsb/conf.d/common.ini
+etc/sdsb/conf.d/signer.ini
+etc/sdsb/conf.d/signer-logback.xml

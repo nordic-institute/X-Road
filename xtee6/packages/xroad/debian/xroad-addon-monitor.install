@@ -1,0 +1,8 @@
+addon/proxy/monitor* usr/share/sdsb/jlib/addon/proxy/
+
+addon/monitor/services/* etc/sdsb/services/
+addon/monitor/monitor-agent.ini etc/sdsb
+addon/monitor/*sh usr/share/sdsb/scripts/
+../default-configuration/addons/proxy-monitor-agent.ini  etc/sdsb/conf.d/addons/
+../default-configuration/addons/proxy-monitor-agent-logback.xml etc/sdsb/conf.d/addons/
+../../addons/monitoring-proxy-agent/build/libs/monitoring-proxy-agent-1.0.jar usr/share/sdsb/jlib/

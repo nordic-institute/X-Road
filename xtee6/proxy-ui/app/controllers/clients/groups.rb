@@ -4,13 +4,11 @@ java_import Java::ee.cyber.sdsb.common.identifier.LocalGroupId
 
 module Clients::Groups
 
-  include ValidationHelper
-
   def client_groups
     authorize!(:view_client_local_groups)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -22,9 +20,9 @@ module Clients::Groups
     authorize!(:edit_local_group_members)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :add_group_code => [RequiredValidator.new],
-      :add_group_description => [RequiredValidator.new]
+      :client_id => [:required],
+      :add_group_code => [:required],
+      :add_group_description => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -51,8 +49,8 @@ module Clients::Groups
     authorize!(:delete_local_group)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :group_code => [RequiredValidator.new]
+      :client_id => [:required],
+      :group_code => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -84,8 +82,8 @@ module Clients::Groups
     authorize!(:view_client_local_groups)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :group_code => [RequiredValidator.new]
+      :client_id => [:required],
+      :group_code => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -97,9 +95,9 @@ module Clients::Groups
     authorize!(:edit_local_group_members)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :group_code => [RequiredValidator.new],
-      :member_ids => [RequiredValidator.new]
+      :client_id => [:required],
+      :group_code => [:required],
+      :member_ids => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -136,9 +134,9 @@ module Clients::Groups
     authorize!(:edit_local_group_members)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :group_code => [RequiredValidator.new],
-      :member_ids => [RequiredValidator.new]
+      :client_id => [:required],
+      :group_code => [:required],
+      :member_ids => []
     })
 
     client = get_client(params[:client_id])
@@ -153,17 +151,22 @@ module Clients::Groups
 
     removed_members = []
 
-    params[:member_ids].each do |member_id|
-      group.groupMember.each do |member|
-        cached_id = get_cached_subject_id(member_id)
+    if params[:member_ids]
+      params[:member_ids].each do |member_id|
+        group.groupMember.each do |member|
+          cached_id = get_cached_subject_id(member_id)
 
-        if member.groupMemberId.equals(cached_id)
-          removed_members << member
+          if member.groupMemberId.equals(cached_id)
+            removed_members << member
+          end
         end
       end
+
+      group.groupMember.removeAll(removed_members)
+    else
+      group.groupMember.clear
     end
 
-    group.groupMember.removeAll(removed_members)
     group.updated = Date.new
 
     serverconf_save
@@ -179,9 +182,9 @@ module Clients::Groups
     authorize!(:edit_local_group_desc)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :group_code => [RequiredValidator.new],
-      :description => [RequiredValidator.new]
+      :client_id => [:required],
+      :group_code => [:required],
+      :description => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -227,11 +230,11 @@ module Clients::Groups
 
         members << {
           :member_id => member_id.toString,
-          :name => get_member_name(member_id.memberClass, member_id.memberCode),
+          :name => GlobalConf::getMemberName(member_id),
           :code => member_id.memberCode,
           :class => member_id.memberClass,
           :subsystem => member_id.subsystemCode,
-          :sdsb => member_id.sdsbInstance,
+          :instance => member_id.sdsbInstance,
           :type => member_id.objectType.toString,
           :added => format_time(member.added)
         }

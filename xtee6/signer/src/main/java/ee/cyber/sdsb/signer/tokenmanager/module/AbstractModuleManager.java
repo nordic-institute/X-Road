@@ -10,6 +10,9 @@ import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 import ee.cyber.sdsb.signer.util.AbstractUpdateableActor;
 import ee.cyber.sdsb.signer.util.Update;
 
+/**
+ * Module worker base class.
+ */
 @Slf4j
 public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
@@ -57,9 +60,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     private void addNewModules(Collection<ModuleType> modules) {
-        for (ModuleType module : modules) {
-            initializeModule(module);
-        }
+        modules.forEach(this::initializeModule);
     }
 
     private void removeLostModules(Collection<ModuleType> modules) {
@@ -94,12 +95,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
     private static boolean containsModule(String moduleId,
             Collection<ModuleType> modules) {
-        for (ModuleType module : modules) {
-            if (module.getType().equals(moduleId)) {
-                return true;
-            }
-        }
-
-        return false;
+        return modules.stream().filter(m -> m.getType().equals(moduleId))
+                .findFirst().isPresent();
     }
 }

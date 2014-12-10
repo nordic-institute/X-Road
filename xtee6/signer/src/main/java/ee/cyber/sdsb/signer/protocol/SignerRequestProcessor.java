@@ -1,5 +1,8 @@
 package ee.cyber.sdsb.signer.protocol;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
 import akka.actor.Props;
@@ -20,6 +23,9 @@ public class SignerRequestProcessor extends UntypedActor {
     private static final String HANDLER_PACKAGE_NAME =
             "ee.cyber.sdsb.signer.protocol.handler.";
     private static final String HANDLER_CLASS_SUFFIX = "RequestHandler";
+
+    private static Map<String, Class<? extends AbstractRequestHandler<?>>>
+            handlerClassCache = new HashMap<>();
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -63,18 +69,26 @@ public class SignerRequestProcessor extends UntypedActor {
     @SuppressWarnings("unchecked")
     private Class<? extends AbstractRequestHandler<?>> getRequestHandler(
             Object message) throws Exception {
-        String handlerName = message.getClass().getSimpleName() +
-                HANDLER_CLASS_SUFFIX;
+        String handlerName = message.getClass().getSimpleName()
+                + HANDLER_CLASS_SUFFIX;
         String handlerClass = HANDLER_PACKAGE_NAME + handlerName;
+
+        if (handlerClassCache.containsKey(handlerClass)) {
+            return handlerClassCache.get(handlerClass);
+        }
 
         log.trace("Looking for request processor '{}'", handlerClass);
         try {
             Class<?> clazz = Class.forName(handlerClass);
+
             if (AbstractRequestHandler.class.isAssignableFrom(clazz)) {
-                return (Class<? extends AbstractRequestHandler<?>>) clazz;
+                Class<? extends AbstractRequestHandler<?>> h =
+                        (Class<? extends AbstractRequestHandler<?>>) clazz;
+                handlerClassCache.put(handlerClass, h);
+                return h;
             } else {
-                log.error("Invalid request handler '{}'; must be subclass" +
-                        " of {}", clazz, AbstractRequestHandler.class);
+                log.error("Invalid request handler '{}'; must be subclass"
+                        + " of {}", clazz, AbstractRequestHandler.class);
                 return null;
             }
         } catch (Exception e) {

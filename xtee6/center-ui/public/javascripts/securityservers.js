@@ -31,10 +31,10 @@ var SDSB_SECURITYSERVERS = function() {
         opts.sScrollX = "100%";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
-            { "mData": "server_code" },
+            { "mData": "server_code", "sWidth": "20%" },
             { "mData": "owner_name" },
-            { "mData": "owner_class" },
-            { "mData": "owner_code" }
+            { "mData": "owner_class", "sWidth": "15%" },
+            { "mData": "owner_code", "sWidth": "25%" }
         ];
 
         opts.fnDrawCallback = function() {

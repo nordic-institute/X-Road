@@ -7,6 +7,9 @@ import lombok.Value;
 
 import ee.cyber.sdsb.common.identifier.ClientId;
 
+/**
+ * Signer API message.
+ */
 @Value
 @ToString(exclude = "certData")
 public class ImportCert implements Serializable {

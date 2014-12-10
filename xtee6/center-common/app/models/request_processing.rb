@@ -1,5 +1,13 @@
 class RequestProcessing < ActiveRecord::Base
 
+  after_save do |rec|
+    requests_of_processing = Request.where(:request_processing_id => rec.id)
+
+    requests_of_processing.each do |each|
+      each.update_attributes!(:processing_status => rec.status)
+    end
+  end
+
   # Processing has been created but not associated with any requests.
   NEW = "NEW"
   # Processing has one request and is waiting for second.
@@ -110,7 +118,7 @@ class RequestProcessing < ActiveRecord::Base
       raise I18n.t("requests.duplicate_requests",
           :user => first.sec_serv_user,
           :security_server => first.security_server,
-          :received => format_time(first.created_at),
+          :received => CenterUtils::format_time(first.created_at),
           :id => first.id)
     end
   end
@@ -143,10 +151,5 @@ class RequestProcessing < ActiveRecord::Base
   # Note: assumes that the argument request is saved in database.
   def get_other_request(request)
     requests.find {|req| req.id != request.id}
-  end
-
-  # TODO (RM task #3502) Duplication with common-ui/helpers/base_helper
-  def format_time(time)
-    time.to_i == 0 ? "&mdash;" : time.strftime(I18n.t('common.time_format'))
   end
 end

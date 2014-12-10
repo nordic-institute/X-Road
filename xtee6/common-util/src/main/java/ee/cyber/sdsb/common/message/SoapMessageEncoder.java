@@ -37,7 +37,7 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
     public void soap(SoapMessage soapMessage) throws Exception {
         String charset = soapMessage.getCharset();
         multipart.startPart(contentTypeWithCharset(TEXT_XML, charset));
-        multipart.write(soapMessage.getXml().getBytes(charset));
+        multipart.write(soapMessage.getBytes());
     }
 
     @Override

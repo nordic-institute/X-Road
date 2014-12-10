@@ -1,13 +1,11 @@
 package ee.cyber.sdsb.proxy.protocol;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.input.ReaderInputStream;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,10 +74,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
             hasBeenConsumed = true;
             return attachmentCache.getCachedContents();
         } else {
-            // By default write in UTF-8.
-            return new ReaderInputStream(
-                    new StringReader(soapMessage.getXml()),
-                    StandardCharsets.UTF_8);
+            return new ByteArrayInputStream(soapMessage.getBytes());
         }
     }
 

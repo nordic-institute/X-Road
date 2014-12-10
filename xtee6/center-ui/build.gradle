@@ -1,20 +1,5 @@
-project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
-
-configurations {
-    xjc
-}
-
-sourceSets {
-    main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources']
-    }
-}
-
 dependencies {
     compile project(':common-ui')
-
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
 }
 
 clean << {
@@ -57,22 +42,4 @@ task runControllerTests(type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:controllers']
 }
 
-task createDirs () {
-    project.ext.schemaTargetDir.mkdirs()
-}
-
-task xjc () {
-    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
-
-    // Generate classes for identifier-mapper
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.centerui.identifiermapping',
-        schema: 'src/main/resources/identifier-mapping.xsd',
-        binding: 'src/main/resources/identifiers-bindings.xml'
-    )
-}
-
-xjc.dependsOn createDirs
-compileJava.dependsOn xjc
 build.dependsOn copyDeps

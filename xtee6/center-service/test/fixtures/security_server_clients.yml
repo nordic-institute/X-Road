@@ -1,0 +1,10 @@
+sdsbMember_first:
+  type: "SdsbMember"
+  name: "SDSB member name"
+  member_code: "codeOfMember"
+  member_class_id: <%= ActiveRecord::Fixtures.identify(:memberClass_gov) %>
+
+subsystem_first:
+  type: "Subsystem"
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:sdsbMember_first) %>
+  subsystem_code: "codeOfSubsystem"

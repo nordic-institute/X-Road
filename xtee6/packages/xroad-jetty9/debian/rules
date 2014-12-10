@@ -1,0 +1,32 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+%:
+	dh  $@
+
+override_dh_installinit:
+	dh_installinit --name=xroad-jetty
+
+override_dh_gencontrol:
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+
+build:
+	wget -O jetty.tgz "http://download.eclipse.org/jetty/stable-9/dist/jetty-distribution-9.2.5.v20141112.tar.gz"
+	tar zxf jetty.tgz 
+	mv jetty-distribution* jetty9
+	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod
+	sed -i'' 's/^resources/#resources/' jetty9/modules/logging.mod
+	sed -i'' 's/^logs/#logs/' jetty9/modules/logging.mod
+	mv jetty9/start.ini jetty9/start.ini.bak
+	java -jar jetty9/start.jar --add-to-start=logging jetty.base=jetty9
+
+
+	

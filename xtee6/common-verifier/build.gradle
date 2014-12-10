@@ -1,6 +1,4 @@
-ext.codeCoverage = true
-
 dependencies {
     compile project(':common-util')
-    testCompile project(':common-test')
+    testCompile project(':common-test').sourceSets.main.output
 }

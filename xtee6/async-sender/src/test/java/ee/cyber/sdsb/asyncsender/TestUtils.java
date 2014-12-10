@@ -7,7 +7,10 @@ import java.nio.charset.StandardCharsets;
 
 import ee.cyber.sdsb.common.message.SoapFault;
 
-public class TestUtils {
+public final class TestUtils {
+
+    private TestUtils() {
+    }
 
     static InputStream getSimpleMessage() throws Exception {
         return new FileInputStream("src/test/resources/getstate.query");

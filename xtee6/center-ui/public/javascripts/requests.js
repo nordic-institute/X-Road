@@ -3,7 +3,7 @@ var SDSB_REQUESTS = function() {
     var translationsToDbValues = {};
 
     function enableActions() {
-        if (oManagementRequests.setFocus()) {
+        if (oManagementRequests.getFocus()) {
             $(".request-action").enable();
         } else {
             $(".request-action").disable();
@@ -128,8 +128,8 @@ var SDSB_REQUESTS = function() {
         opts.aaSorting = [ [1,'desc'] ];
 
         opts.aoColumns = [
-            { "mData": "id" },
-            { "mData": "received" },
+            { "mData": "id", "sClass": "center", "sWidth": "4em" },
+            { "mData": "received", "sWidth": "14em" },
             { "mData": "type" },
             { "mData": "source" },
 
@@ -137,8 +137,9 @@ var SDSB_REQUESTS = function() {
             { "mData": "server_owner_class" },
             { "mData": "server_owner_code" },
             { "mData": "server_code" },
-            { "mData": "status" }
+            { "mData": "status", "sWidth": "8em" }
         ];
+        opts.asRowId = ["id"];
 
         oManagementRequests = $('#management_requests_all').dataTable(opts);
         oManagementRequests.fnSetFilteringDelay(600);
@@ -146,6 +147,7 @@ var SDSB_REQUESTS = function() {
 
     function updateTable() {
         oManagementRequests.fnReloadAjax();
+        enableActions();
     }
 
     $(document).ready(function() {
@@ -167,7 +169,7 @@ var SDSB_REQUESTS = function() {
             SDSB_REQUEST_EDIT.open(oManagementRequests.getFocusData());
         });
 
-        $("#request_edit").click(function() {
+        $("#request_details").click(function() {
             SDSB_REQUEST_EDIT.open(oManagementRequests.getFocusData());
         });
     });

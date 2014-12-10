@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import ee.cyber.sdsb.common.conf.AuthKey;
+import ee.cyber.sdsb.common.conf.globalconf.AuthKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.proxy.conf.KeyConfProvider;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;

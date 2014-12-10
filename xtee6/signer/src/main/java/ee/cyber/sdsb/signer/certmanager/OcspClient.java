@@ -11,8 +11,6 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
@@ -25,19 +23,25 @@ import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.ContentSigner;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.MimeTypes;
 
+/**
+ * OCSP client downloads OCSP responses for specified certificates using
+ * responders defined in the Global Configuration.
+ */
 @Slf4j
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class OcspClient {
+public final class OcspClient {
 
     private static final int CONNECT_TIMEOUT_MS = 20000;
 
-    public static OCSPResp queryCertStatus(X509Certificate subject)
-            throws Exception {
-        X509Certificate issuer = GlobalConf.getCaCert(subject);
+    private OcspClient() {
+    }
+
+    static OCSPResp queryCertStatus(X509Certificate subject) throws Exception {
+        X509Certificate issuer = GlobalConf.getCaCert(
+                GlobalConf.getInstanceIdentifier(), subject);
 
         PrivateKey signerKey = getOcspRequestKey(subject);
         X509Certificate signer = getOcspSignerCert();
@@ -85,7 +89,7 @@ public class OcspClient {
         OCSPReq ocspRequest = createRequest(subject, issuer, signerKey, signer);
 
         log.debug("Fetching certificate '{}' status from responder: {}",
-                subject.getSerialNumber(), connection.getURL().toString());
+                subject.getIssuerX500Principal(), connection.getURL());
 
         sendRequest(connection, ocspRequest);
         verifyResponseCode(connection);
@@ -109,7 +113,7 @@ public class OcspClient {
 
     private static void verifyResponseCode(HttpURLConnection connection)
             throws IOException {
-        if (connection.getResponseCode() / 100 != 2) {
+        if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
             throw new IOException("Invalid http response code from responder: "
                     + connection.getResponseCode());
         }
@@ -124,7 +128,7 @@ public class OcspClient {
     }
 
     private static void verifyResponse(OCSPResp response) throws Exception {
-        final int responseStatus = response.getStatus();
+        int responseStatus = response.getStatus();
         if (responseStatus == OCSPResponseStatus.SUCCESSFUL) {
             return;
         }
@@ -168,20 +172,20 @@ public class OcspClient {
             ContentSigner contentSigner =
                     CryptoUtils.createDefaultContentSigner(signerKey);
 
-            log.trace("Creating signed OCSP request for certificate \"{}\" "
+            log.trace("Creating signed OCSP request for certificate '{}' "
                     + "(signed by {})",
-                    subjectCert.getSubjectX500Principal().getName(),
+                    subjectCert.getSubjectX500Principal(),
                     signerCertHolder.getSubject());
 
             // needs to be set when generating signed requests
             requestBuilder.setRequestorName(signerCertHolder.getSubject());
 
             return requestBuilder.build(contentSigner,
-                    new X509CertificateHolder[] { signerCertHolder });
+                    new X509CertificateHolder[] {signerCertHolder});
         }
 
-        log.trace("Creating unsigned OCSP request for certificate \"{}\"",
-                subjectCert.getSubjectX500Principal().getName());
+        log.trace("Creating unsigned OCSP request for certificate '{}'",
+                subjectCert.getSubjectX500Principal());
         return requestBuilder.build();
     }
 

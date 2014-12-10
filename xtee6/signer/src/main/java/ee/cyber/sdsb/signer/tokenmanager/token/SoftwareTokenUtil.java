@@ -22,6 +22,9 @@ import ee.cyber.sdsb.signer.util.SignerUtil;
 import static ee.cyber.sdsb.common.util.CryptoUtils.createDefaultContentSigner;
 import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
 
+/**
+ * Utility methods for software token.
+ */
 public final class SoftwareTokenUtil {
 
     static final String PIN_ALIAS = "pin";
@@ -38,10 +41,20 @@ public final class SoftwareTokenUtil {
         }
     };
 
+    private SoftwareTokenUtil() {
+    }
+
+    /**
+     * @return true if software token is initialized
+     */
     public static boolean isTokenInitialized() {
         return new File(getKeyStoreFileName(PIN_FILE)).exists();
     }
 
+    /**
+     * @param keyId the key id
+     * @return the key store file name for a key id
+     */
     public static String getKeyStoreFileName(String keyId) {
         return getKeyDir() + "/" + keyId + P12;
     }

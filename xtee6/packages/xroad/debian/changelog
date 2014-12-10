@@ -1,0 +1,49 @@
+xroad (6.1-0) trusty; urgency=low
+
+   [General]
+   * Added new separately installable component: configuration proxy (xroad-confproxy)
+   * Changed the format and location of system configuration files.
+   * Added support for federating two X-Road instances.
+   * Added new command-line utilities for managing Signer component.
+
+   [Depenencies]
+   * Java 8
+   * Jetty 9
+   * JRuby 1.7.16.1 security fix
+
+   [Central]
+    Many user interface fixes and improvements. 
+    Added user interface for managing member classes. 
+    Added user interface for configuring management service.
+    Added user interface for configuring system parameters.
+    Added user interface for initializing central server. 
+    Changed names of some system parameters. 
+    Some system parameters are now automatically filled during installation. 
+    Added new configuration file for configuring installation-specific configuration parts (such as identifiermapping.xml). 
+    The server-owners group can no longer managed manually. 
+    Added foreign keys to databases. 
+
+   [Security server]
+   * Many user interface fixes and improvements.
+   * User cannot upload configuration anchor that points to configuration that does not contain private parameters #5092 #PJ, #KJ
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 01 Dec 2014 13:07:34 +0200
+
+xroad (6.0-99.3) trusty; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 08 Sep 2014 09:26:42 +0300
+
+xroad (6.0-99.1) trusty; urgency=low
+
+  * version bump
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 14 Jul 2014 15:42:15 +0300
+
+xroad (6.0-2) trusty; urgency=low
+
+  * package for 14.04
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Wed, 25 June 2014 14:58:20 +0200
+

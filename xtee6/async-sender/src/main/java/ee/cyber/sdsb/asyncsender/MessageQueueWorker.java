@@ -3,19 +3,17 @@ package ee.cyber.sdsb.asyncsender;
 import java.io.InputStream;
 import java.util.Date;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.cyber.sdsb.asyncdb.SendingCtx;
 import ee.cyber.sdsb.asyncdb.messagequeue.MessageQueue;
 import ee.cyber.sdsb.asyncdb.messagequeue.QueueInfo;
-import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.message.SoapMessageImpl;
 
-class MessageQueueWorker implements Runnable {
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MessageQueueWorker.class);
+@Slf4j
+class MessageQueueWorker implements Runnable {
 
     private static final int UPDATE_INTERVAL = 1000; // ms
 
@@ -63,12 +61,12 @@ class MessageQueueWorker implements Runnable {
             queueInfo = queue.getQueueInfo();
         } catch (Exception e) {
             // Failure to get queue info is fatal!
-            LOG.error("Failed to get QueueInfo", e);
+            log.error("Failed to get QueueInfo", e);
             return null;
         }
 
         Date nextAttempt = queueInfo.getNextAttempt();
-        LOG.trace("getNextAttempt(): {}", nextAttempt);
+        log.trace("getNextAttempt(): {}", nextAttempt);
         return nextAttempt;
     }
 
@@ -81,26 +79,26 @@ class MessageQueueWorker implements Runnable {
     }
 
     void trySendNextMessage(Date nextAttempt) {
-        LOG.trace("trySendNextMessage({})", nextAttempt);
+        log.trace("trySendNextMessage({})", nextAttempt);
 
         if (new Date().after(nextAttempt)) {
-            LOG.trace("Start sending message at {}", nextAttempt);
+            log.trace("Start sending message at {}", nextAttempt);
             doSendNextMessage();
         }
     }
 
     void doSendNextMessage() {
-        LOG.trace("doSendNextMessage()");
+        log.trace("doSendNextMessage()");
 
         SendingCtx sendingCtx = null;
         try {
             sendingCtx = queue.startSending();
             if (sendingCtx == null) {
-                LOG.trace("Did not get SendingCtx, assuming no more messages");
+                log.trace("Did not get SendingCtx, assuming no more messages");
                 return;
             }
         } catch (Exception e) {
-            LOG.error("Failed to get SendingCtx", e);
+            log.error("Failed to get SendingCtx", e);
             return;
         }
 
@@ -108,17 +106,17 @@ class MessageQueueWorker implements Runnable {
         try {
             response = sendMessage(sendingCtx);
             sendingCtx.success(response != null ? response.getXml() : "");
-            LOG.trace("Message successfully sent!");
+            log.trace("Message successfully sent!");
         } catch (Exception e) {
-            LOG.error("Failed to send message", e);
+            log.error("Failed to send message", e);
 
-            String faultCode = ErrorCodes.translateException(e).getFaultCode();
+            String faultCode = translateException(e).getFaultCode();
             try {
                 String result = response != null
                         ? response.getXml() : e.toString();
                 sendingCtx.failure(faultCode, result);
             } catch (Exception e1) {
-                LOG.error("Error when calling sendingCtx.failure(" + faultCode
+                log.error("Error when calling sendingCtx.failure(" + faultCode
                         + ")", e1);
             }
         }

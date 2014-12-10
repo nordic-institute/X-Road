@@ -7,6 +7,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import ee.cyber.sdsb.common.util.CryptoUtils;
 
+/**
+ * Hardware token type, holding the actual pkcs11 token.
+ */
 @Value
 @EqualsAndHashCode(exclude = "readOnly")
 public class HardwareTokenType implements TokenType {

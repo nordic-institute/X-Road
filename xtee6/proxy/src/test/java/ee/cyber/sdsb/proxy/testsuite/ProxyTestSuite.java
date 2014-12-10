@@ -14,13 +14,13 @@ import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.util.JobManager;
 import ee.cyber.sdsb.common.util.StartStop;
 import ee.cyber.sdsb.proxy.clientproxy.ClientProxy;
 import ee.cyber.sdsb.proxy.conf.KeyConf;
-import ee.cyber.sdsb.proxy.securelog.MessageLog;
+import ee.cyber.sdsb.proxy.messagelog.MessageLog;
 import ee.cyber.sdsb.proxy.serverproxy.ServerProxy;
 import ee.cyber.sdsb.proxy.util.CertHashBasedOcspResponder;
 

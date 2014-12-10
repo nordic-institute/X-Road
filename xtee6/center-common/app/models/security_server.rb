@@ -75,13 +75,13 @@ class SecurityServer < ActiveRecord::Base
   end
 
   def get_identifier
-    "SERVER:#{SystemParameter.sdsb_instance}/#{owner.member_class.code}/"\
-        "#{owner.member_code}/#@server_code"
+    "SERVER:#{SystemParameter.instance_identifier}/#{owner.member_class.code}/"\
+        "#{owner.member_code}/#{self.server_code}"
   end
 
   def get_server_id
     SecurityServerId.from_parts(
-      SystemParameter.sdsb_instance,
+      SystemParameter.instance_identifier,
       owner.member_class.code,
       owner.member_code,
       server_code)
@@ -104,6 +104,18 @@ class SecurityServer < ActiveRecord::Base
     return get_search_relation(searchable).count
   end
 
+  # Server is hash including keys :member_class, :member_code and :server_code.
+  def self.get_management_requests(server, query_params)
+    return get_management_requests_relation(server).
+        order("#{query_params.sort_column} #{query_params.sort_direction}").
+        limit(query_params.display_length).
+        offset(query_params.display_start)
+  end
+
+  def self.get_management_requests_count(server)
+    return get_management_requests_relation(server).count()
+  end
+
   private
 
   def self.get_search_relation(searchable)
@@ -114,6 +126,12 @@ class SecurityServer < ActiveRecord::Base
     SecurityServer.
         joins(:owner => :member_class).
         where(sql_generator.sql, *sql_generator.params)
+  end
+
+  def self.get_management_requests_relation(server)
+    return Request.
+        joins(:security_server).
+        where(:identifiers => server)
   end
 
   def self.map_advanced_search_params(searchable)
@@ -164,10 +182,7 @@ class SecurityServer < ActiveRecord::Base
     owner = security_server.owner
     return if owner.owned_servers.size > 1
 
-    server_owners_group_code = SystemParameter.server_owners_group
-    server_owners_group = GlobalGroup.find_by_code(server_owners_group_code)
-
-    server_owners_group.remove_member(owner.server_client)
+    GlobalGroup.security_server_owners_group.remove_member(owner.server_client)
   end
 
   def clear_server_auth_certs(security_server)

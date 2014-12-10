@@ -1,7 +1,11 @@
-sdsb_instance:
-  key: "sdsbInstance"
+instance_identifier:
+  key: "instanceIdentifier"
   value: "EE"
 
-server_owners_group:
-  key: "serverOwnersGroup"
-  value: "server-owners"
+security_server_owners_group:
+  key: "securityServerOwnersGroup"
+  value: "security-server-owners"
+
+central_server_address:
+  key: "centralServerAddress"
+  value: "iks2-central"

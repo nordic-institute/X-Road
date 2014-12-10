@@ -10,12 +10,15 @@ import java.util.Set;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.cert.CertHelper.getOcspResponseForCert;
 
+/**
+ * Certificate chain verifier.
+ */
 public class CertChainVerifier {
 
     /** Default validation algorithm type is PKIX. */
@@ -27,14 +30,17 @@ public class CertChainVerifier {
     /** Holds the constructed certificate path. */
     private CertPath certPath;
 
+    /** Holds the cert chain to be verified. */
+    private CertChain certChain;
+
     /**
      * Builds the certificate path for the target certificate using a list
      * of trust anchors and a list of intermediate certificates.
-     * @param cert the target certificate
-     * @param trustedCerts the list of trust anchors
-     * @param additionalCerts a list of intermediate certificates
+     * @param certChain the certificate chain object
      */
     public CertChainVerifier(CertChain certChain) {
+        this.certChain = certChain;
+
         Set<TrustAnchor> trustAnchors =
                 createTrustAnchorSet(
                         Arrays.asList(certChain.getTrustedRootCert()));
@@ -58,8 +64,10 @@ public class CertChainVerifier {
         }
     }
 
-    /** Returns certificates in the chain, starting from the target certificate
-     * and ending with the certificate issued by the trust anchor. */
+    /**
+     * @return certificates in the chain, starting from the target certificate
+     * and ending with the certificate issued by the trust anchor.
+     */
     @SuppressWarnings("unchecked")
     public List<X509Certificate> getCerts() {
         // By using the validation algorithm PKIX,
@@ -69,6 +77,7 @@ public class CertChainVerifier {
 
     /**
      * Similar to verify(), but does not check validity of the certificates.
+     * @param atDate the date at which to verify the chain
      */
     public void verifyChainOnly(Date atDate) {
         verifyImpl(null, atDate);
@@ -114,6 +123,28 @@ public class CertChainVerifier {
         }
     }
 
+    private void verifyOcspResponses(List<X509Certificate> certs,
+            List<OCSPResp> ocspResponses, PKIXCertPathValidatorResult result,
+            Date atDate) throws Exception {
+        for (X509Certificate subject : certs) {
+            X509Certificate issuer =
+                    GlobalConf.getCaCert(certChain.getInstanceIdentifier(),
+                            subject);
+            OCSPResp response =
+                    getOcspResponseForCert(subject, issuer, ocspResponses);
+            if (response == null) {
+                throw new CodedException(X_CERT_VALIDATION,
+                        "Unable to find OCSP response for certificate "
+                        + subject.getSubjectX500Principal().getName());
+            }
+
+            OcspVerifier verifier =
+                    new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+            verifier.verifyValidityAndStatus(response, subject, issuer,
+                    atDate);
+        }
+    }
+
     private static CertPath buildCertPath(PKIXBuilderParameters pkixParams)
             throws Exception {
         CertPathBuilder certPathBuilder =
@@ -133,24 +164,6 @@ public class CertChainVerifier {
                 certPathValidator.validate(certPath, pkixParams);
 
         return (PKIXCertPathValidatorResult) result;
-    }
-
-    private static void verifyOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> ocspResponses, PKIXCertPathValidatorResult result,
-            Date atDate) throws Exception {
-        for (X509Certificate subject : certs) {
-            X509Certificate issuer = GlobalConf.getCaCert(subject);
-            OCSPResp response =
-                    getOcspResponseForCert(subject, issuer, ocspResponses);
-            if (response == null) {
-                throw new CodedException(X_CERT_VALIDATION,
-                        "Unable to find OCSP response for certificate "
-                        + subject.getSubjectX500Principal().getName());
-            }
-
-            OcspVerifier.verifyValidityAndStatus(response, subject, issuer,
-                    atDate);
-        }
     }
 
     private static Set<TrustAnchor> createTrustAnchorSet(

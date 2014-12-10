@@ -1,0 +1,24 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "acl_subjects" %>
+<% end %>
+
+<div class="ui-tabs-panel-actions">
+  <% if can?(:edit_acl_subject_open_services) %>
+  <button id="acl_subjects_add"><%= t 'common.add' %></button>
+  <% end %>
+  <% if can?(:view_acl_subject_open_services) %>
+  <button id="acl_subject_open_services"><%= t '.open_services' %></button>
+  <% end %>
+</div>
+
+<table id="acl_subjects">
+  <thead>
+    <tr>
+      <th><%= t '.subject_name' %></th>
+      <th><%= t 'common.id' %></th>
+    </tr>
+  </thead>
+</table>
+
+<%= render :partial => "acl_subjects_search_dialog" %>
+<%= render :partial => "acl_subject_open_services_dialog" %>

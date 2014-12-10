@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
+    elementFormDefault="qualified">
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
+
+    <element name="authCertReg" type="tns:AuthCertRegRequestType"/>
+    <element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
+    <element name="clientReg" type="tns:ClientRequestType"/>
+    <element name="clientDeletion" type="tns:ClientRequestType"/>
+
+    <complexType name="AuthCertRegRequestType">
+        <sequence>
+            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identity of this security server.</documentation>
+                </annotation>
+            </element>
+            <element name="address" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Address of this security server.</documentation>
+                </annotation>
+            </element>
+            <element name="authCert" type="base64Binary">
+                <annotation>
+                    <documentation>Authentication certificate belonging to this security server.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="AuthCertDeletionRequestType">
+        <sequence>
+            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identity of this security server.</documentation>
+                </annotation>
+            </element>
+            <element name="authCert" type="base64Binary">
+                <annotation>
+                    <documentation>Hash of the authentication certificate that needs to be deleted from the list
+                    of certificates authenticating this security server.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="ClientRequestType">
+        <sequence>
+            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+                <annotation>
+                    <documentation>Identity of this security server.</documentation>
+                </annotation>
+            </element>
+            <element name="client" type="id:SdsbClientIdentifierType">
+                <annotation>
+                    <documentation>Identity of the SDSB member or subsystem requesting to be a client of this security server 
+                    or who needs to be deleted from the list of clients of this server server.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+</schema>

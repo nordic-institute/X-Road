@@ -2,13 +2,11 @@ java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
 
 module Clients::InternalCerts
 
-  include ValidationHelper
-
   def client_internal_certs
     authorize!(:view_client_internal_certs)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -20,8 +18,8 @@ module Clients::InternalCerts
     authorize!(:view_client_internal_cert_details)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :hash => [RequiredValidator.new]
+      :client_id => [:required],
+      :hash => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -30,9 +28,9 @@ module Clients::InternalCerts
     hash = nil
 
     client.isCert.each do |cert|
-      if cert_hash(cert.data) == params[:hash]
-        dump = cert_dump(cert.data)
-        hash = cert_hash(cert.data)
+      if CommonUi::CertUtils.cert_hash(cert.data) == params[:hash]
+        dump = CommonUi::CertUtils.cert_dump(cert.data)
+        hash = CommonUi::CertUtils.cert_hash(cert.data)
         break
       end
     end
@@ -47,15 +45,16 @@ module Clients::InternalCerts
     authorize!(:add_client_internal_cert)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :cert => [RequiredValidator.new]
+      :client_id => [:required],
+      :cert => [:required]
     })
 
     client = get_client(params[:client_id])
-    uploaded_cert = pem_to_der(params[:cert].read)
+    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:cert].read)
 
     client.isCert.each do |cert|
-      next unless cert_hash(cert.data) == cert_hash(uploaded_cert)
+      next unless CommonUi::CertUtils.cert_hash(cert.data) ==
+        CommonUi::CertUtils.cert_hash(uploaded_cert)
 
       error(t('clients.cert_exists'))
       upload_error(nil, "internalCertAddCallback")
@@ -75,8 +74,8 @@ module Clients::InternalCerts
     authorize!(:delete_client_internal_cert)
 
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :hash => [RequiredValidator.new]
+      :client_id => [:required],
+      :hash => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -84,7 +83,7 @@ module Clients::InternalCerts
     deleted_cert = nil
 
     client.isCert.each do |cert|
-      next unless cert_hash(cert.data) == params[:hash]
+      next unless CommonUi::CertUtils.cert_hash(cert.data) == params[:hash]
       deleted_cert = cert
       break
     end
@@ -100,7 +99,7 @@ module Clients::InternalCerts
     authorize!(:view_proxy_internal_cert)
 
     render_json({
-      :hash => cert_hash(read_internal_ssl_cert)
+      :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
     })
   end
 
@@ -116,7 +115,7 @@ module Clients::InternalCerts
     authorize!(:view_client_internal_connection_type)
 
     validate_params({
-      :client_id => [RequiredValidator.new]
+      :client_id => [:required]
     })
 
     connection_type = get_client(params[:client_id]).isAuthentication
@@ -130,8 +129,8 @@ module Clients::InternalCerts
     authorize!(:edit_client_internal_connection_type)
     
     validate_params({
-      :client_id => [RequiredValidator.new],
-      :connection_type => [RequiredValidator.new]
+      :client_id => [:required],
+      :connection_type => [:required]
     })
 
     client = get_client(params[:client_id])
@@ -154,7 +153,7 @@ module Clients::InternalCerts
 
     client.isCert.each do |cert|
       certs << {
-        :hash => cert_hash(cert.data)
+        :hash => CommonUi::CertUtils.cert_hash(cert.data)
       }
     end
 

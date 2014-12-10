@@ -16,6 +16,9 @@ import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.sdsb.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
 
+/**
+ * Model object that holds the information associated with a certificate.
+ */
 @Data
 public class Cert {
 

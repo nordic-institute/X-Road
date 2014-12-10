@@ -1,13 +1,13 @@
 <%= dialog "securityserver_edit_dialog", t("securityservers.details.title") do %>
   <div id="securityserver_edit_tabs">
     <ul>
-      <li><a href="#details_tab"><%= t 'securityservers.details.legend' %></a></li>
-      <li><a href="#clients_tab"><%= t 'securityservers.clients.legend' %></a></li>
-      <li><a href="#auth_certs_tab"><%= t 'securityservers.auth_cert.legend' %></a></li>
-      <li><a href="#management_requests_tab"><%= t 'management_requests.legend' %></a></li>
+      <li><a href="#server_details_tab"><%= t 'securityservers.details.legend' %></a></li>
+      <li><a href="#server_clients_tab"><%= t 'securityservers.clients.legend' %></a></li>
+      <li><a href="#server_auth_certs_tab"><%= t 'securityservers.auth_cert.legend' %></a></li>
+      <li><a href="#server_management_requests_tab"><%= t 'management_requests.legend' %></a></li>
     </ul>
 
-    <div id="details_tab">
+    <div id="server_details_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:delete_security_server) %>
         <button id="securityserver_delete">
@@ -21,27 +21,27 @@
         <table id="securityserver_edit_table" class="details">
           <tr>
             <td><%= t 'securityservers.owner_name' %></td>
-            <td><input id="securityserver_edit_owner_name" type="text" readonly/></td>
+            <td><p id="securityserver_edit_owner_name" class="input"></p></td>
           </tr>
           <tr>
             <td><%= t 'securityservers.owner_class' %></td>
-            <td><input id="securityserver_edit_owner_class" type="text" readonly/></td>
+            <td><p id="securityserver_edit_owner_class" class="input"></p></td>
           </tr>
           <tr>
             <td><%= t 'securityservers.owner_code' %></td>
-            <td><input id="securityserver_edit_owner_code" type="text" readonly/></td>
+            <td><p id="securityserver_edit_owner_code" class="input"></p></td>
           </tr>
           <tr>
             <td><%= t 'securityservers.server_code' %></td>
-            <td><input id="securityserver_edit_server_code" type="text" readonly/></td>
+            <td><p id="securityserver_edit_server_code" class="input"></p></td>
           </tr>
           <tr>
             <td><%= t 'securityservers.registered' %></td>
-            <td><input id="securityserver_edit_registered" type="text" readonly/></td>
+            <td><p id="securityserver_edit_registered" class="input"></p></td>
           </tr>
           <tr>
             <td><%= t 'securityservers.address' %></td>
-            <td><input id="securityserver_edit_address" type="text" readonly/></td>
+            <td><p id="securityserver_edit_address" class="input"></p></td>
             <td>
               <% if can?(:edit_security_server_address) %>
               <button id="securityserver_edit_change_address">
@@ -56,7 +56,7 @@
       </section>
     </div>
 
-    <div id="clients_tab">
+    <div id="server_clients_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:add_security_server_client_reg_request) %>
         <button id="securityserver_client_add"><%= t 'common.add' %></button>
@@ -80,7 +80,7 @@
       </section>
     </div>
 
-    <div id="auth_certs_tab">
+    <div id="server_auth_certs_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:add_security_server_auth_cert_reg_request) %>
         <button id="securityserver_authcert_add"><%= t 'common.add' %></button>
@@ -104,7 +104,7 @@
       </section>
     </div>
 
-    <div id="management_requests_tab">
+    <div id="server_management_requests_tab">
       <section class="container">
         <table id="securityserver_management_requests" class="display">
           <thead>
@@ -124,13 +124,14 @@
   <%= render :partial => "shared/securityserver_client_register_dialog" %>
   <%= render :partial => "shared/auth_cert_add_dialog" %>
   <%= render :partial => "shared/auth_cert_delete_dialog" %>
+
   <div class="dialog_dynamic">
     <%= render :partial => "shared/cert_details_dialog" %>
-  </div>
 
-  <!-- XXX Prevents infinite rendering loop -->
-  <% if from_main_menu %>
-  <%= render :partial => "shared/member_edit_dialog",
-    locals: {from_main_menu: false} %>
-  <% end %>
+    <!-- XXX Prevents infinite rendering loop -->
+    <% if from_main_menu %>
+      <%= render :partial => "shared/member_edit_dialog",
+        locals: {from_main_menu: false} %>
+    <% end %>
+  </div>
 <% end %>

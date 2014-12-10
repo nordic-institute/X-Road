@@ -1,0 +1,6 @@
+approvedTsp_first:
+  name: "Name of TSA"
+  url: "http://www.tsa.example.com"
+  cert: "TspCert"
+  created_at: <%= Time.now %>
+  updated_at: <%= Time.now %>

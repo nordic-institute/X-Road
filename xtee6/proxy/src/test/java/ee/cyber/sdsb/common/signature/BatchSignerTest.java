@@ -1,7 +1,7 @@
 package ee.cyber.sdsb.common.signature;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -45,12 +46,12 @@ public class BatchSignerTest {
 
     private static final String ALGORITHM = DEFAULT_DIGEST_ALGORITHM_ID;
 
-    private static final String KEY_ID = "testorg";
+    private static final String KEY_ID = "consumer";
 
     private static final ClientId CORRECT_MEMBER =
-            ClientId.create("EE", "TODO", "Test Org");
+            ClientId.create("EE", "TODO", "consumer");
 
-    private static final Date CORRECT_VALIDATION_DATE = createDate(1, 9, 2012);
+    private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
     private static X509Certificate subjectCert;
     private static X509Certificate issuerCert;
@@ -75,16 +76,19 @@ public class BatchSignerTest {
         actorSystem = ActorSystem.create("Proxy",
                 ConfigFactory.load().getConfig("proxy"));
         SignerClient.init(actorSystem);
+
+        Thread.sleep(2500); // wait for signer client to connect
+
         BatchSigner.init(actorSystem);
 
-        subjectCert = TestCertUtil.getTestOrg().cert;
+        subjectCert = TestCertUtil.getConsumer().cert;
         issuerCert = TestCertUtil.getCaCert();
         signerCert = TestCertUtil.getOcspSigner().cert;
         signerKey = TestCertUtil.getOcspSigner().key;
 
         List<String> messages = new ArrayList<>();
         for (int i = 0; i < args.length; i++) {
-            messages.add(IOUtils.toString(new FileInputStream(args[i])));
+            messages.add(FileUtils.readFileToString(new File(args[i])));
         }
 
         latch = new CountDownLatch(messages.size());
@@ -99,12 +103,12 @@ public class BatchSignerTest {
                 @Override
                 public void run() {
                     try {
-                        String hash = hash(message);
+                        byte[] hash = hash(message);
                         LOG.info("File: {}, hash: {}", message, hash);
 
                         List<MessagePart> hashes = new ArrayList<>();
                         hashes.add(new MessagePart(MessageFileNames.MESSAGE,
-                                SHA512_ID, hash));
+                                SHA512_ID, message.getBytes()));
 
                         SignatureBuilder builder = new SignatureBuilder();
                         builder.addParts(hashes);
@@ -129,8 +133,8 @@ public class BatchSignerTest {
                             toFile("message-" + sigIdx + ".xml", message);
 
                             String sigFileName =
-                                    signatureData.getHashChainResult() != null ?
-                                            "batch-sig-" : "sig-";
+                                    signatureData.getHashChainResult() != null
+                                        ? "batch-sig-" : "sig-";
 
                             toFile(sigFileName + sigIdx + ".xml",
                                     signatureData.getSignatureXml());
@@ -207,11 +211,11 @@ public class BatchSignerTest {
                 + "ones found in 'common-test/src/test/certs/testorg.p12'");
     }
 
-    private static String hash(String data) throws Exception {
+    private static byte[] hash(String data) throws Exception {
         DigestCalculator calc = createDigestCalculator(ALGORITHM);
         IOUtils.write(data, calc.getOutputStream());
 
-        return encodeBase64(calc.getDigest());
+        return calc.getDigest();
     }
 
     private static void toFile(String fileName, String data) throws Exception {

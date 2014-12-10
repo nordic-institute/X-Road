@@ -1,8 +1,5 @@
-ext.codeCoverage = true
-
 dependencies {
     compile project(':signer')
-    compile project(':signer-protocol')
 
     // Necessary since there are jars with no adequate Maven dependencies
     compile fileTree(dir: '../libs', include: '*.jar')

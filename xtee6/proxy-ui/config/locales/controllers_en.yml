@@ -1,20 +1,20 @@
 en:
   application:
-    distributor_not_configured: "Global configuration distributor not configured"
     softtoken_pin_not_entered: "Please enter softtoken PIN"
-    services_import_failed: "Failed to import services: %{output}"
-    services_export_failed: "Failed to export services: %{output}"
-    internal_ssl_export_failed: "Failed to export internal SSL conf: %{output}"
+    services_import_failed: "Failed to import services"
+    services_export_failed: "Failed to export services"
+    internal_ssl_export_failed: "Failed to export internal SSL conf"
     restart_service_failed: "Failed to restart service '%{name}': %{output}"
     database_connection_error: "Database connection error"
+    invalid_anchor_file: "Configuration anchor import failed: invalid anchor file"
+    configuration_download_failed: "Configuration download failed: %{response}"
 
   init:
     not_authorized: "Fatal system error - contact system administrator"
     already_initialized: "Security Server already initialized"
-    globalconf_downloaded: "Successfully downloaded globalconf"
     mismatching_pins: "Software token pins do not match"
-    member_not_found: "Member %{member} is not registered at X-Road centre"
-    globalconf_download_failed: "Globalconf download failed: %{response}"
+    unregistered_member: "The person/organisation '%{member_class} : %{member_code}' is not registered as X-Road member"
+    configuration_downloaded: "Successfully downloaded configuration"
 
   menu:
     configuration:
@@ -35,31 +35,29 @@ en:
     request_sent: "Request sent"
     delreq_failed: "Failed to send certificate deletion request: %{msg}. Continue with certificate deletion anyway?"
     csr_friendly_name: "Request"
-    pin_locked: "PIN locked"
-    pin_format_incorrect: "PIN format incorrect"
-    final_try: "tries left: 1"
 
   clients:
     client_exists: "Client already exists"
-    unregistered_member: "The person/organisation '%{member}' is not registered as SDSB member."
+    unregistered_member: "The person/organisation '%{member}' is not registered as X-Road member."
     new_subsystem: "New subsystem '%{subsystem}' will be registered for member '%{member}'."
     cert_in_use: "in use"
     cert_disabled: "disabled"
     cannot_register_without_sign_cert: "Client does not have a signing certificate"
     cannot_delete_owner: "Security server owner cannot be deleted"
+    cannot_register_owner: "Security server owner cannot be registered"
     cert_exists: "Certificate already exists"
     invalid_backend_type: "Invalid backend type"
+    adapter_exists: "Adapter already exists"
     wsdl_exists: "WSDL already exists"
     default_disabled_service_notice: "Out of order"
-    service_exists: "Service '%{service}' already exists in WSDL %{wsdl}"
-    service_exists_refresh: "New service '%{service}' in WSDL %{wsdl1} also exists in WSDL %{wsdl2}"
+    service_exists: "Service '%{service}' already exists at %{wsdl}"
+    service_exists_refresh: "New service '%{service}' at %{wsdl1} also exists at %{wsdl2}"
     adding_services: "Adding services:<p class='bold'>%{added}</p>"
     deleting_services: "Deleting services:<p class='bold'>%{deleted}</p>"
     adapter: "Adapter"
     adapter_meta: "5.0 metaservices"
     wsdl: "WSDL"
     wsdl_disabled: "DISABLED"
-    timeout_error: "Timeout value must be a positive integer."
     group_exists: "A group with code '%{code}' already exists"
 
   sysparams:

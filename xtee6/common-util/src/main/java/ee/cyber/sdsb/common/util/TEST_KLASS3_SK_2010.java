@@ -44,8 +44,8 @@ public class TEST_KLASS3_SK_2010 {
             case '9': // Fall through
                 return "COM";
             default:
-                throw new Exception("Certificate does not match policy: " +
-                        "registry code must start with 1, 7, 8 or 9");
+                throw new Exception("Certificate does not match policy: "
+                        + "registry code must start with 1, 7, 8 or 9");
         }
     }
 }

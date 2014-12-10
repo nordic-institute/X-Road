@@ -1,0 +1,17 @@
+identifier_firstGlobalGroupMember:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "GOV"
+  member_code: "globalGroupMember"
+  subsystem_code: "globalGroupMemberSubsystem"
+  type: "ClientId"
+
+identifier_firstCentralService:
+  object_type: "SERVICE"
+  sdsb_instance: "EE"
+  member_class: "GOV"
+  member_code: "serviceProvider"
+  subsystem_code: "serviceProviderSubsystem"
+  service_code: "theService"
+  service_version: "v1"
+  type: "ServiceId"

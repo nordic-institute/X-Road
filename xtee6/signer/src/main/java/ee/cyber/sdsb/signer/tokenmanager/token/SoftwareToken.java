@@ -8,12 +8,20 @@ import akka.actor.Props;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
+/**
+ * Software token implementation.
+ */
 public class SoftwareToken extends AbstractToken {
 
     private static final String DISPATCHER = "token-worker-dispatcher";
 
     private final SoftwareTokenType tokenType;
 
+    /**
+     * Constructs new software token.
+     * @param tokenInfo the token info
+     * @param tokenType the token type
+     */
     public SoftwareToken(TokenInfo tokenInfo, SoftwareTokenType tokenType) {
         super(tokenInfo);
 

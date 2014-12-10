@@ -1,16 +1,19 @@
 common: &common
   adapter: postgresql
+  encoding: utf8
   username: centerui
   password: centerui # from psql setup, see Postgresql
+
+test:
+  adapter: jdbcsqlite3
+  encoding: utf8
+  database: build/centerservice_test.sqlite3
 
 development:
   <<: *common
   database: centerui_development
 
-test:
-  <<: *common
-  database: centerui_test
-
 production:
   <<: *common
   database: centerui_production
+  reconnect: true

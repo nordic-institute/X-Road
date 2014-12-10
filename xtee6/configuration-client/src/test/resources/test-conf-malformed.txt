@@ -1,0 +1,29 @@
+Content-Type: multipart/related; charset=UTF-8;boundary=envelopeboundary
+
+--envelopeboundary
+Content-Type: multipart/mixed; charset=UTF-8;boundary=innerboundary
+
+--innerboundary
+Expire-date: 2014-05-20T17:42:55Z
+
+
+--innerboundary
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: PRIVATE-PARAMETERS; instance="EE"
+Content-location: /private-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+Ec5mzSftqE+Kk1iJQXNzPT5opPsQ73vbfKx4JC8pzdzSxKNsMXgxRz/S6XeafC0wDfeQZhI1eKYvdUsdB25+5Q==
+--innerboundary
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+Content-identifier: SHARED-PARAMETERS; instance="EE"
+Content-location: /shared-params.xml
+Hash-algorithm-id: http://www.w3.org/2001/04/xmlenc#sha512
+
+R8tI507HSrNBfLbjAebH6y3dZTnI0WbMffX7C4jF9kF0yuG2z3xzdRUMR2lY1wD85LTmJzjhJ9mCIULs/THGEQ==
+--innerboundary
+Content-type: application/octet-stream
+Content-transfer-encoding: base64
+foobar

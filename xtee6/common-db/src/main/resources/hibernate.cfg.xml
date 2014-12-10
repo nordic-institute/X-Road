@@ -5,7 +5,7 @@
 
 <hibernate-configuration>
   <session-factory>
-<!-- Connection parameters should be configured in hibernate.properties 
+<!-- Connection parameters should be configured in hibernate.properties
      and included in classpath -->
 <!--
     hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect

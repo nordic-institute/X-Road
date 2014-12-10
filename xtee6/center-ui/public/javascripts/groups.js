@@ -41,10 +41,10 @@ var SDSB_GROUPS = function() {
         opts.sScrollX = "100%";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
-            { "mData": "code" },
+            { "mData": "code", "sWidth": "25%" },
             { "mData": "description" },
-            { "mData": "member_count" },
-            { "mData": "updated" }
+            { "mData": "member_count", "sClass": "center", "sWidth": "5em" },
+            { "mData": "updated", "sWidth": "14em" }
         ];
 
         opts.bScrollInfinite = true;

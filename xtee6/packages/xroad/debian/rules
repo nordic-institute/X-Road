@@ -1,0 +1,51 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+lucid = 
+
+ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
+	lucid = true
+endif
+
+
+%:
+	dh  $@
+
+build:
+ifdef lucid
+	  echo "PREPARE LUCID" 
+	  cp debian/lucid/*upstart debian/ 
+	  cp debian/lucid/proxy_restore_db.sh proxy/usr/share/sdsb/scripts/restore_db.sh 
+	  cp debian/lucid/center_restore_db.sh center/usr/share/sdsb/scripts/restore_db.sh 
+else
+	  echo "PREPARE TRUSTY" 
+	  cp debian/trusty/*upstart debian/ 
+	  cp debian/trusty/proxy_restore_db.sh proxy/usr/share/sdsb/scripts/restore_db.sh 
+	  cp debian/trusty/center_restore_db.sh center/usr/share/sdsb/scripts/restore_db.sh 
+endif
+	
+
+override_dh_installinit:
+	dh_installinit --name=xroad-signer
+	dh_installinit --name=xroad-proxy
+	dh_installinit --name=xroad-confclient
+	dh_installinit --name=xroad-async
+	dh_installinit --name=xroad-monitor
+
+override_dh_builddeb:
+	dh_builddeb -- -Zgzip -z1
+
+override_dh_gencontrol:
+ifdef lucid
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0 
+else 
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+endif

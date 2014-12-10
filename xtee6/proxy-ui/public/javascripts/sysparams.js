@@ -1,91 +1,128 @@
-var oDistributors, oTsps, oTspsApproved, oInternalSslCert;
+var oTsps, oTspsApproved, oInternalSslCert;
 
-function distributorAddCallback(response) {
-    $("#distributor_add_dialog form")
-        .attr("action", action("distributor_cert_load"));
-
-    if (response.success) {
-        oDistributors.fnClearTable();
-        oDistributors.fnAddData(response.data);
-        $("#distributor_add_dialog").dialog("close");
+function uploadCallback(response) {
+    if (!response.success) {
+        showMessages(response.messages);
+        return;
     }
 
-    showMessages(response.messages);
-    PERIODIC_JOBS.refreshAlerts();
+    var row1 = $("<tr>")
+        .append($("<td>").text(_("common.hash")).addClass("semibold"))
+        .append($("<td>").text(response.data.hash));
+
+    var row2 = $("<tr>")
+        .append($("<td>").text(_("common.generated")).addClass("semibold"))
+        .append($("<td>").text(response.data.generated_at));
+
+    var details = $("<table>")
+        .append(row1)
+        .append(row2)
+        .addClass("details")
+        .css("margin", "1em 0");
+
+    var confirmParams = {
+        details: $("<p>").append(details).html()
+    };
+
+    $("#anchor_upload_dialog").dialog("close");
+
+    confirm("anchor.upload_confirm", confirmParams, function() {
+        $.post(action("anchor_apply"), null, function() {
+            $(".anchor-hash").text(response.data.hash);
+            $(".anchor-generated_at").text(response.data.generated_at);
+        }, "json");
+    });
 }
 
-function distributorCertLoadCallback(response) {
-    if (response.success) {
-        $('#distributor_add_dialog #subject').val(response.data.subject);
-        $('#distributor_add_dialog #serial').val(response.data.serial);
-    }
+function initTables() {
+    var opts = scrollableTableOpts(200);
+    opts.sDom = "t";
+    opts.aoColumns = [
+        { "mData": "name" },
+        { "mData": "url" }
+    ];
 
-    showMessages(response.messages);
-};
+    oTsps = $("#tsps").dataTable(opts);
 
-function populate() {
-    $.get(action("distributors"), function(response) {
-        oDistributors.fnClearTable();
-        oDistributors.fnAddData(response.data);
+    opts = scrollableTableOpts(200);
+    opts.sDom = "t";
+    opts.aoColumns = [
+        { "mData": "name" }
+    ];
+
+    oTspsApproved = $("#tsps_approved").dataTable(opts);
+
+    opts = scrollableTableOpts(200);
+    opts.sDom = "t";
+    opts.aoColumns = [
+        { "mData": "hash" }
+    ];
+    opts.oLanguage = {
+        "sZeroRecords": _("common.zero_records_none")
+    };
+
+    oInternalSslCert = $("#internal_ssl_cert").dataTable(opts);
+
+    $("#tsps tbody tr").live("click", function() {
+        oTsps.setFocus(0, this);
+        $("#tsp_delete").enable();
     });
 
-    $.get(action("tsps"), function(response) {
-        oTsps.fnClearTable();
-        oTsps.fnAddData(response.data);
+    $("#tsps_approved tbody tr").live("click", function() {
+        oTspsApproved.setFocus(0, this);
     });
+}
 
-    $('#distributor_delete, #tsp_delete').disable();
-
-    $.get(action("async_params"), function(response) {
-        $('#async_period').val(response.data.base_delay);
-        $('#async_max_period').val(response.data.max_delay);
-        $('#async_parallel').val(response.data.max_senders);
-    });
-
-    $.get(action("internal_ssl_cert"), function(response) {
-        oInternalSslCert.fnClearTable();
-        if (response.data.hash) {
-            oInternalSslCert.fnAddData(response.data);
-            $("#cert_details, #export_internal_ssl_cert").enable();
-        } else {
-            $("#cert_details, #export_internal_ssl_cert").disable();
-        }
-    });
-};
-
-function initDialogs() {
-    $('#distributor_add_dialog').initDialog({
+function initAnchorActions() {
+    $("#anchor_upload_dialog").initDialog({
         autoOpen: false,
         modal: true,
-        width: 550,
+        height: 200,
+        width: 600,
         buttons: [
         {
-            text: _("common.ok"),
+            text: _("common.upload"),
+            id: "anchor_upload_submit",
+            disabled: "disabled",
             click: function() {
-                $("#distributor_add_dialog form")
-                    .attr("action", action("distributor_add"));
-                $("#distributor_add_dialog form").submit();
+                $("#anchor_upload_form").submit();
             }
         },
         {
             text: _("common.cancel"),
             click: function() {
-                $(this).dialog('close');
+                $(this).dialog("close");
             }
-        }
-        ]
+        }]
     });
 
-    $('#tsp_add_dialog').initDialog({
+    $("#anchor_upload_file").change(function() {
+        if ($(this).val() != "") {
+            $("#anchor_upload_submit").enable();
+        }
+    }).val("");
+
+    $("#anchor_upload").click(function() {
+        $("#anchor_upload_file").val("");
+        $("#anchor_upload_dialog").dialog("open");
+    });
+
+    $("#anchor_download").click(function() {
+        window.location = action("anchor_download");
+    });
+}
+
+function initTspActions() {
+        $("#tsp_add_dialog").initDialog({
         autoOpen: false,
-        width: 550,
+        width: 600,
+        height: 400,
         modal: true,
         open: function() {
             oTspsApproved.fnAdjustColumnSizing();
 
             $.get(action("tsps_approved"), function(response) {
-                oTspsApproved.fnClearTable();
-                oTspsApproved.fnAddData(response.data);
+                oTspsApproved.fnReplaceData(response.data);
             });
         },
         buttons: [
@@ -99,23 +136,49 @@ function initDialogs() {
                 };
 
                 $.post(action("tsp_add"), params, function(response) {
-                    oTsps.fnClearTable();
-                    oTsps.fnAddData(response.data);
+                    oTsps.fnReplaceData(response.data);
                 });
 
-                $(this).dialog('close');
+                $(this).dialog("close");
             }
         },
         {
             text: _("common.cancel"),
             click: function() {
-                $(this).dialog('close');
+                $(this).dialog("close");
             }
-        }
-        ]
+        }]
     });
 
-    $('#cert_details_dialog').initDialog({
+    $("#tsp_add").click(function() {
+        $("#tsp_add_dialog").dialog("open");
+    });
+
+    $("#tsp_delete").click(function() {
+        var params = {
+            name: oTsps.getFocusData().name
+        };
+
+        $.post(action("tsp_delete"), params, function(response) {
+            oTsps.fnReplaceData(response.data);
+        });
+    }).disable();
+}
+
+function initAsyncActions() {
+    $("#async_edit").click(function() {
+        var params = {
+            base_delay: $("#async_period").val(),
+            max_delay: $("#async_max_period").val(),
+            max_senders: $("#async_parallel").val()
+        };
+
+        $.post(action("async_params_edit"), params);
+    });
+}
+
+function initInternalSSLActions() {
+    $("#cert_details_dialog").initDialog({
         autoOpen: false,
         modal: true,
         width: 710,
@@ -124,141 +187,37 @@ function initDialogs() {
             var dialog = this;
 
             $.get(action("internal_ssl_cert_details"), function(response) {
-                $('#dump', dialog).text(response.data.dump).scrollTop(0);
-                $('#hash', dialog).text(response.data.hash);
-            }, 'json');
+                $("#dump", dialog).text(response.data.dump).scrollTop(0);
+                $("#hash", dialog).text(response.data.hash);
+            }, "json");
         },
         buttons: [
-            {
-                text: _("common.ok"),
-                click: function() {
-                    $(this).dialog('close');
-                }
+        {
+            text: _("common.ok"),
+            click: function() {
+                $(this).dialog("close");
             }
-        ]
-    });
-};
-
-$(function() {
-    var opts = scrollableTableOpts();
-    opts.sDom = "t";
-    opts.aoColumns = [
-        { 'mData': 'url' },
-        { 'mData': 'cert_subject' }
-    ];
-
-    oDistributors = $('#distributors').dataTable(opts);
-
-    opts = scrollableTableOpts(200);
-    opts.sDom = "t";
-    opts.aoColumns = [
-        { 'mData': 'name' },
-        { 'mData': 'url' }
-    ];
-
-    oTsps = $('#tsps').dataTable(opts);
-
-    opts = scrollableTableOpts(200);
-    opts.sDom = "t";
-    opts.aoColumns = [
-        { 'mData': 'name' }
-    ];
-
-    oTspsApproved = $('#tsps_approved').dataTable(opts);
-
-    opts = scrollableTableOpts(200);
-    opts.sDom = "t";
-    opts.aoColumns = [
-        { 'mData': 'hash' }
-    ];
-    opts.oLanguage = {
-        "sZeroRecords": _("common.zero_records_none")
-    };
-
-    oInternalSslCert = $('#internal_ssl_cert').dataTable(opts);
-
-    populate();
-    initDialogs();
-
-    $('#distributors tbody tr').live('click', function() {
-        oDistributors.setFocus(0, this);
-        $('#distributor_delete').enable();
+        }]
     });
 
-    $('#tsps tbody tr').live('click', function() {
-        oTsps.setFocus(0, this);
-        $('#tsp_delete').enable();
-    });
-
-    $('#tsps_approved tbody tr').live('click', function() {
-        oTspsApproved.setFocus(0, this);
-    });
-
-    $('#distributor_add').click(function() {
-        $('#distributor_add_dialog input[type!=hidden]').val('');
-        $('#distributor_add_dialog').dialog('open');
-    });
-
-    $('#distributor_delete').click(function() {
-        var selected = oDistributors.getFocusData();
-        var params = {
-            url: selected.url,
-            cert_subject: selected.cert_subject
-        };
-
-        confirm("sysparams.index.delete_distributor_confirm", null, function() {
-            $.post(action("distributor_delete"), params, function(response) {
-                oDistributors.fnClearTable();
-                oDistributors.fnAddData(response.data);
-                $('#distributor_delete').disable();
-
-                PERIODIC_JOBS.refreshAlerts();
-            });
-        });
-    });
-
-    $('#tsp_add').click(function() {
-        $('#tsp_add_dialog').dialog('open');
-    });
-
-    $('#tsp_delete').click(function() {
-        var params = {
-            name: oTsps.getFocusData().name
-        };
-
-        $.post(action("tsp_delete"), params, function(response) {
-            oTsps.fnClearTable();
-            oTsps.fnAddData(response.data);
-        });
-    });
-
-    $('#async_edit').click(function() {
-        var params = {
-            base_delay: $('#async_period').val(),
-            max_delay: $('#async_max_period').val(),
-            max_senders: $('#async_parallel').val()
-        };
-
-        $.post(action("async_params_edit"), params);
-    });
-
-    $('#cert_details').click(function(event) {
+    $("#cert_details").click(function(event) {
         event.preventDefault();
 
-        $('#cert_details_dialog').dialog('open');
+        $("#cert_details_dialog").dialog("open");
     });
 
-    $('#export_internal_ssl_cert').click(function() {
+    $("#export_internal_ssl_cert").click(function() {
         location.href = action("internal_ssl_cert_export");
     });
 
-    $('#generate_internal_ssl').click(function(event) {
+    $("#generate_internal_ssl").click(function(event) {
         event.preventDefault();
 
         confirm("sysparams.index.generate_internal_ssl_confirm", null,
                 function() {
             $.get(action("internal_ssl_generate"), function(response) {
                 oInternalSslCert.fnClearTable();
+
                 if (response.data.hash) {
                     oInternalSslCert.fnAddData(response.data);
                     $("#cert_details, #export_internal_ssl_cert").enable();
@@ -266,4 +225,42 @@ $(function() {
             }, "json");
         });
     });
+}
+
+function populate() {
+    $.get(action("sysparams"), function(response) {
+        if (response.data.anchor) {
+            $(".anchor-hash").text(response.data.anchor.hash);
+            $(".anchor-generated_at").text(response.data.anchor.generated_at);
+        }
+
+        if (response.data.tsps) {
+            oTsps.fnReplaceData(response.data.tsps);
+        }
+
+        if (response.data.async) {
+            $("#async_period").val(response.data.async.base_delay);
+            $("#async_max_period").val(response.data.async.max_delay);
+            $("#async_parallel").val(response.data.async.max_senders);
+        }
+
+        oInternalSslCert.fnClearTable();
+
+        if (response.data.internal_ssl_cert) {
+            oInternalSslCert.fnAddData(response.data.internal_ssl_cert);
+            $("#cert_details, #export_internal_ssl_cert").enable();
+        } else {
+            $("#cert_details, #export_internal_ssl_cert").disable();
+        }
+    }, "json");
+}
+
+$(document).ready(function() {
+    initTables();
+    initAnchorActions();
+    initTspActions();
+    initAsyncActions();
+    initInternalSSLActions();
+
+    populate();
 });

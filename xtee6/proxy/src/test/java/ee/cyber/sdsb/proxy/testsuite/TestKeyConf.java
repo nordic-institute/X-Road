@@ -17,8 +17,8 @@ import ee.cyber.sdsb.common.OcspTestUtils;
 import ee.cyber.sdsb.common.TestCertUtil;
 import ee.cyber.sdsb.common.TestCertUtil.PKCS12;
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.AuthKey;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.AuthKey;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.ocsp.OcspVerifier;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
@@ -50,7 +50,7 @@ public class TestKeyConf extends EmptyKeyConf {
     @Override
     public AuthKey getAuthKey() {
         PKCS12 consumer = TestCertUtil.getConsumer();
-        return new AuthKey(CertChain.create(consumer.cert, null),
+        return new AuthKey(CertChain.create("EE", consumer.cert, null),
                 consumer.key);
     }
 
@@ -72,11 +72,14 @@ public class TestKeyConf extends EmptyKeyConf {
             try {
                 Date thisUpdate = new DateTime().plusDays(1).toDate();
                 OCSPResp resp = OcspTestUtils.createOCSPResponse(cert,
-                        GlobalConf.getCaCert(cert), getOcspSignerCert(),
+                        GlobalConf.getCaCert("EE", cert), getOcspSignerCert(),
                         getOcspRequestKey(), CertificateStatus.GOOD,
                         thisUpdate, null);
-                OcspVerifier.verifyValidityAndStatus(resp, cert,
-                        GlobalConf.getCaCert(cert));
+                OcspVerifier verifier =
+                        new OcspVerifier(
+                                GlobalConf.getOcspFreshnessSeconds(false));
+                verifier.verifyValidityAndStatus(resp, cert,
+                        GlobalConf.getCaCert("EE", cert));
                 ocspResponses.put(certHash, resp);
             } catch (Exception e) {
                 log.error("Error when creating OCSP response", e);

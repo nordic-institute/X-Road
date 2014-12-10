@@ -1,9 +1,11 @@
-table.dataTable, table {
+table {
     width: 100%;
+
     thead {
         text-align: left;
         border: 1px solid $base-border-color;
         background: #f3f3f3;
+
         tr {
             th {
                 font-family: "Open Sans";
@@ -18,6 +20,7 @@ table.dataTable, table {
                         padding: 0 4px;
                     }
                 }
+
                 &.sorting, &.sorting_asc, &.sorting_desc {
                     background: none;
                 }
@@ -54,7 +57,9 @@ table.dataTable, table {
                     background: rgba($base-color-blue, 0.5) !important;
                 }
             }
-
+            &.unavailable {
+                color: #aaa;
+            }
             &.wsdl.disabled {
                 color: $base-color-red;
                 font-weight: 700;
@@ -124,23 +129,56 @@ table.dataTable, table {
     }
 }
 
-div.full-table-wrap, div.fill {
-    margin: 10px;
-    table {
-        width: 100%;
-    }
-    table.full-table {
-        width: 100%;
-        margin-bottom: 0;
+table.dataTable {
+    table-layout: fixed;
 
-        tbody tr {
-            &:hover {
-                background: #D8DFEC;
+    tr {
+        td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            &.noclip {
+                overflow: visible;
             }
-            &.row_selected {
-                background: #6480B8;
+        }
+
+        &.row_selected td {
+            white-space: normal;
+
+            &.noclip {
+                white-space: nowrap;
+            }
+        }
+    }
+}
+
+table.details {
+    tbody {
+        border: none;
+        background-color: transparent;
+
+        tr {
+            border: none;
+
+            td {
+                &:first-of-type {
+                    width: 1px;
+                    white-space: nowrap;
+                }
+                input:not([type="checkbox"]), textarea,
+                p.input {
+                    width: calc(100% - 10px);
+                    min-height: 20px;
+                }
+                select {
+                    width: 100%;
+                }
+            }
+
+            &:hover {
                 td {
-                    color: #fff;
+                    background: transparent !important;
                 }
             }
         }
@@ -175,9 +213,18 @@ div.full-table-wrap, div.fill {
 
     .dataTables_scrollBody {
         word-wrap: break-word;
+        overflow-x: hidden !important;
     }
 
     .dataTables_footer {
         margin-top: 10px;
     }
+}
+
+tbody .lowercase {
+    text-transform: lowercase;
+}
+
+tbody .uppercase {
+    text-transform: uppercase;
 }

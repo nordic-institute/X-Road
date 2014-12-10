@@ -11,7 +11,6 @@ import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
-import ee.cyber.sdsb.common.conf.ConfConstants;
 import ee.cyber.sdsb.common.util.FileContentChangeChecker;
 
 import static ee.cyber.sdsb.common.SystemProperties.getDeviceConfFile;
@@ -23,17 +22,29 @@ import static ee.cyber.sdsb.common.SystemProperties.getDeviceConfFile;
  * specific to that module.
  */
 @Slf4j
-public class ModuleConf {
+public final class ModuleConf {
+
+    /** The type used to identify software keys in key configuration. */
+    private static final String SOFTKEY_TYPE = "softToken";
 
     // Maps Type (UID) to ModuleType
-    private static final Map<String, ModuleType> modules = new HashMap<>();
+    private static final Map<String, ModuleType> MODULES = new HashMap<>();
 
     private static FileContentChangeChecker changeChecker = null;
 
-    public static Collection<ModuleType> getModules() {
-        return modules.values();
+    private ModuleConf() {
     }
 
+    /**
+     * @return all modules
+     */
+    public static Collection<ModuleType> getModules() {
+        return MODULES.values();
+    }
+
+    /**
+     * @return true, if the configuration file has changed (modified on disk)
+     */
     public static boolean hasChanged() {
         try {
             if (changeChecker == null) {
@@ -52,6 +63,9 @@ public class ModuleConf {
         }
     }
 
+    /**
+     * Reloads the modules from the configuration.
+     */
     public static void reload() {
         try {
             reload(getDeviceConfFile());
@@ -63,8 +77,8 @@ public class ModuleConf {
     private static void reload(String fileName) throws Exception {
         log.trace("Loading module configuration from '{}'", fileName);
 
-        modules.clear();
-        modules.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
+        MODULES.clear();
+        MODULES.put(SoftwareModuleType.TYPE, new SoftwareModuleType());
 
         HierarchicalINIConfiguration conf =
                 new HierarchicalINIConfiguration(fileName);
@@ -84,16 +98,16 @@ public class ModuleConf {
 
     private static void parseSection(String uid, SubnodeConfiguration section) {
         if (!section.getBoolean("enabled", true)) {
-            if (ConfConstants.SOFTKEY_TYPE.equalsIgnoreCase(uid)) {
-                modules.remove(SoftwareModuleType.TYPE);
+            if (SOFTKEY_TYPE.equalsIgnoreCase(uid)) {
+                MODULES.remove(SoftwareModuleType.TYPE);
             }
             return;
         }
 
         String library = section.getString("library");
         if (StringUtils.isBlank(library)) {
-            log.error("No pkcs#11 library specified for module (" +
-                    "{}), skipping...", uid);
+            log.error("No pkcs#11 library specified for module ("
+                    + "{}), skipping...", uid);
             return;
         }
 
@@ -102,17 +116,17 @@ public class ModuleConf {
                 getBoolean(section, "batch_signing_enabled", true);
         boolean readOnly = getBoolean(section, "read_only", false);
 
-        log.trace("Read module configuration (UID = {}, library = {}, " +
-                "pinVerificationPerSigning = {}, batchSigning = {})",
+        log.trace("Read module configuration (UID = {}, library = {}, "
+                + "pinVerificationPerSigning = {}, batchSigning = {})",
                     new Object[] {uid, library, verifyPin, batchSigning});
 
-        if (modules.containsKey(uid)) {
+        if (MODULES.containsKey(uid)) {
             log.warn("Module information already defined for {}, skipping...",
                     uid);
             return;
         }
 
-        modules.put(uid, new HardwareModuleType(uid, library, verifyPin,
+        MODULES.put(uid, new HardwareModuleType(uid, library, verifyPin,
                 batchSigning, readOnly));
     }
 

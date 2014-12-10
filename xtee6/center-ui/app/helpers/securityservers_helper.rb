@@ -1,7 +1,4 @@
-require 'base_helper'
-
 module SecurityserversHelper
-  include BaseHelper
 
   private
 

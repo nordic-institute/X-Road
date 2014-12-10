@@ -1,7 +1,5 @@
 module CertTransformationHelper
 
-  include BaseHelper
-
   private
 
   def upload_cert(file_param)
@@ -10,7 +8,7 @@ module CertTransformationHelper
       raise t("common.filename_empty")
     end
 
-    cert_obj = cert_object(file_param.read)
+    cert_obj = CommonUi::CertUtils.cert_object(file_param.read)
 
     cert_id = add_temp_cert_to_session(cert_obj.to_der)
 
@@ -30,12 +28,12 @@ module CertTransformationHelper
   end
 
   def get_cert_data_from_bytes(raw_cert, cert_id = nil)
-    get_cert_data(cert_object(raw_cert), cert_id)
+    get_cert_data(CommonUi::CertUtils.cert_object(raw_cert), cert_id)
   end
 
   def get_cert_data(cert_obj, cert_id = nil)
     {
-      :csp => cert_csp(cert_obj),
+      :csp => CommonUi::CertUtils.cert_csp(cert_obj),
       :serial_number => cert_obj.serial.to_s,
       :subject => cert_obj.subject.to_s,
       :issuer => cert_obj.issuer.to_s,

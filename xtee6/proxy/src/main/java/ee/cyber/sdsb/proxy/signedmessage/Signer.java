@@ -5,8 +5,6 @@ import ee.cyber.sdsb.common.signature.SignatureBuilder;
 import ee.cyber.sdsb.common.signature.SignatureData;
 import ee.cyber.sdsb.proxy.conf.SigningCtx;
 
-import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
-
 /**
  * Encapsulates message signing functionality. This class does not
  * deal with the signed data itself, it is only interested in hashes
@@ -23,7 +21,7 @@ public class Signer {
      * @param data the data.
      */
     public void addPart(String name, String hashMethod, byte[] data) {
-        builder.addPart(new MessagePart(name, hashMethod, encodeBase64(data)));
+        builder.addPart(new MessagePart(name, hashMethod, data));
     }
 
     /**

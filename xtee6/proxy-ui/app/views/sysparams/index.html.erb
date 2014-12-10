@@ -3,85 +3,96 @@
 <% end %>
 
 <% content_for :content do %>
-  <div class="fill" id="sysparams-holder">
-    <fieldset class="borderless">
-      <legend><%= t '.distributors' %></legend>
-      <table id="distributors" class="bordered">
-        <thead>
-    	  <th><%= t '.distributor_url' %></th>
-    	  <th><%= t '.distributor_cert' %></th>
-        </thead>
-      </table>
+  <fieldset class="borderless">
+    <legend><%= t 'anchor.title' %></legend>
 
-      <div class="dataTables_actions">
-        <% if can?(:add_distributor) %>
-        <button id="distributor_add"><%= t 'common.add' %></button>
-        <% end %>
-        <% if can?(:delete_distributor) %>
-        <button id="distributor_delete"><%= t 'common.delete' %></button>
-        <% end %>
-      </div>
-    </fieldset>
+    <table class="details">
+      <tr>
+        <td><%= t 'common.hash' %></td>
+        <td class="anchor-hash"></td>
+      </tr>
+      <tr>
+        <td><%= t 'common.generated' %></td>
+        <td class="anchor-generated_at"></td>
+      </tr>
+    </table>
 
-    <fieldset class="borderless">
-      <legend><%= t '.tsps' %></legend>
-      <table id="tsps" class="bordered">
-        <thead>
-    	  <th><%= t '.tsp_name' %></th>
-    	  <th><%= t '.tsp_url' %></th>
-        </thead>
-      </table>
+    <% if can?(:upload_anchor) %>
+    <button id="anchor_upload"><%= t 'common.upload' %></button>
+    <% end %>
+    <% if can?(:download_anchor) %>
+    <button id="anchor_download"><%= t 'common.download' %></button>
+    <% end %>
 
-      <div class="dataTables_actions">
-        <% if can?(:add_tsp) %>
-        <button id="tsp_add"><%= t 'common.add' %></button>
-        <% end %>
-        <% if can?(:delete_tsp) %>
-        <button id="tsp_delete"><%= t 'common.delete' %></button>
-        <% end %>
-      </div>
-    </fieldset>
-
-    <fieldset class="borderless">
-      <legend><%= t '.async_params' %></legend>
-      <table id="async-params-table">
-        <tr>
-          <td><%= t '.async_period' %></td>
-          <td><%= text_field_tag 'async_period', nil, :disabled => !can?(:edit_async_params) %></td>
-        </tr>
-        <tr>
-          <td><%= t '.async_max_period' %></td>
-          <td><%= text_field_tag 'async_max_period', nil, :disabled => !can?(:edit_async_params) %></td>
-        </tr>
-        <tr>
-          <td><%= t '.async_parallel' %></td>
-          <td><%= text_field_tag 'async_parallel', nil, :disabled => !can?(:edit_async_params) %></td>
-        </tr>
-      </table>
-      <% if can?(:edit_async_params) %>
-      <button id="async_edit"><%= t 'common.save' %></button>
+    <%= dialog "anchor_upload_dialog", t('anchor.upload_title') do %>
+      <%= form_tag "sysparams/anchor_upload", :id => "anchor_upload_form",
+            :multipart => true, :target => "upload_target" do %>
+        <%= file_field_tag "anchor_upload_file" %>
       <% end %>
-    </fieldset>
 
-    <fieldset class="borderless">
-      <legend><%= t '.internal_ssl_cert' %></legend>
-      <table id="internal_ssl_cert" class="bordered">
-        <thead>
-    	  <th><%= t '.internal_ssl_cert_hash' %></th>
-        </thead>
-      </table>
+      <iframe id="upload_target" name="upload_target"></iframe>
+    <% end %>
+  </fieldset>
 
-      <div class="dataTables_actions">
-        <button id="cert_details"><%= t 'shared.cert_details_dialog.cert_details' %></button>
-        <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
-        <% if can?(:generate_internal_ssl) %>
-          <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
-        <% end %>
-      </div>
-    </fieldset>
-  </div>
+  <fieldset class="borderless">
+    <legend><%= t '.tsps' %></legend>
+    <table id="tsps" class="bordered">
+      <thead>
+        <th><%= t '.tsp_name' %></th>
+        <th><%= t '.tsp_url' %></th>
+      </thead>
+    </table>
 
-  <%= render :partial => 'distributor_add_dialog' %>
+    <div class="dataTables_actions">
+      <% if can?(:add_tsp) %>
+      <button id="tsp_add"><%= t 'common.add' %></button>
+      <% end %>
+      <% if can?(:delete_tsp) %>
+      <button id="tsp_delete"><%= t 'common.delete' %></button>
+      <% end %>
+    </div>
+  </fieldset>
+
+  <% if can?(:view_async_params) %>
+  <fieldset class="borderless">
+    <legend><%= t '.async_params' %></legend>
+    <table class="details">
+      <tr>
+        <td><%= t '.async_period' %></td>
+        <td><%= text_field_tag 'async_period', nil, :disabled => !can?(:edit_async_params) %></td>
+      </tr>
+      <tr>
+        <td><%= t '.async_max_period' %></td>
+        <td><%= text_field_tag 'async_max_period', nil, :disabled => !can?(:edit_async_params) %></td>
+      </tr>
+      <tr>
+        <td><%= t '.async_parallel' %></td>
+        <td><%= text_field_tag 'async_parallel', nil, :disabled => !can?(:edit_async_params) %></td>
+      </tr>
+    </table>
+    <% if can?(:edit_async_params) %>
+    <button id="async_edit"><%= t 'common.save' %></button>
+    <% end %>
+  </fieldset>
+  <% end %>
+
+  <fieldset class="borderless">
+    <legend><%= t '.internal_ssl_cert' %></legend>
+    <table id="internal_ssl_cert" class="bordered">
+      <thead>
+        <th><%= t '.internal_ssl_cert_hash' %></th>
+      </thead>
+    </table>
+
+    <div class="dataTables_actions">
+      <button id="cert_details"><%= t 'shared.cert_details_dialog.cert_details' %></button>
+      <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
+      <% if can?(:generate_internal_ssl) %>
+      <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
+      <% end %>
+    </div>
+  </fieldset>
+
   <%= render :partial => 'tsp_add_dialog' %>
   <%= render :partial => 'shared/cert_details_dialog' %>
 <% end %>

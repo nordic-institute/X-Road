@@ -2,15 +2,12 @@ package ee.cyber.sdsb.proxy;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.Session;
-
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
 import ee.cyber.sdsb.common.conf.serverconf.model.ServerConfType;
 import ee.cyber.sdsb.common.conf.serverconf.model.ServiceType;
 import ee.cyber.sdsb.common.conf.serverconf.model.WsdlType;
-import ee.cyber.sdsb.common.db.TransactionCallback;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 
@@ -66,13 +63,9 @@ public class TestProxyMain {
             conf.getClient().add(createClient(conf, i));
         }
 
-        ServerConfDatabaseCtx.doInTransaction(
-                new TransactionCallback<Object>() {
-            @Override
-            public Object call(Session session) throws Exception {
-                session.save(conf);
-                return null;
-            }
+        ServerConfDatabaseCtx.doInTransaction(session -> {
+            session.save(conf);
+            return null;
         });
     }
 

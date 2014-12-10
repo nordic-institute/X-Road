@@ -9,6 +9,9 @@ import ee.cyber.sdsb.signer.tokenmanager.TokenManager;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_CERT_NOT_FOUND;
 
+/**
+ * Handles requests for key id based on certificate hashes.
+ */
 public class GetKeyIdForCertHashRequestHandler
         extends AbstractRequestHandler<GetKeyIdForCertHash> {
 

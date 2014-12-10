@@ -2,6 +2,7 @@ package ee.cyber.sdsb.proxy.clientproxy;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -18,7 +19,7 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.cert.CertHelper;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.util.CertUtils;
@@ -73,14 +74,12 @@ public class AuthTrustVerifier {
         CertChain chain;
         List<OCSPResp> ocspResponses;
         try {
-            X509Certificate trustAnchor =
-                    GlobalConf.getCaCert(certs[certs.length - 1]);
-            if (trustAnchor == null) {
-                throw new Exception("Unable to find trust anchor");
-            }
-
-            chain = CertChain.create(
-                    (X509Certificate[]) ArrayUtils.add(certs, trustAnchor));
+            List<X509Certificate> additionalCerts =
+                    Arrays.asList(
+                            (X509Certificate[]) ArrayUtils.subarray(certs, 1,
+                                    certs.length));
+            chain = CertChain.create(serviceProvider.getSdsbInstance(),
+                    certs[0], additionalCerts);
             ocspResponses = getOcspResponses(chain.getEndEntityCert(),
                     serviceProvider, chain.getAllCertsWithoutTrustedRoot());
         } catch (CodedException e) {
@@ -141,7 +140,9 @@ public class AuthTrustVerifier {
         String address = GlobalConf.getProviderAddress(authCert);
         if (address == null || address.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER,
-                    "Could not get address for " + serviceProvider);
+                    "Unable to find provider address for authentication "
+                            + "certificate {} (service provider: {})",
+                            authCert.getSerialNumber(), serviceProvider);
         }
 
         List<OCSPResp> receivedResponses;

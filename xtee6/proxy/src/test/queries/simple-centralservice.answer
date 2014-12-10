@@ -9,8 +9,10 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </sdsb:client>
-        <sdsb:service id:objectType="CENTRALSERVICE">
+        <sdsb:service id:objectType="SERVICE">
             <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
             <id:serviceCode>centralservice</id:serviceCode>
         </sdsb:service>
         <sdsb:userId>EE37702211234</sdsb:userId>

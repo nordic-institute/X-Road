@@ -17,25 +17,25 @@ public final class MessagePart {
      /** The identifier of the algorithm used to calculate the hash. */
     private final String hashAlgoId;
 
-    /** The data in base64. */
-    private final String base64Data;
+    /** The data in data. */
+    private final byte[] data;
 
     /**
-     * @return the raw data (base64 decoded)
+     * @return the raw data
      */
     public byte[] getData() {
-        return CryptoUtils.decodeBase64(base64Data);
+        return data;
     }
 
     /**
      * @return the hash algorithm URI
      */
     public String getHashAlgorithmURI() throws Exception {
-        return CryptoUtils.getAlgorithmURI(hashAlgoId);
+        return CryptoUtils.getDigestAlgorithmURI(hashAlgoId);
     }
 
     @Override
     public String toString() {
-        return name + "\n" + hashAlgoId + ": " + base64Data;
+        return name + " (" + hashAlgoId + ")";
     }
 }

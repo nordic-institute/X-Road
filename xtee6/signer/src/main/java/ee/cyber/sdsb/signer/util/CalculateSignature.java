@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.ToString;
 import akka.actor.ActorRef;
 
+/**
+ * Message for signature calculation request.
+ */
 @Data
 @ToString(exclude = "data")
 public class CalculateSignature implements Serializable {

@@ -555,8 +555,7 @@ public class AsyncDBIntegrationTest {
 
     private static boolean areProvidersEqual(QueueInfo expected,
             QueueInfo actual) {
-        if ((expected == null && actual != null)
-                || (actual == null && expected != null)) {
+        if (expected == null || actual == null) {
             return false;
         }
 
@@ -576,8 +575,7 @@ public class AsyncDBIntegrationTest {
 
     private static boolean areRequestsEqual(RequestInfo expected,
             RequestInfo actual) {
-        if ((expected == null && actual != null)
-                || (actual == null && expected != null)) {
+        if (expected == null || actual == null) {
             return false;
         }
 
@@ -600,11 +598,11 @@ public class AsyncDBIntegrationTest {
      * @return
      */
     private static boolean areDatesEquivalent(Date expected, Date actual) {
-        if ((expected != null && actual == null)
-                || (expected == null && actual != null)) {
-            return false;
+        if (expected == null || actual == null) {
+            return true;
         }
-        return (expected == null && actual == null) || !expected.before(actual);
+
+        return !expected.before(actual);
     }
 
     private static RequestInfo getFirstRequest() {

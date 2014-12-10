@@ -45,14 +45,6 @@ module BaseHelper
     render :partial => "layouts/heading", :locals => {:text => text}
   end
 
-  def display_name(name, fullname)
-    h "#{fullname} (#{name})"
-  end
-
-  def format_time(time)
-    time.to_i == 0 ? "&mdash;" : time.strftime(t('common.time_format'))
-  end
-
   def default_content_for(name, &block)
     name = name.kind_of?(Symbol) ? ":#{name}" : name
     out = eval("yield #{name}", block.binding)
@@ -90,15 +82,5 @@ module BaseHelper
     end
 
     result
-  end
-
-  def validate_filename(filename)
-    if !is_filename_valid?(filename)
-      raise t("common.filename_error", :file => filename)
-    end
-  end
-
-  def is_filename_valid?(filename)
-    return filename =~ /\A[\w\.\-]+\z/
   end
 end

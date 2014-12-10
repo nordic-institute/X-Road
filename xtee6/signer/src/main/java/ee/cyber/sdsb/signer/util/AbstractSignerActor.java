@@ -8,6 +8,9 @@ import ee.cyber.sdsb.signer.protocol.message.SuccessResponse;
 
 import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 
+/**
+ * A generic actor base.
+ */
 public abstract class AbstractSignerActor extends UntypedActor {
 
     protected void sendResponse(Object message) {

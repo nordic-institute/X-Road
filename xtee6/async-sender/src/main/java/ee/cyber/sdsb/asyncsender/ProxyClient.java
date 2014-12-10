@@ -31,7 +31,7 @@ import ee.cyber.sdsb.common.util.StartStop;
 
 import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 
-class ProxyClient implements StartStop {
+final class ProxyClient implements StartStop {
     private static final Logger LOG = LoggerFactory
             .getLogger(ProxyClient.class);
 
@@ -78,8 +78,8 @@ class ProxyClient implements StartStop {
 
     private URI getProxyAddress() throws Exception {
         if (proxyAddress == null) {
-            proxyAddress = new URI("http://127.0.0.1:" +
-                    SystemProperties.getClientProxyHttpPort());
+            proxyAddress = new URI("http://127.0.0.1:"
+                    + SystemProperties.getClientProxyHttpPort());
         }
 
         return proxyAddress;

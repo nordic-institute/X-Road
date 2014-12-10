@@ -10,7 +10,7 @@ var SDSB_CENTRAL_SERVICES = function () {
 
     function enableActions() {
         $("#central_service_add").enable();
-        if (oCentralServices.setFocus()) {
+        if (oCentralServices.getFocus()) {
             $(".central_service-action").enable();
         } else {
             $(".central_service-action").disable();
@@ -102,16 +102,20 @@ var SDSB_CENTRAL_SERVICES = function () {
         opts.bServerSide = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "400px";
-        opts.sScrollX = "100%";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
         opts.aoColumns = [
             { "mData": "central_service_code", "sWidth": '250px' },
-            { "mData": "id_service_code", "sWidth": '250px' },
-            { "mData": "id_service_version"},
-            { "mData": "id_provider_code" },
-            { "mData": "id_provider_class" },
+            { "mData": "id_service_code", "sWidth": '250px',
+              "sClass": "implementing_service_data" },
+            { "mData": "id_service_version",
+              "sClass": "center implementing_service_data", "sWidth": "3em"},
+            { "mData": "id_provider_code",
+              "sClass": "implementing_service_data" },
+            { "mData": "id_provider_class",
+              "sClass": "implementing_service_data" },
             { "mData": "id_provider_subsystem" }
         ];
+        opts.asRowId = ["central_service_code"];
 
         opts.fnDrawCallback = function() {
             SDSB_CENTERUI_COMMON.updateRecordsCount("central_services");
@@ -130,13 +134,6 @@ var SDSB_CENTRAL_SERVICES = function () {
                 executingAdvancedSearch = false;
             }
         };
-
-        opts.fnRowCallback = function(nRow, member) {
-            $(nRow).find("td:eq(1)").addClass("implementing_service_data");
-            $(nRow).find("td:eq(2)").addClass("implementing_service_data");
-            $(nRow).find("td:eq(3)").addClass("implementing_service_data");
-            $(nRow).find("td:eq(4)").addClass("implementing_service_data");
-        }
 
         opts.aaSorting = [ [2,'desc'] ];
 

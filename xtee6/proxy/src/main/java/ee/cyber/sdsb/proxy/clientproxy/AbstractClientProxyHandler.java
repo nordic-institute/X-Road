@@ -1,7 +1,9 @@
 package ee.cyber.sdsb.proxy.clientproxy;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +20,6 @@ import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.monitoring.MessageInfo;
 import ee.cyber.sdsb.common.monitoring.MonitorAgent;
 import ee.cyber.sdsb.common.util.HandlerBase;
-import ee.cyber.sdsb.common.util.HttpHeaders;
 import ee.cyber.sdsb.common.util.PerformanceLogger;
 import ee.cyber.sdsb.proxy.util.MessageProcessorBase;
 
@@ -49,8 +50,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
         boolean handled = false;
 
-        long start = PerformanceLogger.log(log, "Received request from " +
-                request.getRemoteAddr());
+        long start = PerformanceLogger.log(log, "Received request from "
+                + request.getRemoteAddr());
         log.info("Received request from {}", request.getRemoteAddr());
 
         MessageProcessorBase processor = null;
@@ -62,6 +63,9 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 processor.process();
                 success(processor, start);
             }
+
+            log.info("Request successfully handled ({} ms)",
+                    System.currentTimeMillis() - start);
         } catch (CodedException.Fault | ClientException ex) {
             handled = true;
 
@@ -73,7 +77,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // error code prefixes to them.
 
             failure(processor, response, ex);
-        } catch (Exception ex) {
+        } catch (Throwable ex) {
             handled = true;
 
             log.error("Request processing error", ex);
@@ -130,14 +134,28 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected static ClientCert getClientCert(HttpServletRequest request) {
-        return ClientCert.fromParameters(
-                request.getHeader(HttpHeaders.X_SSL_CLIENT_VERIFY),
-                request.getHeader(HttpHeaders.X_SSL_CLIENT_CERT));
+        Object attribute = request.getAttribute(
+                "javax.servlet.request.X509Certificate");
+
+        log.trace("Request attributes:");
+        Enumeration<String> attr = request.getAttributeNames();
+        while (attr.hasMoreElements()) {
+            log.trace("\t{}", attr.nextElement());
+        }
+
+        if (attribute != null) {
+            X509Certificate[] certs = (X509Certificate[]) attribute;
+            log.trace("Got client cert {}", certs[0]);
+            return new ClientCert(certs[0], "cert");
+        } else {
+            log.trace("Did not get client cert");
+            return new ClientCert(null, null);
+        }
     }
 
     private static long logPerformanceBegin(HttpServletRequest request) {
-        long start = PerformanceLogger.log(log, "Received request from " +
-                request.getRemoteAddr());
+        long start = PerformanceLogger.log(log, "Received request from "
+                + request.getRemoteAddr());
         log.info("Received request from {}", request.getRemoteAddr());
 
         return start;

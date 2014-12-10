@@ -10,8 +10,8 @@ class SearchSqlGenerator
       "ca_infos.valid_from",
       "ca_infos.valid_to",
 
-      "approved_tsps.valid_from",
-      "approved_tsps.valid_to"
+      "approved_tsas.valid_from",
+      "approved_tsas.valid_to"
   ]
 
   attr_reader :sql, :params

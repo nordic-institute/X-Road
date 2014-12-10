@@ -66,59 +66,59 @@ public class CAMock {
         // http://stackoverflow.com/questions/7230330/sign-csr-using-bouncy-castle
 
         // Hard coded CA private key
-        PrivateKey privKeyCA = privStrToPrivateKey("MIIEuwIBADANBgkqhkiG9w" +
-                "0BAQEFAASCBKUwggShAgEAAoIBAQCudi4gMI02ohn8YfRMeCU0ehRPw8J" +
-                "8fkcZ5Vp1pC7nEkWDaEt9sK8k0MYOA5wZeWyzy1nnXLzQQbAkUBTUhqOE" +
-                "QsXJEOERSwF3sXO6UzEzAwXCW6g8HW7RdSw2Zi6eZ2UFzoERGStNCLyhF" +
-                "c7umyyVuJTgsOp4h0/ThGHJI2dVHB9vd4F8ZHsaH8Rt0V4HzXiAKmgzqe" +
-                "YrVdHZ/cl0JMnE/ITsSmkgM8EGaCnOrZPMcXerN3VC/ld7RdILoOeRNvO" +
-                "nGsK9qUaoashg6xXm+04W37ZOXH5AchaG9n1sN0QZjnw7SNaPeU7lWQVi" +
-                "yWhq5hry2sKbvDbQnpCrC0IiyQy/AgMBAAECggEBAKJqez6UdKKr/q0rN" +
-                "BgMsfZMwKQRhvoHRYIiNzjWBKQyKmzPp5f36NXJVtitG6HLnRs08RmnCF" +
-                "CJFsZ3lyzTu17iGue4ww8qWM9pcGfCE0d+RNpQIir067or72Eld7kYYMA" +
-                "rI5UbbWhl/dWpS+Bure8ky9TyXxaeQf6Ue8SZJRXhcxSviyh6ugwfHP+y" +
-                "wSzF4Vo9E7BAo2/TrX+7QkByBk1q1K5pe8Gwj9agt6NxHQCg9lL2RTlQt" +
-                "PjjBTb94R5K4vzG9rFmFIX01PHy8iY709UnBlocah/D60Vor+NSxvPhkw" +
-                "/2Oyw1u8ran9W1Lc935AUSSRYVD18TcwczGkDp4cECgYEA01yMTNdAaF4" +
-                "wAbGFmT6Ia82j+nZeQKAA/eaBEwjHQuR+s7ZvN+7O3SH1TdVxbCO6vioc" +
-                "92DUOGjH41B2yXawls9rjdTqPHrm5ZL1CNKYhNoyOlR2AW81T+OY4mYjw" +
-                "Fdddl6p7hByF0zQFhlMlPKrLn2RMhslPRMAzdhVudBrr0cCgYEA006bYj" +
-                "IU35lxAaDsSIF5OIkcHQWH2cXXt7Cm2QuQQIoNH5nteieXVdKfRqHwvpH" +
-                "Ypg1ttDayAioKEQ/XbKZqfx2yg+hw3tv1Q3/34U2Xw2Ac1CK01zrQebru" +
-                "Er2xuVZfHXP8h9iZLxnTUzcSXquDf36+XoChj1UK7e3Si5PjIskCfylH6" +
-                "h8X63x26OlrwqwrinmDsIM6my4EEi2E17DgBgsKlbSD7TT/b2fBOif5iC" +
-                "2WzOJXV1D5mHlr/Z5oGMtAYz0RRfBtpVIqru4nxbPzbdaEx0qdNG8TSVZ" +
-                "RHYsaZ+EpLxfvZUEZ9S6X0gx+5HYy7zwlSjZ/FsbW71FE73lbO60CgYBp" +
-                "8gCwVEHo9ksVsPSnSdtYgE5LMsmxY6PL4tNVAZo68bywuoG5/H3BNxBK3" +
-                "skRE5kXcKYvdDj+IsvXUCUHwcylnWMzBekJpCktxcyn9zp/aAIsTpZzT3" +
-                "bVgeb6GIgyT97yqoPULMJpPj6Ze4RHWSFeXFLgmQfoEJChSNuGxghdGQK" +
-                "BgF3BwvkppVi0riS6dFIEugsqubyoeGVPq65FdPwtgcjhXDn1N3NGu13M" +
-                "UBPzaSPUHzUUoM5WlA1/ISRt+4n2W9Vk22XuBKvEvk+l/JsKDOa+rGIz7" +
-                "Em8B2ud78PHKctD94wdddTlGuCNf88OL1bqjZE8b8lQTy6k6DjAHM/9LrZl");
+        PrivateKey privKeyCA = privStrToPrivateKey("MIIEuwIBADANBgkqhkiG9w"
+                + "0BAQEFAASCBKUwggShAgEAAoIBAQCudi4gMI02ohn8YfRMeCU0ehRPw8J"
+                + "8fkcZ5Vp1pC7nEkWDaEt9sK8k0MYOA5wZeWyzy1nnXLzQQbAkUBTUhqOE"
+                + "QsXJEOERSwF3sXO6UzEzAwXCW6g8HW7RdSw2Zi6eZ2UFzoERGStNCLyhF"
+                + "c7umyyVuJTgsOp4h0/ThGHJI2dVHB9vd4F8ZHsaH8Rt0V4HzXiAKmgzqe"
+                + "YrVdHZ/cl0JMnE/ITsSmkgM8EGaCnOrZPMcXerN3VC/ld7RdILoOeRNvO"
+                + "nGsK9qUaoashg6xXm+04W37ZOXH5AchaG9n1sN0QZjnw7SNaPeU7lWQVi"
+                + "yWhq5hry2sKbvDbQnpCrC0IiyQy/AgMBAAECggEBAKJqez6UdKKr/q0rN"
+                + "BgMsfZMwKQRhvoHRYIiNzjWBKQyKmzPp5f36NXJVtitG6HLnRs08RmnCF"
+                + "CJFsZ3lyzTu17iGue4ww8qWM9pcGfCE0d+RNpQIir067or72Eld7kYYMA"
+                + "rI5UbbWhl/dWpS+Bure8ky9TyXxaeQf6Ue8SZJRXhcxSviyh6ugwfHP+y"
+                + "wSzF4Vo9E7BAo2/TrX+7QkByBk1q1K5pe8Gwj9agt6NxHQCg9lL2RTlQt"
+                + "PjjBTb94R5K4vzG9rFmFIX01PHy8iY709UnBlocah/D60Vor+NSxvPhkw"
+                + "/2Oyw1u8ran9W1Lc935AUSSRYVD18TcwczGkDp4cECgYEA01yMTNdAaF4"
+                + "wAbGFmT6Ia82j+nZeQKAA/eaBEwjHQuR+s7ZvN+7O3SH1TdVxbCO6vioc"
+                + "92DUOGjH41B2yXawls9rjdTqPHrm5ZL1CNKYhNoyOlR2AW81T+OY4mYjw"
+                + "Fdddl6p7hByF0zQFhlMlPKrLn2RMhslPRMAzdhVudBrr0cCgYEA006bYj"
+                + "IU35lxAaDsSIF5OIkcHQWH2cXXt7Cm2QuQQIoNH5nteieXVdKfRqHwvpH"
+                + "Ypg1ttDayAioKEQ/XbKZqfx2yg+hw3tv1Q3/34U2Xw2Ac1CK01zrQebru"
+                + "Er2xuVZfHXP8h9iZLxnTUzcSXquDf36+XoChj1UK7e3Si5PjIskCfylH6"
+                + "h8X63x26OlrwqwrinmDsIM6my4EEi2E17DgBgsKlbSD7TT/b2fBOif5iC"
+                + "2WzOJXV1D5mHlr/Z5oGMtAYz0RRfBtpVIqru4nxbPzbdaEx0qdNG8TSVZ"
+                + "RHYsaZ+EpLxfvZUEZ9S6X0gx+5HYy7zwlSjZ/FsbW71FE73lbO60CgYBp"
+                + "8gCwVEHo9ksVsPSnSdtYgE5LMsmxY6PL4tNVAZo68bywuoG5/H3BNxBK3"
+                + "skRE5kXcKYvdDj+IsvXUCUHwcylnWMzBekJpCktxcyn9zp/aAIsTpZzT3"
+                + "bVgeb6GIgyT97yqoPULMJpPj6Ze4RHWSFeXFLgmQfoEJChSNuGxghdGQK"
+                + "BgF3BwvkppVi0riS6dFIEugsqubyoeGVPq65FdPwtgcjhXDn1N3NGu13M"
+                + "UBPzaSPUHzUUoM5WlA1/ISRt+4n2W9Vk22XuBKvEvk+l/JsKDOa+rGIz7"
+                + "Em8B2ud78PHKctD94wdddTlGuCNf88OL1bqjZE8b8lQTy6k6DjAHM/9LrZl");
 
 
         // Hard coded CA certificate
-        X509Certificate certCA = stringToCert("MIIDdTCCAl2gAwIBAgIJAOuBNCIU" +
-                "m0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNVBAYTAkVFMRQwEgYDVQQKEw" +
-                "tDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEaMBgGCSqGSIb3DQEJ" +
-                "ARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIwOTEyMTE1Nj" +
-                "M3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2ExEDAO" +
-                "BgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMI" +
-                "IBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0" +
-                "THglNHoUT8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80E" +
-                "GwJFAU1IajhELFyRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6B" +
-                "ERkrTQi8oRXO7psslbiU4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB8" +
-                "14gCpoM6nmK1XR2f3JdCTJxPyE7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XS" +
-                "C6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2Tlx+QHIWhvZ9bDdEGY58O0jWj3" +
-                "lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwIDAQABo1AwTjAMBgNVHRME" +
-                "BTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwShz1YZzAfBgNVHS" +
-                "MEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0BAQUFAAOC" +
-                "AQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJrpH" +
-                "dUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQn" +
-                "Ab6aSJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxT" +
-                "jtcHbTnm/yGPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar" +
-                "3za6UdFEBDX2aHQD4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5J" +
-                "rr4P9xYprRY1une3IWvviJNXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==");
+        X509Certificate certCA = stringToCert("MIIDdTCCAl2gAwIBAgIJAOuBNCIU"
+                + "m0gwMA0GCSqGSIb3DQEBBQUAMFExCzAJBgNVBAYTAkVFMRQwEgYDVQQKEw"
+                + "tDeWJlcm5ldGljYTEQMA4GA1UECxMHUm9vdCBDQTEaMBgGCSqGSIb3DQEJ"
+                + "ARYLYWFhQGJiYi5jY2MwHhcNMTIwOTE0MTE1NjM3WhcNMjIwOTEyMTE1Nj"
+                + "M3WjBRMQswCQYDVQQGEwJFRTEUMBIGA1UEChMLQ3liZXJuZXRpY2ExEDAO"
+                + "BgNVBAsTB1Jvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2FhYUBiYmIuY2NjMI"
+                + "IBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArnYuIDCNNqIZ/GH0"
+                + "THglNHoUT8PCfH5HGeVadaQu5xJFg2hLfbCvJNDGDgOcGXlss8tZ51y80E"
+                + "GwJFAU1IajhELFyRDhEUsBd7FzulMxMwMFwluoPB1u0XUsNmYunmdlBc6B"
+                + "ERkrTQi8oRXO7psslbiU4LDqeIdP04RhySNnVRwfb3eBfGR7Gh/EbdFeB8"
+                + "14gCpoM6nmK1XR2f3JdCTJxPyE7EppIDPBBmgpzq2TzHF3qzd1Qv5Xe0XS"
+                + "C6DnkTbzpxrCvalGqGrIYOsV5vtOFt+2Tlx+QHIWhvZ9bDdEGY58O0jWj3"
+                + "lO5VkFYsloauYa8trCm7w20J6QqwtCIskMvwIDAQABo1AwTjAMBgNVHRME"
+                + "BTADAQH/MB0GA1UdDgQWBBRSFYADqiIAKTGIT44uTLwShz1YZzAfBgNVHS"
+                + "MEGDAWgBRSFYADqiIAKTGIT44uTLwShz1YZzANBgkqhkiG9w0BAQUFAAOC"
+                + "AQEAMn7YD7C3cjkQL0wm1v47KYda/Y05jR5zMwV648VHgPeNLRyZYWJrpH"
+                + "dUQiAqKL3zhF8neOQO100fwUxSxLsuPNqkce02DwjMSMWi3bF9xX7MlrQn"
+                + "Ab6aSJ47YaPyZSvXlkzRC3dcDjcBIRSGNxsftISSEJJeqGWQz6b9LkIfxT"
+                + "jtcHbTnm/yGPWpmr2blkm7qRKK4eFwvooJ6KqBmm8/J086VpDOc9qRy/ar"
+                + "3za6UdFEBDX2aHQD4OLgBvj0dLYCu3w32ltmVOgBoewIq5M1wBGp8dIs5J"
+                + "rr4P9xYprRY1une3IWvviJNXoWm1enl1+N31r32YIc4vXZiA2L+cjlvQ==");
 
         // Get CA name (subject)
         X500Name subjectNameCA =
@@ -182,10 +182,10 @@ public class CAMock {
             // Add auth cert extensions:
             myCertificateGenerator.addExtension(X509Extensions.KeyUsage, true,
                     new KeyUsage(
-                            X509KeyUsage.digitalSignature |
-                            X509KeyUsage.keyAgreement     |
-                            X509KeyUsage.keyEncipherment  |
-                            X509KeyUsage.dataEncipherment));
+                            X509KeyUsage.digitalSignature
+                            | X509KeyUsage.keyAgreement
+                            | X509KeyUsage.keyEncipherment
+                            | X509KeyUsage.dataEncipherment));
             myCertificateGenerator.addExtension(X509Extensions.ExtendedKeyUsage,
                     false, new ExtendedKeyUsage(new Vector<KeyPurposeId>(
                             Arrays.asList(KeyPurposeId.id_kp_clientAuth,
@@ -196,8 +196,8 @@ public class CAMock {
                     new X509KeyUsage(
                             X509KeyUsage.nonRepudiation));
         } else {
-            throw new Exception("KeyUsage not " +
-                    "'KeyUsageInfo.AUTHENTICATION' or 'KeyUsageInfo.SIGNING'.");
+            throw new Exception("KeyUsage not "
+                    + "'KeyUsageInfo.AUTHENTICATION' or 'KeyUsageInfo.SIGNING'.");
         }
 
         ContentSigner sigGen =

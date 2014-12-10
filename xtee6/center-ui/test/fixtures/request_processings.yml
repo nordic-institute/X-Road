@@ -1,0 +1,17 @@
+request_processing_for_owned_server:
+  type: "ClientRegProcessing"
+  status: "WAITING"
+  created_at: <%= 5.day.ago.to_s(:db) %>
+  updated_at: <%= 5.day.ago.to_s(:db) %>
+
+request_processing_for_used_server:
+  type: "ClientRegProcessing"
+  status: "WAITING"
+  created_at: <%= 4.day.ago.to_s(:db) %>
+  updated_at: <%= 4.day.ago.to_s(:db) %>
+
+request_processing_for_nobody:
+  type: "ClientRegProcessing"
+  status: "WAITING"
+  created_at: <%= 6.day.ago.to_s(:db) %>
+  updated_at: <%= 6.day.ago.to_s(:db) %>

@@ -1,16 +1,6 @@
-ext.codeCoverage = true
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+    id "eu.appsatori.fatjar" version "0.3"
 }
-
-apply plugin: 'fatjar'
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
@@ -39,8 +29,9 @@ dependencies {
     compile fileTree(dir: '../libs', include: '*.jar')
 
     testCompile project(':common-test')
+    testCompile project(':common-verifier').sourceSets.test.output
     testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
-    testCompile 'org.mockito:mockito-all:1.9.0'
+    testCompile 'org.mockito:mockito-all:1.10.8'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
@@ -86,13 +77,14 @@ task xjc () {
     )
 }
 
-
 task runSignerMain(type: JavaExec) {
-    jvmArgs '-Dee.cyber.sdsb.key.configurationFile=build/tmp/keyconf.xml',
-        '-Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
-        '-Dee.cyber.sdsb.device.configurationFile=src/main/resources/devices.ini',
+    jvmArgs '-Dee.cyber.sdsb.signer.key-configuration-file=build/tmp/keyconf.xml',
+        '-Dee.cyber.sdsb.signer.device-configuration-file=src/main/resources/devices.ini',
+        '-Dee.cyber.sdsb.common.configuration-path=../common-util/src/test/resources/globalconf_good',
+        '-Dee.cyber.sdsb.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
         '-Djava.library.path=../legacy/lib',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
+        '-Djava.library.path=../legacy/passwordstore:../libs',
         '-Dee.cyber.sdsb.signer.moduleManagerImpl=ee.cyber.sdsb.signer.tokenmanager.module.HardwareModuleManagerImpl'
     main = 'ee.cyber.sdsb.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath

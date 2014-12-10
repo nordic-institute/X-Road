@@ -103,11 +103,11 @@ public final class SystemMonitor implements StartStop {
         private void logSystemStats() throws Exception {
             writeToLog("System stats:");
 
-            writeToLog("\tMax open files: " +
-                    osStats.getMaxFileDescriptorCount());
+            writeToLog("\tMax open files: "
+                    + osStats.getMaxFileDescriptorCount());
             writeToLog("\tProcessors: " + osStats.getAvailableProcessors());
-            writeToLog("\tTotal memory (physical): " +
-                    osStats.getTotalPhysicalMemorySize());
+            writeToLog("\tTotal memory (physical): "
+                    + osStats.getTotalPhysicalMemorySize());
 
             writeToLog("");
         }

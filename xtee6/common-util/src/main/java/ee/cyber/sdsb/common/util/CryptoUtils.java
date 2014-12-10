@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
@@ -25,6 +27,8 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
+import lombok.SneakyThrows;
+
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -32,6 +36,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
@@ -42,6 +47,8 @@ import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
+
+import static org.apache.xml.security.signature.XMLSignature.*;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -80,9 +87,13 @@ public class CryptoUtils {
     public static final String DEFAULT_SIGNATURE_ALGORITHM =
             CryptoUtils.SHA1WITHRSA_ID;
 
+    public static final String ALGO_ID_DIGEST_SHA224 =
+            "http://www.w3.org/2001/04/xmldsig-more#sha224";
+
     /** Hash algorithm identifier constants. */
     public static final String MD5_ID = "MD5";
     public static final String SHA1_ID = "SHA-1";
+    public static final String SHA224_ID = "SHA-224";
     public static final String SHA256_ID = "SHA-256";
     public static final String SHA384_ID = "SHA-384";
     public static final String SHA512_ID = "SHA-512";
@@ -137,8 +148,8 @@ public class CryptoUtils {
                 return SHA512_ID;
         }
 
-        throw new NoSuchAlgorithmException("Unkown signature algorithm id: " +
-                signatureAlgorithm);
+        throw new NoSuchAlgorithmException("Unkown signature algorithm id: "
+                + signatureAlgorithm);
     }
 
     /**
@@ -160,18 +171,18 @@ public class CryptoUtils {
                 return SHA512WITHRSA_ID;
         }
 
-        throw new NoSuchAlgorithmException("Unkown digest algorithm id: " +
-                digestAlgorithm);
+        throw new NoSuchAlgorithmException("Unkown digest algorithm id: "
+                + digestAlgorithm);
     }
 
     /**
-     * Returns the digest algorithm URI for the given digest algorithm
-     * identifier.
+     * Returns the digest/signature algorithm URI for the given digest/signature
+     * algorithm identifier.
      * @param algoId the id of the algorithm
      * @return the URI of the algorithm
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
-    public static String getAlgorithmURI(String algoId)
+    public static String getDigestAlgorithmURI(String algoId)
             throws NoSuchAlgorithmException {
         switch (algoId) {
             case SHA1_ID:
@@ -180,14 +191,38 @@ public class CryptoUtils {
                 return DigestMethod.SHA256;
             case SHA512_ID:
                 return DigestMethod.SHA512;
+            // Signature algorithms
         }
 
         throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
     }
 
     /**
-     * Returns the digest algorithm identifier for the given digest algorithm
-     * URI.
+     * Returns the digest/signature algorithm URI for the given digest/signature
+     * algorithm identifier.
+     * @param algoId the id of the algorithm
+     * @return the URI of the algorithm
+     * @throws NoSuchAlgorithmException if the algorithm id is unknown
+     */
+    public static String getSignatureAlgorithmURI(String algoId)
+            throws NoSuchAlgorithmException {
+        switch (algoId) {
+            case SHA1WITHRSA_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA1;
+            case SHA256WITHRSA_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA256;
+            case SHA384WITHRSA_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA384;
+            case SHA512WITHRSA_ID:
+                 return ALGO_ID_SIGNATURE_RSA_SHA512;
+        }
+
+        throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+    }
+
+    /**
+     * Returns the digest/signature algorithm identifier for the given
+     * digest/signature algorithm URI.
      * @param algoURI the URI of the algorithm
      * @return the identifier of the algorithm
      * @throws NoSuchAlgorithmException if the algorithm URI is unknown
@@ -195,12 +230,22 @@ public class CryptoUtils {
     public static String getAlgorithmId(String algoURI)
             throws NoSuchAlgorithmException {
         switch (algoURI) {
-            case DigestMethod.SHA1:
-                return SHA1_ID;
-            case DigestMethod.SHA256:
-                return SHA256_ID;
-            case DigestMethod.SHA512:
-                return SHA512_ID;
+        case DigestMethod.SHA1:
+            return SHA1_ID;
+        case ALGO_ID_DIGEST_SHA224:
+            return SHA224_ID;
+        case DigestMethod.SHA256:
+            return SHA256_ID;
+        case DigestMethod.SHA512:
+            return SHA512_ID;
+        case ALGO_ID_SIGNATURE_RSA_SHA1:
+            return SHA1WITHRSA_ID;
+        case ALGO_ID_SIGNATURE_RSA_SHA256:
+            return SHA256WITHRSA_ID;
+        case ALGO_ID_SIGNATURE_RSA_SHA384:
+            return SHA384WITHRSA_ID;
+        case ALGO_ID_SIGNATURE_RSA_SHA512:
+            return SHA512WITHRSA_ID;
         }
 
         throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
@@ -465,11 +510,20 @@ public class CryptoUtils {
      * Reads X509Certificate object from given certificate bytes.
      * @param certBytes the certificate bytes
      */
-    public static X509Certificate readCertificate(byte[] certBytes)
-            throws CertificateException, IOException {
+    @SneakyThrows
+    public static X509Certificate readCertificate(byte[] certBytes) {
         try (InputStream is = new ByteArrayInputStream(certBytes)) {
-            return (X509Certificate) CERT_FACTORY.generateCertificate(is);
+            return readCertificate(is);
         }
+    }
+
+    /**
+     * Reads X509Certificate object from given input stream.
+     * @param is Input stream containing certificate bytes.
+     */
+    @SneakyThrows
+    public static X509Certificate readCertificate(InputStream is) {
+        return (X509Certificate) CERT_FACTORY.generateCertificate(is);
     }
 
     /**
@@ -565,5 +619,12 @@ public class CryptoUtils {
         }
 
         return keyStore;
+    }
+
+    public static void writeCertificatePem(byte[] certBytes, OutputStream out)
+            throws IOException {
+        try (PEMWriter writer = new PEMWriter(new OutputStreamWriter(out))) {
+            writer.writeObject(readCertificate(certBytes));
+        }
     }
 }

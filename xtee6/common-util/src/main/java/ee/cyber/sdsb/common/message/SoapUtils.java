@@ -187,7 +187,7 @@ public class SoapUtils {
         String charset = request.getCharset();
 
         SOAPMessage soap = createSOAPMessage(new ByteArrayInputStream(
-                        getBytes(request.getSoap())), charset);
+                        request.getBytes()), charset);
 
         List<SOAPElement> children = getChildElements(soap.getSOAPBody());
         if (children.size() == 0) {
@@ -212,7 +212,11 @@ public class SoapUtils {
      * Returns the XML representing the SOAP message.
      */
     public static String getXml(SoapMessageImpl message) throws IOException {
-        return getXml(message.getSoap(), message.getCharset());
+        try {
+            return message.getXml();
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
     }
 
     /**

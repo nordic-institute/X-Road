@@ -6,6 +6,9 @@ import lombok.Value;
 
 import ee.cyber.sdsb.common.identifier.ClientId;
 
+/**
+ * Certificate request info DTO.
+ */
 @Value
 public class CertRequestInfo implements Serializable {
 

@@ -80,7 +80,7 @@ en:
       delete_certs_title: "Certificate deletion"
       delete_certs: "Signature certificate associated with the deleted client '{{client_id}}' has no users. Delete certificate?"
 
-    client_groups_dialog:
+    client_groups_tab:
       local_groups: "Local Groups"
       member_title: "{{client}} : Local Groups"
       subsystem_title: "{{member}} subsystem {{subsystem}} : Local Groups"
@@ -94,7 +94,6 @@ en:
 
     group_details_dialog:
       title: "Local Group {{group}}"
-      simple_search: "Simple Search"
       edit: "Edit"
       edit_title: "Edit Description"
       group_members: "Group Members"
@@ -103,36 +102,38 @@ en:
       code: "Code"
       class: "Class"
       subsystem: "Subsystem"
-      sdsb: "SDSB"
+      instance: "Instance"
       type: "Type"
       added: "Added"
       delete_group: "Delete Group"
       delete_group_confirm: "Are you sure you want to delete group '{{group}}'?"
       add_members: "Add Members"
       remove_selected_members: "Remove Selected Members"
+      remove_all_members: "Remove All Members"
 
     group_members_add_dialog:
       title: "Add Members to Local Group {{group}}"
       show_existing: "Show group members in search result"
       add_selected: "Add Selected to Group"
+      add_all: "Add All to Group"
       name: "Name"
 
-    client_internal_certs_dialog:
+    client_internal_certs_tab:
       internal_servers: "Internal Servers"
       connection_type: "Connection type for servers in service consumer role"
       connection_type_hint: "Connection type for servers in service provider role is set in the Services tab (<i class='fa fa-wrench'></i>) by service URL (http/https)."
       internal_ssl_certs: "Internal SSL Certificates"
       security_server_cert: "Security Server Certificate"
       import_certificate: "Import Certificate"
-      certificate_location: "Certificate location"
       certificate_hash: "Certificate Hash (%{alg})"
       delete_internal_cert_confirm: "Are you sure you want to delete internal SSL certificate {{hash}}?"
 
-    client_services_dialog:
+    client_services_tab:
       member_title: "{{member}} Services"
       subsystem_title: "{{member}} subsystem {{subsystem}} Services"
       client_services: "Client Services"
-      add_wsdl: "Add 6.0 WSDL"
+      add_wsdl: "Add WSDL"
+      add_v6_wsdl: "Add 6.0 WSDL"
       add_adapter: "Add 5.0 Adapter"
       access_rights: "Access Rights"
       service_code: "Service Code"
@@ -148,7 +149,6 @@ en:
       disable_notice: "Notice for clients making queries to disabled services:"
       edit_adapter_parameters: "Edit Adapter Parameters"
       edit_wsdl_parameters: "Edit WSDL Parameters"
-      search_services: "Search services"
       delete_wsdls_confirm: "Are you sure you want to delete selected WSDLs?"
 
     service_params_dialog:
@@ -168,34 +168,29 @@ en:
       member_class: "Member Class"
       member_group_code: "Member/Group Code"
       subsystem_code: "Subsystem Code"
-      sdsb: "SDSB"
+      instance: "Instance"
       type: "Type"
       access_rights_given: "Access Rights Given"
       add_subjects: "Add Subjects"
       remove_selected: "Remove Selected"
       remove_selected_confirm: "Remove access rights subjects: {{subjects}}"
-      remove_all: "Clear ACL"
+      remove_all: "Remove All"
       remove_all_confirm: "Remove all access rights subjects?"
 
     acl_subjects_search_dialog:
       add_subjects: "Add Subjects"
-      search_paramters: "Search Parameters"
       add_selected: "Add Selected to ACL"
       add_all: "Add All to ACL"
 
-    client_acl_subjects_dialog:
+    client_acl_subjects_tab:
       acl_subjects: "Service Clients"
       open_services: "Access Rights"
       subject_name: "Member name/Group description"
-      subject_class: "Member class"
-      subject_code: "Member/Group code"
-      subject_subcode: "Subsystem code"
-      subject_type: "Type"
-      subject_sdsb: "SDSB"
+      client_not_found: "Client not found in global configuration"
+      group_not_found: "Group not found in global configuration"
 
     acl_subject_open_services_dialog:
-      other_title: "Service Access Rights for {{type}}: {{name}} ({{code}})"
-      subsystem_title: "Service Access Rights for {{type}}: {{name}} ({{code}}) subsystem {{subsystem}}"
+      title: "Service Access Rights for {{name}} {{id}}"
       add_services: "Add Services"
       service_code: "Service Name"
       service_title: "Title"
@@ -208,13 +203,11 @@ en:
   init:
     index:
       heading: "Initial configuration"
-      global_configuration: "Global Configuration"
-      distributor_url: "Distributor URL"
-      verification_certificate: "Verification Certificate"
-      security_server_id: "Security Server Identification"
+      security_server_owner: "Security Server Owner"
       member_name: "Member Name"
       member_class: "Member Class"
       member_code: "Member Code"
+      security_server: "Security Server"
       security_server_code: "Security Server Code"
       software_token: "Software Token"
       pin: "PIN"
@@ -236,8 +229,6 @@ en:
       register: "Register"
       unregister: "Unregister"
       import_certificate: "Import certificate"
-      enter_pin: "Enter PIN"
-      pin: "PIN"
       usage: "Usage"
       usage_sign: "Sign"
       usage_auth: "Auth"
@@ -250,7 +241,6 @@ en:
       no_keys: "No objects found"
       delete_cert_confirm: "Are you sure you want to delete certificate '{{hash}}'?"
       locked: "BLOCKED"
-      enter_pin: "Enter PIN"
       logout: "Logout"
       delete_key_confirm: "Delete key '{{key}}' and all associated certificates from server configuration?"
       delete_key_from_token_confirm: "Delete key '{{key}}' and all associated certificates from token '{{token}}'?"
@@ -274,11 +264,6 @@ en:
 
   sysparams:
     index:
-      distributors: "Global Configuration Distributors"
-      distributor_url: "Address"
-      distributor_cert: "Certificate"
-      distributor_cert_subject: "Subject DN"
-      distributor_cert_serial: "Serial number"
       tsps: "Timestamping Services"
       tsp_name: "Timestamping service"
       tsp_url: "Service URL"
@@ -290,9 +275,6 @@ en:
       internal_ssl_cert_hash: "Certificate hash"
       internal_ssl_generate_key: "Generate New SSL Key"
       generate_internal_ssl_confirm: "Generate new internal SSL key and certificate?"
-      delete_distributor_confirm: "Are you sure you want to delete selected distributor?"
-    distributor_add_dialog:
-      add_distributor: "Add Distributor"
     tsp_add_dialog:
       add_tsp: "Add Timestamping Service"
       approved_tsp: "Trusted Timestamping Services"
@@ -300,3 +282,9 @@ en:
   layouts:
     application:
       title: "Security Server Administration"
+
+  anchor:
+    title: "Configuration Anchor"
+    import_title: "Import Configuration Anchor"
+    upload_title: "Upload Configuration Anchor"
+    upload_confirm: "Configuration anchor details: {{details}} Continue with import?"

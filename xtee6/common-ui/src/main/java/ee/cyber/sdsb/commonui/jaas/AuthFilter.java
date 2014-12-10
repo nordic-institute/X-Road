@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.commonui.jaas;
 
 import java.io.IOException;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -18,9 +19,11 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class AuthFilter implements Filter {
 
+    @Override
     public void init(FilterConfig config) throws ServletException {
     }
 
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response,
                          FilterChain chain) throws IOException, ServletException {
 
@@ -30,10 +33,10 @@ public class AuthFilter implements Filter {
         String ctx = httpRequest.getContextPath();
 
         // skip authentication for /stylesheets/* and favicon.ico
-        if (!httpRequest.getRequestURI().startsWith(ctx + "/stylesheets/") &&
-            !httpRequest.getRequestURI().equals(ctx + "/favicon.ico") &&
-             httpRequest.getUserPrincipal() == null &&
-            !httpRequest.authenticate(httpResponse)) {
+        if (!httpRequest.getRequestURI().startsWith(ctx + "/stylesheets/")
+                && !httpRequest.getRequestURI().equals(ctx + "/favicon.ico")
+                && httpRequest.getUserPrincipal() == null
+                && !httpRequest.authenticate(httpResponse)) {
             // response has been committed
             return;
         }
@@ -41,6 +44,7 @@ public class AuthFilter implements Filter {
         chain.doFilter(request, response);
     }
 
+    @Override
     public void destroy() {
     }
 }

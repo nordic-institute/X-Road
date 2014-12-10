@@ -1,59 +1,75 @@
 package ee.cyber.sdsb.common.request;
 
-import java.io.IOException;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.conn.PoolingClientConnectionManager;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+
+import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.HttpSender;
 import ee.cyber.sdsb.common.util.StartStop;
 
-import static ee.cyber.sdsb.common.PortNumbers.CLIENT_HTTPS_PORT;
-
 /**
  * Client that sends managements requests to the Central Server.
  */
-public class ManagementRequestClient implements StartStop {
+@Slf4j
+public final class ManagementRequestClient implements StartStop {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ManagementRequestClient.class);
-
-    // Configuration parameters.
-    // TODO: #2576 Make configurable in the future
-    private static final int CLIENT_TIMEOUT = 300000; // 30 sec.
+    // HttpClient configuration parameters.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 25;
 
-    private HttpClient httpClient;
+    private CloseableHttpClient centralHttpClient;
+    private CloseableHttpClient proxyHttpClient;
 
     private static ManagementRequestClient instance =
             new ManagementRequestClient();
 
+    /**
+     * @return the singleton ManagementRequestClient
+     */
     public static ManagementRequestClient getInstance() {
         return instance;
     }
 
+    static HttpSender createCentralHttpSender() {
+        return new HttpSender(getInstance().centralHttpClient);
+    }
+
+    static HttpSender createProxyHttpSender() {
+        return new HttpSender(getInstance().proxyHttpClient);
+    }
+
     private ManagementRequestClient() {
         try {
-            createClient();
+            createCentralHttpClient();
+            createProxyHttpClient();
         } catch (Exception e) {
             throw new RuntimeException(
                     "Unable to initialize management request client", e);
@@ -62,13 +78,15 @@ public class ManagementRequestClient implements StartStop {
 
     @Override
     public void start() throws Exception {
-        LOG.info("Starting ManagementRequestClient...");
+        log.info("Starting ManagementRequestClient...");
     }
 
     @Override
     public void stop() throws Exception {
-        LOG.info("Stopping ManagementRequestClient...");
-        httpClient.getConnectionManager().shutdown();
+        log.info("Stopping ManagementRequestClient...");
+
+        IOUtils.closeQuietly(proxyHttpClient);
+        IOUtils.closeQuietly(centralHttpClient);
     }
 
     @Override
@@ -77,30 +95,8 @@ public class ManagementRequestClient implements StartStop {
 
     // -- Helper methods ------------------------------------------------------
 
-    HttpSender createHttpSender() {
-        return new HttpSender(httpClient);
-    }
-
-    private void createClient() throws Exception {
-        PoolingClientConnectionManager connMgr =
-                new PoolingClientConnectionManager();
-        connMgr.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
-        connMgr.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
-
-        httpClient = new DefaultHttpClient(connMgr);
-
-        HttpParams params = httpClient.getParams();
-        HttpConnectionParams.setConnectionTimeout(params, CLIENT_TIMEOUT);
-
-        // Disable request retry
-        ((DefaultHttpClient) httpClient).setHttpRequestRetryHandler(
-                new DefaultHttpRequestRetryHandler(0, false));
-        addSslSupport(httpClient);
-
-    }
-
-    private static void addSslSupport(HttpClient client) throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+    private void createCentralHttpClient() throws Exception {
+        log.trace("createCentralHttpClient()");
 
         TrustManager tm = new X509TrustManager() {
             @Override
@@ -121,20 +117,20 @@ public class ManagementRequestClient implements StartStop {
                     centralServerSslCert =
                             GlobalConf.getCentralServerSslCertificate();
                 } catch (Exception e) {
-                    throw new CertificateException("Could not get central " +
-                            "server SSL certificate from global conf", e);
+                    throw new CertificateException("Could not get central "
+                            + "server SSL certificate from global conf", e);
                 }
 
                 if (centralServerSslCert == null) {
                     throw new CertificateException(
-                            "Central server SSL certificate " +
-                            "is not in global conf");
+                            "Central server SSL certificate "
+                                    + "is not in global conf");
                 }
 
                 if (!centralServerSslCert.equals(chain[0])) {
                     throw new CertificateException(
-                            "Central server SSL certificate " +
-                            "does not match in global conf");
+                            "Central server SSL certificate "
+                                    + "does not match in global conf");
                 }
             }
 
@@ -143,17 +139,130 @@ public class ManagementRequestClient implements StartStop {
                 return null;
             }
         };
-        ctx.init(null, new TrustManager[] { tm }, new SecureRandom());
 
-        SSLSocketFactory socketFactory = new SSLSocketFactory(ctx,
-                SSLSocketFactory.STRICT_HOSTNAME_VERIFIER) {
+        centralHttpClient = createHttpClient(null, tm);
+    }
+
+    private void createProxyHttpClient() throws Exception {
+        log.trace("createProxyHttpClient()");
+
+        TrustManager tm = new X509TrustManager() {
             @Override
-            protected void prepareSocket(SSLSocket sock) throws IOException {
-                sock.setEnabledCipherSuites(CryptoUtils.INCLUDED_CIPHER_SUITES);
+            public void checkClientTrusted(X509Certificate[] chain,
+                    String authType) throws CertificateException {
+            }
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain,
+                    String authType) throws CertificateException {
+
+            }
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
             }
         };
 
-        Scheme https = new Scheme("https", CLIENT_HTTPS_PORT, socketFactory);
-        client.getConnectionManager().getSchemeRegistry().register(https);
+        KeyManager km = new X509ExtendedKeyManager() {
+
+            private static final String ALIAS = "MgmtAuthKeyManager";
+
+            @Override
+            public String chooseClientAlias(String[] keyType,
+                    Principal[] issuers, Socket socket) {
+                return ALIAS;
+            }
+
+            @Override
+            public String chooseServerAlias(String keyType,
+                    Principal[] issuers, Socket socket) {
+                return ALIAS;
+            }
+
+            @Override
+            public X509Certificate[] getCertificateChain(String alias) {
+                try {
+                    return new X509Certificate[] {
+                            InternalSSLKey.load().getCert() };
+                } catch (Exception e) {
+                    log.error("Failed to load internal SSL key", e);
+                    return new X509Certificate[] {};
+                }
+            }
+
+            @Override
+            public String[] getClientAliases(String keyType,
+                    Principal[] issuers) {
+                return null;
+            }
+
+            @Override
+            public PrivateKey getPrivateKey(String alias) {
+                try {
+                    return InternalSSLKey.load().getKey();
+                } catch (Exception e) {
+                    log.error("Failed to load internal SSL key", e);
+                    return null;
+                }
+            }
+
+            @Override
+            public String[] getServerAliases(String keyType,
+                    Principal[] issuers) {
+                return null;
+            }
+
+            @Override
+            public String chooseEngineClientAlias(String[] keyType,
+                    Principal[] issuers, SSLEngine engine) {
+                return ALIAS;
+            }
+
+            @Override
+            public String chooseEngineServerAlias(String keyType,
+                    Principal[] issuers, SSLEngine engine) {
+                return ALIAS;
+            }
+        };
+
+        proxyHttpClient = createHttpClient(km, tm);
+    }
+
+    private static CloseableHttpClient createHttpClient(KeyManager km,
+            TrustManager tm) throws Exception {
+        RegistryBuilder<ConnectionSocketFactory> sfr =
+                RegistryBuilder.<ConnectionSocketFactory>create();
+
+        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
+
+        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
+        ctx.init(km != null  ? new KeyManager[] {km} : null,
+                tm != null  ? new TrustManager[] {tm} : null,
+                        new SecureRandom());
+
+        SSLConnectionSocketFactory sf =
+                new SSLConnectionSocketFactory(ctx,
+                        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+        sfr.register("https", sf);
+
+        PoolingHttpClientConnectionManager cm =
+                new PoolingHttpClientConnectionManager(sfr.build());
+        cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
+        cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
+
+        int timeout = SystemProperties.getClientProxyTimeout();
+        RequestConfig.Builder rb = RequestConfig.custom();
+        rb.setConnectTimeout(timeout);
+        rb.setConnectionRequestTimeout(timeout);
+        rb.setStaleConnectionCheckEnabled(false);
+
+        HttpClientBuilder cb = HttpClients.custom();
+        cb.setConnectionManager(cm);
+        cb.setDefaultRequestConfig(rb.build());
+
+        // Disable request retry
+        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
+
+        return cb.build();
     }
 }

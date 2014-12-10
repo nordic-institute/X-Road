@@ -9,8 +9,20 @@
   color: #f2a020; }
 #services .green {
   color: green; }
+#services td {
+  cursor: pointer; }
+  #services td.open:before {
+    content: "-"; }
+  #services td.closed:before {
+    content: "+"; }
 
 #group_description_edit_dialog .dialog-body {
   height: 100%; }
   #group_description_edit_dialog .dialog-body textarea {
     height: calc(100% - 15px); }
+
+.token-name {
+  width: 80%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: normal; }

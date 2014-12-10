@@ -6,7 +6,7 @@ class CaInfo < ActiveRecord::Base
   before_validation :validate_cert_presence
 
   before_save do |ca|
-    cert_obj = CertObjectGenerator.new.generate(ca.cert)
+    cert_obj = CommonUi::CertUtils.cert_object(ca.cert)
     ca.valid_from = cert_obj.not_before
     ca.valid_to = cert_obj.not_after
 
