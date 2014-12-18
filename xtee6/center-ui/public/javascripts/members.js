@@ -41,10 +41,9 @@ var SDSB_MEMBERS = function() {
 
     function initMembersTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.sScrollY = "400px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name", "sWidth": "50%" },
             { "mData": "member_class", "sWidth": "15%" },

@@ -21,7 +21,10 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.decodeBase64;
 import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
-class Helper {
+final class Helper {
+
+    private Helper() {
+    }
 
     static AsicContainer read(InputStream is) throws Exception {
         Map<String, String> entries = new HashMap<>();

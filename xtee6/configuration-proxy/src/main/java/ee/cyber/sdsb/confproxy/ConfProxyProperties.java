@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 
@@ -52,12 +51,14 @@ public class ConfProxyProperties {
     String instance;
 
     /**
-     * Constructs the configuration for the given configuration proxy instance id.
-     * @param instance the if of the configuration proxy instance
+     * Constructs the configuration for the given
+     * configuration proxy instance id.
+     * @param name the if of the configuration proxy instance
      * @throws ConfigurationException if the configuration could not be loaded
      */
-    public ConfProxyProperties(String instance) throws ConfigurationException {
-        this.instance = instance;
+    public ConfProxyProperties(final String name)
+            throws ConfigurationException {
+        this.instance = name;
         String confDir = SystemProperties.getConfigurationProxyConfPath();
         File configFile = Paths.get(confDir, instance, CONF_INI).toFile();
         if (!configFile.exists()) {
@@ -86,7 +87,7 @@ public class ConfProxyProperties {
      * configuration files for this configuration proxy instance.
      * @return download path for the global configuration files
      */
-    public String getConfigurationDownloadPath() {
+    public final String getConfigurationDownloadPath() {
         return Paths.get(SystemProperties.getConfigurationPath(), instance)
                 .toString();
     }
@@ -96,7 +97,7 @@ public class ConfProxyProperties {
      * configuration files for this configuration proxy instance.
      * @return path to the global configuration destination
      */
-    public String getConfigurationTargetPath() {
+    public final String getConfigurationTargetPath() {
         return Paths.get(
                 SystemProperties.getConfigurationProxyGeneratedConfPath(),
                 instance).toString();
@@ -107,16 +108,17 @@ public class ConfProxyProperties {
      * configuration files.
      * @return path to the temporary directory
      */
-    public String getTemporaryDirectoryPath() {
+    public final String getTemporaryDirectoryPath() {
         return Paths.get(SystemProperties.getTempFilesPath(),
                 instance).toString();
     }
 
     /**
-     * Gets the default path for the configuration proxy instance 'anchor.xml' file.
+     * Gets the default path for the configuration proxy
+     * instance 'anchor.xml' file.
      * @return the configuration proxy instance 'anchor.xml' file.
      */
-    public String getProxyAnchorPath() {
+    public final String getProxyAnchorPath() {
         return Paths.get(SystemProperties.getConfigurationProxyConfPath(),
                 instance, ANCHOR_XML).toString();
     }
@@ -125,9 +127,10 @@ public class ConfProxyProperties {
      * Gets the public URL where configurations should be available,
      * 'configuration-proxy.address' needs to be defined in 'local.ini'.
      * @return the URL where global configurations are made available
-     * @throws Exception if the configured configuration proxy address is invalid
+     * @throws Exception if the configured configuration proxy
+     * address is invalid
      */
-    public String getConfigurationProxyURL() throws Exception {
+    public final String getConfigurationProxyURL() throws Exception {
         String address = SystemProperties.getConfigurationProxyAddress();
         URI uri = new URI("http", address, "/" + instance, null);
         return uri.toString();
@@ -137,7 +140,7 @@ public class ConfProxyProperties {
      * Gets the configured active signing key id.
      * @return the configured active signing key id
      */
-    public String getActiveSigningKey() {
+    public final String getActiveSigningKey() {
         if (activeSigningKeyCount() > 1) {
             log.warn("Multiple active signing keys configured!");
         }
@@ -150,7 +153,8 @@ public class ConfProxyProperties {
      * @throws ConfigurationException
      * if an error occurs when saving the configuration
      */
-    public void setActiveSigningKey(String keyId) throws ConfigurationException {
+    public final void setActiveSigningKey(final String keyId)
+            throws ConfigurationException {
         config.setProperty(ACTIVE_SIGNING_KEY_ID, keyId);
         config.save();
     }
@@ -159,7 +163,7 @@ public class ConfProxyProperties {
      * Gets the id for the configured signature algorithm.
      * @return the id of the configured signature algorithm.
      */
-    public String getSignatureAlgorithmId() {
+    public final String getSignatureAlgorithmId() {
         return SystemProperties.getConfigurationProxySignatureAlgorithmId();
     }
 
@@ -167,7 +171,7 @@ public class ConfProxyProperties {
      * Gets the configured validity interval.
      * @return the configured validity interval in seconds
      */
-    public int getValidityIntervalSeconds() {
+    public final int getValidityIntervalSeconds() {
         return config.getInteger(VALIDITY_INTERVAL_SECONDS, -1);
     }
 
@@ -177,7 +181,7 @@ public class ConfProxyProperties {
      * @throws ConfigurationException
      * if an error occurs when saving the configuration
      */
-    public void setValidityIntervalSeconds(int value)
+    public final void setValidityIntervalSeconds(final int value)
             throws ConfigurationException {
         config.setProperty(VALIDITY_INTERVAL_SECONDS, value);
         config.save();
@@ -187,7 +191,7 @@ public class ConfProxyProperties {
      * Gets the URI for the configured hash algorithm.
      * @return the URI of the configured hash algorithm.
      */
-    public String getHashAlgorithmURI() {
+    public final String getHashAlgorithmURI() {
         return SystemProperties.getConfigurationProxyHashAlgorithmUri();
     }
 
@@ -196,7 +200,7 @@ public class ConfProxyProperties {
      * @return a list of certificate byte content
      * @throws IOException if reading a certificate from disk failed
      */
-    public List<byte[]> getVerificationCerts() throws IOException {
+    public final List<byte[]> getVerificationCerts() throws IOException {
         List<X509Certificate> certs = new ArrayList<>();
         certs.add(readCert(getActiveSigningKey()));
         getKeyList().forEach(k -> certs.add(readCert(k)));
@@ -208,7 +212,7 @@ public class ConfProxyProperties {
      * Reads configured keys from the configuration.
      * @return a list containing configured key ids
      */
-    public List<String> getKeyList() {
+    public final List<String> getKeyList() {
         List<String> keys = new ArrayList<String>();
         Iterator<String> signingKeys = config.getKeys();
         while (signingKeys.hasNext()) {
@@ -227,7 +231,8 @@ public class ConfProxyProperties {
      * @param certBytes the byte contents of the certificate
      * @throws Exception if an error occurs when saving the certificate to disk
      */
-    public void saveCert(String keyId, byte[] certBytes) throws Exception {
+    public final void saveCert(final String keyId, final byte[] certBytes)
+            throws Exception {
         String filePath = getCertPath(keyId).toString();
         AtomicSave.execute(filePath, "tmpcert",
                 out -> CryptoUtils.writeCertificatePem(certBytes, out));
@@ -239,7 +244,8 @@ public class ConfProxyProperties {
      * @throws ConfigurationException
      * if an error occurs when saving the configuration
      */
-    public void addKeyId(String keyId) throws ConfigurationException {
+    public final void addKeyId(final String keyId)
+            throws ConfigurationException {
         int nextKeyNumber = getNextKeyNumber();
         config.addProperty(SIGNING_KEY_ID_PREFIX + nextKeyNumber, keyId);
         config.save();
@@ -252,7 +258,8 @@ public class ConfProxyProperties {
      * @throws ConfigurationException
      * if an error occurs when saving the configuration
      */
-    public boolean removeKeyId(String keyId) throws ConfigurationException {
+    public final boolean removeKeyId(final String keyId)
+            throws ConfigurationException {
         Iterator<String> signingKeys = config.getKeys();
         String keyIdProperty = null;
         while (signingKeys.hasNext()) {
@@ -275,7 +282,7 @@ public class ConfProxyProperties {
      * Checks whether the configuration is loaded correctly.
      * @return true if the configuration file has been loaded.
      */
-    public boolean exists() {
+    public final boolean exists() {
         return config != null;
     }
 
@@ -284,7 +291,7 @@ public class ConfProxyProperties {
      * @param keyId the id for the key corresponding to the certificate
      * @throws IOException if an I/O error occurs
      */
-    public void deleteCert(String keyId) throws IOException {
+    public final void deleteCert(final String keyId) throws IOException {
         Files.delete(getCertPath(keyId));
     }
 
@@ -293,11 +300,15 @@ public class ConfProxyProperties {
      * @param keyId the id for the key corresponding to the certificate
      * @return the path to the certificate file
      */
-    public Path getCertPath(String keyId) {
+    public final Path getCertPath(final String keyId) {
         return Paths.get(SystemProperties.getConfigurationProxyConfPath(),
                 instance, "cert_" + keyId + CERT_EXTENSION);
     }
 
+    /**
+     * Get the current active signing key count.
+     * @return the active signing key count
+     */
     private int activeSigningKeyCount() {
         Object activeKeyProperty = config.getProperty(ACTIVE_SIGNING_KEY_ID);
         if (activeKeyProperty instanceof ArrayList) {
@@ -306,6 +317,10 @@ public class ConfProxyProperties {
         return activeKeyProperty != null ? 1 : 0;
     }
 
+    /**
+     * Get next available key number.
+     * @return the next available key number
+     */
     private int getNextKeyNumber() {
         int n = 1;
         for (; config.containsKey(SIGNING_KEY_ID_PREFIX + n); ++n) {
@@ -314,8 +329,14 @@ public class ConfProxyProperties {
         return n;
     }
 
-    private X509Certificate readCert(String keyId) {
-        try (InputStream is = new FileInputStream(getCertPath(keyId).toFile())) {
+    /**
+     * Read the certificate for the provided key id from disk.
+     * @param keyId the key id
+     * @return the certificate for the provided key id
+     */
+    private X509Certificate readCert(final String keyId) {
+        try (InputStream is =
+                new FileInputStream(getCertPath(keyId).toFile())) {
             return CryptoUtils.readCertificate(is);
         } catch (Exception e) {
             log.error("Failed to read cert for key ID '{}'", keyId);
@@ -323,8 +344,13 @@ public class ConfProxyProperties {
         }
     }
 
+    /**
+     * Quietly get the raw bytes of a certificate.
+     * @param cert the certificate
+     * @return raw bytes for the provided certificate
+     */
     @SneakyThrows
-    private static byte[] certBytes(X509Certificate cert) {
+    private static byte[] certBytes(final X509Certificate cert) {
         return cert.getEncoded();
     }
 }

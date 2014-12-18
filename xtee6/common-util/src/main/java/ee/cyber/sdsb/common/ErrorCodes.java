@@ -145,6 +145,8 @@ public class ErrorCodes {
     public static final String X_LOGIN_FAILED = "LoginFailed";
     public static final String X_LOGOUT_FAILED = "LogoutFailed";
     public static final String X_PIN_INCORRECT = "PinIncorrect";
+    public static final String X_CERT_IMPORT_FAILED = "CertImportFailed";
+
 
     // SecureLog errors
 

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -211,17 +212,30 @@ public class ConfigurationDirectory {
      * Applies the given function to all files belonging to
      * the configuration directory.
      * @param consumer the function instance that should be applied to
+     * @throws Exception if an error occurs
+     */
+    public synchronized void eachFile(Consumer<Path> consumer)
+            throws Exception {
+        try (Stream<Path> paths = excludeMetadataAndDirs(Files.walk(path))) {
+            paths.forEach(consumer::accept);
+        }
+    }
+
+    /**
+     * Applies the given function to all files belonging to
+     * the configuration directory.
+     * @param consumer the function instance that should be applied to
      * all files belonging to the configuration directory.
      * @throws Exception if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws Exception {
         try (Stream<Path> paths = excludeMetadataAndDirs(Files.walk(path))) {
             for (Path filepath : paths.collect(Collectors.toList())) {
-                log.debug("Processing '{}'", filepath);
+                log.trace("Processing '{}'", filepath);
                 try (InputStream is = new FileInputStream(filepath.toFile())) {
                     ConfigurationPartMetadata metadata = null;
                     try {
-                        metadata = getMetadata(filepath.toString());
+                        metadata = getMetadata(filepath);
                     } catch (Exception e) {
                         log.error("Could not open configuration file '{}'"
                                 + " metadata: {}", filepath, e);
@@ -243,10 +257,10 @@ public class ConfigurationDirectory {
      * @param fileName the absolute file name
      * @return true, if the file has expired
      */
-    public static final boolean isExpired(String fileName) {
+    public static final boolean isExpired(Path fileName) {
         try {
             DateTime expiresOn = getMetadata(fileName).getExpirationDate();
-            if (new DateTime().isAfter(expiresOn)) {
+            if (expiresOn.isBeforeNow()) {
                 log.info("{} expired on {}", fileName, expiresOn);
                 return true;
             }
@@ -262,7 +276,7 @@ public class ConfigurationDirectory {
      * file is too old.
      * @param fileName the file name
      */
-    public static final void verifyUpToDate(String fileName) {
+    public static final void verifyUpToDate(Path fileName) {
         if (isExpired(fileName)) {
             throw new CodedException(X_OUTDATED_GLOBALCONF, "%s is too old",
                     fileName);
@@ -318,9 +332,9 @@ public class ConfigurationDirectory {
             log.error("Failed to delete file {}", file);
         }
 
-        File expireDateFile = new File(fileName + METADATA_SUFFIX);
-        if (!expireDateFile.delete()) {
-            log.error("Failed to delete file {}", expireDateFile);
+        File metadataFile = new File(fileName + METADATA_SUFFIX);
+        if (!metadataFile.delete()) {
+            log.error("Failed to delete file {}", metadataFile);
         }
 
         File directory = file.getParentFile();
@@ -350,21 +364,15 @@ public class ConfigurationDirectory {
      * @return the metadata for the given file.
      * @throws Exception if the metadata cannot be loaded
      */
-    public static ConfigurationPartMetadata getMetadata(String fileName)
+    public static ConfigurationPartMetadata getMetadata(Path fileName)
             throws Exception {
-        File file = new File(fileName + METADATA_SUFFIX);
+        File file = new File(fileName.toString() + METADATA_SUFFIX);
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
     }
 
     // ------------------------------------------------------------------------
-
-    private Stream<Path> excludeMetadataAndDirs(Stream<Path> fileStream) {
-        return fileStream.filter(Files::isRegularFile)
-                .filter(p -> !p.endsWith(INSTANCE_IDENTIFIER_FILE))
-                .filter(p -> !p.toString().endsWith(METADATA_SUFFIX));
-    }
 
     private void loadInstanceIdentifier() {
         Path file = Paths.get(path.toString(), INSTANCE_IDENTIFIER_FILE);
@@ -394,7 +402,7 @@ public class ConfigurationDirectory {
                     privateParametersPath);
 
             privateParams.put(instanceId,
-                    loadParameters(privateParametersPath.toString(),
+                    loadParameters(privateParametersPath,
                             PrivateParameters.class,
                             this.privateParameters.get(instanceId)));
         } else {
@@ -414,7 +422,7 @@ public class ConfigurationDirectory {
                     sharedParametersPath);
 
             sharedParams.put(instanceId,
-                    loadParameters(sharedParametersPath.toString(),
+                    loadParameters(sharedParametersPath,
                             SharedParameters.class,
                             this.sharedParameters.get(instanceId)));
         } else {
@@ -425,22 +433,23 @@ public class ConfigurationDirectory {
 
     // Loads the parameters from file if the file has changed.
     // Returns the parameters or null if the file does not exist.
-    private static <T extends ConfProvider> T loadParameters(String path,
+    private static <T extends ConfProvider> T loadParameters(Path path,
             Class<T> clazz, T existingInstance) throws Exception {
-        if (isExpired(path)) {
-            throw new CodedException(X_OUTDATED_GLOBALCONF, "%s is too old",
-                    path);
-        }
-
         T params = existingInstance != null
                 ? existingInstance : (T) clazz.newInstance();
 
         if (params.hasChanged()) {
             log.trace("Loading {} from {}", clazz.getSimpleName(), path);
 
-            params.load(path);
+            params.load(path.toString());
         }
 
         return params;
+    }
+
+    private static Stream<Path> excludeMetadataAndDirs(Stream<Path> stream) {
+        return stream.filter(Files::isRegularFile)
+                .filter(p -> !p.endsWith(INSTANCE_IDENTIFIER_FILE))
+                .filter(p -> !p.toString().endsWith(METADATA_SUFFIX));
     }
 }

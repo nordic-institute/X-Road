@@ -221,4 +221,9 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public SecurityServerId getServerId(X509Certificate cert) throws Exception {
         return null;
     }
+
+    @Override
+    public boolean isValid() {
+        return true;
+    }
 }

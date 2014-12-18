@@ -49,6 +49,9 @@ import ee.cyber.sdsb.proxy.conf.AuthKeyManager;
 @Slf4j
 public class ServerProxy implements StartStop {
 
+    // SSL session timeout in seconds
+    private static final int SSL_SESSION_TIMEOUT = 600;
+
     // Configuration parameters.
     // TODO: #2576 Make configurable in the future
     private static final int CLIENT_TIMEOUT = 300000; // 30 sec.
@@ -226,6 +229,7 @@ public class ServerProxy implements StartStop {
         cf.setNeedClientAuth(true);
         cf.setIncludeCipherSuites(CryptoUtils.INCLUDED_CIPHER_SUITES);
         cf.setSessionCachingEnabled(true);
+        cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] { AuthKeyManager.getInstance() },

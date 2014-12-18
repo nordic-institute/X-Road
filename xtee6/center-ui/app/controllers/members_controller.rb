@@ -77,11 +77,13 @@ class MembersController < ApplicationController
     query_params = get_list_query_params(
       get_member_search_column(get_sort_column_no))
 
-    # TODO: does not seem to exclude clients of security_server_code
+    advanced_search_params =
+        get_advanced_search_params(params[:advancedSearchParams])
+
     providers = SecurityServerClient.get_addable_clients_for_server(
-        security_server_code, query_params)
+        security_server_code, query_params, advanced_search_params)
     count = SecurityServerClient.get_addable_clients_count(
-        security_server_code, searchable)
+        security_server_code, searchable, advanced_search_params)
 
     result = []
     providers.each do |each|
@@ -302,8 +304,10 @@ class MembersController < ApplicationController
     subsystem_code_param = params[:subsystemCode]
     subsystem_code = get_subsystem_code(subsystem_code_param)
 
+    # We use it outside condition as member must always exist.
+    member = find_member(member_class, member_code)
+
     if must_save_subsystem(member_class, member_code, subsystem_code)
-      member = find_member(member_class, member_code)
       Subsystem.create!(
               :sdsb_member => member,
               :subsystem_code => subsystem_code)

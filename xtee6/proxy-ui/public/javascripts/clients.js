@@ -532,7 +532,7 @@
     }
 
     function initClientCertsTable() {
-        var opts = defaultTableOpts();
+        var opts = scrollableTableOpts(200);
         opts.bPaginate = false;
         opts.sDom = "t";
         opts.bFilter = false;

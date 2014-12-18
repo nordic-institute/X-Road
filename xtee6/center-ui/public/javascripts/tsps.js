@@ -4,11 +4,10 @@ var SDSB_TSPS = function() {
     function initTable() {
         var opts = defaultTableOpts();
         opts.fnDrawCallback = updateActionButtonsVisibility;
-        opts.bProcessing = true;
         opts.bServerSide = true;
-        opts.sScrollY = "400px";
-        opts.sScrollX = "100%";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sScrollY = 400;
+        opts.bScrollCollapse = true;
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "valid_from", "sWidth": "14em" },

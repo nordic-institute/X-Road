@@ -232,6 +232,8 @@ class KeysController < ApplicationController
       :cert_id => [:required]
     })
 
+    GlobalConf::verifyValidity
+
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
     begin
       unregister_cert(cert.certificateBytes)

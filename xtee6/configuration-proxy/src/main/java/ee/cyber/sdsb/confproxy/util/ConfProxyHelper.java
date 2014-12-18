@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.FileUtils;
 
 import ee.cyber.sdsb.common.SystemProperties;
@@ -30,9 +29,10 @@ public final class ConfProxyHelper {
     private static final int ERROR_CODE_CANNOT_DOWNLOAD_CONF = 122;
     private static final int MAX_CONFIGURATION_LIFETIME_SECONDS = 600;
 
-    private ConfProxyHelper() {
-        
-    }
+    /**
+     * Unavailable utility class constructor.
+     */
+    private ConfProxyHelper() { }
 
     /**
      * Invoke the configuration client script to download the global
@@ -42,8 +42,8 @@ public final class ConfProxyHelper {
      * @return downloaded configuration directory
      * @throws Exception if an configuration client error occurs
      */
-    public static ConfigurationDirectory downloadConfiguration(String path,
-            String sourceAnchor) throws Exception {
+    public static ConfigurationDirectory downloadConfiguration(
+            final String path, final String sourceAnchor) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
                 ConfProxyProperties.getDownloadScriptPath(),
                 sourceAnchor, path);
@@ -63,7 +63,7 @@ public final class ConfProxyHelper {
      * @param sourceAnchor path to the source anchor xml file
      * @throws Exception if an configuration client error occurs
      */
-    public static void validateConfiguration(String sourceAnchor)
+    public static void validateConfiguration(final String sourceAnchor)
             throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
                 ConfProxyProperties.getDownloadScriptPath(),
@@ -76,7 +76,13 @@ public final class ConfProxyHelper {
         runConfClient(pb);
     }
 
-    private static void runConfClient(ProcessBuilder pb) throws Exception {
+    /**
+     * Helper method for running the configuration client script.
+     * @param pb the configuration client script process builder
+     * @throws Exception if errors occur when running the configuration client
+     */
+    private static void runConfClient(final ProcessBuilder pb)
+            throws Exception {
         int exitCode = -1;
         try {
             Process process = pb.start();
@@ -105,7 +111,8 @@ public final class ConfProxyHelper {
             default:
                 throw new Exception("Failed to download GlobalConf "
                         + "(configucation-client exit code " + exitCode + "), "
-                        + "make sure configuration-client is installed correctly");
+                        + "make sure configuration-client is"
+                        + "installed correctly");
             }
         }
     }
@@ -125,13 +132,13 @@ public final class ConfProxyHelper {
     }
 
     /**
-     * Deletes outdated previously generated global configurations, as defined by
-     * the 'validity interval' configuration proxy property.
+     * Deletes outdated previously generated global configurations,
+     * as defined by the 'validity interval' configuration proxy property.
      * @param conf the configuration proxy instance configuration
      * @throws IOException
      * in case an old global configuration could not be deleted
      */
-    public static void purgeOutdatedGenerations(ConfProxyProperties conf)
+    public static void purgeOutdatedGenerations(final ConfProxyProperties conf)
             throws IOException {
         Path instanceDir = Paths.get(conf.getConfigurationTargetPath());
         Files.createDirectories(instanceDir); //avoid errors if it's not present
@@ -154,7 +161,14 @@ public final class ConfProxyHelper {
         }
     }
 
-    private static List<String> subDirectoryNames(Path dir) throws IOException {
+    /**
+     * Gets the list of subdirectory names in the given directory path.
+     * @param dir path to the directory
+     * @return list of subdirectory names
+     * @throws IOException if opening the directory fails
+     */
+    private static List<String> subDirectoryNames(final Path dir)
+            throws IOException {
         List<String> subdirs = new ArrayList<>();
         try (DirectoryStream<Path> stream =
                 Files.newDirectoryStream(dir, Files::isDirectory)) {

@@ -17,6 +17,11 @@ class SdsbMember < SecurityServerClient
     end
   end
 
+  after_update do |record|
+    Request.update_names(
+        record.member_class.code, record.member_code, record.name)
+  end
+
   validates :name, :member_class, :member_code, :presence => true
   validates_with DuplicateMemberValidator, :on => :create
 

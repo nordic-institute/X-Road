@@ -95,7 +95,7 @@ public class Signer implements StartStop {
     private static class ModuleManagerJob extends PeriodicJob {
 
         private static final FiniteDuration MODULE_MANAGER_INTERVAL =
-                Duration.create(30, TimeUnit.SECONDS);
+                Duration.create(60, TimeUnit.SECONDS);
 
         public ModuleManagerJob() {
             super(MODULE_MANAGER, new Update(), MODULE_MANAGER_INTERVAL);

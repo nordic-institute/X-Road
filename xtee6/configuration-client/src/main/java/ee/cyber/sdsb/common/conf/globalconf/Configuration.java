@@ -30,7 +30,7 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.*;
  * Downloaded configuration directory.
  */
 @Slf4j
-public class Configuration {
+class Configuration {
 
     protected final FileNameProvider fileNameProvider;
     protected final String[] instanceIdentifiers;

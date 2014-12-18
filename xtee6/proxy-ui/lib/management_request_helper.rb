@@ -23,6 +23,8 @@ module ManagementRequestHelper
   end
 
   def request_sender
+    GlobalConf.verifyValidity
+
     receiver = GlobalConf.getManagementRequestService
     sender = owner_identifier
 

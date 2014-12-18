@@ -77,19 +77,35 @@ class DistributedFiles < ActiveRecord::Base
     end
   end
 
+  def self.get_file_name(content_identifier)
+    case content_identifier
+    when PrivateParameters::CONTENT_ID_PRIVATE_PARAMETERS
+      return PrivateParameters::FILE_NAME_PRIVATE_PARAMETERS
+    when SharedParameters::CONTENT_ID_SHARED_PARAMETERS
+      return SharedParameters::FILE_NAME_SHARED_PARAMETERS
+    else
+      raise "No content identifier available for file name '#{file_name}'"
+    end
+  end
+
   def self.get_required_configuration_parts_as_json(content_identifiers)
     result = []
 
     content_identifiers.each do |each_identifier|
-      DistributedFiles.where(
-          :content_identifier => each_identifier).each do |each_file|
-        result << {
-          :content_identifier => each_file.content_identifier,
-          :file_name => each_file.file_name,
-          :updated_at => CenterUtils::format_time(
-              each_file.file_updated_at.localtime),
-          :optional => false
-        }
+      files_relation = DistributedFiles.where(
+          :content_identifier => each_identifier)
+
+      if files_relation.empty?
+        result << get_configuration_part_as_json(
+            each_identifier, get_file_name(each_identifier), nil)
+      else
+        files_relation.each do |each_file|
+          updated = CenterUtils::format_time(
+                each_file.file_updated_at.localtime)
+
+          result << get_configuration_part_as_json(
+              each_identifier, each_file.file_name, updated)
+        end
       end
     end
 
@@ -105,14 +121,20 @@ class DistributedFiles < ActiveRecord::Base
       update_time = file_in_db ?
           CenterUtils::format_time(file_in_db.file_updated_at.localtime) : nil
 
-      result << {
-        :content_identifier => each.contentIdentifier,
-        :file_name => file_name,
-        :updated_at => update_time ,
-        :optional => true
-      }
+      result << get_configuration_part_as_json(
+          each.contentIdentifier, file_name, update_time, true)
     end
 
     return result
+  end
+
+  def self.get_configuration_part_as_json(
+      content_identifier, file_name, updated, optional = false)
+    {
+      :content_identifier => content_identifier,
+      :file_name => file_name,
+      :updated_at => updated,
+      :optional => optional
+    }
   end
 end

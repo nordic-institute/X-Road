@@ -222,13 +222,12 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
 
     function initSearchableProvidersTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "100px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name", "sWidth": "10em" },
             { "mData": "member_code", "sWidth": "10em" },

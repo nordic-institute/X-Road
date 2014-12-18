@@ -88,7 +88,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
             sendSuccessResponse();
         } catch (Exception e) {
-            log.error("Failed to activate token '{}': ", getWorkerId(),
+            log.error("Failed to activate token '{}': {}", getWorkerId(),
                     e.getMessage());
             TokenManager.setTokenActive(tokenId, false);
             throw customizeException(e);

@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import lombok.extern.slf4j.Slf4j;
+
 import ee.cyber.sdsb.common.conf.globalconf.ConfigurationDirectory;
 import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
 import ee.cyber.sdsb.confproxy.util.OutputBuilder;
@@ -15,7 +16,12 @@ import ee.cyber.sdsb.confproxy.util.OutputBuilder;
 public class ConfProxy {
     protected ConfProxyProperties conf;
 
-    ConfProxy(String instance) throws Exception {
+    /**
+     * Initializes a new configuration proxy instance.
+     * @param instance name of this proxy instance
+     * @throws Exception if loading instance configuration fails
+     */
+    ConfProxy(final String instance) throws Exception {
         this.conf = new ConfProxyProperties(instance);
         log.debug("Starting configuration-proxy '{}'...", instance);
     }
@@ -25,7 +31,7 @@ public class ConfProxy {
      * signs it's content and moves it to the public distribution directory.
      * @throws Exception in case of any errors
      */
-    public void execute() throws Exception {
+    public final void execute() throws Exception {
         ConfProxyHelper.purgeOutdatedGenerations(conf);
         ConfigurationDirectory confDir = download();
 
@@ -34,10 +40,14 @@ public class ConfProxy {
         output.moveAndCleanup();
     }
 
-    protected ConfigurationDirectory download() throws Exception {
+    /**
+     * Downloads the global configuration according to
+     * the instance configuration.
+     * @return downloaded configuration directory
+     * @throws Exception if configuration client script encounters errors
+     */
+    private ConfigurationDirectory download() throws Exception {
         Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath()));
-        //return the downloaded configuration directory
-        //mocked method can return the directory immediately
         return ConfProxyHelper.downloadConfiguration(
                 conf.getConfigurationDownloadPath(),
                 conf.getProxyAnchorPath());

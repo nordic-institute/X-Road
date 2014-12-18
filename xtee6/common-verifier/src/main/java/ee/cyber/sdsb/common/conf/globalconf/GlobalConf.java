@@ -17,8 +17,7 @@ import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.ErrorCodes.translateException;
+import static ee.cyber.sdsb.common.ErrorCodes.*;
 
 /**
  * Global configuration.
@@ -88,6 +87,27 @@ public class GlobalConf {
     }
 
     // ------------------------------------------------------------------------
+
+    /**
+     * Verifies that the global configuration is valid. Throws exception
+     * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the it is too old.
+     */
+    public static void verifyValidity() {
+        if (!isValid()) {
+            throw new CodedException(X_OUTDATED_GLOBALCONF,
+                    "Global configuration is too old");
+        }
+    }
+
+    /**
+     * Returns true, if the global configuration is valid and can be used
+     * for security-critical tasks.
+     * Configuration is considered to be valid if all the files of all
+     * the instances are up-to-date (not expired).
+     */
+    public static boolean isValid() {
+        return getInstance().isValid();
+    }
 
     /**
      * Returns the instance identifier for this configuration source.

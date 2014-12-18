@@ -98,11 +98,11 @@ var SDSB_CENTRAL_SERVICES = function () {
     function initTable() {
         var opts = defaultTableOpts();
         opts.fnDrawCallback = onDraw;
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "400px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sScrollY = 400;
+        opts.bScrollCollapse = true;
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "central_service_code", "sWidth": '250px' },
             { "mData": "id_service_code", "sWidth": '250px',

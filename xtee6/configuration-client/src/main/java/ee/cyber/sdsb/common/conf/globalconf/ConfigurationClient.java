@@ -25,7 +25,7 @@ import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_XML;
 @Slf4j
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class ConfigurationClient {
+class ConfigurationClient {
 
     private final Map<String, Set<ConfigurationSource>> additionalSources =
             new HashMap<>();
@@ -35,11 +35,7 @@ public class ConfigurationClient {
 
     private ConfigurationAnchor configurationAnchor;
 
-    /**
-     * Executes the download sequence.
-     * @throws Exception if an error occurs
-     */
-    public synchronized void execute() throws Exception {
+    synchronized void execute() throws Exception {
         log.trace("Configuration client executing...");
 
         if (configurationAnchor == null || configurationAnchor.hasChanged()) {

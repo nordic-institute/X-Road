@@ -12,7 +12,7 @@
             </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
         <encoder>
-            <pattern>%d %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%d %-5level [%thread] %logger{36} - %msg%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>

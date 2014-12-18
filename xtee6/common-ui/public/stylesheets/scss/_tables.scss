@@ -3,7 +3,6 @@ table {
 
     thead {
         text-align: left;
-        border: 1px solid $base-border-color;
         background: #f3f3f3;
 
         tr {
@@ -12,7 +11,6 @@ table {
                 font-weight: 500;
                 padding: 10px 5px;
                 font-size: 9pt;
-                border-bottom: none !important;
 
                 &.status {
                     width: 19px;
@@ -29,12 +27,16 @@ table {
     }
 
     tbody {
-        border: 1px solid $base-border-color;
         background: #fff;
         font-size: 11pt;
 
         tr {
-            border-bottom: 1px solid $base-border-color;
+            border-top: 1px solid $base-border-color;
+
+            &:first-of-type {
+                border-top: none;
+            }
+
             &:hover {
                 td {
                     background: rgba($base-color-blue, 0.5) !important;
@@ -58,7 +60,7 @@ table {
                 }
             }
             &.unavailable {
-                color: #aaa;
+                color: $base-color-medium;
             }
             &.wsdl.disabled {
                 color: $base-color-red;
@@ -187,12 +189,13 @@ table.details {
 
 .dataTables_wrapper {
     margin-bottom: 10px;
+    border: 1px solid $base-border-color;
+    border-top: none;
 
     .dataTables_header {
-        border: 1px solid $base-border-color;
-        border-bottom: none;
         padding: 5px;
         background: rgba($base-color-light, 0.4);
+        border-top: 1px solid $base-border-color;
 
         label {
             font-size: 11pt;
@@ -211,7 +214,13 @@ table.details {
         }
     }
 
+    .dataTables_scrollHead {
+        border-top: 1px solid $base-border-color !important;
+        background: #f3f3f3;
+    }
+
     .dataTables_scrollBody {
+        border-top: 1px solid $base-border-color;
         word-wrap: break-word;
         overflow-x: hidden !important;
     }

@@ -10,7 +10,7 @@ import org.apache.commons.cli.CommandLine;
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.confproxy.ConfProxyProperties;
 
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.*;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for creating a new configuration proxy instance
@@ -19,7 +19,10 @@ import static ee.cyber.sdsb.confproxy.ConfProxyProperties.*;
 public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
 
     static final int DEFAULT_VALIDITY_INTERVAL_SECONDS = 600;
-    
+
+    /**
+     * Constructs a confproxy-create-instance utility program instance.
+     */
     ConfProxyUtilCreateInstance() {
         super("confproxy-create-instance");
         getOptions()
@@ -27,10 +30,11 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
     }
 
     @Override
-    void execute(CommandLine commandLine)
+    final void execute(final CommandLine commandLine)
             throws Exception {
         if (commandLine.hasOption(PROXY_INSTANCE.getOpt())) {
-            String instance = commandLine.getOptionValue(PROXY_INSTANCE.getOpt());
+            String instance = commandLine
+                    .getOptionValue(PROXY_INSTANCE.getOpt());
             System.out.println("Generating configuration directory for "
                     + "instance '" + instance + "' ...");
             String basePath = SystemProperties.getConfigurationProxyConfPath();

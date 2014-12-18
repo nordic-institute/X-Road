@@ -79,10 +79,6 @@ public class CertChain {
         try {
             X509Certificate trustAnchor =
                     GlobalConf.getCaCert(instanceIdentifier, cert);
-            if (trustAnchor == null) {
-                throw new Exception("Unable to find trust anchor");
-            }
-
             return new CertChain(instanceIdentifier, cert, trustAnchor,
                     additionalCerts != null
                         ? additionalCerts : new ArrayList<X509Certificate>());

@@ -35,11 +35,10 @@ var SDSB_CAS = function() {
     function initCasTable() {
         var opts = defaultTableOpts();
         opts.fnDrawCallback = updateCaListActionButtonsVisibility;
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.sScrollY = "400px";
-        opts.sScrollX = "100%";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.bScrollCollapse = true;
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "trusted_certification_service" },
             { "mData": "valid_from", "sWidth": "14em" },

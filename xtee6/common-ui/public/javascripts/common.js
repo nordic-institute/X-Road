@@ -102,8 +102,6 @@ $.fn.initDialog = function(opts) {
                 Math.max(100, contentHeight - nonRowsHeight);
 
             table.fnAdjustColumnSizing(false);
-
-            resizeTableHeader(table.fnSettings());
         });
     });
 
@@ -475,16 +473,6 @@ function redirect(path) {
     window.location.href = $("meta[name='root_path']").attr("content") + path;
 }
 
-// Adjust the width of the header to match the width of the table with
-// or without the scrollbar, 12 = 5px paddings + 1px borders.
-function resizeTableHeader(oSettings) {
-    var table = oSettings.oInstance;
-
-    table.closest(".dataTables_wrapper")
-        .find(".dataTables_header")
-        .css("width", table.outerWidth() - 12);
-}
-
 function registerCallbacks(oSettings) {
     var table = $(oSettings.nTable).dataTable();
 
@@ -542,18 +530,12 @@ function registerCallbacks(oSettings) {
         }
     });
 
-    oSettings.aoDrawCallback.push({
-        "sName": "resizeTableHeader",
-        "fn": resizeTableHeader
-    });
-
     table.data("callbacksRegistered", true);
 }
 
 $.extend($.fn.dataTable.defaults, {
     "fnInitComplete": function(oSettings) {
         registerCallbacks(oSettings);
-        resizeTableHeader(oSettings);
     }
 });
 
@@ -578,7 +560,8 @@ function defaultTableOpts() {
             }
         },
         // Adds registerCallbacks() to make the callbacks available on
-        // first draw in case of ajax source, and resizeTableHeader().
+        // first draw in case of ajax source. Also triggers
+        // 'dialogresizestop' on success.
         "fnServerData": function(sUrl, aoData, fnCallback, oSettings) {
             registerCallbacks(oSettings);
 
@@ -599,8 +582,6 @@ function defaultTableOpts() {
                     if (dialog.length > 0) {
                         // in case data arrives after dialog is opened
                         dialog.trigger("dialogresizestop");
-                    } else {
-                        resizeTableHeader(oSettings);
                     }
                 },
                 "dataType": "json",
@@ -977,16 +958,6 @@ $(document).ready(function() {
         }
 
         return e.which !== 13;
-    });
-
-    // correct thead alignment with tbody on browser zoom
-    $(window).resize(function() {
-        $($.fn.dataTable.fnTables(true)).each(function() {
-            var table = $(this).dataTable();
-
-            table.fnAdjustColumnSizing(false);
-            resizeTableHeader(table.fnSettings());
-        });
     });
 
     // Manually increase the size of scrollBody to accomodate the

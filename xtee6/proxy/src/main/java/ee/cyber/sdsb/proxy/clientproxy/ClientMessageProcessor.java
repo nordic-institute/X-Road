@@ -124,8 +124,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.trace("process()");
 
-        cacheConfigurationForCurrentThread();
-
         HandlerThread handlerThread = new HandlerThread();
         handlerThread.setName(Thread.currentThread().getName() + "-soap");
 

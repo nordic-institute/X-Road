@@ -141,7 +141,7 @@ public class AuthTrustVerifier {
         if (address == null || address.isEmpty()) {
             throw new CodedException(X_UNKNOWN_MEMBER,
                     "Unable to find provider address for authentication "
-                            + "certificate {} (service provider: {})",
+                            + "certificate %s (service provider: %s)",
                             authCert.getSerialNumber(), serviceProvider);
         }
 

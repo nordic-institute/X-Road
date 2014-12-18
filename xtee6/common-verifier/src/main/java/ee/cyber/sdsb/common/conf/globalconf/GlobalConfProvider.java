@@ -21,6 +21,12 @@ import ee.cyber.sdsb.common.identifier.ServiceId;
 public interface GlobalConfProvider extends ConfProvider {
 
     /**
+     * @return true, if the global configuration is valid and can be used
+     * for security-critical tasks.
+     */
+    boolean isValid();
+
+    /**
      * @return the instance identifier for this configuration source.
      */
     String getInstanceIdentifier();

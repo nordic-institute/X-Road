@@ -65,6 +65,10 @@ class ApplicationController < BaseController
     if initialized?
       @alerts = []
 
+      unless GlobalConf::isValid
+        @alerts << t('application.globalconf_invalid')
+      end
+
       SignerProxy::getTokens.each do |token|
         if token.id == SignerProxy::SSL_TOKEN_ID
           unless token.active

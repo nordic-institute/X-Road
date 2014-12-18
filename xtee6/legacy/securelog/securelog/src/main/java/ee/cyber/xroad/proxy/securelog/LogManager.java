@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.common.util.StartStop;
@@ -117,6 +118,10 @@ public class LogManager implements StartStop {
         }
 
         private void startTimestamper(LogFile logFile, int tsrCount) {
+            if (!GlobalConf.isValid()) {
+                return;
+            }
+
             List<String> tspUrls = ServerConf.getTspUrl();
             if (tspUrls.isEmpty()) {
                 LOG.warn("Cannot time-stamp, no TSPs configured");

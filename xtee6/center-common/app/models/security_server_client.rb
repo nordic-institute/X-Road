@@ -68,18 +68,20 @@ class SecurityServerClient < ActiveRecord::Base
 
   # Returns all server clients except for subsystems that are already
   # clients for the server.
-  def self.get_addable_clients_for_server(server_code, query_params)
+  def self.get_addable_clients_for_server(
+      server_code, query_params, advanced_search_params)
     logger.info("SecurityServerClient.get_addable_clients_for_server(\
-        '#{server_code}', '#{query_params}')")
+        '#{server_code}', '#{query_params}', '#{advanced_search_params}')")
 
-    identifiers = get_clients_relation(query_params).
+    identifiers = get_clients_relation(query_params, advanced_search_params).
         where(get_excluded_ids_relation(server_code ?
             get_excluded_server_client_ids(server_code) : []))
 
     return get_clients_with_name(identifiers)
   end
 
-  def self.get_addable_clients_count(server_code, searchable = "")
+  def self.get_addable_clients_count(
+      server_code, searchable = "", advanced_search_params = nil)
     return get_search_relation(searchable).
         where(get_excluded_ids_relation(server_code ?
             get_excluded_server_client_ids(server_code) : [])).count

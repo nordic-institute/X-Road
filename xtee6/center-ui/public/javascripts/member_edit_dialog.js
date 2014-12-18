@@ -310,13 +310,12 @@ function openMemberEditDialog(memberRowData) {
 
     function initManagementRequestsTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "300px";
-        opts.sDom = "tr";
+        opts.sDom = "t";
         opts.aoColumns = [
             {"mData" : "id"},
             {"mData" : "type"},

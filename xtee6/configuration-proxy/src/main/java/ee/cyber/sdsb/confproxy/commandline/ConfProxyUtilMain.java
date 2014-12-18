@@ -1,17 +1,16 @@
 package ee.cyber.sdsb.confproxy.commandline;
 
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 
-import com.typesafe.config.ConfigFactory;
-
-import akka.actor.ActorSystem;
 import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
+
 import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CONFPROXY;
 
 /**
@@ -32,15 +31,16 @@ public final class ConfProxyUtilMain {
     private static ActorSystem actorSystem;
     private static CommandLineParser cmdLineGnuParser;
 
-    private ConfProxyUtilMain() {
-        
-    }
+    /**
+     * Unavailable utility class constructor.
+     */
+    private ConfProxyUtilMain() { }
 
     /**
      * Configuration proxy utility tool program entry point.
      * @param args program args
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
             setup();
             runUtilWithArgs(args);
@@ -52,6 +52,10 @@ public final class ConfProxyUtilMain {
         }
     }
 
+    /**
+     * Initialize configuration proxy utility program components.
+     * @throws Exception if initialization fails
+     */
     static void setup() throws Exception {
         actorSystem = ActorSystem.create("ConfigurationProxyUtil",
                 ConfigFactory.load().getConfig("configuration-proxy"));
@@ -61,7 +65,12 @@ public final class ConfProxyUtilMain {
         cmdLineGnuParser = new GnuParser();
     }
 
-    static void runUtilWithArgs(String[] args) throws Exception {
+    /**
+     * Executes the utility program with the provided argument list.
+     * @param args program arguments
+     * @throws Exception if any errors occur during execution
+     */
+    static void runUtilWithArgs(final String[] args) throws Exception {
         String utilClass = args[0];
         ConfProxyUtil util = createUtilInstance(utilClass);
 
@@ -70,8 +79,16 @@ public final class ConfProxyUtilMain {
         util.execute(commandLine);
     }
 
+    /**
+     * Creates an utility program instance of the provided class name.
+     * @param className name of the utility program class
+     * @return an instance of the requested utility program
+     * @throws Exception if class could not be found or an instance could
+     * not be created
+     */
     @SuppressWarnings("unchecked")
-    static ConfProxyUtil createUtilInstance(String className) throws Exception {
+    static ConfProxyUtil createUtilInstance(final String className)
+            throws Exception {
         Class<ConfProxyUtil> utilClass =
                 (Class<ConfProxyUtil>) Class.forName(className);
         return utilClass.newInstance();

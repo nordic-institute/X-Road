@@ -29,14 +29,18 @@ public abstract class MessageProcessorBase {
         this.servletRequest = servletRequest;
         this.servletResponse = servletResponse;
         this.httpClient = httpClient;
+
+        cacheConfigurationForCurrentThread();
     }
 
     /**
      * Saves the current configurations in thread local storage, to protect
      * against configuration reloads during message processing.
      */
-    protected void cacheConfigurationForCurrentThread() {
+    private void cacheConfigurationForCurrentThread() {
+        GlobalConf.verifyValidity();
         GlobalConf.initForCurrentThread();
+
         KeyConf.initForCurrentThread();
     }
 

@@ -80,6 +80,8 @@ class SysparamsController < ApplicationController
       :url => [:required]
     })
 
+    GlobalConf::verifyValidity
+
     added_tsp = {
       :name => params[:name],
       :url => params[:url]
@@ -112,6 +114,8 @@ class SysparamsController < ApplicationController
     validate_params({
       :name => [:required]
     })
+
+    GlobalConf::verifyValidity
 
     deleted_tsp = nil
 

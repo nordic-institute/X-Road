@@ -49,9 +49,9 @@ class ManagementRequestsControllerTest < ActionController::TestCase
 
   def assert_response_content(content)
     # Response must contain this one:
-    faultstring = "Invalid SDSB instance in request. "\
-      "Allowed is &apos;EE&apos;, "\
-      "but request contained &apos;XAXACA&apos;."
+    faultstring =
+        "Invalid management service address. "\
+        "Contact central server administrator."
 
     assert(
         content.include?(faultstring),

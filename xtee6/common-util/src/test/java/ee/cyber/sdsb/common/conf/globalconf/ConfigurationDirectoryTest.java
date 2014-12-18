@@ -1,5 +1,7 @@
 package ee.cyber.sdsb.common.conf.globalconf;
 
+import java.nio.file.Paths;
+
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -58,8 +60,8 @@ public class ConfigurationDirectoryTest {
     public void readExpiredDirectory() throws Exception {
         thrown.expectError(X_OUTDATED_GLOBALCONF);
 
-        ConfigurationDirectory dir = new ConfigurationDirectory(
-                "src/test/resources/globalconf_expired");
-        assertNull(dir.getPrivate("foo"));
+        ConfigurationDirectory.verifyUpToDate(
+                Paths.get("src/test/resources/globalconf_expired/foo/"
+                        + ConfigurationDirectory.PRIVATE_PARAMETERS_XML));
     }
 }

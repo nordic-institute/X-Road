@@ -253,10 +253,10 @@ class ConfigurationManagementController < ApplicationController
     validation_program =
         optional_parts_conf.getValidationProgram(file_name)
 
-    file_bytes = params[:conf_part_file].read
+    file_bytes = params[:conf_part_file].read()
 
     file_validator = OptionalConfParts::Validator.new(
-        validation_program , file_bytes, content_identifier)
+        validation_program, file_bytes, content_identifier)
 
     validator_stderr = file_validator.validate()
 
@@ -271,6 +271,8 @@ class ConfigurationManagementController < ApplicationController
 
     upload_success(response, "SDSB_CONFIGURATION_SOURCE.uploadCallback")
   rescue Exception => e
+    log_stacktrace(e)
+
     validator_stderr = e.respond_to?(:stderr) ? e.stderr : []
 
     error(e.message)
@@ -296,6 +298,8 @@ class ConfigurationManagementController < ApplicationController
     upload_success(
         {:anchor_info => anchor_info}, "SDSB_TRUSTED_ANCHORS.uploadCallback")
   rescue Java::ee.cyber.sdsb.common.CodedException => e
+    log_stacktrace(e)
+
     logger.error("Schema validation of uploaded anchor failed, message:\n'"\
         "#{e.message}'")
 
@@ -303,6 +307,8 @@ class ConfigurationManagementController < ApplicationController
 
     upload_error(nil, "SDSB_TRUSTED_ANCHORS.uploadCallback")
   rescue RuntimeError => e
+    log_stacktrace(e)
+
     error(e.message)
     upload_error(nil, "SDSB_TRUSTED_ANCHORS.uploadCallback")
   end

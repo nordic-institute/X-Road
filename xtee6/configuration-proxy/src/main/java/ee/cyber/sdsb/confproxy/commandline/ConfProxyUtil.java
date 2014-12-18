@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -11,8 +13,6 @@ import org.apache.commons.cli.Options;
 
 import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.confproxy.ConfProxyProperties;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Base for all the configuration proxy utility tools.
@@ -33,10 +33,18 @@ public abstract class ConfProxyUtil {
             new Option("p", "proxy-instance", true,
                     "configuration-client proxy instance code");
 
+    /**
+     * Executes the utility program.
+     * @param commandLine holds arguments for the utility program
+     * @throws Exception in case of any errors
+     */
     abstract void execute(CommandLine commandLine)
             throws Exception;
-    
-   protected void printHelp() {
+
+    /**
+     * Prints the available arguments for the utility program.
+     */
+    protected final void printHelp() {
         final PrintWriter writer = new PrintWriter(System.out);
         final HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp(writer, HELP_LINE_WIDTH, name, "", options,
@@ -44,9 +52,17 @@ public abstract class ConfProxyUtil {
         writer.close();
      }
 
-    protected ConfProxyProperties loadConf(CommandLine commandLine) {
+    /**
+     * Loads configuration proxy properties based on the instance provided
+     * through the commandline.
+     * @param commandLine holds arguments for the utility program
+     * @return configuration proxy properties instance
+     */
+    protected final ConfProxyProperties loadConf(
+            final CommandLine commandLine) {
         if (commandLine.hasOption(PROXY_INSTANCE.getLongOpt())) {
-            String instance = commandLine.getOptionValue(PROXY_INSTANCE.getOpt());
+            String instance = commandLine
+                    .getOptionValue(PROXY_INSTANCE.getOpt());
             try {
                 return new ConfProxyProperties(instance);
             } catch (Exception e) {
@@ -60,9 +76,15 @@ public abstract class ConfProxyUtil {
         return null;
     }
 
-    protected void ensureProxyExists(CommandLine commandLine) {
+    /**
+     * Makes sure the configuration proxy instance that is requested from the
+     * commandline exists.
+     * @param commandLine holds arguments for the utility program
+     */
+    protected final void ensureProxyExists(final CommandLine commandLine) {
         if (commandLine.hasOption(PROXY_INSTANCE.getLongOpt())) {
-            String instance = commandLine.getOptionValue(PROXY_INSTANCE.getOpt());
+            String instance = commandLine
+                    .getOptionValue(PROXY_INSTANCE.getOpt());
             String confDir = SystemProperties.getConfigurationProxyConfPath();
             File instanceDir = Paths.get(confDir, instance).toFile();
             if (!instanceDir.exists()) {
@@ -72,7 +94,11 @@ public abstract class ConfProxyUtil {
         }
     }
 
-    protected void fail(String msg) {
+    /**
+     * Abort the configuration proxy utility program with the provided message.
+     * @param msg the error message to display
+     */
+    protected final void fail(final String msg) {
         System.err.println(msg);
         System.exit(1);
     }

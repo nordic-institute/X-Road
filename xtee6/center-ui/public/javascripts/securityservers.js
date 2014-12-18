@@ -25,11 +25,10 @@ var SDSB_SECURITYSERVERS = function() {
     function initSecurityServersTable() {
         var opts = defaultTableOpts();
         opts.fnDrawCallback = onDraw;
-        opts.bProcessing = true;
         opts.bServerSide = true;
-        opts.sScrollY = "400px";
-        opts.sScrollX = "100%";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sScrollY = 400;
+        opts.bScrollCollapse = true;
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "server_code", "sWidth": "20%" },
             { "mData": "owner_name" },

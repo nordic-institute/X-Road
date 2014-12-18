@@ -423,7 +423,7 @@ public final class SystemProperties {
 
     public static int getSignerClientTimeout() {
         return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT,
-                Integer.toString(15000))); // default timeout in milliseconds
+                Integer.toString(60000))); // default timeout in milliseconds
     }
 
     public static int getConfigurationClientPort() {

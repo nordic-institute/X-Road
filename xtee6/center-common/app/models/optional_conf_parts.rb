@@ -2,7 +2,9 @@ require 'open3'
 
 module OptionalConfParts
   class Validator
-    def initialize(validation_program , file_bytes, content_identifier)
+    STDOUT_CHUNK_SIZE = 1000
+
+    def initialize(validation_program, file_bytes, content_identifier)
       @validation_program = validation_program
       @file_bytes = file_bytes
       @content_identifier = content_identifier
@@ -26,17 +28,32 @@ module OptionalConfParts
       stderr_lines = []
       is_successful = false
 
-      Open3.popen3(@validation_program, "r+") \
+      Open3.popen3(@validation_program) \
           do |stdin, stdout, stderr, wait_thr|
-        stdin.write(@file_bytes)
-        stdin.close()
-
-        stderr.each_line do |each|
-          stderr_lines << each.strip()
+        stdin_thr = Thread.new do
+          # TODO (task #4995): We should somehow handle raw file bytes,
+          # not strings
+          stdin.write(@file_bytes)
+          stdin.close()
         end
 
-        stderr.close()
-        stdout.close()
+        Thread.new do
+          outbuf = ""
+          stdout.read(STDOUT_CHUNK_SIZE, outbuf) until stdout.eof?
+          stdout.close()
+        end
+
+        stderr_thr = Thread.new do
+          stderr.each_line do |each|
+            stderr_lines << each.strip()
+          end
+
+          stderr.close()
+        end
+
+        stdin_thr.join()
+        stderr_thr.join()
+        wait_thr.join()
 
         is_successful = wait_thr.value.success?()
       end

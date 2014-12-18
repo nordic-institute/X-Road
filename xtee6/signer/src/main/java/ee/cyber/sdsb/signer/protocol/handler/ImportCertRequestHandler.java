@@ -35,6 +35,8 @@ public class ImportCertRequestHandler
 
     @Override
     protected Object handle(ImportCert message) throws Exception {
+        GlobalConf.verifyValidity();
+
         X509Certificate cert = null;
         try {
             cert = readCertificate(message.getCertData());
@@ -187,9 +189,11 @@ public class ImportCertRequestHandler
                     GlobalConf.getInstanceIdentifier(), cert, null);
             new CertChainVerifier(chain).verifyChainOnly(new Date());
         } catch (Exception e) {
-            throw CodedException.tr(X_CERT_VALIDATION,
-                    "cert_chain_validation_failed",
-                    "Certificate chain validation failed: %s", e.getMessage());
+            String message = (e instanceof CodedException)
+                    ? ((CodedException) e).getFaultString() : e.getMessage();
+            throw CodedException.tr(X_CERT_IMPORT_FAILED,
+                    "cert_import_failed",
+                    "Certificate import failed: %s", message);
         }
     }
 

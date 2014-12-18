@@ -161,7 +161,7 @@ public class KeyConf {
     private static void initInstance() {
         instance = null;
         try {
-            instance = new KeyConfImpl();
+            instance = new CachingKeyConfImpl();
             initializationError = null;
         } catch (Exception ex) {
             initializationError = translateWithPrefix(X_MALFORMED_KEYCONF, ex);

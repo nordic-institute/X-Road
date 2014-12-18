@@ -55,6 +55,10 @@ public class OcspClientWorker extends AbstractSignerActor {
     void handleExecute() {
         log.trace("handleExecute()");
 
+        if (!GlobalConf.isValid()) {
+            return;
+        }
+
         List<X509Certificate> certs = getCertsForOcsp();
         if (certs == null || certs.isEmpty()) {
             log.trace("Found no certificates that need OCSP responses");

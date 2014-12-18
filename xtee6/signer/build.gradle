@@ -79,7 +79,6 @@ task xjc () {
 
 task runSignerMain(type: JavaExec) {
     jvmArgs '-Dee.cyber.sdsb.signer.key-configuration-file=build/tmp/keyconf.xml',
-        '-Dee.cyber.sdsb.signer.device-configuration-file=src/main/resources/devices.ini',
         '-Dee.cyber.sdsb.common.configuration-path=../common-util/src/test/resources/globalconf_good',
         '-Dee.cyber.sdsb.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
         '-Djava.library.path=../legacy/lib',

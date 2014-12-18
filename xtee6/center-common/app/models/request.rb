@@ -125,6 +125,24 @@ class Request < ActiveRecord::Base
         get_search_relation(searchable, converted_search_params).count
   end
 
+  def self.update_names(member_class, member_code, member_name)
+    identifier_search_params = { :identifiers => {
+      :sdsb_instance => SystemParameter.instance_identifier,
+      :member_class => member_class,
+      :member_code => member_code}
+    }
+
+    get_requests_with_owned_servers(identifier_search_params).\
+        find_each do |each|
+      each.update_attributes!(:server_owner_name => member_name)
+    end
+
+    get_requests_with_used_servers(identifier_search_params).\
+        find_each do |each|
+      each.update_attributes!(:server_user_name => member_name)
+    end
+  end
+
   private
 
   def self.get_multivalue_search_regex(values)
@@ -213,17 +231,31 @@ class Request < ActiveRecord::Base
 
   def self.find_by_server(server_id)
     logger.info("find_by_server(#{server_id})")
-    requests = Request.readonly(false)\
-        .joins(:security_server)\
-        .where(
-          :identifiers => {
-            :sdsb_instance => server_id.sdsb_instance,
-            :member_class => server_id.member_class,
-            :member_code => server_id.member_code,
-            :server_code => server_id.server_code})
+
+    identifier_search_params = {
+      :identifiers => {
+        :sdsb_instance => server_id.sdsb_instance,
+        :member_class => server_id.member_class,
+        :member_code => server_id.member_code,
+        :server_code => server_id.server_code}
+    }
+
+    requests = get_requests_with_owned_servers(identifier_search_params)
 
     logger.debug("Requests returned: #{requests.inspect}")
     requests
+  end
+
+  def self.get_requests_with_owned_servers(identifier_search_params)
+    return get_requests_with_servers(identifier_search_params, :security_server)
+  end
+
+  def self.get_requests_with_used_servers(identifier_search_params)
+    return get_requests_with_servers(identifier_search_params, :sec_serv_user)
+  end
+
+  def self.get_requests_with_servers(identifier_search_params, attribute)
+    return Request.readonly(false).joins(attribute).where(identifier_search_params)
   end
 
   def self.set_server_owner_name(rec)

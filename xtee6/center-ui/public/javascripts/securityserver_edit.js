@@ -300,14 +300,15 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     }
 
     function clearServerClientAddData() {
-        $("#securityserver_client_name").val(""),
-        $("#securityserver_client_class").val(""),
-        $("#securityserver_client_code").val(""),
-        $("#securityserver_client_subsystem_code").val(""),
-        $("#securityserver_client_owner_name").text(""),
-        $("#securityserver_client_owner_class").text(""),
-        $("#securityserver_client_owner_code").text(""),
-        $("#securityserver_client_server_code").text("")
+        $("#securityserver_client_name").val("");
+        $("#securityserver_client_class").val("");
+        $("#securityserver_client_code").val("");
+        $("#securityserver_client_subsystem_code").val("");
+
+        $("#securityserver_client_owner_name").text("");
+        $("#securityserver_client_owner_class").text("");
+        $("#securityserver_client_owner_code").text("");
+        $("#securityserver_client_server_code").text("");
     }
 
     /* -- CLEAR FIELDS - END -- */
@@ -474,6 +475,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     }
 
     function startAddingClient() {
+        clearServerClientAddData();
         fillClientRegRequestServerDetails();
         $("#securityserver_client_register_dialog").dialog("open");
     }
@@ -609,13 +611,12 @@ var SDSB_SECURITYSERVER_EDIT = function() {
 
     function createManagementRequestsTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "300px";
-        opts.sDom = "<'dataTables_header'<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "id" },
             { "mData": "type" },

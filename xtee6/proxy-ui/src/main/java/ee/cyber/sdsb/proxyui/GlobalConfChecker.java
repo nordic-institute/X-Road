@@ -39,10 +39,7 @@ public class GlobalConfChecker implements Job {
     }
 
     private void checkGlobalConf() throws Exception {
-        // if (globalConf != null && !globalConf.hasChanged()) {
-        //     log.debug("Globalconf has not been changed");
-        //     return;
-        // }
+        GlobalConf.verifyValidity();
 
         log.debug("Reloading globalconf");
 

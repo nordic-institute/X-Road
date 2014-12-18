@@ -109,8 +109,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
         servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
-
-        cacheConfigurationForCurrentThread();
     }
 
     @Override

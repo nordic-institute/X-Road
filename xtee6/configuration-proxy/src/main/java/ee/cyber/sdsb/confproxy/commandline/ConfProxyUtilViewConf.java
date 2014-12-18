@@ -16,7 +16,11 @@ import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.sdsb.confproxy.ConfProxyProperties;
 import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
 import ee.cyber.sdsb.confproxy.util.OutputBuilder;
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.*;
+
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.CONF_INI;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.SIGNING_KEY_ID_PREFIX;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SECONDS;
 
 /**
  * Utility tool for viewing the configuration proxy configuration settings.
@@ -30,6 +34,9 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             "NOT CONFIGURED (add '"
                     + VALIDITY_INTERVAL_SECONDS + "' to '" + CONF_INI + "')";
 
+    /**
+     * Constructs a confproxy-generate-anchor utility program instance.
+     */
     ConfProxyUtilViewConf() {
         super("confproxy-view-conf");
         getOptions().addOption(PROXY_INSTANCE)
@@ -38,7 +45,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
     }
 
     @Override
-    void execute(CommandLine commandLine) throws Exception {
+    final void execute(final CommandLine commandLine) throws Exception {
         if (commandLine.hasOption(PROXY_INSTANCE.getOpt())) {
             ensureProxyExists(commandLine);
             ConfProxyProperties conf = loadConf(commandLine);
@@ -62,8 +69,14 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         }
     }
 
-    private void displayInfo(String instance, ConfProxyProperties conf)
-            throws Exception {
+    /**
+     * Print the configuration proxy instance properties to the commandline.
+     * @param instance configuration proxy instance name
+     * @param conf configuration proxy properties instance
+     * @throws Exception if errors occur when reading properties
+     */
+    private void displayInfo(final String instance,
+            final ConfProxyProperties conf) throws Exception {
         ConfigurationAnchor anchor = null;
         String anchorError = null;
         try {
@@ -123,7 +136,15 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         System.out.println();
     }
 
-    private String certInfo(String keyId, ConfProxyProperties conf) {
+    /**
+     * Generates a string that describes the certificate information for the
+     * provided key id.
+     * @param keyId the key id
+     * @param conf configuration proxy properties instance
+     * @return string describing certificate information
+     */
+    private String certInfo(final String keyId,
+            final ConfProxyProperties conf) {
         if (keyId == null) {
             return "";
         }
@@ -142,7 +163,14 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         return " (Certificate: " + certPath.toString() + ")";
     }
 
-    private String anchorHash(ConfProxyProperties conf) throws Exception {
+    /**
+     * Generates a colon delimited hex string describing the anchor file for
+     * the given proxy instance.
+     * @param conf configuration proxy properties instance
+     * @return colon delimited hex string describing the anchor file
+     * @throws Exception if the hash could not be computed
+     */
+    private String anchorHash(final ConfProxyProperties conf) throws Exception {
         byte[] anchorBytes = null;
         try {
             Path anchorPath = Paths.get(conf.getProxyAnchorPath());

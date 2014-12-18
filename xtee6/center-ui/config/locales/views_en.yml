@@ -155,6 +155,7 @@ en:
       approve_confirm: "Are you sure you want to approve request?"
       revoke_confirm: "Are you sure you want to revoke request?"
       decline_confirm: "Are you sure you want to decline request?"
+      member_not_found: "<member not found>"
     request:
       legend: "Request Information"
     securityserver:
@@ -227,6 +228,9 @@ en:
       sdsb: "Instance"
       type: "Type"
       added: "Added"
+      delete_group: "Delete group"
+      remove_selected_members: "Remove selected members"
+      add_members: "Add members"
       description:
         edit:
           title: "Edit Description"
@@ -242,10 +246,10 @@ en:
       remove_confirm: "Are you sure you want to remove X-Road member '{{member}}' from group '{{group}}'?"
 
   central_services:
+    central_service: "Central Service"
     service_code: "Code"
     implementing_service_code: "Code"
-    central_service_legend: "Central Service"
-    implementing_service_legend: "Implementing Service"
+    implementing_service: "Implementing Service"
     provider_legend: "Provider"
     provider_code: "Provider Code"
     service_version: "Version"
@@ -259,6 +263,7 @@ en:
         code: "Code"
         provider_name: "Provider Name"
         search_title: "Select Implementing Service Provider"
+      search_provider: "Search provider"
     remove_confirm: "Are you sure you want to remove central service '{{service}}'?"
     new_title: "Add New Central Service"
     edit_title: "Edit central service '{{service}}'"

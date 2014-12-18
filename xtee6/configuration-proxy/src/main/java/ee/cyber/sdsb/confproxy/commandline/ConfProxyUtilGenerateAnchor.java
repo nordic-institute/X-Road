@@ -26,15 +26,19 @@ import ee.cyber.sdsb.confproxy.util.OutputBuilder;
  */
 public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
 
+    /**
+     * Constructs a confproxy-generate-anchor utility program instance.
+     */
     ConfProxyUtilGenerateAnchor() {
         super("confproxy-generate-anchor");
         getOptions()
             .addOption(PROXY_INSTANCE)
-            .addOption("f", "filename", true, "Filename of the generated anchor");
+            .addOption("f", "filename", true,
+                    "Filename of the generated anchor");
     }
 
     @Override
-    void execute(CommandLine commandLine)
+    final void execute(final CommandLine commandLine)
             throws Exception {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);
@@ -54,8 +58,17 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         }
     }
 
-    void generateAnchorXml(ConfProxyProperties conf, String instanceIdentifier,
-            OutputStream out) throws Exception {
+    /**
+     * Generates an achor xml file based on the provided proxy configuration
+     * properties and writes it to the provided output stream.
+     * @param conf configuration proxy properties instance
+     * @param instanceIdentifier instance identifier of the resulting anchor
+     * @param out the output stream for writing the generated xml
+     * @throws Exception if xml generation fails
+     */
+    private void generateAnchorXml(final ConfProxyProperties conf,
+            final String instanceIdentifier, final OutputStream out)
+                    throws Exception {
         JAXBContext jaxbCtx = JAXBContext.newInstance(ObjectFactory.class);
         Marshaller marshaller = jaxbCtx.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

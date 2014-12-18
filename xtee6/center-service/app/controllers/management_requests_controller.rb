@@ -149,12 +149,8 @@ class ManagementRequestsController < ApplicationController
   def verify_sdsb_instance(sdsb_id)
     logger.debug("Instance verification: #{sdsb_id}")
 
-    actual_instance = sdsb_id.sdsb_instance
-
-    unless @sdsb_instance.eql?(actual_instance)
-      raise t("request.incorrect_instance", {
-          :allowed_instance => @sdsb_instance,
-          :actual_instance => actual_instance})
+    unless @sdsb_instance.eql?(sdsb_id.sdsb_instance)
+      raise t("request.incorrect_instance")
     end
   end
 end

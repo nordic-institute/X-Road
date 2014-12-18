@@ -6,13 +6,16 @@ import ee.cyber.sdsb.confproxy.ConfProxyProperties;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 import ee.cyber.sdsb.signer.protocol.message.DeleteKey;
 
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.*;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for deleting signing keys from a configuration proxy instance.
  */
 public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
 
+    /**
+     * Constructs a confproxy-del-signing-key utility program instance.
+     */
     ConfProxyUtilDelSigningKey() {
         super("confproxy-del-signing-key");
         getOptions()
@@ -21,7 +24,7 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
     }
 
     @Override
-    void execute(CommandLine commandLine)
+    final void execute(final CommandLine commandLine)
             throws Exception {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);

@@ -48,14 +48,12 @@ table {
   width: 100%; }
   table thead {
     text-align: left;
-    border: 1px solid #ddd;
     background: #f3f3f3; }
     table thead tr th {
       font-family: "Open Sans";
       font-weight: 500;
       padding: 10px 5px;
-      font-size: 9pt;
-      border-bottom: none !important; }
+      font-size: 9pt; }
       table thead tr th.status {
         width: 19px; }
         table thead tr th.status i {
@@ -63,11 +61,12 @@ table {
       table thead tr th.sorting, table thead tr th.sorting_asc, table thead tr th.sorting_desc {
         background: none; }
   table tbody {
-    border: 1px solid #ddd;
     background: #fff;
     font-size: 11pt; }
     table tbody tr {
-      border-bottom: 1px solid #ddd; }
+      border-top: 1px solid #ddd; }
+      table tbody tr:first-of-type {
+        border-top: none; }
       table tbody tr:hover td {
         background: rgba(23, 148, 255, 0.5) !important; }
       table tbody tr.odd {
@@ -155,12 +154,13 @@ table.details tbody {
       background: transparent !important; }
 
 .dataTables_wrapper {
-  margin-bottom: 10px; }
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-top: none; }
   .dataTables_wrapper .dataTables_header {
-    border: 1px solid #ddd;
-    border-bottom: none;
     padding: 5px;
-    background: rgba(243, 243, 243, 0.4); }
+    background: rgba(243, 243, 243, 0.4);
+    border-top: 1px solid #ddd; }
     .dataTables_wrapper .dataTables_header label {
       font-size: 11pt; }
     .dataTables_wrapper .dataTables_header button {
@@ -171,7 +171,11 @@ table.details tbody {
       margin-left: 5px;
       margin-right: 5px;
       vertical-align: middle; }
+  .dataTables_wrapper .dataTables_scrollHead {
+    border-top: 1px solid #ddd !important;
+    background: #f3f3f3; }
   .dataTables_wrapper .dataTables_scrollBody {
+    border-top: 1px solid #ddd;
     word-wrap: break-word;
     overflow-x: hidden !important; }
   .dataTables_wrapper .dataTables_footer {
@@ -782,6 +786,9 @@ td.deletable_subsystem {
   color: #f00;
   font-weight: bold; }
 
+p.notfound {
+  color: #aaa; }
+
 div#main-wrapper {
   width: 100%;
   height: 100%;
@@ -1107,6 +1114,9 @@ div.trusted-anchor, .anchor {
     width: 120px;
     display: inline-block; }
 
+div.dialog-body {
+  height: 95%; }
+
 #member_edit_dialog .dialog-body {
   min-width: 75em; }
 
@@ -1120,3 +1130,5 @@ button#upload_trusted_anchor {
 #securityserver_details_identifier,
 #add_auth_cert_temp_id {
   display: none; }
+
+/*# sourceMappingURL=style.css.map */

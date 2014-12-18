@@ -139,4 +139,36 @@ class MembersControllerTest < ActionController::TestCase
     request = requests[0]
     assert_equal("CENTER", request["source"])
   end
+
+  test "Should update names in requests when name changed" do
+    # Given
+    changed_owner_name = "Changed owner name"
+    changed_user_name = "Changed user name"
+
+    # When
+    change_member_name("member_out_of_vallavalitsused", changed_owner_name)
+    change_member_name("member_in_vallavalitsused", changed_user_name)
+
+    # Then
+
+    edited_request =
+        Request.find(ActiveRecord::Fixtures.identify(:request_for_used_server))
+
+    assert_equal(changed_owner_name, edited_request.server_owner_name)
+    assert_equal(changed_user_name, edited_request.server_user_name)
+  end
+
+  private
+
+  def change_member_name(member_code, new_name)
+    params = {
+      'memberClass' => "riigiasutus",
+      'memberCode' => member_code,
+      'memberName' => new_name
+    }
+
+    post(:member_edit, params)
+
+    assert_response(:success)
+  end
 end

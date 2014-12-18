@@ -1,64 +1,51 @@
 package ee.cyber.sdsb.confproxy;
 
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+
 import ee.cyber.sdsb.common.conf.globalconf.ConfigurationDirectory;
+import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
+import ee.cyber.sdsb.confproxy.util.OutputBuilder;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 
 /**
- * Test program for the configuration proxy, uses a pre-downloaded configuration.
+ * Test program for the configuration proxy,
+ * uses a pre-downloaded configuration.
  */
 @Slf4j
 public final class ConfProxyTest {
 
     private static ActorSystem actorSystem;
 
-    private static ConfProxy proxy;
-
-    private ConfProxyTest() {
-        
-    }
+    /**
+     * Unavailable utility class constructor.
+     */
+    private ConfProxyTest() { }
 
     /**
      * Configuration proxy test program entry point.
      * @param args program args
      * @throws Exception in case configuration proxy fails to start
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         try {
-            setup();
-            proxy.execute();
+            actorSystem = ActorSystem.create("ConfigurationProxy",
+                    ConfigFactory.load().getConfig("configuration-proxy"));
+            SignerClient.init(actorSystem);
+
+            ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
+            ConfProxyHelper.purgeOutdatedGenerations(conf);
+            ConfigurationDirectory confDir = new ConfigurationDirectory(
+                    conf.getConfigurationDownloadPath());
+
+            OutputBuilder output = new OutputBuilder(confDir, conf);
+            output.buildSignedDirectory();
+            output.moveAndCleanup();
         } catch (Throwable t) {
             log.error("Error when executing configuration-proxy", t);
         } finally {
-            shutdown();
+            actorSystem.shutdown();
         }
-    }
-
-    private static void setup() throws Exception {
-        log.trace("startup()");
-
-        actorSystem = ActorSystem.create("ConfigurationProxy",
-                ConfigFactory.load().getConfig("configuration-proxy"));
-
-        SignerClient.init(actorSystem);
-
-        proxy = new ConfProxy("PROXY1") {
-            @Override
-            protected ConfigurationDirectory download() throws Exception {
-                return new ConfigurationDirectory(
-                        conf.getConfigurationDownloadPath());
-            }
-        };
-
-        log.info("Starting configuration-proxy...");
-    }
-
-    private static void shutdown() throws Exception {
-        log.trace("shutdown()");
-
-        actorSystem.shutdown();
     }
 }

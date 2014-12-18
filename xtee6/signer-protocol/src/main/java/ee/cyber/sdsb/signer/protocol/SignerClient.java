@@ -18,7 +18,6 @@ import akka.actor.Cancellable;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.util.Timeout;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.SystemProperties;
@@ -36,8 +35,8 @@ import static ee.cyber.sdsb.signer.protocol.ComponentNames.SIGNER;
 @Slf4j
 public final class SignerClient {
 
-    private static final Timeout DEFAULT_TIMEOUT =
-            new Timeout(SystemProperties.getSignerClientTimeout());
+    private static final int TIMEOUT_MILLIS =
+            SystemProperties.getSignerClientTimeout();
 
     private static ActorSystem actorSystem;
     private static ActorSelection requestProcessor;
@@ -137,12 +136,11 @@ public final class SignerClient {
 
     private static void waitForResponse(CountDownLatch latch) {
         try {
-            if (!latch.await(DEFAULT_TIMEOUT.duration().length(),
-                    TimeUnit.MILLISECONDS)) {
+            if (!latch.await(TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                 throw new TimeoutException();
             }
         } catch (Exception e) {
-            throw couldNotConnectException();
+            throw connectionTimeoutException();
         }
     }
 
@@ -159,13 +157,13 @@ public final class SignerClient {
 
     private static void verifyConnected() {
         if (connected != null && !connected) {
-            throw couldNotConnectException();
+            throw connectionTimeoutException();
         }
     }
 
-    private static CodedException couldNotConnectException() {
+    private static CodedException connectionTimeoutException() {
         return new CodedException(X_HTTP_ERROR,
-                "Could not connect to Signer (port %s)",
+                "Connection to Signer (port %s) timed out",
                 SystemProperties.getSignerPort());
     }
 
@@ -218,6 +216,7 @@ public final class SignerClient {
 
         private Cancellable tick;
         private DateTime lastPong;
+        private boolean firstPing = true;
 
         @Override
         public void preStart() throws Exception {
@@ -233,24 +232,29 @@ public final class SignerClient {
         public void onReceive(Object message) throws Exception {
             if (message instanceof ConnectionPing) {
                 requestProcessor.tell(message, getSelf());
-                checkLastPong();
+
+                if (!firstPing) {
+                    checkConnected();
+                } else {
+                    firstPing = false;
+                }
             } else if (message instanceof ConnectionPong) {
                 connected = true;
                 lastPong = new DateTime();
             }
         }
 
-        private void checkLastPong() {
+        private void checkConnected() {
             if (lastPong == null || hasTimedOut()) {
                 connected = false;
-                log.trace("Connection lost");
+                log.trace("Connection timed out");
             }
         }
 
         private boolean hasTimedOut() {
             long now = new DateTime().getMillis();
             long diff = now - lastPong.getMillis();
-            return diff > DEFAULT_TIMEOUT.duration().toMillis();
+            return diff > TIMEOUT_MILLIS;
         }
 
         private Cancellable start() {

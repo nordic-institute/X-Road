@@ -313,12 +313,17 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         });
 
         $("#conf_part_file").change(function() {
+            var submitButton = $("#upload_conf_part_submit");
+
             if ($(this).val() != "") {
-                $("#upload_conf_part_submit").enable();
+                submitButton.enable();
+            } else {
+                submitButton.disable();
             }
         });
 
         $("#upload_conf_part").click(function() {
+            $("#upload_conf_part_submit").disable();
             $("#conf_part_file").val("");
             $("#upload_conf_part_dialog").dialog("open");
         });

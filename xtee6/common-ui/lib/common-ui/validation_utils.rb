@@ -1,5 +1,5 @@
 require 'addressable/uri'
-require 'addressable/template'
+require 'addressable/idna'
 
 module CommonUi
   module ValidationUtils
@@ -154,9 +154,16 @@ module CommonUi
     class HostValidator < Validator
       def validate(val, param)
         begin
-          template = Addressable::Template.new("{host}")
-          invalid = template.match(val).nil?
-        rescue Addressable::URI::InvalidURIError
+          ascii_val = Addressable::IDNA.to_ascii(val)
+          host_regexp = %r{
+            ^
+            (([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*
+            ([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])
+            $
+          }x
+
+          invalid = !(ascii_val =~ host_regexp)
+        rescue
           invalid = true
         end
 

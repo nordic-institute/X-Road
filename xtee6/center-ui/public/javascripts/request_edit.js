@@ -40,8 +40,9 @@ var SDSB_REQUEST_EDIT = function(){
         $(".management_request_revoking_id").text(requestData.revoking_id);
         $(".management_request_comments").text(comments);
 
-        $(".management_request_server_owner_name")
-                .text(requestData.server_owner_name);
+        fillMemberName(
+                "management_request_server_owner_name",
+                requestData.server_owner_name);
         $(".management_request_server_owner_class")
                 .text(requestData.server_owner_class);
         $(".management_request_server_owner_code")
@@ -139,10 +140,30 @@ var SDSB_REQUEST_EDIT = function(){
         var subsystemCode = clientData.subsystem_code != null ?
             clientData.subsystem_code : "";
 
-        $(".client_details_name").text(clientData.member_name);
+        fillMemberName("client_details_name", clientData.member_name);
+
         $(".client_details_class").text(clientData.member_class);
         $(".client_details_code").text(clientData.member_code);
         $(".client_details_subsystem_code").text(subsystemCode );
+    }
+
+    function fillMemberName(memberNameClass, memberName) {
+        var nameFieldSelector = $("." + memberNameClass);
+        var notFoundClass = "notfound";
+
+        if (memberFound(memberName)) {
+            nameFieldSelector.text(memberName);
+            nameFieldSelector.removeClass(notFoundClass);
+        } else {
+            nameFieldSelector.text(
+                    _("management_requests.details.member_not_found"));
+            nameFieldSelector.addClass(notFoundClass);
+        }
+    }
+
+
+    function memberFound(memberName) {
+        return memberName && memberName.trim().length > 0;
     }
 
     function updateManagementRequestsTable() {

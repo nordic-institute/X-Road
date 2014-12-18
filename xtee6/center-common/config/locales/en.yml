@@ -86,7 +86,7 @@ en:
     multiple_open_requests: "More than one request is open for server %{server_id}, id of another request: '%{request_id}'"
     invalid_processing_state: "Request processing is in invalid state: %{status}"
     duplicate_requests: "A request for registering '%{user}', as a client to security server '%{security_server}' has already been submitted (%{received}, request ID: '%{id}')"
-    client_already_registered: "'%{user}' has already been registered as a client to securit server '%{security_server}'"
+    client_already_registered: "'%{user}' has already been registered as a client to security server '%{security_server}'"
     more_than_one_requests: "Internal error: duplicate requests found in database"
     client_not_found: "Client not found: %{client}"
     request_with_same_cert_already_exists: "Certificate is already submitted for registration with request '%{id}'"

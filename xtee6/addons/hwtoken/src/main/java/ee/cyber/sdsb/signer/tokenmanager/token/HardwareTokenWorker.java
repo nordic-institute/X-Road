@@ -77,7 +77,6 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
     public void preStart() throws Exception {
         try {
             initialize();
-            updateTokenInfo();
             setTokenAvailable(tokenId, true);
         } catch (Exception e) {
             setTokenAvailable(tokenId, false);

@@ -53,6 +53,9 @@ import static ee.cyber.sdsb.proxy.clientproxy.HandlerLoader.loadHandler;
 @Slf4j
 public class ClientProxy implements StartStop {
 
+    // SSL session timeout
+    private static final int SSL_SESSION_TIMEOUT = 600;
+
     private static final String CLIENTPROXY_HANDLERS =
             SystemProperties.PREFIX + "proxy.clientHandlers";
 
@@ -168,6 +171,7 @@ public class ClientProxy implements StartStop {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
+        cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] { new ClientSslKeyManager() },

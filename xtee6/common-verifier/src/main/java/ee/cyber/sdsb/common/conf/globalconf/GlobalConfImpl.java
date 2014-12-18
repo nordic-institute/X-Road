@@ -35,15 +35,17 @@ import static ee.cyber.sdsb.common.SystemProperties.getConfigurationPath;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
 @Slf4j
-public class GlobalConfImpl implements GlobalConfProvider {
+class GlobalConfImpl implements GlobalConfProvider {
 
-    private final ConfigurationDirectory configurationDirectory;
+    // Default value used when no configurations are available
+    private static final int DEFAULT_OCSP_FRESHNESS = 60;
 
-    public GlobalConfImpl(boolean reloadIfChanged) {
+    private final ConfigurationDirectory confDir;
+
+    GlobalConfImpl(boolean reloadIfChanged) {
         try {
-            configurationDirectory =
-                    new ConfigurationDirectory(getConfigurationPath(),
-                            reloadIfChanged);
+            confDir = new ConfigurationDirectory(getConfigurationPath(),
+                    reloadIfChanged);
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
@@ -52,8 +54,19 @@ public class GlobalConfImpl implements GlobalConfProvider {
     // ------------------------------------------------------------------------
 
     @Override
+    public boolean isValid() {
+        try {
+            confDir.eachFile(ConfigurationDirectory::verifyUpToDate);
+            return true;
+        } catch (Exception e) {
+            log.warn("Global configuration is invalid: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
     public String getInstanceIdentifier() {
-        return configurationDirectory.getInstanceIdentifier();
+        return confDir.getInstanceIdentifier();
     }
 
     @Override
@@ -248,15 +261,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
                 new X509CertificateHolder(memberCert.getEncoded());
 
         String[] instances = instanceIdentifier != null
-                ? new String[] { instanceIdentifier } : new String[] {};
+                ? new String[] {instanceIdentifier} : new String[] {};
 
         return getSharedParameters(instances).stream()
                 .map(p -> p.getSubjectsAndCaCerts().get(ch.getIssuer()))
                 .filter(Objects::nonNull).findFirst().orElseThrow(
                         () -> new CodedException(X_INTERNAL_ERROR,
-                                "Unable to find CA certificate for member %s "
-                                        + "(issuer = %s)",
-                                        ch.getSubject(), ch.getIssuer()));
+                                "Certificate is not issued by approved "
+                                        + "certification service provider."));
     }
 
     @Override
@@ -459,7 +471,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
             return getSharedParameters().stream()
                     .map(p -> p.getGlobalSettings().getOcspFreshnessSeconds())
                     .filter(Objects::nonNull).map(BigInteger::intValue)
-                    .min(Integer::compare).orElse(60);
+                    .min(Integer::compare).orElse(DEFAULT_OCSP_FRESHNESS);
         } else {
             return getSharedParameters(getInstanceIdentifier())
                     .getGlobalSettings().getOcspFreshnessSeconds().intValue();
@@ -481,7 +493,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public void load(String fileName) throws Exception {
-        configurationDirectory.reload();
+        confDir.reload();
     }
 
     @Override
@@ -499,7 +511,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     protected PrivateParameters getPrivateParameters() {
         PrivateParameters p;
         try {
-            p = configurationDirectory.getPrivate(getInstanceIdentifier());
+            p = confDir.getPrivate(getInstanceIdentifier());
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
@@ -515,7 +527,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     protected SharedParameters getSharedParameters(String instanceIdentifier) {
         SharedParameters p;
         try {
-            p = configurationDirectory.getShared(instanceIdentifier);
+            p = confDir.getShared(instanceIdentifier);
         } catch (Exception e) {
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
@@ -531,7 +543,7 @@ public class GlobalConfImpl implements GlobalConfProvider {
     protected List<SharedParameters> getSharedParameters(
             String... instanceIdentifiers) {
         if (ArrayUtils.isEmpty(instanceIdentifiers)) {
-            return configurationDirectory.getShared();
+            return confDir.getShared();
         }
 
         return Arrays.stream(instanceIdentifiers)

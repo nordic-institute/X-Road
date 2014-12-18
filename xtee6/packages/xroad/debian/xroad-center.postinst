@@ -65,6 +65,8 @@ case "$1" in
     chmod 755 /var/lib/sdsb/public 
     chown sdsb:sdsb /var/lib/sdsb/public
 
+    test -d /var/cache/sdsb && test -w /var/cache/sdsb || mkdir /var/cache/sdsb ; chown sdsb:sdsb /var/cache/sdsb
+
     mkdir -p  /var/lib/sdsb/import
     chmod 755 /var/lib/sdsb/import
     chown sdsb:sdsb /var/lib/sdsb/import

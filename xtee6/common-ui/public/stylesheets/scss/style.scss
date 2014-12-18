@@ -28,6 +28,10 @@ td.deletable_subsystem {
     font-weight: bold;
 }
 
+p.notfound {
+  color: $base-color-medium
+}
+
 div#main-wrapper {
     width: 100%;
     height: 100%;
@@ -526,6 +530,12 @@ div.trusted-anchor, .anchor {
         width: 120px;
         display: inline-block;
     }
+}
+
+div.dialog-body {
+    // This one is to avoid excessive vertical scrollbar in
+    // Chrome when resizing.
+    height: 95%;
 }
 
 #member_edit_dialog {

@@ -22,7 +22,7 @@ import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.TestCertUtil;
 import ee.cyber.sdsb.common.TestSecurityUtil;
 import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
-import ee.cyber.sdsb.common.conf.globalconf.GlobalConfImpl;
+import ee.cyber.sdsb.common.conf.globalconf.TestGlobalConfImpl;
 import ee.cyber.sdsb.common.hashchain.HashChainReferenceResolver;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.util.MessageFileNames;
@@ -57,7 +57,7 @@ public class SignatureVerifierTest {
                 "../common-util/src/test/resources/globalconf_good");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload(new GlobalConfImpl(false) {
+        GlobalConf.reload(new TestGlobalConfImpl(false) {
             @Override
             public X509Certificate getCaCert(String instanceIdentifier,
                     X509Certificate memberCert) throws Exception {

@@ -4,13 +4,12 @@
 
     function initMemberSearchTable(securityServerCode, onSuccess, allowEmptySelection) {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "100px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },
@@ -33,6 +32,11 @@
                     "name": "securityServerCode",
                     "value": securityServerCode
                 });
+                aoData.push({
+                    "name": "advancedSearchParams",
+                    "value": JSON.stringify(
+                            getAddableClientAdvancedSearchParams())
+                });
             };
         }
 
@@ -53,6 +57,15 @@
             onSuccess(oMemberSearch.fnGetData(this));
             $("#member_search_dialog").dialog("close");
         });
+    }
+
+    function getAddableClientAdvancedSearchParams() {
+        return {
+            name: $("#securityserver_client_name").val(),
+            memberClass: $("#securityserver_client_class").val(),
+            memberCode: $("#securityserver_client_code").val(),
+            subsystem: $("#securityserver_client_subsystem_code").val()
+        };
     }
 
     MEMBER_SEARCH_DIALOG.open =
@@ -85,9 +98,6 @@
 
                 initMemberSearchTable(
                     securityServerCode, onSuccess, allowEmptySelection);
-            },
-            close: function () {
-                oMemberSearch.fnDestroy();
             }
         });
     }

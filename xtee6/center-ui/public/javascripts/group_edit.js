@@ -561,19 +561,18 @@ var SDSB_GROUP_EDIT = function() {
 
     function initGroupMembersTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "100px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },
             { "mData": "member_class", "sWidth": "5em" },
             { "mData": "subsystem" },
-            { "mData": "sdsb", "sWidth": "3em" },
+            { "mData": "sdsb", "sWidth": "5em" },
             { "mData": "type" },
             { "mData": "added", "sWidth": "13em" }
         ];
@@ -605,13 +604,12 @@ var SDSB_GROUP_EDIT = function() {
 
     function initAddableMembersTable() {
         var opts = defaultTableOpts();
-        opts.bProcessing = true;
         opts.bServerSide = true;
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
         opts.sScrollY = "300px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tpr";
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },

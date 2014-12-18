@@ -3,13 +3,14 @@ package ee.cyber.sdsb.confproxy;
 import java.util.Arrays;
 import java.util.List;
 
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+
 import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
+
 import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CONFPROXY;
 
 /**
@@ -29,16 +30,17 @@ public final class ConfProxyMain {
 
     private static ActorSystem actorSystem;
 
-    private ConfProxyMain() {
-        
-    }
+    /**
+     * Unavailable utility class constructor.
+     */
+    private ConfProxyMain() { }
 
     /**
      * Configuration proxy program entry point.
      * @param args program args
      * @throws Exception in case configuration proxy fails to start
      */
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         try {
             setup();
             execute(args);
@@ -50,6 +52,10 @@ public final class ConfProxyMain {
         }
     }
 
+    /**
+     * Initialize configuration proxy components.
+     * @throws Exception if initialization fails
+     */
     private static void setup() throws Exception {
         log.trace("startup()");
 
@@ -59,7 +65,12 @@ public final class ConfProxyMain {
         SignerClient.init(actorSystem);
     }
 
-    private static void execute(String[] args) throws Exception {
+    /**
+     * Executes all configuration proxy instances in sequence.
+     * @param args program arguments
+     * @throws Exception if not able to get list of available instances
+     */
+    private static void execute(final String[] args) throws Exception {
         List<String> instances;
 
         if (args.length > 0) {
@@ -79,7 +90,10 @@ public final class ConfProxyMain {
         }
     }
 
-    private static void shutdown() throws Exception {
+    /**
+     * Shutdown configuration proxy components.
+     */
+    private static void shutdown() {
         log.trace("shutdown()");
 
         actorSystem.shutdown();
