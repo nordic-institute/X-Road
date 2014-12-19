@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServiceMediatorKeyManager extends X509ExtendedKeyManager {

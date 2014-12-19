@@ -43,8 +43,9 @@ public class SoapParserImpl
     @Override
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
             String charset) throws Exception {
-        String xml = new String(rawXml, charset);
-        LOG.trace("Parsing SOAP: {}", xml);
+        if (LOG.isTraceEnabled()) {
+            LOG.trace("Parsing SOAP: {}", new String(rawXml, charset));
+        }
 
         Class<?> soapHeaderClass = getSoapHeaderClass(soap);
 
@@ -57,23 +58,24 @@ public class SoapParserImpl
                 LOG.debug("Reading X-Road 5.0 ListMethods");
 
                 // TODO: In the future, ServiceMediator should respond to ListMethods
-                return new XRoadListMethods(xml, charset, soap, serviceName,
+                return new XRoadListMethods(rawXml, charset, soap, serviceName,
                         isRpcMessage(soap));
             } else if (serviceName.startsWith(XRoadMetaServiceImpl.TEST_SYSTEM)) {
                 LOG.debug("Reading X-Road 5.0 TestSystem");
 
-                return new XRoadTestSystem(xml, charset, soap, isRpcMessage(soap));
+                return new XRoadTestSystem(rawXml, charset, soap,
+                        isRpcMessage(soap));
             } else if (XRoadMetaServiceImpl.isMetaService(serviceName)) {
                 LOG.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
 
-                return createXRoadMetaServiceMessage(xml, soap, charset,
+                return createXRoadMetaServiceMessage(rawXml, soap, charset,
                         getMetaServiceSoapHeaderClass(soap, serviceElement),
                         serviceName);
             }
         }
 
         if (soapHeaderClass == null) {
-            LOG.error("Unknown SOAP:\n{}", xml);
+            LOG.error("Unknown SOAP:\n{}", new String(rawXml, charset));
 
             throw new CodedException(X_INVALID_MESSAGE,
                     "Unable to determine SOAP version");
@@ -82,10 +84,11 @@ public class SoapParserImpl
         if (isSdsbMessage(soapHeaderClass)) {
             return createSdsbMessage(rawXml, soap, charset);
         } else if (isXroadMessage(soapHeaderClass)) {
-            return createXRoadMessage(xml, soap, charset, soapHeaderClass);
+            return createXRoadMessage(rawXml, soap, charset, soapHeaderClass);
         }
 
-        LOG.error("Received unknown SOAP message: {}", xml);
+        LOG.error("Received unknown SOAP message: {}",
+                new String(rawXml, charset));
         throw new CodedException(X_INVALID_MESSAGE, "Unknown SOAP version");
     }
 
@@ -104,7 +107,7 @@ public class SoapParserImpl
         return createMessage(rawXml, h, soap, charset);
     }
 
-    private static Soap createXRoadMessage(String xml, SOAPMessage soap,
+    private static Soap createXRoadMessage(byte[] xml, SOAPMessage soap,
             String charset, Class<?> xroadHeaderClass) throws Exception {
         SOAPHeader soapHeader = soap.getSOAPHeader();
         if (soapHeader == null) {
@@ -124,7 +127,7 @@ public class SoapParserImpl
                 getServiceName(soap.getSOAPBody()));
     }
 
-    private static Soap createXRoadMetaServiceMessage(String xml,
+    private static Soap createXRoadMetaServiceMessage(byte[] xml,
             SOAPMessage soap, String charset, Class<?> xroadHeaderClass,
             String serviceName) throws Exception {
         AbstractXRoadSoapHeader xroadHeader;

@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Set;
 
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.GlobalConfProvider;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConfProvider;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalGroupInfo;
+import ee.cyber.sdsb.common.conf.globalconf.MemberInfo;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
@@ -44,11 +46,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public X509Certificate[] getAuthTrustChain() {
-        return null;
-    }
-
-    @Override
-    public X509Certificate getCaCert(X509Certificate arg0) throws Exception {
         return null;
     }
 
@@ -95,7 +92,8 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public ClientId getSubjectName(X509Certificate arg0) throws Exception {
+    public ClientId getSubjectName(String arg0, X509Certificate arg1)
+            throws Exception {
         return null;
     }
 
@@ -107,12 +105,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public List<X509Certificate> getVerificationCaCerts() {
         return null;
-    }
-
-    @Override
-    public boolean hasAuthCert(X509Certificate arg0, SecurityServerId arg1)
-            throws Exception {
-        return false;
     }
 
     @Override
@@ -132,10 +124,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public void verifyUpToDate() {
-    }
-
-    @Override
     public void load(String arg0) throws Exception {
     }
 
@@ -145,12 +133,8 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public String getSdsbInstance() {
-        return null;
-    }
-
-    @Override
-    public CertChain getCertChain(X509Certificate subject) throws Exception {
+    public CertChain getCertChain(String instanceIdentifier,
+            X509Certificate subject) throws Exception {
         return null;
     }
 
@@ -160,12 +144,79 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<CentralServiceId> getCentralServices() {
+    public List<CentralServiceId> getCentralServices(String arg0) {
         return null;
     }
 
     @Override
-    public List<ClientId> getMembers() {
+    public int getOcspFreshnessSeconds(boolean arg0) {
+        return 600;
+    }
+
+    @Override
+    public int getTimestampingIntervalSeconds() {
+        return 60;
+    }
+
+    @Override
+    public String getApprovedTspName(String arg0, String arg1) {
         return null;
     }
+
+    @Override
+    public List<String> getApprovedTsps(String arg0) {
+        return null;
+    }
+
+    @Override
+    public X509Certificate getCaCert(String arg0, X509Certificate arg1)
+            throws Exception {
+        return null;
+    }
+
+    @Override
+    public String getGlobalGroupDescription(GlobalGroupId arg0) {
+        return null;
+    }
+
+    @Override
+    public List<GlobalGroupInfo> getGlobalGroups(String... arg0) {
+        return null;
+    }
+
+    @Override
+    public String getInstanceIdentifier() {
+        return null;
+    }
+
+    @Override
+    public List<String> getInstanceIdentifiers() {
+        return null;
+    }
+
+    @Override
+    public Set<String> getMemberClasses(String... arg0) {
+        return null;
+    }
+
+    @Override
+    public String getMemberName(ClientId arg0) {
+        return null;
+    }
+
+    @Override
+    public List<MemberInfo> getMembers(String... instanceIdentifiers) {
+        return null;
+    }
+
+    @Override
+    public SecurityServerId getServerId(X509Certificate arg0) throws Exception {
+        return null;
+    }
+
+    @Override
+    public boolean isValid() {
+        return true;
+    }
+
 }

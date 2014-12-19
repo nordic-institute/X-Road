@@ -1,16 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
-    <define name="logOutputPath" class="ee.cyber.xroad.mediator.util.LogOutputPathPropertyDefiner" />
-    <define name="xroadLogLevel" class="ee.cyber.xroad.mediator.util.LogLevelPropertyDefiner" />
-    <define name="sdsbLogLevel" class="ee.cyber.sdsb.common.LogLevelPropertyDefiner" />
-
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
+    <property name="logOutputPath" value="/var/log/sdsb" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/clientmediator.log</file>
@@ -26,11 +17,10 @@
         </encoder>
     </appender>
 
-    <logger name="ee.cyber.sdsb" level="${sdsbLogLevel}"/>
-    <logger name="ee.cyber.xroad" level="${xroadLogLevel}" />
+    <logger name="ee.cyber.sdsb" level="DEBUG"/>
+    <logger name="ee.cyber.xroad" level="DEBUG" />
 
     <root level="INFO">
-        <!--<appender-ref ref="STDOUT" />-->
         <appender-ref ref="FILE" />
     </root>
 </configuration>

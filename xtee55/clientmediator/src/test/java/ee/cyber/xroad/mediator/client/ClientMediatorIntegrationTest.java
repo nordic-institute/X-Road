@@ -33,8 +33,8 @@ public class ClientMediatorIntegrationTest {
     private static boolean doFault = false;
 
     public static void main(String[] args) throws Exception {
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
-                "src/test/resources/globalconf.xml");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH,
+                "src/test/resources/globalconf");
 
         System.setProperty(MediatorSystemProperties.IDENTIFIER_MAPPING_FILE,
                 "src/test/resources/identifiermapping.xml");
@@ -131,11 +131,11 @@ public class ClientMediatorIntegrationTest {
                 Enumeration<String> headers = request.getHeaderNames();
                 while (headers.hasMoreElements()) {
                     String headerName = headers.nextElement();
-                    System.out.println("### " + headerName + ": " +
-                            request.getHeader(headerName));
+                    System.out.println("### " + headerName + ": "
+                            + request.getHeader(headerName));
                 }
-                System.out.println("### Content-Length: " +
-                        request.getContentLength());
+                System.out.println("### Content-Length: "
+                        + request.getContentLength());
 
                 response.setStatus(HttpServletResponse.SC_OK);
 
@@ -143,8 +143,8 @@ public class ClientMediatorIntegrationTest {
                     Map<String, String[]> params = request.getParameterMap();
                     System.out.println("REQUEST PARAMETERS:");
                     for (Map.Entry<String, String[]> e : params.entrySet()) {
-                        System.out.println(e.getKey() + " : " +
-                                StringUtils.join(e.getValue(), ", "));
+                        System.out.println(e.getKey() + " : "
+                                + StringUtils.join(e.getValue(), ", "));
                     }
 
                     response.setContentType("text/plain");

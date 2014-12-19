@@ -7,6 +7,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.common.db.HibernateUtil;
 import ee.cyber.sdsb.common.util.StartStop;
 import ee.cyber.xroad.mediator.MediatorServerConf;
@@ -19,6 +20,16 @@ import ee.cyber.xroad.mediator.common.HttpClientManager;
  * converts between message versions and sends them to the service.
  */
 public class ServiceMediator implements StartStop {
+
+    static {
+        new SystemPropertiesLoader() {
+            @Override
+            protected void loadWithCommonAndLocal() {
+                load(MediatorSystemProperties.CONF_FILE_MEDIATOR_COMMON);
+                load(MediatorSystemProperties.CONF_FILE_SERVICE_MEDIATOR);
+            }
+        };
+    }
 
     // Configuration parameters.
     // TODO: Make configurable

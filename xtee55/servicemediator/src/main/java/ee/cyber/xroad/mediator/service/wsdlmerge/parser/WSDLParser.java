@@ -77,8 +77,8 @@ public class WSDLParser {
             @Override
             public String getErrorMsg() {
                 return String.format(
-                        "No valid SOAP namespace found, legal values are '%s' " +
-                                "and '%s', check correctness of Your WSDL.",
+                        "No valid SOAP namespace found, legal values are '%s' "
+                                + "and '%s', check correctness of Your WSDL.",
                         SOAP_NS, SOAP12_NS);
             }
         };
@@ -536,8 +536,8 @@ public class WSDLParser {
                 messageParts.put(partName, part.getElementName());
             }
 
-            for (Map.Entry<String, QName> entry :
-                    getStandardHeaderParts().entrySet()) {
+            for (Map.Entry<String, QName> entry
+                    : getStandardHeaderParts().entrySet()) {
                 String standardHeaderPartName = entry.getKey();
                 QName standardHeaderPartElement = entry.getValue();
 

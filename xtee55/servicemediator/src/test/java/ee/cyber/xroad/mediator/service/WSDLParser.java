@@ -64,8 +64,8 @@ public class WSDLParser {
 
                 boolean soapBinding = false;
                 for (ExtensibilityElement ext : exts) {
-                    if (ext.getElementType().equals(SOAP_BINDING) ||
-                        ext.getElementType().equals(SOAP12_BINDING)) {
+                    if (ext.getElementType().equals(SOAP_BINDING)
+                            || ext.getElementType().equals(SOAP12_BINDING)) {
                         soapBinding = true;
                         break;
                     }

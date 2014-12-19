@@ -42,8 +42,8 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
             final HttpServletRequest request,
             final HttpServletResponse response)
                     throws IOException, ServletException {
-        long start = PerformanceLogger.log(LOG, "Received request from " +
-                request.getRemoteAddr());
+        long start = PerformanceLogger.log(LOG, "Received request from "
+                    + request.getRemoteAddr());
         LOG.info("Received request from {}", request.getRemoteAddr());
 
         try {

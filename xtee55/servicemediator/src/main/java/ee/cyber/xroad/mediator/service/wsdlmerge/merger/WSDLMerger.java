@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import lombok.Getter;
+
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 
@@ -141,8 +142,8 @@ class WSDLMerger {
         }
 
         String errorMsg = String.format(
-                "All mergeable WSDLs must use the same XRoad namespace, " +
-                "but there are several: '%s'",
+                "All mergeable WSDLs must use the same XRoad namespace, "
+                        + "but there are several: '%s'",
                 StringUtils.join(xrdNamespaces, ", "));
         throw new InvalidWSDLCombinationException(errorMsg);
     }
@@ -150,8 +151,9 @@ class WSDLMerger {
     private void validateWsdlStyles() throws InvalidWSDLCombinationException {
         if (mergingWithNonDoclitWSDLs()) {
             throw new InvalidWSDLCombinationException(
-                    "Only document/literal WSDLS can be merged, but WSDL " +
-                    "styles other than that are in the server configuration.");
+                    "Only document/literal WSDLS can be merged, but WSDL "
+                            + "styles other than that are in the server "
+                            + "configuration.");
         }
 
         if (wsdlStyles.size() == 1) {
@@ -159,8 +161,9 @@ class WSDLMerger {
         }
 
         throw new InvalidWSDLCombinationException(
-                "All mergeable WSDL-s should be either of style " +
-                "'rpc/encoded' or 'document-literal/wrapped', but not both.");
+                "All mergeable WSDL-s should be either of style "
+                        + "'rpc/encoded' or 'document-literal/wrapped', "
+                        + "but not both.");
     }
 
     private boolean mergingWithNonDoclitWSDLs() {
@@ -183,8 +186,9 @@ class WSDLMerger {
 
             if (areBindingOpsIdentical(each, bindingOpWithSameName)) {
                 String errorMsg = String.format(
-                        "Operation with name '%s' and version '%s' exists " +
-                        "multiple times in WSDL-s, inspect mergeable WSDL-s.",
+                        "Operation with name '%s' and version '%s' exists "
+                                + "multiple times in WSDL-s, "
+                                + "inspect mergeable WSDL-s.",
                                 opName, each.getVersion());
                 throw new InvalidWSDLCombinationException(errorMsg);
             }
@@ -203,12 +207,12 @@ class WSDLMerger {
         for (XrdNode each : mergedSchemaElements) {
             if (!existingNames.add(each.getName())) {
                 throw new InvalidWSDLCombinationException(
-                        "Merging WSDLs failed due to " +
-                        "conflicting top level Schema elements: '" +
-                         each.getName() + "'");
+                        "Merging WSDLs failed due to "
+                                + "conflicting top level Schema elements: '"
+                                + each.getName() + "'");
             }
         }
-        
+
     }
 
     /**
@@ -258,8 +262,9 @@ class WSDLMerger {
             return false;
         }
 
-        return StringUtils.equals(firstOp.getName(), secondOp.getName()) &&
-                StringUtils.equals(firstOp.getVersion(), secondOp.getVersion());
+        return StringUtils.equals(firstOp.getName(), secondOp.getName())
+                && StringUtils.equals(firstOp.getVersion(),
+                        secondOp.getVersion());
     }
 
     // -- Old operation cleanup logic - start ---
@@ -369,12 +374,12 @@ class WSDLMerger {
         QName oldElement = eachPart.getElement();
         QName oldType = eachPart.getType();
 
-        QName newElement = oldElement == null ? null :
-                new QName(newTargetNamespace,
+        QName newElement = oldElement == null ? null
+                : new QName(newTargetNamespace,
                         oldElement.getLocalPart());
 
-        QName newType = oldType == null ? null :
-                new QName(newTargetNamespace,
+        QName newType = oldType == null ? null
+                : new QName(newTargetNamespace,
                         oldType.getLocalPart());
 
         MessagePart newPart = new MessagePart(
@@ -489,8 +494,9 @@ class WSDLMerger {
             return false;
         }
 
-        return StringUtils.equals("address", node.getLocalName()) &&
-                StringUtils.equals(getXrdNamespace(), node.getNamespaceURI());
+        return StringUtils.equals("address", node.getLocalName())
+                && StringUtils.equals(getXrdNamespace(),
+                        node.getNamespaceURI());
     }
 
     private void createMergedWsdl() {

@@ -12,12 +12,14 @@ import org.junit.Test;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ExpectedCodedException;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.message.SoapMessage;
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
 import ee.cyber.sdsb.common.util.MimeUtils;
+import ee.cyber.xroad.mediator.EmptyGlobalConf;
 import ee.cyber.xroad.mediator.EmptyServerConf;
 import ee.cyber.xroad.mediator.IdentifierMappingProvider;
 import ee.cyber.xroad.mediator.MediatorServerConf;
@@ -45,7 +47,8 @@ public class ServiceMediatorTest {
     @Before
     public void setUp() {
         isSdsbService = false;
-        MediatorServerConf.reload(new TestConf());
+        GlobalConf.reload(new EmptyGlobalConf());
+        MediatorServerConf.reload(new TestServerConf());
     }
 
     @Test
@@ -286,7 +289,7 @@ public class ServiceMediatorTest {
     public void serviceDisabled() throws Exception {
         thrown.expectError(X_SERVICE_DISABLED);
 
-        MediatorServerConf.reload(new TestConf() {
+        MediatorServerConf.reload(new TestServerConf() {
             @Override
             public String getDisabledNotice(ServiceId service) {
                 return "disabled";
@@ -300,7 +303,7 @@ public class ServiceMediatorTest {
 
     // -------------------------- Helpers -------------------------------------
 
-    private class TestConf extends EmptyServerConf
+    private class TestServerConf extends EmptyServerConf
             implements MediatorServerConfProvider {
         @Override
         public boolean isSdsbService(ServiceId serviceId) {
@@ -345,8 +348,8 @@ public class ServiceMediatorTest {
             super(target, null);
 
             this.requestContentType = requestContentType;
-            this.requestContent = requestFileName != null ?
-                    TestResources.get(requestFileName) : null;
+            this.requestContent = requestFileName != null
+                    ? TestResources.get(requestFileName) : null;
             this.sender = MockSender.create(responseContentType,
                     responseFileName != null
                         ? TestResources.get(responseFileName) : null);

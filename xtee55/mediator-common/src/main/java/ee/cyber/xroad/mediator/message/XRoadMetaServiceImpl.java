@@ -26,7 +26,7 @@ public class XRoadMetaServiceImpl extends XRoadSoapMessageImpl {
     public static final String LOG_ONLY = "logOnly";
     public static final String LEGACY_XYZ = "legacy";
 
-    XRoadMetaServiceImpl(String xml, String charset, XRoadSoapHeader header,
+    XRoadMetaServiceImpl(byte[] xml, String charset, XRoadSoapHeader header,
             SOAPMessage soap) throws Exception {
         super(xml, charset, header, soap,
                 SoapUtils.getServiceName(soap.getSOAPBody()));

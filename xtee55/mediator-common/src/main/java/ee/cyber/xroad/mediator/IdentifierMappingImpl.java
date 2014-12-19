@@ -1,23 +1,22 @@
 package ee.cyber.xroad.mediator;
 
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.cyber.sdsb.common.conf.AbstractXmlConf;
+import ee.cyber.sdsb.common.conf.globalconf.ConfigurationDirectory;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.xroad.mediator.identifiermapping.MappingsType;
 import ee.cyber.xroad.mediator.identifiermapping.MappingsType.Mapping;
 import ee.cyber.xroad.mediator.identifiermapping.ObjectFactory;
 
+@Slf4j
 public class IdentifierMappingImpl extends AbstractXmlConf<MappingsType>
         implements IdentifierMappingProvider {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(IdentifierMappingImpl.class);
 
     private final Map<String, ClientId> shortNameToClientId = new HashMap<>();
     private final Map<ClientId, String> clientIdToShortName = new HashMap<>();
@@ -31,13 +30,13 @@ public class IdentifierMappingImpl extends AbstractXmlConf<MappingsType>
     private void cacheMappings() {
         StringBuilder sb = null;
 
-        if (LOG.isTraceEnabled()) {
+        if (log.isTraceEnabled()) {
             sb = new StringBuilder();
             sb.append("cacheMappings()\n");
         }
 
         for (Mapping mapping : confType.getMapping()) {
-            if (LOG.isTraceEnabled()) {
+            if (log.isTraceEnabled()) {
                 sb.append(String.format("\t%s -> %s\n", mapping.getOldId(),
                         mapping.getNewId()));
             }
@@ -46,35 +45,41 @@ public class IdentifierMappingImpl extends AbstractXmlConf<MappingsType>
             clientIdToShortName.put(mapping.getNewId(), mapping.getOldId());
         }
 
-        if (LOG.isTraceEnabled()) {
-            LOG.trace(sb.toString());
+        if (log.isTraceEnabled()) {
+            log.trace(sb.toString());
         }
     }
 
     @Override
+    public void load(String fileName) throws Exception {
+        ConfigurationDirectory.verifyUpToDate(Paths.get(fileName));
+        super.load(fileName);
+    }
+
+    @Override
     public ClientId getClientId(String shortName) {
-        LOG.trace("getClientId({})", shortName);
+        log.trace("getClientId({})", shortName);
 
         return shortNameToClientId.get(shortName);
     }
 
     @Override
     public String getShortName(ClientId clientId) {
-        LOG.trace("getShortName({})", clientId);
+        log.trace("getShortName({})", clientId);
 
         return clientIdToShortName.get(clientId);
     }
 
     @Override
     public Set<ClientId> getClientIds() {
-        LOG.trace("getClientIds()");
+        log.trace("getClientIds()");
 
         return clientIdToShortName.keySet();
     }
 
     @Override
     public Set<String> getShortNames() {
-        LOG.trace("getShortNames()");
+        log.trace("getShortNames()");
 
         return shortNameToClientId.keySet();
     }

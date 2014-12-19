@@ -5,34 +5,48 @@ import ee.cyber.sdsb.common.SystemProperties;
 public final class MediatorSystemProperties {
 
     /** The prefix for all properties. */
-    private static final String PREFIX = "ee.cyber.xroad.";
+    public static final String PREFIX = "ee.cyber.xroad.";
 
     public static final String SDSB_PROXY_ADDRESS =
-            PREFIX + "proxy.sdsbAddress";
+            PREFIX + "proxy.sdsb-address";
 
     public static final String XROAD_PROXY_ADDRESS =
-            PREFIX + "proxy.xroadAddress";
+            PREFIX + "proxy.xroad-address";
 
     public static final String XROAD_URIPROXY_ADDRESS =
-            PREFIX + "proxy.xroadUriProxyAddress";
+            PREFIX + "proxy.xroad-uriproxy-address";
 
     public static final String CLIENT_MEDIATOR_HTTP_PORT =
-            PREFIX + "clientMediator.httpPort";
+            PREFIX + "client-mediator.http-port";
 
     public static final String CLIENT_MEDIATOR_HTTPS_PORT =
-            PREFIX + "clientMediator.httpsPort";
+            PREFIX + "client-mediator.https-port";
 
     public static final String SERVICE_MEDIATOR_HTTP_PORT =
-            PREFIX + "serviceMediator.httpPort";
+            PREFIX + "service-mediator.http-port";
 
     public static final String SERVICE_MEDIATOR_HTTPS_PORT =
-            PREFIX + "serviceMediator.httpsPort";
+            PREFIX + "service-mediator.https-port";
 
     public static final String IDENTIFIER_MAPPING_FILE =
-            PREFIX + "identifierMappingFile";
+            PREFIX + "common.identifier-mapping-file";
 
     /** Property name of the application log level of ee.cyber.xroad,* */
     public static final String XROAD_LOG_LEVEL = PREFIX + "appLog.xroad.level";
+
+    // --------------------------------------------------------------------- //
+
+    public static final String CONF_FILE_MEDIATOR_COMMON =
+            SystemProperties.getConfPath() + "conf.d/mediator-common.ini";
+
+    public static final String CONF_FILE_CLIENT_MEDIATOR =
+            SystemProperties.getConfPath() + "conf.d/client-mediator.ini";
+
+    public static final String CONF_FILE_SERVICE_MEDIATOR =
+            SystemProperties.getConfPath() + "conf.d/service-mediator.ini";
+
+    public static final String CONF_FILE_SERVICE_IMPORTER =
+            SystemProperties.getConfPath() + "conf.d/service-importer.ini";
 
     // --------------------------------------------------------------------- //
 

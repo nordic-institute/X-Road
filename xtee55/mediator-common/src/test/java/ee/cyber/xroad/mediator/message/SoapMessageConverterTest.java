@@ -48,8 +48,8 @@ public class SoapMessageConverterTest {
         assertTrue(xroadMessage.isAsync());
         assertTrue(xroadMessage.getHeader() instanceof XRoadDlSoapHeader.EE);
 
-        for (SoapMessageImpl sdsbMessage :
-                withParsedMessage(converter.sdsbSoapMessage(
+        for (SoapMessageImpl sdsbMessage
+                : withParsedMessage(converter.sdsbSoapMessage(
                         xroadMessage, true))) {
             assertNotNull(sdsbMessage);
             assertEquals(expectedClientId, sdsbMessage.getClient());
@@ -96,8 +96,8 @@ public class SoapMessageConverterTest {
         assertEquals("1234567890", sdsbMessage.getQueryId());
         assertFalse(sdsbMessage.isAsync());
 
-        for (XRoadSoapMessageImpl xroadMessage :
-                withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
+        for (XRoadSoapMessageImpl xroadMessage
+                : withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
             assertNotNull(xroadMessage);
             assertEquals("consumer", xroadMessage.getConsumer());
             assertEquals("producer", xroadMessage.getProducer());
@@ -137,8 +137,8 @@ public class SoapMessageConverterTest {
         assertEquals("1234567890", sdsbMessage.getQueryId());
         assertFalse(sdsbMessage.isAsync());
 
-        for (XRoadSoapMessageImpl xroadMessage :
-                withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
+        for (XRoadSoapMessageImpl xroadMessage
+                : withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
             assertNotNull(xroadMessage);
             assertEquals("consumer", xroadMessage.getConsumer());
             assertEquals("producer", xroadMessage.getProducer());
@@ -182,8 +182,8 @@ public class SoapMessageConverterTest {
         assertEquals("EE37702211234", sdsbMessage.getUserId());
         assertEquals("1234567890", sdsbMessage.getQueryId());
 
-        for (XRoadSoapMessageImpl xroadMessage :
-                withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
+        for (XRoadSoapMessageImpl xroadMessage
+                : withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
             assertNotNull(xroadMessage);
             assertEquals("consumer", xroadMessage.getConsumer());
             assertEquals("producer", xroadMessage.getProducer());
@@ -218,8 +218,8 @@ public class SoapMessageConverterTest {
             assertEquals("EE37702211234", xroadMessage.getUserId());
             assertEquals("1234567890", xroadMessage.getQueryId());
 
-            for (SoapMessageImpl sdsbMessage :
-                    withParsedMessage(
+            for (SoapMessageImpl sdsbMessage
+                    : withParsedMessage(
                             converter.sdsbSoapMessage(xroadMessage, false))) {
                 assertNotNull(sdsbMessage);
                 assertEquals(expectedClientId, sdsbMessage.getClient());
@@ -255,8 +255,8 @@ public class SoapMessageConverterTest {
         assertEquals("EE37702211234", sdsbMessage.getUserId());
         assertEquals("1234567890", sdsbMessage.getQueryId());
 
-        for (XRoadSoapMessageImpl xroadMessage :
-                withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
+        for (XRoadSoapMessageImpl xroadMessage
+                : withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
             assertNotNull(xroadMessage);
             assertTrue(xroadMessage.isRpcEncoded());
             assertEquals("consumer", xroadMessage.getConsumer());
@@ -291,8 +291,8 @@ public class SoapMessageConverterTest {
         assertEquals("27001010001", xroadMessage.getUserId());
         assertEquals("testquery4", xroadMessage.getQueryId());
 
-        for (SoapMessageImpl sdsbMessage :
-                withParsedMessage(converter.sdsbSoapMessage(
+        for (SoapMessageImpl sdsbMessage
+                : withParsedMessage(converter.sdsbSoapMessage(
                         xroadMessage, false))) {
             assertNotNull(sdsbMessage);
             assertTrue(sdsbMessage.isRpcEncoded());
@@ -327,8 +327,8 @@ public class SoapMessageConverterTest {
         assertEquals("1234567890", xroadMessage.getQueryId());
         assertTrue(xroadMessage.isAsync());
 
-        for (SoapMessageImpl sdsbMessage :
-                withParsedMessage(converter.sdsbSoapMessage(
+        for (SoapMessageImpl sdsbMessage
+                : withParsedMessage(converter.sdsbSoapMessage(
                         xroadMessage, false))) {
             assertNotNull(sdsbMessage);
             assertEquals(expectedClientId, sdsbMessage.getClient());
@@ -364,8 +364,8 @@ public class SoapMessageConverterTest {
         assertEquals("1234567890", sdsbMessage.getQueryId());
         assertTrue(sdsbMessage.isAsync());
 
-        for (XRoadSoapMessageImpl xroadMessage :
-                withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
+        for (XRoadSoapMessageImpl xroadMessage
+                : withParsedMessage(converter.xroadSoapMessage(sdsbMessage))) {
             assertNotNull(xroadMessage);
             assertEquals("consumer", xroadMessage.getConsumer());
             assertEquals("producer", xroadMessage.getProducer());

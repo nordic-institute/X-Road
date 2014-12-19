@@ -1,16 +1,9 @@
-project.ext.set("SDSB_HOME", System.getenv('SDSB_HOME'))
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+  id "eu.appsatori.fatjar" version "0.3"
 }
 
-apply plugin: 'fatjar'
+
+project.ext.set("SDSB_HOME", System.getenv('SDSB_HOME'))
 
 dependencies {
     compile project(':mediator-common')
@@ -38,18 +31,7 @@ clean << {
     }
 }
 
-task copyCommonUi(type: Copy) {
-    doFirst {
-        if (project.SDSB_HOME == null) {
-            throw new GradleException('System environment SDSB_HOME not set')
-        }
-    }
-
-    into "$projectDir/lib/sdsb"
-    from project.SDSB_HOME + "/common-ui/lib/validation_helper.rb"
-}
-
-task copyCenterCommon(dependsOn: copyCommonUi, type: Copy) {
+task copyCenterCommon(type: Copy) {
     doFirst {
         if (project.SDSB_HOME == null) {
            throw new GradleException('System environment SDSB_HOME not set')
@@ -72,10 +54,6 @@ task copyCenterCommon(dependsOn: copyCommonUi, type: Copy) {
         'validators.rb'
 }
 
-task changeSDSBSource(dependsOn: copyCenterCommon, type: Exec) {
-   commandLine = ['./change_sdsb_source.sh']
-}
-
 task createGemVersion(type: Exec) {
    commandLine = "./create_gem_version.sh $version $projectDir/lib/xtee55_clients_importer/version.rb".tokenize()
 }
@@ -86,7 +64,7 @@ task copyJar(dependsOn: fatJar, type: Copy) {
    rename "xtee55_clients_importer-${version}.jar", "xtee55_clients_importer.jar"
 }
 
-task buildGem(dependsOn: [createGemVersion, changeSDSBSource, copyJar], type: Exec) {
+task buildGem(dependsOn: [createGemVersion, copyCenterCommon, copyJar], type: Exec) {
     commandLine = [
             'jruby', '-S', 'gem', 'build', 'xtee55_clients_importer.gemspec']
 }

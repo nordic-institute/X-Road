@@ -14,23 +14,43 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.common.db.HibernateUtil;
-import ee.cyber.sdsb.common.db.TransactionCallback;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
 
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
+import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.cyber.xroad.mediator.MediatorSystemProperties.*;
 
 /**
  * Conf related utils for 5.0->SDSB migration.
  */
 public class Main {
+
+    static {
+        new SystemPropertiesLoader(MediatorSystemProperties.PREFIX) {
+            @Override
+            public void loadWithCommonAndLocal() {
+                load(CONF_FILE_MEDIATOR_COMMON);
+                load(CONF_FILE_SERVICE_IMPORTER);
+                load(CONF_FILE_SERVICE_MEDIATOR);
+            }
+        };
+
+        new SystemPropertiesLoader() { // default prefix
+            @Override
+            public void loadWithCommonAndLocal() {
+                load(CONF_FILE_SIGNER);
+            }
+        };
+    }
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
@@ -42,9 +62,9 @@ public class Main {
         try {
             CommandLine commandLine = parseArgs(args);
 
-            Path globalConfPath = Paths.get(SystemProperties.getGlobalConfFile());
-            Path identifierMappingPath =
-                Paths.get(MediatorSystemProperties.getIdentifierMappingFile());
+            //Path globalConfPath = Paths.get(SystemProperties.getGlobalConfFile());
+            Path identifierMappingPath = Paths.get(
+                    MediatorSystemProperties.getIdentifierMappingFile());
 
             String[] delete = commandLine.getOptionValues("delete");
 
@@ -55,7 +75,7 @@ public class Main {
             if (commandLine.hasOption("import") || optionsLength == 0
                 || (delete != null && optionsLength == 1)) {
 
-                if (!requireFile(globalConfPath) ||
+                if (/*!requireFile(globalConfPath) ||*/ // TODO: globalconf check
                     !requireFile(identifierMappingPath)) {
                     return;
                 }
@@ -102,6 +122,12 @@ public class Main {
                 }
             }
 
+            if (commandLine.hasOption("checkpromote")) {
+                if (!new SDSBChecker().canPromote()) {
+                    exitCode = 1;
+                }
+            }
+
         } catch (Throwable e) {
             LOG.error("ServiceImporter failed", e);
             System.err.println("ServiceImporter failed: " + e.getMessage());
@@ -129,11 +155,12 @@ public class Main {
             // lock is released when lockFile is closed
             lockFile.getChannel().lock();
 
-            doInTransaction(new TransactionCallback<Object>() {
-                @Override
-                public Object call(Session session) throws Exception {
+            doInTransaction(session -> {
+                try {
                     new ServiceImporter().doImport(deleteShortName);
                     return null;
+                } catch (Exception e) {
+                    throw translateException(e);
                 }
             });
         }
@@ -141,11 +168,12 @@ public class Main {
 
     private static void doExport(final ClientId deleteClientId)
             throws Exception {
-        doInTransaction(new TransactionCallback<Object>() {
-            @Override
-            public Object call(Session session) throws Exception {
+        doInTransaction(session -> {
+            try {
                 new ServiceImporter().doExport(deleteClientId);
                 return null;
+            } catch (Exception e) {
+                throw translateException(e);
             }
         });
     }
@@ -170,6 +198,8 @@ public class Main {
             new Option("export", "export services conf from SDSB to 5.0"));
         mainOperations.addOption(
             new Option("checksdsb", "check if SDSB can be activated"));
+        mainOperations.addOption(
+                new Option("checkpromote", "check if SDSB can be promoted"));
 
         // -delete option has the value of either
         // 'sdsbInstance,memberClass,memberCode,subsystemCode' or 'shortName'

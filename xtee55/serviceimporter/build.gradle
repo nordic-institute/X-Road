@@ -1,14 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+  id "eu.appsatori.fatjar" version "0.3"
 }
-
-apply plugin: 'fatjar'
 
 dependencies {
     compile project(':mediator-common')

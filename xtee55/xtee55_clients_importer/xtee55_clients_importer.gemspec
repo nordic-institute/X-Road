@@ -9,6 +9,7 @@ Gem::Specification.new do |s|
   s.require_path = "lib"
   s.autorequire = "xtee55_clients_importer"
   s.add_dependency 'activerecord-jdbcpostgresql-adapter'
+  s.add_dependency "addressable"
   s.has_rdoc = false
 end
 

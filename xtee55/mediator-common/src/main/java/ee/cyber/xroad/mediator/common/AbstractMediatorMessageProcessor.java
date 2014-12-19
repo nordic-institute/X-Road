@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.message.AbstractSoapMessage;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapMessage;
@@ -57,6 +58,9 @@ public abstract class AbstractMediatorMessageProcessor
             HttpClientManager httpClientManager) throws Exception {
         this.target = stripSlash(target);
         this.httpClientManager = httpClientManager;
+
+        GlobalConf.verifyValidity();
+        GlobalConf.initForCurrentThread();
     }
 
     @Override

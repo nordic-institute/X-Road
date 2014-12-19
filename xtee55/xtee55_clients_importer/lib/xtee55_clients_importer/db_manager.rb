@@ -2,7 +2,6 @@ require 'active_record'
 
 require 'java'
 
-require 'sdsb/validation_helper'
 require 'sdsb/validators'
 require 'sdsb/identifier'
 require 'sdsb/system_parameter'
@@ -68,7 +67,7 @@ module Xtee55ClientsImporter
     end
 
     def import_clients(consumers, producers)
-      @@log.info("Importing  clients..")
+      @@log.info("Importing clients..")
 
       mapping_file = DistributedFiles.where(
           file_name: "identifiermapping.xml").first
@@ -79,7 +78,7 @@ module Xtee55ClientsImporter
       mapping = Java::EeCyberXroadClientsimporter::IdentifierMapping.new(
           mapping_file.file_data)
 
-      sdsb_instance = SystemParameter.sdsb_instance
+      instance_identifier = SystemParameter.instance_identifier
 
       # Process consumers first.
       orgs = consumers + producers
@@ -95,7 +94,7 @@ module Xtee55ClientsImporter
           next
         end
 
-        if client_id.getSdsbInstance() != sdsb_instance
+        if client_id.getSdsbInstance() != instance_identifier
           @@log.warn("Invalid SDSB instance '#{client_id.getSdsbInstance()}' " +
               "for client '#{o.name}', skipping")
           @warnings = true

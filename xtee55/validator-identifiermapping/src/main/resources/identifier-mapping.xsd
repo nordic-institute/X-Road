@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema targetNamespace="http://x-road.ee/xsd/x-road.xsd"
+        xmlns:tns="http://x-road.ee/xsd/x-road.xsd"
+        xmlns="http://www.w3.org/2001/XMLSchema" xmlns:id="http://x-road.eu/xsd/identifiers">
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd"/>
+    <element name="mappings" type="tns:MappingsType" />
+    <complexType name="MappingsType">
+        <sequence>
+            <element name="mapping" maxOccurs="unbounded" minOccurs="0">
+                <complexType>
+                    <sequence>
+                        <element name="oldId" type="string"/>
+                        <element name="newId" type="id:SdsbClientIdentifierType"/>
+                    </sequence>
+                </complexType>
+            </element>
+        </sequence>
+    </complexType>
+</schema>

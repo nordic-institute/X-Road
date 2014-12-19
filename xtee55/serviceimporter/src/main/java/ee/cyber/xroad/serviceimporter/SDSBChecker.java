@@ -2,7 +2,6 @@ package ee.cyber.xroad.serviceimporter;
 
 import java.util.List;
 
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,8 +10,8 @@ import akka.actor.ActorSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
-import ee.cyber.sdsb.common.db.TransactionCallback;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 import ee.cyber.sdsb.signer.protocol.dto.CertificateInfo;
@@ -21,27 +20,33 @@ import ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo;
 import ee.cyber.sdsb.signer.protocol.dto.TokenInfo;
 import ee.cyber.sdsb.signer.protocol.message.ListTokens;
 
+import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 
 
-public class SDSBChecker {
+class SDSBChecker {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(SDSBChecker.class);
 
     private ActorSystem actorSystem;
 
-    public boolean canActivate() throws Exception {
-        return doInTransaction(new TransactionCallback<Boolean>() {
-            @Override
-            public Boolean call(Session session) throws Exception {
+    boolean canActivate() throws Exception {
+        return doInTransaction(session -> {
+            try {
                 return internalCanActivate();
+            } catch (Exception e) {
+                throw translateException(e);
             }
         });
     }
 
-    public boolean internalCanActivate() throws Exception {
+    private boolean internalCanActivate() throws Exception {
         if (!Helper.confExists()) {
+            return false;
+        }
+
+        if (!checkValidGlobalConf()) {
             return false;
         }
 
@@ -86,6 +91,18 @@ public class SDSBChecker {
         }
 
         return authCertExists && ownerSignCertExists && tspExists;
+    }
+
+    boolean canPromote() {
+        return checkValidGlobalConf();
+    }
+
+    private boolean checkValidGlobalConf() {
+        if (!GlobalConf.isValid()) {
+            logAndPrint("The security server does not have up-to-date global configuration. Please fix the configuration downloading before proceeding.");
+            return false;
+        }
+        return true;
     }
 
     private List<TokenInfo> getTokens() throws Exception {

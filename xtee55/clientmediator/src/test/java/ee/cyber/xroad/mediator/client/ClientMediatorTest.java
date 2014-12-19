@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ExpectedCodedException;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -47,6 +48,7 @@ public class ClientMediatorTest {
 
     @Before
     public void setUp() throws Exception {
+        GlobalConf.reload(new TestGlobalConf());
         MediatorServerConf.reload(new TestServerConf());
         isSdsbMember = false;
     }
@@ -290,6 +292,11 @@ public class ClientMediatorTest {
                 SecurityServerId securityServer) {
             return true;
         }
+
+        @Override
+        public String getInstanceIdentifier() {
+            return "EE";
+        }
     }
 
     private class TestServerConf extends EmptyServerConf
@@ -318,7 +325,7 @@ public class ClientMediatorTest {
         MockClientMediatorMessageProcessor(String requestContentType,
                 InputStream request, String responseContentType,
                 InputStream response) throws Exception {
-            super("", null, new TestGlobalConf(), new ClientCert(null, null));
+            super("", null, new ClientCert(null, null));
 
             this.requestContentType = requestContentType;
             this.requestContent = request;

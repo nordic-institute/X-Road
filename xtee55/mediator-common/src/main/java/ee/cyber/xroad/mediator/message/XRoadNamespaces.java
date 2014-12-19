@@ -97,8 +97,8 @@ public final class XRoadNamespaces {
 
     public static void addNamespaceDeclarations(SOAPMessage soap,
             Class<?> soapHeaderClass) throws Exception {
-        for (Map.Entry<String, Class<?>> entry :
-                SOAP_HEADER_REGISTRY.entrySet()) {
+        for (Map.Entry<String, Class<?>> entry
+                : SOAP_HEADER_REGISTRY.entrySet()) {
             if (entry.getValue().equals(soapHeaderClass)) {
                 soap.getSOAPPart().getEnvelope().addNamespaceDeclaration(
                         getPrefix(entry.getKey()), entry.getKey());

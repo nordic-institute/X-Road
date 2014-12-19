@@ -14,9 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -24,14 +23,13 @@ import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.xroad.mediator.MediatorServerConfProvider;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey.KEY_ALIAS;
-import static ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey.KEY_PASSWORD;
 import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
 
 class IntegrationTestServerConfImpl implements
         MediatorServerConfProvider {
 
+    private static final int SERVICE_TIMEOUT = 10;
     private static final Logger LOG =
             LoggerFactory.getLogger(IntegrationTestServerConfImpl.class);
 
@@ -58,7 +56,7 @@ class IntegrationTestServerConfImpl implements
 
     @Override
     public int getServiceTimeout(ServiceId service) {
-        return 10;
+        return SERVICE_TIMEOUT;
     }
 
     @Override
@@ -85,17 +83,17 @@ class IntegrationTestServerConfImpl implements
         // TODO: Verify if works!
         File keyFile = new File("src/test/resources/sslkey.p12");
 
-        KeyStore ks = loadPkcs12KeyStore(keyFile, KEY_PASSWORD);
+        KeyStore ks = loadPkcs12KeyStore(keyFile, "internal".toCharArray());
 
-        PrivateKey key = (PrivateKey) ks
-                .getKey(KEY_ALIAS, KEY_PASSWORD);
+        PrivateKey key =
+                (PrivateKey) ks.getKey("internal", "internal".toCharArray());
         if (key == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get key from '%s'", keyFile);
         }
 
         X509Certificate cert =
-                (X509Certificate) ks.getCertificate(KEY_ALIAS);
+                (X509Certificate) ks.getCertificate("internal");
         if (cert == null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not get certificate from '%s'", keyFile);
@@ -127,11 +125,6 @@ class IntegrationTestServerConfImpl implements
     @Override
     public Collection<SecurityCategoryId> getRequiredCategories(
             ServiceId service) {
-        return null; // Not used
-    }
-
-    @Override
-    public List<GlobalConfDistributorType> getFileDistributors() {
         return null; // Not used
     }
 
@@ -317,6 +310,11 @@ class IntegrationTestServerConfImpl implements
     @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
+        return null;
+    }
+
+    @Override
+    public String getMemberStatus(ClientId memberId) {
         return null;
     }
 }

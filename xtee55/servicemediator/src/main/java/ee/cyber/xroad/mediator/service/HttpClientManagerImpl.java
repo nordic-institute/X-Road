@@ -27,7 +27,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorServerConf;
@@ -168,7 +168,7 @@ class HttpClientManagerImpl implements HttpClientManager {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[] {};
+            return new X509Certificate[0];
         }
     }
 }

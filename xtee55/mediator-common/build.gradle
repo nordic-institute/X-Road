@@ -27,7 +27,7 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'org.antlr:ST4:4.0.7'
     
-    provided 'org.projectlombok:lombok:0.12.0'
+    provided 'org.projectlombok:lombok:1.14.8'
     
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
@@ -37,7 +37,7 @@ sourceSets.main.compileClasspath += configurations.provided
 
 eclipse {
     classpath {
-        plusConfigurations += configurations.provided 
+        plusConfigurations += [configurations.provided]
     }
 }
 

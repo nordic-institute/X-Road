@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:xrd="http://x-road.ee/xsd/x-road.xsd">
+    <SOAP-ENV:Header>
+        <xrd:consumer>v55ts1client1</xrd:consumer>
+        <xrd:producer>v55ts2client2</xrd:producer>
+        <xrd:userId>EE37702211234</xrd:userId>
+        <xrd:id>1234567890</xrd:id>
+        <xrd:service>v55ts2client2.getCharge</xrd:service>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xrd:getCharge>
+           <request>v55ts2client2.paring.v1</request>
+        </xrd:getCharge>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

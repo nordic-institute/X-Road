@@ -17,6 +17,7 @@ SDSB_SCRIPTS_DIR=/usr/share/sdsb/scripts
 SERVICE_IMPORTER=$SDSB_SCRIPTS_DIR/serviceimporter.sh
 SERVICE_EXPORTER=$SDSB_SCRIPTS_DIR/serviceexporter.sh
 IMPORT_INTERNAL_SSLKEY=$SDSB_SCRIPTS_DIR/import_internal_sslkey.sh
+SDSB_CHECKER=$SDSB_SCRIPTS_DIR/check_sdsb.sh
 
 for REQUIRED_FILE in \
     $SERVICE_IMPORTER \
@@ -28,6 +29,9 @@ do
     exit 1
   fi
 done
+
+echo Checking SDSB for minimal configuration..
+su sdsb -c "$SDSB_CHECKER -checkpromote" || exit 1
 
 if [ -f $XTEE_ETC_DIR/sdsb_promoted ]; then
   echo SDSB proxy allready promoted, repromote

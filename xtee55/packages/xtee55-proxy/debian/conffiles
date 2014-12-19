@@ -2,3 +2,12 @@ etc/sdsb/services/xtee55-monitor.conf
 etc/sdsb/services/xtee55-clientmediator.conf
 etc/sdsb/services/xtee55-servicemediator.conf
 etc/sdsb/nginx/xtee55-clientmediator.conf
+etc/sdsb/conf.d/servicemediator-logback.xml
+etc/sdsb/conf.d/serviceimporter-logback.xml
+etc/sdsb/conf.d/monitoragent-logback.xml
+etc/sdsb/conf.d/clientmediator-logback.xml
+etc/sdsb/conf.d/client-mediator.ini
+etc/sdsb/conf.d/mediator-common.ini
+etc/sdsb/conf.d/service-importer.ini
+etc/sdsb/conf.d/service-mediator.ini
+

@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.GlobalConf;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
@@ -173,6 +173,7 @@ class ServiceMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
                     new DefaultServerTrustVerifier(service));
         }
 
+        sender.addHeader("accept-encoding", "");
         return sender;
     }
 
@@ -226,8 +227,6 @@ class ServiceMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
 
     @Override
     protected boolean shouldSendWithHttp10(SoapMessage message) {
-        MessageVersion version =
-                MessageVersion.fromMessage(message);
-        return version != MessageVersion.SDSB;
+        return MessageVersion.fromMessage(message) != MessageVersion.SDSB;
     }
 }

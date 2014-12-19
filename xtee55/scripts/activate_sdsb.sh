@@ -15,8 +15,6 @@ SDSB_SCRIPTS_DIR=/usr/share/sdsb/scripts
 . $SDSB_ETC_DIR/services/global.conf
 
 XTEE_PROXY_MAKEFILE=Makefile.proxy
-CLIENT_MEDIATOR_SITE=$SDSB_ETC_DIR/nginx/xtee55-clientmediator.conf
-CLIENT_MEDIATOR_SSL_SITE=$SDSB_ETC_DIR/nginx/xtee55-clientmediator-ssl.conf
 SERVICE_IMPORTER=$SDSB_SCRIPTS_DIR/serviceimporter.sh
 IMPORT_INTERNAL_SSLKEY=$SDSB_SCRIPTS_DIR/import_internal_sslkey.sh
 SDSB_CHECKER=$SDSB_SCRIPTS_DIR/check_sdsb.sh
@@ -24,7 +22,7 @@ SDSB_CHECKER=$SDSB_SCRIPTS_DIR/check_sdsb.sh
 SDSB_PROXY_UPSTART_CONF=/etc/init/xroad-proxy.conf
 SDSB_SIGNER_UPSTART_CONF=/etc/init/xroad-signer.conf
 SDSB_ASYNC_SENDER_UPSTART_CONF=/etc/init/xroad-async.conf
-SDSB_DISTRIBUTED_FILES_CLIENT_UPSTART_CONF=/etc/init/xroad-dfc.conf
+SDSB_DISTRIBUTED_FILES_CLIENT_UPSTART_CONF=/etc/init/xroad-confclient.conf
 SDSB_JETTY_UPSTART_CONF=/etc/init/xroad-jetty.conf
 XTEE55_CLIENT_MEDIATOR_UPSTART_CONF=/etc/init/xtee55-clientmediator.conf
 XTEE55_SERVICE_MEDIATOR_UPSTART_CONF=/etc/init/xtee55-servicemediator.conf
@@ -40,7 +38,6 @@ for REQUIRED_FILE in \
     $CLIENT_MEDIATOR_SSL_SITE \
     $SDSB_PROXY_UPSTART_CONF \
     $SDSB_SIGNER_UPSTART_CONF \
-    $SDSB_ASYNC_SENDER_UPSTART_CONF \
     $SDSB_DISTRIBUTED_FILES_CLIENT_UPSTART_CONF \
     $SDSB_JETTY_UPSTART_CONF \
     $XTEE55_CLIENT_MEDIATOR_UPSTART_CONF \
@@ -54,7 +51,7 @@ do
 done
 
 echo Checking SDSB for minimal configuration..
-su sdsb -c "$SDSB_CHECKER" || exit 1
+su sdsb -c "$SDSB_CHECKER -checksdsb" || exit 1
 
 if [ -d "$XTEE_ETC_DIR" ]; then
   if [ -f $XTEE_ETC_DIR/sdsb_activated ]; then
@@ -71,6 +68,15 @@ fi
 echo Reconfigure apache web server..
 make -f $XTEE_PROXY_MAKEFILE -C $XTEE_ETC_DIR force-net || exit 1
 
+echo Modify local.ini for CM activation
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-port -v 5500
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5577
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-address -v 0.0.0.0
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 0.0.0.0
+
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k http-port -v 80
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k https-port -v 443
+
 echo Import clients and services from X-Road proxy..
 su sdsb -c "$SERVICE_IMPORTER" || exit 1
 
@@ -80,11 +86,13 @@ $IMPORT_INTERNAL_SSLKEY -no-reload || exit 1
 echo \(Re\)Start SDSB signer..
 restart xroad-signer || start xroad-signer
 
-echo \(Re\)Start SDSB async sender..
-restart xroad-async || start xroad-async
+if [ -f $SDSB_ASYNC_SENDER_UPSTART_CONF ]; then
+  echo \(Re\)Start SDSB async sender..
+  restart xroad-async || start xroad-async
+fi
 
 echo \(Re\)Start SDSB distributed files client..
-restart xroad-dfc || start xroad-dfc
+restart xroad-confclient || start xroad-confclient
 
 echo \(Re\)Start jetty server..
 restart xroad-jetty || start xroad-jetty
@@ -98,16 +106,11 @@ restart xtee55-servicemediator || start xtee55-servicemediator
 echo \(Re\)Start monitor agent..
 restart xtee55-monitor || start xtee55-monitor
 
-echo Enable nginx sites for client mediator..
-ln -s -f $CLIENT_MEDIATOR_SITE /etc/nginx/sites-enabled/xtee55-clientmediator || exit 1
-ln -s -f $CLIENT_MEDIATOR_SSL_SITE /etc/nginx/sites-enabled/xtee55-clientmediator-ssl || exit 1
-
 echo Disable v6 activate checking responder
 rm /etc/nginx/sites-enabled/sdsb_proxy_disabled
 service nginx restart
 
 echo \(Re\)Start SDSB proxy..
 restart xroad-proxy || start xroad-proxy
-
 
 echo "SDSB proxy activated"

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +16,7 @@ import ee.cyber.xroad.mediator.IdentifierMapping;
 
 import static ee.cyber.sdsb.common.ErrorCodes.X_ADAPTER_WSDL_NOT_FOUND;
 /**
- * Responsible of end-to-end functionality of WSDLs merging - takes list of WSDL 
+ * Responsible of end-to-end functionality of WSDLs merging - takes list of WSDL
  * URL-s as input and returns input stream of merged WSDL-s as output.
  */
 public class WSDLsMerger {
@@ -44,8 +45,8 @@ public class WSDLsMerger {
     private void mergeWsdls() throws Exception {
         if (wsdlUrls == null || wsdlUrls.isEmpty()) {
             throw new CodedException(X_ADAPTER_WSDL_NOT_FOUND,
-                    "No adapter WSDL-s found for client '%s', inspect Your " +
-                            "server configuration.", client);
+                    "No adapter WSDL-s found for client '%s', inspect Your "
+                            + "server configuration.", client);
         }
 
         if (wsdlUrls.size() == 1) {

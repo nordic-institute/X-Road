@@ -5,6 +5,7 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.cyber.sdsb.common.conf.serverconf.model.*;
@@ -33,16 +34,16 @@ public class ServiceImporter {
     };
 
     private IdentifierMappingImpl identifierMapping;
-    private GlobalConf globalConf;
     private ServerConfType serverConf;
     private XConf xConf;
     private Date now;
 
     public ServiceImporter() {
         this.identifierMapping = new IdentifierMappingImpl();
-        this.globalConf = new GlobalConf();
         this.xConf = new XConf();
         this.now = new Date();
+
+        GlobalConf.initForCurrentThread();
     }
 
     public void doImport(String deleteShortName) throws Exception {
@@ -280,8 +281,7 @@ public class ServiceImporter {
         }
 
         if (authorizedGroups != null) {
-            String instanceIdentifier =
-                globalConf.getConfType().getInstanceIdentifier();
+            String instanceIdentifier = GlobalConf.getInstanceIdentifier();
 
             for (String subjectShortName : authorizedGroups) {
                 GlobalGroupId groupId = GlobalGroupId.create(
@@ -347,7 +347,7 @@ public class ServiceImporter {
     }
 
     private ManagementRequestSender getManagementRequestSender() {
-        ClientId receiver = globalConf.getManagementRequestServiceId();
+        ClientId receiver = GlobalConf.getManagementRequestService();
         ClientId sender = serverConf.getOwner().getIdentifier();
 
         return new ManagementRequestSender(
@@ -372,7 +372,8 @@ public class ServiceImporter {
                     continue;
                 }
 
-                String fullName = globalConf.getMemberName(client.getIdentifier());
+                String fullName =
+                        GlobalConf.getMemberName(client.getIdentifier());
 
                 XConf.Consumer consumer = new XConf.Consumer(shortName);
                 XConf.Producer producer = new XConf.Producer(shortName);
@@ -481,7 +482,7 @@ public class ServiceImporter {
             ? query + "." + service.getServiceVersion() : query;
 
         xconfAcl.queries.add(queryWithVersion);
-     }
+    }
 
     private void exportAcl(XConf.Producer producer, AclType aclType,
             XConfAcl xconfAcl) {

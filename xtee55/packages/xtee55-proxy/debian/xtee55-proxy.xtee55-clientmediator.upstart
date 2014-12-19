@@ -27,6 +27,6 @@ script
    . /etc/sdsb/services/xtee55-clientmediator.conf
    set -x
 
-   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name x55-cmediator --exec ${JAVA_HOME}/bin/java -- ${X55_CM_PARAMS} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/clientmediator.jar 
+   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name x55-cmediator --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${X55_CM_PARAMS} ${SDSB_PARAMS} -Djava.net.preferIPv4Stack=true -jar /usr/share/sdsb/jlib/clientmediator.jar 
 end script
 

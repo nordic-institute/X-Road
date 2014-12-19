@@ -9,8 +9,14 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+LUCID=
+
+ifeq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
+ LUCID=1
+endif 
+
 %:
 	dh  $@
 
 override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+	if ( test -z "$(LUCID)" ) then dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0 ; else dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`; fi

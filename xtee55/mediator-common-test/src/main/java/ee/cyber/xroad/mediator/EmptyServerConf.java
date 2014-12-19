@@ -4,9 +4,8 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 
-import ee.cyber.sdsb.common.conf.serverconf.InternalSSLKey;
+import ee.cyber.sdsb.common.conf.InternalSSLKey;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
-import ee.cyber.sdsb.common.conf.serverconf.model.GlobalConfDistributorType;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
@@ -80,11 +79,6 @@ public class EmptyServerConf implements MediatorServerConfProvider {
     }
 
     @Override
-    public List<GlobalConfDistributorType> getFileDistributors() {
-        return null;
-    }
-
-    @Override
     public List<ClientId> getMembers() throws Exception {
         return null;
     }
@@ -112,6 +106,11 @@ public class EmptyServerConf implements MediatorServerConfProvider {
 
     @Override
     public List<ServiceId> getAllowedServices(ClientId arg0, ClientId arg1) {
+        return null;
+    }
+
+    @Override
+    public String getMemberStatus(ClientId arg0) {
         return null;
     }
 }

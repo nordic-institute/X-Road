@@ -111,10 +111,17 @@ class DummyWSDLCreator {
 
     private void addBindingOp(Binding binding, String method) {
         String[] methodParts = method.split("\\.");
-        String serviceCode = methodParts[1];
-        String serviceVersion = methodParts.length >= 3
-                ? methodParts[2]
-                : null;
+
+        boolean hasVersionPart =
+            methodParts[methodParts.length - 1].matches("^v[\\d]+$");
+
+        String serviceVersion = hasVersionPart
+            ? methodParts[methodParts.length - 1]
+            : null;
+
+        String serviceCode = hasVersionPart
+            ? methodParts[methodParts.length - 2]
+            : methodParts[methodParts.length - 1];
 
         BindingOperation bindingOperation = def.createBindingOperation();
         bindingOperation.setName(serviceCode);

@@ -1,14 +1,6 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath 'eu.appsatori:gradle-fatjar-plugin:0.2-rc1'
-    }
+plugins {
+  id "eu.appsatori.fatjar" version "0.3"
 }
-
-apply plugin: 'fatjar'
 
 configurations {
     provided
@@ -26,7 +18,7 @@ dependencies {
     compile 'commons-io:commons-io:2.4'
     compile 'wsdl4j:wsdl4j:1.6.3'
         
-    provided 'org.projectlombok:lombok:0.12.0'
+    provided 'org.projectlombok:lombok:1.14.8'
 
     testCompile project(':mediator-common-test')
     testCompile 'org.hsqldb:hsqldb:2.3.2'
@@ -37,7 +29,7 @@ sourceSets.test.compileClasspath += configurations.provided
 
 eclipse {
     classpath {
-        plusConfigurations += configurations.provided 
+        plusConfigurations += [configurations.provided]
     }
 }
 

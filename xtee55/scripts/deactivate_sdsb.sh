@@ -9,11 +9,8 @@
 
 XTEE_ETC_DIR=/usr/xtee/etc
 SDSB_SSL_DIR=/etc/sdsb/ssl
-SITES_ENABLED_DIR=/etc/nginx/sites-enabled
 
 XTEE_PROXY_MAKEFILE=Makefile.proxy
-CLIENT_MEDIATOR_ENABLED_SITE=$SITES_ENABLED_DIR/xtee55-clientmediator
-CLIENT_MEDIATOR_ENABLED_SSL_SITE=$SITES_ENABLED_DIR/xtee55-clientmediator-ssl
 
 if [ -f $XTEE_ETC_DIR/sdsb_promoted ]; then
   echo ERROR: Cannot deactivate promoted SDSB proxy!
@@ -22,6 +19,17 @@ fi
 
 if [ -f $XTEE_ETC_DIR/sdsb_activated ]; then
   rm -f $XTEE_ETC_DIR/sdsb_activated || exit 1
+
+echo Modifying local.ini 
+
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-port -v 5501
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5578
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-address -v 127.0.0.1
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 127.0.0.1
+
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k http-port -v 6668
+/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k https-port -v 6443
+
 cat > /etc/nginx/sites-enabled/sdsb_proxy_disabled << EOF
 # direct connection to proxy is disabled when v5.5 is not activated
 server { listen 5577;
@@ -42,11 +50,10 @@ else
   exit 0
 fi
 
-echo Disable nginx site for client mediator..
-rm -f $CLIENT_MEDIATOR_ENABLED_SITE
-rm -f $CLIENT_MEDIATOR_ENABLED_SSL_SITE
-service xroad-proxy restart
-service nginx restart
+echo Restart services..
+restart xtee55-clientmediator
+restart xroad-proxy
+restart nginx
 
 
 echo Reconfigure X-Road v5 apache web server..

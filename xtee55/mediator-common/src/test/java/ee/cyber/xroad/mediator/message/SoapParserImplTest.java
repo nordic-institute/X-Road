@@ -177,6 +177,17 @@ public class SoapParserImplTest {
         assertTrue(message.isRequest());
     }
 
+    @Test
+    public void readXroadSubsystem() throws Exception {
+        SoapMessage message = parseSoapMessage("xroad-subsystem.request");
+        assertTrue(MediatorUtils.isXroadSoapMessage(message));
+        assertTrue(message.isRequest());
+
+        XRoadSoapMessageImpl xroadMessage = (XRoadSoapMessageImpl) message;
+        assertEquals("xrddlGetRandom", xroadMessage.getServiceName());
+        assertEquals("v1", xroadMessage.getServiceVersion());
+    }
+
     private static SoapMessage parseSoapMessage(String fileName)
             throws Exception {
         Soap soap = parseMessage(fileName);

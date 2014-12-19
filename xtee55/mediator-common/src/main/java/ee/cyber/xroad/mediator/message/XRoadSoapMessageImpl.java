@@ -11,18 +11,25 @@ import static ee.cyber.sdsb.common.message.SoapUtils.isResponseMessage;
  */
 public class XRoadSoapMessageImpl extends AbstractSoapMessage<XRoadSoapHeader> {
 
-    private final String serviceName;
-    private final String serviceVersion;
+    private String serviceName;
+    private String serviceVersion;
 
-    XRoadSoapMessageImpl(String xml, String charset, XRoadSoapHeader header,
+    XRoadSoapMessageImpl(byte[] xml, String charset, XRoadSoapHeader header,
             SOAPMessage soap, String serviceName) throws Exception {
         super(xml, charset, header, soap, isResponseMessage(serviceName),
                 header instanceof XRoadRpcSoapHeader);
 
-        this.serviceName =
-                getPartFromFullServiceName(header.getService(), 1);
-        this.serviceVersion =
-                getPartFromFullServiceName(header.getService(), 2);
+        parseServiceNameAndVersion(header.getService());
+    }
+
+    private void parseServiceNameAndVersion(String fullServiceName) {
+        if (fullServiceName != null) {
+            String[] parts = fullServiceName.split("\\.");
+            boolean hasVersion = parts[parts.length - 1].matches("^v[\\d]+$");
+            this.serviceVersion = hasVersion ? parts[parts.length - 1] : null;
+            this.serviceName = hasVersion
+                    ? parts[parts.length - 2] : parts[parts.length - 1];
+        }
     }
 
     public boolean isAsync() {
@@ -55,17 +62,5 @@ public class XRoadSoapMessageImpl extends AbstractSoapMessage<XRoadSoapHeader> {
 
     public String getServiceVersion() {
         return serviceVersion;
-    }
-
-    private static final String getPartFromFullServiceName(
-            String fullServiceName, int partIndex) {
-        if (fullServiceName != null) {
-            String[] parts = fullServiceName.split("\\.");
-            if (parts.length >= partIndex + 1) {
-                return parts[partIndex];
-            }
-        }
-
-        return null;
     }
 }

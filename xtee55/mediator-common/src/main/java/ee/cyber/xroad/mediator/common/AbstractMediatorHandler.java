@@ -37,9 +37,6 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
         headerBlacklist.add(HttpHeaders.CONTENT_ENCODING);
         headerBlacklist.add(HttpHeaders.TRANSFER_ENCODING);
         headerBlacklist.add(HttpHeaders.CONTENT_TRANSFER_ENCODING);
-
-        headerBlacklist.add(HttpHeaders.X_SSL_CLIENT_CERT);
-        headerBlacklist.add(HttpHeaders.X_SSL_CLIENT_VERIFY);
     }
 
     protected final HttpClientManager httpClientManager;

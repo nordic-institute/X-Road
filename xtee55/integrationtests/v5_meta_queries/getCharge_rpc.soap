@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:xtee="http://x-tee.riik.ee/xsd/xtee.xsd"
+        SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+        xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" >
+    <SOAP-ENV:Header>
+        <xtee:asutus xsi:type="xsd:string">v55ts1client1</xtee:asutus>
+        <xtee:andmekogu xsi:type="xsd:string">v55ts2client2</xtee:andmekogu>
+        <xtee:isikukood xsi:type="xsd:string">EE37702211234</xtee:isikukood>
+        <xtee:id xsi:type="xsd:string">1234567890</xtee:id>
+        <xtee:nimi xsi:type="xsd:string">v55ts2client2.getCharge</xtee:nimi>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <xtee:getCharge>
+           <keha>
+              <paring xsi:type="xsd:string">v55ts2client2.paring.v1</paring>
+           </keha>
+        </xtee:getCharge>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

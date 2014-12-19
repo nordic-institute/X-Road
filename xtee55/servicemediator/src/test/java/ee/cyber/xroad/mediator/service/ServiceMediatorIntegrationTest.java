@@ -62,8 +62,8 @@ public class ServiceMediatorIntegrationTest {
     private static String responseFile = "sdsb-simple.response";
 
     public static void main(String[] args) throws Exception {
-        System.setProperty(SystemProperties.GLOBAL_CONFIGURATION_FILE,
-                "src/test/resources/globalconf.xml");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH,
+                "src/test/resources/globalconf");
 
         System.setProperty(MediatorSystemProperties.IDENTIFIER_MAPPING_FILE,
                 "src/test/resources/identifiermapping.xml");

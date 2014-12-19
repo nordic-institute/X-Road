@@ -14,10 +14,11 @@ public class XRoadListMethods extends XRoadMetaServiceImpl {
 
     XRoadListMethods(String charset, SOAPMessage soap,
             String service, boolean isRpcEncoded) throws Exception {
-        this(getXmlAsString(NS_DL_XX), charset, soap, service, isRpcEncoded);
+        this(getXmlAsString(NS_DL_XX).getBytes(charset), charset, soap,
+                service, isRpcEncoded);
     }
 
-    XRoadListMethods(String xml, String charset, SOAPMessage soap,
+    XRoadListMethods(byte[] xml, String charset, SOAPMessage soap,
             String service, boolean isRpcEncoded) throws Exception {
         super(xml, charset, isRpcEncoded
                 ? new XRoadRpcSoapHeader() : new XRoadDlSoapHeader.XX(), soap);
@@ -62,14 +63,14 @@ public class XRoadListMethods extends XRoadMetaServiceImpl {
 
     public static String getXmlAsString(String nsUri) {
         String rpc = XRoadNamespaces.NS_RPC.equals(nsUri)
-                ? " SOAP-ENV:encodingStyle=" +
-                    "\"http://schemas.xmlsoap.org/soap/encoding/\"" : "";
-        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>" +
-                "<SOAP-ENV:Envelope" + rpc + " xmlns:SOAP-ENV=\"" +
-                "http://schemas.xmlsoap.org/soap/envelope/\">" +
-                "<SOAP-ENV:Body>" +
-                "<xrd:listMethods xmlns:xrd=\"" + nsUri + "\"/>" +
-                "</SOAP-ENV:Body>" +
-                "</SOAP-ENV:Envelope>";
+                ? " SOAP-ENV:encodingStyle="
+                    + "\"http://schemas.xmlsoap.org/soap/encoding/\"" : "";
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+                    + "<SOAP-ENV:Envelope" + rpc + " xmlns:SOAP-ENV=\""
+                    + "http://schemas.xmlsoap.org/soap/envelope/\">"
+                    + "<SOAP-ENV:Body>"
+                    + "<xrd:listMethods xmlns:xrd=\"" + nsUri + "\"/>"
+                    + "</SOAP-ENV:Body>"
+                    + "</SOAP-ENV:Envelope>";
     }
 }

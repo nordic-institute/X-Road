@@ -1,6 +1,7 @@
 package ee.cyber.xroad.mediator.client;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.HttpHeaders;
 import ee.cyber.sdsb.common.util.PerformanceLogger;
 import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
@@ -36,8 +36,8 @@ class ClientMediatorHandler extends AbstractMediatorHandler {
             final HttpServletRequest request,
             final HttpServletResponse response)
                     throws IOException, ServletException {
-        long start = PerformanceLogger.log(LOG, "Received request from " +
-                request.getRemoteAddr());
+        long start = PerformanceLogger.log(LOG, "Received request from "
+                    + request.getRemoteAddr());
         LOG.info("Received request from {}", request.getRemoteAddr());
 
         try {
@@ -80,8 +80,13 @@ class ClientMediatorHandler extends AbstractMediatorHandler {
     }
 
     private static ClientCert getClientCert(HttpServletRequest request) {
-        return ClientCert.fromParameters(
-                request.getHeader(HttpHeaders.X_SSL_CLIENT_VERIFY),
-                request.getHeader(HttpHeaders.X_SSL_CLIENT_CERT));
+        Object attribute = request.getAttribute(
+                "javax.servlet.request.X509Certificate");
+        if (attribute != null) {
+            X509Certificate[] certs = (X509Certificate[]) attribute;
+            return new ClientCert(certs[0], "cert");
+        } else {
+            return new ClientCert(null, null);
+        }
     }
 }

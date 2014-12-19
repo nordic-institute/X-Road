@@ -1,2 +1,5 @@
 etc/* etc/
 usr/* usr/
+../default-configuration/*.ini etc/sdsb/conf.d/
+../default-configuration/*.xml etc/sdsb/conf.d/
+

@@ -13,8 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.conf.GlobalConfImpl;
-import ee.cyber.sdsb.common.conf.GlobalConfProvider;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
 import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
@@ -30,7 +29,6 @@ import ee.cyber.xroad.mediator.message.XRoadMetaServiceImpl;
 import ee.cyber.xroad.mediator.message.XRoadSoapMessageImpl;
 import ee.cyber.xroad.mediator.util.MediatorUtils;
 
-import static ee.cyber.sdsb.common.SystemProperties.getOcspResponderPort;
 import static ee.cyber.sdsb.common.metadata.MetadataRequests.ALLOWED_METHODS;
 import static ee.cyber.sdsb.common.metadata.MetadataRequests.LIST_METHODS;
 import static ee.cyber.xroad.mediator.message.MessageVersion.SDSB;
@@ -46,18 +44,10 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
     private static final Map<String, ActivationInfo> activationInfo =
             new ConcurrentHashMap<>();
 
-    private final GlobalConfProvider globalConf;
     private final ClientCert clientCert;
 
     ClientMediatorMessageProcessor(String target,
             HttpClientManager httpClientManager, ClientCert clientCert)
-                    throws Exception {
-        this(target, httpClientManager, loadGlobalConf(), clientCert);
-    }
-
-    ClientMediatorMessageProcessor(String target,
-            HttpClientManager httpClientManager,
-            GlobalConfProvider globalConf, ClientCert clientCert)
                     throws Exception {
         super(target, httpClientManager);
 
@@ -65,7 +55,6 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             throw new IllegalArgumentException("clientCert must not be null");
         }
 
-        this.globalConf = globalConf;
         this.clientCert = clientCert;
     }
 
@@ -181,12 +170,15 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
 
     private boolean canSendToSdsb(SoapMessage message) throws Exception {
         if (message instanceof XRoadMetaServiceImpl) {
+            LOG.trace("X-Road 5.0 meta service messages cannot be sent "
+                    + "to SDSB");
             return false;
         }
 
         if (MediatorUtils.isSdsbSoapMessage(message)) {
             SoapMessageImpl sdsbSoap = (SoapMessageImpl) message;
             if (sdsbSoap.getService() instanceof CentralServiceId) {
+                LOG.trace("SDSB central service message is sent to SDSB");
                 return true;
             }
 
@@ -194,6 +186,8 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             String serviceCode = sdsbSoap.getService().getServiceCode();
             if (LIST_METHODS.equals(serviceCode)
                     || ALLOWED_METHODS.equals(serviceCode)) {
+                LOG.trace("SDSB meta request ({}) is sent to SDSB",
+                        serviceCode);
                 return true;
             }
         }
@@ -205,7 +199,7 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
         }
 
         SecurityServerId thisServer = MediatorServerConf.getIdentifier();
-        if (!globalConf.isSecurityServerClient(sender, thisServer)) {
+        if (!GlobalConf.isSecurityServerClient(sender, thisServer)) {
             LOG.trace("'{}' is not client of '{}'", sender, thisServer);
             return false;
         }
@@ -216,10 +210,14 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
             return false;
         }
 
-        Collection<String> addresses = globalConf.getProviderAddress(receiver);
+        Collection<String> addresses = GlobalConf.getProviderAddress(receiver);
         if (addresses == null || addresses.isEmpty()) {
             LOG.trace("'{}' is not registered in GlobalConf", receiver);
-            return false;
+
+            // If the message is for a federated environment, always send it
+            // to SDSB.
+            return !receiver.getSdsbInstance().equals(
+                    GlobalConf.getInstanceIdentifier());
         }
 
         // We assume that all security servers of a service provider are
@@ -234,13 +232,17 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
     private static boolean checkIfServerProxyIsActivated(String address) {
         ActivationInfo i = activationInfo.get(address);
         if (i != null && !i.isExpired()) {
+            LOG.trace("Server proxy activated (from cache): {}",
+                    i.isActivated());
             return i.isActivated();
         }
 
         boolean activated = false;
         try {
-            URI uri = new URI("http", null, address, getOcspResponderPort(),
+            URI uri = new URI("http", null, address,
+                    SystemProperties.getOcspResponderPort(),
                     "/", null, null);
+
             LOG.trace("Checking if {} is activated (URL = {})", address, uri);
 
             HttpURLConnection conn =
@@ -262,9 +264,5 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
 
         activationInfo.put(address, new ActivationInfo(activated));
         return activated;
-    }
-
-    private static GlobalConfProvider loadGlobalConf() throws Exception {
-        return new GlobalConfImpl(SystemProperties.getGlobalConfFile());
     }
 }

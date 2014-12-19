@@ -1,5 +1,6 @@
 #!/bin/sh
 
-. /etc/sdsb/services/global.conf
+. /etc/sdsb/services/xtee55-serviceimporter.conf
 
-${JAVA_HOME}/bin/java -Dee.cyber.sdsb.signer.port=${SIGNER_PORT} ${SDSB_PARAMS} -jar /usr/share/sdsb/jlib/serviceimporter.jar -checksdsb
+${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${X55_IMPORTER_PARAMS} -jar /usr/share/sdsb/jlib/serviceimporter.jar $*
+

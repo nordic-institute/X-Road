@@ -12,7 +12,7 @@ cp servicemediator/build/libs/servicemediator-0.1.jar packages/xtee55-proxy/usr/
 cp serviceimporter/build/libs/serviceimporter-0.1.jar packages/xtee55-proxy/usr/share/sdsb/jlib/
 
 mkdir -p packages/xtee55-proxy/usr/share/sdsb/scripts/
-cp  scripts/serviceimporter.sh  scripts/serviceexporter.sh scripts/promote_sdsb.sh scripts/deactivate_sdsb.sh scripts/activate_sdsb.sh scripts/import_internal_sslkey.sh scripts/export_internal_sslkey.sh scripts/check_sdsb.sh packages/xtee55-proxy/usr/share/sdsb/scripts/
+cp  scripts/serviceimporter.sh  scripts/serviceexporter.sh scripts/promote_sdsb.sh scripts/deactivate_sdsb.sh scripts/activate_sdsb.sh scripts/import_internal_sslkey.sh scripts/export_internal_sslkey.sh scripts/check_sdsb.sh scripts/modify_inifile.py packages/xtee55-proxy/usr/share/sdsb/scripts/
 
 #xtee55-common
 mkdir -p packages/xtee55-common/usr/share/sdsb/lib/

@@ -68,7 +68,7 @@ class SdsbSoapMessageConverter extends
             throws Exception {
         LOG.trace("convert()");
 
-        if (!(message.getService() instanceof ServiceId)) {
+        if (message.getCentralService() != null) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Converting message with central services not suported");
         }
@@ -103,8 +103,9 @@ class SdsbSoapMessageConverter extends
 
         String xml = prettyPrintXml(soap, message.getCharset());
         XRoadSoapMessageImpl xroadMessage =
-                new XRoadSoapMessageImpl(xml, message.getCharset(),
-                        header, soap, getServiceName(soap.getSOAPBody()));
+                new XRoadSoapMessageImpl(xml.getBytes(message.getCharset()),
+                        message.getCharset(), header, soap,
+                        getServiceName(soap.getSOAPBody()));
 
         if (LOG.isTraceEnabled()) {
             LOG.trace("Converted SDSB SOAP '{}' to X-Road 5.0 SOAP '{}'",
