@@ -19,7 +19,7 @@ override_dh_gencontrol:
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
 
 build:
-	wget -O jetty.tgz "http://download.eclipse.org/jetty/stable-9/dist/jetty-distribution-9.2.5.v20141112.tar.gz"
+	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.2.6.v20141205/dist/jetty-distribution-9.2.6.v20141205.tar.gz"
 	tar zxf jetty.tgz 
 	mv jetty-distribution* jetty9
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod

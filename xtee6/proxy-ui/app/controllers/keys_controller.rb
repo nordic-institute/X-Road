@@ -104,6 +104,8 @@ class KeysController < ApplicationController
       :file => [:required]
     })
 
+    GlobalConf::verifyValidity
+
     uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file].read)
 
     java_cert_obj = CryptoUtils::readCertificate(uploaded_cert.to_java_bytes)
@@ -138,6 +140,8 @@ class KeysController < ApplicationController
       :key_id => [:required],
       :cert_id => [:required]
     })
+
+    GlobalConf::verifyValidity
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
     java_cert_obj = CryptoUtils::readCertificate(cert.certificateBytes)

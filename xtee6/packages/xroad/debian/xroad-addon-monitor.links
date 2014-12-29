@@ -1,2 +1,0 @@
-usr/share/sdsb/scripts/reload-monitor-agent.sh usr/bin/reload-monitor-agent
-usr/share/sdsb/jlib/monitoring-proxy-agent-1.0.jar usr/share/sdsb/jlib/monitoring-proxy-agent.jar

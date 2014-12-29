@@ -394,6 +394,7 @@ function addMessage(type, message) {
     var messageContainer = "." + type;
 
     if ($(".ui-dialog:visible").length > 0) {
+        // TODO (RM task #5865): Find more foolproof selector for it!
         var buttonPane = ".ui-dialog-buttonpane:visible:last ";
         messageContainer = buttonPane + messageContainer;
 
@@ -649,7 +650,7 @@ function yesno(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
-        width: "auto",
+        width: 800,
         minWidth: 500,
         buttons: [
             { text: _("common.yes"),
@@ -712,7 +713,7 @@ function alert(text, params, success) {
 
 // -- Functionality related to console output - start
 
-function openConsoleOutputDialog(dialogTitle, dialogHeight) {
+function openConsoleOutputDialog(dialogTitle, dialogHeight, onClose) {
     var height = dialogHeight != null ? dialogHeight : "600";
 
     $("#console_output_dialog").initDialog({
@@ -727,7 +728,8 @@ function openConsoleOutputDialog(dialogTitle, dialogHeight) {
                   $(this).dialog("close");
               }
             }
-        ]
+        ],
+        close: onClose
     }).dialog("open");
 }
 
@@ -741,9 +743,9 @@ function fillConsoleOutputDialog(consoleOutput) {
     }
 }
 
-function initConsoleOutput(consoleOutput, dialogTitle, dialogHeight) {
+function initConsoleOutput(consoleOutput, dialogTitle, dialogHeight, onClose) {
     fillConsoleOutputDialog(consoleOutput);
-    openConsoleOutputDialog(dialogTitle, dialogHeight);
+    openConsoleOutputDialog(dialogTitle, dialogHeight, onClose);
 }
 
 // -- Functionality related to console output - end

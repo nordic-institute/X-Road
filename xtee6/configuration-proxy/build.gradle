@@ -33,7 +33,7 @@ task runConfigurationProxyTest(type: JavaExec) {
     jvmArgs '-Dee.cyber.sdsb.conf.path=src/test/resources/',
             '-Dee.cyber.sdsb.common.configuration-path=src/test/resources/test-conf-simple',
             '-Dee.cyber.sdsb.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
-    
+
     main = 'ee.cyber.sdsb.confproxy.ConfProxyTest'
     classpath = sourceSets.test.runtimeClasspath
 }
@@ -42,7 +42,7 @@ task runConfigurationProxyMain(type: JavaExec) {
     jvmArgs '-Dee.cyber.sdsb.conf.path=src/test/resources/',
             '-Dee.cyber.sdsb.common.configuration-path=build/',
             '-Dee.cyber.sdsb.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
-    
+
     main = 'ee.cyber.sdsb.confproxy.ConfProxyMain'
     classpath = sourceSets.test.runtimeClasspath
 

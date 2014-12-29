@@ -16,7 +16,7 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-    
+
     <logger name="ee.cyber.sdsb" level="TRACE" />
 
     <root level="INFO">

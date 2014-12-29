@@ -20,7 +20,7 @@ case "$1" in
     #add groups
     groups="sdsb-security-officer sdsb-registration-officer sdsb-service-administrator sdsb-system-administrator sdsb-system-auditor sdsb-users-administrator"
     #dbs
-    dbs="serverconf securelog"
+    dbs="serverconf"
 
     if ! netstat -na | grep -q :5432
       then echo  "Is postgres running on port 5432 ?"
@@ -49,17 +49,8 @@ case "$1" in
       else 
   	su - postgres -c "createdb $db -O $db -E UTF-8"
       fi
-    if dpkg --compare-versions "$2" le "6.0-99.3-201410021200" &&  [[ "$2x" != "x"  ]] && [[ "$db" == "serverconf" ]]
-    then
-      echo "converting instance information"
-      PGPASSWORD=serverconf psql -tA -h 0 -U serverconf serverconf <<EOF > /etc/sdsb/configuration-anchor.xml
-select xmlroot(xmlelement(name "tns:configurationAnchor", xmlattributes('http://x-road.eu/xsd/identifiers' as "xmlns:id", 'http://x-road.eu/xsd/sdsb.xsd' as "xmlns:tns", 'http://www.w3.org/2001/XMLSchema-instance' as "xmlns:xsi", 'http://x-road.eu/xsd/sdsb.xsd' as "xsi:schemaLocation" ), xmlelement(name "instanceIdentifier", sdsbinstance),  xmlelement(name source, xmlelement(name "downloadURL", regexp_replace(url, '/conf$', '/internalconf')), xmlelement(name "verificationCert", encode(cert.data, 'base64')))), VERSION '1.0', standalone yes) from identifier i join client c on i.id=c.identifier join serverconf s on c.id=s.owner join globalconfdistributor g on s.id=g.conf_id join certificate cert on cert.id=g.verificationcert;
-EOF
-      chown sdsb:sdsb /etc/sdsb/configuration-anchor.xml
-      chmod 644 /etc/sdsb/configuration-anchor.xml
-    fi
 
-    echo "running ${db} migrations"
+      echo "running ${db} migrations"
 	cd /usr/share/sdsb/db/
 	/usr/share/sdsb/db/liquibase --classpath=/usr/share/sdsb/jlib/proxy.jar --url="jdbc:postgresql://localhost/${db}?dialect=ee.cyber.sdsb.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/sdsb/db/${db}-changelog.xml --password=${db} --username=${db}  update
 

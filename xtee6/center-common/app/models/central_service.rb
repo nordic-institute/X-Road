@@ -64,13 +64,10 @@ class CentralService < ActiveRecord::Base
     service.remove_target_service() if service
   end
 
-  def self.get_central_services(query_params, advanced_search_params = nil)
-    logger.info("get_central_services('#{query_params}', '#{advanced_search_params}')")
+  def self.get_central_services(query_params)
+    logger.info("get_central_services('#{query_params}'")
 
-    searchable = advanced_search_params ? advanced_search_params :
-        query_params.search_string
-
-    get_search_relation(searchable).
+    get_search_relation(query_params.search_string).
         order("#{query_params.sort_column} #{query_params.sort_direction}").
         limit(query_params.display_length).
         offset(query_params.display_start)
@@ -91,24 +88,12 @@ class CentralService < ActiveRecord::Base
   end
 
   def self.get_search_relation(searchable)
-    sql_generator = searchable.is_a?(AdvancedSearchParams) ?
-        AdvancedSearchSqlGenerator.new(map_advanced_search_params(searchable)):
+    sql_generator =
         SimpleSearchSqlGenerator.new(get_searchable_columns, searchable)
 
     CentralService.
         where(sql_generator.sql, *sql_generator.params).
         includes(:target_service)
-  end
-
-  def self.map_advanced_search_params(searchable)
-    {
-        "central_services.service_code" => searchable.central_service_code,
-        "identifiers.service_code" => searchable.service_code,
-        "identifiers.service_version" => searchable.service_version,
-        "identifiers.member_class" => searchable.member_class,
-        "identifiers.member_code" => searchable.member_code,
-        "identifiers.subsystem_code" => searchable.subsystem_code
-    }
   end
 
   def self.get_searchable_columns

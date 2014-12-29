@@ -7,7 +7,7 @@ die () {
 }
 
 
-if [ "$(id -nu )" != "sdsb" ] 
+if [ "$(id -nu )" != "sdsb" ]
 then
  die "ABORTED. This script must run under sdsb user "
 fi

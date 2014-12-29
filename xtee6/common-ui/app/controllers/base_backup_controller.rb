@@ -75,13 +75,14 @@ class BaseBackupController < ApplicationController
 
     if exitcode == 0
       notice(t("restore.success", {:conf_file => params[:fileName]}))
+      after_restore_success
     else
       error(t("restore.error.script_failed", {:conf_file => params[:fileName]}))
     end
 
     render_json({
       :console_output => output
-    })
+    }.merge!(@extra_data || {}))
   end
 
   def delete_file

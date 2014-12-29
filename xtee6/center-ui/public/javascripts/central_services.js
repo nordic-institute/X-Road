@@ -1,13 +1,6 @@
 var SDSB_CENTRAL_SERVICES = function () {
     var oCentralServices;
 
-    var isSearchAdvanced;
-
-    var simpleSearchSelector = "#central_services_filter > label";
-    var searchLinkSelector = "#central_services_filter > a";
-
-    var executingAdvancedSearch = false;
-
     function enableActions() {
         $("#central_service_add").enable();
         if (oCentralServices.getFocus()) {
@@ -26,74 +19,6 @@ var SDSB_CENTRAL_SERVICES = function () {
             $(".central_service-action").enable();
         }
     }
-
-    /* -- Logic related to advanced search - start -- */
-
-    function toggleSearchMode() {
-        if (isSearchAdvanced) {
-            turnAdvancedSearchIntoSimpleSearch();
-        } else {
-            turnSimpleSearchIntoAdvancedSearch();
-        }
-    }
-
-    function turnAdvancedSearchIntoSimpleSearch() {
-        hideAdvancedSearch();
-        SDSB_CENTERUI_COMMON.showSimpleSearchElement(simpleSearchSelector);
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                searchLinkSelector, "common.advanced_search");
-        isSearchAdvanced = false;
-    }
-
-    function turnSimpleSearchIntoAdvancedSearch() {
-        $(simpleSearchSelector).hide();
-        showAdvancedSearch();
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                searchLinkSelector, "common.simple_search");
-        isSearchAdvanced = true;
-    }
-
-    function hideAdvancedSearch() {
-        $("#central_services_advanced_search_fieldset").hide();
-    }
-
-    function showAdvancedSearch() {
-        clearAdvancedSearchData();
-        $("#central_services_advanced_search_fieldset").show();
-    }
-
-    function clearAdvancedSearchData() {
-        $("#central_services_advanced_search_field_service_code").val("");
-        $("#central_services_advanced_search_field_impl_service_code").val("");
-        $("#central_services_advanced_search_field_provider_name").val("");
-        $("#central_services_advanced_search_field_provider_code").val("");
-        $("#central_services_advanced_search_field_provider_class").val("");
-        $("#central_services_advanced_search_field_provider_subsystem").val("");
-    }
-
-    function getCentralServiceAdvancedSearchParams() {
-        return {
-            centralServiceCode:
-                $("#central_services_advanced_search_field_service_code").val(),
-            serviceCode:
-                $("#central_services_advanced_search_field_impl_service_code")
-                .val(),
-            name:
-                $("#central_services_advanced_search_field_provider_name")
-                .val(),
-            memberCode:
-                $("#central_services_advanced_search_field_provider_code")
-                .val(),
-            memberClass:
-                $("#central_services_advanced_search_field_provider_class")
-                .val(),
-            subsystem:
-                $("#central_services_advanced_search_field_provider_subsystem")
-                .val()
-        }
-    }
-
-    /* -- Logic related to advanced search - end -- */
 
     function initTable() {
         var opts = defaultTableOpts();
@@ -124,17 +49,6 @@ var SDSB_CENTRAL_SERVICES = function () {
 
         opts.sAjaxSource = "central_services/services_refresh";
 
-        opts.fnServerParams = function(aoData) {
-            if (executingAdvancedSearch) {
-                aoData.push({
-                    "name": "advancedSearchParams",
-                    "value": JSON.stringify(
-                            getCentralServiceAdvancedSearchParams())
-                });
-                executingAdvancedSearch = false;
-            }
-        };
-
         opts.aaSorting = [ [2,'desc'] ];
 
         oCentralServices = $('#central_services').dataTable(opts);
@@ -152,12 +66,6 @@ var SDSB_CENTRAL_SERVICES = function () {
 
         enableActions();
         focusInput();
-
-        hideAdvancedSearch();
-
-        addAdvancedSearchLink("central_services_filter", function(){
-            toggleSearchMode();
-        });
 
         $("#central_services tbody tr").live("click", function(ev) {
             if (oCentralServices.setFocus(0, ev.target.parentNode) &&
@@ -191,18 +99,6 @@ var SDSB_CENTRAL_SERVICES = function () {
                     refreshTable();
                 }, "json");
             });
-        });
-
-        $("#central_services_advanced_search_execute").live("click",
-                function() {
-            executingAdvancedSearch = true;
-            refreshTable();
-        });
-
-
-        $("#central_services_advanced_search_clear").live("click",
-                function() {
-            clearAdvancedSearchData();
         });
     });
 

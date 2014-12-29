@@ -251,6 +251,7 @@ en:
     implementing_service_code: "Code"
     implementing_service: "Implementing Service"
     provider_legend: "Provider"
+    provider_name: "Provider Name"
     provider_code: "Provider Code"
     service_version: "Version"
     provider_class: "Provider Class"
@@ -278,6 +279,8 @@ en:
     intermediate_ca: "Intermediate CA"
     intermediate_ca_new_title: "Insert intermediate CA"
     intermediate_ca_edit_title: "Edit intermediate CA"
+    valid_from: "Valid From"
+    valid_to: "Valid To"
     add:
       step1:
         title: "Insert Service CA Certificate"

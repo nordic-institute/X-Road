@@ -1,9 +1,0 @@
-#!/bin/bash
-
-set -e
-
-service xroad-monitor restart || service xroad-monitor start
-
-service xroad-proxy restart || true
-
-exit 0

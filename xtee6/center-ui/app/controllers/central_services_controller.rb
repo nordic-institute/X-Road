@@ -33,16 +33,11 @@ class CentralServicesController < ApplicationController
 
     searchable = params[:sSearch]
 
-    advanced_search_params =
-        get_advanced_search_params(params[:advancedSearchParams])
-
     query_params = get_list_query_params(
       get_service_column(get_sort_column_no))
 
-    searchable = advanced_search_params if advanced_search_params
-
     central_services = CentralService.
-        get_central_services(query_params, advanced_search_params)
+        get_central_services(query_params)
     count = CentralService.get_service_count(searchable)
 
     result = []
@@ -76,7 +71,7 @@ class CentralServicesController < ApplicationController
     advanced_search_params =
         get_advanced_search_params(params[:providerSearchParams])
 
-    providers = 
+    providers =
       SecurityServerClient.get_clients(query_params, advanced_search_params)
 
     count = SecurityServerClient.get_clients_count(

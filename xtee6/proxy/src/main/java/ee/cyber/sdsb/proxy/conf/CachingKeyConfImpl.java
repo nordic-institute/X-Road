@@ -2,9 +2,9 @@ package ee.cyber.sdsb.proxy.conf;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +91,24 @@ class CachingKeyConfImpl extends KeyConfImpl {
         }
     }
 
+    private CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
+        SecurityServerId serverId = ServerConf.getIdentifier();
+        log.debug("Retrieving authentication info for security server '{}'",
+                serverId);
+
+        AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
+
+        CertChain certChain = getAuthCertChain(serverId.getSdsbInstance(),
+                keyInfo.getCert().getCertificateBytes());
+
+        List<OCSPResp> ocspResponses =
+                getOcspResponses(certChain.getAdditionalCerts());
+        ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
+
+        PrivateKey key = loadAuthPrivateKey(keyInfo);
+        return new CachedAuthKeyInfoImpl(key, certChain, ocspResponses);
+    }
+
     private static CachedSigningInfoImpl getSigningInfo(ClientId clientId)
             throws Exception {
         log.debug("Retrieving signing info for member '{}'", clientId);
@@ -111,23 +129,5 @@ class CachingKeyConfImpl extends KeyConfImpl {
                 || cachedInfo.getCreatedAt().plusSeconds(CACHE_PERIOD_SECONDS)
                         .isBeforeNow()
                 || !cachedInfo.verifyValidity(new Date());
-    }
-
-    private static CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
-        SecurityServerId serverId = ServerConf.getIdentifier();
-        log.debug("Retrieving authentication info for security server '{}'",
-                serverId);
-
-        AuthKeyInfo keyInfo = SignerClient.execute(new GetAuthKey(serverId));
-
-        PrivateKey key = loadAuthPrivateKey(keyInfo);
-
-        CertChain certChain = getAuthCertChain(serverId.getSdsbInstance(),
-                keyInfo.getCert().getCertificateBytes());
-
-        OCSPResp ocsp = new OCSPResp(keyInfo.getCert().getOcspBytes());
-
-        return new CachedAuthKeyInfoImpl(key, certChain, Arrays.asList(ocsp));
-
     }
 }

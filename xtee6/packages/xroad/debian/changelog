@@ -1,3 +1,9 @@
+xroad (6.1-2) trusty; urgency=low
+
+   Minor bugfixes for UI.
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 23 Dec 2014 11:08:38 +0200
+
 xroad (6.1-1) trusty; urgency=low
 
    Minor bugfixes for UI behaviour and for HSM based key handling.

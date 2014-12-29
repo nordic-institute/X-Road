@@ -11,4 +11,7 @@ class BackupController < BaseBackupController
   def after_restore
     ActiveRecord::Base.establish_connection
   end
+
+  def after_restore_success
+  end
 end

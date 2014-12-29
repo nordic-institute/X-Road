@@ -13,9 +13,12 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import org.apache.commons.cli.CommandLine;
 
 import ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor;
-import ee.cyber.sdsb.common.conf.globalconf.privateparameters.ConfigurationAnchorType;
-import ee.cyber.sdsb.common.conf.globalconf.privateparameters.ConfigurationSourceType;
-import ee.cyber.sdsb.common.conf.globalconf.privateparameters.ObjectFactory;
+import ee.cyber.sdsb.common.conf.globalconf.privateparameters
+        .ConfigurationAnchorType;
+import ee.cyber.sdsb.common.conf.globalconf.privateparameters
+        .ConfigurationSourceType;
+import ee.cyber.sdsb.common.conf.globalconf.privateparameters
+        .ObjectFactory;
 import ee.cyber.sdsb.common.util.AtomicSave;
 import ee.cyber.sdsb.confproxy.ConfProxyProperties;
 import ee.cyber.sdsb.confproxy.util.OutputBuilder;

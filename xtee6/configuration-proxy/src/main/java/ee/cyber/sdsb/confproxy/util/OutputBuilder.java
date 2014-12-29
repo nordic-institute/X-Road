@@ -32,7 +32,8 @@ import static ee.cyber.sdsb.common.util.CryptoUtils.encodeBase64;
 import static ee.cyber.sdsb.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
-import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.cyber.sdsb.common.util.MimeUtils
+        .HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_EXPIRE_DATE;
 import static ee.cyber.sdsb.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;

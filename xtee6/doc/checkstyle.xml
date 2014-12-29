@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+
+<!-- This is a checkstyle configuration file. For descriptions of
+what the following rules do, please see the checkstyle configuration
+page at http://checkstyle.sourceforge.net/config.html -->
+
+<module name="Checker">
+
+    <property name="severity" value="warning"/>
+
+    <module name="FileTabCharacter">
+        <property name="severity" value="warning"/>
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <module name="NewlineAtEndOfFile">
+        <property name="fileExtensions" value="java"/>
+    </module>
+
+    <!-- Options from RIA checkstyle file. -->
+    <module name="Translation"/>
+    <module name="FileLength"/>
+    <module name="RegexpSingleline">
+        <property name="format" value="^(?!\s*(?:\*\s+)?$)(.*?)\s+$"/>
+        <property name="minimum" value="0"/>
+        <property name="maximum" value="0"/>
+        <property name="message" value="Line has trailing spaces."/>
+    </module>
+    <!-- End of RIA stuff. -->
+
+
+    <!-- All Java AST specific tests live under TreeWalker module. -->
+    <module name="TreeWalker">
+        <!-- Options from RIA checkstyle file. -->
+        <module name="JavadocMethod">
+            <property name="scope" value="public"/>
+            <!--<property name="allowMissingPropertyJavadoc" value="true"/>-->
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="JavadocType">
+            <property name="scope" value="public"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <module name="JavadocStyle">
+            <property name="checkFirstSentence" value="false"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Checks for Naming Conventions. -->
+        <!-- See http://checkstyle.sf.net/config_naming.html -->
+        <module name="ConstantName"/>
+        <module name="LocalFinalVariableName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName"/>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+        <module name="TypeName"/>
+        <!-- Checks for Size Violations. -->
+        <!-- See http://checkstyle.sf.net/config_sizes.html -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+        </module>
+        <module name="MethodLength"/>
+        <module name="ParameterNumber"/>
+        <!-- Checks for whitespace -->
+        <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+        <module name="EmptyForIteratorPad"/>
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceAfter">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="NoWhitespaceBefore"/>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter">
+            <property name="tokens" value="COMMA, SEMI"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Modifier Checks -->
+        <!-- See http://checkstyle.sf.net/config_modifiers.html -->
+        <module name="RedundantModifier"/>
+
+        <!-- Checks for blocks. You know, those {}'s -->
+        <!-- See http://checkstyle.sf.net/config_blocks.html -->
+        <module name="AvoidNestedBlocks"/>
+        <module name="EmptyBlock"/>
+
+        <!-- Checks for common coding problems -->
+        <!-- See http://checkstyle.sf.net/config_coding.html -->
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="HiddenField">
+            <property name="ignoreConstructorParameter" value="true"/>
+        </module>
+        <module name="InnerAssignment"/>
+        <module name="MagicNumber"/>
+        <module name="MissingSwitchDefault"/>
+        <!-- Checks for class design -->
+        <!-- See http://checkstyle.sf.net/config_design.html -->
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InterfaceIsType"/>
+        <!-- Miscellaneous other checks. -->
+        <!-- See http://checkstyle.sf.net/config_misc.html -->
+        <!-- this is just plain silly - MF
+          module name="TodoComment"/ -->
+        <!-- End of RIA stuff. -->
+
+        <!--
+
+        IMPORT CHECKS
+
+        -->
+        <module name="IllegalImport"/>
+        <!-- defaults to sun.* packages -->
+        <module name="RedundantImport">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="UnusedImports">
+            <property name="severity" value="warning"/>
+        </module>
+        <!--
+
+        JAVADOC CHECKS
+
+        -->
+
+        <!-- Checks for Javadoc comments.                     -->
+        <!-- See http://checkstyle.sf.net/config_javadoc.html -->
+
+        <!--
+
+        NAMING CHECKS
+
+        -->
+
+        <!--
+
+        LENGTH and CODING CHECKS
+
+        -->
+
+        <module name="LeftCurly">
+            <!-- Checks for placement of the left curly brace ('{'). -->
+            <property name="severity" value="warning"/>
+        </module>
+
+        <module name="RightCurly">
+            <!-- Checks right curlies on CATCH, ELSE, and TRY blocks are on
+            the same line. e.g., the following example is fine:
+            <pre>
+              if {
+                ...
+              } else
+            </pre>
+            -->
+            <!-- This next example is not fine:
+            <pre>
+              if {
+                ...
+              }
+              else
+            </pre>
+            -->
+            <property name="option" value="same"/>
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- Checks for braces around if and else blocks -->
+        <module name="NeedBraces">
+            <property name="severity" value="warning"/>
+            <property name="tokens" value="LITERAL_IF, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
+        </module>
+
+        <module name="UpperEll">
+            <!-- Checks that long constants are defined with an upper ell.-->
+            <property name="severity" value="error"/>
+        </module>
+
+        <module name="FallThrough">
+            <!-- Warn about falling through to the next case statement.  Similar to
+            javac -Xlint:fallthrough, but the check is suppressed if a single-line comment
+            on the last non-blank line preceding the fallen-into case contains 'fall through' (or
+            some other variants which we don't publicized to promote consistency).
+            -->
+            <property name="reliefPattern"
+                      value="fall through|Fall through|fallthru|Fallthru|falls through|Falls through|fallthrough|Fallthrough|No break|NO break|no break|continue on"/>
+            <property name="severity" value="error"/>
+        </module>
+
+
+        <!--
+
+        MODIFIERS CHECKS
+
+        -->
+
+        <module name="ModifierOrder">
+            <!-- Warn if modifier order is inconsistent with JLS3 8.1.1, 8.3.1, and
+                 8.4.3.  The prescribed order is:
+                 public, protected, private, abstract, static, final, transient, volatile,
+                 synchronized, native, strictfp
+              -->
+        </module>
+
+
+        <!--
+
+        WHITESPACE CHECKS
+
+        -->
+
+        <module name="WhitespaceAround">
+            <!-- Checks that various tokens are surrounded by whitespace.
+                 This includes most binary operators and keywords followed
+                 by regular or curly braces.
+            -->
+            <property name="severity" value="warning"/>
+        </module>
+
+        <!-- module name="WhitespaceAfter">
+            <- Checks that commas, semicolons and typecasts are followed by
+                 whitespace.
+            ->
+            <property name="tokens" value="COMMA, SEMI, TYPECAST"/>
+            <property name="severity" value="warning"/>
+        </module -->
+
+        <!-- module name="NoWhitespaceAfter">
+            < Checks that there is no whitespace after various unary operators.
+                 Linebreaks are allowed.
+            ->
+            <property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS,
+        UNARY_PLUS"/>
+            <property name="allowLineBreaks" value="true"/>
+            <property name="severity" value="warning"/>
+        </module -->
+
+        <!-- module name="NoWhitespaceBefore">
+            <- Checks that there is no whitespace before various unary operators.
+                 Linebreaks are allowed.
+            ->
+            <property name="tokens" value="SEMI, DOT, POST_DEC, POST_INC"/>
+            <property name="allowLineBreaks" value="true"/>
+            <property name="severity" value="error"/>
+        </module-->
+
+        <module name="ParenPad">
+            <!-- Checks that there is no whitespace before close parens or after
+                 open parens.
+            -->
+            <property name="severity" value="warning"/>
+        </module>
+
+        <module name="RedundantThrows">
+            <property name="allowUnchecked" value="false"/>
+        </module>
+
+        <module name="OperatorWrap"/>
+
+    </module>
+</module>
+

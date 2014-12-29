@@ -129,9 +129,16 @@ var confBackup = function() {
         restoreInProgress = true;
 
         $.post(action("restore"), {fileName: fileName}, function(response) {
-            initConsoleOutput(
-                response.data.console_output,
-                _("restore.index.console_output"));
+            var onClose = response.data.activate_hardware_tokens && function() {
+                yesno("backup.index.activate_hardware_tokens", null, function(yes) {
+                    if (yes) {
+                        redirect("keys");
+                    }
+                });
+            };
+
+            initConsoleOutput(response.data.console_output,
+                _("restore.index.console_output"), null, onClose);
         }, "json").always(function() {
             restoreInProgress = false;
         });

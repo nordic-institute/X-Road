@@ -35,8 +35,6 @@ public class ImportCertRequestHandler
 
     @Override
     protected Object handle(ImportCert message) throws Exception {
-        GlobalConf.verifyValidity();
-
         X509Certificate cert = null;
         try {
             cert = readCertificate(message.getCertData());

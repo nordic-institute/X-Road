@@ -449,6 +449,7 @@ public class ConfigurationDirectory {
 
     private static Stream<Path> excludeMetadataAndDirs(Stream<Path> stream) {
         return stream.filter(Files::isRegularFile)
+                .filter(p -> !p.endsWith("files"))
                 .filter(p -> !p.endsWith(INSTANCE_IDENTIFIER_FILE))
                 .filter(p -> !p.toString().endsWith(METADATA_SUFFIX));
     }

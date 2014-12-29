@@ -17,10 +17,14 @@ import ee.cyber.sdsb.confproxy.ConfProxyProperties;
 import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
 import ee.cyber.sdsb.confproxy.util.OutputBuilder;
 
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.CONF_INI;
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.SIGNING_KEY_ID_PREFIX;
-import static ee.cyber.sdsb.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SECONDS;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties
+        .ACTIVE_SIGNING_KEY_ID;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties
+        .CONF_INI;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties
+        .SIGNING_KEY_ID_PREFIX;
+import static ee.cyber.sdsb.confproxy.ConfProxyProperties
+        .VALIDITY_INTERVAL_SECONDS;
 
 /**
  * Utility tool for viewing the configuration proxy configuration settings.

@@ -5,60 +5,6 @@
 <% end %>
 
 <% content_for :content do %>
-  <fieldset id="central_services_advanced_search_fieldset">
-    <fieldset>
-      <legend><%= t 'central_services.central_service_legend' %></legend>
-      <table>
-        <tr>
-          <td><%= t 'central_services.service_code' %></td>
-          <td><%= text_field_tag "central_services_advanced_search_field_service_code" %></td>
-        </tr>
-      </table>
-    </fieldset>
-    <fieldset>
-      <legend><%= t 'central_services.implementing_service_legend' %></legend>
-      <table>
-        <tr>
-          <td><%= t 'central_services.implementing_service_code' %></td>
-          <td><%= text_field_tag "central_services_advanced_search_field_impl_service_code" %></td>
-        </tr>
-     </table>
-    </fieldset>
-    <fieldset>
-     <table>
-      <legend><%= t 'central_services.provider_legend' %></legend>
-      <tr>
-        <td><%= t 'common.name' %></td>
-        <td><%= text_field_tag "central_services_advanced_search_field_provider_name" %></td>
-      </tr>
-      <tr>
-        <td><%= t 'common.code' %></td>
-        <td><%= text_field_tag "central_services_advanced_search_field_provider_code" %></td>
-      </tr>
-      <tr>
-        <td><%= t 'common.class' %></td>
-        <td><%= text_field_tag "central_services_advanced_search_field_provider_class" %></td>
-      </tr>
-      <tr>
-        <td><%= t 'common.subsystem' %></td>
-        <td><%= text_field_tag "central_services_advanced_search_field_provider_subsystem" %></td>
-      </tr>
-    </table>
-    </fieldset>
-    <table>
-      <tr>
-        <td colspan="2">
-          <% if can?(:view_central_services) %>
-            <button id="central_services_advanced_search_execute"><%= t 'common.search' %></button>
-          <% end %>
-          <% if can?(:view_central_services) %>
-            <button id="central_services_advanced_search_clear"><%= t 'common.clear' %></button>
-          <% end %>
-        </td>
-      </tr>
-    </table>
-  </fieldset>
-
   <div class="central_services_actions">
     <% if can?(:view_central_service_details) %>
       <button id="central_service_details" class="central_service-action"><%= t 'common.edit' %></button>

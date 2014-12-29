@@ -81,6 +81,7 @@ en:
         restore_confirm: "Are you sure you want to restore configuration from file '{{file}}'?"
         delete_confirm: "Are you sure you want to permanently delete configuration backup file '{{file}}'?"
       console_output: "Backup Script Output"
+      activate_hardware_tokens: "Hardware tokens have been logged out. Would you like to log in now?<br/><br/>Note: reloading the token information may take some time. If the installed tokens are not shown or are disabled, please refresh the 'Keys and Certificates' view."
 
     upload:
       title: "Upload New Backup File"
