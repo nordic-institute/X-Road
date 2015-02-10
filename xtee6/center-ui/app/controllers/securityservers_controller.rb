@@ -4,8 +4,8 @@ class SecurityserversController < ApplicationController
   include AuthCertHelper
 
   before_filter :verify_get, :only => [
+      :get_cert_details_by_id,
       :securityservers_refresh,
-      :securityservers_advanced_search,
       :server_security_categories,
       :all_security_categories,
       :clients,
@@ -64,20 +64,6 @@ class SecurityserversController < ApplicationController
     end
 
     render_data_table(result, count, params[:sEcho])
-  end
-
-  def securityservers_advanced_search
-    advanced_search_params =
-        get_advanced_search_params(params[:advancedSearchParams])
-
-    servers = SecurityServer.get_servers_advanced(advanced_search_params)
-
-    result = []
-    servers.each do |each|
-      result << get_short_server_data_as_json(each)
-    end
-
-    render_json(result)
   end
 
   def server_security_categories
@@ -238,8 +224,8 @@ class SecurityserversController < ApplicationController
   def import_auth_cert
     authorize!(:add_security_server_auth_cert_reg_request)
 
-    cert_param = params[:server_auth_cert_file]
-    AuthCertValidator.new(cert_param).validate()
+    cert_param = get_uploaded_file_param
+    validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
 
     notice(t("common.cert_imported"))

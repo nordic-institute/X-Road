@@ -10,8 +10,6 @@ PATH=$GRADLE_HOME/bin:$JRUBY_HOME/bin:$JAVA_HOME/bin:$PATH
 XROAD=`pwd`
 
 export GRADLE_HOME PATH JAVA_HOME
-#export GRADLE_OPTS="-Xmx2G"
-#export JRUBY_OPTS="-J-Xmx2G"
 
 source $HOME/.rvm/scripts/rvm
 rvm use jruby

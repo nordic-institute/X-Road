@@ -78,6 +78,14 @@ subsystem_as_server_client_client_identifier:
   subsystem_code: "subsystem_as_server_client"
   type: "ClientId"
 
+subsystem_as_not_server_client_client_identifier:
+  object_type: "SUBSYSTEM"
+  sdsb_instance: "EE"
+  member_class: "riigiasutus"
+  member_code: "member_as_server_client"
+  subsystem_code: "subsystem_as_not_server_client"
+  type: "ClientId"
+
 # Client identifiers - end
 
 # Central service identifiers - start

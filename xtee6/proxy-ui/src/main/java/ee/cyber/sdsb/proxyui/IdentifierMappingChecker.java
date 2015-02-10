@@ -10,19 +10,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.cyber.sdsb.common.SystemProperties;
+import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
 import ee.cyber.sdsb.common.util.FileContentChangeChecker;
 
 @DisallowConcurrentExecution
 public class IdentifierMappingChecker implements Job {
 
-    private static final File SDSB_INSTALLED_FILE =
-        new File("/usr/xtee/etc/sdsb_installed");
+    private static final File SDSB_INSTALLED_FILE = new File(
+            "/usr/xtee/etc/sdsb_installed");
 
-    private static final File SDSB_PROMOTED_FILE =
-        new File("/usr/xtee/etc/sdsb_promoted");
+    private static final File SDSB_PROMOTED_FILE = new File(
+            "/usr/xtee/etc/sdsb_promoted");
 
     private static final Logger LOG =
-        LoggerFactory.getLogger(IdentifierMappingChecker.class);
+            LoggerFactory.getLogger(IdentifierMappingChecker.class);
 
     private static FileContentChangeChecker identifierMappingChecker;
 
@@ -48,12 +49,12 @@ public class IdentifierMappingChecker implements Job {
 
         LOG.debug("Identifier mapping changed");
 
-        identifierMappingChecker = new FileContentChangeChecker(
-            SystemProperties.getConfPath() + "identifiermapping.xml");
+        identifierMappingChecker =
+                new FileContentChangeChecker(getIdentifierMappingFile());
 
         String command = SDSB_PROMOTED_FILE.isFile()
-            ? SystemProperties.getServiceExporterCommand()
-            : SystemProperties.getServiceImporterCommand();
+                ? SystemProperties.getServiceExporterCommand()
+                : SystemProperties.getServiceImporterCommand();
 
         if (command == null) {
             return;
@@ -64,5 +65,9 @@ public class IdentifierMappingChecker implements Job {
         if (Runtime.getRuntime().exec(command).waitFor() != 0) {
             LOG.error("Command returned error code, see serviceimporter log");
         }
+    }
+
+    private static String getIdentifierMappingFile() {
+        return GlobalConf.getInstanceFile("identifiermapping.xml").toString();
     }
 }

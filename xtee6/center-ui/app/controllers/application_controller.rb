@@ -1,7 +1,18 @@
 require 'json'
+require 'common-ui/uploaded_file.rb'
+
+java_import Java::ee.cyber.sdsb.common.SystemProperties
 
 class ApplicationController < BaseController
   include MembersHelper
+
+  FEDERATION_PRIVILEGES = [
+    :view_external_configuration_source,
+    :view_trusted_anchors,
+    :upload_trusted_anchor,
+    :delete_trusted_anchor,
+    :download_trusted_anchor
+  ]
 
   around_filter :wrap_in_transaction
 
@@ -12,17 +23,17 @@ class ApplicationController < BaseController
     render_error_response($!.message)
   end
 
+  before_filter :disable_federation
   before_filter :read_locale
   before_filter :check_conf, :except => [:menu]
   before_filter :read_server_id, :except => [:menu]
   before_filter :verify_get, :only => [
       :index,
-      :get_cert_details_by_id,
       :get_records_count,
       :can_see_details]
 
   def member_classes
-    render_json(create_member_class_select(get_all_member_classes))
+    render_json(MemberClass.get_all_codes)
   end
 
   # Number of total entries in the list
@@ -61,13 +72,11 @@ class ApplicationController < BaseController
   end
 
   def wrap_in_transaction
-    # TODO (task #5619):
-    # Find more appropriate isolation level or remove it altogether!
-#   ActiveRecord::Base.isolation_level(:serializable) do
-    ActiveRecord::Base.transaction do
-      yield
+    ActiveRecord::Base.isolation_level(:repeatable_read) do
+      ActiveRecord::Base.transaction do
+        yield
+      end
     end
-#   end
   end
 
   def get_sort_column_no
@@ -103,11 +112,11 @@ class ApplicationController < BaseController
     )
   end
 
-  def render_temp_cert_details_by_id(privilege)
-    authorize!(privilege)
-
-    raw_cert = get_temp_cert_from_session(params[:certId])
-    render_cert_dump_and_hash(raw_cert)
+  def get_uploaded_file_param
+    params.each do |each_key, each_value|
+      logger.debug("Inspecting value for key '#{each_key}'")
+      return each_value if each_value.is_a?(ActionDispatch::Http::UploadedFile)
+    end
   end
 
   def render_details_visibility(privilege)
@@ -121,6 +130,12 @@ class ApplicationController < BaseController
     })
   end
 
+  def disable_federation
+    unless SystemProperties::getCenterTrustedAnchorsAllowed
+      current_user.privileges -= FEDERATION_PRIVILEGES
+    end
+  end
+
   def read_locale
     return unless current_user
 
@@ -132,6 +147,12 @@ class ApplicationController < BaseController
     return @server_id if @server_id
 
     @server_id = CentralServerId.new(SystemParameter.instance_identifier)
+  end
+
+  def validate_auth_cert(uploaded_file)
+    CommonUi::UploadedFile::Validator.new(
+        uploaded_file,
+        AuthCertValidator.new).validate
   end
 
   class CentralServerId

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -22,7 +23,6 @@ import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
-import javax.wsdl.WSDLException;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.UnknownExtensibilityElement;
 import javax.wsdl.extensions.soap.SOAPAddress;
@@ -44,6 +44,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.message.Soap;
 import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.sdsb.common.message.SoapParser;
@@ -81,7 +82,7 @@ public class WSDLParser {
             throws Exception {
         try {
             return internalParseWSDL(wsdlUrl);
-        } catch (WSDLException e) {
+        } catch (Exception e) {
             throw translateException(e);
         }
     }
@@ -235,6 +236,11 @@ public class WSDLParser {
                     configureHttps((HttpsURLConnection) conn);
                 }
 
+                if (conn instanceof HttpURLConnection && wsdlUrl.startsWith(
+                        SystemProperties.getServiceMediatorAddress())) {
+                    checkForHttpError((HttpURLConnection) conn);
+                }
+
                 // cache the response
                 byte[] response;
                 try (InputStream in = conn.getInputStream()) {
@@ -245,8 +251,21 @@ public class WSDLParser {
                 checkForSoapFault(response);
 
                 return new InputSource(new ByteArrayInputStream(response));
+            } catch (CodedException e) {
+                throw e;
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
+            }
+        }
+
+        private void checkForHttpError(HttpURLConnection conn)
+                throws Exception {
+            if (conn.getResponseCode() == 500) {
+                try (InputStream in = conn.getErrorStream()) {
+                    throw CodedException.tr(X_INTERNAL_ERROR,
+                        "listing_adapter_methods_failed",
+                        IOUtils.toString(in, StandardCharsets.UTF_8.name()));
+                }
             }
         }
 

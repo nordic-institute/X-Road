@@ -32,11 +32,6 @@
                     "name": "securityServerCode",
                     "value": securityServerCode
                 });
-                aoData.push({
-                    "name": "advancedSearchParams",
-                    "value": JSON.stringify(
-                            getAddableClientAdvancedSearchParams())
-                });
             };
         }
 
@@ -54,18 +49,9 @@
         });
 
         oMemberSearch.on("dblclick", "tbody tr", function(ev) {
-            onSuccess(oMemberSearch.fnGetData(this));
             $("#member_search_dialog").dialog("close");
+            onSuccess(oMemberSearch.fnGetData(this));
         });
-    }
-
-    function getAddableClientAdvancedSearchParams() {
-        return {
-            name: $("#securityserver_client_name").val(),
-            memberClass: $("#securityserver_client_class").val(),
-            memberCode: $("#securityserver_client_code").val(),
-            subsystem: $("#securityserver_client_subsystem_code").val()
-        };
     }
 
     MEMBER_SEARCH_DIALOG.open =
@@ -81,8 +67,8 @@
                 { id: "member_search_select",
                   text: _("common.ok"),
                   click: function() {
-                      onSuccess(oMemberSearch.getFocusData());
                       $(this).dialog("close");
+                      onSuccess(oMemberSearch.getFocusData());
                   }
                 },
                 { text: _("common.cancel"),

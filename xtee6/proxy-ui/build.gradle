@@ -21,7 +21,11 @@ task copyDeps(dependsOn: copyCommon, type: Copy) {
     from configurations.compile
 }
 
-task warble(dependsOn: [copyDeps, ':proxy-ui:build'], type: Exec) {
+task generateJsTranslations(type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'i18n:js:export']
+}
+
+task warble(dependsOn: [copyDeps, ':proxy-ui:build', generateJsTranslations], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
 

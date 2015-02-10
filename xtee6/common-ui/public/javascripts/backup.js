@@ -1,28 +1,36 @@
-var confBackup = function() {
+var SDSB_BACKUP = function() {
     var oBackupFiles;
     var restoreInProgress = false;
 
     function initBackupFilesTable() {
-        var opts = scrollableTableOpts(200);
-        opts.sScrollX = "100%";
-        opts.sScrollY = "400px";
+        var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>t";
         opts.aoColumns = [
-            { "mData": "name" }
+            { "mData": "name" },
+            { "mData": null,
+              "fnCreatedCell": function(nTd, sData, oData) {
+                  var params = {
+                      file: oData.name
+                  };
+
+                  $(nTd).append(getTableRowButton(_("common.delete"), function() {
+                      confirm("backup.index.item.delete_confirm", params, function() {
+                          handleDelete(params.file);
+                      });
+                  }));
+
+                  $(nTd).append(getTableRowButton(_("common.restore"), function() {
+                      confirm("backup.index.item.restore_confirm", params, function() {
+                          handleRestore(params.file);
+                      });
+                  }));
+
+                  $(nTd).append(getTableRowButton(_("common.download"), function() {
+                      window.location = action("download?tarfile=" + params.file)
+                  }));
+              } }
         ];
 
-        opts.fnRowCallback = function(nRow, backupFile) {
-            var fileName = backupFile.name;
-
-            removeTableRowButtons($(nRow));
-
-            appendToBackupTableRow($(nRow), getTableRowButton(
-                    _("common.delete"), getBackupDeleteHandler(fileName)));
-            appendToBackupTableRow($(nRow), getTableRowButton(
-                    _("common.restore"), getBackupRestoreHandler(fileName)));
-            appendToBackupTableRow($(nRow), getTableRowButton(
-                    _("common.download"), getBackupDownloadHandler(fileName)));
-        };
         opts.fnDrawCallback = function() {
             $(this).closest(".dataTables_wrapper")
                 .find(".dataTables_scrollHead").hide();
@@ -30,9 +38,9 @@ var confBackup = function() {
 
         opts.bScrollInfinite = true;
 
-        opts.aaSorting = [ [0,'desc'] ];
+        opts.aaSorting = [[0, "desc"]];
 
-        oBackupFiles = $('#backup_files').dataTable(opts);
+        oBackupFiles = $("#backup_files").dataTable(opts);
         oBackupFiles.fnSetFilteringDelay(600);
     }
 
@@ -45,13 +53,6 @@ var confBackup = function() {
             height: "auto",
             width: "400px",
             buttons: [
-                { text: _("common.ok"),
-                  id: "backup_file_upload_ok",
-                  disabled: "disabled",
-                  click: function() {
-                      uploadBackupFile();
-                  }
-                },
                 { text: _("common.cancel"),
                   click: function() {
                       $(this).dialog("close");
@@ -71,39 +72,8 @@ var confBackup = function() {
         showMessages(response.messages);
     }
 
-    // -- Handling backup rows - start
-
-    function appendToBackupTableRow(row, button) {
-        row.find("td:first").append(button);
-    }
-
-    function getBackupDownloadHandler(fileName){
-        return function() {
-            window.location = action("download?tarfile=" + fileName)
-        }
-    }
-
-    function getBackupRestoreHandler(fileName){
-        return function() {
-            confirm("backup.index.item.restore_confirm", {file: fileName}, function() {
-                handleRestore(fileName);
-            });
-        }
-    }
-
-    function getBackupDeleteHandler(fileName) {
-        return function() {
-            confirm("backup.index.item.delete_confirm", {file: fileName}, function() {
-                handleDelete(fileName);
-            });
-        }
-    }
-
-    // -- Handling backup rows - end
-
     function resetUploadForm() {
-        $("#new_backup_file_upload_field").val("");
-        $("#backup_file_upload_ok").disable();
+        $("#new_backup_file_upload").val("");
     }
 
     function refreshBackupFiles() {
@@ -174,7 +144,7 @@ var confBackup = function() {
                 confirm("backup.upload.file_exists", {file: fileName},
                         function() {
                     uploadForm.submit();
-                }); 
+                });
             } else {
                 uploadForm.submit();
             }
@@ -182,7 +152,7 @@ var confBackup = function() {
     }
 
     function getUploadableBackupFileName() {
-        return $("#new_backup_file_upload_field")[0].files[0].name;
+        return $("#new_backup_file_upload")[0].files[0].name;
     }
 
     return {
@@ -192,6 +162,7 @@ var confBackup = function() {
         handleBackup: handleBackup,
         handleUpload: handleUpload,
 
+        uploadBackupFile: uploadBackupFile,
         uploadCallback: uploadCallback,
         resetUploadForm: resetUploadForm,
 
@@ -199,23 +170,23 @@ var confBackup = function() {
             return restoreInProgress;
         }
     };
+
 }();
 
 $(document).ready(function() {
-    confBackup.initBackupFilesTable();
-    confBackup.refreshBackupFiles();
-    confBackup.resetUploadForm();
+    SDSB_BACKUP.initBackupFilesTable();
+    SDSB_BACKUP.refreshBackupFiles();
+    SDSB_BACKUP.resetUploadForm();
 
     $("#backup_upload").live("click", function() {
-        confBackup.handleUpload();
+        SDSB_BACKUP.handleUpload();
     });
 
-    $("#new_backup_file_upload_field").live("change", function() {
-        var okButton = $("#backup_file_upload_ok");
-        isInputFilled($(this)) ? okButton.enable() : okButton.disable();
+    $("#new_backup_file_upload").live("change", function() {
+        SDSB_BACKUP.uploadBackupFile();
     });
 
     $("#backup").click(function() {
-        confBackup.handleBackup();
+        SDSB_BACKUP.handleBackup();
     });
 });

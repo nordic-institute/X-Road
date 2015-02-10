@@ -8,7 +8,7 @@ dependencies {
     compile project(':signer-protocol')
 
     testCompile project(':common-test')
-    testCompile 'org.mockito:mockito-all:1.9.0'
+    testCompile 'org.mockito:mockito-core:1.9.0'
     testCompile 'org.hsqldb:hsqldb:2.3.2'
     testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
 
@@ -62,14 +62,11 @@ task runProxyTest(type: JavaExec) {
         '-Dee.cyber.sdsb.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
         '-Dee.cyber.sdsb.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
         '-Dee.cyber.sdsb.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
-        '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dee.cyber.sdsb.proxy.clientHandlers=ee.cyber.sdsb.proxy.clientproxy.MetadataHandler',
-        '-Dee.cyber.sdsb.proxy.serverServiceHandlers=ee.cyber.sdsb.proxy.serverproxy.MetadataServiceHandlerImpl'
+        '-Dlogback.configurationFile=src/test/logback-proxytest.xml'
 //	'-Djava.security.properties==src/main/resources/java.security'
 
     main = 'ee.cyber.sdsb.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
-    classpath += files('../addons/metaservice/build/libs/metaservice-1.0.jar')
 }
 
 task runBatchSigner(type: JavaExec) {

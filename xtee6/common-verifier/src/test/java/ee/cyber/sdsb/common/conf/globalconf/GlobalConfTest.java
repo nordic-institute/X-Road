@@ -1,6 +1,7 @@
 package ee.cyber.sdsb.common.conf.globalconf;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -300,6 +301,32 @@ public class GlobalConfTest {
         assertFalse(GlobalConf.isSecurityServerClient(client3, server2));
 
         assertFalse(GlobalConf.isSecurityServerClient(client3, server3));
+    }
+
+    @Test
+    public void getSecurityServers() {
+        String instanceIdentifier = "EE";
+
+        SecurityServerId server1 =
+                SecurityServerId.create("EE", "BUSINESS", "producer",
+                        "producerServerCode");
+        SecurityServerId server2 =
+                SecurityServerId.create("EE", "BUSINESS", "consumer",
+                        "consumerServerCode");
+        SecurityServerId server3 =
+                SecurityServerId.create("EE", "BUSINESS", "foo",
+                        "fooServerCode");
+        SecurityServerId server4 =
+                SecurityServerId.create("EE", "BUSINESS", "foo",
+                        "FooBarServerCode");
+        List<SecurityServerId> expectedList = new ArrayList<SecurityServerId>();
+        expectedList.add(server1);
+        expectedList.add(server2);
+        expectedList.add(server3);
+        expectedList.add(server4);
+
+        assertEquals(expectedList,
+                GlobalConf.getSecurityServers(instanceIdentifier));
     }
 
     private static ClientId newClientId(String name) {

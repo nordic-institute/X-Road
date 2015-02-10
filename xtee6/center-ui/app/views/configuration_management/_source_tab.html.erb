@@ -2,9 +2,9 @@
   <%= javascript_include_tag "configuration_sources" %>
 <% end %>
 
-<div class="trusted-anchor">
-  <div class="anchor-heading">
-    <span class="anchor-title"><%= t '.anchor' %></span>
+<div class="box">
+  <div class="box-heading">
+    <span class="box-title"><%= t '.anchor' %></span>
     <% if can?(:download_source_anchor) %>
     <button id="download_source_anchor" class="right"><%= t 'common.download' %></button>
     <% end %>
@@ -13,27 +13,27 @@
     <% end %>
   </div>
   <p>
-    <label class="anchor-property"><%= t 'common.hash' %></label>
+    <label><%= t 'common.hash' %></label>
     <span class="anchor-hash"></span>
   </p>
   <p>
-    <label class="anchor-property"><%= t 'common.generated' %></label>
+    <label><%= t 'common.generated' %></label>
     <span class="anchor-generated_at"></span>
   </p>
 </div>
 
-<div class="trusted-anchor">
-  <div class="anchor-heading">
-    <span class="anchor-title"><%= t '.download_url' %></span>
+<div class="box">
+  <div class="box-heading">
+    <span class="box-title"><%= t '.download_url' %></span>
   </div>
   <p>
     <span id="conf_url" style="padding-left: 10px"></span>
   </p>
 </div>
 
-<div class="trusted-anchor">
-  <div class="anchor-heading cf">
-    <span class="anchor-title"><%= t '.signing_keys' %></span>
+<div class="box">
+  <div class="box-heading cf">
+    <span class="box-title"><%= t '.signing_keys' %></span>
     <% if can?(:delete_signing_key) %>
     <button id="delete_signing_key" class="right"><%= t 'common.delete' %></button>
     <% end %>
@@ -56,9 +56,9 @@
   </table>
 </div>
 
-<div class="trusted-anchor">
-  <div class="anchor-heading cf">
-    <span class="anchor-title"><%= t '.configuration_parts' %></span>
+<div class="box">
+  <div class="box-heading cf">
+    <span class="box-title"><%= t '.configuration_parts' %></span>
     <% if can?(:download_configuration_part) %>
     <button id="download_conf_part" class="right"><%= t 'common.download' %></button>
     <% end %>
@@ -78,10 +78,8 @@
   </table>
 </div>
 
-<div class="dialog_dynamic">
-  <%= render :partial => "application/console_output_dialog" %>
-  <%= render :partial => "application/activate_token_dialog" %>
-</div>
+<%= render :partial => "application/console_output_dialog" %>
+<%= render :partial => "application/activate_token_dialog" %>
 
 <%= dialog "generate_signing_key_dialog", t('.new_key') do %>
   <table class="details">

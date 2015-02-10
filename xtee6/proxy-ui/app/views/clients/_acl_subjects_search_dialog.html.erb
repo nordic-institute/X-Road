@@ -3,61 +3,7 @@
 <% end %>
 
 <%= dialog "acl_subjects_search_dialog", t('.add_subjects') do %>
-  <div class="simple_search">
-    <%= form_tag(nil, { class: "simple_search_form" }) do %>
-    <table class="details">
-      <tr>
-        <td></td>
-        <td><%= text_field_tag "subject_search_all" %></td>
-        <td><button class="search"><%= t 'common.search' %></button></td>
-      </tr>
-    </table>
-    <% end %>
-
-    <a href="#"><%= t 'common.advanced_search' %></a>
-  </div>
-
-  <div class="advanced_search">
-    <%= form_tag(nil, { class: "advanced_search_form" }) do %>
-    <table class="details">
-      <tr>
-        <td><%= t 'clients.service_acl_dialog.member_name_group_desc' %></td>
-        <td><%= text_field_tag "subject_search_description" %></td>
-      </tr>
-      <tr>
-        <td><%= t 'clients.service_acl_dialog.type' %></td>
-        <td>
-          <%= select_tag "subject_search_type",
-              options_for_select(@subject_types), :include_blank => true %>
-        </td>
-      </tr>
-      <tr>
-        <td><%= t 'clients.service_acl_dialog.instance' %></td>
-        <td>
-          <%= select_tag "subject_search_instance",
-              options_for_select(@instances), :include_blank => true %>
-        </td>
-      </tr>
-      <tr>
-        <td><%= t 'clients.service_acl_dialog.member_class' %></td>
-        <td><%= select_tag "subject_search_class",
-                options_for_select(@member_classes), :include_blank => true %></td>
-      </tr>
-      <tr>
-        <td><%= t 'clients.service_acl_dialog.member_group_code' %></td>
-        <td><%= text_field_tag "subject_search_code" %></td>
-      </tr>
-      <tr>
-        <td class="align-right" colspan="2">
-          <button class="search"><%= t 'common.search' %></button>
-          <button class="clear"><%= t 'common.clear' %></button>
-        </td>
-      </tr>
-    </table>
-    <% end %>
-
-    <a href="#"><%= t 'common.simple_search' %></a>
-  </div>
+  <%= render_advanced_search "acl_subjects_search", "acl_subjects_search" %>
 
   <table id="acl_subjects_search">
     <thead>

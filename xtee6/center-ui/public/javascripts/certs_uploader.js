@@ -1,19 +1,23 @@
 var SDSB_CERTS_UPLOADER = function() {
     var afterCertsSubmissionCallback;
     var uploadingTempCerts = false;
-    var loadButtons = []
+    var loadButtons = [];
 
     /* API functions - start */
 
     function submitNextCertUpload() {
-        if (!isUploadingTempCerts()) {
+        if (!uploadingTempCerts) {
             return;
         }
 
-        var nextLoadButton = dequeueCertUploadButton();
+        var nextLoadButton = loadButtons.shift();
 
         if (nextLoadButton == null) {
-            performPostCertUploadsAction();
+            // all temp certs are uploaded
+            afterCertsSubmissionCallback();
+            afterCertsSubmissionCallback = null;
+            uploadingTempCerts = false;
+
             return;
         }
 
@@ -31,48 +35,19 @@ var SDSB_CERTS_UPLOADER = function() {
         var uploadButton = fileFieldSelector.closest("tr").find("td > button");
 
         if (isInputFilled(fileFieldSelector)) {
-            enqueueCertUploadButton(uploadButton);
+            loadButtons.push(uploadButton);
         }
 
         uploadButton.enable();
     }
 
-    function initSubmittingCerts(afterSubmissionCallback) {
-        afterCertsSubmissionCallback = afterSubmissionCallback;
-        setUploadingTempCerts();
+    function initSubmittingCerts(afterCertsSubmissionCallback_) {
+        afterCertsSubmissionCallback = afterCertsSubmissionCallback_;
+        uploadingTempCerts = true;
         submitNextCertUpload();
     }
 
     /* API functions - end */
-
-    function enqueueCertUploadButton(button) {
-        loadButtons.push(button);
-    }
-
-    function dequeueCertUploadButton() {
-        return loadButtons.shift();
-    }
-
-    function setUploadingTempCerts() {
-        uploadingTempCerts = true;
-    }
-
-    function clearUploadingTempCerts() {
-        uploadingTempCerts = false;
-        afterCertsSubmissionCallback = null;
-    }
-
-    function isUploadingTempCerts() {
-        return uploadingTempCerts;
-    }
-
-    /**
-     * Action performed when all temp certs are uploaded
-     */
-    function performPostCertUploadsAction() {
-        afterCertsSubmissionCallback();
-        clearUploadingTempCerts();
-    }
 
     return {
         submitNextCertUpload: submitNextCertUpload,

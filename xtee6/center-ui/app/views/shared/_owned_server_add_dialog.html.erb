@@ -3,19 +3,19 @@
     <legend><%= t 'securityservers.info.legend' %></legend>
     <table class="details">
       <tr>
-        <td><%= t 'securityservers.owner_name' %></td>
-        <td><p id="owned_server_owner_name" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.owner_name' %></td>
+        <td><p id="owned_server_owner_name" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_class' %></td>
-        <td><p id="owned_server_owner_class" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.owner_class' %></td>
+        <td><p id="owned_server_owner_class" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_code' %></td>
-        <td><p id="owned_server_owner_code" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.owner_code' %></td>
+        <td><p id="owned_server_owner_code" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.server_code' %></td>
+        <td class="description"><%= t 'securityservers.server_code' %></td>
         <td><input id="owned_server_add_servercode" type="text"/></td>
       </tr>
     </table>
@@ -23,39 +23,32 @@
 
   <section class="container">
     <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
-    <table>
-      <tr>
-        <td>
-          <%= form_tag "members/import_auth_cert",
-              :id => "auth_cert_upload", :multipart => true,
-              :target => "upload_target" do %>
-            <%= file_field_tag "auth_cert_file" %>
-          <% end %>
-        </td>
-        <iframe id="upload_target" name="upload_target"></iframe>
-        <td>
-          <% if can?(:add_security_server_auth_cert_reg_request) %>
-            <button id="owned_server_cert_upload">
-              <%= t 'securityservers.auth_cert.upload' %>
-            </button>
-          <% end %>
-        </td>
+    <p>
+      <% if can?(:add_security_server_auth_cert_reg_request) %>
+        <%= form_tag "members/import_auth_cert",
+            :id => "member_auth_cert_upload", :multipart => true,
+            :target => "auth_cert_upload_target" do %>
+          <%= upload_button("owned_server_cert_upload") %>
+        <% end %>
+      <% end %>
+    </p>
+    <iframe id="auth_cert_upload_target" name="auth_cert_upload_target"></iframe>
+    <table class="details">
+      <tr class="auth_cert_details">
+        <td class="description"><%= t 'securityservers.auth_cert.ca' %></td>
+        <td><p id="owned_server_authcert_csp" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.ca' %></td>
-        <td><p id="owned_server_authcert_csp" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.serial_number' %></td>
+        <td><p id="owned_server_authcert_serial_number" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.serial_number' %></td>
-        <td><p id="owned_server_authcert_serial_number" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.subject' %></td>
+        <td><p id="owned_server_authcert_subject" class="input ui-state-disabled" ></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.subject' %></td>
-        <td><p id="owned_server_authcert_subject" class="input" ></p></td>
-      </tr>
-      <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.expires' %></td>
-        <td><p id="owned_server_authcert_expires" class="input" ></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.expires' %></td>
+        <td><p id="owned_server_authcert_expires" class="input ui-state-disabled" ></p></td>
       </tr>
     </table>
     <p id="owned_server_temp_cert_id" class="ui-helper-hidden"></p>

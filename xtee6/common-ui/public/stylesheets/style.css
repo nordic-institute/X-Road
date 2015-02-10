@@ -47,13 +47,13 @@
 table {
   width: 100%; }
   table thead {
-    text-align: left;
     background: #f3f3f3; }
     table thead tr th {
       font-family: "Open Sans";
       font-weight: 500;
       padding: 10px 5px;
-      font-size: 9pt; }
+      font-size: 9pt;
+      text-align: left; }
       table thead tr th.status {
         width: 19px; }
         table thead tr th.status i {
@@ -141,13 +141,16 @@ table.details tbody {
   background-color: transparent; }
   table.details tbody tr {
     border: none; }
-    table.details tbody tr td:first-of-type {
+    table.details tbody tr td.label, table.details tbody tr td.description {
       width: 1px;
       white-space: nowrap; }
-    table.details tbody tr td input:not([type="checkbox"]), table.details tbody tr td textarea,
-    table.details tbody tr td p.input {
+    table.details tbody tr td.pre {
+      white-space: pre; }
+    table.details tbody tr td input:not([type="checkbox"]), table.details tbody tr td textarea, table.details tbody tr td p.input {
       width: calc(100% - 10px);
       min-height: 20px; }
+    table.details tbody tr td.description {
+      min-width: 120px; }
     table.details tbody tr td select {
       width: 100%; }
     table.details tbody tr:hover td {
@@ -218,7 +221,7 @@ textarea {
   resize: none;
   width: calc(100% - 10px);
   min-height: 50px; }
-  textarea .dump {
+  textarea.dump {
     background: #f3f3f3;
     width: 100%;
     height: 350px;
@@ -228,7 +231,7 @@ textarea {
   textarea:focus {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(85, 85, 85, 0); }
 
-.btn, .ui-button, .button, select, button {
+.btn, .ui-button, .button, label.upload, select, button {
   border: 1px solid #ddd;
   padding: 5px 10px;
   font-family: "Open Sans";
@@ -243,65 +246,69 @@ textarea {
   transition: all 100ms linear;
   background: #fff;
   box-shadow: 0 1px 2px rgba(17, 17, 17, 0.1); }
-  .btn:hover, .ui-button:hover, .button:hover, select:hover, button:hover {
+  .btn:hover, .ui-button:hover, .button:hover, label.upload:hover, select:hover, button:hover {
     background: #f3f3f3; }
-  .btn:active, .ui-button:active, .button:active, select:active, button:active {
+  .btn:active, .ui-button:active, .button:active, label.upload:active, select:active, button:active {
     border-color: rgba(17, 17, 17, 0.5); }
-  .btn:focus, .ui-button:focus, .button:focus, select:focus, button:focus {
+  .btn:focus, .ui-button:focus, .button:focus, label.upload:focus, select:focus, button:focus {
     outline: none; }
-  .btn.disabled, .ui-button.disabled, .button.disabled, select.disabled, button.disabled {
+  .btn.disabled, .ui-button.disabled, .button.disabled, label.disabled.upload, select.disabled, button.disabled {
     color: #ddd;
     border-color: #ddd !important; }
-    .btn.disabled:hover, .ui-button.disabled:hover, .button.disabled:hover, select.disabled:hover, button.disabled:hover {
+    .btn.disabled:hover, .ui-button.disabled:hover, .button.disabled:hover, label.disabled.upload:hover, select.disabled:hover, button.disabled:hover {
       background: #fff; }
-  .btn.action, .ui-button.action, .button.action, select.action, button.action {
+  .btn.action, .ui-button.action, .button.action, label.action.upload, select.action, button.action {
     border-color: #30e55f;
     background: #fff; }
-    .btn.action:hover, .ui-button.action:hover, .button.action:hover, select.action:hover, button.action:hover {
+    .btn.action:hover, .ui-button.action:hover, .button.action:hover, label.action.upload:hover, select.action:hover, button.action:hover {
       background: rgba(48, 229, 95, 0.7);
       color: #fff; }
-  .btn.warning, .ui-button.warning, .button.warning, select.warning, button.warning {
+  .btn.warning, .ui-button.warning, .button.warning, label.warning.upload, select.warning, button.warning {
     border-color: #ff412c;
     background: #fff; }
-    .btn.warning:hover, .ui-button.warning:hover, .button.warning:hover, select.warning:hover, button.warning:hover {
+    .btn.warning:hover, .ui-button.warning:hover, .button.warning:hover, label.warning.upload:hover, select.warning:hover, button.warning:hover {
       background: rgba(255, 65, 44, 0.7);
       color: #fff; }
-  .btn.action:active, .btn.warning:active, .ui-button.action:active, .ui-button.warning:active, .button.action:active, .button.warning:active, select.action:active, select.warning:active, button.action:active, button.warning:active {
+  .btn.action:active, .btn.warning:active, .ui-button.action:active, .ui-button.warning:active, .button.action:active, label.action.upload:active, .button.warning:active, label.warning.upload:active, select.action:active, select.warning:active, button.action:active, button.warning:active {
     color: #111111; }
-  .btn.green, .ui-button.green, .button.green, select.green, button.green {
+  .btn.green, .ui-button.green, .button.green, label.green.upload, select.green, button.green {
     background: #30e55f;
     border-color: rgba(17, 17, 17, 0.3);
     color: #fff; }
-    .btn.green:hover, .ui-button.green:hover, .button.green:hover, select.green:hover, button.green:hover {
+    .btn.green:hover, .ui-button.green:hover, .button.green:hover, label.green.upload:hover, select.green:hover, button.green:hover {
       background: rgba(48, 229, 95, 0.7);
       color: rgba(17, 17, 17, 0.7); }
-    .btn.green:active, .ui-button.green:active, .button.green:active, select.green:active, button.green:active {
+    .btn.green:active, .ui-button.green:active, .button.green:active, label.green.upload:active, select.green:active, button.green:active {
       background: #30e55f; }
-  .btn.red, .ui-button.red, .button.red, select.red, button.red {
+  .btn.red, .ui-button.red, .button.red, label.red.upload, select.red, button.red {
     background: #ff412c;
     border-color: rgba(17, 17, 17, 0.3);
     color: #fff; }
-    .btn.red:hover, .ui-button.red:hover, .button.red:hover, select.red:hover, button.red:hover {
+    .btn.red:hover, .ui-button.red:hover, .button.red:hover, label.red.upload:hover, select.red:hover, button.red:hover {
       background: rgba(255, 65, 44, 0.7);
       color: rgba(17, 17, 17, 0.7); }
-    .btn.red:active, .ui-button.red:active, .button.red:active, select.red:active, button.red:active {
+    .btn.red:active, .ui-button.red:active, .button.red:active, label.red.upload:active, select.red:active, button.red:active {
       background: #ff412c; }
-  .btn.trans, .ui-button.trans, .button.trans, select.trans, button.trans {
+  .btn.trans, .ui-button.trans, .button.trans, label.trans.upload, select.trans, button.trans {
     background: transparent;
     border-color: transparent;
     color: #111111; }
-    .btn.trans:hover, .ui-button.trans:hover, .button.trans:hover, select.trans:hover, button.trans:hover {
+    .btn.trans:hover, .ui-button.trans:hover, .button.trans:hover, label.trans.upload:hover, select.trans:hover, button.trans:hover {
       color: rgba(17, 17, 17, 0.5); }
-    .btn.trans:active, .ui-button.trans:active, .button.trans:active, select.trans:active, button.trans:active {
+    .btn.trans:active, .ui-button.trans:active, .button.trans:active, label.trans.upload:active, select.trans:active, button.trans:active {
       border-color: #111111; }
-  .btn.nobg, .ui-button.nobg, .button.nobg, select.nobg, button.nobg {
+  .btn.nobg, .ui-button.nobg, .button.nobg, label.nobg.upload, select.nobg, button.nobg {
     background: transparent; }
-  .btn.noborder, .ui-button.noborder, .button.noborder, select.noborder, button.noborder {
+  .btn.noborder, .ui-button.noborder, .button.noborder, label.noborder.upload, select.noborder, button.noborder {
     border-color: transparent; }
 
-.button.btn {
+.button.btn, label.btn.upload {
   padding: 3px 10px;
   margin: 0; }
+
+label.upload input[type="file"] {
+  position: fixed;
+  top: -1000px; }
 
 a, a:active, a:visited {
   color: #111;
@@ -355,13 +362,13 @@ div.dialog-bgr {
   display: none; }
 
 .ui-widget-overlay {
-  background: rgba(17, 17, 17, 0);
+  background: rgba(17, 17, 17, 0.1);
   z-index: 1000; }
 
 .darker-overlay-bgr {
   background: rgba(17, 17, 17, 0.5); }
 
-.dialog, .ui-dialog {
+.ui-dialog {
   border: none;
   position: absolute;
   background: #fff;
@@ -369,15 +376,16 @@ div.dialog-bgr {
   font-size: 1em;
   padding: 0;
   color: #000;
-  z-index: 1001; }
-  .dialog .dialog-buttonbar, .ui-dialog .dialog-buttonbar {
+  z-index: 1001;
+  height: auto !important; }
+  .ui-dialog .dialog-buttonbar {
     height: 100%;
     position: absolute;
     right: 0;
     top: 0;
     color: #000;
     padding-left: 1em; }
-    .dialog .dialog-buttonbar .ui-action, .ui-dialog .dialog-buttonbar .ui-action {
+    .ui-dialog .dialog-buttonbar .ui-action {
       border: none;
       margin: 0;
       padding: 0;
@@ -385,13 +393,13 @@ div.dialog-bgr {
       height: 49px;
       border-left: 1px solid #ddd;
       background: #fff; }
-      .dialog .dialog-buttonbar .ui-action:active, .ui-dialog .dialog-buttonbar .ui-action:active {
+      .ui-dialog .dialog-buttonbar .ui-action:active {
         background: #f3f3f3; }
-      .dialog .dialog-buttonbar .ui-action.ui-action-maximize:hover, .ui-dialog .dialog-buttonbar .ui-action.ui-action-maximize:hover {
+      .ui-dialog .dialog-buttonbar .ui-action.ui-action-maximize:hover {
         color: #30e55f; }
-      .dialog .dialog-buttonbar .ui-action.ui-action-close:hover, .ui-dialog .dialog-buttonbar .ui-action.ui-action-close:hover {
+      .ui-dialog .dialog-buttonbar .ui-action.ui-action-close:hover {
         color: #ff412c; }
-  .dialog .ui-dialog-titlebar, .ui-dialog .ui-dialog-titlebar {
+  .ui-dialog .ui-dialog-titlebar {
     border: none;
     height: 50px;
     border-bottom: 1px solid #ddd;
@@ -399,25 +407,18 @@ div.dialog-bgr {
     background: #fff;
     font-family: "Open Sans";
     font-weight: 500;
-    color: #000; }
-  .dialog .ui-dialog-titlebar-close, .ui-dialog .ui-dialog-titlebar-close {
+    color: #000;
+    overflow-y: hidden; }
+  .ui-dialog .ui-dialog-titlebar-close {
     visibility: hidden; }
-  .dialog .actionbar, .ui-dialog .actionbar {
-    float: right;
-    margin-right: 112px;
-    margin-top: 9px; }
-    .dialog .actionbar button, .ui-dialog .actionbar button {
-      font-family: "Open Sans", sans-serif;
-      font-weight: 400;
-      font-size: 11pt;
-      color: #111; }
-  .dialog .ui-dialog-buttonpane, .ui-dialog .ui-dialog-buttonpane {
+  .ui-dialog .ui-dialog-buttonpane {
     padding: 0;
     background: #f3f3f3;
-    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.1) inset; }
-    .dialog .ui-dialog-buttonpane .ui-dialog-buttonset, .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
+    box-shadow: 0 1px 3px rgba(17, 17, 17, 0.1) inset;
+    margin-top: 0; }
+    .ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
       width: 100%; }
-    .dialog .ui-dialog-buttonpane button, .ui-dialog .ui-dialog-buttonpane button {
+    .ui-dialog .ui-dialog-buttonpane button {
       margin: 5px;
       background: transparent;
       outline: 0;
@@ -426,21 +427,21 @@ div.dialog-bgr {
       padding: 8px 12px;
       background: #fff;
       float: right; }
-      .dialog .ui-dialog-buttonpane button.trans, .ui-dialog .ui-dialog-buttonpane button.trans {
+      .ui-dialog .ui-dialog-buttonpane button.trans {
         background: transparent; }
-      .dialog .ui-dialog-buttonpane button.rb, .ui-dialog .ui-dialog-buttonpane button.rb {
+      .ui-dialog .ui-dialog-buttonpane button.rb {
         border-right: 1px solid #ddd; }
-      .dialog .ui-dialog-buttonpane button.lb, .ui-dialog .ui-dialog-buttonpane button.lb {
+      .ui-dialog .ui-dialog-buttonpane button.lb {
         border-left: 1px solid #ddd; }
-      .dialog .ui-dialog-buttonpane button .ui-button-text, .ui-dialog .ui-dialog-buttonpane button .ui-button-text {
+      .ui-dialog .ui-dialog-buttonpane button .ui-button-text {
         padding: 0; }
-      .dialog .ui-dialog-buttonpane button.ui-state-focus, .ui-dialog .ui-dialog-buttonpane button.ui-state-focus {
+      .ui-dialog .ui-dialog-buttonpane button.ui-state-focus {
         background: #fff;
         color: #111; }
-      .dialog .ui-dialog-buttonpane button.ui-state-hover, .dialog .ui-dialog-buttonpane button.ui-state-active, .ui-dialog .ui-dialog-buttonpane button.ui-state-hover, .ui-dialog .ui-dialog-buttonpane button.ui-state-active {
+      .ui-dialog .ui-dialog-buttonpane button.ui-state-hover, .ui-dialog .ui-dialog-buttonpane button.ui-state-active {
         background: #f3f3f3;
         color: #111; }
-  .dialog .ui-dialog-title, .ui-dialog .ui-dialog-title {
+  .ui-dialog .ui-dialog-title {
     line-height: 50px;
     height: 50px;
     margin-left: 10px;
@@ -449,26 +450,27 @@ div.dialog-bgr {
     float: none;
     color: #111;
     font-size: 11pt; }
-  .dialog .ui-dialog-content, .ui-dialog .ui-dialog-content {
-    padding-top: 1em; }
-  .dialog header.dialog-header, .ui-dialog header.dialog-header {
+  .ui-dialog .ui-dialog-content {
+    padding-top: 1em;
+    width: auto !important; }
+  .ui-dialog header.dialog-header {
     height: 50px;
     border-bottom: 1px solid #ddd; }
-  .dialog section.dialog-content, .ui-dialog section.dialog-content {
+  .ui-dialog section.dialog-content {
     width: 100%; }
-  .dialog footer.dialog-footer, .ui-dialog footer.dialog-footer {
+  .ui-dialog footer.dialog-footer {
     height: 50px;
     border-top: 1px solid #ddd; }
-  .dialog div.info-holder, .ui-dialog div.info-holder {
+  .ui-dialog div.info-holder {
     margin: 10px 0; }
-    .dialog div.info-holder h1.item-title, .ui-dialog div.info-holder h1.item-title {
+    .ui-dialog div.info-holder h1.item-title {
       margin: 0;
       padding: 0;
       font-size: 10pt;
       font-family: "Open Sans";
       font-weight: 500;
       text-transform: uppercase; }
-    .dialog div.info-holder h2.item-content input, .ui-dialog div.info-holder h2.item-content input {
+    .ui-dialog div.info-holder h2.item-content input {
       margin: 0;
       padding: 0;
       border: none;
@@ -479,30 +481,12 @@ div.dialog-bgr {
       font-weight: 500;
       box-shadow: none;
       width: 280px; }
-      .dialog div.info-holder h2.item-content input:focus, .ui-dialog div.info-holder h2.item-content input:focus {
+      .ui-dialog div.info-holder h2.item-content input:focus {
         box-shadow: none;
         border: none; }
-    .dialog div.info-holder h2.item-content button, .ui-dialog div.info-holder h2.item-content button {
+    .ui-dialog div.info-holder h2.item-content button {
       height: 30px;
       font-size: 11pt; }
-
-.dataTables_scroll .dataTables_scrollHead .dataTables_scrollHeadInner table.dataTable thead {
-  border-bottom: none; }
-.dataTables_scroll .dataTables_scrollBody table.dataTable thead {
-  border-top: none; }
-
-ul.btn-group {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  text-transform: uppercase; }
-  ul.btn-group li {
-    float: left;
-    border-left: 1px solid #ddd; }
-    ul.btn-group li.disabled {
-      color: #ccc; }
-      ul.btn-group li.disabled:hover {
-        background: #fff; }
 
 ul.button-group {
   margin: 0;
@@ -532,78 +516,48 @@ ul.button-group {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7);
   z-index: 999999; }
 
-.buttongroup {
-  list-style: none;
-  padding: 0px;
-  border: 1px solid;
-  border-color: #ccc;
-  margin: 10px 0;
-  background: #fff;
-  border-radius: 3px; }
-  .buttongroup li.groupbutton {
-    float: left;
-    padding: 5px 10px;
-    border-right: 1px solid #ccc; }
-    .buttongroup li.groupbutton:last-child {
-      border: none; }
-    .buttongroup li.groupbutton:hover {
-      background: #f3f3f3; }
-    .buttongroup li.groupbutton:active {
-      background: #eee; }
-    .buttongroup li.groupbutton.button-active {
-      box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
-      background: #f1f1f1; }
-
-.ui-tabs .ui-tabs-nav {
-  list-style: none;
-  padding: 0;
-  border: 1px solid;
-  border-color: #ccc;
-  background: #fff;
-  border-radius: 3px;
-  display: table;
-  margin: 0 auto; }
-  .ui-tabs .ui-tabs-nav li {
-    float: left;
-    border-right: 1px solid #ccc;
-    margin: 0; }
-    .ui-tabs .ui-tabs-nav li:last-child {
-      border: none; }
-    .ui-tabs .ui-tabs-nav li:hover {
-      background: #f3f3f3; }
-    .ui-tabs .ui-tabs-nav li:active {
-      background: #eee; }
-    .ui-tabs .ui-tabs-nav li.ui-tabs-active {
-      box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
-      background: #f1f1f1;
-      padding-bottom: 0; }
-    .ui-tabs .ui-tabs-nav li .ui-tabs-anchor {
-      outline: 0;
-      padding: 5px 10px;
-      cursor: pointer !important; }
-.ui-tabs .ui-tabs-panel {
-  padding: 1em 0 0 0; }
+.ui-tabs {
+  padding: 0; }
+  .ui-tabs .ui-tabs-nav {
+    list-style: none;
+    padding: 0;
+    border: 1px solid #ddd;
+    background: #fff;
+    display: table;
+    margin: 0 auto; }
+    .ui-tabs .ui-tabs-nav li {
+      float: left;
+      border-right: 1px solid #ccc;
+      margin: 0; }
+      .ui-tabs .ui-tabs-nav li:last-child {
+        border: none; }
+      .ui-tabs .ui-tabs-nav li:hover {
+        background: #f3f3f3; }
+      .ui-tabs .ui-tabs-nav li:active {
+        background: #eee; }
+      .ui-tabs .ui-tabs-nav li.ui-tabs-active {
+        box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
+        background: #f1f1f1;
+        padding-bottom: 0; }
+      .ui-tabs .ui-tabs-nav li .ui-tabs-anchor {
+        outline: 0;
+        padding: 5px 10px;
+        cursor: pointer !important; }
+  .ui-tabs .ui-tabs-panel {
+    padding: 1em 0 0 0; }
+  .ui-tabs.search_tabs .ui-tabs-nav {
+    margin: 0;
+    border-bottom: 0; }
+  .ui-tabs.search_tabs .ui-tabs-panel {
+    border: 1px solid #ddd;
+    border-bottom: 0;
+    padding: 1em; }
+    .ui-tabs.search_tabs .ui-tabs-panel table.details {
+      width: 66%; }
 
 .ui-tabs-panel-actions {
   float: right;
   padding-left: 2em; }
-
-.slider {
-  overflow-y: auto;
-  overflow-x: hidden; }
-  .slider ul, .slider li {
-    margin: 0;
-    padding: 0; }
-  .slider > ul {
-    list-style: none; }
-  .slider .slide {
-    -webkit-transition: margin-left 100ms ease-in;
-    -moz-transition: margin-left 100ms ease-in;
-    -ms-transition: margin-left 100ms ease-in;
-    -o-transition: margin-left 100ms ease-in;
-    transition: margin-left 100ms ease-in; }
-  .slider li.slideritem {
-    float: left; }
 
 .ui-autocomplete {
   background: #f3f3f3; }
@@ -612,13 +566,15 @@ ul.button-group {
     background-color: #111;
     margin: 0; }
 
-.cf:before, ul.button-group:before,
+.cf:before, ul.button-group:before, .box:before, .box .box-heading:before,
 .cf:after,
-ul.button-group:after {
+ul.button-group:after,
+.box:after,
+.box .box-heading:after {
   content: " ";
   display: table; }
 
-.cf:after, ul.button-group:after {
+.cf:after, ul.button-group:after, .box:after, .box .box-heading:after {
   clear: both; }
 
 .clearer:before,
@@ -749,9 +705,6 @@ fieldset {
   color: red;
   font-family: "open_sansbold"; }
 
-div.dialog_dynamic {
-  display: none; }
-
 .keystate {
   padding: 0 5px;
   font-family: monospace; }
@@ -879,8 +832,6 @@ header#main-header {
         padding: 11px;
         text-align: right;
         border-left: 1px solid #ddd; }
-      header#main-header div#user ul li#messages {
-        display: none; }
       header#main-header div#user ul#user-menu {
         display: none;
         position: fixed;
@@ -993,30 +944,45 @@ div.alerts:empty {
 div#confirm, div#yesno, div#warning, div#alert {
   padding: 10px 10px 0 !important; }
 
+.messages {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: calc(100% - 270px);
+  z-index: 2000; }
+  .messages:empty {
+    display: none; }
+
+.ui-dialog .messages {
+  position: absolute;
+  width: 100%; }
+
 .message {
+  position: relative;
   clear: both;
-  margin: 10px;
-  padding: 5px 10px;
+  padding: 5px 20px 5px 10px;
   font-family: "Open Sans";
   font-weight: 700;
-  border-radius: 3px;
   font-size: 10pt; }
-
-.message:empty {
-  display: none; }
+  .message .fa-times {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 3px 5px;
+    cursor: pointer; }
+    .message .fa-times:hover {
+      color: gray; }
 
 .notice {
-  background-color: rgba(48, 229, 95, 0.7);
+  background-color: rgba(48, 229, 95, 0.8);
   color: #fff; }
 
 .error {
-  background-color: rgba(255, 65, 44, 0.9);
+  background-color: rgba(255, 65, 44, 0.8);
   color: #fff; }
 
 .simple_search, .advanced_search {
-  width: 50%;
-  min-width: 400px;
-  margin-bottom: 1em; }
+  min-width: 400px; }
 
 .ui-state-disabled {
   opacity: .35;
@@ -1089,10 +1055,33 @@ div#confirm, div#yesno, div#warning, div#alert {
   #member_name_edit_dialog .dialog-body textarea {
     height: calc(100% - 15px); }
 
-table#keys tr.key td {
+#keys_wrapper tr.key td {
   padding-left: 20px; }
-table#keys tr td.cert-friendly-name {
+#keys_wrapper tr .cert-friendly-name {
   padding-left: 40px; }
+
+.box {
+  padding: 10px;
+  margin: 0 10px 20px 0;
+  background: #f3f3f3;
+  box-shadow: 5px 5px 5px #888; }
+  .box .box-heading {
+    margin-bottom: 10px; }
+    .box .box-heading .box-title {
+      font-size: 18px;
+      font-weight: bold; }
+    .box .box-heading button {
+      float: right;
+      margin-left: 10px; }
+  .box div {
+    clear: both; }
+  .box span.anchor-title {
+    font-size: 18px;
+    font-weight: bold; }
+  .box label.anchor-property {
+    padding-left: 10px;
+    width: 120px;
+    display: inline-block; }
 
 div.trusted-anchor, .anchor {
   clear: both;

@@ -38,7 +38,6 @@ var SDSB_SECURITYSERVER_EDIT = function() {
             fillAddableAuthCertData(response.data);
 
             submitButton.enable();
-            $("#add_auth_cert_upload").disable();
             $(".auth_cert_details").show();
         } else {
             clearAuthCertAddData();
@@ -183,7 +182,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     }
 
     function fillAddableAuthCertData(authCertData) {
-        $("#server_auth_cert_file").val("");
+        $("#securityserver_auth_cert_upload").val("");
         $("#add_auth_cert_ca").text(authCertData.csp);
         $("#add_auth_cert_serial_number").text(authCertData.serial_number);
         $("#add_auth_cert_subject").text(authCertData.subject);
@@ -200,6 +199,41 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         $("#delete_auth_cert_expires").text(authCertData.expires);
     }
 
+    function selectNewServerClient(newClient) {
+        fillNewClientFields(newClient);
+        updateNewClientSubmitButton();
+        focusClientSubsystemCodeInput();
+    }
+
+    function fillNewClientFields(newClient) {
+        $("#securityserver_client_name").text(newClient.name);
+        $("#securityserver_client_class").text(newClient.member_class);
+        $("#securityserver_client_code").text(newClient.member_code);
+        $("#securityserver_client_subsystem_code").val(
+            newClient.subsystem_code);
+    }
+
+    function initNewServerClientSubsystemAutocomplete(newClient) {
+        var subsystemCodeInput = $("#securityserver_client_subsystem_code");
+        var params = {
+            memberClass: newClient.member_class,
+            memberCode: newClient.member_code
+        };
+
+        $.get("members/subsystem_codes", params, function(response) {
+            destroySubsystemCodeInputAutocompleteQuietly();
+            subsystemCodeInput.autocomplete({source: response.data});
+        }, "json");
+    }
+
+    function destroySubsystemCodeInputAutocompleteQuietly() {
+        try {
+            $("#securityserver_client_subsystem_code").autocomplete("destroy");
+        } catch (err) {
+            // Do nothing, as destroyable autocomplete may not be present.
+        }
+    }
+
     /* -- REFRESH DATA - END -- */
 
     /* -- GET DATA - START -- */
@@ -214,8 +248,8 @@ var SDSB_SECURITYSERVER_EDIT = function() {
 
     function getServerClientRegRequestParams() {
         return {
-            memberClass: $("#securityserver_client_class").val(),
-            memberCode: $("#securityserver_client_code").val(),
+            memberClass: $("#securityserver_client_class").text(),
+            memberCode: $("#securityserver_client_code").text(),
             subsystemCode: $("#securityserver_client_subsystem_code").val(),
             ownerClass: $("#securityserver_client_owner_class").text(),
             ownerCode: $("#securityserver_client_owner_code").text(),
@@ -279,9 +313,8 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     function openAuthCertDetailsById(authCertId) {
         var params = {certId: authCertId};
 
-        $.get("securityservers/get_cert_details_by_id", params,
-                function(response) {
-            SDSB_CENTERUI_COMMON.openCertDetailsWindow(response.data);
+        $.get("securityservers/get_cert_details_by_id", params, function(response) {
+            SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
         }, "json");
     }
 
@@ -300,9 +333,9 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     }
 
     function clearServerClientAddData() {
-        $("#securityserver_client_name").val("");
-        $("#securityserver_client_class").val("");
-        $("#securityserver_client_code").val("");
+        $("#securityserver_client_name").text("");
+        $("#securityserver_client_class").text("");
+        $("#securityserver_client_code").text("");
         $("#securityserver_client_subsystem_code").val("");
 
         $("#securityserver_client_owner_name").text("");
@@ -397,7 +430,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
             startAuthCertAdding();
         });
 
-        $("#add_auth_cert_upload").live("click", function() {
+        $("#securityserver_auth_cert_upload").live("change", function() {
             $("#server_auth_cert_upload").submit();
             /* function uploadCallback manages post-submission activities on
             UI part */
@@ -414,20 +447,10 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         $("#securityserver_client_client_search").live("click", function() {
             var securityServerCode = getEditableServerId().serverCode;
 
-            MEMBER_SEARCH_DIALOG.open(securityServerCode, function(member) {
-                $("#securityserver_client_name").val(member.name);
-                $("#securityserver_client_class").val(member.member_class);
-                $("#securityserver_client_code").val(member.member_code);
-                $("#securityserver_client_subsystem_code").val(
-                    member.subsystem_code);
-
-                updateNewClientSubmitButton();
+            MEMBER_SEARCH_DIALOG.open(securityServerCode, function(newClient) {
+                selectNewServerClient(newClient);
+                initNewServerClientSubsystemAutocomplete(newClient);
             }, true);
-        });
-
-        $("#securityserver_client_name, #securityserver_client_class, " +
-        "#securityserver_client_code").live("keyup", function() {
-            updateNewClientSubmitButton();
         });
 
         $("#securityserver_delete").live("click", function() {
@@ -495,9 +518,8 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     function updateNewClientSubmitButton() {
         var newClientSubmitButton = $("#securityserver_client_register_submit");
 
-        if (isInputFilled($("#securityserver_client_name")) &&
-                isInputFilled($("#securityserver_client_class")) &&
-                isInputFilled($("#securityserver_client_code"))) {
+        if (isReadonlyInputFilled($("#securityserver_client_class")) &&
+                isReadonlyInputFilled($("#securityserver_client_code"))) {
             newClientSubmitButton.enable();
         } else {
             newClientSubmitButton.disable();
@@ -615,8 +637,8 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "300px";
-        opts.sDom = "<'dataTables_header'<'clearer'>>tp";
+        opts.sScrollY = 300;
+        opts.sDom = "tp";
         opts.aoColumns = [
             { "mData": "id" },
             { "mData": "type" },
@@ -751,7 +773,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         $("#auth_cert_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 500,
+            height: "auto",
             width: 500,
             buttons: [
                 { text: _("common.submit"),
@@ -774,7 +796,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         $("#auth_cert_delete_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 500,
+            height: "auto",
             width: 500,
             buttons: [
                 { text: _("common.submit"),
@@ -795,7 +817,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         $("#securityserver_client_register_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 630,
+            height: "auto",
             width: 560,
             buttons: [
                 { text: _("common.submit"),
@@ -867,6 +889,10 @@ var SDSB_SECURITYSERVER_EDIT = function() {
 
     function disableClientDeletion() {
         $("#securityserver_client_delete").disable();
+    }
+
+    function focusClientSubsystemCodeInput() {
+        $("#securityserver_client_subsystem_code").focus();
     }
 
     return {

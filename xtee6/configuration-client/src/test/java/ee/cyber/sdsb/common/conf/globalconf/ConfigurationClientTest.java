@@ -13,12 +13,13 @@ import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
+import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.TestCertUtil;
 
+import static ee.cyber.sdsb.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.cyber.sdsb.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.cyber.sdsb.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ConfigurationClientTest {
 
@@ -39,6 +40,7 @@ public class ConfigurationClientTest {
         assertTrue(receivedParts.contains("FOO"));
 
         assertEquals(1, deletedFiles.size());
+        assertTrue(deletedFiles.contains("bar.xml"));
     }
 
     @Test
@@ -55,6 +57,27 @@ public class ConfigurationClientTest {
         assertEquals(2, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
         assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
+
+        assertEquals(0, deletedFiles.size());
+    }
+
+    @Test
+    public void downloadConfFail() throws Exception {
+        String confPath = "src/test/resources/test-conf-malformed";
+
+        List<String> receivedParts = new ArrayList<>();
+        List<String> deletedFiles = new ArrayList<>();
+
+        ConfigurationClient client =
+                getClient(confPath, receivedParts, deletedFiles);
+        try {
+            client.execute();
+            fail("Should fail to download");
+        } catch (CodedException expected) {
+            assertEquals(X_MALFORMED_GLOBALCONF, expected.getFaultCode());
+        }
+
+        assertEquals(0, deletedFiles.size());
     }
 
     // ------------------------------------------------------------------------
@@ -92,23 +115,25 @@ public class ConfigurationClientTest {
         ConfigurationAnchor configurationAnchor =
                 getConfigurationAnchor(confPath + ".txt");
 
-        FileNameProvider fileNameProvider =
-                new FileNameProviderImpl(confPath, "/etc/sdsb/");
+        FileNameProvider fileNameProvider = new FileNameProviderImpl(confPath);
 
-        Configuration configuration = new Configuration(fileNameProvider) {
+        ConfigurationDownloader configurations =
+                new ConfigurationDownloader(fileNameProvider) {
             @Override
             ConfigurationParser getParser() {
                 return new ConfigurationParser(instanceIdentifiers) {
                     @Override
-                    protected InputStream getInputStream(String downloadURL)
-                            throws Exception {
+                    protected InputStream getInputStream() throws Exception {
+                        String downloadURL =
+                                configuration.getLocation().getDownloadURL();
                         return new FileInputStream(downloadURL);
                     }
                 };
             }
 
             @Override
-            boolean shouldDownload(ConfigurationFile file) throws Exception {
+            boolean shouldDownload(ConfigurationFile file, Path p)
+                    throws Exception {
                 return true;
             }
 
@@ -146,7 +171,7 @@ public class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient(downloadedFiles, configuration,
+        return new ConfigurationClient(downloadedFiles, configurations,
                 configurationAnchor);
     }
 }

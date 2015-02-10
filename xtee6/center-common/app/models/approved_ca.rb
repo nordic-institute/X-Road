@@ -1,3 +1,5 @@
+require "common-ui/cert_utils"
+
 class ApprovedCa < ActiveRecord::Base
   include Validators
 

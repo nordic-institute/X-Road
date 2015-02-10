@@ -1,3 +1,5 @@
+require "active_support/core_ext"
+
 namespace :i18n do
   namespace :js do
     desc "Export translations to JS file(s)"
@@ -5,7 +7,12 @@ namespace :i18n do
     TRANSLATIONS_FILE = "public/javascripts/translations.js"
     FILTER_PATTERN = "*"
 
-    task :export => :environment do
+    task :export do
+      ::I18n.load_path = Dir[
+        Rails.root.join('..', 'common-ui', 'config', 'locales', '*.{yml}').to_s]
+
+      ::I18n.load_path << Dir[Rails.root.join('config', 'locales', '*.{yml}').to_s]
+
       File.open(TRANSLATIONS_FILE, "w+") do |f|
         f << %(I18n.translations || (I18n.translations = {});\n)
         filter(translations, FILTER_PATTERN).each do |locale, translations_for_locale|

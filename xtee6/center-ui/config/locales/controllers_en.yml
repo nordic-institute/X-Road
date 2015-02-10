@@ -22,7 +22,7 @@ en:
 
   common:
     cert_imported: "Certificate imported successfully"
-    db_error: "Database was restored meanwhile, please retry Your last action."
+    db_error: "Cannot connect to database server"
 
   about:
     action:
@@ -63,10 +63,10 @@ en:
       save_new_approved_ca: "save new approved CA"
       edit_existing_approved_ca: "edit existing approved CA"
       delete_approved_ca: "delete approved CA"
-    add:
-      no_name_extractor: "Name extractor method must be provided for approved_ca used for signing"
-    edit:
-      no_ca_cert: "Cannot save CA with no cert"
+    approved_ca_added: "Certification service added successfully"
+    intermediate_ca_added: "Intermediate CA added successfully"
+    no_name_extractor: "Name extractor method must be provided for approved_ca used for signing"
+    ca_settings_saved: "CA settings saved"
 
   orgs:
     name_exists: "This registry code (short name) is already in use"
@@ -167,7 +167,6 @@ en:
       can_see_details: "verify visibility of security server details"
       get_cert_details_by_id: "get certificate details by ID"
       securityservers_refresh: "refresh security servers table"
-      securityservers_advanced_search: "execute security servers advanced search"
       server_security_categories: "get security server security categories"
       all_security_categories: "get all security categories"
       clients: "get security server clients"
@@ -236,10 +235,12 @@ en:
         missing: "Signing of internal configuration failed - active key missing"
         token_not_found: "Signing of internal configuration failed - active key not found"
         token_not_active: "Signing of internal configuration failed - PIN of active key not entered"
+        key_not_available: "Signing of internal configuration failed - active key not available"
       external:
         missing: "Signing of external configuration failed - active key missing"
         token_not_found: "Signing of external configuration failed - active key not found"
         token_not_active: "Signing of external configuration failed - PIN of active key not entered"
+        key_not_available: "Signing of external configuration failed - active key not available"
 
   configuration_management:
     action:
@@ -261,6 +262,10 @@ en:
       logout_token: "logout signing token"
       upload_conf_part: "upload configuration part"
     sources:
+      internal_anchor_generated: "Internal configuration anchor generated successfully"
+      internal_anchor_error: "Internal configuration anchor generation failed: %{reason}"
+      external_anchor_generated: "External configuration anchor generated successfully"
+      external_anchor_error: "External configuration anchor generation failed: %{reason}"
       conf_part_upload:
         successful: "Configuration file for content identifier '%{content_identifier}' uploaded successfully."
         warnings: "Configuration file for content identifier '%{content_identifier}' uploaded with some warnings."

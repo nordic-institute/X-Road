@@ -1,0 +1,37 @@
+<table class="details">
+  <tr>
+    <td class="label pre"><%= t 'approved_cas.name_extractor_disabled' %>
+<%= t 'approved_cas.name_extractor_disabled_hint' %></td>
+    <td>
+      <input name="name_extractor_disabled" type="checkbox"
+             class="name_extractor_disabled" />
+    </td>
+  </tr>
+  <tr>
+    <td class="label pre"><%= t 'approved_cas.name_extractor_member_class' %>
+<%= t 'approved_cas.name_extractor_member_class_hint' %></td>
+    <td>
+      <select name="name_extractor_member_class"
+              class="name_extractor_member_class">
+        <option></option>
+        <%= options_for_select @member_classes %>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td><%= t 'approved_cas.name_extractor_method' %></td>
+    <td>
+      <input name="name_extractor_method" type="text"
+             class="name_extractor_method">
+    </td>
+  </tr>
+  <% if with_save_button %>
+  <tr>
+    <td colspan="2">
+      <button id="ca_settings_save" class="right">
+        <%= t 'common.save' %>
+      </button>
+    </td>
+  </tr>
+  <% end %>
+</table>

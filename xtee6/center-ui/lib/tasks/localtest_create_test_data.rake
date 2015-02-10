@@ -1,21 +1,10 @@
 namespace :localtest do
-  # For some reason loading these ones separately here is needed.
-  DEPENDENCIES = ["build/libs/*.jar", "../common-ui/lib/**/*.rb"]
-
-  DEPENDENCIES.each do |each_dep|
-    Dir[File.expand_path(each_dep)].each do |each_file|
-      require(each_file)
-    end
-  end
-
-  @test_data_file = './test/datagen/test_data.rb'
-
   def test_data_present?
-    File.exist?(@test_data_file)
-  end
+    test_data_file = './test/datagen/test_data.rb'
 
-  if test_data_present?()
-    require @test_data_file
+    if File.exist?(test_data_file)
+      require(test_data_file)
+    end
   end
 
   # Tested currently only on Postgres database.

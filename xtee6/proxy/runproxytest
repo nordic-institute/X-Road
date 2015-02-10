@@ -22,8 +22,6 @@ $javabin -Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache\
     -Dee.cyber.sdsb.appLog.path=log\
     -Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml\
     -Dlogback.configurationFile=src/test/logback-proxytest.xml\
-    -Dee.cyber.sdsb.proxy.clientHandlers=ee.cyber.sdsb.proxy.clientproxy.MetadataHandler\
-    -Dee.cyber.sdsb.proxy.serverServiceHandlers=ee.cyber.sdsb.proxy.serverproxy.MetadataServiceHandlerImpl\
     -Dee.cyber.sdsb.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml\
     -Dee.cyber.sdsb.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml\
-    -cp ../libs/hsqldb.jar:../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../addons/metaservice/build/libs/metaservice-1.0.jar:../common-verifier/build/classes/test:$classes $classname $*
+    -cp ../libs/hsqldb.jar:../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../common-verifier/build/classes/test:$classes $classname $*

@@ -158,6 +158,28 @@ class MembersControllerTest < ActionController::TestCase
     assert_equal(changed_user_name, edited_request.server_user_name)
   end
 
+  test "Should get subsystem codes of member in alphabetical order" do
+    # Given
+    params = {
+      'memberClass' => "riigiasutus",
+      'memberCode' => "member_as_server_client"
+    }
+
+    # When
+    get(:subsystem_codes, params)
+
+    # Then
+    assert_response(:success)
+
+    response_as_json = JSON.parse(response.body)
+
+    subsystem_codes = response_as_json["data"]
+
+    assert_equal(2, subsystem_codes.size)
+    assert_equal("subsystem_as_not_server_client", subsystem_codes[0])
+    assert_equal("subsystem_as_server_client", subsystem_codes[1])
+  end
+
   private
 
   def change_member_name(member_code, new_name)

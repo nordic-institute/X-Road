@@ -3,9 +3,9 @@ package ee.cyber.sdsb.common.conf.globalconf;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -29,12 +29,9 @@ import static ee.cyber.sdsb.common.conf.globalconf.PrivateParameters.CONTENT_ID_
 public final class ConfigurationClientMain {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_PROXY, "configuration-client");
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_PROXY, "configuration-client")
+            .load();
     }
 
     private static final int RETURN_SUCCESS = 0;
@@ -98,10 +95,10 @@ public final class ConfigurationClientMain {
                 configurationPath);
 
         FileNameProvider fileNameProvider =
-                new FileNameProviderImpl(configurationPath, configurationPath);
+                new FileNameProviderImpl(configurationPath);
 
         client = new ConfigurationClient(getDummyDownloadedFiles(),
-                        new Configuration(fileNameProvider) {
+                        new ConfigurationDownloader(fileNameProvider) {
                     @Override
                     void addAdditionalConfigurationSources(
                             PrivateParameters privateParameters) {
@@ -125,9 +122,22 @@ public final class ConfigurationClientMain {
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 configurationAnchorFile);
 
+        final AtomicBoolean foundPrivateParams = new AtomicBoolean();
+
         // create configuration that does not persist files to disk
-        Configuration configuration =
-                new Configuration(getDefaultFileNameProvider()) {
+        ConfigurationDownloader configuration =
+                new ConfigurationDownloader(getDefaultFileNameProvider()) {
+            @Override
+            void handle(ConfigurationLocation location,
+                    ConfigurationFile file) {
+                if (CONTENT_ID_PRIVATE_PARAMETERS.equals(
+                        file.getContentIdentifier())) {
+                    foundPrivateParams.set(true);
+                }
+
+                super.handle(location, file);
+            }
+
             @Override
             void persistContent(byte[] content, Path destination,
                     ConfigurationFile file) throws Exception {
@@ -153,13 +163,11 @@ public final class ConfigurationClientMain {
         };
 
         int result = execute();
-        if (result == RETURN_SUCCESS && verifyPrivate) {
-            // Check if downloaded configuration contained private parameters
-            if (!configuration.getFiles().stream()
-                .map(cf -> cf.getContentIdentifier())
-                .anyMatch(id -> id.equals(CONTENT_ID_PRIVATE_PARAMETERS))) {
-                return ERROR_CODE_MISSING_PRIVATE_PARAMS;
-            }
+
+        // Check if downloaded configuration contained private parameters
+        if (result == RETURN_SUCCESS && verifyPrivate
+                && !foundPrivateParams.get()) {
+            return ERROR_CODE_MISSING_PRIVATE_PARAMS;
         }
 
         return result;
@@ -202,8 +210,8 @@ public final class ConfigurationClientMain {
     }
 
     private static ConfigurationClient createClient() {
-        Configuration configuration =
-                new Configuration(getDefaultFileNameProvider());
+        ConfigurationDownloader configuration =
+                new ConfigurationDownloader(getDefaultFileNameProvider());
 
         Path downloadedFilesConf =
                 Paths.get(SystemProperties.getConfigurationPath(), "files");
@@ -214,8 +222,7 @@ public final class ConfigurationClientMain {
 
     private static FileNameProviderImpl getDefaultFileNameProvider() {
         return new FileNameProviderImpl(
-                SystemProperties.getConfigurationPath(),
-                SystemProperties.getConfPath());
+                SystemProperties.getConfigurationPath());
     }
 
     private static DownloadedFiles getDummyDownloadedFiles() {

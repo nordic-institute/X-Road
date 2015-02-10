@@ -33,7 +33,7 @@ public class AsyncDBTestUtil {
     public static final String DB_FILEPATH = "build/asyncdb";
     public static final String LOG_FILEPATH = "build/asynclog";
 
-    public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm.ss";
+    public static final String DATE_FORMAT = "yyyy-MM-dd HH:mm.ssZ";
 
     private static String providerName;
     private static SoapMessageImpl firstSoapMessage;
@@ -90,8 +90,7 @@ public class AsyncDBTestUtil {
     }
 
     public static Date getDate(String dateAsString) throws ParseException {
-        return new SimpleDateFormat(
-                DATE_FORMAT).parse(dateAsString);
+        return new SimpleDateFormat(DATE_FORMAT).parse(dateAsString);
     }
 
     private static SoapMessageImpl getFirstSoapMessage() {

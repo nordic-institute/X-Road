@@ -53,4 +53,10 @@ public class RequestInputDataMultipart extends RequestInputData {
                 + "boundary=" + mpos.getBoundary(), (InputStream) is);
     }
 
+    @Override
+    public long getSize() throws IOException {
+        return (attachmentInputStream == null)
+                ? testRequest.getContent().getBytes().length + attachmentSize
+                : soapBytes.length + attachmentInputStream.available();
+    }
 }

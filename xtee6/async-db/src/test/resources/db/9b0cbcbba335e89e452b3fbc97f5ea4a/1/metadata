@@ -1,7 +1,0 @@
-{"orderNo":"1",
-"id":"id1",
-"receivedTime":"1362306611000",
-"removedTime":"1363349122000",
-"sender":{"memberClass":"klass","memberCode":"vitja","type":"MEMBER","sdsbInstance":"EE"},
-"user":"333",
-"service":{"memberClass":"klass","memberCode":"nahatehas","serviceCode":"salajaneInfo","type":"SERVICE","sdsbInstance":"EE"}}

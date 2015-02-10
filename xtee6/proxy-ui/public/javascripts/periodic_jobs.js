@@ -1,6 +1,6 @@
 (function(PERIODIC_JOBS, $, undefined) {
     function refreshAlerts() {
-        if (typeof confBackup == "undefined" || !confBackup.restoreInProgress()) {
+        if (typeof SDSB_BACKUP == "undefined" || !SDSB_BACKUP.restoreInProgress()) {
             $.ajax({
                 url: "/application/alerts",
                 global: false,

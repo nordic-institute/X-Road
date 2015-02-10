@@ -44,8 +44,8 @@ dependencies {
 
     testCompile 'org.mockito:mockito-core:1.9.0'
 
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
+    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
+    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
 }
 
 test {

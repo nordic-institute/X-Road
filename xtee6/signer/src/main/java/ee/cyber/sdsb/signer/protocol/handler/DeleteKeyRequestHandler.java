@@ -19,42 +19,25 @@ public class DeleteKeyRequestHandler
         TokenAndKey tokenAndKey =
                 TokenManager.findTokenAndKey(message.getKeyId());
 
-        // If the key is saved to configuration, delete all certs and
-        // cert requests from configuration. Otherwise, delete the key from
-        // the module along with certs.
-        if (isSavedToConfiguration(tokenAndKey.getKey())) {
-            log.trace("Key '{}' is saved to configuration, "
-                    + "deleting key from configuration",
-                    tokenAndKey.getKey().getId());
-            removeCertsFromKey(tokenAndKey.getKey());
-            return success();
-        } else {
-            log.trace("Key '{}' is not saved to configuration, "
-                    + "deleting key from module",
-                    tokenAndKey.getKey().getId());
+        if (message.isDeleteFromDevice()) {
+            log.trace("Deleting key '{}' from device", message.getKeyId());
+
             deleteKeyFile(tokenAndKey.getTokenId(), message);
             return nothing();
-        }
-    }
+        } else {
+            log.trace("Deleting key '{}' from configuration",
+                    message.getKeyId());
 
-    private static boolean isSavedToConfiguration(KeyInfo keyInfo) {
-        if (!keyInfo.getCertRequests().isEmpty()) {
-            return true;
+            removeCertsFromKey(tokenAndKey.getKey());
+            return success();
         }
-
-        return keyInfo.getCerts().stream()
-                .filter(c -> c.isSavedToConfiguration())
-                .findFirst().isPresent();
     }
 
     private static void removeCertsFromKey(KeyInfo keyInfo) throws Exception {
         keyInfo.getCerts().stream().filter(c -> c.isSavedToConfiguration())
-            .forEach(certInfo -> {
-                TokenManager.removeCert(certInfo.getId());
-            });
+            .map(c -> c.getId()).forEach(TokenManager::removeCert);
 
-        keyInfo.getCertRequests().stream().forEach(certReqInfo -> {
-            TokenManager.removeCertRequest(certReqInfo.getId());
-        });
+        keyInfo.getCertRequests().stream()
+            .map(c -> c.getId()).forEach(TokenManager::removeCertRequest);
     }
 }

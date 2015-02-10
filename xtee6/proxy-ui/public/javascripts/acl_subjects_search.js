@@ -137,8 +137,10 @@
     }
 
     function initAclSubjectsSearchActions() {
-        $(".advanced_search_form .search", dialog).click(function() {
-            var params = $(".advanced_search_form", dialog).serializeObject();
+        $(".advanced_search .search", dialog).click(function() {
+            var params = $(".advanced_search", dialog)
+                .find("input, select").serializeObject();
+
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
@@ -149,8 +151,8 @@
             return false;
         });
 
-        $(".simple_search_form .search", dialog).click(function() {
-            var params = $(".simple_search_form", dialog).serializeObject();
+        $(".simple_search .search", dialog).click(function() {
+            var params = $(".simple_search input", dialog).serializeObject();
             params.client_id = $("#details_client_id").val();
 
             $.get(action("acl_subjects_search"), params, function(response) {
@@ -158,12 +160,6 @@
                 enableActions();
             }, "json");
 
-            return false;
-        });
-
-        $(".advanced_search_form .clear", dialog).click(function() {
-            $("#acl_subjects_search_dialog form input, " +
-              "#acl_subjects_search_dialog form select").val("");
             return false;
         });
 
@@ -175,22 +171,6 @@
             }
             enableActions();
         });
-
-        $(".simple_search a", dialog).click(function() {
-            $(".simple_search input", dialog).val("");
-            $(".simple_search", dialog).hide();
-            $(".advanced_search", dialog).show();
-
-            $(dialog).trigger("dialogresizestop");
-        });
-
-        $(".advanced_search a", dialog).click(function() {
-            $(".advanced_search .clear", dialog).click();
-            $(".advanced_search", dialog).hide();
-            $(".simple_search", dialog).show();
-
-            $(dialog).trigger("dialogresizestop");
-        }).click();
     }
 
     $(document).ready(function() {

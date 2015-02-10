@@ -19,5 +19,5 @@ CONFCLIENT_PARAMS=" -Xmx50m -XX:MaxMetaspaceSize=70m \
 -Dee.cyber.sdsb.appLog.sdsb.level=$SDSB_LOG_LEVEL "
 
 
-${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${CONFCLIENT_PARAMS} -Dlogback.configurationFile=/etc/sdsb/conf.d/configuration-client-logback.xml -cp /usr/share/sdsb/jlib/configuration-client.jar  ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain $@
+${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${CONFCLIENT_PARAMS} -Dlogback.configurationFile=/etc/sdsb/conf.d/confclient-logback.xml -cp /usr/share/sdsb/jlib/configuration-client.jar  ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain $@
 

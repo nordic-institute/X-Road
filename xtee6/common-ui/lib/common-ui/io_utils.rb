@@ -1,7 +1,10 @@
 require 'thread'
 require 'fileutils'
 
+java_import Java::ee.cyber.sdsb.common.SystemProperties
+
 java_import Java::java.lang.System
+java_import Java::java.io.RandomAccessFile
 
 # Common file read/write functions
 # TODO Remove Mutex. Acquire file locks for concrete files. RM #3505.
@@ -106,6 +109,25 @@ module CommonUi
 
     def is_filename_valid?(filename)
       return filename =~ /\A[\w\.\-]+\z/
+    end
+
+    # Returns lockfile of type java.io.RandomAccessFile of nil if aquiring lock
+    # is unsuccessful.
+    def try_lock(lockfile_name)
+      lockfile = RandomAccessFile.new(temp_file(lockfile_name), "rw")
+      return lockfile.getChannel.tryLock ? lockfile : nil
+    rescue Java::java.nio.channels.OverlappingFileLockException
+      return nil
+    end
+
+    # Argument must be of type java.io.RandomAccessFile.
+    def release_lock(lockfile)
+      unless lockfile.is_a?(RandomAccessFile)
+        raise "Lock file must be of type 'java.io.RandomAccessFile', but is #{lockfile.class}"
+      end
+
+      # closing lockfile releases the lock
+      lockfile.close
     end
   end
 end

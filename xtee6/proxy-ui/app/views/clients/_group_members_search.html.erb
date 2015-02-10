@@ -1,0 +1,37 @@
+<% content_for :simple_search do %>
+  <%= text_field_tag "subject_search_all", nil, :id => nil %>
+<% end %>
+
+<% content_for :advanced_search do %>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.name' %></td>
+    <td><%= text_field_tag "subject_search_description", nil, :id => nil %></td>
+  </tr>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.type' %></td>
+    <td>
+      <%= select_tag "subject_search_type",
+          options_for_select(@member_types), :id => nil, :include_blank => true %>
+    </td>
+  </tr>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.instance' %></td>
+    <td>
+      <%= select_tag "subject_search_instance",
+          options_for_select(@instances), :id => nil, :include_blank => true %>
+    </td>
+  </tr>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.class' %></td>
+    <td><%= select_tag "subject_search_class",
+            options_for_select(@member_classes), :id => nil, :include_blank => true %></td>
+  </tr>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.code' %></td>
+    <td><%= text_field_tag "subject_search_code", nil, :id => nil %></td>
+  </tr>
+  <tr>
+    <td><%= t 'clients.group_details_dialog.subsystem' %></td>
+    <td><%= text_field_tag "subject_search_subsystem_code", nil, :id => nil %></td>
+  </tr>
+<% end %>

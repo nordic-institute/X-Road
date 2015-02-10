@@ -1,4 +1,3 @@
-usr/share/sdsb/jlib/configuration-client-1.0.jar usr/share/sdsb/jlib/configuration-client.jar
 usr/share/sdsb/jlib/configuration-proxy-1.0.jar usr/share/sdsb/jlib/configuration-proxy.jar
 etc/sdsb/nginx/sdsb-public.conf etc/nginx/sites-enabled/sdsb-public
 usr/share/sdsb/scripts/confproxy-view-conf usr/bin/confproxy-view-conf

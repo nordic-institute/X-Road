@@ -50,15 +50,15 @@ public class DefaultFilepaths {
     static final String ASYNC_SENDER_CONFIGURATION_FILE =
             "async-sender.properties";
 
-    static final String PROXY_MONITOR_AGENT_CONFIGURATION_FILE =
+    static final String MONITOR_AGENT_CONFIGURATION_FILE =
             "monitor-agent.ini";
-    
+
     static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             "jetty/serverproxy.xml";
 
     static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
             "jetty/clientproxy.xml";
-    
+
     private static FileAttribute<Set<PosixFilePermission>> permissions =
             PosixFilePermissions.asFileAttribute(EnumSet.of(
                     OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));

@@ -8,20 +8,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.CentralServiceType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.GlobalGroupType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.IdentifierDecoderType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.MemberType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.OcspInfoType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.SecurityServerType;
-import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.SubsystemType;
+import ee.cyber.sdsb.common.conf.globalconf.sharedparameters.*;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.GlobalGroupId;
@@ -29,6 +22,7 @@ import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
 import ee.cyber.sdsb.common.identifier.SecurityServerId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.sdsb.common.util.CertUtils;
+import ee.cyber.sdsb.common.util.CryptoUtils;
 
 import static ee.cyber.sdsb.common.ErrorCodes.*;
 import static ee.cyber.sdsb.common.SystemProperties.getConfigurationPath;
@@ -72,7 +66,7 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public List<String> getInstanceIdentifiers() {
         return getSharedParameters().stream()
-                .map(p -> p.getInstanceIdentifier())
+                .map(SharedParameters::getInstanceIdentifier)
                 .collect(Collectors.toList());
     }
 
@@ -97,18 +91,35 @@ class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public List<SecurityServerId> getSecurityServers(
+            String... instanceIdentifiers) {
+        List<SecurityServerId> serverIds = new ArrayList<SecurityServerId>();
+
+        for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
+            for (SecurityServerType s : p.getSecurityServers()) {
+                MemberType owner = SharedParameters.getOwner(s);
+                serverIds.add(SecurityServerId.create(
+                        p.getInstanceIdentifier(),
+                        owner.getMemberClass().getCode(),
+                        owner.getMemberCode(), s.getServerCode()));
+            }
+        }
+
+        return serverIds;
+    }
+
+    @Override
     public List<MemberInfo> getMembers(String... instanceIdentifiers) {
         List<MemberInfo> clients = new ArrayList<>();
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (MemberType member : p.getMembers()) {
-                clients.add(new MemberInfo(p.createMemberId(member),
-                        member.getName()));
+                clients.add(new MemberInfo(p.createMemberId(member), member
+                        .getName()));
 
                 for (SubsystemType subsystem : member.getSubsystem()) {
-                    clients.add(new MemberInfo(
-                            p.createSubsystemId(member, subsystem),
-                            member.getName()));
+                    clients.add(new MemberInfo(p.createSubsystemId(member,
+                            subsystem), member.getName()));
                 }
             }
         }
@@ -118,17 +129,25 @@ class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getMemberName(ClientId clientId) {
-        SharedParameters p = getSharedParameters(clientId.getSdsbInstance());
-        return p.getMembers().stream()
+        SharedParameters p;
+        try {
+            p = confDir.getShared(clientId.getSdsbInstance());
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e);
+        }
+
+        return p == null ? null : p.getMembers().stream()
                 .filter(m -> p.createMemberId(m).memberEquals(clientId))
-                .map(m -> m.getName())
-                .findFirst().orElse(null);
+                .map(MemberType::getName)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public List<CentralServiceId> getCentralServices(
             String instanceIdentifier) {
-        return getSharedParameters(instanceIdentifier).getCentralServices()
+        return getSharedParameters(instanceIdentifier)
+                .getCentralServices()
                 .stream()
                 .map(c -> CentralServiceId.create(instanceIdentifier,
                         c.getServiceCode()))
@@ -142,9 +161,9 @@ class GlobalConfImpl implements GlobalConfProvider {
 
         for (SharedParameters p : getSharedParameters(instanceIdentifiers)) {
             for (GlobalGroupType globalGroup : p.getGlobalGroups()) {
-                globalGroups.add(new GlobalGroupInfo(
-                        p.createGlobalGroupId(globalGroup),
-                        globalGroup.getDescription()));
+                globalGroups.add(
+                        new GlobalGroupInfo(p.createGlobalGroupId(globalGroup),
+                                globalGroup.getDescription()));
             }
         }
 
@@ -153,11 +172,17 @@ class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public String getGlobalGroupDescription(GlobalGroupId globalGroupId) {
-        return getSharedParameters(globalGroupId.getSdsbInstance())
-                .getGlobalGroups().stream()
+        SharedParameters p;
+        try {
+            p = confDir.getShared(globalGroupId.getSdsbInstance());
+        } catch (Exception e) {
+            throw new CodedException(X_INTERNAL_ERROR, e);
+        }
+
+        return p == null ? null : p.getGlobalGroups().stream()
                 .filter(g -> g.getGroupCode().equals(
                         globalGroupId.getGroupCode()))
-                .map(g -> g.getDescription())
+                .map(GlobalGroupType::getDescription)
                 .findFirst().orElse(null);
     }
 
@@ -165,7 +190,7 @@ class GlobalConfImpl implements GlobalConfProvider {
     public Set<String> getMemberClasses(String... instanceIdentifiers) {
         return getSharedParameters(instanceIdentifiers).stream()
                 .flatMap(p -> p.getGlobalSettings().getMemberClass().stream())
-                .map(m -> m.getCode())
+                .map(MemberClassType::getCode)
                 .collect(Collectors.toSet());
     }
 
@@ -207,15 +232,16 @@ class GlobalConfImpl implements GlobalConfProvider {
         List<String> responders = new ArrayList<>();
 
         for (SharedParameters p : getSharedParameters()) {
-            List<OcspInfoType> caOcspData =
-                    p.getCaCertsAndOcspData().get(getCaCert(null, member));
+            List<OcspInfoType> caOcspData = p.getCaCertsAndOcspData().get(
+                    getCaCert(null, member));
             if (caOcspData == null) {
                 continue;
             }
 
-            caOcspData.stream().map(c -> c.getUrl())
-                .filter(StringUtils::isNotBlank)
-                .forEach(url -> responders.add(url.trim()));
+            caOcspData.stream().map(OcspInfoType::getUrl)
+                    .filter(StringUtils::isNotBlank)
+                    .map(String::trim)
+                    .forEach(responders::add);
         }
 
         String uri = CertUtils.getOcspResponderUriFromCert(member);
@@ -229,21 +255,19 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public List<X509Certificate> getOcspResponderCertificates() {
         List<X509Certificate> responderCerts = new ArrayList<>();
-
-        for (SharedParameters p : getSharedParameters()) {
-            try {
+        try {
+            for (SharedParameters p : getSharedParameters()) {
                 for (List<OcspInfoType> ocspTypes
                         : p.getCaCertsAndOcspData().values()) {
-                    ocspTypes.stream().filter(t -> t.getCert() != null)
-                        .forEach(ocspType ->
-                                responderCerts.add(
-                                        readCertificate(ocspType.getCert())));
+                    ocspTypes.stream().map(OcspInfoType::getCert)
+                            .filter(Objects::nonNull)
+                            .map(CryptoUtils::readCertificate)
+                            .forEach(responderCerts::add);
                 }
-            } catch (Exception e) {
-                log.error("Error while getting OCSP responder certificates: ",
-                        e);
-                return Collections.emptyList();
             }
+        } catch (Exception e) {
+            log.error("Error while getting OCSP responder certificates: ", e);
+            return Collections.emptyList();
         }
 
         return responderCerts;
@@ -257,15 +281,18 @@ class GlobalConfImpl implements GlobalConfProvider {
                     "Member certificate must be present to find CA cert!");
         }
 
-        X509CertificateHolder ch =
-                new X509CertificateHolder(memberCert.getEncoded());
+        X509CertificateHolder ch = new X509CertificateHolder(
+                memberCert.getEncoded());
 
         String[] instances = instanceIdentifier != null
                 ? new String[] {instanceIdentifier} : new String[] {};
 
-        return getSharedParameters(instances).stream()
+        return getSharedParameters(instances)
+                .stream()
                 .map(p -> p.getSubjectsAndCaCerts().get(ch.getIssuer()))
-                .filter(Objects::nonNull).findFirst().orElseThrow(
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(
                         () -> new CodedException(X_INTERNAL_ERROR,
                                 "Certificate is not issued by approved "
                                         + "certification service provider."));
@@ -311,8 +338,9 @@ class GlobalConfImpl implements GlobalConfProvider {
         return getSharedParameters().stream()
                 .map(p -> p.getCaCertsAndOcspData().get(ca))
                 .filter(Objects::nonNull).flatMap(o -> o.stream())
-                .map(o -> o.getCert()).filter(Objects::nonNull)
-                .map(c -> readCertificate(c)).filter(c -> c.equals(ocspCert))
+                .map(OcspInfoType::getCert).filter(Objects::nonNull)
+                .map(CryptoUtils::readCertificate)
+                .filter(c -> c.equals(ocspCert))
                 .findFirst().isPresent();
     }
 
@@ -327,19 +355,18 @@ class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
-        String base64 = encodeBase64(certHash(cert));
+    public SecurityServerId getServerId(X509Certificate cert)
+            throws Exception {
+        String b64 = encodeBase64(certHash(cert));
 
         for (SharedParameters p : getSharedParameters()) {
-            SecurityServerType serverType =
-                    p.getServerByAuthCert().get(base64);
+            SecurityServerType serverType = p.getServerByAuthCert().get(b64);
             if (serverType != null) {
                 MemberType owner = SharedParameters.getOwner(serverType);
                 return SecurityServerId.create(p.getInstanceIdentifier(),
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(),
                         serverType.getServerCode());
-
             }
         }
 
@@ -353,8 +380,8 @@ class GlobalConfImpl implements GlobalConfProvider {
         return getSharedParameters().stream()
                 .map(p -> p.getMemberAuthCerts().get(memberId))
                 .filter(Objects::nonNull).flatMap(h -> h.stream())
-                .filter(h -> Arrays.equals(inputCertHash, h))
-                .findFirst().isPresent();
+                .filter(h -> Arrays.equals(inputCertHash, h)).findFirst()
+                .isPresent();
     }
 
     @Override
@@ -385,7 +412,7 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public List<String> getApprovedTsps(String instanceIdentifier) {
         return getSharedParameters(instanceIdentifier).getApprovedTSAs()
-                .stream().map(tsa -> tsa.getUrl())
+                .stream().map(ApprovedTSAType::getUrl)
                 .collect(Collectors.toList());
     }
 
@@ -394,16 +421,16 @@ class GlobalConfImpl implements GlobalConfProvider {
             String approvedTspUrl) {
         return getSharedParameters(instanceIdentifier).getApprovedTSAs()
                 .stream().filter(t -> t.getUrl().equals(approvedTspUrl))
-                .map(t -> t.getName()).findFirst().orElse(null);
+                .map(ApprovedTSAType::getName).findFirst().orElse(null);
     }
 
     @Override
     public List<X509Certificate> getTspCertificates() throws Exception {
         return getSharedParameters().stream()
                 .flatMap(p -> p.getApprovedTSAs().stream())
-                .map(t -> t.getCert())
+                .map(ApprovedTSAType::getCert)
                 .filter(Objects::nonNull)
-                .map(c -> readCertificate(c))
+                .map(CryptoUtils::readCertificate)
                 .collect(Collectors.toList());
     }
 
@@ -424,19 +451,18 @@ class GlobalConfImpl implements GlobalConfProvider {
             return false;
         }
 
-        return group.getGroupMember().stream()
-                .filter(m -> m.equals(subjectId))
+        return group.getGroupMember().stream().filter(m -> m.equals(subjectId))
                 .findFirst().isPresent();
     }
 
     @Override
     public boolean isSecurityServerClient(ClientId clientId,
             SecurityServerId securityServerId) {
-        SharedParameters p =
-                getSharedParameters(securityServerId.getSdsbInstance());
+        SharedParameters p = getSharedParameters(securityServerId
+                .getSdsbInstance());
         return p.getSecurityServerClients().containsKey(securityServerId)
-                && p.getSecurityServerClients().get(securityServerId).contains(
-                        clientId);
+                && p.getSecurityServerClients().get(securityServerId)
+                        .contains(clientId);
     }
 
     @Override
@@ -480,8 +506,8 @@ class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public int getTimestampingIntervalSeconds() {
-        return getPrivateParameters()
-                .getTimeStampingIntervalSeconds().intValue();
+        return getPrivateParameters().getTimeStampingIntervalSeconds()
+                .intValue();
     }
 
     // ------------------------------------------------------------------------
@@ -518,7 +544,8 @@ class GlobalConfImpl implements GlobalConfProvider {
 
         if (p == null) {
             throw new CodedException(X_INTERNAL_ERROR,
-                    "Invalid instance identifier: %s", getInstanceIdentifier());
+                    "Invalid instance identifier: %s",
+                    getInstanceIdentifier());
         }
 
         return p;
@@ -547,7 +574,7 @@ class GlobalConfImpl implements GlobalConfProvider {
         }
 
         return Arrays.stream(instanceIdentifiers)
-                .map(instance -> getSharedParameters(instance))
+                .map(this::getSharedParameters)
                 .collect(Collectors.toList());
     }
 }

@@ -1,25 +1,23 @@
 package ee.cyber.sdsb.commonui;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.lang3.StringUtils;
 
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.conf.globalconf.PrivateParameters;
 import ee.cyber.sdsb.common.conf.globalconf.SharedParameters;
 
+/**
+ * Encapsulates optional parts configuration of central server.
+ */
 @Slf4j
 public class OptionalPartsConf {
     private static final String KEY_PART_FILE_NAME;
@@ -42,8 +40,6 @@ public class OptionalPartsConf {
                 SharedParameters.CONTENT_ID_SHARED_PARAMETERS);
     }
 
-    private final HierarchicalINIConfiguration conf;
-
     private final Map<String, String> partFileNameToValidationProgram =
             new HashMap<>();
     private final Map<String, String> partFileNameToContentIdentifier =
@@ -54,19 +50,45 @@ public class OptionalPartsConf {
 
     private final Set<String> existingPartFileNames = new HashSet<>();
 
-    public OptionalPartsConf(String confFile) throws IOException {
-        try {
-            this.conf = new HierarchicalINIConfiguration(confFile);
+    /**
+     * Creates optional parts configuration.
+     *
+     * @param confDir - directory, where optional part files are in.
+     * @throws IOException - when optional parts directory cannot be read.
+     */
+    public OptionalPartsConf(String confDir) throws IOException {
+        File optionalPartsDir = new File(confDir);
 
-            this.conf.getSections().forEach(this::processSection);
-        } catch (ConfigurationException e) {
-            log.error("Loading optional parts configuration failed", e);
+        final String optionalPartsPath = optionalPartsDir.getAbsolutePath();
 
-            throw new IOException(
-                    "Could not load optional parts configuration: ", e);
+        if (!optionalPartsDir.isDirectory()) {
+            log.warn("Optional configuration parts directory '{}' "
+                            + "either does not exist or is regular file",
+                    optionalPartsPath);
+            return;
         }
+
+        log.debug("Getting optional conf parts from directory '{}'", confDir);
+
+        File[] optionalPartFiles = optionalPartsDir.listFiles();
+
+        if (optionalPartFiles == null) {
+            log.warn("Optional part files list in directory '{}' "
+                    + "cannot be fetched.", optionalPartsPath);
+            return;
+        }
+
+        List<File> files = Arrays.asList(optionalPartFiles);
+
+        files.forEach(this::processFile);
     }
 
+    /**
+     * Returns absolute path to validation program according to path file name.
+     *
+     * @param partFile - Simple name of the part file.
+     * @return - absolute path to validation program.
+     */
     public String getValidationProgram(String partFile) {
         String validationProgram =
                 partFileNameToValidationProgram.get(partFile);
@@ -77,6 +99,12 @@ public class OptionalPartsConf {
         return validationProgram;
     }
 
+    /**
+     * Returns content identifier respective to path file name.
+     *
+     * @param partFile - simple name of the part file.
+     * @return - content identifier respective to part file.
+     */
     public String getContentIdentifier(String partFile) {
         String contentIdentifier =
                 partFileNameToContentIdentifier.get(partFile);
@@ -87,22 +115,49 @@ public class OptionalPartsConf {
         return contentIdentifier;
     }
 
-    private void processSection(String sectionName) {
-        SubnodeConfiguration section = conf.getSection(sectionName);
+    @SneakyThrows
+    private void processFile(File confFile) {
+        try {
+            Properties props = new Properties();
+            props.load(new FileInputStream(confFile));
 
-        String partFileName = section.getString(KEY_PART_FILE_NAME);
-        String contentId = section.getString(KEY_CONTENT_IDENTIFIER);
-        String validationProgram = section.getString(KEY_VALIDATION_PROGRAM);
+            String partFileName = props.getProperty(KEY_PART_FILE_NAME);
+            String contentId = props.getProperty(KEY_CONTENT_IDENTIFIER);
 
-        validatePartFileName(partFileName);
+            if (!isFileContentWellFormed(partFileName, contentId)) {
+                log.warn("Optional part configuration file '{}' is malformed, "
+                        + "please inspect it for correctness.",
+                        confFile.getAbsolutePath());
+                return;
+            }
 
-        validateContentIdentifier(contentId);
+            String validationProgram = props.getProperty(KEY_VALIDATION_PROGRAM);
+
+            validatePartFileName(partFileName);
+
+            validateContentIdentifier(contentId);
 
 
-        partFileNameToValidationProgram.put(partFileName, validationProgram);
-        partFileNameToContentIdentifier.put(partFileName, contentId);
+            partFileNameToValidationProgram.put(partFileName, validationProgram);
+            partFileNameToContentIdentifier.put(partFileName, contentId);
 
-        allParts.add(new OptionalConfPart(partFileName, contentId));
+            allParts.add(new OptionalConfPart(partFileName, contentId));
+        } catch (IOException e) {
+            log.error("Loading optional parts from file '"
+                    + confFile.getAbsolutePath() + "' failed", e);
+
+            throw new IOException(
+                    "Could not load optional parts configuration: ", e);
+        }
+    }
+
+    private boolean isFileContentWellFormed(
+            String partFile, String contentId) {
+        if (StringUtils.isBlank(partFile) || StringUtils.isBlank(contentId)){
+            return false;
+        }
+
+        return true;
     }
 
     private void validatePartFileName(String partFileName) {

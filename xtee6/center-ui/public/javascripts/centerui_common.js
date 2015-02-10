@@ -46,102 +46,12 @@ var SDSB_CENTERUI_COMMON = function() {
         }, "json");
     }
 
-    /* Functions related to cert details - start */
-
-    function addCertDetailsParts(parts, titleSelector) {
-        var previousParagraph = titleSelector;
-        $.each(parts, function(index, each) {
-            var addableItem = $('<p>',
-                    {text: each, class: "ca_cert_detail"});
-            previousParagraph.after(addableItem);
-            previousParagraph = addableItem;
-        });
-    }
-
-    function decorateCertDetails(details) {
-        var raw_details = details.split("\/");
-        return raw_details.length > 1 ? raw_details.slice(1) : raw_details;
-    }
-
-    function getCertDetailsLink(handleDetailsLinkClick) {
-        var certDetailsLink = getDetailsLink(_("common.cert_view"));
-
-        certDetailsLink.click(function(){
-            handleDetailsLinkClick();
-        });
-
-        return certDetailsLink;
-    }
-
-    function openTempCertDetailsById(certId, controllerName) {
-        var params = {certId: certId};
-
-        $.get(controllerName + "/get_cert_details_by_id", params,
-                function(response) {
-            openCertDetailsWindow(response.data);
-        }, "json");
-    }
-
-    function openCertDetailsWindow(certData) {
-        $("#cert_details_dump").val(certData.cert_dump);
-        $("#cert_details_hash").text(certData.cert_hash);
-        openCertDetailsDialog();
-    }
-
-    /* Functions related to cert details - end */
-
-    /* -- Common logic for advanced searches - start -- */
-
-    // Public
-    function showSimpleSearchElement(simpleSearchSelector) {
-        var simpleSearchElement = $(simpleSearchSelector);
-        simpleSearchElement.show();
-        simpleSearchElement.find("input").val("");
-    }
-
-    function setSearchLinkText(linkSelector, translationKey) {
-        $(linkSelector).text(_(translationKey));
-    }
-
-    /* -- Common logic for advanced searches - end -- */
-
     /* -- PUBLIC - END -- */
-
-    function openCertDetailsDialog() {
-        $("#cert_details_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 600,
-            width: 700,
-            buttons: [
-              { text: "Close",
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-              }
-            ]
-        }).dialog("open");
-    }
-
-    $(document).ready(function() {
-        $("#server_auth_cert_file").live("change", function() {
-            var uploadButton = $("#add_auth_cert_upload");
-            isInputFilled($(this)) ?
-                    uploadButton.enable() : uploadButton.disable();
-        });
-    });
 
     return {
         getDetailsLink: getDetailsLink,
         fillSelectWithEmptyOption: fillSelectWithEmptyOption,
         openDetailsIfAllowed: openDetailsIfAllowed,
-        updateRecordsCount: updateRecordsCount,
-        addCertDetailsParts: addCertDetailsParts,
-        decorateCertDetails: decorateCertDetails,
-        getCertDetailsLink: getCertDetailsLink,
-        openTempCertDetailsById: openTempCertDetailsById,
-        openCertDetailsWindow: openCertDetailsWindow,
-        showSimpleSearchElement: showSimpleSearchElement,
-        setSearchLinkText: setSearchLinkText
+        updateRecordsCount: updateRecordsCount
     };
 }();

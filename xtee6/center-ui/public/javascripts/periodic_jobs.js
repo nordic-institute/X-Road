@@ -1,6 +1,6 @@
 var SDSB_PERIODIC_JOBS = function() {
     function refreshAlerts() {
-        if (typeof confBackup == "undefined" || !confBackup.restoreInProgress()) {
+        if (typeof SDSB_BACKUP == "undefined" || !SDSB_BACKUP.restoreInProgress()) {
             $.ajax({
                 url: "/system_status/check_status",
                 global: false,

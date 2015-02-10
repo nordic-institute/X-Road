@@ -422,6 +422,10 @@ class ClientsController < ApplicationController
   end
 
   def get_client(key)
+    unless session[:client_ids]
+      cache_client_ids
+    end
+
     ClientDAOImpl.instance.getClient(
       ServerConfDatabaseCtx.session, session[:client_ids][key])
   end

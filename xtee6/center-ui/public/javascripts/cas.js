@@ -1,74 +1,36 @@
 var SDSB_CAS = function() {
-    var oCas;
+    var cas;
 
     function enableActions() {
-        $("#ca_add").enable();
-
-        if (oCas.getFocus()) {
-            $(".approved_ca-action").enable();
-        } else {
-            $(".approved_ca-action").disable();
-        }
-    }
-
-    function updateCaListActionButtonsVisibility() {
-        if (!oCas) return;
-        if (!oCas.getFocus()) {
-            $(".approved_ca-action").disable();
-        } else {
-            $(".approved_ca-action").enable();
-        }
-    }
-
-    function deleteCa() {
-        var ca = oCas.getFocusData();
-        var requestParams = {id: ca.id};
-        var confirmParams = {approvedCa: ca.trusted_certification_service};
-
-        confirm("approved_cas.remove_confirm", confirmParams, function() {
-            $.post("approved_cas/delete_approved_ca", requestParams, function() {
-                refreshCasTable();
-            }, "json");
-        });
+        $(".approved_ca-action").enable(!!cas.getFocus());
     }
 
     function initCasTable() {
-        var opts = defaultTableOpts();
-        opts.fnDrawCallback = updateCaListActionButtonsVisibility;
-        opts.bServerSide = true;
-        opts.sScrollY = "400px";
-        opts.bScrollCollapse = true;
+        var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "trusted_certification_service" },
+            { "mData": "name" },
             { "mData": "valid_from", "sWidth": "14em" },
             { "mData": "valid_to", "sWidth": "14em" }
         ];
         opts.asRowId = ["id"];
-
-        opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("approved_cas");
-            enableActions();
-        }
-
-        opts.bScrollInfinite = true;
-        opts.sAjaxSource = "approved_cas/refresh";
-
         opts.aaSorting = [ [2,'desc'] ];
 
-        oCas = $('#cas').dataTable(opts);
-        oCas.fnSetFilteringDelay(600);
+        cas = $("#cas").dataTable(opts);
+
+        refreshCas();
     }
 
-    function refreshCasTable() {
-        oCas.fnReloadAjax();
-    }
+    function refreshCas(data) {
+        if (data) {
+            cas.fnReplaceData(data);
+            enableActions();
+            return;
+        }
 
-    function openExistingCa() {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed("approved_cas/can_see_details",
-                function(){
-            var ca = oCas.getFocusData();
-            SDSB_CA_EDIT.initEditingExistingCa(ca.id, ca.top_ca_id);
+        $.get(action("top_cas"), null, function(response) {
+            cas.fnReplaceData(response.data);
+            enableActions();
         });
     }
 
@@ -77,29 +39,38 @@ var SDSB_CAS = function() {
 
         enableActions();
 
-        $("#cas tbody td").live("click", function(ev) {
-            oCas.setFocus(0, ev.target.parentNode);
-            updateCaListActionButtonsVisibility();
+        $("#cas").on("click", "tbody tr", function() {
+            cas.setFocus(0, this);
+            enableActions();
         });
 
-        $("#ca_add").live("click", function() {
-            SDSB_CA_NEW.initAdding();
+        $("#cas").on("dblclick", "tbody tr", function() {
+            $("#ca_edit").click();
         });
 
-        $("#cas tbody tr").live("dblclick", function(ev) {
-            openExistingCa();
+        $("#ca_add").click(function() {
+            SDSB_APPROVED_CA_DIALOG.openAddDialog();
         });
 
-        $("#ca_details").live("click", function() {
-            openExistingCa();
+        $("#ca_details").click(function() {
+            SDSB_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
         });
 
-        $("#ca_delete").live("click", function() {
-            deleteCa();
+        $("#ca_delete").click(function() {
+            var ca = cas.getFocusData();
+            var requestParams = {ca_id: ca.id};
+            var confirmParams = {approvedCa: ca.name};
+
+            confirm("approved_cas.remove_confirm", confirmParams, function() {
+                $.post(action("delete_top_ca"), requestParams, function(response) {
+                    cas.fnReplaceData(response.data);
+                    enableActions();
+                }, "json");
+            });
         });
     });
 
     return {
-        refreshCasTable: refreshCasTable
+        refreshCas: refreshCas
     };
 }();

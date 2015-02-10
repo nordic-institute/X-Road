@@ -1,0 +1,7 @@
+{"orderNo":"1",
+"id":"id1",
+"receivedTime":"1362306611000",
+"removedTime":"1363349122000",
+"sender":{"memberClass":"GOV","memberCode":"sender2","type":"MEMBER","sdsbInstance":"EE"},
+"user":"333",
+"service":{"memberClass":"GOV","memberCode":"sender1","serviceCode":"service2","type":"SERVICE","sdsbInstance":"EE"}}

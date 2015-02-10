@@ -1,10 +1,6 @@
 package ee.cyber.sdsb.asyncdb;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.Before;
@@ -18,6 +14,7 @@ import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
+import static ee.cyber.sdsb.asyncdb.AsyncDBTestUtil.getDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -27,13 +24,13 @@ import static org.junit.Assert.assertNull;
  * Data under 'src/test/resources/db' is used for tests.
  */
 public class MessageQueueBehavior {
-    private static final ClientId PROVIDER_SEENEVABRIK = ClientId.create("EE",
-            "klass", "seenevabrik");
-    private static final ClientId PROVIDER_NAHATEHAS = ClientId.create("EE",
-            "klass", "nahatehas");
+    private static final ClientId PROVIDER1 = ClientId.create("EE",
+            "GOV", "provider1");
+    private static final ClientId PROVIDER2 = ClientId.create("EE",
+            "GOV", "provider2");
 
-    private MessageQueue queueSeenevabrik;
-    private MessageQueue queueNahatehas;
+    private MessageQueue queue1;
+    private MessageQueue queue2;
 
     @Before
     public void setUp() throws Exception {
@@ -51,80 +48,75 @@ public class MessageQueueBehavior {
             }
         };
 
-        queueSeenevabrik = new MessageQueueImpl(PROVIDER_SEENEVABRIK,
+        queue1 = new MessageQueueImpl(PROVIDER1,
                 dummyLogWriter);
-        queueNahatehas = new MessageQueueImpl(PROVIDER_NAHATEHAS,
+        queue2 = new MessageQueueImpl(PROVIDER2,
                 dummyLogWriter);
     }
 
     @Test
     public void shouldGetProviderMetadataCorrectly() throws Exception {
-        QueueInfo nahatehas = queueNahatehas.getQueueInfo();
-        assertEquals(PROVIDER_NAHATEHAS, nahatehas.getName());
-        assertEquals(2, nahatehas.getRequestCount());
-        assertEquals(0, nahatehas.getFirstRequestNo());
-        assertEquals(getDate("2012-03-16 15:42.14"),
-                nahatehas.getLastSentTime());
-        assertEquals(0, nahatehas.getFirstRequestSendCount());
-        assertEquals("", nahatehas.getLastSuccessId());
-        assertNull(nahatehas.getLastSuccessTime());
-        assertEquals("", nahatehas.getLastSendResult());
+        QueueInfo queueInfo2 = queue2.getQueueInfo();
+        assertEquals(PROVIDER2, queueInfo2.getName());
+        assertEquals(2, queueInfo2.getRequestCount());
+        assertEquals(0, queueInfo2.getFirstRequestNo());
+        assertEquals(getDate("2012-03-16 13:42.14+0000"),
+                queueInfo2.getLastSentTime());
+        assertEquals(0, queueInfo2.getFirstRequestSendCount());
+        assertEquals("", queueInfo2.getLastSuccessId());
+        assertNull(queueInfo2.getLastSuccessTime());
+        assertEquals("", queueInfo2.getLastSendResult());
 
-        QueueInfo seenevabrik = queueSeenevabrik.getQueueInfo();
-        assertEquals(PROVIDER_SEENEVABRIK, seenevabrik.getName());
-        assertEquals(1, seenevabrik.getRequestCount());
-        assertEquals(2, seenevabrik.getFirstRequestNo());
-        assertEquals(getDate("2013-04-11 16:22.11"),
-                seenevabrik.getLastSentTime());
-        assertEquals(4, seenevabrik.getFirstRequestSendCount());
-        assertEquals("ID111", seenevabrik.getLastSuccessId());
-        assertEquals(getDate("2013-04-02 15:33.11"),
-                seenevabrik.getLastSuccessTime());
-        assertEquals("tulemus", seenevabrik.getLastSendResult());
+        QueueInfo queueInfo1 = queue1.getQueueInfo();
+        assertEquals(PROVIDER1, queueInfo1.getName());
+        assertEquals(1, queueInfo1.getRequestCount());
+        assertEquals(2, queueInfo1.getFirstRequestNo());
+        assertEquals(getDate("2013-04-11 13:22.11+0000"),
+                queueInfo1.getLastSentTime());
+        assertEquals(4, queueInfo1.getFirstRequestSendCount());
+        assertEquals("ID111", queueInfo1.getLastSuccessId());
+        assertEquals(getDate("2013-04-02 12:33.11+0000"),
+                queueInfo1.getLastSuccessTime());
+        assertEquals("tulemus", queueInfo1.getLastSendResult());
     }
 
     @Test
     public void shouldGetRequestsOfProviderCorrectly() throws Exception {
-        List<RequestInfo> requests = queueNahatehas.getRequests();
+        List<RequestInfo> requests = queue2.getRequests();
         assertEquals(2, requests.size());
 
-        RequestInfo firstRequest = requests.get(0);
-        assertEquals(0, firstRequest.getOrderNo());
-        assertEquals("id0", firstRequest.getId());
-        assertEquals(getDate("2013-02-02 00:00.00"),
-                firstRequest.getReceivedTime());
-        assertNull(firstRequest.getRemovedTime());
+        RequestInfo request1 = requests.get(0);
+        assertEquals(0, request1.getOrderNo());
+        assertEquals("id0", request1.getId());
+        assertEquals(getDate("2013-02-01 22:00.00+0000"),
+                request1.getReceivedTime());
+        assertNull(request1.getRemovedTime());
 
-        ClientId expectedSenderVladislav =
-                ClientId.create("EE", "klass", "vladislav");
-        assertEquals(expectedSenderVladislav, firstRequest.getSender());
-        assertEquals("222", firstRequest.getUser());
+        ClientId expectedSender1 =
+                ClientId.create("EE", "GOV", "sender1");
+        assertEquals(expectedSender1, request1.getSender());
+        assertEquals("222", request1.getUser());
 
-        ServiceId serviceLasePeeneks = ServiceId.create(
-                "EE", "klass", "nahatehas", null, "lasePeeneks");
-        assertEquals(serviceLasePeeneks, firstRequest.getService());
+        ServiceId service1 = ServiceId.create(
+                "EE", "GOV", "sender1", null, "service1");
+        assertEquals(service1, request1.getService());
 
-        RequestInfo secondRequest = requests.get(1);
-        assertEquals(1, secondRequest.getOrderNo());
-        assertEquals("id1", secondRequest.getId());
-        assertEquals(getDate("2013-03-03 12:30.11"),
-                secondRequest.getReceivedTime());
-        assertEquals(getDate("2013-03-15 14:05.22"),
-                secondRequest.getRemovedTime());
+        RequestInfo request2 = requests.get(1);
+        assertEquals(1, request2.getOrderNo());
+        assertEquals("id1", request2.getId());
+        assertEquals(getDate("2013-03-03 10:30.11+0000"),
+                request2.getReceivedTime());
+        assertEquals(getDate("2013-03-15 12:05.22+0000"),
+                request2.getRemovedTime());
 
-        ClientId expectedSenderVitja =
-                ClientId.create("EE", "klass", "vitja");
+        ClientId expectedSender2 =
+                ClientId.create("EE", "GOV", "sender2");
 
-        assertEquals(expectedSenderVitja, secondRequest.getSender());
-        assertEquals("333", secondRequest.getUser());
+        assertEquals(expectedSender2, request2.getSender());
+        assertEquals("333", request2.getUser());
 
-        ServiceId serviceSalajaneInfo = ServiceId.create(
-                "EE", "klass", "nahatehas", null, "salajaneInfo");
-        assertEquals(serviceSalajaneInfo, secondRequest.getService());
-    }
-
-    private static Date getDate(String dateAsString) throws ParseException {
-        DateFormat sdf = new SimpleDateFormat(AsyncDBTestUtil.DATE_FORMAT);
-        return sdf.parse(dateAsString);
+        ServiceId service2 = ServiceId.create(
+                "EE", "GOV", "sender1", null, "service2");
+        assertEquals(service2, request2.getService());
     }
 }

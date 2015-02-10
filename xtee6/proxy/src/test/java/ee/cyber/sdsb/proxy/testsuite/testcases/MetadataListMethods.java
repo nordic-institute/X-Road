@@ -9,7 +9,9 @@ import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
  */
 public class MetadataListMethods extends MessageTestCase {
     public MetadataListMethods() {
-        requestFileName = "listMethods.query";
+        //requestFileName = "listMethods.query"; // TODO: currently disabled
+        requestFileName = "getstate.query";
+        responseFileName = "getstate.answer";
     }
 
     @Override

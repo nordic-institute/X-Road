@@ -1,5 +1,8 @@
 package ee.cyber.sdsb.common.conf.globalconf;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
@@ -7,9 +10,11 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
+import ee.cyber.sdsb.common.CodedException;
+
+import static ee.cyber.sdsb.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.cyber.sdsb.common.util.CryptoUtils.*;
 
 /**
@@ -25,6 +30,18 @@ public class ConfigurationLocation {
     private final String downloadURL;
 
     private final List<byte[]> verificationCerts;
+
+    /**
+     * @return the input stream acquired by connecting to the download url.
+     * @throws Exception if an error occurs
+     */
+    public InputStream getInputStream() throws Exception {
+        try {
+            return new URL(downloadURL).openStream();
+        } catch (IOException e) {
+            throw new CodedException(X_HTTP_ERROR, e);
+        }
+    }
 
     /**
      * @param certHashBase64 the base64 encoded certificate hash

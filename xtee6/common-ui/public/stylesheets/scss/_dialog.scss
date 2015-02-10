@@ -7,9 +7,9 @@ div.dialog-bgr {
     background: rgba($base-color-dark, 0.3);
     display: none;
 }
-.ui-widget-overlay {
 
-    background: rgba($base-color-dark, 0);
+.ui-widget-overlay {
+    background: rgba($base-color-dark, 0.1);
     z-index: 1000;
 }
 
@@ -17,7 +17,7 @@ div.dialog-bgr {
     background: rgba($base-color-dark, 0.5);
 }
 
-.dialog, .ui-dialog {
+.ui-dialog {
     border: none;
     position: absolute;
     // top: calc(50% - 400px / 2);
@@ -28,6 +28,7 @@ div.dialog-bgr {
     padding: 0;
     color: #000;
     z-index: 1001;
+    height: auto !important;
 
     .dialog-buttonbar {
         height: 100%;
@@ -73,27 +74,18 @@ div.dialog-bgr {
         font-family: "Open Sans";
         font-weight: 500;
         color: #000;
+        overflow-y: hidden;
     }
 
     .ui-dialog-titlebar-close {
         visibility: hidden;
     }
 
-    .actionbar {
-        float: right;
-        margin-right: 112px;
-        margin-top: 9px;
-        // display: none;
-
-        button {
-            @include normal;
-        }
-    }
-
     .ui-dialog-buttonpane {
         padding: 0;
         background: $base-color-light;
         box-shadow: 0 1px 3px rgba($base-color-dark, 0.1) inset;
+        margin-top: 0;
 
         .ui-dialog-buttonset {
             width: 100%;
@@ -151,6 +143,7 @@ div.dialog-bgr {
 
     .ui-dialog-content {
         padding-top: 1em;
+        width: auto !important;
     }
 
     header.dialog-header {
@@ -200,24 +193,6 @@ div.dialog-bgr {
             button {
                 height: 30px;
                 font-size: 11pt;
-            }
-        }
-    }
-}
-
-.dataTables_scroll {
-    .dataTables_scrollHead .dataTables_scrollHeadInner {
-        table.dataTable {
-            thead {
-                border-bottom: none;
-            }
-        }
-    }
-
-    .dataTables_scrollBody {
-        table.dataTable {
-            thead {
-                border-top: none;
             }
         }
     }

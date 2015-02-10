@@ -20,7 +20,7 @@ public class QueueInfoBehavior {
     private static final Logger LOG = LoggerFactory
             .getLogger(QueueInfoBehavior.class);
 
-    private ClientId client = ClientId.create("EE", "tankist",
+    private ClientId client = ClientId.create("EE", "GOV",
             AsyncDBTestUtil.getProviderName());
 
     @Before
@@ -87,13 +87,13 @@ public class QueueInfoBehavior {
         // This test takes default values of 'basedelay' and 'maxdelay' into
         // consideration.
         Date firstExpectedNextAttempt = AsyncDBTestUtil
-                .getDate("2012-04-17 13:00.00");
+                .getDate("2012-04-17 11:00.00+0000");
         Date secondExpectedNextAttempt = AsyncDBTestUtil
-                .getDate("2012-04-17 13:05.00");
+                .getDate("2012-04-17 11:05.00+0000");
         Date thirdExpectedNextAttempt = AsyncDBTestUtil
-                .getDate("2012-04-17 13:20.00");
+                .getDate("2012-04-17 11:20.00+0000");
         Date forthExpectedNextAttempt = AsyncDBTestUtil
-                .getDate("2012-04-17 13:30.00");
+                .getDate("2012-04-17 11:30.00+0000");
 
         assertEquals(firstExpectedNextAttempt, firstQueueInfo.getNextAttempt());
         assertEquals(secondExpectedNextAttempt, secondQueueInfo.getNextAttempt());
@@ -222,7 +222,7 @@ public class QueueInfoBehavior {
 
     private QueueInfo getProviderWithSpecifiedFirstRequestSendCount(
             int firstRequestSendCount) throws ParseException {
-        Date lastSentTime = AsyncDBTestUtil.getDate("2012-04-17 13:00.00");
+        Date lastSentTime = AsyncDBTestUtil.getDate("2012-04-17 11:00.00+0000");
         return new QueueInfo(
                 client, 4, 3, lastSentTime, firstRequestSendCount, null, null,
                         null);

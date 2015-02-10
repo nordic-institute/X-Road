@@ -178,7 +178,9 @@
                   privilege: "edit_local_group_members",
                   click: function() {
                       var group = oGroups.getFocusData();
-                      var title = _("clients.group_members_add_dialog.title", {group: group.code});
+                      var title = _("clients.group_members_add_dialog.title", {
+                          group: group.code
+                      });
 
                       $("#group_members_add_dialog").dialog("option", "title", title);
                       $("#group_members_add_dialog").dialog("open");
@@ -190,7 +192,7 @@
             ]
         });
 
-        $("#group_details").live('click', function() {
+        $("#group_details").click(function() {
             var group = oGroups.getFocusData();
             var title = _("clients.group_details_dialog.title", {group: group.code});
 
@@ -200,19 +202,19 @@
             };
 
             $.get(action("group_members"), params, function(response) {
+                oGroupMembers.fnFilter("");
                 oGroupMembers.fnReplaceData(response.data);
+
                 enableGroupMembersActions();
 
-                $("#group_details_description").val(group.description);
+                $("#group_details_description").text(group.description);
                 $("#group_description_edit").val(group.description);
 
-                $("#group_details_member_count").html(
+                $("#group_details_member_count").text(
                     oGroupMembers.fnSettings().fnRecordsTotal());
 
                 $("#group_details_dialog").dialog("option", "title", title);
                 $("#group_details_dialog").dialog("open");
-
-                oGroupMembers.fnAdjustColumnSizing();
             }, "json");
         });
     }
@@ -237,7 +239,7 @@
                       };
 
                       $.post(action("group_description_edit"), params, function(response) {
-                          $("#group_details_description").val(description);
+                          $("#group_details_description").text(description);
                           $(dialog).dialog("close");
                       }, "json");
                   }
@@ -333,8 +335,10 @@
             ]
         });
 
-        $(".advanced_search_form .search", dialog).live('click', function() {
-            var params = $(".advanced_search_form", dialog).serializeObject();
+        $(".advanced_search .search", dialog).live('click', function() {
+            var params = $(".advanced_search", dialog)
+                .find("input, select").serializeObject();
+
             params.members_only = true;
             params.client_id = $("#details_client_id").val();
 
@@ -349,8 +353,8 @@
             return false;
         });
 
-        $(".simple_search_form .search", dialog).live('click', function() {
-            var params = $(".simple_search_form", dialog).serializeObject();
+        $(".simple_search .search", dialog).live('click', function() {
+            var params = $(".simple_search input", dialog).serializeObject();
             params.members_only = true;
             params.client_id = $("#details_client_id").val();
 
@@ -364,24 +368,6 @@
 
             return false;
         });
-
-        $(".advanced_search_form .clear", dialog).live('click', function() {
-            $(".advanced_search_form input, " +
-              ".advanced_search_form select", dialog).val("");
-            return false;
-        });
-
-        $(".simple_search a", dialog).live('click', function() {
-            $(".simple_search input", dialog).val("");
-            $(".simple_search", dialog).hide();
-            $(".advanced_search", dialog).show();
-        });
-
-        $(".advanced_search a", dialog).live('click', function() {
-            $(".advanced_search .clear", dialog).click();
-            $(".advanced_search", dialog).hide();
-            $(".simple_search", dialog).show();
-        }).click();
     }
 
     function initGroupsTable() {
@@ -411,7 +397,7 @@
 
     function initGroupMembersTable() {
         var opts = scrollableTableOpts(250);
-        opts.sDom = "<'dataTables_header'f>t";
+        opts.sDom = "t";
         opts.aoColumns = [
             { "mData": "name",
               "mRender": function(data, type, full) {
@@ -447,9 +433,6 @@
 
         oGroupMembers = $("#group_members").dataTable(opts);
 
-        $("#group_members_actions")
-            .appendTo("#group_members_wrapper .dataTables_header");
-
         $("#group_members tbody tr").live("click", function() {
             oGroupMembers.setFocus(0, this, true);
             enableGroupMembersActions();
@@ -457,30 +440,16 @@
 
         var dialog = $("#group_details_dialog");
 
-        $(".simple_search a", dialog).live('click', function() {
-            $("#group_members_filter", dialog).hide();
-            $(".simple_search", dialog).hide();
-            $(".advanced_search", dialog).show();
-        });
-
-        $(".advanced_search a", dialog).live('click', function() {
-            $(".advanced_search .clear", dialog).click();
-            $(".advanced_search", dialog).hide();
-            $(".simple_search", dialog).show();
-            $("#group_members_filter", dialog).show();
-        }).click();
-
-        $(".advanced_search .search", dialog).live('click', function() {
-            $(".advanced_search input, .advanced_search select", dialog).each(
-                function(idx, val) {
-                    oGroupMembers.fnFilter($(this).val(), idx);
-                });
+        $(".simple_search .search", dialog).click(function() {
+            oGroupMembers.fnFilter($("[name=subject_search_all]", dialog).val());
             return false;
         });
 
-        $(".advanced_search .clear", dialog).live('click', function() {
-            $(".advanced_search input, .advanced_search select", dialog).val("");
-            oGroupMembers.fnFilterClear();
+        $(".advanced_search .search", dialog).click(function() {
+            $(".advanced_search", dialog).find("input, select").each(
+                function(idx, val) {
+                    oGroupMembers.fnFilter($(this).val(), idx);
+                });
             return false;
         });
     }

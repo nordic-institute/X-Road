@@ -68,9 +68,9 @@ var SDSB_TSPS = function() {
 
     function initEditingExisting() {
         SDSB_CENTERUI_COMMON.openDetailsIfAllowed("tsps/can_see_details",
-                function(){
+                function() {
             editableTsp = oTsps.getFocusData();
-            SDSB_TSP_EDIT.initEditing(editableTsp.id, editableTsp.url);
+            SDSB_TSP_EDIT.openEditDialog(editableTsp.id, editableTsp.url);
         });
     }
 
@@ -88,7 +88,7 @@ var SDSB_TSPS = function() {
 
     function addActionHandlers() {
         $("#tsp_add").live("click", function() {
-            SDSB_TSP_EDIT.initAdding();
+            SDSB_TSP_EDIT.openAddDialog();
         });
 
         $("#tsp_details").live("click", function() {

@@ -48,12 +48,9 @@ public class SignerCLI {
     static boolean verbose;
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
 
     public static final InputConverter[] CLI_INPUT_CONVERTERS = {
@@ -178,7 +175,7 @@ public class SignerCLI {
     public void deleteKey(
             @Param(name = "keyId", description = "Key ID")
                 String keyId) throws Exception {
-        SignerClient.execute(new DeleteKey(keyId));
+        SignerClient.execute(new DeleteKey(keyId, true));
     }
 
     @Command(description = "Deletes a certificate")

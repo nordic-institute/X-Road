@@ -13,13 +13,10 @@ import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
 public class CenterServices {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_CENTER);
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_CENTER)
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
 
     private static ActorSystem actorSystem;

@@ -1,6 +1,11 @@
 require 'open3'
 
 module OptionalConfParts
+  def self.get_optional_parts_dir
+    return "#{Java::ee.cyber.sdsb.common.SystemProperties::getConfPath()}/"\
+        "configuration-parts"
+  end
+
   class Validator
     STDOUT_CHUNK_SIZE = 1000
 

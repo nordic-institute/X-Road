@@ -1,9 +1,7 @@
 package ee.cyber.sdsb.common.conf.globalconf;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import lombok.Getter;
 
@@ -18,7 +16,8 @@ class DownloadResult {
     private final Map<ConfigurationLocation, Exception> exceptions =
             new HashMap<>();
 
-    private final Set<String> files = new HashSet<>();
+    //private final Set<ConfigurationFile> files = new HashSet<>();
+    private Configuration configuration;
 
     private boolean success = false;
 
@@ -26,9 +25,10 @@ class DownloadResult {
         exceptions.put(location, e);
     }
 
-    DownloadResult success(Set<String> downloadedFiles) {
+    DownloadResult success(Configuration configuraton) {
         success = true;
-        this.files.addAll(downloadedFiles);
+
+        this.configuration = configuraton;
         return this;
     }
 

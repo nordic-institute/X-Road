@@ -1,8 +1,6 @@
 center/usr/* usr/ 
 center/etc/* etc/
 ../default-configuration/center.ini etc/sdsb/conf.d
-../default-configuration/configuration-client-logback.xml etc/sdsb/conf.d
 ../default-configuration/managementservices.wsdl var/lib/sdsb/public
 ../../center-service/build/libs/center-service.war usr/share/sdsb/jlib/webapps/
 ../../center-ui/build/libs/center-ui.war usr/share/sdsb/jlib/webapps/
-../../configuration-client/build/libs/configuration-client-1.0.jar usr/share/sdsb/jlib/

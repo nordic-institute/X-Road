@@ -32,6 +32,6 @@ public interface PortNumbers {
     /** Port for Distributed Files Client. */
     public static final int CONFIGURATION_CLIENT_PORT = 5665;
 
-    /** Admin port for proxy monitor agent */
-    public static final int PROXY_MONITOR_AGENT_ADMIN_PORT = 5588;
+    /** Admin port for monitor agents. */
+    public static final int MONITOR_AGENT_ADMIN_PORT = 5588;
 }

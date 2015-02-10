@@ -1,12 +1,15 @@
 en:
+  coded_exception:
+    listing_adapter_methods_failed: "Could not get valid response to listMethods request. Adapter specified by the Adapter URL must provide a valid response to listMethods request."
+
   application:
-    globalconf_invalid: "Global configuration is too old"
+    globalconf_invalid: "Global configuration is expired"
     softtoken_pin_not_entered: "Please enter softtoken PIN"
     services_import_failed: "Failed to import services"
     services_export_failed: "Failed to export services"
     internal_ssl_export_failed: "Failed to export internal SSL conf"
     restart_service_failed: "Failed to restart service '%{name}': %{output}"
-    database_connection_error: "Database connection error"
+    database_connection_error: "Cannot connect to database server"
     invalid_anchor_file: "Configuration anchor import failed: invalid anchor file"
     configuration_download_failed: "Configuration download failed: %{response}"
 
@@ -47,6 +50,8 @@ en:
     action:
       client_regreq: "send registration request"
       client_delreq: "send deletion request"
+      wsdl_add: "add WSDL"
+      adapter_add: "add adapter"
     client_exists: "Client already exists"
     unregistered_member: "The person/organisation '%{member}' is not registered as X-Road member."
     new_subsystem: "New subsystem '%{subsystem}' will be registered for member '%{member}'."
@@ -58,9 +63,12 @@ en:
     cert_exists: "Certificate already exists"
     invalid_backend_type: "Invalid backend type"
     adapter_exists: "Adapter already exists"
-    wsdl_exists: "WSDL already exists"
+    wsdl_exists: "WSDL address already exists."
+    invalid_wsdl: "Incorrect file structure. WSDL URL must point to a WSDL file."
+    malformed_wsdl_url: "Malformed URL. WSDL URL must point to a WSDL file."
+    wsdl_download_failed: "Downloading WSDL failed. WSDL URL must point to a WSDL file."
     default_disabled_service_notice: "Out of order"
-    service_exists: "Service '%{service}' already exists at %{wsdl}"
+    service_exists: "Duplicate service. Service '%{service}' already exists in WSDL %{wsdl}"
     service_exists_refresh: "New service '%{service}' at %{wsdl1} also exists at %{wsdl2}"
     adding_services: "Adding services:<p class='bold'>%{added}</p>"
     deleting_services: "Deleting services:<p class='bold'>%{deleted}</p>"
@@ -68,6 +76,12 @@ en:
     adapter_meta: "5.0 metaservices"
     wsdl: "WSDL"
     wsdl_disabled: "DISABLED"
+    combinedwsdl:
+      invalid_combination: "Cannot merge WSDLs. %{reason}"
+      invalid_single_wsdl: "WSDL loaded for client '%{client_id}' is malformed. Inspect WSDL file."
+      network_error: "Cannot merge WSDLs: system error. Cannot connect to service mediator."
+      other_error: "Attempting to merge WSDLs failed for unknown reason: '%{message}'"
+    internal_server_ssl_error: "SSL handshake with server %{url} failed, server certificate missing from configuration"
     group_exists: "A group with code '%{code}' already exists"
 
   sysparams:

@@ -22,13 +22,10 @@ import static ee.cyber.sdsb.signer.protocol.ComponentNames.SIGNER;
 public final class SignerMain {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_PROXY);
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_PROXY)
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
 
     private static ActorSystem actorSystem;

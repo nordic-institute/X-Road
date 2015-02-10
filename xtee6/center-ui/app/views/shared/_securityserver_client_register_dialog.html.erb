@@ -13,22 +13,19 @@
         </td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.clients.name' %></td>
-        <td><input id="securityserver_client_name" type="text"/></td>
+        <td class="description"><%= t 'securityservers.clients.name' %></td>
+        <td><p id="securityserver_client_name" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.clients.class' %></td>
-        <td><%= select_tag(
-            "securityserver_client_class",
-            options_for_select(create_member_class_select(get_all_member_classes))) %>
-        </td>
+        <td class="description"><%= t 'securityservers.clients.class' %></td>
+        <td><p id="securityserver_client_class" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.clients.code' %></td>
-        <td><input id="securityserver_client_code" type="text"/></td>
+        <td class="description"><%= t 'securityservers.clients.code' %></td>
+        <td><p id="securityserver_client_code" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.clients.subsystem_code' %></td>
+        <td class="description"><%= t 'securityservers.clients.subsystem_code' %></td>
         <td><input id="securityserver_client_subsystem_code" type="text"/></td>
       </tr>
     </table>
@@ -37,26 +34,24 @@
     <legend><%= t 'securityservers.info.legend' %></legend>
     <table class="details">
       <tr>
-        <td><%= t 'securityservers.owner_name' %></td>
+        <td class="description"><%= t 'securityservers.owner_name' %></td>
         <td><p id="securityserver_client_owner_name" class="input"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_class' %></td>
+        <td class="description"><%= t 'securityservers.owner_class' %></td>
         <td><p id="securityserver_client_owner_class" class="input"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_code' %></td>
+        <td class="description"><%= t 'securityservers.owner_code' %></td>
         <td><p id="securityserver_client_owner_code" class="input"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.server_code' %></td>
+        <td class="description"><%= t 'securityservers.server_code' %></td>
         <td><p id="securityserver_client_server_code" class="input"></p></td>
       </tr>
     </table>
   </section>
   <%= render :partial => "shared/securityserver_search_dialog" %>
 
-  <div class="dialog_dynamic">
-    <%= render :partial => "shared/member_search_dialog" %>
-  </div>
+  <%= render :partial => "shared/member_search_dialog" %>
 <% end %>

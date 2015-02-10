@@ -246,8 +246,8 @@ var SDSB_REQUEST_EDIT = function(){
         $("#auth_cert_reg_request_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 700,
-            width: "auto",
+            height: "auto",
+            width: 600,
             minWidth: 500,
             buttons: [
               { text: _("common.approve"),
@@ -281,8 +281,8 @@ var SDSB_REQUEST_EDIT = function(){
         $("#client_reg_request_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 700,
-            width: "auto",
+            height: "auto",
+            width: 600,
             minWidth: 500,
             buttons: [
               { text: _("common.approve"),
@@ -316,8 +316,8 @@ var SDSB_REQUEST_EDIT = function(){
         $("#auth_cert_deletion_request_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 700,
-            width: "auto",
+            height: "auto",
+            width: 600,
             minWidth: 500,
             buttons: [
               { text: _("common.close"),
@@ -333,8 +333,8 @@ var SDSB_REQUEST_EDIT = function(){
         $("#client_deletion_request_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 700,
-            width: "auto",
+            height: "auto",
+            width: 600,
             minWidth: 500,
             buttons: [
               { text: _("common.close"),

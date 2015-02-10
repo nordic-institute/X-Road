@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang.StringUtils;
 
 import static ee.cyber.sdsb.common.conf.globalconf.ConfigurationDirectory.PRIVATE_PARAMETERS_XML;
@@ -18,27 +17,27 @@ import static ee.cyber.sdsb.common.conf.globalconf.ConfigurationUtils.escapeInst
 public class FileNameProviderImpl implements FileNameProvider {
 
     private final String globalConfigurationDirectory;
-    private final String systemConfigurationDirectory;
 
     @Override
     public Path getFileName(ConfigurationFile file) throws Exception {
-        String root = globalConfigurationDirectory;
-        String instance =
-                escapeInstanceIdentifier(file.getInstanceIdentifier());
-
+        String fileName;
         switch (file.getContentIdentifier()) {
             case PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS:
-                return Paths.get(root, instance, PRIVATE_PARAMETERS_XML);
+                fileName = PRIVATE_PARAMETERS_XML;
+                break;
             case SharedParameters.CONTENT_ID_SHARED_PARAMETERS:
-                return Paths.get(root, instance, SHARED_PARAMETERS_XML);
+                fileName = SHARED_PARAMETERS_XML;
+                break;
             default:
-                Path fileName = Paths.get(
+                fileName = Paths.get(
                     !StringUtils.isBlank(file.getContentFileName())
                         ? file.getContentFileName()
-                        : file.getContentLocation());
-                return Paths.get(systemConfigurationDirectory,
-                        fileName.getFileName().toString());
+                        : file.getContentLocation()).getFileName().toString();
+                break;
         }
-    }
 
+        return Paths.get(globalConfigurationDirectory,
+                escapeInstanceIdentifier(file.getInstanceIdentifier()),
+                fileName);
+    }
 }

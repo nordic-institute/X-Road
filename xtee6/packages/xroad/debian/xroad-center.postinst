@@ -66,31 +66,12 @@ case "$1" in
     chown sdsb:sdsb /var/lib/sdsb/public
 
     test -d /var/cache/sdsb && test -w /var/cache/sdsb || mkdir /var/cache/sdsb ; chown sdsb:sdsb /var/cache/sdsb
+    test -d /etc/sdsb/configuration-parts || mkdir /etc/sdsb/configuration-parts ; chown sdsb:sdsb /etc/sdsb/configuration-parts
+
 
     mkdir -p  /var/lib/sdsb/import
     chmod 755 /var/lib/sdsb/import
     chown sdsb:sdsb /var/lib/sdsb/import
-
-    test -f /etc/sdsb/configuration-parts.ini || cat > /etc/sdsb/configuration-parts.ini <<EOF
-; This file contains information about configuration parts
-; that are specific to this instance of the X-Road system.
-; Each configuration part is defined in one section.
-;
-; This section defines an extra configuration part.
-; [extra-part]
-; 
-; Content of the Content-identifier header for this part.
-; content-idenfifier = EXTRA-PART
-; 
-; File name for this part.
-; file-name = extra-part.xml
-;
-; Program that is used to validate this part when uploaded.
-; Must take the content of the part as input and exit with
-; nonzero status on error. Any error messages should be
-; sent to standard error.
-; validation-program = /path/to/validation-program.sh
-EOF
 
     ;;
 

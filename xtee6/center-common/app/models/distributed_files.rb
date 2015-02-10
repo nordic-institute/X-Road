@@ -59,7 +59,7 @@ class DistributedFiles < ActiveRecord::Base
 
   def self.get_optional_parts_conf
     return Java::ee.cyber.sdsb.commonui.OptionalPartsConf.new(
-        Java::ee.cyber.sdsb.common.SystemProperties::CONF_FILE_OPTIONAL_PARTS)
+        OptionalConfParts.get_optional_parts_dir())
   end
 
   private

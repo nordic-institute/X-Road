@@ -88,4 +88,10 @@ module ApplicationHelper
   def can_import_V5_data?
     return File.exists?("/usr/share/sdsb/bin/xtee55_clients_importer")
   end
+
+  def url_and_cert_dialog(prefix)
+    render(
+      :partial => "shared/url_and_cert_dialog",
+      :locals => { :prefix => prefix })
+  end
 end

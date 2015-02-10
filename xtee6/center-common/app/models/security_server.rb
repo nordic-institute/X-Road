@@ -94,12 +94,6 @@ class SecurityServer < ActiveRecord::Base
         offset(query_params.display_start)
   end
 
-  def self.get_servers_advanced(advanced_search_params)
-    logger.info("get_servers_advanced(#{advanced_search_params})")
-
-    return get_search_relation(advanced_search_params)
-  end
-
   def self.get_server_count(searchable = "")
     return get_search_relation(searchable).count
   end

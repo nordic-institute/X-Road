@@ -15,7 +15,7 @@ Description: X-Road central server
 
 Package: xroad-common
 Architecture: amd64
-Depends: ${misc:Depends}, daemontools, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10)
+Depends: ${misc:Depends}, daemontools, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java
 Description: X-Road shared components
  X-Road shared components and utilities
 
@@ -35,30 +35,11 @@ Pre-depends: xroad-common
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
-Package: xroad-addon-monitor
-Architecture: all
-Depends: ${misc:Depends}, daemontools, java8-runtime-headless, xroad-common
-Description: X-Road monitoring agent
- X-Road monitoring agent
-
 Package: xroad-addon-hwtokens
 Architecture: all
 Depends: ${misc:Depends}, xroad-common
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
-
-Package: xroad-addon-messagelog
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy
-Conflicts: xroad-addon-legacy-securelog
-Description: X-Road AddOn: messagelog
- AddOn for secure message log
-
-Package: xroad-addon-metaservices
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy
-Description: X-Road AddOn: metaservices
- AddOn for metaservice reponders
 
 Package: xroad-addon-legacy-securelog
 Architecture: all

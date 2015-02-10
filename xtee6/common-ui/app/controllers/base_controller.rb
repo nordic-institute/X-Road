@@ -225,10 +225,11 @@ class BaseController < ActionController::Base
   def render_java_error(exception)
     logger.error(ExceptionUtils.getStackTrace(exception))
 
-    exception_message =
-            exception.is_a?(Java::ee.cyber.sdsb.common.CodedException) ?
-        exception.getFaultString() :
-        ExceptionUtils.getRootCauseMessage(exception)
+    if exception.java_kind_of?(Java::ee.cyber.sdsb.common.CodedException)
+      exception_message = exception.getFaultString
+    else
+      exception_message = ExceptionUtils.getRootCauseMessage(exception)
+    end
 
     render_error_response(exception_message)
   end

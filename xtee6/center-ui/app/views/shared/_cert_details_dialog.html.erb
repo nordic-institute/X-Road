@@ -1,5 +1,9 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "cert_details_dialog" %>
+<% end %>
+
 <%= dialog "cert_details_dialog", t("common.cert_details_title") do %>
-	<section class="container">
-  		<textarea id="cert_details_dump" readonly wrap="off" class="dump"></textarea>
-	</section>
+  <section class="container">
+    <textarea id="cert_details_dump" readonly wrap="off" class="dump"></textarea>
+  </section>
 <% end %>

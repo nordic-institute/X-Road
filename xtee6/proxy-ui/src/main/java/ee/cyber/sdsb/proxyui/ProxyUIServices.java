@@ -16,14 +16,11 @@ public class ProxyUIServices {
             LoggerFactory.getLogger(ProxyUIServices.class);
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_PROXY);
-                load(CONF_FILE_PROXY_UI);
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_PROXY)
+            .with(CONF_FILE_PROXY_UI)
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
 
     private static UIServices uiActorSystem;

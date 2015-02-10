@@ -1,14 +1,18 @@
-<!-- Title will be added dynamically with JS -->
-<%= dialog "group_details_dialog", "" do %>
+<%= dialog "group_details_dialog" do %>
   <section class="container">
-    <legend><% t 'common.description'%>Description</legend>
-    <table id="group_details_table" class="details">
+    <legend><%= t 'common.description' %></legend>
+
+    <table class="details">
       <tr>
         <td></td>
-        <td><p id="group_details_description" class="input" ></p></td>
-        <td  class="left-spaced">
+        <td style="width: 100%">
+          <p id="group_details_description" class="input" ></p>
+        </td>
+        <td>
           <% if can?(:edit_group_description) %>
-            <button id="group_details_edit_description"><%= t 'common.edit' %></button>
+          <button id="group_details_edit_description">
+            <%= t 'common.edit' %>
+          </button>
           <% end %>
         </td>
       </tr>
@@ -16,62 +20,14 @@
   </section>
 
   <section class="container">
-    <legend style="width: 100%;">
+    <legend>
       <span><%= t 'groups.details.members' %></span>
       <span id="group_details_member_count"></span>
     </legend>
 
-    <div id="group_existing_members_advanced_search_div">
-      <div class="section_heading"><%= t 'common.advanced_search' %></div>
-      <table>
-        <tr>
-          <td><%= t 'groups.details.name' %></td>
-          <td><%= text_field_tag "group_existing_members_advanced_search_name" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'groups.details.code' %></td>
-          <td><%= text_field_tag "group_existing_members_advanced_search_code" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'groups.details.class' %></td>
-          <td><%= select_tag(
-                  "group_existing_members_advanced_search_class",
-                  options_for_select([""]),
-                  :class => "detail_input") %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t 'groups.details.subsystem' %></td>
-          <td><%= text_field_tag "group_existing_members_advanced_search_subsystem" %></td>
-        </tr>
-        <tr>
-          <td><%= t 'groups.details.sdsb' %></td>
-          <td><%= select_tag(
-                  "group_existing_members_advanced_search_sdsb",
-                  options_for_select([""]),
-                  :class => "detail_input") %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t 'groups.details.type' %></td>
-          <td><%= select_tag(
-                  "group_existing_members_advanced_search_type",
-                  options_for_select([""]),
-                  :class => "detail_input") %>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <% if can?(:view_group_details) %>
-            <button id="group_existing_members_advanced_search_execute"><%= t 'common.search' %></button>
-            <button id="group_existing_members_advanced_search_clear"><%= t 'common.clear' %></button>
-            <% end %>
-          </td>
-        </tr>
-      </table>
-    </div>
+    <%= render_advanced_search "shared/group_members_search", "group_members" %>
 
-    <table id="group_details_members">
+    <table id="group_members">
       <thead>
         <tr>
           <th><%= t 'groups.details.name' %></th>
@@ -104,9 +60,5 @@
   </section>
 
   <%= render :partial => "shared/group_description_edit_dialog" %>
-
-  <!-- We need to initialize this dialog dynamically -->
-  <div class="dialog_dynamic">
-    <%= render :partial => "shared/group_members_add_dialog" %>
-  </div>
+  <%= render :partial => "shared/group_members_add_dialog" %>
 <% end %>

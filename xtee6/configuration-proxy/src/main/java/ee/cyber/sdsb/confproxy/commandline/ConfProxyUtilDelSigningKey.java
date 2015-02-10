@@ -42,7 +42,7 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
             conf.deleteCert(keyId);
             System.out.println("Deleted self-signed certificate 'cert_"
                     + keyId + ".pem'");
-            SignerClient.execute(new DeleteKey(keyId));
+            SignerClient.execute(new DeleteKey(keyId, true));
             System.out.println("Deleted key from signer");
         } else {
             printHelp();

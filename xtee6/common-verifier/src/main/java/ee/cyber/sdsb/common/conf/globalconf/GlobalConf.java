@@ -1,5 +1,7 @@
 package ee.cyber.sdsb.common.conf.globalconf;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -9,6 +11,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 import ee.cyber.sdsb.common.CodedException;
+import ee.cyber.sdsb.common.SystemProperties;
 import ee.cyber.sdsb.common.cert.CertChain;
 import ee.cyber.sdsb.common.identifier.CentralServiceId;
 import ee.cyber.sdsb.common.identifier.ClientId;
@@ -89,13 +92,35 @@ public class GlobalConf {
     // ------------------------------------------------------------------------
 
     /**
+     * Returns an absolute file name for the current instance.
+     * @param fileName the file name
+     * @return the absolute path to the file of the current instance
+     */
+    public static Path getInstanceFile(String fileName) {
+        return getFile(getInstanceIdentifier(), fileName);
+    }
+
+    /**
+     * Returns an absolute file name for the specified instance.
+     * @param instanceIdentifier the instance identifier
+     * @param fileName the file name
+     * @return the absolute path to the file of the specified instance
+     */
+    public static Path getFile(String instanceIdentifier, String fileName) {
+        return Paths.get(SystemProperties.getConfigurationPath(),
+                instanceIdentifier, fileName);
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
      * Verifies that the global configuration is valid. Throws exception
      * with error code ErrorCodes.X_OUTDATED_GLOBALCONF if the it is too old.
      */
     public static void verifyValidity() {
         if (!isValid()) {
             throw new CodedException(X_OUTDATED_GLOBALCONF,
-                    "Global configuration is too old");
+                    "Global configuration is expired");
         }
     }
 
@@ -443,4 +468,10 @@ public class GlobalConf {
         return getInstance().getTimestampingIntervalSeconds();
     }
 
+    public static List<SecurityServerId> getSecurityServers(
+            String... instanceIdentifiers) {
+        log.trace("getSecurityServers()");
+
+        return getInstance().getSecurityServers(instanceIdentifiers);
+    }
 }

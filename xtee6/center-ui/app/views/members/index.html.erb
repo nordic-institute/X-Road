@@ -30,10 +30,6 @@
   </table>
 
   <%= render :partial => "shared/member_add_dialog" %>
-
-  <div class="dialog_dynamic">
-    <%= render :partial => "shared/member_edit_dialog",
-      locals: {from_main_menu: true} %>
-    <%= render :partial => "shared/group_details_dialog" %>
-  </div>
+  <%= render :partial => "shared/member_edit_dialog", locals: {from_main_menu: true} %>
+  <%= render :partial => "shared/group_details_dialog" %>
 <% end %>

@@ -181,13 +181,8 @@ class MembersController < ApplicationController
     authorize!(:view_member_details)
 
     member = find_member(params[:memberClass], params[:memberCode])
-    subsystem_codes = []
 
-    member.subsystems.each do |each|
-      subsystem_codes << each.subsystem_code
-    end
-
-    render_json(subsystem_codes)
+    render_json(member.subsystem_codes())
   end
 
   # -- Specific GET methods - end ---
@@ -248,8 +243,8 @@ class MembersController < ApplicationController
   def import_auth_cert
     authorize!(:add_security_server_reg_request)
 
-    cert_param = params[:auth_cert_file]
-    AuthCertValidator.new(cert_param).validate()
+    cert_param = get_uploaded_file_param
+    validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
 
     notice(t("common.cert_imported"))

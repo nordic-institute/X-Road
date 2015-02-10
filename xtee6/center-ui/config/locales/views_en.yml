@@ -1,7 +1,5 @@
 en:
   common:
-    description: "Description"
-    advanced_search: "Advanced Search Parameters"
     name: "Name"
     code: "Code"
     class: "Class"
@@ -17,7 +15,6 @@ en:
     upload: "Upload"
     valid_from: "Valid From"
     valid_to: "Valid To"
-    url: "URL"
 
   about:
     index:
@@ -212,7 +209,8 @@ en:
     add:
       button: "Add"
       title: "New Group"
-      selected_members: "Add Selected members"
+      selected: "Add Selected"
+      all: "Add All"
     remove:
       confirm: "Are you sure you want to remove group '{{group}}'?"
       selected_members_confirm: "Are you sure you want to remove selected members from group '{{group}}'?"
@@ -275,31 +273,25 @@ en:
       title: "Central Server Administration"
 
   approved_cas:
+    upload_ca_cert: "Insert Service CA Certificate"
+    upload_intermediate_ca_cert: "Insert Service Intermediate CA Certificate"
     trusted_certification_service: "Trusted Certification Service"
+    approved_ca_details: "Certification Service CA Details"
+    ca_certificate: "CA Certificate"
+    ocsp_responders: "OCSP Responders"
+    edit_ocsp_responder: "Edit OCSP Responder"
+    add_ocsp_responder: "Add OCSP Responder"
+    ca_settings: "CA Settings"
+    name_extractor_disabled: "This CA can only be used for SSL authentication"
+    name_extractor_disabled_hint: "(mark if true)"
+    name_extractor_member_class: "This CA is issuing certificates for member class"
+    name_extractor_member_class_hint: "(leave empty if this CA is used for more than one member class)"
+    name_extractor_method: "Member Code/Identifier Extractor Method"
+    intermediate_cas: "Intermediate CAs"
     intermediate_ca: "Intermediate CA"
-    intermediate_ca_new_title: "Insert intermediate CA"
-    intermediate_ca_edit_title: "Edit intermediate CA"
+    intermediate_ca_details: "Intermediate CA Details"
     valid_from: "Valid From"
     valid_to: "Valid To"
-    add:
-      step1:
-        title: "Insert Service CA Certificate"
-      step2:
-        title: "View Service CA Certificate Info"
-      step3:
-        title: "Insert Name Extractor"
-      step4:
-        title: "Insert Service CA OCSP Responders"
-        top_ca_ocsp_responder: "Service CA OCSP responder"
-        add_top_ca_ocsp_responder: "Add service CA OCSP responder"
-      step5:
-        title: "Intermediate CAs"
-        intermediate_ca_ocsp_responder: "Intermediate CA OCSP responder"
-        add_intermediate_ca_ocsp_responder: "Add intermediate CA OCSP responder"
-      url: "URL"
-      cert: "Certificate"
-      load: "Load"
-      ocsp_responders_uploading: "Service CA OCSP responder cert currently being uploaded, try again"
     remove_confirm: "Are you sure you want to remove approved CA '{{approvedCa}}'?"
 
   distributed_files:
@@ -344,7 +336,6 @@ en:
       signing_keys: "Signing Keys"
       login: "Login"
       logout: "Logout"
-      device_not_found: "device not found"
       activate: "Activate"
       new_key: "New Key"
       device_key: "Device ID: Key ID"

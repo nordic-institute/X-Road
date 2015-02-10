@@ -55,6 +55,8 @@ Please fix this and reinstall this package." >&2
     [ -d /var/run/sdsb ] || \
        install -d -m 2770 -o sdsb -g sdsb /var/run/sdsb
 
+    test -e /usr/lib/jvm/java-1.8.0-openjdk-amd64 || ln -sf /usr/lib/jvm/java-1.8.0-openjdk/ /usr/lib/jvm/java-1.8.0-openjdk-amd64
+
     #local overrides
     test -f /etc/sdsb/services/local.conf || touch /etc/sdsb/services/local.conf 
     test -f /etc/sdsb/conf.d/local.ini || touch /etc/sdsb/conf.d/local.ini
@@ -68,7 +70,7 @@ Please fix this and reinstall this package." >&2
 
     #check if java trustAnchor file is non-empty. add certs if neccecary
     JAVACERTS=`find  /etc/ssl/certs/java/ -type f -size +1k -print -quit`
-    if [ -z "$JAVACERTS" ]
+    if [ -z "$JAVACERTS" ] && [ -f /usr/share/ca-certificates-java/ca-certificates-java.jar ]
      then 
        find /etc/ssl/certs -name \*.pem | while read filename; do alias=$(basename $filename .pem | tr A-Z a-z | tr -cs a-z0-9 _);     alias=${alias%*_}; echo "+${filename}";     done | java  -jar /usr/share/ca-certificates-java/ca-certificates-java.jar -storepass "changeit"
     fi

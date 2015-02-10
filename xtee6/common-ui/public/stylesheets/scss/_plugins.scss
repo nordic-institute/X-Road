@@ -1,24 +1,3 @@
-ul.btn-group {
-    list-style: none;
-    @include reset;
-    text-transform: uppercase;
-
-    li {
-        float: left;
-        border-left: 1px solid #ddd;
-
-        &.disabled {
-            color: #ccc;
-
-            &:hover { background: #fff; }
-        }
-
-        &:hover {
-
-        }
-    }
-}
-
 ul.button-group {
     @include reset;
     list-style: none;
@@ -61,39 +40,14 @@ ul.button-group {
     }
 }
 
-.buttongroup {
-    list-style: none;
-    padding: 0px;
-    border: 1px solid;
-    border-color: #ccc;
-    margin: 10px 0;
-    background: #fff;
-    border-radius: 3px;
-
-    li.groupbutton {
-        float: left;
-        padding: 5px 10px;
-        border-right: 1px solid #ccc;
-        &:last-child { border: none; }
-
-        &:hover { background: $hover; }
-        &:active { background: $active; }
-        &.button-active { 
-            box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
-            background: #f1f1f1;
-        }
-    }
-
-}
-
 .ui-tabs {
+    padding: 0;
+
     .ui-tabs-nav {
         list-style: none;
         padding: 0;
-        border: 1px solid;
-        border-color: #ccc;
+        border: 1px solid $base-border-color;
         background: #fff;
-        border-radius: 3px;
         display: table;
         margin: 0 auto;
 
@@ -123,39 +77,28 @@ ul.button-group {
     .ui-tabs-panel {
         padding: 1em 0 0 0;
     }
+
+    &.search_tabs {
+        .ui-tabs-nav {
+            margin: 0;
+            border-bottom: 0;
+        }
+
+        .ui-tabs-panel {
+            border: 1px solid $base-border-color;
+            border-bottom: 0;
+            padding: 1em;
+
+            table.details {
+                width: 66%;
+            }
+        }
+    }
 }
 
 .ui-tabs-panel-actions {
     float: right;
     padding-left: 2em;
-}
-
-.slider {
-    ul, li {
-        @include reset;
-    }
-    & > ul {
-        list-style: none;   
-    }
-
-    overflow-y: auto;
-    overflow-x: hidden;
-
-    .slide {
-        // overflow-y: auto;
-        -webkit-transition: margin-left 100ms ease-in;
-        -moz-transition: margin-left 100ms ease-in;
-        -ms-transition: margin-left 100ms ease-in;
-        -o-transition: margin-left 100ms ease-in;
-        transition: margin-left 100ms ease-in;
-    }
-
-    li.slideritem {
-        float: left;
-        // max-height: 100px;
-        // overflow-y: auto;
-    }
-
 }
 
 .ui-autocomplete {

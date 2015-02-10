@@ -16,9 +16,6 @@
             modal: true,
             height: 490,
             width: "95%",
-            open: function() {
-                oSubjects.fnAdjustColumnSizing();
-            },
             buttons: [
                 {
                     text: _("common.close"),
@@ -117,9 +114,22 @@
 
     function initServiceAclSubjectsTable() {
         var opts = scrollableTableOpts(230);
-        opts.sDom = "<'dataTables_header'f<'clearer'>>t";
+        opts.sDom = "t";
         opts.aoColumns = [
-            { "mData": "name_description" },
+            { "mData": "name_description",
+              "mRender": function(data, type, full) {
+                  if (type == 'display') {
+                      return full.member_class ?
+                          clientName(data) : groupDesc(data);
+                  }
+                  return data;
+              },
+              "fnCreatedCell": function(nTd, sData, oData) {
+                  if (!oData.name_description) {
+                      $(nTd).addClass("missing");
+                  }
+              }
+            },
             { "mData": "type", "bVisible": false },
             { "mData": "instance", "bVisible": false },
             { "mData": "member_class", "bVisible": false },
@@ -141,39 +151,18 @@
 
         oSubjects = $("#subjects").dataTable(opts);
 
-        $("#subjects_actions")
-            .appendTo("#subjects_wrapper .dataTables_header");
-
         var dialog = $("#service_acl_dialog");
 
-        $(".simple_search a", dialog).click(function() {
-            $("#subjects_filter", dialog).hide();
-            $(".simple_search", dialog).hide();
-            $(".advanced_search", dialog).show();
-
-            dialog.trigger("dialogresizestop");
-        });
-
-        $(".advanced_search a", dialog).click(function() {
-            $(".advanced_search .clear", dialog).click();
-            $(".advanced_search", dialog).hide();
-            $(".simple_search", dialog).show();
-            $("#subjects_filter", dialog).show();
-
-            dialog.trigger("dialogresizestop");
-        }).click();
-
-        $(".advanced_search .search", dialog).click(function() {
-            $(".advanced_search input, .advanced_search select", dialog).each(
-                function(idx, val) {
-                    oSubjects.fnFilter($(this).val(), idx);
-                });
+        $(".simple_search .search", dialog).click(function() {
+            oSubjects.fnFilter($("[name=subject_search_all]", dialog).val());
             return false;
         });
 
-        $(".advanced_search .clear", dialog).click(function() {
-            $(".advanced_search input, .advanced_search select", dialog).val("");
-            oSubjects.fnFilterClear();
+        $(".advanced_search .search", dialog).click(function() {
+            $(".advanced_search", dialog).find("input, select").each(
+                function(idx, val) {
+                    oSubjects.fnFilter($(this).val(), idx);
+                });
             return false;
         });
     }
@@ -198,7 +187,9 @@
 
                 $("#service_acl_dialog").dialog("option", "title", title);
 
+                oSubjects.fnFilter("");
                 oSubjects.fnReplaceData(response.data);
+
                 enableActions();
 
                 $("#service_acl_dialog").dialog("open");

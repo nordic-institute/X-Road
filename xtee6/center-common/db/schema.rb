@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20141210131431) do
+ActiveRecord::Schema.define(:version => 20150120000000) do
 
   create_table "anchor_url_certs", :force => true do |t|
     t.integer "anchor_url_id"
@@ -71,6 +71,7 @@ ActiveRecord::Schema.define(:version => 20141210131431) do
     t.string   "key_identifier"
     t.binary   "certificate"
     t.datetime "key_generated_at"
+    t.string   "token_identifier"
   end
 
   create_table "configuration_sources", :force => true do |t|

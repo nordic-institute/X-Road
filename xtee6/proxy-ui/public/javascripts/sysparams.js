@@ -1,4 +1,4 @@
-var oTsps, oTspsApproved, oInternalSslCert;
+var oTsps, oTspsApproved;
 
 function uploadCallback(response) {
     if (!response.success) {
@@ -41,6 +41,7 @@ function initTables() {
         { "mData": "name" },
         { "mData": "url" }
     ];
+    opts.asStripeClasses = [];
 
     oTsps = $("#tsps").dataTable(opts);
 
@@ -49,19 +50,9 @@ function initTables() {
     opts.aoColumns = [
         { "mData": "name" }
     ];
+    opts.asStripeClasses = [];
 
     oTspsApproved = $("#tsps_approved").dataTable(opts);
-
-    opts = scrollableTableOpts(200);
-    opts.sDom = "t";
-    opts.aoColumns = [
-        { "mData": "hash" }
-    ];
-    opts.oLanguage = {
-        "sZeroRecords": _("common.zero_records_none")
-    };
-
-    oInternalSslCert = $("#internal_ssl_cert").dataTable(opts);
 
     $("#tsps tbody tr").live("click", function() {
         oTsps.setFocus(0, this);
@@ -173,7 +164,7 @@ function initAsyncActions() {
             max_senders: $("#async_parallel").val()
         };
 
-        $.post(action("async_params_edit"), params);
+        $.post(action("async_params_edit"), params, null, "json");
     });
 }
 
@@ -216,10 +207,8 @@ function initInternalSSLActions() {
         confirm("sysparams.index.generate_internal_ssl_confirm", null,
                 function() {
             $.get(action("internal_ssl_generate"), function(response) {
-                oInternalSslCert.fnClearTable();
-
                 if (response.data.hash) {
-                    oInternalSslCert.fnAddData(response.data);
+                    $("#internal_ssl_cert_hash").text(response.data.hash);
                     $("#cert_details, #export_internal_ssl_cert").enable();
                 }
             }, "json");
@@ -244,10 +233,8 @@ function populate() {
             $("#async_parallel").val(response.data.async.max_senders);
         }
 
-        oInternalSslCert.fnClearTable();
-
         if (response.data.internal_ssl_cert) {
-            oInternalSslCert.fnAddData(response.data.internal_ssl_cert);
+            $("#internal_ssl_cert_hash").text(response.data.internal_ssl_cert.hash);
             $("#cert_details, #export_internal_ssl_cert").enable();
         } else {
             $("#cert_details, #export_internal_ssl_cert").disable();

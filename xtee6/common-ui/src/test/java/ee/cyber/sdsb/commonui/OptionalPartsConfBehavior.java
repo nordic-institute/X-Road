@@ -1,7 +1,6 @@
 package ee.cyber.sdsb.commonui;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Rule;
@@ -11,6 +10,7 @@ import ee.cyber.sdsb.common.ErrorCodes;
 import ee.cyber.sdsb.common.ExpectedCodedException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class OptionalPartsConfBehavior {
     @Rule
@@ -19,8 +19,8 @@ public class OptionalPartsConfBehavior {
     @Test
     public void shouldGetValidationProgram() throws IOException {
         // Given
-        String confFile = "src/test/resources/configuration-parts.ini";
-        OptionalPartsConf conf = new OptionalPartsConf(confFile);
+        String confDir = "src/test/resources/configuration-parts";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
         String partFile = "identifiermapping.xml";
 
         // When
@@ -34,10 +34,10 @@ public class OptionalPartsConfBehavior {
     }
 
     @Test
-    public void shouldGetContentIndentifier() throws IOException {
+    public void shouldGetContentIdentifier() throws IOException {
         // Given
-        String confFile = "src/test/resources/configuration-parts.ini";
-        OptionalPartsConf conf = new OptionalPartsConf(confFile);
+        String confDir = "src/test/resources/configuration-parts";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
         String partFile = "identifiermapping.xml";
 
         // When
@@ -52,43 +52,69 @@ public class OptionalPartsConfBehavior {
     @Test
     public void shouldGetAllOptionalConfigurationParts() throws IOException {
         // Given
-        String confFile = "src/test/resources/configuration-parts.ini";
-        OptionalPartsConf conf = new OptionalPartsConf(confFile);
+        String confDir = "src/test/resources/configuration-parts";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
 
         // When
         List<OptionalConfPart> actualOptionalParts = conf.getAllParts();
 
         // Then
-        List<OptionalConfPart> expectedOptionalParts = Arrays.asList(
-                new OptionalConfPart(
-                        "identifiermapping.xml", "IDENTIFIERMAPPING"),
-                new OptionalConfPart(
-                        "messageconverter.xml", "MESSAGECONVERTER"));
+        OptionalConfPart expectedFirstPart = new OptionalConfPart(
+                "identifiermapping.xml", "IDENTIFIERMAPPING");
 
-        assertEquals(expectedOptionalParts, actualOptionalParts);
+        OptionalConfPart expectedSecondPart = new OptionalConfPart(
+                        "messageconverter.xml", "MESSAGECONVERTER");
+
+        assertTrue(actualOptionalParts.contains(expectedFirstPart));
+        assertTrue(actualOptionalParts.contains(expectedSecondPart));
     }
 
     @Test
+    public void shouldReturnEmptyListWhenNoConfDirectory() throws IOException {
+        // Given
+        String confDir = "src/test/resources/configuration-parts-NONEXISTENT";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+
+        // When
+        List<OptionalConfPart> actualOptionalParts = conf.getAllParts();
+
+        // Then
+        assertEquals(0, actualOptionalParts.size());
+    }
+
+    @Test
+    public void shouldSkipFileWhenMalformed() throws IOException {
+        // Given
+        String confDir = "src/test/resources/configuration-parts-MALFORMED_FILE";
+        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+
+        // When
+        List<OptionalConfPart> actualOptionalParts = conf.getAllParts();
+
+        // Then
+        assertEquals(0, actualOptionalParts.size());
+    }
+    @Test
     public void shouldNotAllowReservedFilenames() throws IOException {
         testMalformedConf(
-                "src/test/resources/configuration-parts-RESERVED_FILE.ini");
+                "src/test/resources/configuration-parts-RESERVED_FILE");
     }
 
     @Test
     public void shouldNotAllowReservedContentIds() throws IOException {
         testMalformedConf(
-                "src/test/resources/configuration-parts-RESERVED_ID.ini");
+                "src/test/resources/configuration-parts-RESERVED_ID");
     }
 
     @Test
     public void shouldNotAllowDuplicateFilenames() throws IOException {
         testMalformedConf(
-                "src/test/resources/configuration-parts-DUPLICATES.ini");
+                "src/test/resources/configuration-parts-DUPLICATES");
     }
 
-    private void testMalformedConf(String confFile) throws IOException {
+    private void testMalformedConf(String confDir) throws IOException {
         thrown.expectError(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
 
-        new OptionalPartsConf(confFile);
+        new OptionalPartsConf(confDir);
     }
 }

@@ -1,4 +1,3 @@
 usr/share/sdsb/jlib/proxy-1.0.jar usr/share/sdsb/jlib/proxy.jar
-usr/share/sdsb/jlib/configuration-client-1.0.jar usr/share/sdsb/jlib/configuration-client.jar
 usr/share/sdsb/jlib/async-sender-1.0.jar usr/share/sdsb/jlib/async-sender.jar
 etc/sdsb/conf.d/proxy-ui-logback.xml etc/sdsb/conf.d/jetty-ui-logback.xml

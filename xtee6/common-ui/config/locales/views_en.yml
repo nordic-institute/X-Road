@@ -15,6 +15,7 @@ en:
     decline: "Decline"
     delete: "Delete"
     details: "Details"
+    description: "Description"
     disable: "Disable"
     download: "Download"
     edit: "Edit"
@@ -43,6 +44,7 @@ en:
     simple_search: "Simple Search"
     submit: "Submit"
     upload: "Upload"
+    browse: "Browse"
     warning: "<div class='align-center'>{{text}}</div>"
     zero_records: "No (matching) records"
     zero_records_none: "None"
@@ -53,6 +55,7 @@ en:
     'no': "No"
     id: "ID"
     hash: "Hash"
+    url: "URL"
 
   layouts:
     application:

@@ -9,7 +9,9 @@ import ee.cyber.sdsb.proxy.testsuite.MessageTestCase;
  */
 public class MetadataAllowedMethods extends MessageTestCase {
     public MetadataAllowedMethods() {
-        requestFileName = "allowedMethods.query";
+        //requestFileName = "allowedMethods.query"; // TODO: currently disabled
+        requestFileName = "getstate.query";
+        responseFileName = "getstate.answer";
     }
 
     @Override

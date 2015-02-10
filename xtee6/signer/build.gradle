@@ -31,7 +31,7 @@ dependencies {
     testCompile project(':common-test')
     testCompile project(':common-verifier').sourceSets.test.output
     testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
-    testCompile 'org.mockito:mockito-all:1.10.8'
+    testCompile 'org.mockito:mockito-core:1.10.8'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'

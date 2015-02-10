@@ -223,10 +223,9 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
     }
 
     private void cacheKnownAddresses() {
-       confType.getSecurityServer().stream().map(s -> s.getAddress())
-            .filter(StringUtils::isNotBlank).forEach(address -> {
-                knownAddresses.add(address);
-            });
+        confType.getSecurityServer().stream().map(s -> s.getAddress())
+            .filter(StringUtils::isNotBlank)
+            .forEach(knownAddresses::add);
     }
 
     private void cacheSecurityServers() {

@@ -50,11 +50,11 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
 
         if (commandLine.hasOption("filename")) {
             String filename = commandLine.getOptionValue("f");
-            System.out.println("Generating anchor xml to '" + filename + "'");
 
             AtomicSave.execute(filename, "tmpanchor",
                 out -> generateAnchorXml(conf,
                         sourceAnchor.getInstanceIdentifier(), out));
+            System.out.println("Generated anchor xml to '" + filename + "'");
         } else {
             printHelp();
             System.exit(0);

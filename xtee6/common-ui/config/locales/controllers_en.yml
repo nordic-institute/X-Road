@@ -90,6 +90,7 @@ en:
       upload: "New backup file uploaded successfully"
     error:
       delete: "Deletion of backup files failed, reason: '%{reason}'"
+      not_tar: "Content of uploaded file must be in tar format"
 
   conf_verification:
     missing_private_params: "Configuration anchor import failed: invalid anchor file"

@@ -20,4 +20,7 @@ public class MimeTypes extends org.eclipse.jetty.http.MimeTypes {
             "application/hash-chain-result";
 
     public static final String HASH_CHAIN = "application/hash-chain";
+
+    public static final String JSON = "application/json";
+    public static final String JSON_RPC = "application/json-rpc";
 }

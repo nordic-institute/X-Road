@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -58,19 +61,24 @@ public class SystemPropertiesLoaderTest {
             String... sectionNames) {
         final Map<String, String> properties = new HashMap<String, String>();
 
-        SystemPropertiesLoader loader = new SystemPropertiesLoader("") {
+        SystemPropertiesLoader loader = SystemPropertiesLoader.create("");
+        SystemPropertiesLoader spy = Mockito.spy(loader);
+
+        Mockito.doAnswer(new Answer<Object>() {
             @Override
-            void onProperty(String key, String value) {
-                properties.put(key, value);
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                Object[] args = invocation.getArguments();
+                properties.put(args[0].toString(), args[1].toString());
+                return null;
             }
-            @Override
-            public void load() {
-            }
-        };
+        }).when(spy).setProperty(Mockito.anyString(), Mockito.anyString());
+
 
         for (String fileName : fileNames) {
-            loader.load(fileName, sectionNames);
+            spy.with(fileName, sectionNames);
         }
+
+        spy.load();
 
         return properties;
     }

@@ -12,6 +12,7 @@ import javax.net.ssl.SSLSocket;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.X509HostnameVerifier;
@@ -49,11 +50,7 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
 
             checkServerTrusted(getServiceId(context), cert);
         } catch (Exception e) {
-            try {
-                connected.close();
-            } catch (Exception ignore) {
-            }
-
+            IOUtils.closeQuietly(connected);
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
 

@@ -32,11 +32,23 @@ class SystemSettingsController < ApplicationController
       :value => params[:centralServerAddress]
     })
 
-    ConfigurationSource.get_source_by_type(
-      ConfigurationSource::SOURCE_TYPE_INTERNAL).generate_anchor
+    begin
+      ConfigurationSource.get_source_by_type(
+        ConfigurationSource::SOURCE_TYPE_INTERNAL).generate_anchor
+      notice(t("configuration_management.sources.internal_anchor_generated"))
+    rescue
+      error(t("configuration_management.sources.internal_anchor_error",
+        :reason => $!.message))
+    end
 
-    ConfigurationSource.get_source_by_type(
-      ConfigurationSource::SOURCE_TYPE_EXTERNAL).generate_anchor
+    begin
+      ConfigurationSource.get_source_by_type(
+        ConfigurationSource::SOURCE_TYPE_EXTERNAL).generate_anchor
+      notice(t("configuration_management.sources.external_anchor_generated"))
+    rescue
+      error(t("configuration_management.sources.external_anchor_error",
+        :reason => $!.message))
+    end
 
     read_services_addresses
 

@@ -257,7 +257,7 @@
                   if (!oData.name_description) {
                       $(nTd).addClass("missing");
                   }
-              },
+              }
             },
             {
                 mData: function(source, type, val) {

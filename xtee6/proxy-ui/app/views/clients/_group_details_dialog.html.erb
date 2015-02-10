@@ -1,79 +1,44 @@
 <%= dialog "group_details_dialog" do %>
-  <p><%= t 'clients.client_groups_tab.description' %></p>
-  <div style="margin: 0.5em 0;">
-    <input id="group_details_description" type="text" style="width: 80%;" readonly="true"/>
-    <% if can?(:edit_local_group_desc) %>
-    <button id="edit" class="right"><%= t '.edit' %></button>
-    <% end %>
-    <div class="clearer"></div>
-  </div>
+  <section class="container">
+    <legend><%= t 'common.description' %></legend>
 
-  <p><%= t '.group_members' %> (<span id="group_details_member_count"></span>)</p>
-
-  <div id="group_members_actions">
-    <div class="simple_search">
-      <a href="#"><%= t 'common.advanced_search' %></a>
-    </div>
-
-    <div class="advanced_search">
-      <table class="details">
-        <tr>
-          <td><%= t '.name' %></td>
-          <td><%= text_field_tag nil %></td>
-        </tr>
-        <tr>
-          <td><%= t '.type' %></td>
-          <td>
-            <%= select_tag nil, options_for_select(@member_types),
-                :include_blank => true %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t '.instance' %></td>
-          <td>
-            <%= select_tag nil, options_for_select(@instances),
-                :include_blank => true %>
-          </td>
-        </tr>
-        <tr>
-          <td><%= t '.class' %></td>
-          <td><%= select_tag nil, options_for_select(@member_classes),
-                  :include_blank => true %></td>
-        </tr>
-        <tr>
-          <td><%= t '.code' %></td>
-          <td><%= text_field_tag nil %></td>
-        </tr>
-        <tr>
-          <td><%= t '.subsystem' %></td>
-          <td><%= text_field_tag nil %></td>
-        </tr>
-        <tr>
-          <td class="align-right" colspan="2">
-            <button class="search"><%= t 'common.search' %></button>
-            <button class="clear"><%= t 'common.clear' %></button>
-          </td>
-        </tr>
-      </table>
-
-      <a href="#"><%= t 'common.simple_search' %></a>
-    </div>
-  </div>
-
-  <table id="group_members">
-    <thead>
+    <table class="details">
       <tr>
-        <th><%= t '.name' %></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th></th>
-        <th><%= t 'common.id' %></th>
-        <th><%= t '.added' %></th>
+        <td></td>
+        <td style="width: 100%">
+          <p id="group_details_description" class="input" ></p>
+        </td>
+        <td>
+          <% if can?(:edit_local_group_desc) %>
+            <button id="edit"><%= t 'common.edit' %></button>
+          <% end %>
+        </td>
       </tr>
-    </thead>
-  </table>
+    </table>
+  </section>
+
+  <section class="container">
+    <legend>
+      <%= t '.group_members' %> (<span id="group_details_member_count"></span>)
+    </legend>
+
+    <%= render_advanced_search "group_members_search", "group_members" %>
+
+    <table id="group_members">
+      <thead>
+        <tr>
+          <th><%= t '.name' %></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th><%= t 'common.id' %></th>
+          <th><%= t '.added' %></th>
+        </tr>
+      </thead>
+    </table>
+  </section>
 <% end %>
 
 <%= dialog "group_description_edit_dialog", t('.edit_title') do %>

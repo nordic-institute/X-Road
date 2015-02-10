@@ -21,8 +21,11 @@ class SystemStatusController < ApplicationController
       begin
         check_configuration_signing_keys(
           ConfigurationSource::SOURCE_TYPE_INTERNAL, alerts)
-        check_configuration_signing_keys(
-          ConfigurationSource::SOURCE_TYPE_EXTERNAL, alerts)
+
+        if SystemProperties::getCenterTrustedAnchorsAllowed
+          check_configuration_signing_keys(
+            ConfigurationSource::SOURCE_TYPE_EXTERNAL, alerts)
+        end
       rescue
         alerts << t("status.signing_key.signer_error", :message => $!.message)
       end
@@ -74,9 +77,10 @@ class SystemStatusController < ApplicationController
 
         signing_key_found = true
 
-        unless token.active
-          alerts <<
-            t("status.signing_key.#{source_type}.token_not_active")
+        if !token.active
+          alerts << t("status.signing_key.#{source_type}.token_not_active")
+        elsif !key.available
+          alerts << t("status.signing_key.#{source_type}.key_not_available")
         end
 
         return

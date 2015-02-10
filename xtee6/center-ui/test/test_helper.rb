@@ -20,6 +20,14 @@ class ActiveSupport::TestCase
   # -- they do not yet inherit this setting
   fixtures :all
 
+  def get_file_path(filename)
+    "test/resources/#{filename}"
+  end
+
+  def get_file(filename)
+    File.new(get_file_path(filename))
+  end
+
   def get_riigiasutus
     id = ActiveRecord::Fixtures.identify(:riigiasutus)
     MemberClass.find(id)

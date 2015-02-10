@@ -45,48 +45,48 @@ public class AsyncLogWriterBehavior {
     @Test
     public void shouldWriteCorrectlyToAsyncLog() throws Exception {
         // Initialize
-        String firstLastSendResult = "OK";
-        int firstFirstRequestSendCount = 0;
+        String lastSendResult1 = "OK";
+        int requestSendCount1 = 0;
 
-        Date firstReceivedTime = new Date(1292509011);
+        Date receivedTime1 = new Date(1292509011);
 
-        ClientId kirvetehas =
-                ClientId.create("EE", "tankist", "kirvetehas");
-        ServiceId tehasSalajane = ServiceId.create("EE", "tankist", "tehas",
-                null, "salajane");
+        ClientId client1 =
+                ClientId.create("EE", "GOV", "client1");
+        ServiceId service1 = ServiceId.create("EE", "GOV", "client1",
+                null, "service1");
 
-        RequestInfo firstRequest = new RequestInfo(0,
-                "d41d8cd98f00b204e9800998ecf8427e", firstReceivedTime, null,
-                kirvetehas, "EE27001010001", tehasSalajane);
+        RequestInfo request1 = new RequestInfo(0,
+                "d41d8cd98f00b204e9800998ecf8427e", receivedTime1, null,
+                client1, "EE27001010001", service1);
 
-        AsyncLogWriter firstLogWriter = new AsyncLogWriterImpl(
-                tehasSalajane.getClientId());
+        AsyncLogWriter logWriter1 = new AsyncLogWriterImpl(
+                service1.getClientId());
 
-        String secondLastSendResult = "NOK";
-        int secondFirstRequestSendCount = 7;
+        String lastSendResult2 = "NOK";
+        int requestSendCount2 = 7;
 
-        Date secondReceivedTime = new Date(1292509311);
-        Date secondRemovedTime = new Date(1292509321);
+        Date receivedTime2 = new Date(1292509311);
+        Date removedTime2 = new Date(1292509321);
 
-        ClientId luuavabrik =
-                ClientId.create("EE", "tankist", "luuavabrik");
-        ServiceId vabrikSaladus = ServiceId.create(
-                "EE", "tankist", "vabrik", null, "saladus");
+        ClientId client2 =
+                ClientId.create("EE", "GOV", "client2");
+        ServiceId service2 = ServiceId.create(
+                "EE", "GOV", "client2", null, "service2");
 
-        RequestInfo secondRequest = new RequestInfo(1,
-                "tab\tnewline\nbackslash\\asdfs", secondReceivedTime,
-                secondRemovedTime, luuavabrik, "EE27001010002",
-                vabrikSaladus);
+        RequestInfo request2 = new RequestInfo(1,
+                "tab\tnewline\nbackslash\\asdfs", receivedTime2,
+                removedTime2, client2, "EE27001010002",
+                service2);
 
-        AsyncLogWriter secondLogWriter = new AsyncLogWriterImpl(
-                vabrikSaladus.getClientId());
+        AsyncLogWriter logWriter2 = new AsyncLogWriterImpl(
+                service2.getClientId());
 
         // Write
-        firstLogWriter.appendToLog(firstRequest, firstLastSendResult,
-                firstFirstRequestSendCount);
+        logWriter1.appendToLog(request1, lastSendResult1,
+                requestSendCount1);
 
-        secondLogWriter.appendToLog(secondRequest, secondLastSendResult,
-                secondFirstRequestSendCount);
+        logWriter2.appendToLog(request2, lastSendResult2,
+                requestSendCount2);
 
         // Validate
         List<String> logFileLines = FileUtils
@@ -104,10 +104,10 @@ public class AsyncLogWriterBehavior {
         assertEquals("0", firstLineData[FIELD_REMOVED_TIME]);
         assertEquals("OK", firstLineData[FIELD_SENDING_RESULT]);
         assertEquals("0", firstLineData[FIELD_FIRST_REQUEST_SEND_COUNT]);
-        assertEquals("EE/tankist/tehas", firstLineData[FIELD_PROVIDER_NAME]);
-        assertEquals(kirvetehas.toString(), firstLineData[FIELD_SENDER]);
+        assertEquals("EE/GOV/client1", firstLineData[FIELD_PROVIDER_NAME]);
+        assertEquals(client1.toString(), firstLineData[FIELD_SENDER]);
         assertEquals("EE27001010001", firstLineData[FIELD_USER]);
-        assertEquals(tehasSalajane.toString(), firstLineData[FIELD_SERVICE]);
+        assertEquals(service1.toString(), firstLineData[FIELD_SERVICE]);
         assertEquals("d41d8cd98f00b204e9800998ecf8427e",
                 firstLineData[FIELD_ID]);
 
@@ -121,10 +121,10 @@ public class AsyncLogWriterBehavior {
         assertEquals("1292509", secondLineData[FIELD_REMOVED_TIME]);
         assertEquals("NOK", secondLineData[FIELD_SENDING_RESULT]);
         assertEquals("7", secondLineData[FIELD_FIRST_REQUEST_SEND_COUNT]);
-        assertEquals("EE/tankist/vabrik", secondLineData[FIELD_PROVIDER_NAME]);
-        assertEquals(luuavabrik.toString(), secondLineData[FIELD_SENDER]);
+        assertEquals("EE/GOV/client2", secondLineData[FIELD_PROVIDER_NAME]);
+        assertEquals(client2.toString(), secondLineData[FIELD_SENDER]);
         assertEquals("EE27001010002", secondLineData[FIELD_USER]);
-        assertEquals(vabrikSaladus.toString(), secondLineData[FIELD_SERVICE]);
+        assertEquals(service2.toString(), secondLineData[FIELD_SERVICE]);
 
         String expectedSecondId = StringEscapeUtils
                 .escapeJava("tab\tnewline\nbackslash\\asdfs");
@@ -136,29 +136,3 @@ public class AsyncLogWriterBehavior {
         FileUtils.deleteQuietly(new File(ASYNC_LOG_PATH));
     }
 }
-
-// Data used:
-
-// First request
-
-// req.receivedTime: 1292509011
-// req.removedTime: 0
-// = lastSendResult: OK
-// =firstRequestSendCount: 0
-// = queue.providerName: tehas
-// req.sender: kirvetehas
-// req.user: EE27001010001
-// req.service: tehas.salajane
-// req.id: d41d8cd98f00b204e9800998ecf8427e
-
-// Second request
-
-// req.receivedTime: 1292509311
-// req.removedTime: 1292509321
-// = lastSendResult: NOK
-// =firstRequestSendCount: 7
-// = queue.providerName: vabrik
-// req.sender: luuavabrik
-// req.user: EE27001010002
-// req.service: vabrik.saladus
-// req.id: tab\tnewline\nbackslash\\asdfs

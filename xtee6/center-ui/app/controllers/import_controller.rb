@@ -20,7 +20,7 @@ class ImportController < ApplicationController
     is_anything_imported = file != nil
     file_name = is_anything_imported ? file.file_name : nil
 
-    translated_file_info = is_anything_imported ?  
+    translated_file_info = is_anything_imported ?
       t("import.file",
         :file => file_name,
         :time => format_time(file.created_at.localtime())) :
@@ -55,7 +55,10 @@ class ImportController < ApplicationController
       raise t("common.filename_empty")
     end
 
-    GzipFileValidator.new(file_param).validate()
+    CommonUi::UploadedFile::Validator.new(
+        file_param,
+        GzipFile::Validator.new,
+        GzipFile::restrictions).validate()
 
     data_file = write_imported_file(file_param)
 
@@ -144,7 +147,7 @@ class ImportController < ApplicationController
     V5Import.write(original_filename, e.console_output_lines)
     return 2 # Error
   end
-  
+
   def write_last_attempt(console_output_lines)
     CommonUi::IOUtils.write(
         get_last_attempt_log_path(), console_output_lines.join("\n"))

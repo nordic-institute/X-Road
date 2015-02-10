@@ -18,7 +18,7 @@
     <% end %>
   </div>
 
-  <table id="tsps" class="display">
+  <table id="tsps">
     <thead>
       <tr>
         <th id="tsp_name"><%= t 'common.name' %></th>
@@ -28,7 +28,5 @@
     </thead>
   </table>
 
-  <div class="dialog_dynamic">
-    <%= render :partial => "tsp_edit_dialog" %>
-  </div>
+  <%= render :partial => "tsp_edit_dialog" %>
 <% end %>

@@ -104,4 +104,14 @@ class OptionalConfPartsTest < ActiveSupport::TestCase
 
     return raw_content.strip!
   end
+
+  def get_large_file_bytes
+    result = ""
+
+    (1..1000000).each do
+      result << "1234567890"
+    end
+
+    return result
+  end
 end

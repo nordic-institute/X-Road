@@ -3,7 +3,8 @@ var SDSB_GROUPS = function() {
 
     function enableActions() {
         $("#global_group_add").enable();
-        if (oGlobalGroups.setFocus()) {
+
+        if (oGlobalGroups.getFocus()) {
             $(".group-action").enable();
         } else {
             $(".group-action").disable();
@@ -11,7 +12,10 @@ var SDSB_GROUPS = function() {
     }
 
     function onDraw() {
-        if (!oGlobalGroups) return;
+        if (!oGlobalGroups) {
+            return;
+        }
+
         if (!oGlobalGroups.getFocus()
                 || $("#add_group_form:visible").length > 0) {
             $(".group-action").disable();

@@ -68,7 +68,7 @@ var SDSB_MEMBER_EDIT = function() {
 
         $("#owned_server_add_dialog").initDialog({
             modal: true,
-            height: 500,
+            height: "auto",
             width: 500,
             buttons: [{
                 text: _("common.submit"),
@@ -105,9 +105,9 @@ var SDSB_MEMBER_EDIT = function() {
             }
         });
 
-        $("#owned_server_cert_upload").unbind("click")
-            .click(function() {
-                $("#auth_cert_upload").submit();
+        $("#owned_server_cert_upload").unbind("change")
+            .change(function() {
+                $("#member_auth_cert_upload").submit();
                 // function uploadCallbackOwnedServerAuthCert manages
                 // post-submission activities on UI part
             });
@@ -117,7 +117,7 @@ var SDSB_MEMBER_EDIT = function() {
         var submitButton = $("#add_owned_server_submit");
 
         if (response.success) {
-            $("#auth_cert_file").val("");
+            $("#owned_server_cert_upload").val("");
             $("#owned_server_authcert_csp").text(response.data.csp);
             $("#owned_server_authcert_serial_number").text(
                 response.data.serial_number);
@@ -160,7 +160,7 @@ var SDSB_MEMBER_EDIT = function() {
                 member: memberName
             }),
             modal: true,
-            width: "auto",
+            width: 600,
             open: function() {
                 $.get("members/subsystem_codes", memberId, function(response) {
                     var options = response.data;
@@ -240,6 +240,20 @@ var SDSB_MEMBER_EDIT = function() {
         }, "json");
     }
 
+    function selectUsedServer(usedServerSearchDialog) {
+        fillUsedServerFields();
+        closeDialog(usedServerSearchDialog);
+    }
+
+    function fillUsedServerFields() {
+        var serverData = oAddableUsedServers.getFocusData();
+
+        $("#used_server_owner_name").text(serverData.owner_name);
+        $("#used_server_owner_class").text(serverData.owner_class);
+        $("#used_server_owner_code").text(serverData.owner_code);
+        $("#used_server_server_code").text(serverData.server_code);
+    }
+
     function openUsedServersRegisterDialog(memberId, memberName, onSubmit) {
         clearUsedServerAddData();
 
@@ -249,7 +263,7 @@ var SDSB_MEMBER_EDIT = function() {
 
         $("#member_used_server_register_dialog").initDialog({
             modal: true,
-            height: 630,
+            height: "auto",
             width: 560,
             buttons: [{
                 text: _("common.submit"),
@@ -259,9 +273,9 @@ var SDSB_MEMBER_EDIT = function() {
                         memberClass: $("#used_server_class").text(),
                         memberCode: $("#used_server_code").text(),
                         subsystemCode: $("#used_server_subsystem_code").val(),
-                        ownerClass: $("#used_server_owner_class").val(),
-                        ownerCode: $("#used_server_owner_code").val(),
-                        serverCode: $("#used_server_server_code").val()
+                        ownerClass: $("#used_server_owner_class").text(),
+                        ownerCode: $("#used_server_owner_code").text(),
+                        serverCode: $("#used_server_server_code").text()
                     };
 
                     $.post("members/add_new_server_client_request", params,
@@ -281,7 +295,11 @@ var SDSB_MEMBER_EDIT = function() {
                     $(this).dialog("close");
                 }
             }],
+            open: function() {
+                initUsedServerSubsystemCodeAutocomplete();
+            },
             close: function() {
+                destroyUsedServerSubsystemCodeAutocomplete();
                 $(this).dialog("destroy");
             }
         });
@@ -298,10 +316,26 @@ var SDSB_MEMBER_EDIT = function() {
         $("#used_server_code").text(""),
         $("#used_server_subsystem_code").val(""),
 
-        $("#used_server_owner_name").val(""),
-        $("#used_server_owner_class").val(""),
-        $("#used_server_owner_code").val(""),
-        $("#used_server_server_code").val("")
+        $("#used_server_owner_name").text(""),
+        $("#used_server_owner_class").text(""),
+        $("#used_server_owner_code").text(""),
+        $("#used_server_server_code").text("")
+    }
+
+    function initUsedServerSubsystemCodeAutocomplete() {
+        var subsystemCodeInput = $("#used_server_subsystem_code");
+        var params = {
+            memberClass: $("#used_server_class").text(),
+            memberCode: $("#used_server_code").text()
+        };
+
+        $.get("members/subsystem_codes", params, function(response) {
+            subsystemCodeInput.autocomplete({source: response.data});
+        }, "json");
+    }
+
+    function destroyUsedServerSubsystemCodeAutocomplete() {
+        $("#used_server_subsystem_code").autocomplete("destroy");
     }
 
     function initSecurityServerSearchDialog() {
@@ -311,33 +345,14 @@ var SDSB_MEMBER_EDIT = function() {
             height: 430,
             width: 860,
             open: function() {
-                var params = {
-                    advancedSearchParams: JSON.stringify({
-                        name: $("#used_server_owner_name").val(),
-                        memberClass: $("#used_server_owner_class").val(),
-                        memberCode: $("#used_server_owner_code").val(),
-                        serverCode: $("#used_server_server_code").val()
-                    })
-                };
-
-                $.get("securityservers/securityservers_advanced_search", params,
-                      function(response) {
-                          oAddableUsedServers.fnReplaceData(response.data);
-                      }, "json");
+                initAddableUsedServersTable();
             },
             buttons: [{
                 text: _("common.select"),
                 disabled: "disabled",
                 id: "member_securityserver_search_select",
                 click: function() {
-                    var serverData = oAddableUsedServers.getFocusData();
-
-                    $("#used_server_owner_name").val(serverData.owner_name);
-                    $("#used_server_owner_class").val(serverData.owner_class);
-                    $("#used_server_owner_code").val(serverData.owner_code);
-                    $("#used_server_server_code").val(serverData.server_code);
-
-                    $(this).dialog("close");
+                    selectUsedServer(this);
                 }
             }, {
                 text: _("common.cancel"),
@@ -346,20 +361,24 @@ var SDSB_MEMBER_EDIT = function() {
                 }
             }]
         });
-
-        initAddableUsedServersTable();
     }
 
     function initAddableUsedServersTable() {
-        var opts = scrollableTableOpts(400);
-        opts.sDom = "<'dataTables_header'f<'clearer'>>t";
+        var opts = defaultTableOpts();
         opts.bDestroy = true;
+        opts.bServerSide = true;
+        opts.sScrollY = 400;
+        opts.bScrollCollapse = true;
+        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
             { "mData" : "owner_name" },
             { "mData" : "owner_class" },
             { "mData" : "owner_code" },
             { "mData" : "server_code" }
         ];
+
+        opts.bScrollInfinite = true;
+        opts.sAjaxSource = "securityservers/securityservers_refresh";
         opts.aaSorting = [[2, "desc"]];
 
         oAddableUsedServers = $("#used_server_search_all").dataTable(opts);

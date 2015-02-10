@@ -8,13 +8,8 @@ require "rails/test_unit/railtie"
 # require "sprockets/railtie"
 
 require "java"
-
-if defined?(Bundler)
-  # If you precompile assets before deploying to production, use this line
-  Bundler.require(*Rails.groups(:assets => %w(development test)))
-  # If you want your assets lazily compiled in production, use this line
-  # Bundler.require(:default, :assets, Rails.env)
-end
+require "common-ui"
+require "center-common"
 
 ENV['SCHEMA'] = CenterCommon::Engine.paths['db'].existent.first + "/schema.rb"
 
@@ -47,7 +42,7 @@ module CenterUi
     config.encoding = "utf-8"
 
     # Configure sensitive parameters which will be filtered from the log file.
-    config.filter_parameters += [:password, :pin]
+    config.filter_parameters += [:password, :pin, :pin_repeat]
 
     # Enable escaping HTML in JSON.
     config.active_support.escape_html_entities_in_json = true
@@ -62,5 +57,12 @@ module CenterUi
     # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
     # parameters by using an attr_accessible or attr_protected declaration.
     # config.active_record.whitelist_attributes = true
+
+    # Enables us to let user know in human-readable manner when database is down.
+    config.middleware.insert_before(
+        ActiveRecord::ConnectionAdapters::ConnectionManagement,
+        "DatabaseConnectionChecker")
+
+    config.middleware.use "DatabaseConnectionChecker"
   end
 end

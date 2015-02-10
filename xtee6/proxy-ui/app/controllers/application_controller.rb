@@ -170,6 +170,11 @@ class ApplicationController < BaseController
 
       @tx = nil
 
+      if $!.java_kind_of?(Java::org.hibernate.exception.GenericJDBCException) &&
+          ExceptionUtils.getRootCause($!).java_kind_of?(Java::java.io.EOFException)
+        raise t('application.database_connection_error')
+      end
+
       raise $!
     end
   end
@@ -398,6 +403,7 @@ class ApplicationController < BaseController
     # TODO: add constructor for byte[]
     begin
       anchor = ConfigurationAnchor.new(temp_anchor_file)
+      generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
     rescue
       log_stacktrace($!)
       raise t("application.invalid_anchor_file")
@@ -405,7 +411,6 @@ class ApplicationController < BaseController
 
     hash = CryptoUtils::hexDigest(
       CryptoUtils::SHA224_ID, content.to_java_bytes)
-    generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
 
     return {
       :hash => hash.upcase.scan(/.{1,2}/).join(':'),

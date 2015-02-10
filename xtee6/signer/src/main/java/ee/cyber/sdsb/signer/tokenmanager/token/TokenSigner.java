@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
-
 import ee.cyber.sdsb.common.CodedException;
 import ee.cyber.sdsb.signer.protocol.ComponentNames;
 import ee.cyber.sdsb.signer.protocol.message.Sign;
@@ -22,6 +21,9 @@ import static ee.cyber.sdsb.common.ErrorCodes.translateException;
  */
 @Slf4j
 public class TokenSigner extends UntypedActor {
+
+    private final ActorSelection tokenWorker =
+            getContext().actorSelection("../" + ComponentNames.TOKEN_WORKER);
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -61,10 +63,6 @@ public class TokenSigner extends UntypedActor {
 
     protected void calculateSignature(String keyId, byte[] digest) {
         byte[] tbsData = SignerUtil.createDataToSign(digest);
-
-        ActorSelection tokenWorker =
-                getContext().actorSelection(
-                        "../" + ComponentNames.TOKEN_WORKER);
 
         tokenWorker.tell(new CalculateSignature(getSender(), keyId, tbsData),
                 getSelf());

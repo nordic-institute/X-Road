@@ -289,7 +289,7 @@ public class TestSuiteHelper {
     }
 
     public static void deleteKey(String keyId) throws Exception {
-        SignerClient.execute(new DeleteKey(keyId));
+        SignerClient.execute(new DeleteKey(keyId, true));
     }
 
     public static Pair getMemberSignInfo(ClientId memberId,

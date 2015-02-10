@@ -272,7 +272,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     client_deletion_requests = ClientDeletionRequest.all
     assert_equal(2, client_deletion_requests.size)
 
-    member_in_vallavalitsused_name = 
+    member_in_vallavalitsused_name =
         "This member should belong to group 'vallavalitsused'"
 
     member_request = client_deletion_requests[0]
@@ -298,7 +298,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
     # When
     clients = SecurityServerClient.get_addable_clients_for_server(
-        "securityServer", query_params)
+        "securityServer", query_params, nil)
 
     # Then
     assert_equal(5, clients.size)
@@ -310,7 +310,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
   end
 
   test "Should get addable clients count for the server" do
-    assert_equal(5, 
+    assert_equal(5,
         SecurityServerClient.get_addable_clients_count("securityServer", ""))
   end
 
@@ -325,7 +325,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     id = ActiveRecord::Fixtures.identify(:tyhigrupp)
     GlobalGroup.find(id)
   end
-  
+
   def get_vallavalitsused
     id = ActiveRecord::Fixtures.identify(:vallavalitsused)
     GlobalGroup.find(id)

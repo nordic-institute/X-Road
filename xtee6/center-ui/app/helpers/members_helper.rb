@@ -15,4 +15,28 @@ module MembersHelper
 
     select_content
   end
+
+  def member_classes
+    MemberClass.get_all_codes
+  end
+
+  def sdsb_instances
+    instances = []
+
+    ClientId.select("DISTINCT sdsb_instance").each do |client_id|
+      instances << client_id.sdsb_instance
+    end
+
+    instances
+  end
+
+  def member_types
+    types = []
+
+    ClientId.select("DISTINCT object_type").each do |client_id|
+      types << client_id.object_type
+    end
+
+    types
+  end
 end

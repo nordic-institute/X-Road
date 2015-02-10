@@ -1,10 +1,14 @@
+java_import Java::ee.cyber.sdsb.common.SystemProperties
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AclType
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AuthorizedSubjectType
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ServiceType
 java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.WsdlType
 java_import Java::ee.cyber.sdsb.common.identifier.SecurityCategoryId
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.cyber.sdsb.proxyui.InternalServerTestUtil
 java_import Java::ee.cyber.sdsb.proxyui.WSDLParser
+
+java_import Java::ee.cyber.sdsb.proxyui.combinedwsdl.WSDLCombinationChecker
+java_import Java::ee.cyber.sdsb.proxyui.combinedwsdl.InvalidWSDLCombinationException
 
 module Clients::Services
 
@@ -58,10 +62,15 @@ module Clients::Services
 
     client.wsdl.add(wsdl)
 
+    if params[:adapter_add_sslauth]
+      check_internal_server_certs(client, params[:adapter_add_url])
+    end
+
     serverconf_save
 
     after_commit do
       export_services
+      check_wsdls_mergeability(client)
     end
 
     render_json(read_services(client))
@@ -94,6 +103,7 @@ module Clients::Services
 
     after_commit do
       export_services
+      check_wsdls_mergeability(client)
     end
 
     render_json(read_services(client))
@@ -149,6 +159,8 @@ module Clients::Services
       end
     end
 
+    check_new_url = false
+
     # parse each wsdl
     client.wsdl.each do |wsdl|
       next unless params[:wsdl_ids].include?(get_wsdl_id(wsdl))
@@ -157,6 +169,7 @@ module Clients::Services
         if wsdl.backend != BACKEND_TYPE_XROADV5
           wsdl.url = params[:new_url]
         else
+          check_new_url = adapter_ssl_auth?(wsdl)
           wsdl.backendURL = params[:new_url]
         end
       end
@@ -166,7 +179,7 @@ module Clients::Services
       wsdl_parse_url = wsdl.backend != BACKEND_TYPE_XROADV5 ? wsdl.url :
         adapter_wsdl_url(wsdl.backendURL)
 
-      services_parsed = WSDLParser::parseWSDL(wsdl_parse_url)
+      services_parsed = parse_wsdl(wsdl_parse_url)
 
       services_old = []
 
@@ -254,10 +267,15 @@ module Clients::Services
 
     clean_acls(client)
 
+    if check_new_url
+      check_internal_server_certs(client, params[:new_url])
+    end
+
     serverconf_save
 
     after_commit do
       export_services
+      check_wsdls_mergeability(client)
     end
 
     render_json(read_services(client))
@@ -344,6 +362,10 @@ module Clients::Services
           service.sslAuthentication = !params[:params_sslauth].nil?
         end
       end
+    end
+
+    if params[:params_sslauth]
+      check_internal_server_certs(client, params[:params_url])
     end
 
     serverconf_save
@@ -452,7 +474,7 @@ module Clients::Services
     acl = get_acl(client, params[:service_code])
 
     unless acl
-      acl = AclType.new 
+      acl = AclType.new
       acl.serviceCode = params[:service_code]
       client.acl.add(acl)
     end
@@ -661,7 +683,7 @@ module Clients::Services
       end
     end
 
-    parsed_services = WSDLParser::parseWSDL(wsdl_parse_url)
+    parsed_services = parse_wsdl(wsdl_parse_url)
 
     parsed_services.each do |parsed_service|
       next if x55_installed? &&
@@ -685,6 +707,29 @@ module Clients::Services
 
       wsdl.service.add(service)
     end
+  end
+
+  def parse_wsdl(url)
+    WSDLParser::parseWSDL(url)
+  rescue Java::ee.cyber.sdsb.common.CodedException
+    logger.error(ExceptionUtils.getStackTrace($!))
+
+    if ExceptionUtils.indexOfThrowable($!,
+        Java::java.net.MalformedURLException.java_class) != -1
+      raise t("clients.malformed_wsdl_url")
+    end
+
+    if ExceptionUtils.indexOfType($!,
+        Java::java.io.IOException.java_class) != -1
+      raise t("clients.wsdl_download_failed")
+    end
+
+    if ExceptionUtils.indexOfThrowable($!,
+        Java::org.xml.sax.SAXParseException.java_class) != -1
+      raise t("clients.invalid_wsdl")
+    end
+
+    raise $!
   end
 
   def adapter_wsdl_url(backend)
@@ -735,5 +780,41 @@ module Clients::Services
     end
 
     client.acl.removeAll(deleted_acls)
+  end
+
+  def adapter_ssl_auth?(wsdl)
+    wsdl.service.isEmpty || (first = wsdl.service.get(0)).nil? ||
+      first.sslAuthentication.nil? || first.sslAuthentication
+  end
+
+  def check_internal_server_certs(client, url)
+    return unless url && url.start_with?("https://")
+
+    begin
+      InternalServerTestUtil::testHttpsConnection(client.isCert, url)
+    rescue Java::javax.net.ssl.SSLHandshakeException
+      error(t("clients.internal_server_ssl_error", { :url => url }))
+    rescue
+      logger.error("Checking internal server certs failed: #{$!.message}")
+    end
+  end
+
+  def check_wsdls_mergeability(client)
+    return unless x55_installed?
+
+    client_id = client.getIdentifier()
+    WSDLCombinationChecker::check(client_id)
+  rescue InvalidWSDLCombinationException => e
+    error(t(
+        "clients.combinedwsdl.invalid_combination",
+        :reason => e.getMessage()))
+  rescue Java::javax.wsdl.WSDLException
+    error(t(
+        "clients.combinedwsdl.invalid_single_wsdl",
+        :client_id => client_id))
+  rescue Java::java.net.ConnectException
+    error(t("clients.combinedwsdl.network_error"))
+  rescue Exception => e
+    error(t("clients.combinedwsdl.other_error", :message => e.getMessage()))
   end
 end

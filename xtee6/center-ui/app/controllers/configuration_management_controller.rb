@@ -172,6 +172,9 @@ class ConfigurationManagementController < ApplicationController
 
     source.generate_anchor
 
+    notice(t("configuration_management.sources." \
+             "#{source.source_type}_anchor_generated"))
+
     render_source(source)
   end
 
@@ -185,7 +188,15 @@ class ConfigurationManagementController < ApplicationController
 
     source = ConfigurationSource.get_source_by_type(params[:source_type])
     source.generate_signing_key(params[:token_id])
-    source.generate_anchor
+
+    begin
+      source.generate_anchor
+      notice(t("configuration_management.sources." \
+        "#{source.source_type}_anchor_generated"))
+    rescue
+      error(t("configuration_management.sources." \
+        "#{source.source_type}_anchor_error", :reason => $!.message))
+    end
 
     render_source(source)
   end
@@ -216,12 +227,21 @@ class ConfigurationManagementController < ApplicationController
     key.destroy
 
     begin
-      SignerProxy::deleteKey(key.key_identifier)
+      SignerProxy::deleteKey(key.key_identifier, true)
     rescue
       error($!.message)
     end
 
-    key.configuration_source.generate_anchor
+    source = key.configuration_source
+
+    begin
+      source.generate_anchor
+      notice(t("configuration_management.sources." \
+        "#{source.source_type}_anchor_generated"))
+    rescue
+      error(t("configuration_management.sources." \
+        "#{source.source_type}_anchor_error", :reason => $!.message))
+    end
 
     render_source(key.configuration_source)
   end
@@ -369,19 +389,26 @@ class ConfigurationManagementController < ApplicationController
 
       keys[key.key_identifier] = {
         :id => key.id,
+        :token_id => key.token_identifier,
+        :token_friendly_name => key.token_identifier,
         :key_id => key.key_identifier,
         :key_generated_at => format_time(key_generation_time),
-        :active => source.active_key && key.id == source.active_key.id
+        :key_active => source.active_key && key.id == source.active_key.id,
+        :key_available => false
       }
     end
 
     SignerProxy::getTokens.each do |token|
       token.keyInfo.each do |key|
         if keys.has_key?(key.id)
-          keys[key.id]["key_available"] = key.available,
-          keys[key.id]["token_id"] = token.id
-          keys[key.id]["token_friendly_name"] = token.friendlyName || token.id
-          keys[key.id]["token_active"] = token.active
+          keys[key.id][:key_available] = key.available
+          keys[key.id][:token_active] = token.active
+        end
+      end
+
+      keys.each_value do |val|
+        if val[:token_id] == token.id
+          val[:token_friendly_name] = token.friendlyName || token.id
         end
       end
     end

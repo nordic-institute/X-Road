@@ -6,5 +6,4 @@ etc/sdsb/conf.d/proxy.ini
 etc/sdsb/conf.d/proxy-ui.ini
 etc/sdsb/conf.d/proxy-logback.xml
 etc/sdsb/conf.d/proxy-ui-logback.xml
-etc/sdsb/conf.d/configuration-client-logback.xml
 etc/sdsb/conf.d/async-sender-logback.xml

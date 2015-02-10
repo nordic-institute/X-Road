@@ -2,487 +2,356 @@ class ApprovedCasController < ApplicationController
   include CertTransformationHelper
 
   before_filter :verify_get, :only => [
-      :refresh,
-      :get_intermediate_ca_temp_cert_details,
-      :get_existing_intermediate_ca_cert_details,
-      :get_existing_intermediate_ca_cert_dump_and_hash,
-      :get_top_ca_cert_details,
-      :get_top_ca_cert_dump_and_hash,
-      :get_name_extractor_data,
-      :get_ocsp_infos,
-      :get_existing_ocsp_cert_details,
-      :get_intermediate_cas]
+    :top_cas,
+    :intermediate_cas,
+    :ocsp_responders,
+    :ca_cert,
+    :ocsp_responder_cert
+  ]
 
   before_filter :verify_post, :only => [
-      :upload_top_ca_cert,
-      :upload_ocsp_responder_cert,
-      :upload_intermediate_ca_cert,
-      :save_new_approved_ca,
-      :edit_existing_approved_ca,
-      :delete_approved_ca]
+    :upload_top_ca_cert,
+    :add_top_ca,
+    :delete_top_ca,
 
-  # -- Common GET methods - start ---
+    :upload_intermediate_ca_cert,
+    :delete_intermediate_ca,
+
+    :edit_ca_settings,
+
+    :upload_ocsp_responder_cert,
+    :add_ocsp_responder,
+    :edit_ocsp_responder,
+    :delete_ocsp_responder
+  ]
 
   def index
     authorize!(:view_approved_cas)
+
+    @member_classes = MemberClass.get_all_codes
   end
 
-  def get_cert_details_by_id
-    render_temp_cert_details_by_id(:view_approved_cas)
-  end
-
-  def get_records_count
+  def top_cas
     authorize!(:view_approved_cas)
 
-    render_json_without_messages(:count => ApprovedCa.count)
+    render_top_cas
   end
 
-  def can_see_details
-    render_details_visibility(:view_approved_ca_details)
-  end
-
-  # -- Common GET methods - end ---
-
-  # -- Specific GET methods - start ---
-
-  def refresh
-    authorize!(:view_approved_cas)
-
-    searchable = params[:sSearch]
-
-    query_params = get_list_query_params(
-      get_approved_ca_list_column(get_sort_column_no))
-
-    approved_cas = ApprovedCa.get_approved_cas(query_params)
-    count = ApprovedCa.get_approved_cas_count(searchable)
-
-    result = []
-
-    approved_cas.each do |each|
-      top_ca = each.top_ca
-      result << {
-        :id => each.id,
-        :top_ca_id => each.top_ca.id,
-        :trusted_certification_service => each.name,
-        :valid_from => format_time(top_ca.valid_from.localtime),
-        :valid_to => format_time(top_ca.valid_to.localtime)
-      }
-    end
-
-    render_data_table(result, count, params[:sEcho])
-  end
-
-  def get_intermediate_ca_temp_cert_details
-    authorize!(:add_approved_ca)
-
-    render_json(read_temp_cert(params[:intermediateCaTempCertId]))
-  end
-
-  def get_existing_intermediate_ca_cert_details
+  def intermediate_cas
     authorize!(:view_approved_ca_details)
 
-    intermediate_ca = CaInfo.find(params[:intermediateCaId])
-    cert_details = get_cert_data_from_bytes(intermediate_ca.cert)
-    render_json(cert_details)
-  end
-
-  def get_existing_intermediate_ca_cert_dump_and_hash
-    authorize!(:view_approved_ca_details)
-
-    intermediate_ca = CaInfo.find(params[:intermediateCaId])
-    render_cert_dump_and_hash(intermediate_ca.cert)
-  end
-
-  def get_top_ca_cert_details
-    authorize!(:view_approved_ca_details)
-
-    cert_bytes = get_top_ca_cert_bytes()
-    cert_details = get_cert_data_from_bytes(cert_bytes)
-    render_json(cert_details)
-  end
-
-  def get_top_ca_cert_dump_and_hash
-    authorize!(:view_approved_ca_details)
-
-    cert_bytes = get_top_ca_cert_bytes()
-    render_cert_dump_and_hash(cert_bytes)
-  end
-
-  def get_name_extractor_data
-    authorize!(:view_approved_ca_details)
-
-    approved_ca = ApprovedCa.find(params[:caId])
-    render_json({
-      :auth_only => approved_ca.authentication_only,
-      :member_class => approved_ca.identifier_decoder_member_class,
-      :method_name => approved_ca.identifier_decoder_method_name
+    validate_params({
+      :ca_id => [:required]
     })
+
+    ca = ApprovedCa.find(params[:ca_id])
+
+    render_intermediate_cas(ca)
   end
 
-  def get_ocsp_infos
+  def ocsp_responders
     authorize!(:view_approved_ca_details)
 
-    ca = CaInfo.find(params[:caId])
-    ocsp_infos = []
+    validate_params({
+      :ca_id => [:required],
+      :intermediate_ca_id => []
+    })
 
-    ca.ocsp_infos.each do |each|
-      ocsp_infos << {
-        :id => each.id,
-        :url => each.url,
-        :has_cert => each.cert != nil
-      }
-    end
+    ca = get_top_or_intermediate_ca(params[:ca_id], params[:intermediate_ca_id])
 
-    render_json(ocsp_infos)
+    render_ocsp_responders(ca)
   end
 
-  def get_existing_ocsp_cert_details
+  def ca_cert
     authorize!(:view_approved_ca_details)
 
-    ocsp_info = OcspInfo.find(params[:ocspInfoId])
-    render_cert_dump_and_hash(ocsp_info.cert)
+    validate_params({
+      :ca_id => [:required],
+      :intermediate_ca_id => []
+    })
+
+    ca = get_top_or_intermediate_ca(params[:ca_id], params[:intermediate_ca_id])
+
+    render_cert_dump_and_hash(ca.cert)
   end
 
-  def get_intermediate_cas
+  def ocsp_responder_cert
     authorize!(:view_approved_ca_details)
 
-    approved_ca = ApprovedCa.find(params[:caId])
-    intermediate_cas = []
+    validate_params({
+      :ocsp_responder_id => [],
+      :temp_cert_id => []
+    })
 
-    approved_ca.intermediate_cas.each do |each|
-      cert_data = get_cert_data_from_bytes(each.cert)
+    cert = get_temp_cert_from_session(params[:temp_cert_id])
+    cert ||= OcspInfo.find(params[:ocsp_responder_id]).cert
 
-      intermediate_cas << {
-        :id => each.id,
-        :intermediate_ca => cert_data[:subject],
-        :valid_from => cert_data[:valid_from],
-        :valid_to => cert_data[:expires]
-      }
-    end
-
-    render_json(intermediate_cas)
+    render_cert_dump_and_hash(cert)
   end
-
-  # -- Specific GET methods - end ---
-
-  # -- Specific POST methods - start ---
 
   def upload_top_ca_cert
     authorize!(:add_approved_ca)
 
-    cert_data = upload_cert(params[:upload_top_ca_cert_file])
+    validate_params({
+      :ca_cert => [:required]
+    })
+
+    cert_data = upload_cert(params[:ca_cert])
+
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "SDSB_CA_COMMON.uploadCallbackApprovedCaAddTopCaCert")
+    upload_success({
+      :temp_cert_id => cert_data[:temp_cert_id]
+    }, "SDSB_APPROVED_CA_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_CA_COMMON.uploadCallbackApprovedCaAddTopCaCert")
+    upload_error(nil, "SDSB_APPROVED_CA_DIALOG.certUploadCallback")
   end
 
-  def upload_ocsp_responder_cert
+  def add_top_ca
     authorize!(:add_approved_ca)
 
-    cert_data = upload_cert(params[:upload_ocsp_responder_cert_file])
+    validate_params({
+      :temp_cert_id => [:required],
+      :name_extractor_disabled => [],
+      :name_extractor_member_class => [],
+      :name_extractor_method => []
+    })
 
-    notice(t("common.cert_imported"))
+    ca = ApprovedCa.new
+    ca.top_ca = CaInfo.new
+    ca.top_ca.cert = get_temp_cert_from_session(params[:temp_cert_id])
+    ca.authentication_only = params[:name_extractor_disabled]
+    ca.identifier_decoder_member_class = params[:name_extractor_member_class]
+    ca.identifier_decoder_method_name = params[:name_extractor_method]
 
-    upload_success(cert_data,
-        "SDSB_CA_COMMON.uploadCallbackApprovedCaAddOcspResponderCert")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error(nil, "SDSB_CA_COMMON.uploadCallbackApprovedCaAddOcspResponderCert")
+    ca.save!
+
+    notice(t("approved_cas.approved_ca_added"))
+
+    render_json(top_ca_to_json(ca))
+  end
+
+  def delete_top_ca
+    authorize!(:delete_approved_ca)
+
+    validate_params({
+      :ca_id => [:required]
+    })
+
+    ApprovedCa.find(params[:ca_id]).destroy
+
+    render_top_cas
   end
 
   def upload_intermediate_ca_cert
     authorize!(:add_approved_ca)
 
-    cert_data = upload_cert(params[:upload_intermediate_ca_cert_file])
+    validate_params({
+      :ca_id => [:required],
+      :ca_cert => [:required]
+    })
+
+    uploaded_bytes = params[:ca_cert].read
+
+    ca = ApprovedCa.find(params[:ca_id])
+
+    intermediate_ca = CaInfo.new
+    intermediate_ca.cert = CommonUi::CertUtils.pem_to_der(uploaded_bytes)
+
+    ca.intermediate_cas << intermediate_ca
+
+    notice(t("approved_cas.intermediate_ca_added"))
+
+    upload_success(
+      intermediate_ca_to_json(intermediate_ca),
+      "SDSB_INTERMEDIATE_CA_DIALOG.certUploadCallback")
+  rescue RuntimeError => e
+    error(e.message)
+    upload_error(nil, "SDSB_INTERMEDIATE_CA_DIALOG.certUploadCallback")
+  end
+
+  def delete_intermediate_ca
+    authorize!(:add_approved_ca)
+
+    validate_params({
+      :intermediate_ca_id => [:required]
+    })
+
+    CaInfo.destroy(params[:intermediate_ca_id])
+
+    render_json
+  end
+
+  def edit_ca_settings
+    authorize!(:edit_approved_ca)
+
+    validate_params({
+      :ca_id => [:required],
+      :name_extractor_disabled => [],
+      :name_extractor_member_class => [],
+      :name_extractor_method => []
+    })
+
+    ca = ApprovedCa.find(params[:ca_id])
+
+    ca.authentication_only = params[:name_extractor_disabled]
+    ca.identifier_decoder_member_class = params[:name_extractor_member_class]
+    ca.identifier_decoder_method_name = params[:name_extractor_method]
+
+    ca.save!
+
+    logger.info("Name extractor edited, result: '#{ca}'")
+    notice(t("approved_cas.ca_settings_saved"))
+
+    render_json
+  end
+
+  def upload_ocsp_responder_cert
+    authorize!(:add_approved_ca)
+
+    validate_params({
+      :ocsp_responder_cert => [:required]
+    })
+
+    cert_data = upload_cert(params[:ocsp_responder_cert], true)
+    cert_data["prefix"] = "ocsp_responder"
 
     notice(t("common.cert_imported"))
 
     upload_success(cert_data,
-        "SDSB_CA_COMMON.uploadCallbackApprovedCaAddIntermediateCaCert")
+        "SDSB_URL_AND_CERT_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil,
-        "SDSB_CA_COMMON.uploadCallbackApprovedCaAddIntermediateCaCert")
+    upload_error({
+      :prefix => "ocsp_responder"
+    }, "SDSB_URL_AND_CERT_DIALOG.certUploadCallback")
   end
 
-  def save_new_approved_ca
+  def add_ocsp_responder
     authorize!(:add_approved_ca)
-    raw_name_extractor = JSON.parse(params[:nameExtractor])
-    approved_ca = ApprovedCa.new()
-    approved_ca.authentication_only = raw_name_extractor["authOnly"]
-    approved_ca.identifier_decoder_member_class = raw_name_extractor["memberClass"]
-    approved_ca.identifier_decoder_method_name = raw_name_extractor["extractorMethod"]
 
-    top_ca_ocsp_infos = get_new_ocsp_infos(params[:topCaOcspInfos])
-    approved_ca.top_ca = get_ca(params[:topCaTempCertId], top_ca_ocsp_infos)
+    validate_params({
+      :ca_id => [],
+      :intermediate_ca_id => [],
+      :url => [:required, :url],
+      :temp_cert_id => []
+    })
 
-    approved_ca.intermediate_cas = get_new_intermediate_cas(params[:intermediateCas])
+    ca = get_top_or_intermediate_ca(params[:ca_id], params[:intermediate_ca_id])
 
-    logger.info("About to save following approved_ca: '#{approved_ca}'")
-    approved_ca.save!
+    ocsp_responder = OcspInfo.new
+    ocsp_responder.url = params[:url]
+    ocsp_responder.cert = get_temp_cert_from_session(params[:temp_cert_id])
 
-    clear_all_temp_certs_from_session()
-    render_json()
-  rescue SdsbArgumentError => e
-    handle_sdsb_argument_error(e)
+    ca.ocsp_infos << ocsp_responder
+
+    render_json
   end
 
-  def edit_existing_approved_ca
+  def edit_ocsp_responder
     authorize!(:edit_approved_ca)
 
-    approved_ca = edit_approved_ca()
+    validate_params({
+      :ocsp_responder_id => [:required],
+      :url => [:required, :url],
+      :temp_cert_id => []
+    })
 
-    edit_ocsp_infos(approved_ca)
+    ocsp_responder = OcspInfo.find(params[:ocsp_responder_id])
+    ocsp_responder.url = params[:url]
 
-    edit_intermediate_cas(approved_ca)
+    unless params[:temp_cert_id].blank?
+      ocsp_responder.cert = get_temp_cert_from_session(params[:temp_cert_id])
+    end
 
-    approved_ca.save!
-    logger.info("ApprovedCa edited, result: '#{approved_ca}'")
+    ocsp_responder.save!
 
-    clear_all_temp_certs_from_session()
-    render_json()
-  rescue SdsbArgumentError => e
-    handle_sdsb_argument_error(e)
+    render_json
   end
 
-  def delete_approved_ca
-    authorize!(:delete_approved_ca)
+  def delete_ocsp_responder
+    authorize!(:edit_approved_ca)
 
-    ApprovedCa.find(params[:id]).destroy
+    validate_params({
+      :ocsp_responder_id => [:required]
+    })
 
-    render_json()
+    OcspInfo.destroy(params[:ocsp_responder_id])
+
+    render_json
   end
-
-  # -- Specific POST methods - end ---
 
   private
 
-  def get_ca(temp_cert_id, ocsp_infos = [])
-    result = CaInfo.new()
-    result.cert = get_temp_cert_from_session(temp_cert_id)
-    result.ocsp_infos = ocsp_infos
+  def render_top_cas
+    top_cas = []
 
-    return result
-  end
-
-  # Parameter may be either String representing JSON array request parameter or
-  # same string parsed into raw JSON array
-  def get_new_ocsp_infos(raw_infos)
-    raw_ocsp_infos = get_json_array(raw_infos)
-    result = []
-
-    raw_ocsp_infos.each do |each|
-      temp_ocsp_cert_id = each["ocspTempCertId"]
-
-      url = each["url"].strip()
-      logger.debug("OCSP - url: '#{url}',"\
-          " temp cert id: '#{temp_ocsp_cert_id}'")
-
-      ocsp = OcspInfo.new()
-      ocsp.url = url
-      ocsp.cert = get_temp_cert_from_session(temp_ocsp_cert_id)
-      result << ocsp
+    ApprovedCa.find_each do |top_ca|
+      top_cas << top_ca_to_json(top_ca)
     end
 
-    result
+    render_json(top_cas)
   end
 
-  def get_new_intermediate_cas(intermediate_cas_param)
-    raw_intermediate_cas = get_json_array(intermediate_cas_param)
-    result = []
-    raw_intermediate_cas.each do |each|
-      temp_ca_cert_id = each["intermediateCaTempCertId"]
-      ocsp_infos = get_new_ocsp_infos(each["ocspInfos"])
-      result << get_ca(temp_ca_cert_id, ocsp_infos)
+  def top_ca_to_json(top_ca)
+    cert_obj = CommonUi::CertUtils.cert_object(top_ca.top_ca.cert)
+
+    {
+      :id => top_ca.id,
+      :name => top_ca.name,
+      :subject => cert_obj.subject.to_s,
+      :issuer => cert_obj.issuer.to_s,
+      :valid_from => format_time(top_ca.top_ca.valid_from.localtime),
+      :valid_to => format_time(top_ca.top_ca.valid_to.localtime),
+      :name_extractor_disabled => top_ca.authentication_only,
+      :name_extractor_member_class => top_ca.identifier_decoder_member_class,
+      :name_extractor_method => top_ca.identifier_decoder_method_name
+    }
+  end
+
+  def render_ocsp_responders(ca)
+    ocsp_responders = []
+
+    ca.ocsp_infos.each do |ocsp_responder|
+      ocsp_responders << {
+        :id => ocsp_responder.id,
+        :url => ocsp_responder.url,
+        :has_cert => !ocsp_responder.cert.nil?
+      }
     end
 
-    result
+    render_json(ocsp_responders)
   end
 
-  # Editing functions - start
+  def render_intermediate_cas(ca)
+    intermediate_cas = []
 
-  # Edits approved CA and returns modified one.
-  def edit_approved_ca
-    approved_ca_param = JSON.parse(params[:ca])
-    approved_ca = ApprovedCa.find(approved_ca_param["id"])
-    approved_ca.authentication_only = approved_ca_param["authOnly"]
-    approved_ca.identifier_decoder_member_class =
-        approved_ca_param["nameExtractorMemberClass"].strip()
-    approved_ca.identifier_decoder_method_name =
-        approved_ca_param["nameExtractorMethodName"].strip()
-
-    return approved_ca
-  end
-
-  def edit_ocsp_infos(approved_ca)
-    raw_ocsp_param = params[:ocspInfos]
-
-    if !raw_ocsp_param || raw_ocsp_param.empty?
-      return
+    ca.intermediate_cas.each do |intermediate_ca|
+      intermediate_cas << intermediate_ca_to_json(intermediate_ca)
     end
 
-    ocsp_infos_param = JSON.parse(raw_ocsp_param)
-
-    delete_ocsp_infos(ocsp_infos_param["delete"])
-
-    update_existing_ocsp_infos(ocsp_infos_param["update"])
-
-    add_new_ocsp_infos(ocsp_infos_param["new"])
+    render_json(intermediate_cas)
   end
 
-  def delete_ocsp_infos(deletable_ocsp_info_ids)
-    return if deletable_ocsp_info_ids == nil || 
-        !deletable_ocsp_info_ids.is_a?(Array)
+  def intermediate_ca_to_json(intermediate_ca)
+    cert_obj = CommonUi::CertUtils.cert_object(intermediate_ca.cert)
 
-    deletable_ocsp_info_ids.each do |each|
-      OcspInfo.destroy(each)
-    end
+    {
+      :id => intermediate_ca.id,
+      :name => cert_obj.subject.to_s,
+      :subject => cert_obj.subject.to_s,
+      :issuer => cert_obj.issuer.to_s,
+      :valid_from => format_time(cert_obj.not_before.localtime),
+      :valid_to => format_time(cert_obj.not_after.localtime),
+    }    
   end
 
-  def update_existing_ocsp_infos(ocsp_infos_to_update)
-    return if ocsp_infos_to_update == nil || !ocsp_infos_to_update.is_a?(Array)
-
-    ocsp_infos_to_update.each do |each|
-      ocsp_info_to_update = OcspInfo.find(each["id"])
-      ocsp_info_to_update.url = each["url"].strip()
-      update_ocsp_cert(ocsp_info_to_update, each)
-
-      ocsp_info_to_update.save!
-    end
-  end
-
-  def add_new_ocsp_infos(ocsp_infos_to_add)
-    return if ocsp_infos_to_add == nil || !ocsp_infos_to_add.is_a?(Array)
-
-    ocsp_infos_to_add.each do |each|
-      new_ocsp_info = OcspInfo.new()
-      new_ocsp_info.ca_info_id = each["caInfoId"]
-      new_ocsp_info.url = each["url"].strip()
-      update_ocsp_cert(new_ocsp_info, each)
-
-      new_ocsp_info.save!
-    end
-  end
-
-  def edit_intermediate_cas(approved_ca)
-    raw_intermediate_ca_param = params[:intermediateCas]
-
-    if !raw_intermediate_ca_param || raw_intermediate_ca_param.empty?
-      return
-    end
-
-    intermediate_cas_param = JSON.parse(raw_intermediate_ca_param)
-
-    delete_intermediate_cas(intermediate_cas_param["delete"])
-    update_existing_intermediate_cas(intermediate_cas_param["update"])
-    approved_ca.intermediate_cas << get_new_intermediate_cas(
-      intermediate_cas_param["new"])
-  end
-
-  def delete_intermediate_cas(deletable_intermediate_ca_ids)
-    return if deletable_intermediate_ca_ids == nil || 
-        !deletable_intermediate_ca_ids.is_a?(Array)
-
-    deletable_intermediate_ca_ids.each do |each|
-      intermediate_ca = CaInfo.find(each)
-
-      # So that we won't accidentally remove topCA
-      if intermediate_ca.top_ca_id != nil
-        raise "Cannot delete top_ca (id=#{each}) without approved CA"
-      end
-
-      intermediate_ca.destroy()
-    end
-  end
-
-  def update_existing_intermediate_cas(intermediate_cas_to_update)
-    return if intermediate_cas_to_update == nil ||
-      !intermediate_cas_to_update.is_a?(Array)
-
-    intermediate_cas_to_update.each do |each|
-      intermediate_ca_to_update = CaInfo.find(each["id"])
-      update_intermediate_ca_cert(intermediate_ca_to_update, each)
-
-      intermediate_ca_to_update.save!
-    end
-  end
-
-  def update_ocsp_cert(ocsp, ocsp_info)
-    update_cert(ocsp, ocsp_info["ocspTempCertId"])
-  end
-
-  def update_intermediate_ca_cert(intermediate_ca, intermediate_ca_info)
-    update_cert(intermediate_ca,
-        intermediate_ca_info["intermediateCaTempCertId"])
-  end
-
-  def update_cert(object_to_update, temp_cert_id)
-    return if temp_cert_id == nil || temp_cert_id.to_s.empty?
-
-    new_cert_bytes = get_temp_cert_from_session(temp_cert_id)
-    object_to_update.cert = new_cert_bytes
-  end
-
-  # Editing functions - end
-
-  # JSON utilities - start
-
-  def get_json_array(raw_data)
-    return [] if raw_data == nil || raw_data.empty?
-
-    if !raw_data.is_a?(Array) && !raw_data.is_a?(String)
-      raise "JSON string or JSON array must be given to this method."
-    end
-
-    raw_data.is_a?(Array) ? raw_data : parse_json_array(raw_data)
-  end
-
-  def parse_json_array(array_param_string)
-    logger.debug("parse_json_array(#{array_param_string})")
-
-    array_contains_data?(array_param_string) ? 
-        JSON.parse(array_param_string) : []
-  end
-
-  # JSON utilities - end
-
-  def get_top_ca_cert_bytes
-    approved_ca = ApprovedCa.find(params[:caId])
-    return approved_ca.top_ca.cert
-  end
-
-  def get_approved_ca_list_column(index)
-    case(index)
-    when 0
-      return "approved_cas.name"
-    when 1
-      return "ca_infos.valid_from"
-    when 2
-      return "ca_infos.valid_to"
+  def get_top_or_intermediate_ca(approved_ca_id, intermediate_ca_id)
+    if intermediate_ca_id
+      CaInfo.find(intermediate_ca_id)
     else
-      raise "Index '#{index}' has no corresponding column."
+      ApprovedCa.find(approved_ca_id).top_ca
     end
-  end
-
-  def array_contains_data?(array_param_string)
-    array_param_string && 
-        !array_param_string.empty? &&
-        !array_param_string.eql?("null")
-  end
-
-  def handle_sdsb_argument_error(e)
-    logger.error(e)
-
-    case(e.type)
-    when :no_name_extractor_method
-      raise t('approved_cas.add.no_name_extractor')
-    when :no_ca_cert
-      raise t('approved_cas.edit.no_ca_cert')
-    end
-
-    raise e
   end
 end

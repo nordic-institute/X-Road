@@ -7,11 +7,25 @@ function can(privilege) {
 }
 
 $.fn.disable = function() {
-    return this.attr("disabled", "true").addClass("ui-state-disabled");
+    if (this.is("label.upload")) {
+        this.find("input[type=file]").attr("disabled", "true");
+        return this.addClass("ui-state-disabled");
+    } else {
+        return this.attr("disabled", "true").addClass("ui-state-disabled");
+    }
 };
 
-$.fn.enable = function() {
-    return this.removeAttr("disabled").removeClass("ui-state-disabled");
+$.fn.enable = function(enable) {
+    if (typeof enable != "undefined" && !enable) {
+        return this.disable();
+    }
+
+    if (this.is("label.upload")) {
+        this.find("input[type=file]").removeAttr("disabled");
+        return this.removeClass("ui-state-disabled");
+    } else {
+        return this.removeAttr("disabled").removeClass("ui-state-disabled");
+    }
 };
 
 $.fn.initDialog = function(opts) {
@@ -139,22 +153,32 @@ $.fn.initTabs = function(opts) {
             return;
         }
 
-        $($("a", ui.newTab).attr("href") + "_actions", titleBar).show()
-            .position({
+        var actions = $($("a", ui.newTab).attr("href") + "_actions", titleBar);
+
+        if (actions.length > 0) {
+            actions.show().position({
                 my: "right center",
                 at: "left center",
                 of: titleBar.find(".dialog-buttonbar")
             });
+        }
 
         tabs.closest(".ui-dialog-content").trigger("dialogresizestop");
     });
 
-    // All tabs closed on create, so that we always get the
-    // tabsactivate event on first opening.
-    opts.collapsible = true;
-    opts.active = false;
+    if (typeof opts.active == "undefined") {
+        // All tabs closed on create, so that we always get the
+        // tabsactivate event on first opening.
+        opts.collapsible = true;
+        opts.active = false;
+    }
 
     return this.tabs(opts);
+};
+
+$.fn.setCursorToTextEnd = function() {
+    var $initialVal = this.val();
+    this.val($initialVal);
 };
 
 $.fn.dataTableExt.oApi.enable = function() {
@@ -370,6 +394,10 @@ String.prototype.containsIgnoreCase = function(searchable) {
     return this.toLowerCase().indexOf(searchable.toLowerCase()) != -1;
 };
 
+function isNotBlank(value) {
+    return $.trim(value) != 0;
+}
+
 function initMenu() {
     $('.menu li a').each(function() {
         if ($(this).attr('href') == location.pathname) {
@@ -391,26 +419,43 @@ function addMessage(type, message) {
         return;
     }
 
-    var messageContainer = "." + type;
+    var messages = $("#content > .messages");
 
     if ($(".ui-dialog:visible").length > 0) {
-        // TODO (RM task #5865): Find more foolproof selector for it!
-        var buttonPane = ".ui-dialog-buttonpane:visible:last ";
-        messageContainer = buttonPane + messageContainer;
+        var dialogContent = $(".ui-dialog-content:visible:first");
 
-        if ($(messageContainer).length == 0) {
-            $("<div>")
-                .addClass(type)
-                .addClass("message")
-                .prependTo(buttonPane);
+        $(".ui-dialog-content:visible:not(:first)").each(function() {
+            if (dialogContent.zIndex() < $(this).zIndex()) {
+                dialogContent = $(this);
+            }
+        });
+
+        messages = dialogContent.siblings(".messages");
+
+        if (messages.length == 0) {
+            var buttonPaneHeight = dialogContent
+                .siblings(".ui-dialog-buttonpane").outerHeight();
+
+            messages = $("<div>").addClass("messages")
+                .insertAfter(dialogContent)
+                .css("bottom", buttonPaneHeight);
         }
     }
 
-    $(messageContainer).append(message + "<br/>");
+    var messageContainer = messages.find("." + type);
+
+    if (messageContainer.length == 0) {
+        messageContainer = $("<div>")
+            .addClass(type + " message")
+            .append($("<i>").addClass("fa fa-times"))
+            .appendTo(messages);
+    }
+
+    messageContainer.append(message + "<br/>");
 }
 
 function clearMessages() {
-    $(".message").empty();
+    $(".message").remove();
 }
 
 function showMessages(messages) {
@@ -472,6 +517,13 @@ function action(name) {
 
 function redirect(path) {
     window.location.href = $("meta[name='root_path']").attr("content") + path;
+}
+
+/**
+ * Parameter is selector for dialog.
+ **/
+function closeDialog(dialogToClose) {
+    $(dialogToClose).dialog("close");
 }
 
 function registerCallbacks(oSettings) {
@@ -755,6 +807,11 @@ function isInputFilled(inputSelector) {
     return inputValue != null && inputValue.length > 0
 }
 
+function isReadonlyInputFilled(inputSelector) {
+    var inputValue = inputSelector.text();
+    return inputValue != null && inputValue.length > 0
+}
+
 $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
     options.success = function(_data, _textStatus, _jqXHR) {
         if (_data.redirect) {
@@ -796,17 +853,6 @@ function toggleTableVisibility(toggleButton, tableId) {
     var toggleButtonText = isTableVisible(tableId) ? "+" : "-";
     toggleButton.text(toggleButtonText);
     getTableWrapper(tableId).toggle();
-}
-
-function addAdvancedSearchLink(filterId, onClick) {
-    var filterElement = $("#" + filterId);
-
-    var advancedSearchLink = $("<a>", {
-        text: _("common.advanced_search"),
-        href: "#",
-        click: onClick
-    });
-    advancedSearchLink.appendTo(filterElement);
 }
 
 $(document).ajaxSend(function(ev, xhr) {
@@ -853,6 +899,7 @@ function uploadCallback(response) {
 
 function getTableRowButton(buttonText, onClick) {
     return $('<button/>', {
+        style: "margin-left: 5px",
         text: buttonText,
         class: 'right',
         click: onClick
@@ -914,6 +961,8 @@ function activateToken(tokenId, onSuccess, onFail) {
                       pin: $("#activate_token_pin").val()
                   };
 
+                  $("#activate_token_pin").val("");
+
                   $.post("/application/activate_token", params, function() {
                       $(self).dialog("close");
 
@@ -945,7 +994,7 @@ function deactivateToken(tokenId, onSuccess) {
 $(document).ready(function() {
     initMenu();
 
-    // page heading = active menu item
+    // Set page heading according to active menu item.
     var active = $("#menu .active");
     if (active.length > 0) {
         $("#heading:empty").html(active.html());
@@ -953,12 +1002,11 @@ $(document).ready(function() {
         $("#heading:empty").parent().hide();
     }
 
-    // submit only search forms with ENTER
+    // Submit only search forms with ENTER.
     $(document).on("keydown", "form", function(e) {
         if (e.which == 13) {
             $(this).find(".search").click();
         }
-
         return e.which !== 13;
     });
 
@@ -974,9 +1022,17 @@ $(document).ready(function() {
         if (tableHeight > visibleHeight) {
             $(this).css("height", Math.min(
                 tableHeight, table.fnSettings().oScroll.sY));
+        } else {
+            $(this).css("height", tableHeight);
         }
     });
 
+    // Close buttons on messages.
+    $(document).on("click", ".message i", function() {
+        $(this).parent().remove();
+    });
+
+    // Misc stuff. TODO: cleanup
     $('.' + $('#ctrl').val() + '_actions').find('button').each(function() {
         var clone = $(this).clone();
         $(this).remove();
@@ -990,15 +1046,37 @@ $(document).ready(function() {
     if($('#user h2').text() == '')
         $('#user h1').addClass('big');
 
-    $('input[readonly]').focus(function(){
-        this.blur();
-    });
-
     initLocaleSelectDialog();
 
+    // Init every tooltip on page, even the ones added dynamically later.
     $(document).tooltip({
         content: function() {
             return $(this).attr("title");
+        }
+    });
+
+    // Init simple/advanced search tabs.
+    $(".search_tabs").initTabs({
+        active: 0,
+        create: function() {
+            $(".advanced_search .clear", this).click(function() {
+                $(this).closest(".advanced_search")
+                    .find("input, select").val("");
+            });
+        },
+        activate: function(event, ui) {
+            var table = $(this).parent()
+                .find(".dataTables_scrollBody .dataTable").dataTable();
+
+            if (ui.newTab.index() == 0) {
+                $(".advanced_search .clear", this).click();
+            } else {
+                $(".simple_search input", this).val("");
+            }
+
+            if (!table.fnSettings().oFeatures.bServerSide) {
+                table.fnFilterClear("");
+            }
         }
     });
 });

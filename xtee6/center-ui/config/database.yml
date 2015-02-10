@@ -1,16 +1,8 @@
-common: &common
+development:
   adapter: postgresql
   encoding: utf8
   username: centerui
   password: centerui # from psql setup, see Postgresql
-
-production:
-  <<: *common
-  database: centerui_production
-  reconnect: true
-
-development:
-  <<: *common
   database: centerui_development
 
   # XXX: Comment following lines in and use proper port for quick

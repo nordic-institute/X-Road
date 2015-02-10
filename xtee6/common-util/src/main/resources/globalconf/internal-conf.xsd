@@ -26,7 +26,7 @@
             <element name="instanceIdentifier" type="string">
                 <annotation>
                     <documentation>
-                        Code that uniquely identifies this instance of the X-Road system within a federation of 
+                        Code that uniquely identifies this instance of the X-Road system within a federation of
                         systems.
                     </documentation>
                 </annotation>
@@ -51,7 +51,7 @@
             <element name="timeStampingIntervalSeconds" type="integer">
                 <annotation>
                     <documentation>
-                        Time interval (in seconds) after which a logged signature should be time-stamped. 
+                        Time interval (in seconds) after which a logged signature should be time-stamped.
                         This ensures that the time-stamped signature can be used as evidence at some later date.
                     </documentation>
                 </annotation>
@@ -91,12 +91,12 @@
 
     <complexType name="ConfigurationAnchorType">
         <sequence>
-			<element name="generatedAt" minOccurs="0" type="dateTime">
-				<annotation>
-					<documentation>Date when this anchor was produced
-					</documentation>
-				</annotation>
-			</element>
+            <element name="generatedAt" minOccurs="0" type="dateTime">
+                <annotation>
+                    <documentation>Date when this anchor was produced
+                    </documentation>
+                </annotation>
+            </element>
             <element name="instanceIdentifier" type="string">
                 <annotation>
                     <documentation>

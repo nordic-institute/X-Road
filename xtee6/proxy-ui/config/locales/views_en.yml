@@ -87,14 +87,12 @@ en:
       details: "Details"
       add_group: "Add Group"
       code: "Code"
-      description: "Description"
       member_count: "Member Count"
       updated: "Updated"
       new_group: "New Group"
 
     group_details_dialog:
       title: "Local Group {{group}}"
-      edit: "Edit"
       edit_title: "Edit Description"
       group_members: "Group Members"
       select_all: "select all"

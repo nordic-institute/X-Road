@@ -1,28 +1,7 @@
 var SDSB_GROUP_EDIT = function() {
-    var oSpecificGroupMembers, oAddableMembers;
+    var oGroupMembers, oAddableMembers;
+
     var groupId, groupCode, isReadonly;
-
-    var skipFillingAddableMembersTable = true;
-
-    var existingMembersAdvancedSearch = false;
-    var existingMembersSimpleSearchSelector =
-            "#group_details_members_filter > label";
-    var existingMembersSearchLinkSelector = "#group_details_members_filter > a";
-
-    var addableMembersAdvancedSearch = false;
-    var addableMembersSimpleSearchSelector =
-            "#group_addable_members_filter > label";
-    var addableMembersSearchLinkSelector = "#group_addable_members_filter > a";
-    var addableMembersContentSelector =
-        "#group_addable_members_wrapper .dataTables_scroll";
-
-    var addableMembersSearchInputSelector =
-        "#group_addable_members_filter input";
-
-    var executingExistingMembersAdvancedSearch = false;
-
-    var executingAddableMembersAdvancedSearch = false;
-    var performedAddableMembersSearch = false;
 
     /* -- PUBLIC - START -- */
 
@@ -30,10 +9,10 @@ var SDSB_GROUP_EDIT = function() {
         var params = {groupId: groupId};
         $.get("groups/find_by_id", params, function(response){
             var groupData = {
-                    id: response.data.id,
-                    code: response.data.code,
-                    description: response.data.description,
-                    is_readonly: response.data.is_readonly
+                id: response.data.id,
+                code: response.data.code,
+                description: response.data.description,
+                is_readonly: response.data.is_readonly
             };
 
             open(groupData)
@@ -41,213 +20,23 @@ var SDSB_GROUP_EDIT = function() {
     }
 
     function open(groupData) {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed(
-                "groups/can_see_details", function(){
-            groupId = groupData.id;
-            groupCode = groupData.code;
-            isReadonly = groupData.is_readonly;
+        groupId = groupData.id;
+        groupCode = groupData.code;
+        isReadonly = groupData.is_readonly;
 
-            fillDescription(groupData.description);
+        $("#group_details_description").text(groupData.description);
 
-            addGroupMembersSelectAllCheckbox();
-            openGroupDetailsDialog(groupCode);
-            refreshGroupMemberCount();
+        $("#group_details_dialog").dialog(
+            "option", "title", _("groups.details.title", {group: groupCode}));
 
-            $("#group_existing_members_advanced_search_div").hide();
-            disableRemoveSelectedMembersButton();
-            existingMembersAdvancedSearch = false;
-        });
+        $("#group_details_dialog").dialog("open");
+
+        refreshGroupMemberCount();
+
+        disableRemoveSelectedMembersButton();
     }
 
     /* -- PUBLIC - END -- */
-
-    /* -- INITIALIZATION - START -- */
-
-    function addGroupMembersSelectAllCheckbox() {
-        addSelectAllCheckbox(
-                "group_details_members_filter",
-                "group_details_members_select_all");
-    }
-
-    function addAddableMembersSelectAllCheckbox() {
-        addSelectAllCheckbox(
-                "group_addable_members_filter",
-                "group_addable_members_select_all");
-    }
-
-    function addSelectAllCheckbox(previousElementId, checkboxId) {
-        var previousElement = $("#" + previousElementId);
-        var checkboxDiv = $("<div/>");
-
-        var checkbox = $("<input/>", {
-            type: "checkbox",
-            id: checkboxId,
-        });
-
-        checkboxDiv.addClass("right");
-        checkboxDiv.text(_("common.select_all"));
-
-        checkbox.appendTo(checkboxDiv);
-        checkboxDiv.insertAfter(previousElement);
-    }
-
-    function addShowGroupMembersInSearchResultsCheckbox() {
-        var clearerDiv = $("#group_addable_members_wrapper div.clearer");
-        var checkboxDiv = $("<div/>");
-
-        var checkbox = $("<input/>", {
-            type: "checkbox",
-            id: "show_members_in_search_results",
-        });
-
-        checkbox.appendTo(checkboxDiv);
-        checkbox.after(_("groups.details.members_add_search_show_members"));
-        checkboxDiv.insertAfter(clearerDiv);
-    }
-
-    /* -- INITIALIZATION - END -- */
-
-    /* -- EXISTING MEMBERS' ADVANCED SEARCH - START -- */
-
-    /**
-     * Toggles between simple and advanced search.
-     */
-    function toggleExistingMembersSearchMode() {
-        if (existingMembersAdvancedSearch) {
-            turnExistingMembersAdvancedSearchIntoSimpleSearch();
-        } else {
-            turnExistingMembersSimpleSearchIntoAdvancedSearch();
-        }
-    }
-
-    function turnExistingMembersAdvancedSearchIntoSimpleSearch() {
-        hideExistingMembersAdvancedSearch();
-        SDSB_CENTERUI_COMMON.showSimpleSearchElement(
-                existingMembersSimpleSearchSelector);
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                existingMembersSearchLinkSelector, "common.advanced_search");
-        existingMembersAdvancedSearch = false;
-    }
-
-    function turnExistingMembersSimpleSearchIntoAdvancedSearch() {
-        $(existingMembersSimpleSearchSelector).hide();
-        fillExistingMemberAdvancedSearchMemberClassSelect();
-        showExistingMembersAdvancedSearch();
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                existingMembersSearchLinkSelector, "common.simple_search");
-        existingMembersAdvancedSearch = true;
-    }
-
-    function hideExistingMembersAdvancedSearch() {
-        $("#group_existing_members_advanced_search_div").hide();
-    }
-
-    function showExistingMembersAdvancedSearch() {
-        clearExistingMembersAdvancedSearchData();
-
-        fillSdsbInstanceSelect("group_existing_members_advanced_search_sdsb");
-        fillTypeSelect("group_existing_members_advanced_search_type");
-
-        $("#group_existing_members_advanced_search_div").show();
-    }
-
-    function clearExistingMembersAdvancedSearchData() {
-        $("#group_existing_members_advanced_search_name").val("");
-        $("#group_existing_members_advanced_search_code").val("");
-        $("#group_existing_members_advanced_search_class").val("");
-        $("#group_existing_members_advanced_search_subsystem").val("");
-        $("#group_existing_members_advanced_search_sdsb").val("");
-        $("#group_existing_members_advanced_search_type").val("");
-    }
-
-    function getExistingMemberAdvancedSearchParams() {
-        return {
-            name: $("#group_existing_members_advanced_search_name").val(),
-            memberCode: $("#group_existing_members_advanced_search_code").val(),
-            memberClass: $(
-                    "#group_existing_members_advanced_search_class").val(),
-            subsystem: $(
-                    "#group_existing_members_advanced_search_subsystem").val(),
-            sdsbInstance: $(
-                    "#group_existing_members_advanced_search_sdsb").val(),
-            objectType: $("#group_existing_members_advanced_search_type").val()
-        };
-    }
-
-    function fillExistingMemberAdvancedSearchMemberClassSelect() {
-        $.get("application/member_classes", null, function(response){
-            SDSB_CENTERUI_COMMON.fillSelectWithEmptyOption(
-                    "group_existing_members_advanced_search_class",
-                    response.data);
-        }, "json");
-    }
-
-    /* -- EXISTING MEMBERS' ADVANCED SEARCH - END -- */
-
-    /* -- ADDABLE MEMBERS' ADVANCED SEARCH - START -- */
-
-    function toggleAddableMembersSearchMode() {
-        if (addableMembersAdvancedSearch) {
-            turnAddableMembersAdvancedSearchIntoSimpleSearch();
-        } else {
-            turnAddableMembersSimpleSearchIntoAdvancedSearch();
-        }
-    }
-
-    function turnAddableMembersAdvancedSearchIntoSimpleSearch() {
-        hideAddableMembersAdvancedSearch();
-        SDSB_CENTERUI_COMMON.showSimpleSearchElement(
-                addableMembersSimpleSearchSelector);
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                addableMembersSearchLinkSelector, "common.advanced_search");
-        addableMembersAdvancedSearch = false;
-    }
-
-    function turnAddableMembersSimpleSearchIntoAdvancedSearch() {
-        $(addableMembersSimpleSearchSelector).hide();
-        showAddableMembersAdvancedSearch();
-        SDSB_CENTERUI_COMMON.setSearchLinkText(
-                addableMembersSearchLinkSelector, "common.simple_search");
-        addableMembersAdvancedSearch = true;
-    }
-
-    function hideAddableMembersAdvancedSearch(){
-        $("#group_addable_members_advanced_search_fieldset").hide();
-    }
-
-    function showAddableMembersAdvancedSearch() {
-        clearAddableMembersAdvancedSearchData();
-
-        fillSdsbInstanceSelect("group_addable_members_advanced_search_sdsb");
-        fillTypeSelect("group_addable_members_advanced_search_type");
-
-        $("#group_addable_members_advanced_search_fieldset").show();
-    }
-
-    function clearAddableMembersAdvancedSearchData() {
-        $("#group_addable_members_advanced_search_name").val("");
-        $("#group_addable_members_advanced_search_code").val("");
-        $("#group_addable_members_advanced_search_class").val("");
-        $("#group_addable_members_advanced_search_subsystem").val("");
-        $("#group_addable_members_advanced_search_sdsb").val("");
-        $("#group_addable_members_advanced_search_type").val("");
-    }
-
-    function getAddableMemberAdvancedSearchParams() {
-        return {
-            name: $("#group_addable_members_advanced_search_name").val(),
-            memberCode: $("#group_addable_members_advanced_search_code").val(),
-            memberClass: $(
-                    "#group_addable_members_advanced_search_class").val(),
-            subsystem: $(
-                    "#group_addable_members_advanced_search_subsystem").val(),
-            sdsbInstance: $(
-                    "#group_addable_members_advanced_search_sdsb").val(),
-            objectType: $("#group_addable_members_advanced_search_type").val()
-        };
-    }
-
-    /* -- ADDABLE MEMBERS' ADVANCED SEARCH - END -- */
 
     /* -- REFRESH DATA - START -- */
 
@@ -255,20 +44,15 @@ var SDSB_GROUP_EDIT = function() {
         var params = {groupId: groupId};
 
         $.get("groups/get_member_count", params, function(response) {
-            updateMemberCountElement(response.data.member_count);
+            $("#group_details_member_count")
+                .text(" (" + response.data.member_count + ")");
         });
-    }
-
-    function updateMemberCountElement(memberCount) {
-        var memberCountDiv = $("#group_details_member_count");
-        memberCountDiv.empty();
-        memberCountDiv.text(" (" + memberCount + ")");
     }
 
     function refreshGlobalGroupsList() {
         try {
             SDSB_GROUPS.updateTable();
-        } catch (e){
+        } catch (e) {
             /* Do nothing as SDSB_GROUPS.updateTable may not be
             present everywhere. */
         }
@@ -276,55 +60,10 @@ var SDSB_GROUP_EDIT = function() {
 
     function refreshGroupMembersTable() {
         refreshGroupMemberCount();
-        oSpecificGroupMembers.fnReloadAjax();
-    }
-
-    function refreshAddableMembersTable() {
-        oAddableMembers.fnReloadAjax();
-    }
-
-    function updateSelectAllCheckbox(tableRow, checkboxId) {
-        if (!tableRow.hasClass("row_selected")) {
-            $("#" + checkboxId).removeAttr("checked");
-        }
-    }
-
-    function fillDescription(description) {
-        $("#group_details_description").text(description);
-    }
-
-    function fillSdsbInstanceSelect(selectId) {
-        $.get("groups/sdsb_instance_codes", null, function(response) {
-            SDSB_CENTERUI_COMMON.fillSelectWithEmptyOption(
-                    selectId, response.data);
-        }, "json");
-    }
-
-
-    function fillTypeSelect(selectId) {
-        $.get("groups/types", null, function(response) {
-            SDSB_CENTERUI_COMMON.fillSelectWithEmptyOption(
-                    selectId, response.data);
-        }, "json");
+        oGroupMembers.fnReloadAjax();
     }
 
     /* -- REFRESH DATA - END -- */
-
-    /* -- CLEAR FIELDS - START -- */
-
-    function deleteMemberGlobalGroup(groupCode) {
-        if (typeof oGlobalGroupMembership  === 'undefined') {
-            return;
-        }
-
-        $.each(oGlobalGroupMembership.fnGetData(), function(index, each) {
-            if (each.group_code == groupCode) {
-                oGlobalGroupMembership.fnDeleteRow(index);
-            }
-        });
-    }
-
-    /* -- CLEAR FIELDS - END -- */
 
     /* -- POST REQUESTS - START -- */
 
@@ -343,49 +82,6 @@ var SDSB_GROUP_EDIT = function() {
         }, "json");
     }
 
-    function addSelectedMembersToGroup(dialog) {
-        var selectedMembers = oAddableMembers.getSelectedData();
-        var params = {
-            selectedMembers: selectedMembers,
-            groupId: groupId
-        };
-
-        $.post("groups/add_members_to_group", params, function(response) {
-            refreshGroupMembersTable();
-            refreshGlobalGroupsList();
-            $(dialog).dialog("close");
-        }, "json");
-    }
-
-    function deleteGroup() {
-        var requestParams = {groupId: groupId};
-
-        confirm("groups.remove.confirm", {group: groupCode}, function() {
-            $.post("groups/delete_group", requestParams, function() {
-                $("#group_details_dialog").dialog("close");
-                refreshGlobalGroupsList();
-
-                deleteMemberGlobalGroup(groupCode);
-            }, "json");
-        });
-    }
-
-    function removeSelectedMembers() {
-        requestParams = {
-            groupId: groupId,
-            removableMemberIds: getRemovableMemberIds()
-        };
-
-        confirm("groups.remove.selected_members_confirm", {group: groupCode},
-                function() {
-            $.post("groups/remove_selected_members", requestParams,
-                    function() {
-                refreshGroupMembersTable();
-                refreshGlobalGroupsList();
-                disableRemoveSelectedMembersButton();
-            }, "json");
-        });
-    }
     /* -- POST REQUESTS - END -- */
 
     /* -- MISC - START -- */
@@ -398,18 +94,10 @@ var SDSB_GROUP_EDIT = function() {
         $("#group_details_remove_selected_members").disable();
     }
 
-    function enableAddSelectedMembersButton() {
-        $("#add_selected_members_to_group").enable();
-    }
-
-    function disableAddSelectedMembersButton() {
-        $("#add_selected_members_to_group").disable();
-    }
-
     function getRemovableMemberIds() {
         result = [];
 
-        $.each(oSpecificGroupMembers.getSelectedData(), function(index, each) {
+        $.each(oGroupMembers.getSelectedData(), function(index, each) {
             result.push({
                 sdsbInstance: each.sdsb,
                 memberClass: each.member_class,
@@ -426,132 +114,59 @@ var SDSB_GROUP_EDIT = function() {
                 true : false;
     }
 
-    function startAddingMembers() {
-        skipFillingAddableMembersTable = true;
-        hideAddableMembersAdvancedSearch();
-        openGroupMembersAddDialog();
-        disableAddSelectedMembersButton();
-    }
-
-    function handleAddableMembersSelectAllCheckboxVisibility() {
-        var entries = oAddableMembers.fnGetData().length;
-        var selectAllCheckbox =
-            $("#group_addable_members_select_all").closest("div");
-
-        if (entries > 0) {
-            selectAllCheckbox.show();
-        } else {
-            selectAllCheckbox.hide();
-        }
-    }
-
-    function handleActionButtonsVisibility() {
-        if (isReadonly == false) {
-            $("#group_details_delete_group").show();
-            $("#group_details_add_members").show();
-            $("#group_details_remove_selected_members").show();
-        } else {
-            $("#group_details_delete_group").hide();
-            $("#group_details_remove_selected_members").hide();
-            $("#group_details_add_members").hide();
-        }
-    }
-
     /* -- MISC - END -- */
 
     /* -- HANDLERS - START -- */
 
     function initExistingMembersHandlers() {
-        $("#group_details_members tbody tr").live("click", function(ev) {
+        $("#group_members tbody tr").live("click", function(ev) {
             if (isReadonly == true) {
                 return;
             }
 
-            if (oSpecificGroupMembers.setFocus(0, ev.target.parentNode, true)) {
-                if (oSpecificGroupMembers.hasSelectedRows()) {
+            if (oGroupMembers.setFocus(0, ev.target.parentNode, true)) {
+                if (oGroupMembers.hasSelectedRows()) {
                     enableRemoveSelectedMembersButton();
                 } else {
                     disableRemoveSelectedMembersButton();
                 }
             }
-
-            updateSelectAllCheckbox($(this),
-                    "group_details_members_select_all");
         });
 
         $("#group_details_remove_selected_members").live("click", function() {
-            removeSelectedMembers();
-        });
+            var params = {
+                groupId: groupId,
+                removableMemberIds: getRemovableMemberIds()
+            };
 
-        $("#group_details_members_select_all").live("change", function() {
-            var existingMembersSelector =
-                $("#group_details_members tbody tr:not(.group_member)");
-            if ($(this).attr("checked")) {
-                existingMembersSelector.addClass("row_selected");
-            } else {
-                existingMembersSelector.removeClass("row_selected");
-            }
+            confirm("groups.remove.selected_members_confirm", {group: groupCode},
+                    function() {
+                $.post("groups/remove_selected_members", params, function() {
+                    refreshGroupMembersTable();
+                    refreshGlobalGroupsList();
+                    disableRemoveSelectedMembersButton();
+                }, "json");
+            });
         });
-
-        $("#group_existing_members_advanced_search_execute").live("click",
-                function() {
-            executingExistingMembersAdvancedSearch = true;
-            refreshGroupMembersTable();
-        });
-
-        $("#group_existing_members_advanced_search_clear").live("click",
-                function() {
-            clearExistingMembersAdvancedSearchData();
-        });
-
     }
 
     function initAddableMembersHandlers() {
-        $("#group_addable_members_advanced_search_execute").live("click",
-                function() {
-            performedAddableMembersSearch = true;
-            executingAddableMembersAdvancedSearch = true;
-            refreshAddableMembersTable();
-        });
-
-
-        $("#group_addable_members_advanced_search_clear").live("click",
-                function() {
-            clearAddableMembersAdvancedSearchData();
-        });
-
-        $("#group_addable_members_select_all").live("change", function() {
-            var addableMembersSelector =
-                $("#group_addable_members tbody tr:not(.group_member)");
-            if ($(this).attr("checked")) {
-                enableAddSelectedMembersButton();
-                addableMembersSelector.addClass("row_selected");
-            } else {
-                disableAddSelectedMembersButton();
-                addableMembersSelector.removeClass("row_selected");
-            }
-        });
-
-        $("#group_addable_members tbody tr:not(.group_member)")
+        $("#group_addable_members tbody tr:not(.unselectable)")
                 .live("click", function(ev) {
             if (oAddableMembers.setFocus(0, ev.target.parentNode, true)) {
                 if (oAddableMembers.hasSelectedRows()) {
-                    enableAddSelectedMembersButton();
+                    $("#add_selected_members_to_group").enable();
                 } else {
-                    disableAddSelectedMembersButton();
+                    $("#add_selected_members_to_group").disable();
                 }
             }
-
-            updateSelectAllCheckbox($(this),
-                    "group_addable_members_select_all");
         });
 
         $("#show_members_in_search_results").live("change", function() {
-            refreshAddableMembersTable();
-        });
-
-        $(addableMembersSearchInputSelector).live("keyup", function() {
-            performedAddableMembersSearch = true;
+            if (oAddableMembers.data("advancedSearch") ||
+                oAddableMembers.data("simpleSearch")) {
+                oAddableMembers.fnReloadAjax();
+            }
         });
     }
 
@@ -562,11 +177,11 @@ var SDSB_GROUP_EDIT = function() {
     function initGroupMembersTable() {
         var opts = defaultTableOpts();
         opts.bServerSide = true;
-        opts.bDestroy = true;
+        opts.iDeferLoading = 0;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "100px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
+        opts.sScrollY = 200;
+        opts.sDom = "tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },
@@ -586,30 +201,25 @@ var SDSB_GROUP_EDIT = function() {
                 "name": "groupId",
                 "value": groupId
             });
-            if (executingExistingMembersAdvancedSearch) {
-                aoData.push({
-                    "name": "advancedSearchParams",
-                    "value": JSON.stringify(
-                            getExistingMemberAdvancedSearchParams())
-                });
-                executingExistingMembersAdvancedSearch = false;
+
+            if (this.data("advancedSearch")) {
+                aoData.push(getAdvancedSearchParams(this));
             }
         };
 
-        opts.aaSorting = [ [6,'desc'] ];
+        opts.aaSorting = [[6, "desc"]];
 
-        oSpecificGroupMembers = $('#group_details_members').dataTable(opts);
-        oSpecificGroupMembers.fnSetFilteringDelay(600);
+        oGroupMembers = $("#group_members").dataTable(opts);
     }
 
     function initAddableMembersTable() {
         var opts = defaultTableOpts();
         opts.bServerSide = true;
-        opts.bDestroy = true;
         opts.bScrollCollapse = true;
         opts.bScrollInfinite = true;
-        opts.sScrollY = "300px";
-        opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
+        opts.iDeferLoading = 1;
+        opts.sScrollY = 300;
+        opts.sDom = "<'dataTables_header'<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
             { "mData": "member_code" },
@@ -619,8 +229,8 @@ var SDSB_GROUP_EDIT = function() {
             { "mData": "type" }
         ];
         opts.oTableTools = {
-                "sRowSelect": "multi"
-        }
+            "sRowSelect": "multi"
+        };
 
         opts.sAjaxSource = "groups/addable_members";
         opts.fnServerParams = function(aoData) {
@@ -629,50 +239,61 @@ var SDSB_GROUP_EDIT = function() {
                 "value": groupId
             },
             {
-                "name": "skipFillTable",
-                "value": skipFillingAddableMembersTable
-                        || !performedAddableMembersSearch
-            },
-            {
                 "name": "showMembersInSearchResult",
                 "value": areMembersShownInSearchResult()
             });
-            if (executingAddableMembersAdvancedSearch) {
-                aoData.push({
-                    "name": "advancedSearchParams",
-                    "value": JSON.stringify(
-                            getAddableMemberAdvancedSearchParams())
-                });
-                executingAddableMembersAdvancedSearch = false;
+
+            if (this.data("advancedSearch")) {
+                aoData.push(getAdvancedSearchParams(this));
             }
         };
 
-        opts.fnDrawCallback = function() {
-            skipFillingAddableMembersTable = false;
-
-            handleAddableMembersSelectAllCheckboxVisibility();
-        }
-
         opts.fnInitComplete = function() {
-            addAdvancedSearchLink("group_addable_members_filter", function() {
-                toggleAddableMembersSearchMode();
-            });
-            addAddableMembersSelectAllCheckbox();
-            addShowGroupMembersInSearchResultsCheckbox();
-
-            handleAddableMembersSelectAllCheckboxVisibility();
+            $("#group_addable_members_actions")
+                .prependTo("#group_addable_members_wrapper .dataTables_header");
         }
 
         opts.fnRowCallback = function (nRow, member) {
             if (member.belongs_to_group == true) {
-                $(nRow).addClass("group_member");
+                $(nRow).addClass("unselectable");
             }
         }
 
-        opts.aaSorting = [ [1,'desc'] ];
+        opts.aaSorting = [[1, 'desc']];
 
         oAddableMembers = $('#group_addable_members').dataTable(opts);
-        oAddableMembers.fnSetFilteringDelay(600);
+    }
+
+    function clearAddableMembers() {
+        oAddableMembers.fnSettings().bAjaxDataGet = false;
+        oAddableMembers.fnClearTable(false);
+        oAddableMembers.fnDraw();
+        oAddableMembers.fnSettings().bAjaxDataGet = true;
+
+        oAddableMembers.data("simpleSearch", false);
+        oAddableMembers.data("advancedSearch", false);
+    }
+
+    function getAdvancedSearchParams(table) {
+        var advancedSearch = table.closest(".ui-dialog")
+            .find(".advanced_search");
+
+        var select = function(field) {
+            return advancedSearch
+                .find("[name=group_members_search_" + field + "]");
+        };
+
+        return {
+            "name": "advancedSearchParams",
+            "value": JSON.stringify({
+                name: select("name").val(),
+                memberCode: select("code").val(),
+                memberClass: select("class").val(),
+                subsystem: select("subsystem").val(),
+                sdsbInstance: select("sdsb").val(),
+                objectType: select("type").val()
+            })
+        };
     }
 
     /* -- DATA TABLES - END -- */
@@ -683,8 +304,8 @@ var SDSB_GROUP_EDIT = function() {
         $("#group_description_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: "auto",
-            width: "auto",
+            height: 300,
+            width: 500,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -706,11 +327,9 @@ var SDSB_GROUP_EDIT = function() {
         });
     }
 
-    function openGroupDetailsDialog(groupCode) {
-        initGroupMembersTable();
-
+    function initGroupDetailsDialog(groupCode) {
         $("#group_details_dialog").initDialog({
-            title: _("groups.details.title", {group: groupCode}),
+            autoOpen: false,
             modal: true,
             height: 600,
             minHeight: 600,
@@ -723,63 +342,136 @@ var SDSB_GROUP_EDIT = function() {
                 }
             ],
             open: function() {
-                addAdvancedSearchLink("group_details_members_filter", function(){
-                    toggleExistingMembersSearchMode();
-                });
+                oGroupMembers.fnReloadAjax();
 
-                handleActionButtonsVisibility();
-            },
-            close: function() {
-                oSpecificGroupMembers.fnDestroy();
-                isReadonly = false;
+                if (isReadonly == false) {
+                    $("#group_details_delete_group").show();
+                    $("#group_details_add_members").show();
+                    $("#group_details_remove_selected_members").show();
+                } else {
+                    $("#group_details_delete_group").hide();
+                    $("#group_details_remove_selected_members").hide();
+                    $("#group_details_add_members").hide();
+                }
             }
         });
     }
 
-    function openGroupMembersAddDialog() {
-        $("#group_members_add_dialog").initDialog({
-            title: _("groups.details.members_add_title", {group: groupCode}),
+    function initGroupMembersAddDialog() {
+        var dialog = $("#group_members_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: "auto",
-            width: "auto",
+            height: 600,
+            width: 800,
             buttons: [
-                { text: _("groups.add.selected_members"),
-                    id: "add_selected_members_to_group",
-                    click: function() {
-                        addSelectedMembersToGroup(this);
-                    }
-                },
-                { text: _("common.close"),
+                { text: _("common.cancel"),
                     click: function() {
                         $(this).dialog("close");
                     }
                 },
-            ],
-            open: function() {
-                performedAddableMembersSearch = false;
-                initAddableMembersTable();
-                $(addableMembersSearchInputSelector).focus();
-            },
-            close: function() {
-                oAddableMembers.fnDestroy();
-            }
-        }).dialog("open");
+                { text: _("groups.add.all"),
+                  click: function() {
+                      var self = this;
+                      var params = {
+                          groupId: groupId,
+                          selectedMembers:
+                              oAddableMembers._("tr:not(.unselectable)")
+                      };
+
+                      if (params.selectedMembers.length == 0) {
+                          $(self).dialog("close");
+                          return;
+                      }
+
+                      $.post("groups/add_members_to_group", params,
+                             function(response) {
+                          refreshGroupMembersTable();
+                          refreshGlobalGroupsList();
+                          $(self).dialog("close");
+                      }, "json");
+                    }
+                },
+                { text: _("groups.add.selected"),
+                  id: "add_selected_members_to_group",
+                  click: function() {
+                      var self = this;
+                      var params = {
+                          groupId: groupId,
+                          selectedMembers:
+                              oAddableMembers._("tr.row_selected")
+                      };
+
+                      $.post("groups/add_members_to_group", params,
+                             function(response) {
+                          refreshGroupMembersTable();
+                          refreshGlobalGroupsList();
+                          $(self).dialog("close");
+                      }, "json");
+                    }
+                }
+            ]
+        });
+    }
+
+    function initGroupMembersSearch() {
+        $(".simple_search .search").click(function() {
+            var filterValue = $(this).closest(".simple_search")
+                .find("[name=group_members_search_all]").val();
+
+            var table = $(this).closest(".ui-dialog")
+                .find(".dataTables_scrollBody .dataTable");
+
+            table.data("simpleSearch", true);
+            table.data("advancedSearch", false);
+            table.dataTable().fnFilter(filterValue);
+        });
+
+        $(".advanced_search .search").click(function() {
+            var table = $(this).closest(".ui-dialog")
+                .find(".dataTables_scrollBody .dataTable");
+
+            table.data("simpleSearch", false);
+            table.data("advancedSearch", true);
+            table.dataTable().fnFilter("");
+        });
     }
 
     /* -- DIALOGS - END -- */
 
     $(document).ready(function(){
         initDescriptionEditDialog();
+
+        initGroupDetailsDialog();
+        initGroupMembersTable();
+        initGroupMembersSearch();
+
+        initGroupMembersAddDialog();
+        initAddableMembersTable();
+
         initExistingMembersHandlers();
         initAddableMembersHandlers();
 
-        $("#group_details_delete_group").live("click", function() {
-            deleteGroup();
+        $("#group_details_delete_group").click(function() {
+            var requestParams = {groupId: groupId};
+
+            confirm("groups.remove.confirm", {group: groupCode}, function() {
+                $.post("groups/delete_group", requestParams, function() {
+                    // TODO: update globalgroupmembership table in member_edit_dialog
+                    refreshGlobalGroupsList();
+
+                    $("#group_details_dialog").dialog("close");
+                }, "json");
+            });
         });
 
-        $("#group_details_add_members").live("click", function() {
-            startAddingMembers();
+        $("#group_details_add_members").click(function() {
+            clearAddableMembers();
+
+            $("#group_members_add_dialog").dialog("option", "title",
+                _("groups.details.members_add_title", {group: groupCode}));
+            $("#group_members_add_dialog").dialog("open");
+
+            $("#add_selected_members_to_group").disable();
         });
     });
 

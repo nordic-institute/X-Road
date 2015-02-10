@@ -495,9 +495,10 @@ $(document).ready(function() {
           "bVisible": false },
         { "mData": "buttons",
           "sClass": "buttons",
+          "sWidth": "7em",
           "mRender": function(data, type, full) {
               if (!full.cert_saved_to_conf && full.cert_importable) {
-                  return "<button class='import'>" + _("common.import") + "</button>";
+                  return "<button class='import right'>" + _("common.import") + "</button>";
               } else {
                   return "";
               }
@@ -539,6 +540,7 @@ $(document).ready(function() {
     opts.fnDrawCallback = function(oSettings) {
         // hide rows used to create empty groups
         this.$("tr.empty", {"filter": "applied"}).hide();
+        this.fnAdjustColumnSizing(false);
     };
 
     oKeys = $("#keys").dataTable(opts);

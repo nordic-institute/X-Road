@@ -12,6 +12,8 @@ import ee.cyber.sdsb.asyncdb.messagequeue.RequestInfo;
 import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.sdsb.common.identifier.ServiceId;
 
+import static ee.cyber.sdsb.asyncdb.AsyncDBTestUtil.getDate;
+import static ee.cyber.sdsb.asyncdb.AsyncDBTestUtil.getFirstSoapRequest;
 import static org.junit.Assert.*;
 
 public class RequestInfoBehavior {
@@ -20,14 +22,13 @@ public class RequestInfoBehavior {
 
     private static final long TIME_DELTA = 500; // ms
 
-    private ClientId sender = ClientId.create("EE", "tankist", "sender");
+    private ClientId sender = ClientId.create("EE", "GOV", "sender");
     private ServiceId service = ServiceId.create(
-            "EE", "tankist", "sender", null, "service");
+            "EE", "GOV", "sender", null, "service");
 
     @Test
     public void shouldGiveInitialDataBasedOnSoapRequest() {
-        RequestInfo requestInfo = RequestInfo.getNew(0, AsyncDBTestUtil
-                .getFirstSoapRequest());
+        RequestInfo requestInfo = RequestInfo.getNew(0, getFirstSoapRequest());
 
         ClientId expectedSender = ClientId.create("EE", "BUSINESS",
                 "clientmember");
@@ -45,7 +46,7 @@ public class RequestInfoBehavior {
 
     @Test
     public void shouldMarkSendingProperly() throws ParseException {
-        Date receivedTime = AsyncDBTestUtil.getDate("2013-04-18 11:22.33");
+        Date receivedTime = getDate("2013-04-18 11:22.33+0000");
 
         RequestInfo initial = new RequestInfo(0, "id",
                 receivedTime, null, sender,
@@ -65,7 +66,7 @@ public class RequestInfoBehavior {
 
     @Test
     public void shouldUnmarkSendingProperly() throws ParseException {
-        Date receivedTime = AsyncDBTestUtil.getDate("2013-04-18 11:22.33");
+        Date receivedTime = getDate("2013-04-18 11:22.33+0000");
         RequestInfo initial = new RequestInfo(0, "id",
                 receivedTime, null, sender,
                 "user", service);
@@ -85,7 +86,7 @@ public class RequestInfoBehavior {
 
     @Test
     public void shouldMarkRequestAsRemoved() throws ParseException {
-        Date receivedTime = AsyncDBTestUtil.getDate("2013-04-18 11:22.33");
+        Date receivedTime = getDate("2013-04-18 11:22.33+0000");
         RequestInfo initial = new RequestInfo(0, "id",
                 receivedTime, null, sender,
                 "user", service);
@@ -104,7 +105,7 @@ public class RequestInfoBehavior {
 
     @Test
     public void shouldRestoreRequest() throws ParseException {
-        Date receivedTime = AsyncDBTestUtil.getDate("2013-04-18 11:22.33");
+        Date receivedTime = getDate("2013-04-18 11:22.33+0000");
         RequestInfo initial = new RequestInfo(0, "id",
                 receivedTime, new Date(), sender,
                 "user", service);

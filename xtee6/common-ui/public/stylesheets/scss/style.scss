@@ -160,10 +160,6 @@ header#main-header {
                     text-align: right;
                     border-left: 1px solid $base-border-color;
                 }
-
-                &#messages {
-                    display: none;
-                }
             }
 
             &#user-menu {
@@ -338,35 +334,57 @@ div#confirm, div#yesno, div#warning, div#alert {
     padding: 10px 10px 0 !important;
 }
 
-.message {
-    clear: both;
-    margin: 10px;
-    padding: 5px 10px;
-    font-family: "Open Sans";
-    font-weight: 700;
-    // display: none;
-    border-radius: 3px;
-    font-size: 10pt;
+.messages {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: calc(100% - 270px);
+    z-index: 2000;
+
+    &:empty {
+        display: none;
+    }
 }
 
-.message:empty {
-    display:none;
+.ui-dialog .messages {
+    position: absolute;
+    width: 100%;
+}
+
+.message {
+    position: relative;
+    clear: both;
+    padding: 5px 20px 5px 10px;
+    font-family: "Open Sans";
+    font-weight: 700;
+    font-size: 10pt;
+
+    .fa-times {
+        position: absolute;
+        top: 0;
+        right: 0;
+        padding: 3px 5px;
+        cursor: pointer;
+
+        &:hover {
+            color: gray;
+        }
+    }
 }
 
 .notice {
-    background-color: rgba($base-color-green, .7);
+    background-color: rgba($base-color-green, .8);
     color: #fff;
 }
 
 .error {
-    background-color: rgba($base-color-red, .9);
+    background-color: rgba($base-color-red, .8);
     color: #fff;
 }
 
 .simple_search, .advanced_search {
-    width: 50%;
+//    width: 50%;
     min-width: 400px;
-    margin-bottom: 1em;
 }
 
 .ui-state-disabled {
@@ -490,14 +508,52 @@ div#confirm, div#yesno, div#warning, div#alert {
     }
 }
 
-table#keys {
+#keys_wrapper {
     tr {
         &.key td {
             padding-left: 20px;
         }
-        td.cert-friendly-name {
+        .cert-friendly-name {
             padding-left: 40px;
         }
+    }
+}
+
+.box {
+    @extend .cf;
+    padding: $base-padding;
+    margin: 0 10px 20px 0;
+    background: $base-color-light;
+    box-shadow: 5px 5px 5px #888;
+
+    .box-heading {
+        @extend .cf;
+        margin-bottom: 10px;
+
+        .box-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        button {
+            float: right;
+            margin-left: 10px;
+        }
+    }
+
+    div {
+        clear: both;
+    }
+
+    span.anchor-title {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    label.anchor-property {
+        padding-left: $base-padding;
+        width: 120px;
+        display: inline-block;
     }
 }
 

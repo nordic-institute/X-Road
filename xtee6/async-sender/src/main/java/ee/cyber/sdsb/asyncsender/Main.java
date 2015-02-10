@@ -13,12 +13,9 @@ public final class Main {
     }
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_PROXY, "async-db");
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_PROXY, "async-db")
+            .load();
     }
 
     /**

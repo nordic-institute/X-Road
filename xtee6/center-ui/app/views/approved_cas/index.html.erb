@@ -1,11 +1,5 @@
 <% content_for :head do %>
   <%= javascript_include_tag "cas" %>
-  <%= javascript_include_tag "ca_cache" %>
-  <%= javascript_include_tag "ca_common" %>
-  <%= javascript_include_tag "ca_new" %>
-  <%= javascript_include_tag "ca_edit" %>
-  <%= javascript_include_tag "certs_uploader" %>
-  <%= javascript_include_tag "centerui_common" %>
 <% end %>
 
 <% content_for :content do %>
@@ -21,22 +15,35 @@
     <% end %>
   </div>
 
-  <table id="cas" class="display">
+  <table id="cas">
     <thead>
       <tr>
-        <th id="approved_ca_trusted_cert_service"><%= t 'approved_cas.trusted_certification_service' %></th>
-        <th id="approved_ca_valid_from"><%= t 'common.valid_from' %></th>
-        <th id="approved_ca_valid_to"><%= t 'common.valid_to' %></th>
+        <th><%= t 'approved_cas.trusted_certification_service' %></th>
+        <th><%= t 'common.valid_from' %></th>
+        <th><%= t 'common.valid_to' %></th>
       </tr>
     </thead>
   </table>
 
-  <div class="dialog_dynamic">
-    <%= render :partial => "add_ca_step1_upload_top_ca_cert_dialog" %>
-    <%= render :partial => "add_ca_step2_view_top_ca_cert_dialog" %>
-    <%= render :partial => "add_ca_step3_add_name_extractor_dialog" %>
-    <%= render :partial => "add_ca_step4_add_top_ca_ocsp_responders" %>
-    <%= render :partial => "add_ca_step5_add_intermediate_cas" %>
-    <%= render :partial => "intermediate_ca_edit_dialog" %>
-  </div>
+  <%= dialog "ca_cert_upload_dialog" do %>
+    <table class="details">
+      <tr>
+        <td style="width: 100%;">
+          <%= text_field_tag "ca_cert_file", nil, :disabled => "disabled" %>
+        </td>
+        <td>
+          <%= form_tag "", :multipart => true, :target => "upload_target" do %>
+            <%= hidden_field_tag "ca_id" %>
+            <%= upload_button "ca_cert", nil, "common.browse" %>
+          <% end %>
+        </td>
+      </tr>
+    </table>
+  <% end %>
+
+  <%= dialog "ca_settings_dialog" do %>
+    <%= render :partial => "ca_settings", :locals => { :with_save_button => false } %>
+  <% end %>
+
+  <%= render :partial => "approved_ca_dialog" %>
 <% end %>

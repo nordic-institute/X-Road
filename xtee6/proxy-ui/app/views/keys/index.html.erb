@@ -94,11 +94,9 @@
 
   <%= dialog "token_details_dialog", t('.token_details') %>
   <%= dialog "key_details_dialog", t('.key_details') %>
-  <%= render :partial => "shared/cert_details_dialog" %>
 
-  <div class="dialog_dynamic">
-    <%= render :partial => "application/activate_token_dialog" %>
-  </div>
+  <%= render :partial => "shared/cert_details_dialog" %>
+  <%= render :partial => "application/activate_token_dialog" %>
 
   <%= dialog "import_cert_dialog", t('.import_certificate') do %>
     <section class="container">

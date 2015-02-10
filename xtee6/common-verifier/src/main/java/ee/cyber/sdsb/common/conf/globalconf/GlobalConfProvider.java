@@ -218,4 +218,8 @@ public interface GlobalConfProvider extends ConfProvider {
      */
     int getTimestampingIntervalSeconds();
 
+    /**
+     * @return all security server ids
+     */
+    List<SecurityServerId> getSecurityServers(String... instanceIdentifiers);
 }

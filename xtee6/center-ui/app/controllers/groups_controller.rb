@@ -3,8 +3,6 @@ class GroupsController < ApplicationController
       :global_groups_refresh,
       :group_members,
       :addable_members,
-      :sdsb_instance_codes,
-      :types,
       :get_member_count,
       :find_by_id]
 
@@ -29,10 +27,6 @@ class GroupsController < ApplicationController
 
   def get_records_count
     render_json_without_messages(:count => GlobalGroup.count)
-  end
-
-  def can_see_details
-    render_details_visibility(:view_group_details)
   end
 
   # -- Common GET methods - end ---
@@ -110,11 +104,6 @@ class GroupsController < ApplicationController
 
     s_echo = params[:sEcho]
 
-    if params[:skipFillTable] == "true"
-      render_data_table([], 0, s_echo)
-      return
-    end
-
     searchable = params[:sSearch]
 
     advanced_search_params =
@@ -155,40 +144,6 @@ class GroupsController < ApplicationController
     end
 
     render_data_table(result, count, s_echo)
-  end
-
-  def sdsb_instance_codes
-    authorize!(:view_global_groups)
-
-    distinct_instances = ClientId.select('DISTINCT sdsb_instance')
-
-    instance_codes = []
-    distinct_instances.each do |each|
-      instance_code = each.sdsb_instance
-
-      if instance_code && !instance_code.empty?
-        instance_codes << instance_code
-      end
-    end
-
-    render_json(instance_codes)
-  end
-
-  def types
-    authorize!(:view_global_groups)
-
-    distinct_types = ClientId.select('DISTINCT object_type')
-
-    types = []
-    distinct_types.each do |each|
-      type = each.object_type
-
-      if type && !type.empty?
-        types << type
-      end
-    end
-
-    render_json(types)
   end
 
   def get_member_count

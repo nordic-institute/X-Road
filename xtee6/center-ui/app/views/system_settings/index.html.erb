@@ -3,9 +3,9 @@
 <% end %>
 
 <% content_for :content do %>
-  <div class="trusted-anchor">
-    <div class="anchor-heading">
-      <span class="anchor-title"><%= t '.system_parameters' %></span>
+  <div class="box">
+    <div class="box-heading">
+      <span class="box-title"><%= t '.system_parameters' %></span>
     </div>
     <table class="details">
       <tr>
@@ -26,9 +26,9 @@
     </table>
   </div>
 
-  <div class="trusted-anchor">
-    <div class="anchor-heading">
-      <span class="anchor-title"><%= t '.management_services' %></span>
+  <div class="box">
+    <div class="box-heading">
+      <span class="box-title"><%= t '.management_services' %></span>
     </div>
     <table class="details">
       <tr>
@@ -62,9 +62,9 @@
     </table>
   </div>
 
-  <div class="trusted-anchor">
-    <div class="anchor-heading cf">
-      <span class="anchor-title"><%= t '.member_classes' %></span>
+  <div class="box">
+    <div class="box-heading cf">
+      <span class="box-title"><%= t '.member_classes' %></span>
       <button id="member_class_delete" class="right"><%= t 'common.delete' %></button>
       <button id="member_class_edit" class="right"><%= t 'common.edit' %></button>
       <button id="member_class_add" class="right"><%= t 'common.add' %></button>
@@ -82,20 +82,18 @@
     <%= text_field_tag "central_server_address_new", nil, :class => "fill" %>
   <% end %>
 
-  <div class="dialog_dynamic">
-    <%= dialog "member_class_edit_dialog" do %>
-      <table class="details">
-        <tr>
-          <td><%= t '.member_class_code' %></td>
-          <td><%= text_field_tag "member_class_code", nil, :class => "fill" %></td>
-        </tr>
-        <tr>
-          <td><%= t '.member_class_description' %></td>
-          <td><%= text_area_tag "member_class_description" %></td>
-        </tr>
-      </table>
-    <% end %>
+  <%= dialog "member_class_edit_dialog" do %>
+    <table class="details">
+      <tr>
+        <td><%= t '.member_class_code' %></td>
+        <td><%= text_field_tag "member_class_code", nil, :class => "fill" %></td>
+      </tr>
+      <tr>
+        <td><%= t '.member_class_description' %></td>
+        <td><%= text_area_tag "member_class_description" %></td>
+      </tr>
+    </table>
+  <% end %>
 
-    <%= render :partial => "shared/member_search_dialog" %>
-  </div>
+  <%= render :partial => "shared/member_search_dialog" %>
 <% end %>

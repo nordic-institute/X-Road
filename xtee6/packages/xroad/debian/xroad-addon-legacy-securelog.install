@@ -3,3 +3,4 @@ addon/jetty/legacy-securelog.conf usr/share/sdsb/jlib/addon/jetty/
 ../../legacy/securelog/securelog/build/libs/securelog-1.0.jar usr/share/sdsb/jlib/addon/proxy/
 addon/proxy/logreader.xml etc/sdsb/jetty/contexts-admin/
 ../../legacy/securelog/logreader/build/libs/logreader.war usr/share/sdsb/jlib/webapps/
+

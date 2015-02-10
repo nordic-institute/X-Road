@@ -101,12 +101,12 @@ class BaseBackupController < ApplicationController
   def upload_new
     authorize!(:backup_configuration)
 
-    CommonUi::BackupUtils.upload_new_file(params[:new_backup_file_upload_field])
+    CommonUi::BackupUtils.upload_new_file(params[:new_backup_file_upload])
 
     notice(t("backup.success.upload"))
-    upload_success(nil, "confBackup.uploadCallback")
+    upload_success(nil, "SDSB_BACKUP.uploadCallback")
   rescue Exception => e
     error(e.message)
-    upload_error(nil, "confBackup.uploadCallback")
+    upload_error(nil, "SDSB_BACKUP.uploadCallback")
   end
 end

@@ -65,7 +65,7 @@ class CentralService < ActiveRecord::Base
   end
 
   def self.get_central_services(query_params)
-    logger.info("get_central_services('#{query_params}'")
+    logger.info("get_central_services('#{query_params}')")
 
     get_search_relation(query_params.search_string).
         order("#{query_params.sort_column} #{query_params.sort_direction}").

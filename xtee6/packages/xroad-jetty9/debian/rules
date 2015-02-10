@@ -9,6 +9,14 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+lucid = 
+
+ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
+	lucid = true
+endif
+
+
+
 %:
 	dh  $@
 
@@ -16,10 +24,24 @@ override_dh_installinit:
 	dh_installinit --name=xroad-jetty
 
 override_dh_gencontrol:
+ifdef lucid
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0 
+else 
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+endif
+
 
 build:
-	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.2.6.v20141205/dist/jetty-distribution-9.2.6.v20141205.tar.gz"
+ifdef lucid
+	echo "PREPARE LUCID"
+	cp debian/xroad-jetty9.xroad-jetty.upstart.lucid debian/xroad-jetty9.xroad-jetty.upstart
+else
+	echo "PREPARE TRUSTY"
+	cp debian/xroad-jetty9.xroad-jetty.upstart.trusty debian/xroad-jetty9.xroad-jetty.upstart
+endif
+
+
+	wget -O jetty.tgz "http://eclipse.org/downloads/download.php?file=/jetty/9.2.5.v20141112/dist/jetty-distribution-9.2.5.v20141112.tar.gz&r=1"
 	tar zxf jetty.tgz 
 	mv jetty-distribution* jetty9
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod

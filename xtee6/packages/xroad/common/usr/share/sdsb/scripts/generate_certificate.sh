@@ -4,7 +4,7 @@
 usage()
 {
 cat << EOF
-usage: $0 -n intenal -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p]
+usage: $0 -n intenal -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p] [-c]
 
 generate ssl certificate.
 
@@ -17,6 +17,7 @@ OPTIONS:
    -s      subject, optional. Format "/C=EE/O=Company/CN=server.name.tld"
    -a      subjectAltName, optional. Format "DNS:serverAlt.name.tld,IP:1.1.1.1,IP:2.2.2.2>"
    -p      generate .p12 also, friendly name and password will default to basename value
+   -c      configuration directory containing openssl.cnf
 EOF
 }
 
@@ -25,12 +26,13 @@ SUBJECT=
 ALT=
 FILL=
 P12=
+CONF_DIR=
 OPENSSL_SUBJ=()
 OPENSSL_EXT=
 DIR=/etc/sdsb/ssl
 
 
-while getopts “hpd:fn:s:Sa:” OPTION
+while getopts “hpd:fn:s:Sa:c:” OPTION
 do
     case $OPTION in
       h)
@@ -58,6 +60,9 @@ do
      a)
 	ALT=$OPTARG
 	;;
+     c)
+	CONF_DIR=$OPTARG
+	;;
      :)
 	echo "Option -$OPTARG requires an argument."
 	usage
@@ -76,7 +81,12 @@ then
    exit 1
 fi
 
-if [[ ! -r ${DIR}/openssl.cnf ]]
+if [[ -z $CONF_DIR ]]
+then
+   CONF_DIR=$DIR
+fi
+
+if [[ ! -r ${CONF_DIR}/openssl.cnf ]]
 then
    echo "cannot read $DIR/openssl.cnf"
    usage
@@ -105,7 +115,7 @@ fi
 echo $SUBJECT  $OPENSSL_SUBJ
 
 
-openssl req -new -x509 -days 7300 -nodes -out ${DIR}/${NAME}.crt -keyout ${DIR}/${NAME}.key  -config ${DIR}/openssl.cnf  "${OPENSSL_SUBJ[@]}"  ${OPENSSL_EXT}
+openssl req -new -x509 -days 7300 -nodes -out ${DIR}/${NAME}.crt -keyout ${DIR}/${NAME}.key  -config ${CONF_DIR}/openssl.cnf  "${OPENSSL_SUBJ[@]}"  ${OPENSSL_EXT}
 
 if [[ "$?" != 0 ]]
 then

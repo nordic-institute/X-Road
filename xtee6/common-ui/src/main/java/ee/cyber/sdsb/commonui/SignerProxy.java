@@ -151,9 +151,9 @@ public final class SignerProxy {
         execute(new DeleteCert(certId));
     }
 
-    public static void deleteKey(String keyId) throws Exception {
-        LOG.trace("Deleting key '{}'", keyId);
-        execute(new DeleteKey(keyId));
+    public static void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
+        LOG.trace("Deleting key '{}', from token = ", keyId, deleteFromToken);
+        execute(new DeleteKey(keyId, deleteFromToken));
     }
 
     public static void setCertStatus(String certId, String status)

@@ -2,7 +2,6 @@ package ee.cyber.sdsb.common;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import ee.cyber.sdsb.common.util.CryptoUtils;
 
 
@@ -159,6 +158,12 @@ public final class SystemProperties {
 
     // Center -----------------------------------------------------------------
 
+    public static final String CENTER_DATABASE_PROPERTIES = PREFIX
+            + "center.database-properties";
+
+    public static final String CENTER_TRUSTED_ANCHORS_ALLOWED =
+            PREFIX + "center.trusted-anchors-allowed";
+
     public static final String CENTER_INTERNAL_DIRECTORY =
             PREFIX + "center.internal-directory";
 
@@ -208,19 +213,19 @@ public final class SystemProperties {
     public static final String INTERNAL_SSL_EXPORTER_COMMAND =
             PREFIX + "proxy-ui.internal-ssl-exporter-command";
 
-    // Proxy monitor agent ----------------------------------------------------
+    // Proxy & Central monitor agent ------------------------------------------
 
-    /** Property of the proxy monitor agent admin port. **/
-    public static final String PROXY_MONITOR_AGENT_ADMIN_PORT =
-            PREFIX + "proxy-monitor-agent.admin-port";
+    /** Property name of the proxy monitor agent configuration file. */
+    public static final String MONITOR_AGENT_CONFIGURATION_FILE =
+            PREFIX + "monitor-agent.monitoring-conf-file";
+
+    /** Property of the monitor agent admin port. **/
+    public static final String MONITOR_AGENT_ADMIN_PORT =
+            PREFIX + "monitor-agent.admin-port";
 
     /** Property of the proxy monitor agent sending interval in seconds. */
     public static final String PROXY_MONITOR_AGENT_SENDING_INTERVAL =
             PREFIX + "proxy-monitor-agent.sending-interval";
-
-    /** Property name of the proxy monitor agent configuration file. */
-    public static final String PROXY_MONITOR_AGENT_CONFIGURATION_FILE =
-            PREFIX + "proxy-monitor-agent.monitoring-conf-file";
 
     /** Property name of the proxy monitor info collection interval. */
     public static final String PROXY_PARAMS_COLLECTING_INTERVAL =
@@ -231,6 +236,17 @@ public final class SystemProperties {
 
     public static final String MONITORING_AGENT_URI =
             PREFIX + "monitoringagent.uri";
+
+    /** Property of the central monitor agent HTTPS port. **/
+    public static final String CENTRAL_MONITOR_AGENT_HTTPS_PORT =
+            PREFIX + "central-monitor-agent.https-port";
+
+    // Zabbix configurator agent ----------------------------------------------
+
+    /** Property name of the Zabbix configurator client's
+     * timeout (milliseconds). */
+    public static final String ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT =
+            PREFIX + "monitoring.zabbix-configurator-client-timeout";
 
     // Configuration proxy ------------------------------------------------- //
 
@@ -274,9 +290,6 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_CENTER =
             getConfPath() + "conf.d/center.ini";
-
-    public static final String CONF_FILE_OPTIONAL_PARTS =
-            getConfPath() + "configuration-parts.ini";
 
     public static final String CONF_FILE_CONFPROXY =
             getConfPath() + "conf.d/confproxy.ini";
@@ -462,6 +475,17 @@ public final class SystemProperties {
                 System.getProperty(PROXY_SSL_SUPPORT, "true"));
     }
 
+    public static String getCenterDatabasePropertiesFile() {
+        return System.getProperty(CENTER_DATABASE_PROPERTIES,
+                getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+    }
+
+    /** If true, configuration of trusted anchors will be enabled. */
+    public static boolean getCenterTrustedAnchorsAllowed() {
+        return "true".equalsIgnoreCase(
+               System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
+    }
+
     /** Returns the name of the signed internal configuration directory
      * that will be distributed to security servers inside instance. */
     public static String getCenterInternalDirectory() {
@@ -492,10 +516,10 @@ public final class SystemProperties {
         return System.getProperty(INTERNAL_SSL_EXPORTER_COMMAND);
     }
 
-    public static int getProxyMonitorAgentAdminPort() {
+    public static int getMonitorAgentAdminPort() {
         return Integer.parseInt(System.getProperty(
-                PROXY_MONITOR_AGENT_ADMIN_PORT,
-                Integer.toString(PortNumbers.PROXY_MONITOR_AGENT_ADMIN_PORT)));
+                MONITOR_AGENT_ADMIN_PORT,
+                Integer.toString(PortNumbers.MONITOR_AGENT_ADMIN_PORT)));
     }
 
     public static int getProxyMonitorAgentSendingInterval() {
@@ -503,10 +527,16 @@ public final class SystemProperties {
                 PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
     }
 
-    public static String getProxyMonitorAgentConfFile() {
-        return System.getProperty(PROXY_MONITOR_AGENT_CONFIGURATION_FILE,
+    public static String getMonitorAgentConfFile() {
+        return System.getProperty(MONITOR_AGENT_CONFIGURATION_FILE,
                 getConfPath()
-                    + DefaultFilepaths.PROXY_MONITOR_AGENT_CONFIGURATION_FILE);
+                    + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
+    }
+
+    public static int getZabbixConfiguratorClientTimeout() {
+        return Integer.parseInt(System.getProperty(
+                ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT,
+                Integer.toString(300000))); // Default timeout in milliseconds.
     }
 
     public static String getConfigurationProxyConfPath() {

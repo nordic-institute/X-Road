@@ -11,7 +11,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         if (oSigningKeys.getFocus()) {
             var selectedKey = oSigningKeys.getFocusData();
 
-            if (!selectedKey.active) {
+            if (!selectedKey.key_active) {
                 $("#activate_signing_key").enable();
                 $("#delete_signing_key").enable();
             } else {
@@ -82,12 +82,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         opts.aoColumns = [
             {
                 "mData": function(source, type, val) {
-                    var tokenFriendlyName =
-                        source.hasOwnProperty("token_friendly_name")
-                            ? source.token_friendly_name
-                            : "&lt;" + __("device_not_found") + "&gt;";
-
-                    return tokenFriendlyName + ": " + source.key_id;
+                    return source.token_friendly_name + ": " + source.key_id;
                 }
             },
             {
@@ -120,7 +115,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
             }
         ];
         opts.fnRowCallback = function(nRow, oData) {
-            if (oData.active) {
+            if (oData.key_active) {
                 $(nRow).addClass("semibold");
             }
 
@@ -143,7 +138,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
 
         opts.aoColumns = [
             { "mData": "file_name" },
-            { "mData": "content_identifier", "sClass": "lowercase" },
+            { "mData": "content_identifier" },
             { "mData": "updated_at" }
         ];
 

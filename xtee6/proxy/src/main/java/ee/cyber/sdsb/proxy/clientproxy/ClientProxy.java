@@ -136,7 +136,7 @@ public class ClientProxy implements StartStop {
     }
 
     private void createConnectors() throws Exception {
-        log.trace("createClient()");
+        log.trace("createConnectors()");
 
         createClientHttpConnector(SystemProperties.getConnectorHost(),
                 SystemProperties.getClientProxyHttpPort());
@@ -166,7 +166,7 @@ public class ClientProxy implements StartStop {
 
     private void createClientHttpsConnector(String hostname, int port)
             throws Exception {
-        log.trace("createClientHttpConnector({}, {})", hostname, port);
+        log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
         SslContextFactory cf = new SslContextFactory(false);
         cf.setWantClientAuth(true);

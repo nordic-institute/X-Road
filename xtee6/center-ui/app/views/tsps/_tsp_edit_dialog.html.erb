@@ -1,54 +1,25 @@
-<!-- Title will be added later dynamically -->
-<%= dialog "tsp_edit_dialog", "" do %>
-  <table>
+<%= dialog "tsp_edit_dialog" do %>
+  <table class="details">
     <tr>
       <td><%= t 'common.url' %></td>
-      <td><input id="tsp_url" type="text"/></td>
+      <td colspan="2"><%= text_field_tag "tsp_url" %></td>
     </tr>
     <tr>
       <td><%= t 'common.cert' %></td>
-      <td>
-        <%= form_tag "tsps/upload_tsp_cert",
-            :id => "tsp_cert_upload_form", :multipart => true,
-            :target => "tsp_cert_upload_target" do %>
-          <%= file_field_tag "upload_tsp_cert_file" %>
+      <td id="tsp_cert_file"></td>
+      <td style="min-width: 18em;">
+        <%= form_tag "tsps/upload_tsp_cert", :multipart => true,
+              :target => "tsp_cert_upload_target",
+              :style => "float: right" do %>
+          <%= upload_button "upload_tsp_cert_file" %>
+          <button id="tsp_cert_view"><%= t 'common.cert_view' %></button>
         <% end %>
       </td>
-      <td>
-        <button id="tsp_cert_upload_button"><%=t 'common.upload' %></button>
-      </td>
-      <iframe id="tsp_cert_upload_target" name="tsp_cert_upload_target"></iframe>
     </tr>
   </table>
 
-  <div class="clearer"></div>
+  <%= hidden_field_tag "tsp_temp_cert_id" %>
+  <iframe id="tsp_cert_upload_target" name="tsp_cert_upload_target"></iframe>
 
-  <div id="tsp_cert_details" class="dialog_dynamic">
-    <br/><br/>
-
-    <p id="tsp_cert_details_subject_dn" class="cert_details_title">
-      <%= t 'common.subject_dn' %>:
-    </p>
-    <br/>
-
-    <p id="tsp_cert_details_issuer_dn" class="cert_details_title">
-      <%= t 'common.issuer_dn' %>:
-    </p>
-    <br/>
-
-    <p class="cert_details_title"><%= t 'common.valid_from' %>:</p>
-      <p id="tsp_cert_details_valid_from"></p>
-    <br/>
-
-    <p class="cert_details_title"><%= t 'common.valid_to' %>:</p>
-      <p id="tsp_cert_details_valid_to"></p>
-    <br/>
-
-  </div>
-
-  <p id="tsp_temp_cert_id" class="ui-helper-hidden"></p>
-
-  <div class="dialog_dynamic">
-    <%= render :partial => "shared/cert_details_dialog" %>
-  </div>
+  <%= render :partial => "shared/cert_details_dialog" %>
 <% end %>

@@ -15,6 +15,7 @@ import javax.net.ssl.SSLSocket;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
@@ -82,7 +83,7 @@ class FastestConnectionSelectingSSLSocketFactory
         // then connect to that target immediately without host selection.
         URI cachedSSLSessionURI = getCachedSSLSessionHostURI(addresses);
         if (cachedSSLSessionURI != null) {
-            addresses = new URI[] { cachedSSLSessionURI };
+            addresses = new URI[] {cachedSSLSessionURI};
         }
 
         // Select the fastest address if more than one address is provided.
@@ -136,11 +137,8 @@ class FastestConnectionSelectingSSLSocketFactory
             return new SocketInfo(address, socket);
         } catch (IOException | UnresolvedAddressException e) {
             log.error("Could not connect to '{}': {}", address, e);
-            try {
-                socket.close();
-            } catch (IOException ignore) {
-            }
 
+            IOUtils.closeQuietly(socket);
             return null;
         }
     }

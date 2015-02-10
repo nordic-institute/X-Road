@@ -106,7 +106,7 @@ var SDSB_MEMBERS = function() {
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
-                    addMember(this);
+                      addMember(this);
                   }
                 },
                 { text: _("common.cancel"),

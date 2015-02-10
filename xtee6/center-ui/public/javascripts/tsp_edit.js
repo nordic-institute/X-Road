@@ -1,251 +1,161 @@
-var SDSB_TSP_EDIT = function() {
-    var newTsp = function() {
-        function initAdding() {
-            editTsp.clearTspEditing();
-            openTspEditDialog();
+(function(SDSB_TSP_EDIT, $, undefined) {
+    var tspId;
+
+    function enableActions() {
+        console.log("tspUrl = " + $("#tsp_url").val());
+        console.log("tspId = " + tspId);
+
+        if ($("#tsp_url").val() && (tspId || $("#tsp_temp_cert_id").val())) {
+            $("#tsp_edit_submit").enable();
+        } else {
+            $("#tsp_edit_submit").disable()
         }
 
-        function save(closeableDialog) {
-            var params = {
-                url: $("#tsp_url").val(),
-                tempCertId: $("#tsp_temp_cert_id").text()
-            }
-
-            $.post("tsps/save_new_tsp", params, function(){
-                clearSaveableTspData();
-                SDSB_TSPS.refreshTable();
-                closeableDialog.dialog("close");
-            }, "json");
+        if (tspId || $("#tsp_temp_cert_id").val()) {
+            $("#tsp_cert_view").enable();
+        } else {
+            $("#tsp_cert_view").disable();
         }
+    }
 
-        return {
-            initAdding: initAdding,
-
-            save: save
+    function editTsp() {
+        var params = {
+            id: tspId,
+            url: $("#tsp_url").val()
         };
-    }();
 
-    var editTsp = function() {
-        var editableTspId;
+        $.post("tsps/edit_tsp", params, function() {
+            SDSB_TSPS.refreshTable();
+            $("#tsp_edit_dialog").dialog("close");
+        }, "json");
+    }
 
-        function initEditing(id, url) {
-            clearSaveableTspData();
-            editableTspId = id;
-            $("#tsp_url").val(url);
-            openTspEditDialog();
-        }
-
-        function editingExistingTsp() {
-            return $.isNumeric(editableTspId);
-        }
-
-        function openEditingDialogWithData() {
-            var params = {tspId: editableTspId};
-
-            $.get("tsps/get_existing_tsp_cert_details", params,
-                    function(response) {
-                addTspCertData(response.data, function() {
-                    openTspCertDetails();
-                });
-
-                openTspEditDialogWindow();
-            });
-        }
-
-        function openTspCertDetails() {
-            var params = {tspId: editableTspId};
-
-            $.get("tsps/get_existing_tsp_cert_dump_and_hash", params,
-                    function(response) {
-                SDSB_CENTERUI_COMMON.openCertDetailsWindow(response.data);
-            }, "json");
-        }
-
-        function clearTspEditing() {
-            editableTspId = null;
-            clearSaveableTspData();
-        }
-
-        function save(closeableDialog) {
-            var params = {
-                id: editableTspId,
-                url: $("#tsp_url").val()
-            };
-
-            $.post("tsps/edit_existing_tsp", params, function() {
-                clearSaveableTspData();
-                clearTspEditing();
-                SDSB_TSPS.refreshTable();
-                closeableDialog.dialog("close");
-            }, "json");
-        }
-
-        return {
-            initEditing: initEditing,
-            editingExistingTsp: editingExistingTsp,
-            openEditingDialogWithData: openEditingDialogWithData,
-            clearTspEditing: clearTspEditing,
-
-            save: save
+    function addTsp() {
+        var params = {
+            url: $("#tsp_url").val(),
+            tempCertId: $("#tsp_temp_cert_id").val()
         };
-    }();
 
-    /* -- PUBLIC - START -- */
-
-    function initAdding() {
-        newTsp.initAdding();
+        $.post("tsps/add_tsp", params, function() {
+            SDSB_TSPS.refreshTable();
+            $("#tsp_edit_dialog").dialog("close");
+        }, "json");
     }
 
-    function initEditing(id, url) {
-        editTsp.initEditing(id, url);
-    }
-
-    function uploadCallbackTspCert(response) {
-        if (response.success) {
-            var cert = response.data;
-
-            addTspCertData(cert, function() {
-                SDSB_CENTERUI_COMMON.openTempCertDetailsById(
-                        cert.temp_cert_id, "tsps");
-            });
-
-            $("#tsp_cert_details").show();
-            manageTspSaveOkButtonVisibility();
-
-            SDSB_CERTS_UPLOADER.submitNextCertUpload();
-        } else {
-            $("#save_tsp_details_ok").disable();
-            $("#tsp_cert_details").hide();
-        }
-
-        showMessages(response.messages)
-    }
-
-    /* -- PUBLIC - END -- */
-
-    function addTspCertData(cert, detailsLinkClickHandler) {
-        clearTspCertDetailsWindow();
-        addTspCertDetailsLink(detailsLinkClickHandler);
-
-        var subjectDn = SDSB_CENTERUI_COMMON.decorateCertDetails(cert.subject);
-        SDSB_CENTERUI_COMMON.addCertDetailsParts(
-                subjectDn, $("#tsp_cert_details_subject_dn"));
-
-        var issuerDn = SDSB_CENTERUI_COMMON.decorateCertDetails(cert.issuer);
-        SDSB_CENTERUI_COMMON.addCertDetailsParts(
-                issuerDn, $("#tsp_cert_details_issuer_dn"));
-
-        $("#tsp_cert_details_valid_from").text(cert.valid_from);
-        $("#tsp_cert_details_valid_to").text(cert.expires);
-
-        $("#tsp_temp_cert_id").text(cert.temp_cert_id);
-    }
-
-    function addTspCertDetailsLink(clickHandler) {
-        var detailsSelector = $("#tsp_cert_details");
-        detailsSelector.find("a.open_details").remove();
-        detailsSelector.prepend(SDSB_CENTERUI_COMMON.getCertDetailsLink(clickHandler));
-    }
-
-    function clearTspCertDetailsWindow() {
-        $("#tsp_cert_details").find(".ca_cert_detail").remove();
-    }
-
-    function saveTsp(closeableDialog) {
-        if (editTsp.editingExistingTsp()) {
-            editTsp.save(closeableDialog);
-        } else {
-            newTsp.save(closeableDialog);
-        }
-    }
-
-    function clearSaveableTspData() {
-        $("#tsp_cert_details").hide();
-        $("#tsp_url").val(""),
-        $("#upload_tsp_cert_file").val(""),
-        $("#tsp_temp_cert_id").text("")
-    }
-
-
-    function getTspCertUploadRow() {
-        return $("#upload_tsp_cert_file").closest("tr");
-    }
-
-    function manageTspSaveOkButtonVisibility() {
-        var fileUploadInput = $('#upload_tsp_cert_file');
-        var tspUrlInput = $("#tsp_url");
-
-        if (isInputFilled(tspUrlInput)
-                && (editTsp.editingExistingTsp()
-                        || isInputFilled(fileUploadInput))) {
-            $("#save_tsp_details_ok").enable();
-        } else {
-            $("#save_tsp_details_ok").disable();
-        }
-    }
-
-    function openTspEditDialog() {
-        var isNew = !editTsp.editingExistingTsp();
-
-        var dialog = $("#tsp_edit_dialog").initDialog({
-            title: isNew ? _("tsps.edit_new") : _("tsps.edit_existing"),
+    function initTspEditDialog() {
+        $("#tsp_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: "auto",
-            width: "auto",
+            height: 250,
+            width: 800,
             buttons: [
                 { text: _("common.ok"),
-                  id: "save_tsp_details_ok",
+                  id: "tsp_edit_submit",
                   disabled: "disabled",
                   click: function() {
-                      var dialog = $(this);
-                      SDSB_CERTS_UPLOADER.initSubmittingCerts(function(){
-                          saveTsp(dialog);
-                      });
+                      tspId ? editTsp() : addTsp();
                   }
                 },
                 { text: _("common.cancel"),
                   click: function() {
-                      clearSaveableTspData();
                       $(this).dialog("close");
                   }
                 }
             ]
         });
-
-        if (isNew) {
-            getTspCertUploadRow().show();
-            dialog.dialog("open");
-        } else {
-            editTsp.openEditingDialogWithData();
-        }
     }
 
-    function openTspEditDialogWindow() {
-        $("#tsp_cert_details").show();
-        getTspCertUploadRow().hide();
-        $("#tsp_edit_dialog").dialog("open")
+    function initCertDetailsDialog() {
+        $("#cert_details_dialog").initDialog({
+            autoOpen: false,
+            modal: true,
+            height: 600,
+            width: 800,
+            buttons: [
+                { text: _("common.close"),
+                  click: function() {
+                      $(this).dialog("close");
+                  }
+                }
+            ]
+        });
+    }
+
+    function initTspEditActions() {
+        $(document).on("change", "#upload_tsp_cert_file", function() {
+            $(this).closest("form").submit();
+        });
+
+        $(document).on("keyup", "#tsp_url", enableActions);
+
+        $("#tsp_cert_view").click(function() {
+            if (tspId) {
+                var params = {
+                    tspId: tspId
+                };
+                $.get("tsps/view_tsp_cert", params, function(response) {
+                    $("#cert_details_dump").val(response.data.cert_dump);
+                    $("#cert_details_dialog").dialog("open");
+                }, "json");
+            } else {
+                $("#cert_details_dialog").dialog("open");
+            }
+
+            return false;
+        });
     }
 
     $(document).ready(function() {
-        $("#tsp_cert_upload_button").live("click", function() {
-            $("#tsp_cert_upload_form").submit();
-        });
-
-        $('#upload_tsp_cert_file').live("change", function(){
-            manageTspSaveOkButtonVisibility();
-            SDSB_CERTS_UPLOADER.manageCertFileSelection($(this));
-        });
-
-        $("#tsp_url").live("keyup", function() {
-            manageTspSaveOkButtonVisibility();
-        });
+        initTspEditDialog();
+        initCertDetailsDialog();
+        initTspEditActions();
     });
 
-    return {
-        initEditing: initEditing,
-        initAdding: initAdding,
+    SDSB_TSP_EDIT.openEditDialog = function(id, url) {
+        tspId = id;
 
-        uploadCallbackTspCert: uploadCallbackTspCert
-    }
-}();
+        $("#tsp_url").val(url);
+        $("#tsp_temp_cert_id").val("");
+        $("#tsp_cert_file").text("");
+
+        $("#upload_tsp_cert_file_button").disable();
+
+        $("#tsp_edit_dialog").dialog(
+            "option", "title", _("tsps.edit_existing"));
+
+        enableActions();
+
+        $("#tsp_edit_dialog").dialog("open")
+    };
+
+    SDSB_TSP_EDIT.openAddDialog = function() {
+        tspId = null;
+        $("#tsp_url, #tsp_temp_cert_id").val("");
+        $("#tsp_cert_file").text("");
+
+        $("#upload_tsp_cert_file_button").enable();
+
+        $("#tsp_edit_dialog").dialog(
+            "option", "title", _("tsps.edit_new"));
+
+        enableActions();
+
+        $("#tsp_edit_dialog").dialog("open")
+    };
+
+    SDSB_TSP_EDIT.uploadCallbackTspCert = function(response) {
+        if (response.success) {
+            $("#tsp_temp_cert_id").val(response.data.temp_cert_id);
+            $("#tsp_cert_file").text($("#upload_tsp_cert_file").val());
+            $("#cert_details_dump").val(response.data.cert_dump);
+        } else {
+            $("#tsp_temp_cert_id").val("");
+            $("#tsp_cert_file").text("");
+            $("#cert_details_dump").val("");
+        }
+
+        enableActions();
+        showMessages(response.messages)
+    };
+
+}(window.SDSB_TSP_EDIT = window.SDSB_TSP_EDIT || {}, jQuery));

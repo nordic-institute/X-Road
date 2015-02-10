@@ -23,6 +23,11 @@
       I18n.fallbacks = true;
 
       var PRIVILEGES = <%= raw(current_user.privileges.to_json) %>;
+
+      $(document).ready(function() {
+          addMessage("notice", "<%= escape_javascript(raw(flash_message(:notice))) %>");
+          addMessage("error", "<%= escape_javascript(raw(flash_message(:error))) %>");
+      });
     </script>
 
     <%= yield :head %>
@@ -75,7 +80,6 @@
                 </a>
               </ul>
             </li>
-            <li class="left button" id="messages"><i class="fa fa-envelope"></i></li>
           </ul>
         </div>
       </header>
@@ -89,7 +93,7 @@
 
         <section id="content" class="left">
           <%= yield :content %>
-          <%= render :partial => "application/messages" %>
+          <div class="messages"></div>
         </section>
       </section>
 
@@ -98,11 +102,13 @@
       <div id="warning"></div>
       <div id="alert"></div>
     </div>
+
+    <iframe id="upload_target" name="upload_target"></iframe>
+
+    <%= dialog "locale_select_dialog", t('.select_locale') do %>
+      <section class="container center">
+        <%= select_tag "locale", options_for_select(available_locales, I18n.locale) %>
+      </section>
+    <% end %>
   </body>
 </html>
-
-<%= dialog "locale_select_dialog", t('.select_locale') do %>
-  <section class="container center">
-    <%= select_tag "locale", options_for_select(available_locales, I18n.locale) %>
-  </section>
-<% end %>

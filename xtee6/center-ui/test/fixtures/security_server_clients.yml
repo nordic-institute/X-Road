@@ -40,3 +40,9 @@ subsystem_as_server_client:
   subsystem_code: "subsystem_as_server_client"
   server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_as_server_client_client_identifier) %>
   type: "Subsystem"
+
+subsystem_as_not_server_client:
+  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client) %>
+  subsystem_code: "subsystem_as_not_server_client"
+  server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_as_not_server_client_client_identifier) %>
+  type: "Subsystem"

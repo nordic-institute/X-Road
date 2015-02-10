@@ -82,11 +82,16 @@ subprojects {
         }
     }
 
+    idea {
+        module {
+            scopes.PROVIDED.plus += [configurations.provided]
+        }
+    }
+
     checkstyle {
         toolVersion = "6.1.1"
-        configFile = new File(rootDir, "doc/checkstyle.xml")
-        //configProperties = new File(rootDir, "doc/checkstyle.properties")
-        configProperties.config_loc = "$rootDir/doc"
+        configFile = new File(rootDir, "checkstyle.xml")
+        configProperties.config_loc = "$rootDir"
         ignoreFailures = true
         showViolations = false
     }

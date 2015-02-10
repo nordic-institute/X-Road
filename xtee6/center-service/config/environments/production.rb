@@ -1,5 +1,13 @@
+java_import Java::ee.cyber.sdsb.common.SystemProperties
+
 CenterService::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb
+
+  # In production we use database coordinates in one authoritative location.
+  def config.database_configuration
+    DbConfParser.new(
+      "production", SystemProperties.getCenterDatabasePropertiesFile).parse
+  end
 
   # Code is not reloaded between requests
   config.cache_classes = true

@@ -93,6 +93,7 @@ class ConfigurationSource < ActiveRecord::Base
     end
 
     key_record = ConfigurationSigningKey.new
+    key_record.token_identifier = token_id
     key_record.key_identifier = key_info.id
     key_record.key_generated_at = Time.now
     key_record.certificate = String.from_java_bytes(cert)

@@ -68,7 +68,7 @@ abstract class AbstractDeleteFromKeyInfo<T> extends AbstractRequestHandler<T> {
             throws Exception {
         if (!hasCertsOrCertRequests(keyId)) {
             String tokenId = TokenManager.findTokenIdForKeyId(keyId);
-            deleteKeyFile(tokenId, new DeleteKey(keyId));
+            deleteKeyFile(tokenId, new DeleteKey(keyId, true));
             if (!TokenManager.removeKey(keyId)) {
                 log.warn("Did not remove key '{}' although it has no "
                         + "certificates or certificate requests", keyId);

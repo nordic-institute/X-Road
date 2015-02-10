@@ -5,7 +5,6 @@ import java.lang.reflect.Method;
 import java.security.cert.X509Certificate;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 
 import ee.cyber.sdsb.common.CodedException;
@@ -43,12 +42,10 @@ final class IdentifierDecoderHelper {
         } catch (Exception e) {
             Throwable t = (e instanceof InvocationTargetException)
                     ? e.getCause() : e;
-            String message = "Error during extraction of subject name from "
+            log.error("Error during extraction of subject name from "
                     + "certificate '" + cert.getSubjectDN() + "' using "
-                    + "identifier decoder '" + decoder + "'";
-            log.error(message, t);
-            throw new CodedException(X_INCORRECT_CERTIFICATE,
-                    message + ": " + t.getMessage());
+                    + "identifier decoder '" + methodName + "'", t);
+            throw new CodedException(X_INCORRECT_CERTIFICATE, t);
         }
 
         if (result == null) {

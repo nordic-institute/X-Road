@@ -22,13 +22,10 @@ public final class UIServices {
     private static final Logger LOG = LoggerFactory.getLogger(UIServices.class);
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_CENTER);
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_CENTER)
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
 
     private String configName;

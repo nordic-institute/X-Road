@@ -3,60 +3,53 @@
     <legend><%= t 'securityservers.auth_cert.owner.legend' %></legend>
     <table class="details">
       <tr>
-        <td><%= t 'securityservers.owner_name' %></td>
-        <td><p id="add_auth_cert_owner_name" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.owner_name' %></td>
+        <td><p id="add_auth_cert_owner_name" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_class' %></td>
-        <td><p id="add_auth_cert_owner_class" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.owner_class' %></td>
+        <td><p id="add_auth_cert_owner_class" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.owner_code' %></td>
-        <td><p id="add_auth_cert_owner_code" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.owner_code' %></td>
+        <td><p id="add_auth_cert_owner_code" class="input ui-state-disabled"></p></td>
       </tr>
       <tr>
-        <td><%= t 'securityservers.server_code' %></td>
-        <td><p id="add_auth_cert_servercode" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.server_code' %></td>
+        <td><p id="add_auth_cert_servercode" class="input ui-state-disabled"></p></td>
       </tr>
     </table>
   </section>
 
   <section class="container">
     <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
+    <p>
+      <% if can?(:add_security_server_auth_cert_reg_request) %>
+        <%= form_tag "securityservers/import_auth_cert",
+            :id => "server_auth_cert_upload", :multipart => true,
+            :target => "auth_cert_upload_target" do %>
+          <%= upload_button("securityserver_auth_cert_upload") %>
+        <% end %>
+      <% end %>
+    </p>
+    <iframe id="auth_cert_upload_target" name="auth_cert_upload_target"></iframe>
+    </p>
     <table class="details">
-      <tr>
-        <td></td>
-        <td>
-          <%= form_tag "securityservers/import_auth_cert",
-              :id => "server_auth_cert_upload", :multipart => true,
-              :target => "upload_target" do %>
-            <%= file_field_tag "server_auth_cert_file" %>
-          <% end %>
-        </td>
-        <iframe id="upload_target" name="upload_target"></iframe>
-        <td>
-          <% if can?(:add_security_server_auth_cert_reg_request) %>
-            <button id="add_auth_cert_upload" class="ui-state-disabled" disabled="disabled">
-              <%= t 'securityservers.auth_cert.upload' %>
-            </button>
-          <% end %>
-        </td>
+      <tr class="auth_cert_details">
+        <td class="description"><%= t 'securityservers.auth_cert.ca' %></td>
+        <td><p id="add_auth_cert_ca" class="input ui-state-disabled"></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.ca' %></td>
-        <td><p id="add_auth_cert_ca" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.serial_number' %></td>
+        <td><p id="add_auth_cert_serial_number" class="input ui-state-disabled"></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.serial_number' %></td>
-        <td><p id="add_auth_cert_serial_number" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.subject' %></td>
+        <td><p id="add_auth_cert_subject" class="input ui-state-disabled"></p></td>
       </tr>
       <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.subject' %></td>
-        <td><p id="add_auth_cert_subject" class="input"></p></td>
-      </tr>
-      <tr class="auth_cert_details">
-        <td><%= t 'securityservers.auth_cert.expires' %></td>
-        <td><p id="add_auth_cert_expires" class="input"></p></td>
+        <td class="description"><%= t 'securityservers.auth_cert.expires' %></td>
+        <td><p id="add_auth_cert_expires" class="input ui-state-disabled"></p></td>
       </tr>
     </table>
     <p id="add_auth_cert_temp_id" class="ui-helper-hidden"></p>

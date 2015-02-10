@@ -119,8 +119,8 @@ public class ImportCertRequestHandler
 
         KeyUsageInfo keyUsage = getKeyUsage(keyInfo, signing);
 
-        verifyCertForImport(cert);
-        validateCertForImport(signing, authentication, keyUsage);
+        validateCertKeyUsage(signing, authentication, keyUsage);
+        verifyCertChain(cert);
 
         if (existingCert != null) {
             TokenManager.removeCert(existingCert.getId());
@@ -149,7 +149,7 @@ public class ImportCertRequestHandler
         }
     }
 
-    private void validateCertForImport(boolean signing, boolean authentication,
+    private void validateCertKeyUsage(boolean signing, boolean authentication,
             KeyUsageInfo keyUsage) {
         // Check that the cert is a signing or auth cert
         if (!signing && !authentication) {
@@ -176,12 +176,13 @@ public class ImportCertRequestHandler
         }
     }
 
-    private void verifyCertForImport(X509Certificate cert) {
+    private void verifyCertChain(X509Certificate cert) {
         if (CertUtils.isSelfSigned(cert)) {
             // do not verify self-signed certs
             return;
         }
 
+        GlobalConf.verifyValidity();
         try {
             CertChain chain = CertChain.create(
                     GlobalConf.getInstanceIdentifier(), cert, null);

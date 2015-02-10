@@ -30,6 +30,13 @@ class SdsbMember < SecurityServerClient
     :dependent => :destroy
   has_many :subsystems, :dependent => :destroy
 
+  # Returns subsystem codes of member in alphabetical order.
+  def subsystem_codes()
+    return self.subsystems.
+        order(:subsystem_code).
+        map(&:subsystem_code)
+  end
+
   # Finds a SDSB member by member class and code.
   # Returns nil, if not found.
   def self.find_by_code(member_class, member_code)

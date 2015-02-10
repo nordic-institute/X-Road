@@ -20,7 +20,7 @@
         <%= form_tag do %>
         <table id="securityserver_edit_table" class="details">
           <tr>
-            <td><%= t 'securityservers.owner_name' %></td>
+            <td class="label"><%= t 'securityservers.owner_name' %></td>
             <td><p id="securityserver_edit_owner_name" class="input"></p></td>
           </tr>
           <tr>
@@ -125,13 +125,10 @@
   <%= render :partial => "shared/auth_cert_add_dialog" %>
   <%= render :partial => "shared/auth_cert_delete_dialog" %>
 
-  <div class="dialog_dynamic">
-    <%= render :partial => "shared/cert_details_dialog" %>
+  <%= render :partial => "shared/cert_details_dialog" %>
 
-    <!-- XXX Prevents infinite rendering loop -->
-    <% if from_main_menu %>
-      <%= render :partial => "shared/member_edit_dialog",
-        locals: {from_main_menu: false} %>
-    <% end %>
-  </div>
+  <!-- XXX Prevents infinite rendering loop -->
+  <% if from_main_menu %>
+    <%= render :partial => "shared/member_edit_dialog", locals: {from_main_menu: false} %>
+  <% end %>
 <% end %>

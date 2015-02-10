@@ -1,0 +1,91 @@
+<% content_for :head do %>
+  <%= javascript_include_tag "url_and_cert_dialog" %>
+  <%= javascript_include_tag "approved_ca_dialog" %>
+<% end %>
+
+<%= dialog "approved_ca_dialog" do %>
+  <div id="approved_ca_tabs">
+    <ul>
+      <li><a href="#top_ca_cert_tab"><%= t 'approved_cas.ca_certificate' %></a></li>
+      <li><a href="#ca_settings_tab"><%= t 'approved_cas.ca_settings' %></a></li>
+      <li><a href="#ocsp_responders_tab"><%= t 'approved_cas.ocsp_responders' %></a></li>
+      <li><a href="#intermediate_cas_tab"><%= t 'approved_cas.intermediate_cas' %></a></li>
+    </ul>
+
+    <div id="top_ca_cert_tab">
+      <table class="details">
+        <tr>
+          <td class="label"><%= t 'common.subject_dn' %></td>
+          <td><p id="top_ca_cert_subject_dn" class="input"></p></td>
+        </tr>
+        <tr>
+          <td><%= t 'common.issuer_dn' %></td>
+          <td><p id="top_ca_cert_issuer_dn" class="input"></p></td>
+        </tr>
+        <tr>
+          <td><%= t 'common.valid_from' %></td>
+          <td><p id="top_ca_cert_valid_from" class="input"></p></td>
+        </tr>
+        <tr>
+          <td><%= t 'common.valid_to' %></td>
+          <td><p id="top_ca_cert_valid_to" class="input"></p></td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <button id="top_ca_cert_view" class="right">
+              <%= t 'common.cert_view' %>
+            </button>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div id="ca_settings_tab">
+      <%= render :partial => "ca_settings", :locals => { :with_save_button => true } %>
+    </div>
+
+    <div id="ocsp_responders_tab">
+      <div class="ui-tabs-panel-actions">
+        <% if can?(:edit_approved_ca) %>
+        <button id="ocsp_responder_edit"><%= t 'common.edit' %></button>
+        <button id="ocsp_responder_add"><%= t 'common.add' %></button>
+        <button id="ocsp_responder_delete"><%= t 'common.delete' %></button>
+        <% end %>
+      </div>
+
+      <table id="ocsp_responders">
+        <thead>
+          <tr>
+            <th><%= t 'common.url' %></th>
+            <th></th>
+          </tr>
+        </thead>
+      </table>
+
+      <%= url_and_cert_dialog("ocsp_responder") %>
+    </div>
+
+    <div id="intermediate_cas_tab">
+      <div class="ui-tabs-panel-actions">
+        <% if can?(:edit_approved_ca) %>
+        <button id="intermediate_ca_edit"><%= t 'common.edit' %></button>
+        <button id="intermediate_ca_add"><%= t 'common.add' %></button>
+        <button id="intermediate_ca_delete"><%= t 'common.delete' %></button>
+        <% end %>
+      </div>
+
+      <table id="intermediate_cas">
+        <thead>
+          <tr>
+            <th><%= t 'approved_cas.intermediate_ca' %></th>
+            <th><%= t 'common.valid_from' %></th>
+            <th><%= t 'common.valid_to' %></th>
+          </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+
+  <%= render :partial => "intermediate_ca_dialog" %>
+  <%= render :partial => "shared/cert_details_dialog" %>
+<% end %>

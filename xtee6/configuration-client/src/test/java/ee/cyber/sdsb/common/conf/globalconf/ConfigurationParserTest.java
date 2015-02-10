@@ -91,21 +91,20 @@ public class ConfigurationParserTest {
     }
 
     private static List<ConfigurationFile> parse(final String path,
-            ConfigurationSource cource) throws Exception {
+            ConfigurationSource source) throws Exception {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, path);
 
         ConfigurationParser.HASH_TO_CERT.clear();
 
-        ConfigurationParser parser = new ConfigurationParser() {
-            @Override
-            protected InputStream getInputStream(String downloadURL)
-                    throws Exception {
-                return new FileInputStream(path + ".txt");
-            }
-        };
+        if (!source.getLocations().isEmpty()) {
+            ConfigurationParser parser = new ConfigurationParser() {
+                @Override
+                protected InputStream getInputStream() throws Exception {
+                    return new FileInputStream(path + ".txt");
+                }
+            };
 
-        for (ConfigurationLocation location : cource.getLocations()) {
-            return parser.parse(location);
+            return parser.parse(source.getLocations().get(0)).getFiles();
         }
 
         return null;

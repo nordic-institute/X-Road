@@ -3,9 +3,10 @@ package ee.cyber.sdsb.confproxy;
 import java.util.Arrays;
 import java.util.List;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+import akka.actor.ActorSystem;
+
+import com.typesafe.config.ConfigFactory;
 
 import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.confproxy.util.ConfProxyHelper;
@@ -20,12 +21,9 @@ import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CONFPROXY;
 public final class ConfProxyMain {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_CONFPROXY, "configuration-proxy");
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_CONFPROXY, "configuration-proxy")
+            .load();
     }
 
     private static ActorSystem actorSystem;

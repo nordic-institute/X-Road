@@ -27,21 +27,27 @@ class ConfGeneratorController < ApplicationController
 
   OLD_CONF_PRESERVING_SECONDS = 600
 
-  # before_filter :restrict_access
+  before_filter :restrict_access
 
+  # TODO (task #5619 - turn logging level in this method into DEBUG when
+  # parallel generation problem fixed):
   def index
-    validate_generator_state()
+     GlobalConfGenerationSynchronizer.generate() do
+      logger.info("Starting global conf generation transaction "\
+          "for thread #{get_current_thread_name()}")
 
-    GlobalConfGeneratorState.set_generating()
+      # TODO: Move global conf generation implementation away from this
+      # controller!
+      ActiveRecord::Base.isolation_level(:repeatable_read) do
+        ActiveRecord::Base.transaction do
+          create_distributable_configuration()
+          distribute_configuration()
+        end
+      end
 
-    # TODO (task #5619):
-    # Find more appropriate isolation level or remove it altogether!
-#   ActiveRecord::Base.isolation_level(:serializable) do
-    ActiveRecord::Base.transaction do
-      create_distributable_configuration()
-      distribute_configuration()
+      logger.info("Finished global conf generation transaction "\
+          "for thread #{get_current_thread_name()}")
     end
-#   end
 
     render :text => ""
   rescue Exception => e
@@ -51,17 +57,14 @@ class ConfGeneratorController < ApplicationController
     logger.error(e.backtrace.join("\n"))
 
     render :text => "#{e.message}\n"
-  ensure
-    GlobalConfGeneratorState.clear_generating()
+# ensure
+#   GlobalConfGeneratorState.clear_generating()
   end
 
   private
 
-  def validate_generator_state
-    return unless GlobalConfGeneratorState.generating?()
-
-    raise "Global configuration is currently being generated, "\
-        "parallel generations are not allowed."
+  def get_current_thread_name
+    return Java::java.lang.Thread.currentThread().getName()
   end
 
   def remove_new_conf_dir
@@ -232,15 +235,27 @@ class ConfGeneratorController < ApplicationController
   end
 
   def serve_configuration
-    generated_conf_dir = get_generated_conf_dir()
+    generated_conf_dir = get_generated_conf_dir
+
+    internal_directory_path = "#{generated_conf_dir}/#{get_internal_directory}"
+    logger.debug("Serving internal conf on path '#{internal_directory_path}'")
 
     FileUtils.mv(
-        "#{generated_conf_dir}/#{get_temp_internal_directory()}",
-        "#{generated_conf_dir}/#{get_internal_directory()}")
+        "#{generated_conf_dir}/#{get_temp_internal_directory}",
+        internal_directory_path)
+
+    return unless can_serve_external_directory?
+
+    external_directory_path = "#{generated_conf_dir}/#{get_external_directory}"
+    logger.debug("Serving external conf on path '#{external_directory_path}'")
 
     FileUtils.mv(
-        "#{generated_conf_dir}/#{get_temp_external_directory()}",
-        "#{generated_conf_dir}/#{get_external_directory()}")
+        "#{generated_conf_dir}/#{get_temp_external_directory}",
+        external_directory_path)
+  end
+
+  def can_serve_external_directory?
+    File.exists?("#{get_generated_conf_dir}/#{get_temp_external_directory}")
   end
 
   def clean_up_old_configuration

@@ -5,7 +5,7 @@ var SDSB_REQUEST_CLIENT_DELETION = function(){
         $("#securityserver_client_remove_dialog").initDialog({
             autoOpen : false,
             modal : true,
-            height : 430,
+            height : "auto",
             width : 460,
             buttons : [
             {

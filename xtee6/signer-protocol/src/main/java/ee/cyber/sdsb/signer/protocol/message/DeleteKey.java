@@ -10,6 +10,8 @@ import lombok.Value;
 @Value
 public class DeleteKey implements Serializable {
 
-    private final String keyId;
+    private String keyId;
+
+    private boolean deleteFromDevice;
 
 }

@@ -45,4 +45,8 @@ public abstract class RequestInputData {
 
         return testRequest.getTimeoutSec();
     }
+
+    public long getSize() throws IOException {
+        return getRequestInput().getRight().available();
+    }
 }

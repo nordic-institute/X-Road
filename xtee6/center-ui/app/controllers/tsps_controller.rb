@@ -3,23 +3,19 @@ class TspsController < ApplicationController
 
   before_filter :verify_get, :only => [
       :tsps_refresh,
-      :get_existing_tsp_cert_details,
-      :get_existing_tsp_cert_dump_and_hash]
+      :view_tsp_cert
+  ]
 
   before_filter :verify_post, :only => [
-      :save_new_tsp, 
-      :edit_existing_tsp,
+      :add_tsp, 
+      :edit_tsp,
       :delete_tsp, 
-      :upload_tsp_cert]
+  ]
 
   # -- Common GET methods - start ---
 
   def index
     authorize!(:view_approved_tsas)
-  end
-
-  def get_cert_details_by_id
-    render_temp_cert_details_by_id(:view_approved_tsas)
   end
 
   def get_records_count
@@ -28,6 +24,13 @@ class TspsController < ApplicationController
 
   def can_see_details
     render_details_visibility(:view_approved_tsa_details)
+  end
+
+  def view_tsp_cert
+    authorize!(:edit_approved_tsa)
+
+    tsp = ApprovedTsa.find(params[:tspId])
+    render_cert_dump_and_hash(tsp.cert)
   end
 
   # -- Common GET methods - end ---
@@ -60,26 +63,11 @@ class TspsController < ApplicationController
     render_data_table(result, count, params[:sEcho])
   end
 
-  def get_existing_tsp_cert_details
-    authorize!(:add_approved_tsa)
-
-    tsp = ApprovedTsa.find(params[:tspId])
-    cert_details = get_cert_data_from_bytes(tsp.cert)
-    render_json(cert_details)
-  end
-
-  def get_existing_tsp_cert_dump_and_hash
-    authorize!(:edit_approved_tsa)
-
-    tsp = ApprovedTsa.find(params[:tspId])
-    render_cert_dump_and_hash(tsp.cert)
-  end
-
   # -- Specific GET methods - end ---
 
   # -- Specific POST methods - start ---
 
-  def save_new_tsp
+  def add_tsp
     authorize!(:add_approved_tsa)
     tsp = ApprovedTsa.new()
     tsp.url = params[:url]
@@ -92,7 +80,7 @@ class TspsController < ApplicationController
     render_json()
   end
 
-  def edit_existing_tsp
+  def edit_tsp
     authorize!(:edit_approved_tsa)
 
     tsp = ApprovedTsa.find(params[:id])
@@ -116,7 +104,7 @@ class TspsController < ApplicationController
   def upload_tsp_cert
     authorize!(:add_approved_tsa)
 
-    cert_data = upload_cert(params[:upload_tsp_cert_file])
+    cert_data = upload_cert(params[:upload_tsp_cert_file], true)
     notice(t("common.cert_imported"))
 
     upload_success(cert_data, "SDSB_TSP_EDIT.uploadCallbackTspCert")

@@ -1,5 +1,3 @@
-require 'common-ui'
-
 def create_all_test_data
   create_system_parameters()
   create_members_and_security_servers()

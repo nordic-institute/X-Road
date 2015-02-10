@@ -1,6 +1,7 @@
 require "fileutils"
 require "common-ui/io_utils"
 require "common-ui/script_utils"
+require "common-ui/tar_file"
 
 java_import Java::java.io.RandomAccessFile
 java_import Java::ee.cyber.sdsb.common.SystemProperties
@@ -16,6 +17,8 @@ module CommonUi
     module_function
 
     def backup_files
+      ensure_backup_directory_exists
+
       result = {}
 
       files = Dir.entries(SystemProperties.getConfBackupPath)
@@ -48,6 +51,10 @@ module CommonUi
     end
 
     def upload_new_file(uploaded_file_param)
+      ensure_backup_directory_exists
+
+      validate_backup_file(uploaded_file_param)
+
       filename = uploaded_file_param.original_filename
       IOUtils.validate_filename(filename)
 
@@ -56,7 +63,9 @@ module CommonUi
     end
 
     def backup
-      tarfile = 
+      ensure_backup_directory_exists
+
+      tarfile =
         backup_file("conf_backup_#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar")
 
       commandline = [ScriptUtils.get_script_file("backup_sdsb.sh"), tarfile]
@@ -110,19 +119,13 @@ module CommonUi
       ensure
         if lockfile
           FileUtils.rm_f(IOUtils.temp_file(RESTORE_FLAGFILE_NAME)) # shouldn't throw?
-          release_restore_lock(lockfile)
+          IOUtils.release_lock(lockfile)
         end
       end
     end
 
     def try_restore_lock
-      lockfile = RandomAccessFile.new(IOUtils.temp_file(RESTORE_LOCKFILE_NAME), "rw")
-      lockfile.getChannel.tryLock && lockfile
-    end
-
-    def release_restore_lock(lockfile)
-      # closing lockfile releases the lock
-      lockfile.close
+      return IOUtils.try_lock(RESTORE_LOCKFILE_NAME)
     end
 
     def restore_in_progress?
@@ -131,6 +134,20 @@ module CommonUi
 
     def backup_file(filename)
       "#{SystemProperties.getConfBackupPath}/#{filename}"
+    end
+
+    def validate_backup_file(uploaded_file_param)
+      UploadedFile::Validator.new(
+        uploaded_file_param,
+        TarFile::Validator.new,
+        TarFile.restrictions).validate
+    end
+
+    def ensure_backup_directory_exists
+      backup_dir = SystemProperties.getConfBackupPath
+      return if File.exists?(backup_dir)
+
+      FileUtils.mkdir_p(backup_dir)
     end
   end
 end

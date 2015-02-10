@@ -18,7 +18,7 @@ module ActiveRecord
 
         ActiveRecord::Base.establish_connection()
 
-        old_execute(sql, name)
+        old_execute(sql, name, binds)
       end
     end
   end

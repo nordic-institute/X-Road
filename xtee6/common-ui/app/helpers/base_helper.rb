@@ -66,8 +66,21 @@ module BaseHelper
     render(:partial => partial, :locals => options)
   end
 
+  def render_advanced_search(partial, prefix)
+    render({
+      :partial => partial,
+      :layout => :advanced_search,
+      :locals => { :prefix => prefix }
+    })
+  end
+
   def dialog(id, title = nil, &block)
     render_partial_with_block("dialog", {:id => id, :title => title}, &block)
+  end
+
+  def upload_button(input_name, clazz = nil, button_text = "common.upload")
+    raw("<label id='#{input_name}_button' class='upload #{clazz}'>" +
+        "#{file_field_tag(input_name)}#{t(button_text)}</label>")
   end
 
   def server_status_class

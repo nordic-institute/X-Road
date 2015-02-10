@@ -8,6 +8,8 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 
+import akka.actor.ActorSystem;
+
 import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.sdsb.signer.protocol.SignerClient;
 
@@ -20,12 +22,9 @@ import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_CONFPROXY;
 public final class ConfProxyUtilMain {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_CONFPROXY, "configuration-proxy");
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_CONFPROXY, "configuration-proxy")
+            .load();
     }
 
     private static ActorSystem actorSystem;

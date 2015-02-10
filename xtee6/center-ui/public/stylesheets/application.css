@@ -2,3 +2,7 @@
     width: calc(100% - 12px);
     height: 160px;
 }
+
+#configuration_management_tabs li:first-child:nth-last-child(1) {
+	display: none;
+}

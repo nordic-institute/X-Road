@@ -15,6 +15,8 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 /**
  * Given a list of addresses, selects the first one to respond.
  * More specifically, we initiate a connection to all specified addresses and
@@ -90,7 +92,7 @@ class FastestSocketSelector {
                         }
                     } catch (Exception e) {
                         key.cancel();
-                        silentClose(channel);
+                        closeQuietly(channel);
 
                         log.trace("Error connecting socket channel: {}",
                                 e.getMessage());
@@ -119,7 +121,7 @@ class FastestSocketSelector {
                     return new SocketInfo(target, channel.socket());
                 }
             } catch (Exception e) {
-                silentClose(channel);
+                closeQuietly(channel);
                 log.trace("Error connecting to '{}': {}", target, e);
             }
         }
@@ -132,18 +134,10 @@ class FastestSocketSelector {
         for (SelectionKey key : selector.keys()) {
             if (selectedChannel == null
                     || !selectedChannel.equals(key.channel())) {
-                silentClose((SocketChannel) key.channel());
+                closeQuietly(key.channel());
             }
         }
 
         selector.close();
     }
-
-    private static void silentClose(SocketChannel channel) {
-        try {
-            channel.close();
-        } catch (Exception ignore) {
-        }
-    }
-
 }

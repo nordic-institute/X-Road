@@ -60,8 +60,8 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
 
     public void expectSuccess(MessageInfo messageInfo) {
         expectedApiCalls.add(new ApiCall(SUCCESS,
-                new Object[] { messageInfo.origin, messageInfo.client,
-                    messageInfo.service }));
+                new Object[] {messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService()}));
     }
 
     public void expectServerProxyFailed() {
@@ -70,8 +70,8 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
 
     public void expectServerProxyFailed(MessageInfo messageInfo) {
         expectedApiCalls.add(new ApiCall(SERVER_PROXY_FAILED,
-                new Object[] { messageInfo.origin, messageInfo.client,
-                    messageInfo.service }));
+                new Object[] {messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService()}));
     }
 
     public void expectFailure() {
@@ -79,9 +79,9 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
     }
 
     public void expectFailure(MessageInfo messageInfo, String faultCode) {
-        expectedApiCalls.add(new ApiCall(FAILURE,
-                new Object[] { messageInfo.origin, messageInfo.client,
-                    messageInfo.service, faultCode }));
+        expectedApiCalls.add(new ApiCall(FAILURE, new Object[] {
+                messageInfo.getOrigin(), messageInfo.getClient(),
+                messageInfo.getService(), faultCode }));
     }
 
     public void verifyAPICalls() {
@@ -93,14 +93,14 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
     @Override
     public void success(MessageInfo messageInfo, Date startTime, Date endTime) {
         LOG.info("success({}, {}, {})",
-                new Object[] { messageInfo, startTime, endTime });
+                new Object[] {messageInfo, startTime, endTime});
 
         if (messageInfo == null) {
             assertApiCall(new ApiCall(SUCCESS));
         } else {
-            assertApiCall(new ApiCall(SUCCESS,
-                    new Object[] { messageInfo.origin, messageInfo.client,
-                        messageInfo.service }));
+            assertApiCall(new ApiCall(SUCCESS, new Object[] {
+                    messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService()}));
         }
     }
 
@@ -111,9 +111,9 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
         if (messageInfo == null) {
             assertApiCall(new ApiCall(SERVER_PROXY_FAILED));
         } else {
-            assertApiCall(new ApiCall(SERVER_PROXY_FAILED,
-                    new Object[] { messageInfo.origin, messageInfo.client,
-                        messageInfo.service }));
+            assertApiCall(new ApiCall(SERVER_PROXY_FAILED, new Object[] {
+                    messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService()}));
         }
     }
 
@@ -126,9 +126,9 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
         if (messageInfo == null) {
             assertApiCall(new ApiCall(FAILURE, new Object[] { faultCode }));
         } else {
-            assertApiCall(new ApiCall(FAILURE,
-                    new Object[] { messageInfo.origin, messageInfo.client,
-                        messageInfo.service, faultCode }));
+            assertApiCall(new ApiCall(FAILURE, new Object[] {
+                    messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService(), faultCode }));
         }
     }
 

@@ -214,7 +214,7 @@ class KeysController < ApplicationController
       :token_id => [:required],
       :key_id => [:required],
       :cert_id => [:required],
-      :address => [:required]
+      :address => [:required, :host]
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
@@ -261,22 +261,27 @@ class KeysController < ApplicationController
 
     if key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:delete_auth_key)
-
-      key.certs.each do |cert|
-        if [CertificateInfo::STATUS_REGINPROG,
-            CertificateInfo::STATUS_REGISTERED].include?(cert.status)
-          authorize!(:send_auth_cert_del_req)
-          unregister_cert(cert.certificateBytes)
-          SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
-        end
-      end
     elsif key.usage == KeyUsageInfo::SIGNING
       authorize!(:delete_sign_key)
     else
       authorize!(:delete_key)
     end
 
-    SignerProxy::deleteKey(params[:key_id])
+    delete_from_token = key.certRequests.isEmpty
+
+    key.certs.each do |cert|
+      if key.usage == KeyUsageInfo::AUTHENTICATION &&
+         [CertificateInfo::STATUS_REGINPROG,
+          CertificateInfo::STATUS_REGISTERED].include?(cert.status)
+        authorize!(:send_auth_cert_del_req)
+        unregister_cert(cert.certificateBytes)
+        SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
+      end
+
+      delete_from_token = false if cert.savedToConfiguration
+    end
+
+    SignerProxy::deleteKey(params[:key_id], delete_from_token)
 
     render_tokens
   end

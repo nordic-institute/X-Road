@@ -3,14 +3,11 @@ package ee.cyber.sdsb.proxy;
 import java.util.ArrayList;
 import java.util.List;
 
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import akka.actor.ActorSystem;
-
-import com.typesafe.config.ConfigFactory;
 
 import ee.cyber.sdsb.common.PortNumbers;
 import ee.cyber.sdsb.common.SystemPropertiesLoader;
@@ -37,18 +34,15 @@ import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
 public class ProxyMain {
 
     static {
-        new SystemPropertiesLoader() {
-            @Override
-            protected void loadWithCommonAndLocal() {
-                load(CONF_FILE_PROXY);
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_PROXY)
+            .with(CONF_FILE_SIGNER)
+            .load();
 
         org.apache.xml.security.Init.init();
     }
 
-    private static final List<StartStop> services = new ArrayList<>();
+    private static final List<StartStop> SERVICES = new ArrayList<>();
 
     private static ActorSystem actorSystem;
 
@@ -76,7 +70,7 @@ public class ProxyMain {
 
         createServices();
 
-        for (StartStop service: services) {
+        for (StartStop service: SERVICES) {
             String name = service.getClass().getSimpleName();
             try {
                 service.start();
@@ -89,13 +83,13 @@ public class ProxyMain {
             }
         }
 
-        for (StartStop service: services) {
+        for (StartStop service: SERVICES) {
             service.join();
         }
     }
 
     private static void stopServices() throws Exception {
-        for (StartStop s: services) {
+        for (StartStop s: SERVICES) {
             log.debug("Stopping " + s.getClass().getSimpleName());
             s.stop();
             s.join();
@@ -128,15 +122,15 @@ public class ProxyMain {
         BatchSigner.init(actorSystem);
         MessageLog.init(actorSystem, jobManager);
 
-        services.add(jobManager);
-        services.add(new ClientProxy());
-        services.add(new ServerProxy());
+        SERVICES.add(jobManager);
+        SERVICES.add(new ClientProxy());
+        SERVICES.add(new ServerProxy());
 
-        services.add(new CertHashBasedOcspResponder());
+        SERVICES.add(new CertHashBasedOcspResponder());
 
-        services.add(new SystemMonitor());
+        SERVICES.add(new SystemMonitor());
 
-        services.add(createAdminPort());
+        SERVICES.add(createAdminPort());
     }
 
     private static void loadConfigurations() {

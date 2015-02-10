@@ -87,7 +87,7 @@ var SDSB_TRUSTED_ANCHORS = function() {
         result.addClass(anchorClass);
 
         var instanceIdentifier = anchor.instance_identifier;
-        var anchorHeadingElement = result.find("div.anchor-heading:first");
+        var anchorHeadingElement = result.find(".box-heading:first");
 
         if (anchor.can_delete) {
             anchorHeadingElement.append(
@@ -98,7 +98,7 @@ var SDSB_TRUSTED_ANCHORS = function() {
             anchorHeadingElement.append(getDownloadButton(anchor.id));
         }
 
-        var anchorTitleElement = result.find("span.anchor-title:first");
+        var anchorTitleElement = result.find(".box-title:first");
         anchorTitleElement.text(instanceIdentifier);
 
         var anchorHashElement = result.find("span.anchor-hash:first");

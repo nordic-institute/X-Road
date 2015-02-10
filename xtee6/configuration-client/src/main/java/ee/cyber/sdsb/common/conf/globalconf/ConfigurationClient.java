@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ class ConfigurationClient {
             new HashMap<>();
 
     private final DownloadedFiles downloadedFiles;
-    private final Configuration configuration;
+    private final ConfigurationDownloader downloader;
 
     private ConfigurationAnchor configurationAnchor;
 
@@ -42,18 +43,17 @@ class ConfigurationClient {
             initConfigurationAnchor();
         }
 
-        try {
-            downloadConfigurationFromAnchor();
+        downloadConfigurationFromAnchor();
 
-            if (!additionalSources.isEmpty()) {
-                downloadConfigurationFromAdditionalSources();
-            }
-        } finally {
-            try {
-                downloadedFiles.sync();
-            } catch (Exception e) {
-                log.error("Failed to sync downloaded files list", e);
-            }
+        if (!additionalSources.isEmpty()) {
+            downloadConfigurationFromAdditionalSources();
+        }
+
+        // only sync if download was successful
+        try {
+            downloadedFiles.sync();
+        } catch (Exception e) {
+            log.error("Failed to sync downloaded files list", e);
         }
     }
 
@@ -70,11 +70,12 @@ class ConfigurationClient {
         try {
             configurationAnchor = new ConfigurationAnchor(anchorFileName);
         } catch (Exception e) {
-            log.error("Failed to load configuration anchor from file "
-                    + anchorFileName, e);
-            throw new CodedException(X_INVALID_XML,
+            String message = String.format(
                     "Failed to load configuration anchor from file %s",
                     anchorFileName);
+
+            log.error(message, e);
+            throw new CodedException(X_INVALID_XML, message);
         }
 
         saveInstanceIdentifier();
@@ -112,16 +113,10 @@ class ConfigurationClient {
     private void downloadConfigurationFromAnchor() throws Exception {
         log.trace("downloadConfFromAnchor()");
 
-        DownloadResult result = configuration.download(configurationAnchor);
-        if (result.isSuccess()) {
-            handleSuccess(result);
-        } else {
-            handleFailure(result);
-        }
+        handleResult(downloader.download(configurationAnchor), true);
 
-        configuration.getAdditionalSources().forEach((k, v) -> {
-            putAdditionalConfigurationSources(k, v);
-        });
+        downloader.getAdditionalSources()
+            .forEach(this::putAdditionalConfigurationSources);
     }
 
     private void downloadConfigurationFromAdditionalSources() throws Exception {
@@ -131,20 +126,24 @@ class ConfigurationClient {
         for (Set<ConfigurationSource> sources : additionalSources.values()) {
             for (ConfigurationSource source : sources) {
                 DownloadResult result =
-                        configuration.download(source,
+                        downloader.download(source,
                                 SharedParameters.CONTENT_ID_SHARED_PARAMETERS);
-                if (result.isSuccess()) {
-                    handleSuccess(result);
-                } else {
-                    try {
-                        handleFailure(result);
-                    } catch (Exception e) {
-                        // Only fatal, if the instance is this server's instance
-                        if (source.getInstanceIdentifier().equals(
-                                configurationAnchor.getInstanceIdentifier())) {
-                            throw e; // re-throw
-                        }
-                    }
+                handleResult(result, source.getInstanceIdentifier().equals(
+                        configurationAnchor.getInstanceIdentifier()));
+            }
+        }
+    }
+
+    private void handleResult(DownloadResult result, boolean throwIfFailure)
+            throws Exception {
+        if (result.isSuccess()) {
+            handleSuccess(result);
+        } else {
+            try {
+                handleFailure(result);
+            } catch (Exception e) {
+                if (throwIfFailure) {
+                    throw e; // re-throw
                 }
             }
         }
@@ -153,12 +152,17 @@ class ConfigurationClient {
     private void handleSuccess(DownloadResult result) {
         log.trace("handleSuccess()");
 
-        downloadedFiles.add(result.getFiles());
+        Configuration configuration = result.getConfiguration();
+
+        downloadedFiles.add(configuration.getFiles().stream()
+                .map(downloader::getFileName)
+                .map(Object::toString)
+                .collect(Collectors.toSet()));
     }
 
     private void handleFailure(DownloadResult result) throws Exception {
-        log.error("Failed to download configuration from "
-                + "any configuration location");
+        log.error("Failed to download configuration from any configuration "
+                + "location");
         result.getExceptions().forEach((l, e) -> {
             log.error("{}: {}", l.getDownloadURL(), e.toString());
         });
