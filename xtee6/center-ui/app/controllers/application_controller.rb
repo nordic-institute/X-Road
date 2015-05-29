@@ -1,7 +1,7 @@
 require 'json'
 require 'common-ui/uploaded_file.rb'
 
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 class ApplicationController < BaseController
   include MembersHelper
@@ -74,8 +74,27 @@ class ApplicationController < BaseController
   def wrap_in_transaction
     ActiveRecord::Base.isolation_level(:repeatable_read) do
       ActiveRecord::Base.transaction do
+        set_transaction_variables
         yield
       end
+    end
+  end
+
+  # Passes the required variables to the database engine if supported.
+  def set_transaction_variables
+    adapter_name = ActiveRecord::Base.connection.adapter_name
+    if adapter_name == "PostgreSQL"
+      # If we are running on top of Postgres, the name of the logged-in
+      # user must be made available within the transaction, for use
+      # when updating the history table.
+      # The value of user_name will go out of scope when the transaction
+      # ends.
+      # FIXME: sanitize/escape input although this value cannot be supplied
+      # via the request.
+      # FIXME: do we need a default value in the conf of postgres?
+      statement = "SET LOCAL xroad.user_name='#{current_user.name}'"
+      conn = ActiveRecord::Base.connection
+      conn.execute(statement)
     end
   end
 
@@ -100,7 +119,7 @@ class ApplicationController < BaseController
     return AdvancedSearchParams.new(
       {
         :name => raw_params["name"],
-        :sdsb_instance => raw_params["sdsbInstance"],
+        :xroad_instance => raw_params["xRoadInstance"],
         :member_class => raw_params["memberClass"],
         :member_code => raw_params["memberCode"],
         :subsystem_code => raw_params["subsystem"],
@@ -156,13 +175,13 @@ class ApplicationController < BaseController
   end
 
   class CentralServerId
-    def initialize(sdsb_instance)
-      @sdsb_instance = sdsb_instance
+    def initialize(xroad_instance)
+      @xroad_instance = xroad_instance
     end
 
     # To make it compatible with common-ui
     def toShortString
-      return @sdsb_instance
+      return @xroad_instance
     end
   end
 end

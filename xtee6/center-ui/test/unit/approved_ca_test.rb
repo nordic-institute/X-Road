@@ -5,12 +5,12 @@ require 'openssl'
 class ApprovedCaTest < ActiveSupport::TestCase
   # Writing tests - start
 
-  test "Raise SdsbArgumentError if no topCaData provided" do
+  test "Raise XroadArgumentError if no topCaData provided" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
     approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.cyber.sdsb.Extractor.extract"
+    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.extract"
 
     # When/Then
     error = assert_raises(ActiveRecord::RecordInvalid) do
@@ -18,7 +18,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     end
   end
 
-  test "Raise SdsbArgumentError if no nameExtractorMethodName provided" do
+  test "Raise XroadArgumentError if no nameExtractorMethodName provided" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
@@ -30,7 +30,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca.top_ca = top_ca
 
     # When/Then
-    error = assert_raises(SdsbArgumentError) do
+    error = assert_raises(XroadArgumentError) do
       approved_ca.save!
     end
     assert_equal(:no_name_extractor_method, error.type)
@@ -41,7 +41,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
     approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.cyber.sdsb.Extractor.extract"
+    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.extract"
 
     top_ca = CaInfo.new()
     top_ca.cert = "invalidcert"
@@ -58,7 +58,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
     approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.cyber.sdsb.Extractor.saveSuccessfully"
+    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.saveSuccessfully"
 
     first_top_ca_ocsp_info = OcspInfo.new()
     first_top_ca_ocsp_info.url = "http://www.ocsp1.ee"
@@ -97,7 +97,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     # Then
     saved = ApprovedCa.where(:name => CN_CERT_CA1).first()
 
-    assert_equal("ee.cyber.sdsb.Extractor.saveSuccessfully",
+    assert_equal("ee.ria.xroad.Extractor.saveSuccessfully",
         saved.identifier_decoder_method_name)
 
     assert_equal("riigiasutus", saved.identifier_decoder_member_class)
@@ -140,7 +140,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca.intermediate_cas = [intermediate_ca]
 
     # When/then
-    error = assert_raises(SdsbArgumentError) do
+    error = assert_raises(XroadArgumentError) do
       approved_ca.save!
     end
 
@@ -157,7 +157,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca.authentication_only = false
     approved_ca.identifier_decoder_member_class = "riigiasutus"
     approved_ca.identifier_decoder_method_name =
-        "ee.cyber.sdsb.Extractor.extractorToAuthOnly"
+        "ee.ria.xroad.Extractor.extractorToAuthOnly"
 
     top_ca = CaInfo.new()
     top_ca.cert = read_cert_ca1()
@@ -166,7 +166,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
 
     approved_ca_to_update = ApprovedCa.where(
       :identifier_decoder_method_name =>
-      "ee.cyber.sdsb.Extractor.extractorToAuthOnly").first()
+      "ee.ria.xroad.Extractor.extractorToAuthOnly").first()
 
     # When
     approved_ca.authentication_only = true

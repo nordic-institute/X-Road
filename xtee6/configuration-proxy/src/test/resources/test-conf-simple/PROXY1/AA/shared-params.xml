@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/sdsb.xsd">
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <instanceIdentifier>AA</instanceIdentifier>
     <approvedCA>
         <name>/CN=AdminCA1/O=EJBCA Sample/C=SE</name>
@@ -12,7 +12,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.util.CertUtils.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -39,7 +39,7 @@
         </intermediateCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.util.CertUtils.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.util.CertUtils.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedTSA>
@@ -221,27 +221,27 @@
         <groupCode>server-owners</groupCode>
         <description>Security server owners</description>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>TS1OWNER</ns2:memberCode>
         </groupMember>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>TS2OWNER</ns2:memberCode>
         </groupMember>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>TS3OWNER</ns2:memberCode>
         </groupMember>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>V55TS1OWNER</ns2:memberCode>
         </groupMember>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>V55TS2OWNER</ns2:memberCode>
         </groupMember>
@@ -250,12 +250,12 @@
         <groupCode>GLOB1</groupCode>
         <description>karin</description>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
             <ns2:memberCode>TS3OWNER</ns2:memberCode>
         </groupMember>
         <groupMember ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>ENT</ns2:memberClass>
             <ns2:memberCode>CLUSTER</ns2:memberCode>
         </groupMember>
@@ -273,22 +273,22 @@
         <description>Erigrupp asutustele, mis võivad päringulogisid krüpteerida X-tee keskuse salastusvõtmega</description>
     </globalGroup>
     <centralService>
-        <serviceCode>sdsbGetRandom</serviceCode>
+        <serviceCode>xroadGetRandom</serviceCode>
         <implementingService ns2:objectType="SERVICE">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>ENT</ns2:memberClass>
             <ns2:memberCode>TS2CLIENT1</ns2:memberCode>
-            <ns2:serviceCode>sdsbGetRandom</ns2:serviceCode>
+            <ns2:serviceCode>xroadGetRandom</ns2:serviceCode>
             <ns2:serviceVersion>v1</ns2:serviceVersion>
         </implementingService>
     </centralService>
     <centralService>
         <serviceCode>xxx</serviceCode>
         <implementingService ns2:objectType="SERVICE">
-            <ns2:sdsbInstance>AA</ns2:sdsbInstance>
+            <ns2:xRoadInstance>AA</ns2:xRoadInstance>
             <ns2:memberClass>ENT</ns2:memberClass>
             <ns2:memberCode>TS2CLIENT1</ns2:memberCode>
-            <ns2:serviceCode>sdsbGetRandom</ns2:serviceCode>
+            <ns2:serviceCode>xroadGetRandom</ns2:serviceCode>
             <ns2:serviceVersion>v1</ns2:serviceVersion>
         </implementingService>
     </centralService>

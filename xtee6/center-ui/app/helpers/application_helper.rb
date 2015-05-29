@@ -1,6 +1,6 @@
 java_import Java::java.security.cert.X509Certificate
 
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 # Methods added to this helper will be available to all templates in
 # the application.
@@ -86,7 +86,7 @@ module ApplicationHelper
   end
 
   def can_import_V5_data?
-    return File.exists?("/usr/share/sdsb/bin/xtee55_clients_importer")
+    return File.exists?("/usr/share/xroad/bin/xtee55_clients_importer")
   end
 
   def url_and_cert_dialog(prefix)

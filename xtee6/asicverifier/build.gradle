@@ -1,0 +1,27 @@
+dependencies {
+    compile project(':common-verifier'),
+            project(':asic-util')
+
+    testCompile project(':common-test')
+}
+
+jar {
+    // Build 'fat jar'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }} {
+        // remove all signature files (necessary to make it run)
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+    }
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.asicverifier.AsicVerifierMain'
+    }
+}
+
+task runAsicVerifier(type: JavaExec) {
+    main = 'ee.ria.xroad.asicverifier.AsicVerifierMain'
+    classpath = sourceSets.main.runtimeClasspath
+    standardInput = System.in;
+
+    description = "Starts ASiC container verifier main program.";
+}

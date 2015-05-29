@@ -19,7 +19,7 @@ class CaInfo < ActiveRecord::Base
 
   def validate_cert_presence
     if !self.cert || self.cert.empty?
-      raise SdsbArgumentError.new(:no_ca_cert)
+      raise XroadArgumentError.new(:no_ca_cert)
     end
   end
 

@@ -104,23 +104,23 @@ class SecurityserversController < ApplicationController
     clients = []
 
     server.security_server_clients.each do |client|
-      sdsb_member = nil
+      xroad_member = nil
       subsystem_code = ""
 
       if client.is_a?(Subsystem)
         subsystem_code = client.subsystem_code
-        sdsb_member = client.sdsb_member
+        xroad_member = client.xroad_member
       else
-        sdsb_member = client
+        xroad_member = client
       end
 
-      logger.debug("SDSB member for client: '#{sdsb_member.inspect}'")
+      logger.debug("XROAD member for client: '#{xroad_member.inspect}'")
 
       clients << {
-        :id => sdsb_member.id,
-        :name => sdsb_member.name,
-        :member_class => sdsb_member.member_class.code,
-        :member_code => sdsb_member.member_code,
+        :id => xroad_member.id,
+        :name => xroad_member.name,
+        :member_class => xroad_member.member_class.code,
+        :member_code => xroad_member.member_code,
         :subsystem_code => subsystem_code
       }
     end
@@ -231,10 +231,10 @@ class SecurityserversController < ApplicationController
     notice(t("common.cert_imported"))
 
     upload_success(auth_cert_data,
-        "SDSB_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
+        "XROAD_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
+    upload_error(nil, "XROAD_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
   end
 
   def auth_cert_adding_request

@@ -1,10 +1,10 @@
-usr/share/sdsb/jlib/servicemediator-0.1.jar usr/share/sdsb/jlib/servicemediator.jar
-usr/share/sdsb/jlib/monitoragent-0.1.jar usr/share/sdsb/jlib/monitoragent.jar
-usr/share/sdsb/jlib/clientmediator-0.1.jar usr/share/sdsb/jlib/clientmediator.jar
-usr/share/sdsb/jlib/serviceimporter-0.1.jar usr/share/sdsb/jlib/serviceimporter.jar
-usr/share/sdsb/scripts/promote_sdsb.sh usr/bin/promote_sdsb.sh
-usr/share/sdsb/scripts/deactivate_sdsb.sh usr/bin/deactivate_sdsb.sh
-usr/share/sdsb/scripts/serviceexporter.sh usr/bin/serviceexporter.sh
-usr/share/sdsb/scripts/activate_sdsb.sh usr/bin/activate_sdsb.sh
-usr/share/sdsb/scripts/serviceimporter.sh usr/bin/serviceimporter.sh
+usr/share/xroad/jlib/servicemediator-0.1.jar usr/share/xroad/jlib/servicemediator.jar
+usr/share/xroad/jlib/monitoragent-0.1.jar usr/share/xroad/jlib/monitoragent.jar
+usr/share/xroad/jlib/clientmediator-0.1.jar usr/share/xroad/jlib/clientmediator.jar
+usr/share/xroad/jlib/serviceimporter-0.1.jar usr/share/xroad/jlib/serviceimporter.jar
+usr/share/xroad/scripts/promote_v6_xroad.sh usr/bin/promote_v6_xroad.sh
+usr/share/xroad/scripts/deactivate_v6_xroad.sh usr/bin/deactivate_v6_xroad.sh
+usr/share/xroad/scripts/serviceexporter.sh usr/bin/serviceexporter.sh
+usr/share/xroad/scripts/activate_v6_xroad.sh usr/bin/activate_v6_xroad.sh
+usr/share/xroad/scripts/serviceimporter.sh usr/bin/serviceimporter.sh
 

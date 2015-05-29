@@ -1,6 +1,6 @@
 <%= dialog "group_details_dialog" do %>
   <section class="container">
-    <legend><%= t 'common.description' %></legend>
+    <h2><span><%= t 'common.description' %></span></h2>
 
     <table class="details">
       <tr>
@@ -18,9 +18,7 @@
   </section>
 
   <section class="container">
-    <legend>
-      <%= t '.group_members' %> (<span id="group_details_member_count"></span>)
-    </legend>
+    <h2><span><%= t '.group_members' %> (<b id="group_details_member_count"></b>)</span></h2>
 
     <%= render_advanced_search "group_members_search", "group_members" %>
 

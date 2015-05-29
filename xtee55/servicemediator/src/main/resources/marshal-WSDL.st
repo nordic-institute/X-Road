@@ -6,7 +6,6 @@
     targetNamespace="$tns$">
 <wsdl:types>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="$tns$">
-<xsd:import namespace="http://x-road.ee/xsd/x-road.xsd" schemaLocation="http://x-road.ee/xsd/x-road.xsd"/>
 $schemaElements:{elem|$elem.xml$};separator="\n"$
 </xsd:schema>
 </wsdl:types>

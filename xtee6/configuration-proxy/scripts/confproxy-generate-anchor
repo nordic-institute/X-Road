@@ -6,15 +6,15 @@ die () {
 }
 
 
-if [ "$(id -nu )" != "sdsb" ]
+if [ "$(id -nu )" != "xroad" ]
 then
- die "ABORTED. This script must run under sdsb user "
+ die "ABORTED. This script must run under xroad user "
 fi
 
-. /etc/sdsb/services/confproxy.conf
+. /etc/xroad/services/confproxy.conf
 
-UTIL_CP="/usr/share/sdsb/jlib/configuration-proxy.jar"
+UTIL_CP="/usr/share/xroad/jlib/configuration-proxy.jar"
 
-${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${CONFPROXY_PARAMS} -cp ${UTIL_CP} \
-ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilMain ee.cyber.sdsb.confproxy.commandline.ConfProxyUtilGenerateAnchor $@
+${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${CONFPROXY_PARAMS} -cp ${UTIL_CP} \
+ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor $@
 

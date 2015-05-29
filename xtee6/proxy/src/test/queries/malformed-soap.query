@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
         <SOAP-ENV:Body>
         </SOAP-ENV:Body>
         <foo>

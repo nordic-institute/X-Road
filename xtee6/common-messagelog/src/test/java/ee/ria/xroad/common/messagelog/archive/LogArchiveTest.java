@@ -1,0 +1,142 @@
+package ee.ria.xroad.common.messagelog.archive;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.nio.file.Paths;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
+
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Exercises entire logic of archiving log entries. Actually depends on
+ * LogArchiveCacheTest.
+ */
+public class LogArchiveTest {
+
+    private static final int NUM_TIMESTAMPS = 3;
+    private static final int NUM_RECORDS_PER_TIMESTAMP = 25;
+
+    private static boolean rotated;
+
+    private ByteArrayOutputStream archiveTestOut;
+
+    private long recordNo;
+
+    @Rule
+    public ExpectedCodedException thrown = ExpectedCodedException.none();
+
+    /**
+     * Preparations for testing log archive.
+     *
+     * @throws Exception - when cannot prepare for testing log archive.
+     */
+    @Before
+    public void beforeTest() throws Exception {
+        archiveTestOut = new ByteArrayOutputStream();
+        recordNo = 0;
+
+        rotated = false;
+    }
+
+    // ------------------------------------------------------------------------
+
+    /**
+     * Writes many records and rotates to new file.
+     *
+     * @throws Exception - when cannot either write or rotate
+     */
+    @Test
+    public void writeAndRotate() throws Exception {
+        System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, "50");
+
+        writeRecordsToLog();
+        assertTrue(rotated);
+    }
+
+    // ------------------------------------------------------------------------
+
+    private void writeRecordsToLog() throws Exception {
+        try (LogArchiveWriter writer = getWriter()) {
+            for (int i = 0; i < NUM_TIMESTAMPS; i++) {
+                TimestampRecord ts = nextTimestampRecord();
+                for (int j = 0; j < NUM_RECORDS_PER_TIMESTAMP; j++) {
+                    MessageRecord messageRecord = nextMessageRecord();
+                    messageRecord.setTimestampRecord(ts);
+                    messageRecord.setTimestampHashChain("foo");
+
+                    writer.write(messageRecord);
+                }
+            }
+        }
+    }
+
+    private LogArchiveWriter getWriter() {
+        return new LogArchiveWriter(
+                Paths.get("build/slog"), dummyLogArchiveBase()) {
+            @Override
+            protected WritableByteChannel createArchiveOutput()
+                    throws Exception {
+                return Channels.newChannel(archiveTestOut);
+            }
+            @Override
+            protected void rotate() throws Exception {
+                rotated = true;
+            }
+        };
+    }
+
+    private LogArchiveBase dummyLogArchiveBase() {
+        return new LogArchiveBase() {
+            @Override
+            public void archive(
+                    List<LogRecord> toArchive, DigestEntry lastArchive)
+                    throws Exception {
+                // Do nothing.
+            }
+
+            @Override
+            public DigestEntry loadLastArchive() {
+                return DigestEntry.empty();
+            }
+        };
+    }
+
+    private MessageRecord nextMessageRecord() {
+        recordNo++;
+
+        MessageRecord record = new MessageRecord("qid" + recordNo,
+                "msg" + recordNo, "sig" + recordNo, false);
+        record.setId(recordNo);
+        record.setTime((long) (Math.random() * 100000L));
+
+        return record;
+    }
+
+    private TimestampRecord nextTimestampRecord() {
+        recordNo++;
+
+        TimestampRecord record = new TimestampRecord();
+        record.setId(recordNo);
+        record.setTimestamp("ts");
+        record.setHashChainResult("foo");
+        record.setTime((long) (Math.random() * 100000L));
+
+        return record;
+    }
+
+    private static ByteArrayInputStream is(ByteArrayOutputStream os) {
+        return new ByteArrayInputStream(os.toByteArray());
+    }
+}

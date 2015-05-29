@@ -89,15 +89,3 @@
     </tr>
   </table>
 <% end %>
-
-<%= dialog "upload_conf_part_dialog", t('.upload_configuration_part') do %>
-  <%= form_tag "configuration_management/upload_conf_part",
-      :id => "upload_conf_part_form", :multipart => true, :target => "upload_target" do %>
-    <%= hidden_field_tag "source_type" %>
-    <%= hidden_field_tag "content_identifier" %>
-    <%= hidden_field_tag "part_file_name" %>
-    <%= file_field_tag "conf_part_file" %>
-  <% end %>
-
-  <iframe id="upload_target" name="upload_target"></iframe>
-<% end %>

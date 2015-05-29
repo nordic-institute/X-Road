@@ -13,9 +13,17 @@ task copyCommon(type: Copy) {
     exclude '**/build/**'
 }
 
-task copyCenterCommon(type: Copy) {
-    into "vendor/engines/center-common"
-    from "../center-common"
+task copyCenterCommon << {
+
+    copy {
+        into "vendor/engines/center-common"
+        from "../center-common"
+    }
+
+    copy {
+        into "db/migrate"
+        from "../center-common/db/migrate"
+    }
 }
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
@@ -33,18 +41,33 @@ task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], t
     commandLine = ['jruby', '-S', 'warble']
 }
 
-// Clears database and builds it up back again according to updated
-// common-ui/db/schema.rb
-task updateDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
-    commandLine = ['rake', 'db:schema:load']
+// Runs the migration steps on the database.
+task updateSQLiteDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test']
 }
 
-task runModelTests(type: Exec) {
-    commandLine = ['jruby', '-S', 'rake', 'test:units']
+task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
 }
 
-task runControllerTests(type: Exec) {
-    commandLine = ['jruby', '-S', 'rake', 'test:controllers']
+task updatePostgresDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test_pg']
+}
+
+task rollbackPostgresDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test_pg']
+}
+
+task runModelTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:units', 'RAILS_ENV=test']
+}
+
+task runControllerTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:controllers', 'RAILS_ENV=test']
+}
+
+task runPgDatabaseTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test_pg:database', 'RAILS_ENV=test_pg']
 }
 
 build.dependsOn copyDeps

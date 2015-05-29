@@ -10,6 +10,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
@@ -24,23 +25,21 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.conn.NoopIOSessionStrategy;
 import org.apache.http.nio.conn.SchemeIOSessionStrategy;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.conf.InternalSSLKey;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorServerConf;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
+@Slf4j
 class HttpClientManagerImpl implements HttpClientManager {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(HttpClientManagerImpl.class);
-
-    // TODO: Fine-tune connection parameters
+    private static final int IDLE_MONITOR_TIMEOUT = 50;
+    private static final int IDLE_MONITOR_INTERVAL = 100;
+    // TODO Fine-tune connection parameters
     private static final int CLIENT_TIMEOUT = 300000; // in milliseconds.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 100;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 50;
@@ -85,12 +84,13 @@ class HttpClientManagerImpl implements HttpClientManager {
 
     @Override
     public synchronized void shutdown() {
-        LOG.trace("shutdown()");
+        log.trace("shutdown()");
 
         if (connMonitor != null) {
             try {
                 connMonitor.shutdown();
             } catch (Exception ignored) {
+                log.warn("Error shutting down connection monitor");
             }
         }
 
@@ -105,8 +105,8 @@ class HttpClientManagerImpl implements HttpClientManager {
 
     private CloseableHttpAsyncClient initHttpClient() throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(keyManager != null ? new KeyManager[] { keyManager } : null,
-                new TrustManager[] { new DummyTrustManager() },
+        ctx.init(keyManager != null ? new KeyManager[] {keyManager} : null,
+                new TrustManager[] {new DummyTrustManager()},
                 new SecureRandom());
 
         HttpAsyncClientBuilder builder = HttpAsyncClients.custom();
@@ -148,8 +148,8 @@ class HttpClientManagerImpl implements HttpClientManager {
         builder.setDefaultRequestConfig(requestConfig);
 
         connMonitor = new IdleConnectionMonitorThread(connManager);
-        connMonitor.setIntervalMilliseconds(100);
-        connMonitor.setConnectionIdleTimeMilliseconds(50);
+        connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
+        connMonitor.setConnectionIdleTimeMilliseconds(IDLE_MONITOR_TIMEOUT);
 
         return builder.build();
     }

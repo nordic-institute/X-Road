@@ -7,6 +7,9 @@ import javax.xml.namespace.QName;
 import lombok.Data;
 import org.stringtemplate.v4.ST;
 
+/**
+ * Abstraction for WSDL message part.
+ */
 @Data
 public class MessagePart implements Marshallable, TemplateAware {
     private final String name;
@@ -20,7 +23,7 @@ public class MessagePart implements Marshallable, TemplateAware {
         template.add("name", name);
         template.add("elem", element);
 
-        // 'type' seems to be reserved keyword for ST - it does not work as 
+        // 'type' seems to be reserved keyword for ST - it does not work as
         // expected.
         template.add("type_", type);
 

@@ -8,8 +8,8 @@ Content-Type: text/xml
 Content-Date: 2013-02-04T13:50:18+0000
 
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-verifier/src/main/resources/globalconf.xsd ">
+<tns:conf xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../../../common-verifier/src/main/resources/globalconf.xsd ">
     <pki>
         <name>pki1</name>
         <!-- Extracted from: systemtest/conf/local_test/admin-ca1.pem -->
@@ -55,7 +55,7 @@ Content-Date: 2013-02-04T13:50:18+0000
                     TmGm9CaC/xRQ10YD7AHHvq1P2cvfbQaV3I5xUYF7aqwM93ZjmptI</cert>
             </ocsp>
         </topCA>
-        <nameExtractor>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</nameExtractor>
+        <nameExtractor>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</nameExtractor>
     </pki>
 
     <org>

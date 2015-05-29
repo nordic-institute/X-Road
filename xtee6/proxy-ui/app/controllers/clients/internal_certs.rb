@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.CertificateType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.CertificateType
 
 module Clients::InternalCerts
 
@@ -46,18 +46,18 @@ module Clients::InternalCerts
 
     validate_params({
       :client_id => [:required],
-      :cert => [:required]
+      :file_upload => [:required]
     })
 
     client = get_client(params[:client_id])
-    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:cert].read)
+    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file_upload].read)
 
     client.isCert.each do |cert|
       next unless CommonUi::CertUtils.cert_hash(cert.data) ==
         CommonUi::CertUtils.cert_hash(uploaded_cert)
 
       error(t('clients.cert_exists'))
-      upload_error(nil, "internalCertAddCallback")
+      upload_error(nil, "INTERNAL_CERTS.uploadCallback")
       return
     end
 
@@ -67,7 +67,9 @@ module Clients::InternalCerts
 
     serverconf_save
 
-    upload_success(read_internal_certs(client), "internalCertAddCallback")
+    notice(t("common.cert_imported"))
+
+    upload_success(read_internal_certs(client), "INTERNAL_CERTS.uploadCallback")
   end
 
   def internal_cert_delete

@@ -14,26 +14,26 @@
   <input id="details_client_id" type="hidden"/>
   <table class="details">
     <tr>
-      <td><%= t 'clients.index.member_name' %></td>
+      <td class="label"><%= t 'clients.index.member_name' %></td>
       <td><input id="details_member_name" type="text" readonly/></td>
     </tr>
     <tr>
-      <td><%= t 'clients.index.member_class' %></td>
+      <td class="label"><%= t 'clients.index.member_class' %></td>
       <td><input id="details_member_class" type="text" readonly/></td>
     </tr>
     <tr>
-      <td><%= t 'clients.index.member_code' %></td>
+      <td class="label"><%= t 'clients.index.member_code' %></td>
       <td><input id="details_member_code" type="text" readonly/></td>
     </tr>
     <tr>
-      <td><%= t 'clients.index.subsystem_code' %></td>
+      <td class="label"><%= t 'clients.index.subsystem_code' %></td>
       <td><input id="details_subsystem_code" type="text" readonly/></td>
     </tr>
   </table>
 </section>
 
 <section class="container">
-  <legend><%= t '.certificates' %></legend>
+  <h2><span><%= t '.certificates' %></span></h2>
   <table id="certificates">
     <thead>
       <tr>

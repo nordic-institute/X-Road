@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
-    <property name="logOutputPath" value="/var/log/sdsb" />
+    <property name="logOutputPath" value="/var/log/xroad" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/clientmediator.log</file>
@@ -17,8 +17,8 @@
         </encoder>
     </appender>
 
-    <logger name="ee.cyber.sdsb" level="DEBUG"/>
-    <logger name="ee.cyber.xroad" level="DEBUG" />
+    <logger name="ee.ria.xroad" level="INFO"/>
+    <logger name="ee.cyber.xroad" level="INFO" />
 
     <root level="INFO">
         <appender-ref ref="FILE" />

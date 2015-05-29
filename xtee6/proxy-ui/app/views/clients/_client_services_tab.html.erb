@@ -2,7 +2,7 @@
   <%= javascript_include_tag "services" %>
 <% end %>
 
-<div class="services_actions" style="float: right;">
+<div class="services_actions">
   <% if can?(:add_wsdl) %>
     <% if x55_installed? %>
     <button id="wsdl_add"><%= t '.add_v6_wsdl' %></button>
@@ -21,9 +21,6 @@
   <% if can?(:delete_wsdl) %>
   <button id="wsdl_delete"><%= t 'common.delete' %></button>
   <% end %>
-
-  <span style="margin-right: 2em;"></span>
-
   <% if can?(:edit_service_params) %>
   <button id="service_params"><%= t 'common.edit' %></button>
   <% end %>

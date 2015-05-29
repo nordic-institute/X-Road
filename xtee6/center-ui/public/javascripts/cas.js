@@ -1,4 +1,4 @@
-var SDSB_CAS = function() {
+var XROAD_CAS = function() {
     var cas;
 
     function enableActions() {
@@ -49,11 +49,11 @@ var SDSB_CAS = function() {
         });
 
         $("#ca_add").click(function() {
-            SDSB_APPROVED_CA_DIALOG.openAddDialog();
+            XROAD_APPROVED_CA_DIALOG.openAddDialog();
         });
 
         $("#ca_details").click(function() {
-            SDSB_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
+            XROAD_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
         });
 
         $("#ca_delete").click(function() {

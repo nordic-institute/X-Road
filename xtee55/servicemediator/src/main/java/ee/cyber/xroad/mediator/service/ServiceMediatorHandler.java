@@ -11,18 +11,18 @@ import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.MimeTypes;
-import ee.cyber.sdsb.common.util.MimeUtils;
-import ee.cyber.sdsb.common.util.PerformanceLogger;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
 import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 import ee.cyber.xroad.mediator.service.wsdlmerge.WSDLMergeRequestProcessor;
 
-import static ee.cyber.sdsb.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.cyber.sdsb.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 
@@ -55,7 +55,7 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
             LOG.info("Handler got fault", fault);
 
             if (isMergedWsdlRequest(target)) {
-                sendErrorResponse(response, SC_OK, fault.getFaultString());
+                sendWsdlMergeErrorResponse(response, fault.getFaultString());
             } else if (isGetRequest(request)) {
                 sendErrorResponse(response, SC_INTERNAL_SERVER_ERROR,
                         fault.getFaultString());
@@ -66,7 +66,7 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
             LOG.error("Request processing error", ex);
 
             if (isMergedWsdlRequest(target)) {
-                sendErrorResponse(response, SC_OK, ex.getMessage());
+                sendWsdlMergeErrorResponse(response, ex.getMessage());
             } else if (isGetRequest(request)) {
                 sendErrorResponse(response, SC_INTERNAL_SERVER_ERROR,
                         ex.getMessage());
@@ -117,6 +117,10 @@ class ServiceMediatorHandler extends AbstractMediatorHandler {
         return "/wsdl".equals(target);
     }
 
+    private void sendWsdlMergeErrorResponse(HttpServletResponse response,
+            String errorMsg) throws IOException {
+        sendErrorResponse(response, SC_OK, errorMsg);
+    }
     /**
      * We send plain text with HTTP OK status, as MISP
      * (and other V5 client applications) could handle it more accurately.

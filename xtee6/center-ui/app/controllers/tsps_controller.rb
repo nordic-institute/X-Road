@@ -22,15 +22,18 @@ class TspsController < ApplicationController
     render_json_without_messages(:count => ApprovedTsa.count)
   end
 
-  def can_see_details
-    render_details_visibility(:view_approved_tsa_details)
-  end
-
   def view_tsp_cert
     authorize!(:edit_approved_tsa)
 
-    tsp = ApprovedTsa.find(params[:tspId])
-    render_cert_dump_and_hash(tsp.cert)
+    validate_params({
+      :tsp_id => [],
+      :temp_cert_id => []
+    })
+
+    cert = get_temp_cert_from_session(params[:temp_cert_id])
+    cert ||= ApprovedTsa.find(params[:tsp_id]).cert
+
+    render_cert_dump_and_hash(cert)
   end
 
   # -- Common GET methods - end ---
@@ -69,48 +72,53 @@ class TspsController < ApplicationController
 
   def add_tsp
     authorize!(:add_approved_tsa)
-    tsp = ApprovedTsa.new()
+
+    tsp = ApprovedTsa.new
     tsp.url = params[:url]
-    tsp.cert = get_temp_cert_from_session(params[:tempCertId])
+    tsp.cert = get_temp_cert_from_session(params[:temp_cert_id])
 
     logger.info("About to save following TSP: '#{tsp}'")
     tsp.save!
 
-    clear_all_temp_certs_from_session()
-    render_json()
+    clear_all_temp_certs_from_session
+    render_json
   end
 
   def edit_tsp
     authorize!(:edit_approved_tsa)
 
-    tsp = ApprovedTsa.find(params[:id])
+    tsp = ApprovedTsa.find(params[:tsp_id])
     tsp.url = params[:url]
 
     tsp.save!
     logger.info("TSP edited, result: '#{tsp}'")
 
-    clear_all_temp_certs_from_session()
-    render_json()
+    clear_all_temp_certs_from_session
+    render_json
   end
 
   def delete_tsp
     authorize!(:delete_approved_tsa)
 
-    ApprovedTsa.find(params[:id]).destroy
+    ApprovedTsa.find(params[:tsp_id]).destroy
 
-    render_json()
+    render_json
   end
 
   def upload_tsp_cert
     authorize!(:add_approved_tsa)
 
-    cert_data = upload_cert(params[:upload_tsp_cert_file], true)
+    cert_data = upload_cert(params[:tsp_cert], true)
+    cert_data["prefix"] = "tsp"
+
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "SDSB_TSP_EDIT.uploadCallbackTspCert")
+    upload_success(cert_data, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_TSP_EDIT.uploadCallbackTspCert")
+    upload_error({
+      :prefix => "tsp"
+    }, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
   end
 
   # -- Specific POST methods - end ---

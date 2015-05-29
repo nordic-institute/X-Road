@@ -2,14 +2,14 @@
 
 member_in_vallavalitsused_group_member_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   type: "ClientId"
 
 subsystem_in_vallavalitsused_group_member_identifier:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   subsystem_code: "subsystem_in_vallavalitsused"
@@ -17,14 +17,14 @@ subsystem_in_vallavalitsused_group_member_identifier:
 
 owner_in_vallavalitsused_group_member_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   type: "ClientId"
 
 owner_out_of_vallavalitsused_group_member_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   type: "ClientId"
@@ -35,21 +35,21 @@ owner_out_of_vallavalitsused_group_member_identifier:
 
 member_in_vallavalitsused_client_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   type: "ClientId"
 
 member_out_of_vallavalitsused_client_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   type: "ClientId"
 
 subsystem_in_vallavalitsused_client_identifier:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   subsystem_code: "subsystem_in_vallavalitsused"
@@ -57,7 +57,7 @@ subsystem_in_vallavalitsused_client_identifier:
 
 subsystem_out_of_vallavalitsused_client_identifier:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   subsystem_code: "subsystem_out_of_vallavalitsused"
@@ -65,14 +65,14 @@ subsystem_out_of_vallavalitsused_client_identifier:
 
 member_as_server_client_client_identifier:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_as_server_client"
   type: "ClientId"
 
 subsystem_as_server_client_client_identifier:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_as_server_client"
   subsystem_code: "subsystem_as_server_client"
@@ -80,7 +80,7 @@ subsystem_as_server_client_client_identifier:
 
 subsystem_as_not_server_client_client_identifier:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_as_server_client"
   subsystem_code: "subsystem_as_not_server_client"
@@ -92,7 +92,7 @@ subsystem_as_not_server_client_client_identifier:
 
 automotive_service_identifier:
   object_type: "SERVICE"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "autotehas"
   service_code: "getNewModels"
@@ -100,7 +100,7 @@ automotive_service_identifier:
 
 ballistic_service_identifier:
   object_type: "SERVICE"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "kosmodroom"
   service_code: "getTravelSchedule"
@@ -108,7 +108,7 @@ ballistic_service_identifier:
 
 ceramic_service_identifier:
   object_type: "SERVICE"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "keraamikavabrik"
   subsystem_code: "potiosakond"
@@ -121,14 +121,14 @@ ceramic_service_identifier:
 
 identifier_owned_server_request_user:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   type: "ClientId"
 
 identifier_owned_server_request_server:
   object_type: "SERVER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   server_code: "securityServer"
@@ -136,14 +136,14 @@ identifier_owned_server_request_server:
 
 identifier_used_server_request_user:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_in_vallavalitsused"
   type: "ClientId"
 
 identifier_used_server_request_server:
   object_type: "SERVER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   server_code: "tuumaserver"
@@ -151,14 +151,14 @@ identifier_used_server_request_server:
 
 identifier_nobody_request_user:
   object_type: "MEMBER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   type: "ClientId"
 
 identifier_nobody_request_server:
   object_type: "SERVER"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "riigiasutus"
   member_code: "member_out_of_vallavalitsused"
   server_code: "tuumaserver"

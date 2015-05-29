@@ -33,7 +33,7 @@ class GroupsControllerTest < ActionController::TestCase
     assert_equal(6, response_as_json["aaData"].size())
   end
 
-  # SDSB column
+  # XROAD column
   test "Sort by column 4" do
     # Given
     params = {

@@ -2,12 +2,12 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers"
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.1">
-    <xs:complexType name="SdsbIdentifierType">
+    <xs:complexType name="XroadIdentifierType">
         <xs:annotation>
-            <xs:documentation>Globally unique identifier in the SDSB system. Identifier consists of object type specifier and list of hierarchical codes (startin with code that identifiers the SDSB instance).</xs:documentation>
+            <xs:documentation>Globally unique identifier in the X-Road 6.0 system. Identifier consists of object type specifier and list of hierarchical codes (startin with code that identifiers the X-Road 6.0 instance).</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element ref="sdsbInstance" minOccurs="0"/>
+            <xs:element ref="xRoadInstance" minOccurs="0"/>
             <xs:element minOccurs="0" ref="memberClass"/>
             <xs:element minOccurs="0" ref="memberCode"/>
             <xs:element minOccurs="0" ref="subsystemCode"/>
@@ -19,11 +19,11 @@
         </xs:sequence>
         <xs:attribute ref="objectType" use="required"/>
     </xs:complexType>
-    <xs:simpleType name="SdsbObjectType">
+    <xs:simpleType name="XroadObjectType">
         <xs:annotation>
-            <xs:documentation>Enumeration for SDSB identifier types.</xs:documentation>
+            <xs:documentation>Enumeration for X-Road 6.0 identifier types.</xs:documentation>
             <xs:appinfo>
-                <jxb:javaType name="ee.cyber.sdsb.common.identifier.SdsbObjectType" parseMethod="valueOf" printMethod="name"/>
+                <jxb:javaType name="ee.ria.xroad.common.identifier.XroadObjectType" parseMethod="valueOf" printMethod="name"/>
              </xs:appinfo>
         </xs:annotation>
         <xs:restriction base="xs:string">
@@ -37,9 +37,9 @@
             <xs:enumeration value="CENTRALSERVICE"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:element name="sdsbInstance" type="xs:string">
+    <xs:element name="xRoadInstance" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Identifies the SDSB instance. This field is applicable to all the identifier types.</xs:documentation>
+            <xs:documentation>Identifies the X-Road 6.0 instance. This field is applicable to all the identifier types.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="memberClass" type="xs:string">
@@ -54,17 +54,17 @@
     </xs:element>
     <xs:element name="subsystemCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies subsystem of a given SDSB member.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies subsystem of a given X-Road 6.0 member.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="groupCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies global group in a given SDSB instance.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies global group in a given X-Road 6.0 instance.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serviceCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies service offered by a given SDSB member or subsystem.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies service offered by a given X-Road 6.0 member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serviceVersion" type="xs:string">
@@ -74,20 +74,20 @@
     </xs:element>
     <xs:element name="securityCategoryCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies security category in a given SDSB instance.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies security category in a given X-Road 6.0 instance.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serverCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies security server offered by a given SDSB member or subsystem.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies security server offered by a given X-Road 6.0 member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:attribute name="objectType" type="SdsbObjectType"/>
-    <xs:complexType name="SdsbClientIdentifierType">
+    <xs:attribute name="objectType" type="XroadObjectType"/>
+    <xs:complexType name="XroadClientIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
                     <xs:element ref="memberCode"/>
                     <xs:element minOccurs="0" ref="subsystemCode"/>
@@ -95,11 +95,11 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbServiceIdentifierType">
+    <xs:complexType name="XroadServiceIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
                     <xs:element ref="memberCode"/>
                     <xs:element minOccurs="0" ref="subsystemCode"/>
@@ -109,31 +109,31 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbSecurityCategoryIdentifierType">
+    <xs:complexType name="XroadSecurityCategoryIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="securityCategoryCode"/>
                 </xs:sequence>
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbCentralServiceIdentifierType">
+    <xs:complexType name="XroadCentralServiceIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="serviceCode"/>
                 </xs:sequence>
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbSecurityServerIdentifierType">
+    <xs:complexType name="XroadSecurityServerIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
                     <xs:element ref="memberCode"/>
                     <xs:element ref="serverCode"/>
@@ -141,19 +141,19 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbGlobalGroupIdentifierType">
+    <xs:complexType name="XroadGlobalGroupIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
-                    <xs:element ref="sdsbInstance"/>
+                    <xs:element ref="xRoadInstance"/>
                     <xs:element ref="groupCode"/>
                 </xs:sequence>
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="SdsbLocalGroupIdentifierType">
+    <xs:complexType name="XroadLocalGroupIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="SdsbIdentifierType">
+            <xs:restriction base="XroadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="groupCode"/>
                 </xs:sequence>

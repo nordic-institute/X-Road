@@ -27,12 +27,10 @@
       <% if can?(:add_security_server_auth_cert_reg_request) %>
         <%= form_tag "securityservers/import_auth_cert",
             :id => "server_auth_cert_upload", :multipart => true,
-            :target => "auth_cert_upload_target" do %>
+            :target => "upload_target" do %>
           <%= upload_button("securityserver_auth_cert_upload") %>
         <% end %>
       <% end %>
-    </p>
-    <iframe id="auth_cert_upload_target" name="auth_cert_upload_target"></iframe>
     </p>
     <table class="details">
       <tr class="auth_cert_details">

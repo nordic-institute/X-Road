@@ -1,18 +1,18 @@
-java_import Java::ee.cyber.sdsb.common.SystemProperties
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AclType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AuthorizedSubjectType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ServiceType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.WsdlType
-java_import Java::ee.cyber.sdsb.common.identifier.SecurityCategoryId
-java_import Java::ee.cyber.sdsb.proxyui.InternalServerTestUtil
-java_import Java::ee.cyber.sdsb.proxyui.WSDLParser
+java_import Java::ee.ria.xroad.common.SystemProperties
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.AclType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.AuthorizedSubjectType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.WsdlType
+java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
+java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
+java_import Java::ee.ria.xroad.proxyui.WSDLParser
 
-java_import Java::ee.cyber.sdsb.proxyui.combinedwsdl.WSDLCombinationChecker
-java_import Java::ee.cyber.sdsb.proxyui.combinedwsdl.InvalidWSDLCombinationException
+java_import Java::ee.ria.xroad.proxyui.combinedwsdl.WSDLCombinationChecker
+java_import Java::ee.ria.xroad.proxyui.combinedwsdl.InvalidWSDLCombinationException
 
 module Clients::Services
 
-  BACKEND_TYPE_SDSB = "sdsb"
+  BACKEND_TYPE_XROAD = "xroad"
   BACKEND_TYPE_XROADV5 = "xroadv5"
   BACKEND_TYPE_XROADV5_META = "xroadv5_meta"
 
@@ -46,7 +46,6 @@ module Clients::Services
     wsdl.url = params[:adapter_add_wsdl_uri]
     wsdl.disabled = true
     wsdl.disabledNotice = t('clients.default_disabled_service_notice')
-    wsdl.publish = false
     wsdl.refreshedDate = Date.new
     wsdl.client = client
     wsdl.backend = BACKEND_TYPE_XROADV5
@@ -90,10 +89,9 @@ module Clients::Services
     wsdl.url = params[:wsdl_add_url]
     wsdl.disabled = true
     wsdl.disabledNotice = t('clients.default_disabled_service_notice')
-    wsdl.publish = false
     wsdl.refreshedDate = Date.new
     wsdl.client = client
-    wsdl.backend = BACKEND_TYPE_SDSB
+    wsdl.backend = BACKEND_TYPE_XROAD
 
     parse_and_check_services(wsdl.url, wsdl)
 
@@ -252,7 +250,7 @@ module Clients::Services
         service.serviceCode = service_parsed.name
         service.serviceVersion = service_parsed.version
         service.title = service_parsed.title
-        service.url = (wsdl.backend == BACKEND_TYPE_SDSB) ? service_parsed.url :
+        service.url = (wsdl.backend == BACKEND_TYPE_XROAD) ? service_parsed.url :
           adapter_service_url(client.identifier)
         service.timeout = 60
         service.wsdl = wsdl
@@ -353,7 +351,7 @@ module Clients::Services
           service.requiredSecurityCategory.clear
 
           params[:params_security_category].each do |category|
-            category_id = SecurityCategoryId.create(sdsb_instance, category)
+            category_id = SecurityCategoryId.create(xroad_instance, category)
             service.requiredSecurityCategory.add(category_id)
           end if params[:params_security_category]
         end
@@ -558,8 +556,6 @@ module Clients::Services
         :timeout => (adapter_timeout if adapter),
         :security_category => nil,
         :sslauth => (adapter_sslauth if adapter),
-        :publish => wsdl.publish,
-        :last_published => format_time(wsdl.publishedDate),
         :last_refreshed => format_time(wsdl.refreshedDate),
         :disabled => wsdl.disabled,
         :disabled_notice => wsdl.disabledNotice
@@ -583,8 +579,6 @@ module Clients::Services
           :timeout => service.timeout,
           :security_category => categories,
           :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
-          :publish => wsdl.publish,
-          :last_published => format_time(wsdl.publishedDate),
           :last_refreshed => format_time(wsdl.refreshedDate),
           :disabled => wsdl.disabled,
           :subjects_count => subjects_count(client, service.serviceCode)
@@ -612,8 +606,6 @@ module Clients::Services
       :timeout => nil,
       :security_category => nil,
       :sslauth => nil,
-      :publish => nil,
-      :last_published => nil,
       :last_refreshed => nil,
       :disabled => false,
       :disabled_notice => nil
@@ -632,8 +624,6 @@ module Clients::Services
         :timeout => nil,
         :security_category => nil,
         :sslauth => nil,
-        :publish => nil,
-        :last_published => nil,
         :last_refreshed => nil,
         :disabled => false,
         :subjects_count => subjects_count(client, service_code)
@@ -711,7 +701,7 @@ module Clients::Services
 
   def parse_wsdl(url)
     WSDLParser::parseWSDL(url)
-  rescue Java::ee.cyber.sdsb.common.CodedException
+  rescue Java::ee.ria.xroad.common.CodedException
     logger.error(ExceptionUtils.getStackTrace($!))
 
     if ExceptionUtils.indexOfThrowable($!,
@@ -744,7 +734,7 @@ module Clients::Services
   def adapter_service_url(client_id)
     service_mediator = SystemProperties::getServiceMediatorAddress
     service_mediator_params = {
-      :sdsbInstance => client_id.sdsbInstance,
+      :xRoadInstance => client_id.xRoadInstance,
       :memberClass => client_id.memberClass,
       :memberCode => client_id.memberCode,
       :subsystemCode => client_id.subsystemCode

@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="ee.ria.xroad.common.messagelog.AbstractLogRecord" table="LOGRECORD">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <discriminator column="DISCRIMINATOR" type="string"/>
+
+        <property name="time" access="field"/>
+        <property name="archived" access="field"/>
+
+        <subclass name="ee.ria.xroad.common.messagelog.MessageRecord" discriminator-value="m">
+            <property name="queryId" access="field" type="string"/>
+            <property name="message" access="field" type="text"/>
+            <property name="signature" access="field" type="text"/>
+
+            <property name="hashChain" access="field" type="text"/>
+            <property name="hashChainResult" access="field" type="text"/>
+
+            <property name="signatureHash" access="field" type="text"/>
+
+            <many-to-one name="timestampRecord" access="field" cascade="none" lazy="false"
+                class="ee.ria.xroad.common.messagelog.TimestampRecord"/>
+
+            <property name="timestampHashChain" access="field" type="text"/>
+            <property name="response" access="field" type="boolean"/>
+        </subclass>
+
+        <subclass name="ee.ria.xroad.common.messagelog.TimestampRecord" discriminator-value="t">
+            <property name="timestamp" access="field" type="text"/>
+            <property name="hashChainResult" access="field" type="text"/>
+        </subclass>
+
+<!--
+        <subclass name="EncryptedMessageRecord" discriminator-value="e">
+            ...
+        </subclass>
+ -->
+
+    </class>
+
+    <class name="ee.ria.xroad.common.messagelog.archive.DigestEntry" table="LAST_ARCHIVE_DIGEST">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+
+        <property name="digest" access="field" type="text"/>
+        <property name="fileName" access="field" type="string"/>
+    </class>
+
+</hibernate-mapping>

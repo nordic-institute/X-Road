@@ -1,7 +1,7 @@
 /*
  * Supports one open dialog at a time.
  */
-(function(SDSB_URL_AND_CERT_DIALOG, $, undefined) {
+(function(XROAD_URL_AND_CERT_DIALOG, $, undefined) {
     var certOptional = false;
     var hasCert = false;
     var edit = false;
@@ -15,7 +15,7 @@
             $("#" + prefix + "_url").val() && (hasCert || certOptional));
     }
 
-    SDSB_URL_AND_CERT_DIALOG.initForPrefix =
+    XROAD_URL_AND_CERT_DIALOG.initForPrefix =
             function(prefix, onAdd, onEdit, onCertView) {
 
         $("#" + prefix + "_url_and_cert_dialog").initDialog({
@@ -56,7 +56,7 @@
         });
     }
 
-    SDSB_URL_AND_CERT_DIALOG.openEditDialog = function(
+    XROAD_URL_AND_CERT_DIALOG.openEditDialog = function(
             prefix, title, _certOptional, _url, _hasCert, _params) {
         certOptional = _certOptional;
         hasCert = _hasCert;
@@ -76,7 +76,7 @@
         $("#" + prefix + "_url_and_cert_dialog").dialog("open")
     };
 
-    SDSB_URL_AND_CERT_DIALOG.openAddDialog = function(
+    XROAD_URL_AND_CERT_DIALOG.openAddDialog = function(
             prefix, title, _certOptional, _params) {
         certOptional = _certOptional;
         hasCert = false;
@@ -96,11 +96,11 @@
         $("#" + prefix + "_url_and_cert_dialog").dialog("open")
     };
 
-    SDSB_URL_AND_CERT_DIALOG.closeDialog = function(prefix) {
+    XROAD_URL_AND_CERT_DIALOG.closeDialog = function(prefix) {
         $("#" + prefix + "_url_and_cert_dialog").dialog("close");
     }
 
-    SDSB_URL_AND_CERT_DIALOG.certUploadCallback = function(response) {
+    XROAD_URL_AND_CERT_DIALOG.certUploadCallback = function(response) {
         var prefix = response.data.prefix;
 
         if (response.success) {
@@ -120,4 +120,4 @@
         showMessages(response.messages)
     };
 
-}(window.SDSB_URL_AND_CERT_DIALOG = window.SDSB_URL_AND_CERT_DIALOG || {}, jQuery));
+}(window.XROAD_URL_AND_CERT_DIALOG = window.XROAD_URL_AND_CERT_DIALOG || {}, jQuery));

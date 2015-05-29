@@ -8,7 +8,7 @@
         </encoder>
     </appender>
 
-    <logger name="ee.cyber.sdsb" level="TRACE" />
+    <logger name="ee.ria.xroad" level="TRACE" />
     
     <logger name="org.apache.http.impl.conn.PoolingHttpClientConnectionManager" level="OFF" />
     <logger name="org.hibernate" level="OFF" />

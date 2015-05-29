@@ -21,7 +21,7 @@ class PrivateParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.cyber.sdsb.common.conf.globalconf.privateparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory
   end
 
   def get_root_type_creator
@@ -66,7 +66,7 @@ class PrivateParametersGenerator
 
     add_central_server_ssl_cert(management_service_type)
 
-    provider_id_type = Java::ee.cyber.sdsb.common.identifier.ClientId.create(
+    provider_id_type = Java::ee.ria.xroad.common.identifier.ClientId.create(
         @marshaller.root.instanceIdentifier,
         SystemParameter.management_service_provider_class,
         SystemParameter.management_service_provider_code,
@@ -92,7 +92,7 @@ class PrivateParametersGenerator
 
   def get_central_server_ssl_cert_file
     # XXX Can we assume that it remains like this?
-    return "/etc/sdsb/ssl/internal.crt"
+    return "/etc/xroad/ssl/internal.crt"
   end
 
   def extract_cert(cert_file)

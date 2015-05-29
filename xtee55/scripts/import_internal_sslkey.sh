@@ -5,7 +5,7 @@ XCONF_ROOT=${XTEETOP:-/usr/xtee}/etc/xtee
 INTKEY=$XCONF_ROOT/proxy/intkey
 INTCERT=$XCONF_ROOT/proxy/intcert
 
-DEST=/etc/sdsb/ssl/internal
+DEST=/etc/xroad/ssl/internal
 
 do_import=1
 do_export=0
@@ -43,7 +43,7 @@ if [ $do_import -eq 1 ]; then
         openssl pkcs12 -export -in $DEST.crt -inkey ${DEST}.key \
                 -name "internal" -out $DEST.p12 \
                 -passout pass:internal || exit 1
-        chown sdsb:sdsb ${DEST}.key $DEST.crt $DEST.p12 || exit 1
+        chown xroad:xroad ${DEST}.key $DEST.crt $DEST.p12 || exit 1
     fi
 
     if [ $do_reload -eq 1 ]; then

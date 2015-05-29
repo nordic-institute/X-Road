@@ -1,4 +1,4 @@
-var SDSB_CENTRAL_SERVICES = function () {
+var XROAD_CENTRAL_SERVICES = function () {
     var oCentralServices;
 
     function enableActions() {
@@ -43,7 +43,7 @@ var SDSB_CENTRAL_SERVICES = function () {
         opts.asRowId = ["central_service_code"];
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("central_services");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("central_services");
             enableActions();
         }
 
@@ -75,15 +75,15 @@ var SDSB_CENTRAL_SERVICES = function () {
         });
 
         $("#central_services tbody tr").live("dblclick", function() {
-            SDSB_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
+            XROAD_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
         });
 
         $("#central_service_details").click(function() {
-            SDSB_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
+            XROAD_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
         });
 
         $("#central_service_add").click(function() {
-            SDSB_CENTRAL_SERVICE_EDIT.open(null);
+            XROAD_CENTRAL_SERVICE_EDIT.open(null);
         });
 
         $("#central_service_delete").click(function() {

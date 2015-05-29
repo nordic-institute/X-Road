@@ -7,7 +7,9 @@
     <%= csrf_meta_tags %>
 
     <%= stylesheet_link_tag "font-awesome.min.css" %>
-    <%= stylesheet_link_tag "normalize", "jquery-ui", "style", "application" %>
+    <%= stylesheet_link_tag "jquery-ui.css" %>
+    <%= stylesheet_link_tag (skin_installed? ? "/application/skin" : "style.css") %>
+    <%= stylesheet_link_tag "application.css" %>
 
     <%= javascript_include_tag "jquery.min.js" %>
     <%= javascript_include_tag "jquery-ui.min.js" %>
@@ -35,67 +37,28 @@
     <title><%= t 'layouts.application.title' %></title>
   </head>
   <body>
+    
+    <div id="alerts" class="alerts"></div>
+
+    <div id="header">
+      <%= render :partial => "layouts/partials/header_actions" %>
+    </div>
+
     <div id="main-wrapper">
-      <header id="main-header" class="cf">
-        <div class="alerts"></div>
-        <div id="server-info" class="left cf">
-          <div id="server-status" class="left <%= server_status_class %>"
-               data-status="<%= server_status_class %>">
-            <i class="fa fa-info-circle"></i>
-          </div>
-          <div id="server-names">
-            <h1 data-owner-name="<%= @owner_name if @owner_name %>">
-              <%= @server_id.toShortString if @server_id %>
-            </h1>
-            <h2><%= t 'layouts.application.title' %></h2>
+      <div id="sidebar">
+        <div id="sidebar-inner">
+          <div id="menu">
+            <%= render :partial => "layouts/partials/menu" %>
           </div>
         </div>
-        <div id="actions" class="left">
-          <% default_content_for :heading do %>
-            <%= heading %>
-          <% end %>
-        </div>
-        <div id="user" class="right cf">
-          <ul class="button-group ab left"></ul>
-          <ul class="cf right">
-            <li class="left" id="user-info">
-              <h1><%= current_user.name %></h1>
-              <h2></h2>
-            </li>
-            <li class="left" id="settings">
-              <div id="settings-select"><i class="fa fa-cog"></i></div>
-              <ul id="user-menu" class="cf">
-                <a id="locale_select" href="#">
-                  <li class="cf">
-                    <i class="fa fa-flag left"></i>
-                    <span class="right">
-                      <%= t 'common.language', :current => I18n.locale %>
-                    </span>
-                  </li>
-                </a>
-                <a href="<%= url_for(:controller => :login, :action => :logout) %>">
-                  <li class="cf"><i class="fa fa-sign-out left"></i>
-                    <span class="right"><%= t 'layouts.application.logout' %></span>
-                  </li>
-                </a>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </header>
+      </div>
 
-      <section id="main" class="cf">
-        <section id="sidebar" class="left">
-          <section id="menu">
-            <%= render :partial => "layouts/menu" %>
-          </section>
-        </section>
-
-        <section id="content" class="left">
+      <div id="content">
+        <div id="content-inner">
           <%= yield :content %>
           <div class="messages"></div>
-        </section>
-      </section>
+        </div>
+      </div>
 
       <div id="confirm"></div>
       <div id="yesno"></div>
@@ -103,12 +66,13 @@
       <div id="alert"></div>
     </div>
 
+    <%= render :partial => "file_upload_dialog" %>
     <iframe id="upload_target" name="upload_target"></iframe>
 
     <%= dialog "locale_select_dialog", t('.select_locale') do %>
-      <section class="container center">
+      <div class="container center">
         <%= select_tag "locale", options_for_select(available_locales, I18n.locale) %>
-      </section>
+      </div>
     <% end %>
   </body>
 </html>

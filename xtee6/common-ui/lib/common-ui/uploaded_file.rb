@@ -41,7 +41,7 @@ module CommonUi
           return if filename.end_with?(".#{each}")
         end
 
-        raise I18n.t("errors.import.invalid_extension", {
+        raise I18n.t("backup.error.invalid_extension", {
             :file => filename,
             :extensions => @allowed_extensions.join(", ")
         })
@@ -56,7 +56,7 @@ module CommonUi
           return if each.eql?(content_type)
         end
 
-        raise I18n.t("errors.import.invalid_content_type", {
+        raise I18n.t("backup.error.invalid_content_type", {
             :content_type => content_type,
             :allowed_content_types => @allowed_content_types.join(", ")
         })

@@ -62,7 +62,7 @@ class GroupsController < ApplicationController
   end
 
   def group_members
-    authorize!(:view_global_groups)
+    authorize!(:view_group_details)
 
     searchable = params[:sSearch]
 
@@ -86,11 +86,11 @@ class GroupsController < ApplicationController
       member_code = member_id.member_code
 
       result << {
-        :name => SdsbMember.get_name(member_class, member_code),
+        :name => XroadMember.get_name(member_class, member_code),
         :member_code => member_code,
         :member_class => member_class,
         :subsystem => member_id.subsystem_code,
-        :sdsb => member_id.sdsb_instance,
+        :xroad => member_id.xroad_instance,
         :type => member_id.object_type,
         :added => format_time(member_id.created_at.localtime)
       }
@@ -137,7 +137,7 @@ class GroupsController < ApplicationController
         :member_code => client_id.member_code,
         :member_class => client_id.member_class,
         :subsystem => client_id.subsystem_code,
-        :sdsb => client_id.sdsb_instance,
+        :xroad => client_id.xroad_instance,
         :type => client_id.object_type,
         :belongs_to_group => belongs_to_group
       }
@@ -212,7 +212,7 @@ class GroupsController < ApplicationController
 
     raw_member_ids.each do |each|
       member_id = ClientId.from_parts(
-          each[:sdsbInstance],
+          each[:xRoadInstance],
           each[:memberClass],
           each[:memberCode],
           each[:subsystemCode]
@@ -238,7 +238,7 @@ class GroupsController < ApplicationController
 
     selected_members.each do |each|
       new_member_id = ClientId.from_parts(
-          each[:sdsb],
+          each[:xroad],
           each[:member_class],
           each[:member_code],
           each[:subsystem]
@@ -295,7 +295,7 @@ class GroupsController < ApplicationController
     when 3
       return 'identifiers.subsystem_code'
     when 4
-      return 'identifiers.sdsb_instance'
+      return 'identifiers.xroad_instance'
     when 5
       return 'identifiers.object_type'
     when 6
@@ -316,7 +316,7 @@ class GroupsController < ApplicationController
     when 3
       return 'identifiers.subsystem_code'
     when 4
-      return 'identifiers.sdsb_instance'
+      return 'identifiers.xroad_instance'
     when 5
       return 'identifiers.object_type'
     else

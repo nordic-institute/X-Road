@@ -11,16 +11,16 @@ import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.serverconf.ClientCert;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.PerformanceLogger;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.serverconf.ClientCert;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
 import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 
-import static ee.cyber.sdsb.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.cyber.sdsb.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 class ClientMediatorHandler extends AbstractMediatorHandler {
 

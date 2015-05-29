@@ -6,7 +6,7 @@ DROP DATABASE IF EXISTS serverconf_backup;
 CREATE DATABASE serverconf_restore ENCODING 'UTF-8';
 EOC
 
-PGPASSWORD=serverconf pg_restore -h 127.0.0.1 -U serverconf -O -x  -1 -d serverconf_restore /var/lib/sdsb/dbdump.dat
+PGPASSWORD=serverconf pg_restore -h 127.0.0.1 -U serverconf -O -x  -1 -d serverconf_restore /var/lib/xroad/dbdump.dat
 
 
 cat << EOC | su - postgres -c "psql postgres"

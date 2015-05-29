@@ -18,7 +18,6 @@ public class WSDL implements Marshallable, TemplateAware {
     private final List<PortType> portTypes;
     private final List<Binding> bindings;
     private final List<Service> services;
-    private final boolean doclit;
     private final String xrdNamespace;
     private final String targetNamespace;
     private final String name;

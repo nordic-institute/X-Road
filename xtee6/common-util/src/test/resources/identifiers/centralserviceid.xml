@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<sdsb:centralServiceId id:objectType="CENTRALSERVICE"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+<xroad:centralServiceId id:objectType="CENTRALSERVICE"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
-    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:xRoadInstance>EE</id:xRoadInstance>
     <id:serviceCode>rahvastikuregister_isikuandmed</id:serviceCode>
-</sdsb:centralServiceId>
+</xroad:centralServiceId>
 

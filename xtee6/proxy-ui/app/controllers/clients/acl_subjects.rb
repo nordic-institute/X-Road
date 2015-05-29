@@ -1,10 +1,10 @@
 java_import Java::java.util.Date
 
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.AuthorizedSubjectType
-java_import Java::ee.cyber.sdsb.common.identifier.ClientId
-java_import Java::ee.cyber.sdsb.common.identifier.GlobalGroupId
-java_import Java::ee.cyber.sdsb.common.identifier.LocalGroupId
-java_import Java::ee.cyber.sdsb.common.identifier.SdsbObjectType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.AuthorizedSubjectType
+java_import Java::ee.ria.xroad.common.identifier.ClientId
+java_import Java::ee.ria.xroad.common.identifier.GlobalGroupId
+java_import Java::ee.ria.xroad.common.identifier.LocalGroupId
+java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
 
 module Clients::AclSubjects
 
@@ -52,9 +52,9 @@ module Clients::AclSubjects
           :member_class => subject.id.memberClass,
           :member_group_code => subject.id.memberCode,
           :subsystem_code => nil,
-          :instance => subject.id.sdsbInstance,
+          :instance => subject.id.xRoadInstance,
           :type => subject.id.objectType.toString
-        } if SdsbObjectType::MEMBER.toString.include?(type)
+        } if XroadObjectType::MEMBER.toString.include?(type)
       else
         subjects << {
           :subject_id => subject.id.toString,
@@ -62,9 +62,9 @@ module Clients::AclSubjects
           :member_class => subject.id.memberClass,
           :member_group_code => subject.id.memberCode,
           :subsystem_code => subject.id.subsystemCode,
-          :instance => subject.id.sdsbInstance,
+          :instance => subject.id.xRoadInstance,
           :type => subject.id.objectType.toString
-        } if SdsbObjectType::SUBSYSTEM.toString.include?(type)
+        } if XroadObjectType::SUBSYSTEM.toString.include?(type)
       end
     end
 
@@ -77,10 +77,10 @@ module Clients::AclSubjects
         :member_class => nil,
         :member_group_code => subject.id.groupCode,
         :subsystem_code => nil,
-        :instance => subject.id.sdsbInstance,
-        :type => SdsbObjectType::GLOBALGROUP.toString
+        :instance => subject.id.xRoadInstance,
+        :type => XroadObjectType::GLOBALGROUP.toString
       }
-    end if SdsbObjectType::GLOBALGROUP.toString.include?(type) && !members_only
+    end if XroadObjectType::GLOBALGROUP.toString.include?(type) && !members_only
 
     client.localGroup.each do |group|
       subject_id = LocalGroupId.create(group.groupCode)
@@ -94,9 +94,9 @@ module Clients::AclSubjects
         :member_group_code => group.groupCode,
         :subsystem_code => nil,
         :instance => nil,
-        :type => SdsbObjectType::LOCALGROUP.toString
+        :type => XroadObjectType::LOCALGROUP.toString
       }
-    end if SdsbObjectType::LOCALGROUP.toString.include?(type) && !members_only
+    end if XroadObjectType::LOCALGROUP.toString.include?(type) && !members_only
 
     # filter by instance, class, code, subsystem_code, name
     if params[:subject_search_all]
@@ -112,7 +112,7 @@ module Clients::AclSubjects
     else
       subjects.select! do |subject|
         (match(subject[:instance], params[:subject_search_instance], true) ||
-         subject[:type] == SdsbObjectType::LOCALGROUP.toString) &&
+         subject[:type] == XroadObjectType::LOCALGROUP.toString) &&
           match(subject[:member_group_code], params[:subject_search_code]) &&
           match(subject[:name_description], params[:subject_search_description]) &&
           match(subject[:member_class], params[:subject_search_class], true) &&
@@ -242,25 +242,25 @@ module Clients::AclSubjects
         subject = {
           :subject_id => subject_id.toString,
           :type => subject_id.objectType.toString,
-          :instance => subject_id.sdsbInstance,
+          :instance => subject_id.xRoadInstance,
           :rights_given => format_time(authorized_subject.rightsGiven)
         }
 
-        if subject_id.objectType == SdsbObjectType::MEMBER
+        if subject_id.objectType == XroadObjectType::MEMBER
           subject[:name_description] = GlobalConf::getMemberName(subject_id)
           subject[:member_group_code] = subject_id.memberCode
           subject[:member_class] = subject_id.memberClass
           subject[:subsystem_code] = nil
         end
 
-        if subject_id.objectType == SdsbObjectType::SUBSYSTEM
+        if subject_id.objectType == XroadObjectType::SUBSYSTEM
           subject[:name_description] = GlobalConf::getMemberName(subject_id)
           subject[:member_group_code] = subject_id.memberCode
           subject[:member_class] = subject_id.memberClass
           subject[:subsystem_code] = subject_id.subsystemCode
         end
 
-        if subject_id.objectType == SdsbObjectType::GLOBALGROUP
+        if subject_id.objectType == XroadObjectType::GLOBALGROUP
           subject[:name_description] =
             GlobalConf::getGlobalGroupDescription(subject_id)
           subject[:member_group_code] = subject_id.groupCode
@@ -268,7 +268,7 @@ module Clients::AclSubjects
           subject[:subsystem_code] = nil
         end
 
-        if subject_id.objectType == SdsbObjectType::LOCALGROUP
+        if subject_id.objectType == XroadObjectType::LOCALGROUP
           subject[:name_description] = localgroup_descs[subject_id.groupCode]
           subject[:member_group_code] = subject_id.groupCode
           subject[:member_class] = nil

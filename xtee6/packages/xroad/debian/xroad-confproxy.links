@@ -1,7 +1,7 @@
-usr/share/sdsb/jlib/configuration-proxy-1.0.jar usr/share/sdsb/jlib/configuration-proxy.jar
-etc/sdsb/nginx/sdsb-public.conf etc/nginx/sites-enabled/sdsb-public
-usr/share/sdsb/scripts/confproxy-view-conf usr/bin/confproxy-view-conf
-usr/share/sdsb/scripts/confproxy-add-signing-key usr/bin/confproxy-add-signing-key
-usr/share/sdsb/scripts/confproxy-del-signing-key usr/bin/confproxy-del-signing-key
-usr/share/sdsb/scripts/confproxy-generate-anchor usr/bin/confproxy-generate-anchor
-usr/share/sdsb/scripts/confproxy-create-instance usr/bin/confproxy-create-instance
+usr/share/xroad/jlib/configuration-proxy-1.0.jar usr/share/xroad/jlib/configuration-proxy.jar
+etc/xroad/nginx/xroad-public.conf etc/nginx/sites-enabled/xroad-public
+usr/share/xroad/scripts/confproxy-view-conf usr/bin/confproxy-view-conf
+usr/share/xroad/scripts/confproxy-add-signing-key usr/bin/confproxy-add-signing-key
+usr/share/xroad/scripts/confproxy-del-signing-key usr/bin/confproxy-del-signing-key
+usr/share/xroad/scripts/confproxy-generate-anchor usr/bin/confproxy-generate-anchor
+usr/share/xroad/scripts/confproxy-create-instance usr/bin/confproxy-create-instance

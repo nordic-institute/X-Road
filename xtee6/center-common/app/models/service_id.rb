@@ -9,7 +9,7 @@ class ServiceId < Identifier
 
     ServiceId.new(
         :object_type => "SERVICE",
-        :sdsb_instance => provider_id.sdsb_instance,
+        :xroad_instance => provider_id.xroad_instance,
         :member_class => provider_id.member_class,
         :member_code => provider_id.member_code,
         :subsystem_code => provider_id.subsystem_code,
@@ -18,6 +18,6 @@ class ServiceId < Identifier
   end
 
   def to_s
-    "#{object_type}:#{sdsb_instance}/#{member_class}/#{member_code}#{subsystem_code ? '/' + subsystem_code : ''}/#{service_code}"
+    "#{object_type}:#{xroad_instance}/#{member_class}/#{member_code}#{subsystem_code ? '/' + subsystem_code : ''}/#{service_code}"
   end
 end

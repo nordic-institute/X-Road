@@ -50,11 +50,11 @@ $.fn.initDialog = function(opts) {
                     options["originalPosition"] = options["position"];
 
                     options["width"] = $(window).width();
-                    options["height"] = $(window).height() - $("#main").position().top;
+                    options["height"] = $(window).height() - $("#main-wrapper").position().top;
                     options["position"] = {
                         my: "left top",
                         at: "left top",
-                        of: $("#main")
+                        of: $("#main-wrapper")
                     };
                     options["maximized"] = true;
                 }
@@ -80,6 +80,13 @@ $.fn.initDialog = function(opts) {
     });
 
     dialog.on("dialogopen", function() {
+        var availableHeight = $(window).height();
+        var currentHeight = dialog.parent().outerHeight();
+
+        if (currentHeight > availableHeight) {
+            dialog.dialog("option", "height", availableHeight);
+        }
+
         dialog.trigger("dialogresizestop");
     });
 
@@ -401,9 +408,17 @@ function isNotBlank(value) {
 function initMenu() {
     $('.menu li a').each(function() {
         if ($(this).attr('href') == location.pathname) {
-            $(this).parent().addClass('active');
+            $(this).addClass('active');
         }
     });
+
+    // Set page heading according to active menu item.
+    var active = $("#menu .active");
+    if (active.length > 0) {
+        $("#heading:empty").html(active.text());
+    } else {
+        $("#heading:empty").parent().hide();
+    }
 }
 
 function error(msg) {
@@ -419,7 +434,7 @@ function addMessage(type, message) {
         return;
     }
 
-    var messages = $("#content > .messages");
+    var messages = $("#content-inner > .messages");
 
     if ($(".ui-dialog:visible").length > 0) {
         var dialogContent = $(".ui-dialog-content:visible:first");
@@ -467,17 +482,22 @@ function showMessages(messages) {
 
     $.each(messages, function(i, type) {
         $.each(type[1], function(i, message) {
-            addMessage(type[0], message);
+            addMessage(type[0].replace("!", ""), message);
         });
     });
 }
 
 function showAlerts(alerts) {
-    if (!alerts) {
-        return;
+    if ($(".alerts").is(":visible")) {
+        $("#header, #sidebar-inner, #content-inner")
+            .css("margin-top", "-=" + $(".alerts").outerHeight() + "px");
     }
 
     $(".alerts").html("");
+
+    if (typeof alerts == "undefined" || alerts.length == 0) {
+        return;
+    }
 
     $.each(alerts, function(idx, val) {
         var text = val;
@@ -497,14 +517,8 @@ function showAlerts(alerts) {
         }
     });
 
-    setTopPosition();
-}
-
-function setTopPosition() {
-    var top = $('#server-info').height() +
-        ( $('.alerts').is(':empty') ? $('.alerts').height() : $('.alerts').outerHeight() );
-    $('#main').css('top', top);
-    $('#user-menu').css('top', top);
+    $("#header, #sidebar-inner, #content-inner")
+        .css("margin-top", "+=" + $(".alerts").outerHeight() + "px");
 }
 
 function focusInput() {
@@ -682,8 +696,8 @@ function confirm(text, params, success) {
             { text: _("common.confirm"),
               id: "confirm",
               click: function() {
-                  success();
                   $(this).dialog("close");
+                  success();
               }},
             { text: _("common.cancel"),
               click: function() {
@@ -833,28 +847,6 @@ $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
     };
 });
 
-function getTableWrapper(tableId) {
-    return $("#" + tableId + "_wrapper");
-}
-
-function isTableVisible(tableId){
-    return getTableWrapper(tableId).is(":visible");
-}
-/**
- * Toggles visibility of the table and alters text of toggling button.
- *
- * @param toggleButton - javascript button element, text of it will be toggled
- * from "+" to "-" when opening table, vice versa when closing.
- * @param tableId - table id attribute value in HTML (string).
- *
- * @returns true if table is going to be opened.
- */
-function toggleTableVisibility(toggleButton, tableId) {
-    var toggleButtonText = isTableVisible(tableId) ? "+" : "-";
-    toggleButton.text(toggleButtonText);
-    getTableWrapper(tableId).toggle();
-}
-
 $(document).ajaxSend(function(ev, xhr) {
     xhr.setRequestHeader("X-CSRF-Token",
             $("meta[name=csrf-token]").attr("content"));
@@ -884,8 +876,8 @@ $(document).ajaxSuccess(function(ev, xhr, opts) {
 });
 
 $(document).ajaxError(function(ev, xhr) {
-    clearMessages();
-    error(xhr.responseText);
+    var response = $.parseJSON(xhr.responseText);
+    showMessages(response.messages);
 });
 
 $(document).on("dialogclose", ".ui-dialog", function() {
@@ -904,10 +896,6 @@ function getTableRowButton(buttonText, onClick) {
         class: 'right',
         click: onClick
     });
-}
-
-function removeTableRowButtons(row) {
-    row.find("button").remove();
 }
 
 function appendButtonToRow(row, button) {
@@ -991,16 +979,75 @@ function deactivateToken(tokenId, onSuccess) {
     }, onSuccess, "json");
 }
 
+function initFileUploadDialog() {
+    var dialog = $("#file_upload_dialog").initDialog({
+        autoOpen: false,
+        modal: true,
+        height: 230,
+        width: 700,
+        buttons: [
+            { id: "file_upload_submit",
+              text: _("common.ok")
+            },
+            { text: _("common.cancel"),
+              click: function() {
+                  $(this).dialog("close");
+              }
+            }
+        ],
+        close: function() {
+            $("input.extra", this).remove();
+            $("input.selected_file", this).val("");
+        }
+    });
+
+    $("#file_upload", dialog).change(function() {
+        $(".selected_file", dialog).val($(this).val());
+        $("#file_upload_submit").enable();
+    });
+}
+
+function openFileUploadDialog(action, title, hiddenFields, onSubmit) {
+    var form = $("#file_upload_dialog form").attr("action", action);
+
+    $("input.extra", form).remove();
+    $("input.selected_file", form).val("");
+
+    if (hiddenFields != null) {
+        $.each(hiddenFields, function(name, value) {
+            form.append(
+                $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", name)
+                    .attr("value", value)
+                    .addClass("extra"));
+        });
+    }
+
+    $("#file_upload_submit").unbind("click").click(function() {
+        if (typeof onSubmit != "undefined") {
+            onSubmit.call(this);
+        } else {
+            form.submit()
+        }
+    }).disable();
+
+    $("#file_upload_dialog")
+        .dialog("option", "title", title)
+        .dialog("open");
+}
+
+function closeFileUploadDialog() {
+    $("#file_upload_dialog").dialog("close");
+}
+
 $(document).ready(function() {
+
     initMenu();
 
-    // Set page heading according to active menu item.
-    var active = $("#menu .active");
-    if (active.length > 0) {
-        $("#heading:empty").html(active.html());
-    } else {
-        $("#heading:empty").parent().hide();
-    }
+    $("button:contains('Add')" ).addClass("add-icon");
+    $("button:contains('Edit')" ).addClass("edit-icon");
+    $("button:contains('Delete')" ).addClass("delete-icon");
 
     // Submit only search forms with ENTER.
     $(document).on("keydown", "form", function(e) {
@@ -1036,7 +1083,7 @@ $(document).ready(function() {
     $('.' + $('#ctrl').val() + '_actions').find('button').each(function() {
         var clone = $(this).clone();
         $(this).remove();
-        $('.button-group').append($('<li/>').addClass('left').html(clone));
+        $('.button-group').append(clone);
     });
 
     $('#server-names h2').text($('#server-names h2').text().replace(' Administration', ''));
@@ -1046,6 +1093,7 @@ $(document).ready(function() {
     if($('#user h2').text() == '')
         $('#user h1').addClass('big');
 
+    initFileUploadDialog();
     initLocaleSelectDialog();
 
     // Init every tooltip on page, even the ones added dynamically later.

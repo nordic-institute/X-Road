@@ -1,5 +1,5 @@
 unless $rails_rake_task
-  java_import Java::ee.cyber.sdsb.common.request.ManagementRequestClient
+  java_import Java::ee.ria.xroad.common.request.ManagementRequestClient
 
   Rails.application.config.after_initialize do
     # Actually doesn't do anything, but lets follow the StartStop interface

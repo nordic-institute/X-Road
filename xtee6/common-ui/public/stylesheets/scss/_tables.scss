@@ -68,16 +68,13 @@ table {
             }
             td {
                 padding: 5px;
-
                 a {
                     text-decoration: underline;
                 }
-
                 &.actions {
                     width: 1px;
                     white-space: nowrap;
                 }
-
                 span {
                     &.status {
                         font-size: 8pt;
@@ -98,7 +95,7 @@ table {
                             text-shadow: 0 0 3px rgba($base-color-red, 0.8);
                         }
                     }
-                    &.sdsb-id {
+                    &.xroad-id {
                         border-bottom: 1px dotted $base-border-color;
                     }
                 }
@@ -143,6 +140,10 @@ table.dataTable {
             &.noclip {
                 overflow: visible;
             }
+
+            &.wrap {
+                white-space: normal;
+            }
         }
 
         &.row_selected td {
@@ -179,7 +180,7 @@ table.details {
                     min-width: 120px;
                 }
                 select {
-                    width: 100%;
+                    width: calc(100% + 0.1em);
                 }
             }
 
@@ -190,6 +191,12 @@ table.details {
             }
         }
     }
+}
+
+.dataTables_scrollHeadInner,
+.dataTable {
+  width: 100% !important;
+  padding: 0 !important;
 }
 
 .dataTables_wrapper {

@@ -12,12 +12,12 @@ jar {
         exclude "META-INF/*.RSA"
     }
     manifest {
-        attributes 'Main-Class': 'ee.cyber.xroad.asicverifier.AsicVerifierMain'
+        attributes 'Main-Class': 'ee.ria.xroad_legacy.asicverifier.AsicVerifierMain'
     }
 }
 
 task runAsicVerifier(type: JavaExec) {
-    main = 'ee.cyber.xroad.asicverifier.AsicVerifierMain'
+    main = 'ee.ria.xroad_legacy.asicverifier.AsicVerifierMain'
     classpath = sourceSets.main.runtimeClasspath
     standardInput = System.in;
 

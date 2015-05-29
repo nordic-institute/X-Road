@@ -7,11 +7,11 @@ import java.util.Map;
 
 import org.eclipse.jetty.http.MimeTypes;
 
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.util.MimeUtils;
-import ee.cyber.sdsb.common.util.MultipartEncoder;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.MultipartEncoder;
 
-import static ee.cyber.sdsb.common.util.MimeUtils.toHeaders;
+import static ee.ria.xroad.common.util.MimeUtils.toHeaders;
 
 /**
  * Multipart message encoder that encodes SOAP messages as well as attachments
@@ -20,6 +20,10 @@ import static ee.cyber.sdsb.common.util.MimeUtils.toHeaders;
 public class MultipartMessageEncoder extends MultipartEncoder
         implements MessageEncoder {
 
+    /**
+     * Constructs a multipart message encoder with the given output stream.
+     * @param out the output stream
+     */
     public MultipartMessageEncoder(OutputStream out) {
         super(out);
     }
@@ -35,6 +39,13 @@ public class MultipartMessageEncoder extends MultipartEncoder
         write(soapMessage.getXml().getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Encodes an attachment with the specified content type.
+     * @param contentType the content type of the attachment
+     * @param content the input stream containing attachment data
+     * @param additionalHeaders additional HTTP headers
+     * @throws Exception in case of any errors
+     */
     public void attachment(String contentType, InputStream content,
             Map<String, String> additionalHeaders) throws Exception {
         startPart(contentType, toHeaders(additionalHeaders));

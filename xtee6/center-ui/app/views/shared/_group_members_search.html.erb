@@ -23,10 +23,10 @@
     <td><%= text_field_tag "group_members_search_subsystem", nil, :id => nil %></td>
   </tr>
   <tr>
-    <td><%= t 'groups.details.sdsb' %></td>
+    <td><%= t 'groups.details.xroad' %></td>
     <td>
-      <%= select_tag("group_members_search_sdsb",
-          options_for_select(sdsb_instances), :id => nil, :include_blank => true) %>
+      <%= select_tag("group_members_search_xroad",
+          options_for_select(xroad_instances), :id => nil, :include_blank => true) %>
     </td>
   </tr>
   <tr>

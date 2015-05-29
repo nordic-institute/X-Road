@@ -1,7 +1,7 @@
-<tns:keyConf xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+<tns:keyConf xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:id="http://x-road.eu/xsd/identifiers"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../main/resources/keyconf.xsd ">
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../main/resources/keyconf.xsd ">
     <device>
         <deviceType>softToken</deviceType>
         <id>1</id>
@@ -10,7 +10,7 @@
             <keyId>70726f6475636572</keyId>
             <cert>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>producer</id:memberCode>
                 </memberId>
@@ -36,13 +36,13 @@
                     SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
                 </contents>
             </cert>
-        </key>    
+        </key>
         <key usage="SIGNING">
             <friendlyName>Signing key of consumer</friendlyName>
             <keyId>636f6e73756d6572</keyId>
             <cert>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>consumer</id:memberCode>
                 </memberId>
@@ -73,7 +73,7 @@
             <keyId>02d66d5589f5b8626875ef99a11a84f7b2aa202f</keyId>
             <cert>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>producer</id:memberCode>
                 </memberId>
@@ -141,7 +141,7 @@
             </publicKey>
             <certRequest>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>consumer</id:memberCode>
                 </memberId>
@@ -149,7 +149,7 @@
             </certRequest>
             <certRequest>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>producer</id:memberCode>
                 </memberId>
@@ -188,7 +188,7 @@
             </publicKey>
             <cert>
                 <memberId id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>producer</id:memberCode>
                 </memberId>

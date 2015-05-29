@@ -5,68 +5,68 @@ set -e
 
 if [ "$1" = configure ]; then
     # Make sure the administrative user exists
-    if ! getent passwd sdsb > /dev/null; then
-        adduser --system --quiet --home /var/lib/sdsb --no-create-home \
-            --shell /bin/bash --group --gecos "X-Road system user" sdsb
+    if ! getent passwd xroad > /dev/null; then
+        adduser --system --quiet --home /var/lib/xroad --no-create-home \
+            --shell /bin/bash --group --gecos "X-Road system user" xroad
     fi
 
-    # check validity of sdsb user and group
-    if [ "`id -u sdsb`" -eq 0 ]; then
-        echo "The sdsb system user must not have uid 0 (root).
+    # check validity of xroad user and group
+    if [ "`id -u xroad`" -eq 0 ]; then
+        echo "The xroad system user must not have uid 0 (root).
 Please fix this and reinstall this package." >&2
         exit 1
     fi
-    if [ "`id -g sdsb`" -eq 0 ]; then
-        echo "The sdsb system user must not have root as primary group.
+    if [ "`id -g xroad`" -eq 0 ]; then
+        echo "The xroad system user must not have root as primary group.
 Please fix this and reinstall this package." >&2
         exit 1
     fi
-    #add sdsb to shadow group for pam 
-    adduser sdsb shadow
+    #add xroad to shadow group for pam 
+    adduser xroad shadow
 
     # ensure home directory ownership
-    mkdir -p /var/lib/sdsb/backup
-    su - sdsb -c "test -O /var/lib/sdsb &&
-            test -G /var/lib/sdsb" || \
-        chown sdsb:sdsb /var/lib/sdsb 
-    chown sdsb:sdsb /var/lib/sdsb/backup
-    chmod 0775 /var/lib/sdsb
+    mkdir -p /var/lib/xroad/backup
+    su - xroad -c "test -O /var/lib/xroad &&
+            test -G /var/lib/xroad" || \
+        chown xroad:xroad /var/lib/xroad 
+    chown xroad:xroad /var/lib/xroad/backup
+    chmod 0775 /var/lib/xroad
 
     # nicer log directory permissions
-    mkdir -p -m1770 /var/log/sdsb
-    chmod 1770 /var/log/sdsb
-    chown sdsb:sdsb /var/log/sdsb
+    mkdir -p -m1770 /var/log/xroad
+    chmod 1770 /var/log/xroad
+    chown xroad:xroad /var/log/xroad
 
     # test and fix config folder
-    su - sdsb -c "test -O /etc/sdsb &&
-            test -G /etc/sdsb" || \
-        chown sdsb:sdsb /etc/sdsb
-    chmod 0770 /etc/sdsb
+    su - xroad -c "test -O /etc/xroad &&
+            test -G /etc/xroad" || \
+        chown xroad:xroad /etc/xroad
+    chmod 0770 /etc/xroad
 
     #tmp folder
-    mkdir -p /var/tmp/sdsb
-    chmod 1770 /var/tmp/sdsb
-    chown sdsb:sdsb /var/tmp/sdsb
+    mkdir -p /var/tmp/xroad
+    chmod 1770 /var/tmp/xroad
+    chown xroad:xroad /var/tmp/xroad
 
-    chmod 770 /etc/sdsb/ssl
-    chown sdsb:sdsb /etc/sdsb/ssl
+    chmod 770 /etc/xroad/ssl
+    chown xroad:xroad /etc/xroad/ssl
 
     # create socket directory
-    [ -d /var/run/sdsb ] || \
-       install -d -m 2770 -o sdsb -g sdsb /var/run/sdsb
+    [ -d /var/run/xroad ] || \
+       install -d -m 2770 -o xroad -g xroad /var/run/xroad
 
     test -e /usr/lib/jvm/java-1.8.0-openjdk-amd64 || ln -sf /usr/lib/jvm/java-1.8.0-openjdk/ /usr/lib/jvm/java-1.8.0-openjdk-amd64
 
     #local overrides
-    test -f /etc/sdsb/services/local.conf || touch /etc/sdsb/services/local.conf 
-    test -f /etc/sdsb/conf.d/local.ini || touch /etc/sdsb/conf.d/local.ini
+    test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf 
+    test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
-    test -d /etc/sdsb/signer || mkdir -p -m0700 /etc/sdsb/signer && chown sdsb:sdsb /etc/sdsb/signer
-    test -d /etc/sdsb/conf.d || mkdir -p /etc/sdsb/conf.d && chown sdsb:sdsb /etc/sdsb/conf.d
-    test -d /etc/sdsb/ssl || mkdir /etc/sdsb/ssl
+    test -d /etc/xroad/signer || mkdir -p -m0700 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
+    test -d /etc/xroad/conf.d || mkdir -p /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
+    test -d /etc/xroad/ssl || mkdir /etc/xroad/ssl
     test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
 
-    chmod 0440 /etc/sudoers.d/xroad
+    chmod 0440 /etc/sudoers.d/xroad-restore
 
     #check if java trustAnchor file is non-empty. add certs if neccecary
     JAVACERTS=`find  /etc/ssl/certs/java/ -type f -size +1k -print -quit`

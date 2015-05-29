@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="toja" id="0-initial">
+        <createTable tableName="ACL">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SERVICECODE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CLIENT_ID" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="AUTHORIZEDSUBJECT">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SUBJECTID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="RIGHTSGIVEN" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ACL_ID" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="CERTIFICATE">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DATA" type="BLOB"/>
+        </createTable>
+        <createTable tableName="CLIENT">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONF_ID" type="BIGINT"/>
+            <column name="IDENTIFIER" type="BIGINT"/>
+            <column name="CONTACTS" type="VARCHAR(255)"/>
+            <column name="CLIENTSTATUS" type="VARCHAR(255)"/>
+            <column name="ISAUTHENTICATION" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="GROUPMEMBER">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="GROUPMEMBERID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ADDED" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LOCALGROUP_ID" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="IDENTIFIER">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DISCRIMINATOR" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TYPE" type="VARCHAR(255)"/>
+            <column name="XROADINSTANCE" type="VARCHAR(255)"/>
+            <column name="MEMBERCLASS" type="VARCHAR(255)"/>
+            <column name="MEMBERCODE" type="VARCHAR(255)"/>
+            <column name="SUBSYSTEMCODE" type="VARCHAR(255)"/>
+            <column name="SERVICEVERSION" type="VARCHAR(255)"/>
+            <column name="SERVICECODE" type="VARCHAR(255)"/>
+            <column name="GROUPCODE" type="VARCHAR(255)"/>
+            <column name="SECURITYCATEGORY" type="VARCHAR(255)"/>
+            <column name="SERVERCODE" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="LOCALGROUP">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="GROUPCODE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DESCRIPTION" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="UPDATED" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CLIENT_ID" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="SERVERCONF">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SERVERCODE" type="VARCHAR(255)"/>
+            <column name="OWNER" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="SERVICE">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="WSDL_ID" type="BIGINT"/>
+            <column name="SERVICECODE" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SERVICEVERSION" type="VARCHAR(255)"/>
+            <column name="TITLE" type="VARCHAR(255)"/>
+            <column name="URL" type="VARCHAR(255)"/>
+            <column name="SSLAUTHENTICATION" type="BOOLEAN"/>
+            <column name="TIMEOUT" type="INT"/>
+        </createTable>
+        <createTable tableName="TSP">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="NAME" type="VARCHAR(255)"/>
+            <column name="URL" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CONF_ID" type="BIGINT"/>
+        </createTable>
+        <createTable tableName="UIUSER">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="USERNAME" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="LOCALE" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="WSDL">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CLIENT_ID" type="BIGINT"/>
+            <column name="URL" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="WSDLLOCATION" type="VARCHAR(255)"/>
+            <column name="DISABLED" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DISABLEDNOTICE" type="VARCHAR(255)"/>
+            <column name="PUBLISH" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="PUBLISHEDDATE" type="timestamp"/>
+            <column name="REFRESHEDDATE" type="timestamp"/>
+            <column name="BACKEND" type="VARCHAR(255)"/>
+            <column name="BACKENDURL" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="CLIENT_ISCERTS">
+            <column name="CLIENT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="CERTIFICATE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="SERVICE_SECURITYCATEGORIES">
+            <column name="SERVICE_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="SECURITY_CAT_ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey columnNames="ID" constraintName="ACLPK" tableName="ACL"/>
+        <addPrimaryKey columnNames="ID" constraintName="AUTHORIZEDSUBJECTPK" tableName="AUTHORIZEDSUBJECT"/>
+        <addPrimaryKey columnNames="ID" constraintName="CERTIFICATEPK" tableName="CERTIFICATE"/>
+        <addPrimaryKey columnNames="ID" constraintName="CLIENTPK" tableName="CLIENT"/>
+        <addPrimaryKey columnNames="ID" constraintName="GROUPMEMBERPK" tableName="GROUPMEMBER"/>
+        <addPrimaryKey columnNames="ID" constraintName="IDENTIFIERPK" tableName="IDENTIFIER"/>
+        <addPrimaryKey columnNames="ID" constraintName="LOCALGROUPPK" tableName="LOCALGROUP"/>
+        <addPrimaryKey columnNames="ID" constraintName="SERVERCONFPK" tableName="SERVERCONF"/>
+        <addPrimaryKey columnNames="ID" constraintName="SERVICEPK" tableName="SERVICE"/>
+        <addPrimaryKey columnNames="ID" constraintName="TSPPK" tableName="TSP"/>
+        <addPrimaryKey columnNames="ID" constraintName="UIUSERPK" tableName="UIUSER"/>
+        <addPrimaryKey columnNames="ID" constraintName="WSDLPK" tableName="WSDL"/>
+        <addForeignKeyConstraint baseColumnNames="OWNER" baseTableName="SERVERCONF" constraintName="FK_1FEB23WW1ONDJ5DV8EU6GP86O" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CLIENT"/>
+        <addForeignKeyConstraint baseColumnNames="CLIENT_ID" baseTableName="LOCALGROUP" constraintName="FK_3HBUO4VAQC9XPGQ8OMBXSFUQA" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CLIENT"/>
+        <addForeignKeyConstraint baseColumnNames="CLIENT_ID" baseTableName="ACL" constraintName="FK_5EIASG06I7S9WWJ2M6J8XJRVL" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CLIENT"/>
+        <addForeignKeyConstraint baseColumnNames="SUBJECTID" baseTableName="AUTHORIZEDSUBJECT" constraintName="FK_5VNW7DQ6I9X7EOB71BP7JYM42" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="IDENTIFIER"/>
+        <addForeignKeyConstraint baseColumnNames="GROUPMEMBERID" baseTableName="GROUPMEMBER" constraintName="FK_7HTIW4BES7513YVEHDP9O1CCN" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="IDENTIFIER"/>
+        <addForeignKeyConstraint baseColumnNames="LOCALGROUP_ID" baseTableName="GROUPMEMBER" constraintName="FK_9S9V7IQGB50L3N9XNXFIA82P1" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="LOCALGROUP"/>
+        <addForeignKeyConstraint baseColumnNames="CLIENT_ID" baseTableName="CLIENT_ISCERTS" constraintName="FK_CSNP8DR3VI3NGG9RGWEW3C89D" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CLIENT"/>
+        <addForeignKeyConstraint baseColumnNames="CLIENT_ID" baseTableName="WSDL" constraintName="FK_I1XXLSCWB84540U33AU7FF9VB" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CLIENT"/>
+        <addForeignKeyConstraint baseColumnNames="CERTIFICATE_ID" baseTableName="CLIENT_ISCERTS" constraintName="FK_IHJWTUISQGOTC308XVO768YTY" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="CERTIFICATE"/>
+        <addForeignKeyConstraint baseColumnNames="SECURITY_CAT_ID" baseTableName="SERVICE_SECURITYCATEGORIES" constraintName="FK_JUG7E4JTIIOJG492HH1I10QR0" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="IDENTIFIER"/>
+        <addForeignKeyConstraint baseColumnNames="SERVICE_ID" baseTableName="SERVICE_SECURITYCATEGORIES" constraintName="FK_OR1XKHDC830058RH2KPDGJVD0" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="SERVICE"/>
+        <addForeignKeyConstraint baseColumnNames="CONF_ID" baseTableName="CLIENT" constraintName="FK_P1N5E2YP385EUSD471LON18LM" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="SERVERCONF"/>
+        <addForeignKeyConstraint baseColumnNames="WSDL_ID" baseTableName="SERVICE" constraintName="FK_Q2ME40QTKCYPWYH6TTRRPF5XF" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="WSDL"/>
+        <addForeignKeyConstraint baseColumnNames="CONF_ID" baseTableName="TSP" constraintName="FK_SAE6CB6EMXN9IY5H56BQ8IER2" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="SERVERCONF"/>
+        <addForeignKeyConstraint baseColumnNames="IDENTIFIER" baseTableName="CLIENT" constraintName="FK_TH1B8VIW7RFXP53T1B27OSCV1" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="IDENTIFIER"/>
+        <addForeignKeyConstraint baseColumnNames="ACL_ID" baseTableName="AUTHORIZEDSUBJECT" constraintName="FK_TNUBREVSMMHLG21W1RIB0WQ58" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ACL"/>
+	<createSequence sequenceName="hibernate_sequence"/>
+    </changeSet>
+</databaseChangeLog>

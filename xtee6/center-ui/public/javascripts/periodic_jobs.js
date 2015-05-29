@@ -1,9 +1,12 @@
-var SDSB_PERIODIC_JOBS = function() {
+var XROAD_PERIODIC_JOBS = function() {
     function refreshAlerts() {
-        if (typeof SDSB_BACKUP == "undefined" || !SDSB_BACKUP.restoreInProgress()) {
+        if (typeof XROAD_BACKUP == "undefined" || !XROAD_BACKUP.restoreInProgress()) {
             $.ajax({
                 url: "/system_status/check_status",
                 global: false,
+                data: {
+                    allowTimeout: true
+                },
                 success: function(response) {
                     showAlerts(response.alerts);
                 },

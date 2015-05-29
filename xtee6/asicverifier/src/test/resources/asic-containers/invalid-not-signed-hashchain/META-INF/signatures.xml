@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><asic:XAdESSignatures xmlns:asic="http://uri.etsi.org/02918/v1.1.1#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ds:Signature Id="signature">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"/>
+<ds:Reference URI="/message.xml">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>BGtNQlzp3XwQ3jy9qXxLEm/xiAqbZ8V0M4ptnRYMSLuJKlqvfvWp/zbUzpJFlzhEWVmsVY8EXqNk
+2QkI0FyA4g==</ds:DigestValue>
+</ds:Reference>
+<ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#signed-properties">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>mH86rSIHxmWf+1gGJXrAPzDH+R6sbGnxqeXbI0OJPNG+jXcoMUUd1Zmu0EfjTvDslkjEL/UzJ/qD
+M917Jo2Xhw==</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue Id="signature-value">
+na56uaVH1fXRxjnoftyKSnTVIMdUPWb7gOBWIY9jcO9uiS3KZkrnzryeaqaPpd1l/2dlPhok32As
+nwvMOv1gDO1dGwLERJX+rFj0pZhKOddJHcghp3taxjjgzn9sfq+tiv828TvwziKZhy9WaViP6k65
+LpvBBWVFX3yhHsi0FDiMxj2id85ycaOmF3xtXH1ZFU2OeTV//tb80evuoCVhyLQ+zraNQHigxGb6
+aJVUZC6Vkr2BVc9AweXBmWP+42az8FN2gb4ULhB89DhLXeloW3oYXmC3aschIZiOtOM0n/rljRfV
+ueONtUcevR1pyT7o2bDQ7Rfdu6d4NbvlFWtjSw==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UEAwwIQWRtaW5D
+QTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0UwHhcNMTIwOTI4MTgxODIxWhcN
+MTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9kdWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEP
+ADCCAQoCggEBAL6kZcfiqsmviMOoPlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfK
+LTkmjeAz+ZPE57gBfKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tP
+BpJUAWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8awEfDrdpn
+D04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlYcX+ojtAUSP8al87RJYo5
+R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq8+fRHekCAwEAAaOBuzCBuDBYBggrBgEF
+BQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2Vq
+YmNhL3B1YmxpY3dlYi9zdGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMw
+DAYDVR0TAQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8BAf8E
+BAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejKGvLWNT4LEZQqFNl2
+QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqoF5GsBeILwxuNxwapaB8ZUGoyn2OZ
+u17LzZhevlBP40NjuOW19L0meFsh7gxgbWhznR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHU
+StbyrKaCl+UDu+vBzCwes8oOrIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N
+5nQaeAs8ASXASxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+<ds:Object><xades:QualifyingProperties Target="#signature"><xades:SignedProperties Id="signed-properties"><xades:SignedSignatureProperties><xades:SigningTime>2014-05-26T07:46:08.335Z</xades:SigningTime><xades:SigningCertificate><xades:Cert><xades:CertDigest><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/><ds:DigestValue>AWocSK9lCjklGP96VcWGDMY92B7MCFF44/bIZmhGR51wWG8jZU3F3nO9y2Eth0PWo7iqds7X0PO7gDnQExd/gw==</ds:DigestValue></xades:CertDigest><xades:IssuerSerial><ds:X509IssuerName>C=SE,O=EJBCA Sample,CN=AdminCA1</ds:X509IssuerName><ds:X509SerialNumber>4494400857428571204</ds:X509SerialNumber></xades:IssuerSerial></xades:Cert></xades:SigningCertificate></xades:SignedSignatureProperties><xades:SignedDataObjectProperties><xades:DataObjectFormat ObjectReference="/message.xml"><xades:MimeType>text/xml</xades:MimeType></xades:DataObjectFormat></xades:SignedDataObjectProperties></xades:SignedProperties><xades:UnsignedProperties><xades:UnsignedSignatureProperties><xades:RevocationValues><xades:OCSPValues><xades:EncapsulatedOCSPValue Id="ocsp-response-1">MIIBugoBAKCCAbMwggGvBgkrBgEFBQcwAQEEggGgMIIBnDCBhaEYMBYxFDASBgNVBAMMC09jc3AgU2lnbmVyGA8yMDE0MDUyNjA3NDYwOFowWDBWMEEwCQYFKw4DAhoFAAQUQUX4pczwfgHr8dItQKHik5Kx4C4EFHctiS4Dtv340mU5MTUi0EYa6NIJAgg+X1HEeT20RIAAGA8yMDE0MDUyNzA3NDYwOFowDQYJKoZIhvcNAQEFBQADggEBAElGlYmbQLbShnZ1Gq3OmNEAr/WCf/LWmoeWqq2vdET897BLizYitmIED3UdptJzgHEKlxkF3Ui8HCdi21taVDSEn4WUK9P89wqs+YSJ2ygRvfml4s0omNQ7ryzE6Locq1QMKJ7QFKeKaghPqyHHcNfkD6SigIr3e8JJd8wqzGnwGBYUXA2/TmRaz5rG/0em162HxUluOcLorvsA9BhYNjEP6CNH5DsGcntCkd17XfqDDOAK0N0uSxHnNq8m3k0aTA3NMg9INWQVXMUcIyZRcGOLF74hDy85YXNi09oN0Zmd9WHQNR7QFbK32EYUdQa65t/Vw7/B2SGCsAwg9bvrGa0=</xades:EncapsulatedOCSPValue></xades:OCSPValues></xades:RevocationValues></xades:UnsignedSignatureProperties></xades:UnsignedProperties></xades:QualifyingProperties></ds:Object>
+</ds:Signature></asic:XAdESSignatures>

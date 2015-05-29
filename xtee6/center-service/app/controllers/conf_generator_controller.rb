@@ -15,11 +15,11 @@ require 'fileutils'
 require 'common-ui/io_utils'
 require 'common-ui/cert_utils'
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.PrivateParameters
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.SharedParameters
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.PrivateParametersSchemaValidator
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.SharedParametersSchemaValidator
-java_import Java::ee.cyber.sdsb.common.util.HashCalculator
+java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParameters
+java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
+java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidator
+java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidator
+java_import Java::ee.ria.xroad.common.util.HashCalculator
 
 class ConfGeneratorController < ApplicationController
 
@@ -29,11 +29,9 @@ class ConfGeneratorController < ApplicationController
 
   before_filter :restrict_access
 
-  # TODO (task #5619 - turn logging level in this method into DEBUG when
-  # parallel generation problem fixed):
   def index
-     GlobalConfGenerationSynchronizer.generate() do
-      logger.info("Starting global conf generation transaction "\
+    GlobalConfGenerationSynchronizer.generate() do
+      logger.debug("Starting global conf generation transaction "\
           "for thread #{get_current_thread_name()}")
 
       # TODO: Move global conf generation implementation away from this
@@ -303,7 +301,7 @@ class ConfGeneratorController < ApplicationController
 
   def get_generated_conf_dir
     return \
-        Java::ee.cyber.sdsb.common.SystemProperties.getCenterGeneratedConfDir()
+        Java::ee.ria.xroad.common.SystemProperties.getCenterGeneratedConfDir()
   end
 
   def get_temp_internal_directory
@@ -316,30 +314,70 @@ class ConfGeneratorController < ApplicationController
 
   def get_internal_directory
     return \
-        Java::ee.cyber.sdsb.common.SystemProperties.getCenterInternalDirectory()
+        Java::ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory()
   end
 
   def get_external_directory
     return \
-        Java::ee.cyber.sdsb.common.SystemProperties.getCenterExternalDirectory()
+        Java::ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory()
+  end
+
+  def get_local_conf_directory
+    return \
+        Java::ee.ria.xroad.common.SystemProperties.getConfigurationPath()
   end
 
   def save_distributed_files_to_disk
-    DistributedFiles.find_each do |each|
-      write_file_to_disk(each)
+    DistributedFiles.find_each do |file|
+      write_public_copy(file)
+      write_local_copy(file)
     end
+    write_local_instance
   end
 
-  def write_file_to_disk(file)
-    file_name = file.file_name
+  def write_public_copy(file)
+    target_file = "#@new_conf_dir/#{file.file_name}"
+    write_to_disk(target_file, file.file_data)
+  end
 
-    target_file = "#@new_conf_dir/#{file_name}"
-    encoded_output = file.file_data.force_encoding(Rails.configuration.encoding)
+  # Creates a local copy of the global conf file to /etc/xroad/globalconf.
+  # This is necessary so that central server Java components could easily read
+  # the global configuration through the same API as the security server.
+  def write_local_copy(file)
+    instance_identifier = SystemParameter.instance_identifier
+    target_directory = "#{get_local_conf_directory()}/#{instance_identifier}"
+    
+    # Create the target directory, if it does not exist
+    # TODO might need to delete old files first
+    FileUtils.mkdir_p(target_directory, :mode => 0755)
+
+    target_file = "#{target_directory}/#{file.file_name}"
+    write_to_disk(target_file, file.file_data)
+
+    # Create a dummy metadata so that ConfigurationDirectory could read the conf
+    conf_expire_time = Time.now + SystemParameter.conf_expire_interval_seconds
+    dummy_metadata = "{\"contentIdentifier\":\"DUMMY\","\
+      "\"instanceIdentifier\":\"#{instance_identifier}\",\"contentFileName\":null,"\
+      "\"contentLocation\":\"\""\
+      ",\"expirationDate\":\"#{conf_expire_time.utc().strftime "%Y-%m-%dT%H:%M:%SZ"}\"}"
+    write_to_disk("#{target_file}.metadata", dummy_metadata)
+  end
+
+  def write_local_instance
+    instance_identifier = SystemParameter.instance_identifier
+    target_file = "#{get_local_conf_directory()}/instance-identifier"
+    write_to_disk(target_file, instance_identifier)
+  end
+
+  def write_to_disk(target_file, file_data)
+    log "Writing data to '#{target_file}'"
+
+    encoded_output = file_data.force_encoding(Rails.configuration.encoding)
 
     writing_process = Proc.new {|f| f.write(encoded_output)}
     CommonUi::IOUtils.write_public(target_file, writing_process)
   rescue Exception => e
-    log "Failed to save distributed file '#{file_name}' "\
+    log "Failed to save distributed file '#{target_file}' "\
         "to disk: #{e.message}"
     raise e
   end

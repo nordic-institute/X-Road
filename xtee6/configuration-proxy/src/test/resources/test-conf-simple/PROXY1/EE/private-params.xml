@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/sdsb.xsd">
+<ns3:conf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <instanceIdentifier>EE</instanceIdentifier>
     <configurationAnchor>
         <instanceIdentifier>AA</instanceIdentifier>
@@ -12,9 +12,9 @@
         <authCertRegServiceAddress>https://iks2-central:4001/center-service/</authCertRegServiceAddress>
         <authCertRegServiceCert>MIIDNTCCAh2gAwIBAgIJAM7+KIUOA9ppMA0GCSqGSIb3DQEBBQUAMCAxHjAcBgNVBAMMFWlrczItY2VudHJhbC5jeWJlci5lZTAeFw0xNDA0MDQxMzU1NDRaFw0xNDA1MDQxMzU1NDRaMCAxHjAcBgNVBAMMFWlrczItY2VudHJhbC5jeWJlci5lZTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAM0fV3oJQ/dKnxcNM9m3xeU3jh3UjbIKxsdhyRhm1SM9cGrCyFk0XCdufpB1VjRR8qD/gwQJCHBP/ry4TufbLtTkysma2hi9YxT0TzBj3eMiwSh2MhQUIXplcYisUcjQmfTjdW2yLRZIgGbRvhXxy5Ak+gHEq+rI+e/Kt+bMfPB5cJFyl0RmIlJxMJT7Rb//iZTgK0Bm0XLz/CkEF1rmwD3FIvERZ3H802PT4JWk6oKoSg/1c3u23wiT4U/4k4WUdWxZbOu2fEl7qt/6s9CuNefK51wrNHJX0oQOZhbA1nKNAo7tttbp73Xns0HgKaYE4uybqo2ArvdLQ0csi3iaKnUCAwEAAaNyMHAwDAYDVR0TAQH/BAIwADALBgNVHQ8EBAMCBeAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMDQGA1UdEQQtMCuHBMCoStGCDGlrczItY2VudHJhbIIVaWtzMi1jZW50cmFsLmN5YmVyLmVlMA0GCSqGSIb3DQEBBQUAA4IBAQAggbJKfnNrBzwNoDks/MI/W8J7Yb3UocFvFUQ7S0jYNQRovZlHdD070qhsnhAWtnZ0Ukbva6+k+By9XAV7NXElED0w3i4bhlYjhsy8G4FgxdbwkOZhxipilgSpjZrAmPmMe32bGLTxLetu4pjJCAr2U1NMplUWyBfkUfvf/YSrUrxkQFb+UF0i2TBcHcCFMoA6eLVVnteO1K+HHsFyGoixo83lJruLu2jlDGSV8gBR1KZx81mZWNM+v26RZ59CzoKalN9reObac3JZepN5EyAKeXnvqJGG+Oooa5PYV3n+dXvBZAM1kLZ7DSPz3Al5udDqZ7+vG3zJ79DsJPLu6St7</authCertRegServiceCert>
         <managementRequestServiceProviderId ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>GOV</ns2:memberClass>
-            <ns2:memberCode>SDSB</ns2:memberCode>
+            <ns2:memberCode>XROAD</ns2:memberCode>
         </managementRequestServiceProviderId>
     </managementService>
     <timeStampingIntervalSeconds>60</timeStampingIntervalSeconds>

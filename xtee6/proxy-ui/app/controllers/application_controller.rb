@@ -1,25 +1,26 @@
 require "management_request_helper"
 
-java_import Java::ee.cyber.sdsb.common.SystemProperties
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.GlobalConf
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.IdentifierDAOImpl
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.ServerConfDAOImpl
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.UiUserDAOImpl
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.UiUserType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx
-java_import Java::ee.cyber.sdsb.common.identifier.ClientId
-java_import Java::ee.cyber.sdsb.common.identifier.SecurityServerId
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.SystemProperties
+java_import Java::ee.ria.xroad.common.conf.globalconf.GlobalConf
+java_import Java::ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl
+java_import Java::ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl
+java_import Java::ee.ria.xroad.common.conf.serverconf.dao.UiUserDAOImpl
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.UiUserType
+java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
+java_import Java::ee.ria.xroad.common.identifier.ClientId
+java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.db.HibernateUtil
+java_import Java::ee.ria.xroad.common.db.CustomPostgreSQLDialect
 
 class ApplicationController < BaseController
 
-  SDSB_INSTALLED_FILE = "/usr/xtee/etc/sdsb_installed"
-  SDSB_ACTIVATED_FILE = "/usr/xtee/etc/sdsb_activated"
-  SDSB_PROMOTED_FILE = "/usr/xtee/etc/sdsb_promoted"
+  XROAD_INSTALLED_FILE = "/usr/xtee/etc/v6_xroad_installed"
+  XROAD_ACTIVATED_FILE = "/usr/xtee/etc/v6_xroad_activated"
+  XROAD_PROMOTED_FILE = "/usr/xtee/etc/v6_xroad_promoted"
 
-  SDSB_PROMOTED_PRIVILEGES = [
+  XROAD_PROMOTED_PRIVILEGES = [
     :add_wsdl,
     :enable_disable_wsdl,
     :refresh_wsdl,
@@ -37,19 +38,19 @@ class ApplicationController < BaseController
     :edit_acl_subject_open_services
   ]
 
-  INTERNAL_SSL_CERT_PATH = "/etc/sdsb/ssl/internal.crt"
+  INTERNAL_SSL_CERT_PATH = "/etc/xroad/ssl/internal.crt"
 
   include ManagementRequestHelper
 
   around_filter :transaction
 
-  before_filter :demote_sdsb
+  before_filter :demote_xroad
   before_filter :check_conf, :except => [:menu, :alerts]
   before_filter :read_locale
   before_filter :read_server_id, :except => [:menu, :alerts]
   before_filter :read_owner_name, :except => [:menu, :alerts]
 
-  helper_method :x55_installed?, :sdsb_activated?, :sdsb_dependent?, :sdsb_promoted?
+  helper_method :x55_installed?, :xroad_activated?, :xroad_dependent?, :xroad_promoted?
 
   def index
     if can?(:view_clients)
@@ -94,7 +95,7 @@ class ApplicationController < BaseController
       raise "invalid locale"
     end
 
-    ui_user = UiUserDAOImpl.getInstance.getUiUser(current_user.name)
+    ui_user = UiUserDAOImpl.getUiUser(current_user.name)
     
     unless ui_user
       ui_user = UiUserType.new
@@ -146,6 +147,8 @@ class ApplicationController < BaseController
         logger.debug("beginning transaction")
         @session = ServerConfDatabaseCtx.getSession
         @tx = @session.beginTransaction
+        set_transaction_variables
+
       rescue Java::java.lang.Exception
         logger.error(ExceptionUtils.getStackTrace($!))
 
@@ -179,6 +182,26 @@ class ApplicationController < BaseController
     end
   end
 
+  # Passes the required variables to the database engine if supported.
+  # Expects the session is available in @session.
+  def set_transaction_variables
+    sessionFactory = HibernateUtil.getSessionFactory("serverconf")
+    dialect = sessionFactory.getDialect
+    if dialect.class == Java::EeRiaXroadCommonDb::CustomPostgreSQLDialect
+      # If we are running on top of Postgres, the name of the logged-in
+      # user must be made available within the transaction, for use
+      # when updating the history table.
+      # The value of user_name will go out of scope when the transaction
+      # ends.
+      # FIXME: the correct usage of setString?
+      #query = @session.createSQLQuery("SET LOCAL xroad.user_name=:user_name")
+      #query.setString("user_name", current_user.name)
+      query = @session.createSQLQuery(
+        "SET LOCAL xroad.user_name='#{current_user.name}'")
+      query.executeUpdate()
+    end
+  end
+
   def check_conf
     redirect_to :controller => :init unless initialized?
   end
@@ -208,8 +231,10 @@ class ApplicationController < BaseController
   end
 
   def serverconf
-    if !@serverconf && ServerConfDAOImpl.instance.confExists
-      @serverconf = ServerConfDAOImpl.instance.conf
+    serverconf_dao = ServerConfDAOImpl.new
+
+    if !@serverconf && serverconf_dao.confExists
+      @serverconf = serverconf_dao.getConf
     end
 
     logger.debug("Serverconf is nil? #{@serverconf == nil}")
@@ -224,7 +249,7 @@ class ApplicationController < BaseController
     @owner_identifier ||= serverconf.owner.identifier
   end
 
-  def sdsb_instance
+  def xroad_instance
     GlobalConf::getInstanceIdentifier
   end
 
@@ -236,7 +261,7 @@ class ApplicationController < BaseController
     server_code = serverconf.serverCode
 
     @server_id = SecurityServerId.create(
-      owner.sdsbInstance, owner.memberClass,
+      owner.xRoadInstance, owner.memberClass,
       owner.memberCode, server_code)
   end
 
@@ -249,13 +274,13 @@ class ApplicationController < BaseController
   end
 
   def import_services
-    if sdsb_promoted?
-      logger.info("SDSB promoted, skipping services import")
+    if xroad_promoted?
+      logger.info("XROAD promoted, skipping services import")
       return 
     end
 
     if importer = SystemProperties::getServiceImporterCommand
-      logger.info("Importing services from 5.0 to SDSB")
+      logger.info("Importing services from 5.0 to XROAD")
 
       output = %x["#{importer}" 2>&1]
 
@@ -269,13 +294,13 @@ class ApplicationController < BaseController
   end
 
   def export_services(delete_client_id = nil)
-    unless sdsb_promoted?
-      logger.info("SDSB not promoted, skipping services export")
+    unless xroad_promoted?
+      logger.info("XROAD not promoted, skipping services export")
       return 
     end
 
     if exporter = SystemProperties::getServiceExporterCommand
-      logger.info("Exporting services from SDSB to 5.0")
+      logger.info("Exporting services from XROAD to 5.0")
 
       if delete_client_id
         if delete_client_id.subsystemCode
@@ -286,7 +311,7 @@ class ApplicationController < BaseController
         end
 
         delete = "-delete " + [
-          CryptoUtils.encodeBase64(delete_client_id.sdsbInstance),
+          CryptoUtils.encodeBase64(delete_client_id.xRoadInstance),
           CryptoUtils.encodeBase64(delete_client_id.memberClass),
           CryptoUtils.encodeBase64(delete_client_id.memberCode),
           subsystemCode
@@ -305,8 +330,8 @@ class ApplicationController < BaseController
   end
 
   def export_internal_ssl
-    unless sdsb_promoted?
-      logger.info("SDSB not promoted, skipping SSL key export")
+    unless xroad_promoted?
+      logger.info("XROAD not promoted, skipping SSL key export")
       return
     end
 
@@ -331,31 +356,31 @@ class ApplicationController < BaseController
     end
   end
 
-  def demote_sdsb
-    if sdsb_dependent?
-      current_user.privileges -= SDSB_PROMOTED_PRIVILEGES
+  def demote_xroad
+    if xroad_dependent?
+      current_user.privileges -= XROAD_PROMOTED_PRIVILEGES
     end
   end
 
   def x55_installed?
-    @x55_installed ||= File.exists?(SDSB_INSTALLED_FILE)
+    @x55_installed ||= File.exists?(XROAD_INSTALLED_FILE)
   end
 
-  def sdsb_activated?
-    activated = File.exists?(SDSB_ACTIVATED_FILE)
-    logger.debug("SDSB activated = #{activated}")
+  def xroad_activated?
+    activated = File.exists?(XROAD_ACTIVATED_FILE)
+    logger.debug("XROAD activated = #{activated}")
     activated
   end
 
-  def sdsb_dependent?
-    dependent = x55_installed? && !sdsb_promoted?
-    logger.debug("SDSB dependent = #{dependent}")
+  def xroad_dependent?
+    dependent = x55_installed? && !xroad_promoted?
+    logger.debug("XROAD dependent = #{dependent}")
     dependent
   end
 
-  def sdsb_promoted?
-    promoted = File.exists?(SDSB_PROMOTED_FILE)
-    logger.debug("SDSB promoted = #{promoted}")
+  def xroad_promoted?
+    promoted = File.exists?(XROAD_PROMOTED_FILE)
+    logger.debug("XROAD promoted = #{promoted}")
     promoted
   end
 
@@ -457,7 +482,7 @@ class ApplicationController < BaseController
   def get_member_name(member_class, member_code)
     if !member_class.blank? && !member_code.blank?
       return GlobalConf::getMemberName(
-        ClientId.create(sdsb_instance, member_class, member_code, nil))
+        ClientId.create(xroad_instance, member_class, member_code, nil))
     else
       return nil
     end
@@ -467,7 +492,7 @@ class ApplicationController < BaseController
     return unless current_user
 
     transaction do
-      ui_user = UiUserDAOImpl.getInstance.getUiUser(current_user.name)
+      ui_user = UiUserDAOImpl.getUiUser(current_user.name)
       I18n.locale = ui_user.locale if ui_user
     end
   end

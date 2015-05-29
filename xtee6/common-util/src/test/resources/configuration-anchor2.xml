@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tns:configurationAnchor xmlns:id="http://x-road.eu/xsd/identifiers"
-    xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd">
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
 
     <instanceIdentifier>EE</instanceIdentifier>
     <source>

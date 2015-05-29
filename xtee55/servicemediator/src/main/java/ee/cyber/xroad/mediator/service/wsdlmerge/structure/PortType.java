@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stringtemplate.v4.ST;
 
+/**
+ * Abstraction for WSDL port type.
+ */
 @Data
 public class PortType implements Marshallable, TemplateAware {
 

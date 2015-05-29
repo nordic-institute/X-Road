@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Body>
-        <ns1:testQuery xmlns:ns1="http://cosumer.ee.sdsb.net">
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.xroad.net">
             <request>
                 <name>foo</name>
                 <age>35</age>

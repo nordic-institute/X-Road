@@ -1,3 +1,9 @@
+xtee55-center (1.1-0) lucid; urgency=low
+
+  * Minor changes for stability and installation time dependecies
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 02 Feb 2015 12:35:36 +0200
+
 xtee55-center (1.0-3) lucid; urgency=low
 
   * version bump

@@ -1,20 +1,31 @@
 package ee.cyber.xroad.mediator;
 
-import ee.cyber.sdsb.common.SystemProperties;
+import ee.ria.xroad.common.SystemProperties;
 
+/**
+ * Contains constants for mediator system properties.
+ */
 public final class MediatorSystemProperties {
 
-    /** The prefix for all properties. */
-    public static final String PREFIX = "ee.cyber.xroad.";
+    private static final int DEFAULT_SERVICE_MEDIATOR_HTTPS_PORT = 8444;
 
-    public static final String SDSB_PROXY_ADDRESS =
-            PREFIX + "proxy.sdsb-address";
+    private static final int DEFAULT_SERVICE_MEDIATOR_HTTP_PORT = 6669;
+
+    private static final int DEFAULT_CLIENT_MEDIATOR_HTTPS_PORT = 8443;
+
+    private static final int DEFAULT_CLIENT_MEDIATOR_HTTP_PORT = 8080;
+
+    /** The prefix for all properties. */
+    public static final String PREFIX = "xtee55.";
 
     public static final String XROAD_PROXY_ADDRESS =
             PREFIX + "proxy.xroad-address";
 
-    public static final String XROAD_URIPROXY_ADDRESS =
-            PREFIX + "proxy.xroad-uriproxy-address";
+    public static final String V5_XROAD_PROXY_ADDRESS =
+            PREFIX + "proxy.v5-xroad-address";
+
+    public static final String V5_XROAD_URIPROXY_ADDRESS =
+            PREFIX + "proxy.v5-xroad-uriproxy-address";
 
     public static final String CLIENT_MEDIATOR_HTTP_PORT =
             PREFIX + "client-mediator.http-port";
@@ -50,49 +61,88 @@ public final class MediatorSystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    public static String getSdsbProxyAddress() {
-        return System.getProperty(SDSB_PROXY_ADDRESS, "http://localhost:8060");
+    private MediatorSystemProperties() {
     }
 
+    /**
+     * @return the X-Road 6.0 proxy address
+     */
     public static String getXroadProxyAddress() {
-        return System.getProperty(XROAD_PROXY_ADDRESS,
+        return System.getProperty(XROAD_PROXY_ADDRESS, "http://localhost:8060");
+    }
+
+    /**
+     * @return the X-Road 5.0 proxy address
+     */
+    public static String getV5XroadProxyAddress() {
+        return System.getProperty(V5_XROAD_PROXY_ADDRESS,
                 "http://localhost:80/cgi-bin/consumer_proxy");
     }
 
-    public static String getXroadUriProxyAddress() {
-        return System.getProperty(XROAD_URIPROXY_ADDRESS,
+    /**
+     * @return the X-Road 5.0 uriproxy address
+     */
+    public static String getV5XroadUriProxyAddress() {
+        return System.getProperty(V5_XROAD_URIPROXY_ADDRESS,
                 "http://localhost:80/cgi-bin/uriproxy");
     }
 
+    /**
+     * @return the client mediator address
+     */
     public static String getClientMediatorConnectorHost() {
         return "0.0.0.0";
     }
 
+    /**
+     * @return the client mediator HTTP port
+     */
     public static int getClientMediatorHttpPort() {
-        return getIntProperty(CLIENT_MEDIATOR_HTTP_PORT, 8080);
+        return getIntProperty(CLIENT_MEDIATOR_HTTP_PORT,
+                DEFAULT_CLIENT_MEDIATOR_HTTP_PORT);
     }
 
+    /**
+     * @return the client mediator HTTPS port
+     */
     public static int getClientMediatorHttpsPort() {
-        return getIntProperty(CLIENT_MEDIATOR_HTTPS_PORT, 8443);
+        return getIntProperty(CLIENT_MEDIATOR_HTTPS_PORT,
+                DEFAULT_CLIENT_MEDIATOR_HTTPS_PORT);
     }
 
+    /**
+     * @return the service mediator address
+     */
     public static String getServiceMediatorConnectorHost() {
         return "localhost";
     }
 
+    /**
+     * @return the service mediator HTTP port
+     */
     public static int getServiceMediatorHttpPort() {
-        return getIntProperty(SERVICE_MEDIATOR_HTTP_PORT, 8090);
+        return getIntProperty(SERVICE_MEDIATOR_HTTP_PORT,
+                DEFAULT_SERVICE_MEDIATOR_HTTP_PORT);
     }
 
+    /**
+     * @return the service mediator HTTPS port
+     */
     public static int getServiceMediatorHttpsPort() {
-        return getIntProperty(SERVICE_MEDIATOR_HTTPS_PORT, 8444);
+        return getIntProperty(SERVICE_MEDIATOR_HTTPS_PORT,
+                DEFAULT_SERVICE_MEDIATOR_HTTPS_PORT);
     }
 
+    /**
+     * @return the identifier mapping filepath
+     */
     public static String getIdentifierMappingFile() {
-        return System.getProperty(IDENTIFIER_MAPPING_FILE,
-                SystemProperties.getConfPath() + "identifiermapping.xml");
+        return System.getProperty(IDENTIFIER_MAPPING_FILE);
     }
 
+    /**
+     * @return the logging level
+     */
     public static String getXroadLogLevel() {
         return System.getProperty(XROAD_LOG_LEVEL, "DEBUG");
     }

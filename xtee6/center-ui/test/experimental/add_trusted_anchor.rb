@@ -142,14 +142,14 @@ def verify_preconditions
         "Optional arguments are server username and password."
   end
 
-  sdsb_home = ENV["SDSB_HOME"]
-  if !sdsb_home || sdsb_home.empty?
-    raise "Environment variable 'SDSB_HOME' must be set!"
+  xroad_home = ENV["XROAD_HOME"]
+  if !xroad_home || xroad_home.empty?
+    raise "Environment variable 'XROAD_HOME' must be set!"
   end
 end
 
 def get_first_anchor_file
-  return "#{ENV["SDSB_HOME"]}/center-ui/test/resources/configuration-anchor-AAA.xml"
+  return "#{ENV["XROAD_HOME"]}/center-ui/test/resources/configuration-anchor-AAA.xml"
 end
 
 def get_first_anchor_expectations
@@ -164,7 +164,7 @@ end
 verify_preconditions()
 
 url = ARGV[0]
-username = ARGV[1] || "sdsbui"
+username = ARGV[1] || "xroadui"
 password = ARGV[2] || "Vaarikas456"
 
 security_officer = SecurityOfficer.new(url, username, password)

@@ -1,11 +1,11 @@
-java_import Java::ee.cyber.sdsb.common.request.ManagementRequestHandler
-java_import Java::ee.cyber.sdsb.common.request.ManagementRequestParser
-java_import Java::ee.cyber.sdsb.common.request.ManagementRequestUtil
-java_import Java::ee.cyber.sdsb.common.request.ManagementRequests
-java_import Java::ee.cyber.sdsb.common.message.SoapUtils
-java_import Java::ee.cyber.sdsb.common.message.SoapFault
-java_import Java::ee.cyber.sdsb.common.ErrorCodes
-java_import Java::ee.cyber.sdsb.common.CodedException
+java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
+java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
+java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
+java_import Java::ee.ria.xroad.common.request.ManagementRequests
+java_import Java::ee.ria.xroad.common.message.SoapUtils
+java_import Java::ee.ria.xroad.common.message.SoapFault
+java_import Java::ee.ria.xroad.common.ErrorCodes
+java_import Java::ee.ria.xroad.common.CodedException
 
 class ManagementRequestsController < ApplicationController
 
@@ -13,8 +13,8 @@ class ManagementRequestsController < ApplicationController
     begin
       response.content_type = "text/xml"
 
-      @sdsb_instance = SystemParameter.instance_identifier
-      raise "SDSB instance must exist!" if @sdsb_instance.blank?
+      @xroad_instance = SystemParameter.instance_identifier
+      raise "XROAD instance must exist!" if @xroad_instance.blank?
 
       @request_soap = ManagementRequestHandler.readRequest(
         request.headers["CONTENT_TYPE"],
@@ -59,7 +59,7 @@ class ManagementRequestsController < ApplicationController
     req_type = ManagementRequestParser.parseAuthCertRegRequest(@request_soap)
     security_server = security_server_id(req_type.getServer())
 
-    verify_sdsb_instance(security_server)
+    verify_xroad_instance(security_server)
     verify_owner(security_server)
 
     req = AuthCertRegRequest.new(
@@ -76,7 +76,7 @@ class ManagementRequestsController < ApplicationController
       @request_soap)
     security_server = security_server_id(req_type.getServer())
 
-    verify_sdsb_instance(security_server)
+    verify_xroad_instance(security_server)
     verify_owner(security_server)
 
     req = AuthCertDeletionRequest.new(
@@ -92,8 +92,8 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     server_user = client_id(req_type.getClient())
 
-    verify_sdsb_instance(security_server)
-    verify_sdsb_instance(server_user)
+    verify_xroad_instance(security_server)
+    verify_xroad_instance(server_user)
 
     verify_owner(security_server)
 
@@ -110,8 +110,8 @@ class ManagementRequestsController < ApplicationController
     security_server = security_server_id(req_type.getServer())
     server_user = client_id(req_type.getClient())
 
-    verify_sdsb_instance(security_server)
-    verify_sdsb_instance(server_user)
+    verify_xroad_instance(security_server)
+    verify_xroad_instance(server_user)
 
     verify_owner(security_server)
 
@@ -124,19 +124,19 @@ class ManagementRequestsController < ApplicationController
   end
 
   def security_server_id(id_type)
-    SecurityServerId.from_parts(id_type.getSdsbInstance(),
+    SecurityServerId.from_parts(id_type.getXRoadInstance(),
       id_type.getMemberClass(), id_type.getMemberCode(),
       id_type.getServerCode())
   end
 
   def client_id(id_type)
-    ClientId.from_parts(id_type.getSdsbInstance(), id_type.getMemberClass(),
+    ClientId.from_parts(id_type.getXRoadInstance(), id_type.getMemberClass(),
       id_type.getMemberCode(), id_type.getSubsystemCode())
   end
 
   def verify_owner(security_server)
     sender = client_id(@request_soap.getClient())
-    verify_sdsb_instance(sender)
+    verify_xroad_instance(sender)
 
     if not security_server.matches_client_id(sender)
       raise I18n.t("requests.serverid.does.not.match.owner",
@@ -145,11 +145,11 @@ class ManagementRequestsController < ApplicationController
     end
   end
 
-  # sdsb_id may be either ClientId or ServerId.
-  def verify_sdsb_instance(sdsb_id)
-    logger.debug("Instance verification: #{sdsb_id}")
+  # xroad_id may be either ClientId or ServerId.
+  def verify_xroad_instance(xroad_id)
+    logger.debug("Instance verification: #{xroad_id}")
 
-    unless @sdsb_instance.eql?(sdsb_id.sdsb_instance)
+    unless @xroad_instance.eql?(xroad_id.xroad_instance)
       raise t("request.incorrect_instance")
     end
   end

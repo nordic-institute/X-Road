@@ -5,16 +5,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class DataSender {
-    private static final Logger LOG = LoggerFactory.getLogger(DataSender.class);
+@Slf4j
+final class DataSender {
+
+    private DataSender() {
+    }
 
     static void send(String socket, MessageType messageType,
             Pair<MessageParam, String>[] contents) {
-        LOG.debug("send({}, {}, {})",
+        log.debug("send({}, {}, {})",
                 new Object[] {socket, messageType, Arrays.asList(contents)});
 
         List<String> cmdLine = makeCommandLine(socket, messageType, contents);
@@ -45,7 +47,7 @@ public class DataSender {
     }
 
     private static void exec(List<String> cmd) {
-        LOG.debug("Exec: {}", cmd);
+        log.debug("Exec: {}", cmd);
 
         ProcessBuilder pb = new ProcessBuilder(cmd);
         pb.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -55,10 +57,10 @@ public class DataSender {
             Process p = pb.start();
             int ret = p.waitFor();
             if (ret != 0) {
-                LOG.error("Exec returned status {}", ret);
+                log.error("Exec returned status {}", ret);
             }
         } catch (InterruptedException | IOException ex) {
-            LOG.error("Exec failed", ex);
+            log.error("Exec failed", ex);
         }
     }
 }

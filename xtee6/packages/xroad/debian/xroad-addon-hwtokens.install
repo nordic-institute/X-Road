@@ -1,2 +1,2 @@
-addon/signer/* usr/share/sdsb/jlib/addon/signer/
-../../addons/hwtoken/build/libs/hwtoken-1.0.jar usr/share/sdsb/jlib/addon/signer/
+addon/signer/* usr/share/xroad/jlib/addon/signer/
+../../addons/hwtoken/build/libs/hwtoken-1.0.jar usr/share/xroad/jlib/addon/signer/

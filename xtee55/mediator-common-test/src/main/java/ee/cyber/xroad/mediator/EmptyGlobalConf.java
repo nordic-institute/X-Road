@@ -1,24 +1,29 @@
 package ee.cyber.xroad.mediator;
 
 import java.io.OutputStream;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import ee.cyber.sdsb.common.cert.CertChain;
-import ee.cyber.sdsb.common.conf.globalconf.GlobalConfProvider;
-import ee.cyber.sdsb.common.conf.globalconf.GlobalGroupInfo;
-import ee.cyber.sdsb.common.conf.globalconf.MemberInfo;
-import ee.cyber.sdsb.common.identifier.CentralServiceId;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.GlobalGroupId;
-import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
-import ee.cyber.sdsb.common.identifier.SecurityServerId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
+import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
+import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
+/**
+ * Empty test globalconf implementation.
+ */
 public class EmptyGlobalConf implements GlobalConfProvider {
+
+    private static final int DEFAULT_TIMESTAMPING_INTERVAL = 60;
+    private static final int DEFAULT_OCSP_FRESHNESS = 600;
 
     @Override
     public boolean hasChanged() {
@@ -40,7 +45,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public List<X509Certificate> getAllCaCerts() throws CertificateException {
+    public List<X509Certificate> getAllCaCerts() {
         return null;
     }
 
@@ -150,12 +155,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public int getOcspFreshnessSeconds(boolean arg0) {
-        return 600;
+        return DEFAULT_OCSP_FRESHNESS;
     }
 
     @Override
     public int getTimestampingIntervalSeconds() {
-        return 60;
+        return DEFAULT_TIMESTAMPING_INTERVAL;
     }
 
     @Override
@@ -217,6 +222,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         return true;
+    }
+
+    @Override
+    public List<SecurityServerId> getSecurityServers(
+            String... instanceIdentifiers) {
+        return null;
     }
 
 }

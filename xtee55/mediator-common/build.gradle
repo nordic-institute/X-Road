@@ -1,7 +1,6 @@
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
-    provided
     xjc
 }
 
@@ -12,12 +11,12 @@ sourceSets {
 }
 
 dependencies {
-    // SDSB dependencies
-    compile 'ee.cyber.sdsb:common-db:1.0'
-    compile 'ee.cyber.sdsb:serverconf:1.0'
-    
+    // X-Road 6.0 dependencies
+    compile 'ee.ria.xroad:common-db:1.0'
+    compile 'ee.ria.xroad:serverconf:1.0'
+
     // Test dependencies
-    testCompile 'ee.cyber.sdsb:common-test:1.0'
+    testCompile 'ee.ria.xroad:common-test:1.0'
     // 'sourceSets' trick seems to help to resolve circular dependencies
     testCompile project(':mediator-common-test').sourceSets.main.output
     testCompile 'org.mockito:mockito-all:1.9.0'
@@ -26,19 +25,9 @@ dependencies {
     compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'
     compile 'commons-io:commons-io:2.4'
     compile 'org.antlr:ST4:4.0.7'
-    
-    provided 'org.projectlombok:lombok:1.14.8'
-    
+
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
-}
-
-sourceSets.main.compileClasspath += configurations.provided
-
-eclipse {
-    classpath {
-        plusConfigurations += [configurations.provided]
-    }
 }
 
 task createDirs () {

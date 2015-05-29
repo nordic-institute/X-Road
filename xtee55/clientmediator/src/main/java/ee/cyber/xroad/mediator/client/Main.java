@@ -1,39 +1,45 @@
 package ee.cyber.xroad.mediator.client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
 
-import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_USER_LOCAL;
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_CLIENT_MEDIATOR;
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_MEDIATOR_COMMON;
 
-public class Main {
+/**
+ * ClientMediator main program.
+ */
+@Slf4j
+public final class Main {
 
     static {
-        new SystemPropertiesLoader(MediatorSystemProperties.PREFIX) {
-            @Override
-            public void load() {
-                load(CONF_FILE_MEDIATOR_COMMON);
-                load(CONF_FILE_CLIENT_MEDIATOR);
-                load(CONF_FILE_USER_LOCAL);
-            }
-        };
+        SystemPropertiesLoader.create().withCommon().load();
+        SystemPropertiesLoader.create(MediatorSystemProperties.PREFIX)
+            .withLocal()
+            .with(CONF_FILE_MEDIATOR_COMMON)
+            .with(CONF_FILE_CLIENT_MEDIATOR)
+            .load();
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private Main() {
+    }
 
+    /**
+     * Main program entry point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
-        LOG.info("ClientMediator starting...");
+        log.info("ClientMediator starting...");
 
         ClientMediator mediator = new ClientMediator();
         try {
             mediator.start();
             mediator.join();
         } finally {
-            LOG.info("ClientMediator shutting down...");
+            log.info("ClientMediator shutting down...");
             mediator.stop();
         }
     }

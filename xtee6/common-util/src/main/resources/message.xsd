@@ -7,31 +7,31 @@
         <?xml version="1.0" encoding="utf-8"?>
         <SOAP-ENV:Envelope
                 xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-                xmlns:sdsb="http://x-rd.net/xsd/sdsb.xsd"
+                xmlns:xroad="http://x-rd.net/xsd/xroad.xsd"
                 xmlns:id="http://x-road.eu/xsd/identifiers">
             <SOAP-ENV:Header>
-                <sdsb:client id:objectType="MEMBER">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                <xroad:client id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>COMPANY</id:memberClass>
                     <id:memberCode>FOOBAR</id:memberCode>
-                </sdsb:client>
-                <sdsb:service id:objectType="SERVICE">
-                    <id:sdsbInstance>EE</id:sdsbInstance>
+                </xroad:client>
+                <xroad:service id:objectType="SERVICE">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
                     <id:memberClass>BUSINESS</id:memberClass>
                     <id:memberCode>JODA</id:memberCode>
                     <id:serviceCode>getState</id:serviceCode>
-                </sdsb:service>
-                <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
-                <sdsb:id>411d6755661409fed365ad8135f8210be07613da</sdsb:id>
+                </xroad:service>
+                <xroad:userId>EE:PIN:abc4567</xroad:userId>
+                <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
             </SOAP-ENV:Header>
             <SOAP-ENV:Body>
-                <sdsb:getState/>
+                <xroad:getState/>
             </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>
     
  -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns="http://x-road.eu/xsd/sdsb.xsd"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers">
     <xs:import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd"/>
 
@@ -40,14 +40,14 @@
             <xs:documentation>Encapsulates SOAP message header.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="client" type="id:SdsbClientIdentifierType">
+            <xs:element name="client" type="id:XroadClientIdentifierType">
                 <xs:annotation>
-                    <xs:documentation>SDSB identifier for client of the service.</xs:documentation>
+                    <xs:documentation>XROAD identifier for client of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="service" type="id:SdsbServiceIdentifierType">
+            <xs:element name="service" type="id:XroadServiceIdentifierType">
                 <xs:annotation>
-                    <xs:documentation>SDSB identifier of the service.</xs:documentation>
+                    <xs:documentation>XROAD identifier of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
             <xs:element name="id" type="xs:string">

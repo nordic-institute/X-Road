@@ -1,4 +1,4 @@
-{"name":{"memberClass":"GOV","memberCode":"provider2","type":"SERVICE","sdsbInstance":"EE","serviceCode":"serviceCode"},
+{"name":{"memberClass":"GOV","memberCode":"provider2","type":"SERVICE","xRoadInstance":"EE","serviceCode":"serviceCode"},
 "requestCount":"2",
 "firstRequestNo":"0",
 "lastSentTime":"1331905334000",

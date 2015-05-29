@@ -1,14 +1,13 @@
-var SDSB_TRUSTED_ANCHORS = function() {
+var XROAD_TRUSTED_ANCHORS = function() {
     var tab = "#trusted_anchors_tab";
     var anchorClass = "trusted-anchor";
     var anchorTemplateClass = "trusted-anchor-template";
-    var anchorUploadButtonId = "upload_trusted_anchor_ok";
     var noTrustedAnchorsClass = "trusted-anchor-none";
 
     /* -- PUBLIC - START -- */
 
     function init() {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed(
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed(
                 "configuration_management/can_view_trusted_anchors",
                 function() {
             initHandlers();
@@ -19,11 +18,10 @@ var SDSB_TRUSTED_ANCHORS = function() {
 
     function uploadCallback(response) {
         if (response.success) {
-            closeAnchorUploadDialog();
+            closeFileUploadDialog();
             openAnchorSaveDialog(response.data.anchor_info);
         }
 
-        manageAnchorUploadButtonVisibility();
         showMessages(response.messages);
     }
 
@@ -154,12 +152,9 @@ var SDSB_TRUSTED_ANCHORS = function() {
             instanceIdentifier: instanceIdentifier
         };
 
-        confirm(
-                "configuration_management.trusted_anchors.delete_confirm",
-                confirmParams,
-                function() {
-            $.post("configuration_management/delete_trusted_anchor", params,
-                    function() {
+        confirm("configuration_management.trusted_anchors.delete_confirm",
+                confirmParams, function() {
+            $.post(action("delete_trusted_anchor"), params, function() {
                 updateAnchors();
             }, "json");
         });
@@ -170,17 +165,10 @@ var SDSB_TRUSTED_ANCHORS = function() {
     /* -- MISC - START -- */
 
     function initHandlers() {
-        $("#upload_trusted_anchor").live("click", function() {
-            openAnchorUploadDialog();
+        $("#upload_trusted_anchor").click(function() {
+            openFileUploadDialog(action("upload_trusted_anchor"),
+                _("configuration_management.trusted_anchors.upload.dialog_title"));
         });
-
-        $("#upload_trusted_anchor_file").live("change", function() {
-            manageAnchorUploadButtonVisibility();
-        });
-    }
-
-    function initAnchorUpload() {
-        $("#trusted_anchor_upload_form").submit();
     }
 
     function downloadAnchor(anchorId) {
@@ -188,44 +176,9 @@ var SDSB_TRUSTED_ANCHORS = function() {
             "configuration_management/download_trusted_anchor?id=" + anchorId
     }
 
-    function manageAnchorUploadButtonVisibility() {
-        var uploadButton = $("#" + anchorUploadButtonId);
-
-        if (isInputFilled($("#upload_trusted_anchor_file"))) {
-            uploadButton.enable();
-        } else {
-            uploadButton.disable();
-        }
-    }
-
     /* -- MISC - END -- */
 
     /* -- DIALOGS - START -- */
-
-    function openAnchorUploadDialog() {
-        clearMessages();
-
-        $("#trusted_anchor_upload_dialog").initDialog({
-            autoOpen : false,
-            modal : true,
-            height : 200,
-            width : 500,
-            buttons : [
-                {
-                    text : _("common.upload"),
-                    id: anchorUploadButtonId,
-                    disabled: "disabled",
-                    click : function() {
-                        initAnchorUpload();
-                    }
-                }, {
-                    text : _("common.cancel"),
-                    click : function() {
-                        $(this).dialog("close");
-                    }
-                } ]
-        }).dialog("open");
-    }
 
     function openAnchorSaveDialog(anchorInfo) {
         $("#trusted_anchor_instance").text(anchorInfo.instance);
@@ -254,11 +207,6 @@ var SDSB_TRUSTED_ANCHORS = function() {
                 clearTrustedAnchor($(this));
             }
         }).dialog("open");
-    }
-
-    function closeAnchorUploadDialog() {
-        $("#upload_trusted_anchor_file").val("");
-        $("#trusted_anchor_upload_dialog").dialog("close");
     }
 
     /* -- DIALOGS - END -- */

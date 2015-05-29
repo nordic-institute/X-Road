@@ -1,4 +1,4 @@
-var SDSB_SECURITYSERVER_EDIT = function() {
+var XROAD_SECURITYSERVER_EDIT = function() {
     var oSecurityCategories, oClients, oAuthCerts, oManagementRequests,
             oAddableClients;
 
@@ -10,7 +10,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
     /* -- PUBLIC - START -- */
 
     function open(securityServerData, fromList) {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed(
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed(
                 "securityservers/can_see_details", function() {
             openedFromList = fromList == true ? true : false;
 
@@ -314,7 +314,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         var params = {certId: authCertId};
 
         $.get("securityservers/get_cert_details_by_id", params, function(response) {
-            SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+            XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
         }, "json");
     }
 
@@ -566,11 +566,11 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         ];
         opts.fnRowCallback = function(nRow, client) {
             var clientLink =
-                SDSB_CENTERUI_COMMON.getDetailsLink(client.member_code);
+                XROAD_CENTERUI_COMMON.getDetailsLink(client.member_code);
 
             clientLink.click(function(){
                 openingClientDetails = true;
-                SDSB_MEMBER_EDIT.openById(client.id);
+                XROAD_MEMBER_EDIT.openById(client.id);
             });
 
             var clientColumn = $(nRow).find("td:eq(2)");
@@ -605,7 +605,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         ];
         opts.fnRowCallback = function(nRow, authCert) {
             var authCertLink =
-                SDSB_CENTERUI_COMMON.getDetailsLink(authCert.serial_number);
+                XROAD_CENTERUI_COMMON.getDetailsLink(authCert.serial_number);
 
             authCertLink.click(function(){
                 openingAuthCertDetails = true;
@@ -651,10 +651,10 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         opts.fnRowCallback = function(nRow, managementRequest) {
             var managementRequestColumn = $(nRow).find("td:first");
             var managementRequestLink =
-                SDSB_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
+                XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
 
             managementRequestLink.click(function(){
-                SDSB_REQUEST_EDIT.open(managementRequest);
+                XROAD_REQUEST_EDIT.open(managementRequest);
             });
 
             managementRequestColumn.empty().append(managementRequestLink);
@@ -788,7 +788,11 @@ var SDSB_SECURITYSERVER_EDIT = function() {
                         $(this).dialog("close");
                     }
                 }
-            ]
+            ],
+            open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+            }
+
         });
     }
 
@@ -809,7 +813,11 @@ var SDSB_SECURITYSERVER_EDIT = function() {
                         $(this).dialog("close");
                     }
                 }
-            ]
+            ],
+            open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+            }
+
         });
     }
 
@@ -832,16 +840,19 @@ var SDSB_SECURITYSERVER_EDIT = function() {
                         $(this).dialog("close");
                     }
                 }
-            ]
+            ],
+            open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+            }
         });
     }
 
     function initDynamicDialogHandlers() {
         $("#securityserver_client_delete").live("click", function(){
-            SDSB_REQUEST_CLIENT_DELETION.fillRemovableClientData(
+            XROAD_REQUEST_CLIENT_DELETION.fillRemovableClientData(
                     getClientDeletionRequestData());
 
-            SDSB_REQUEST_CLIENT_DELETION.openDialog(function() {
+            XROAD_REQUEST_CLIENT_DELETION.openDialog(function() {
                 refreshServerDataTables(getEditableServerId());
             });
         });
@@ -854,7 +865,7 @@ var SDSB_SECURITYSERVER_EDIT = function() {
             return;
         }
 
-        SDSB_SECURITYSERVERS.updateTable();
+        XROAD_SECURITYSERVERS.updateTable();
     }
 
     $(document).ready(function() {
@@ -867,8 +878,8 @@ var SDSB_SECURITYSERVER_EDIT = function() {
         }
 
         // TODO: what exactly needs to be refreshed here?
-        // var memberId = SDSB_MEMBER_EDIT.getEditableMemberId()
-        // SDSB_MEMBER_EDIT.refreshMemberDataTables(memberId);
+        // var memberId = XROAD_MEMBER_EDIT.getEditableMemberId()
+        // XROAD_MEMBER_EDIT.refreshMemberDataTables(memberId);
     }
 
     function enableAuthCertDeletion(event) {

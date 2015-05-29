@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<!DOCTYPE hibernate-mapping PUBLIC 
+<!DOCTYPE hibernate-mapping PUBLIC
     "-//Hibernate/Hibernate Mapping DTD//EN"
-    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"> 
-<hibernate-mapping package="ee.cyber.sdsb.common.identifier">
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping package="ee.ria.xroad.common.identifier">
 
-    <class name="SdsbId" table="IDENTIFIER">
+    <class name="XroadId" table="IDENTIFIER">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
@@ -13,12 +13,12 @@
 
         <property name="type" access="field">
              <type name="org.hibernate.type.EnumType">
-                 <param name="enumClass">ee.cyber.sdsb.common.identifier.SdsbObjectType</param>
+                 <param name="enumClass">ee.ria.xroad.common.identifier.XroadObjectType</param>
                  <param name="type">12</param>
              </type>
         </property>
 
-        <property name="sdsbInstance" access="field"/>
+        <property name="xRoadInstance" access="field"/>
 
         <subclass name="ClientId" discriminator-value="C">
             <property name="memberClass" access="field"/>

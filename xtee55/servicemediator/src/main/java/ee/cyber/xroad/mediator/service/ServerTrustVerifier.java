@@ -4,7 +4,7 @@ import javax.net.ssl.SSLSession;
 
 import org.apache.http.protocol.HttpContext;
 
-public interface ServerTrustVerifier {
+interface ServerTrustVerifier {
 
     void checkServerTrusted(HttpContext httpContext, SSLSession session)
             throws Exception;

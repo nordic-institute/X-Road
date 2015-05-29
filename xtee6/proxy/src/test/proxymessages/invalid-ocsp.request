@@ -6,17 +6,17 @@ OCSP RESPONSE DUMMY
 --xtop1357783211hcn1yiro
 Content-Type: text/xml
 
-<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
     <SOAP-ENV:Header>
-        <sdsb:consumer>consumer</sdsb:consumer>
-        <sdsb:producer>producer</sdsb:producer>
-        <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
-        <sdsb:id>598b0bcc8302a9a6ae86d41af6e5ebd3</sdsb:id>
-        <sdsb:service>producer.getState</sdsb:service>
-        <sdsb:issue/>
+        <xroad:consumer>consumer</xroad:consumer>
+        <xroad:producer>producer</xroad:producer>
+        <xroad:userId>EE:PIN:abc4567</xroad:userId>
+        <xroad:id>598b0bcc8302a9a6ae86d41af6e5ebd3</xroad:id>
+        <xroad:service>producer.getState</xroad:service>
+        <xroad:issue/>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <sdsb:getState/>
+        <xroad:getState/>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 --xtop1357783211hcn1yiro

@@ -19,12 +19,15 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 
-import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.message.SoapFault;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
 import ee.cyber.xroad.mediator.TestResources;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.message.SoapFault;
 
-public class ClientMediatorIntegrationTest {
+/**
+ * ClientMediator integration test program.
+ */
+public final class ClientMediatorIntegrationTest {
 
     private static final int SERVER_PORT = 8060;
 
@@ -32,6 +35,14 @@ public class ClientMediatorIntegrationTest {
 
     private static boolean doFault = false;
 
+    private ClientMediatorIntegrationTest() {
+    }
+
+    /**
+     * Main program entry point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
                 "src/test/resources/globalconf");
@@ -39,9 +50,9 @@ public class ClientMediatorIntegrationTest {
         System.setProperty(MediatorSystemProperties.IDENTIFIER_MAPPING_FILE,
                 "src/test/resources/identifiermapping.xml");
 
-        System.setProperty(MediatorSystemProperties.XROAD_PROXY_ADDRESS,
+        System.setProperty(MediatorSystemProperties.V5_XROAD_PROXY_ADDRESS,
                 "http://127.0.0.1:" + SERVER_PORT);
-        System.setProperty(MediatorSystemProperties.XROAD_URIPROXY_ADDRESS,
+        System.setProperty(MediatorSystemProperties.V5_XROAD_URIPROXY_ADDRESS,
                 "http://127.0.0.1:" + SERVER_PORT);
 
         startServer();
@@ -50,9 +61,9 @@ public class ClientMediatorIntegrationTest {
         try {
             mediator.start();
 
+            //doPost("v5xroad-simple.request");
+            //doPost("v5xroad-test.request");
             //doPost("xroad-simple.request");
-            //doPost("xroad-test.request");
-            //doPost("sdsb-simple.request");
 
             //doGet("?uri=http://www.google.com");
             //doGet("?producer=foobarbaz");
@@ -60,7 +71,7 @@ public class ClientMediatorIntegrationTest {
             doGet("listMembers?foo=bar&baz=buzz");
 
             doFault = true;
-            doPost("xroad-test.request");
+            doPost("v5xroad-test.request");
 
         } finally {
             mediator.stop();

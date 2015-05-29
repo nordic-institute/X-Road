@@ -1,9 +1,8 @@
-var SDSB_TSPS = function() {
+var XROAD_TSPS = function() {
     var oTsps;
 
     function initTable() {
         var opts = defaultTableOpts();
-        opts.fnDrawCallback = updateActionButtonsVisibility;
         opts.bServerSide = true;
         opts.sScrollY = 400;
         opts.bScrollCollapse = true;
@@ -16,7 +15,7 @@ var SDSB_TSPS = function() {
         opts.asRowId = ["id"];
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("tsps");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("tsps");
             enableActions();
         }
 
@@ -28,18 +27,14 @@ var SDSB_TSPS = function() {
         oTsps = $('#tsps').dataTable(opts);
         oTsps.fnSetFilteringDelay(600);
 
-        $("#tsps tbody td").live("click", function(ev) {
-            setTableFocus(0, ev.target.parentNode);
-            updateActionButtonsVisibility();
+        $("#tsps tbody tr").live("click", function(ev) {
+            oTsps.setFocus(0, this);
+            enableActions();
         });
 
         $("#tsps tbody tr").live("dblclick", function(ev) {
-            initEditingExisting();
+            $("#tsp_details").click();
         });
-    }
-
-    function refreshTable() {
-        oTsps.fnReloadAjax();
     }
 
     function enableActions() {
@@ -52,51 +47,58 @@ var SDSB_TSPS = function() {
         }
     }
 
-    function setTableFocus(minSize, row) {
-        oTsps.setFocus(minSize, row);
-    }
-
-    function updateActionButtonsVisibility() {
-        if (!oTsps) return;
-
-        if (!oTsps.getFocus()) {
-            $(".tsp-action").disable();
-        } else {
-            $(".tsp-action").enable();
-        }
-    }
-
-    function initEditingExisting() {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed("tsps/can_see_details",
-                function() {
-            editableTsp = oTsps.getFocusData();
-            SDSB_TSP_EDIT.openEditDialog(editableTsp.id, editableTsp.url);
-        });
-    }
-
-    function deleteTsp() {
-        var tsp = oTsps.getFocusData();
-        var requestParams = {id: tsp.id};
-        var confirmParams = {tsp: tsp.name};
-
-        confirm("tsps.remove_confirm", confirmParams, function() {
-            $.post("tsps/delete_tsp", requestParams, function() {
-                refreshTable();
-            }, "json");
-        });
-    }
-
     function addActionHandlers() {
         $("#tsp_add").live("click", function() {
-            SDSB_TSP_EDIT.openAddDialog();
+            XROAD_URL_AND_CERT_DIALOG.openAddDialog(
+                "tsp", _("tsps.edit_new"), false, {});
         });
 
-        $("#tsp_details").live("click", function() {
-            initEditingExisting();
+        $("#tsp_details").click(function() {
+            if (!can("view_approved_tsa_details")) {
+                return;
+            }
+
+            var selected = oTsps.getFocusData();
+            var params = {
+                tsp_id: selected.id
+            };
+
+            XROAD_URL_AND_CERT_DIALOG.openEditDialog(
+                "tsp", _("tsps.edit_existing"), false,
+                selected.url, true, params);
         });
 
-        $("#tsp_delete").live("click", function() {
-            deleteTsp();
+        $("#tsp_delete").click(function() {
+            var tsp = oTsps.getFocusData();
+            var requestParams = {tsp_id: tsp.id};
+            var confirmParams = {tsp: tsp.name};
+
+            confirm("tsps.remove_confirm", confirmParams, function() {
+                $.post("tsps/delete_tsp", requestParams, function() {
+                    oTsps.fnReloadAjax();
+                }, "json");
+            });
+        });
+    }
+
+    function initTspDialog() {
+        XROAD_URL_AND_CERT_DIALOG.initForPrefix("tsp",
+                function(params) { // onAdd
+            $.post(action("add_tsp"), params, function() {
+                oTsps.fnReloadAjax();
+                XROAD_URL_AND_CERT_DIALOG.closeDialog("tsp");
+            }, "json");
+
+        }, function(params) { // onEdit
+            $.post(action("edit_tsp"), params, function() {
+                oTsps.fnReloadAjax();
+                XROAD_URL_AND_CERT_DIALOG.closeDialog("tsp");
+            }, "json");
+
+        }, function(params) { // onCertView
+            $.get(action("view_tsp_cert"), params, function(response) {
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+            }, "json");
         });
     }
 
@@ -104,9 +106,6 @@ var SDSB_TSPS = function() {
         initTable();
         enableActions();
         addActionHandlers();
+        initTspDialog();
     });
-
-    return {
-        refreshTable: refreshTable,
-    }
 }();

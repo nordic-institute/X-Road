@@ -4,26 +4,26 @@ Content-Type: text/xml
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
-        <sdsb:client id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
-        </sdsb:client>
-        <sdsb:service id:objectType="SERVICE">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>attachment</id:memberCode>
             <id:serviceCode>test</id:serviceCode>
-        </sdsb:service>
-        <sdsb:userId>EE37702211234</sdsb:userId>
-        <sdsb:id>1234567890</sdsb:id>
-        <sdsb:issue>issue</sdsb:issue>
+        </xroad:service>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>1234567890</xroad:id>
+        <xroad:issue>issue</xroad:issue>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:test xmlns:ns1="http://cosumer.ee.sdsb.net" />
+        <ns1:test xmlns:ns1="http://cosumer.ee.xroad.net" />
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 

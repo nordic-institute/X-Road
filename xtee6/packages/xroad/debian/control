@@ -5,25 +5,41 @@ Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
-Package: xroad-center
-Conflicts:  xroad-proxy, xroad-confproxy
+Package: xroad-centralserver
+Conflicts: xroad-securityserver
 Architecture: all
-Depends: ${misc:Depends}, xroad-jetty9, curl, unzip, libmhash2
-Pre-depends: postgresql, xroad-common
+Depends: xroad-center
+Pre-depends:
+Description: X-Road central server
+ This is meta-package of X-Road central server.
+
+Package: xroad-center
+Conflicts: xroad-proxy, xroad-confproxy
+Architecture: all
+Depends: ${misc:Depends}, xroad-jetty9 (>=6.3), curl, unzip, libmhash2
+Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.3)
 Description: X-Road central server
  X-Road central server programs and utilities
 
 Package: xroad-common
 Architecture: amd64
-Depends: ${misc:Depends}, daemontools, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java
+Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java
 Description: X-Road shared components
  X-Road shared components and utilities
+
+Package: xroad-securityserver
+Conflicts: xroad-centralserver
+Architecture: all
+Depends: xroad-proxy, xroad-addon-metaservices, xroad-addon-messagelog
+Pre-depends:
+Description: X-Road security server
+ This is meta-package of X-Road security server.
 
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-jetty9, curl, authbind
-Pre-depends: postgresql, xroad-common
+Depends: ${misc:Depends}, xroad-jetty9  (>=6.3), curl, authbind
+Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.3)
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -31,19 +47,33 @@ Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
 Depends: ${misc:Depends}
-Pre-depends: xroad-common
+Pre-depends: xroad-common  (>=6.3)
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
 Package: xroad-addon-hwtokens
 Architecture: all
-Depends: ${misc:Depends}, xroad-common
+Depends: ${misc:Depends}, xroad-common (>=6.3)
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
 
 Package: xroad-addon-legacy-securelog
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy
+Depends: ${misc:Depends}, xroad-proxy (>=6.3)
 Conflicts: xroad-addon-messagelog
 Description: X-Road AddOn: Legacy securelog
  Legacy securelog
+
+Package: xroad-addon-messagelog
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=6.3)
+Conflicts: xroad-addon-legacy-securelog
+Description: X-Road AddOn: messagelog
+ AddOn for secure message log
+
+Package: xroad-addon-metaservices
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=6.3)
+Description: X-Road AddOn: metaservices
+ AddOn for metaservice reponders
+

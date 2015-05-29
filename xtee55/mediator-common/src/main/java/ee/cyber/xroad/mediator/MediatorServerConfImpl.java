@@ -5,26 +5,29 @@ import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.serverconf.ServerConfImpl;
-import ee.cyber.sdsb.common.conf.serverconf.model.ClientType;
-import ee.cyber.sdsb.common.conf.serverconf.model.ServiceType;
-import ee.cyber.sdsb.common.conf.serverconf.model.WsdlType;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.cyber.xroad.mediator.BackendTypes.SDSB;
+import static ee.cyber.xroad.mediator.BackendTypes.XROAD;
 import static ee.cyber.xroad.mediator.BackendTypes.XROADV5;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
 
+/**
+ * Default mediator server configuration implementation.
+ */
 public class MediatorServerConfImpl extends ServerConfImpl
         implements MediatorServerConfProvider {
 
-    private static final String DEFAULT_BACKEND = SDSB;
+    private static final String DEFAULT_BACKEND = XROAD;
 
     @Override
-    public boolean isSdsbService(ServiceId serviceId) {
+    public boolean isXroadService(ServiceId serviceId) {
         return tx(session -> {
             WsdlType wsdl = getWsdl(session, serviceId);
             if (wsdl == null) {
@@ -34,7 +37,7 @@ public class MediatorServerConfImpl extends ServerConfImpl
 
             String backendType = wsdl.getBackend() != null
                     ? wsdl.getBackend() : DEFAULT_BACKEND;
-            if (SDSB.equalsIgnoreCase(backendType)) {
+            if (XROAD.equalsIgnoreCase(backendType)) {
                 return true;
             } else if (XROADV5.equalsIgnoreCase(backendType)) {
                 return false;
@@ -89,7 +92,7 @@ public class MediatorServerConfImpl extends ServerConfImpl
             for (WsdlType wsdl : client.getWsdl()) {
                 if (XROADV5.equalsIgnoreCase(wsdl.getBackend())) {
                     urls.add(wsdl.getUrl());
-                } else if (SDSB.equalsIgnoreCase(wsdl.getBackend())) {
+                } else if (XROAD.equalsIgnoreCase(wsdl.getBackend())) {
                     urls.add(wsdl.getUrl());
                 }
             }

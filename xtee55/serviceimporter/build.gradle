@@ -5,10 +5,10 @@ plugins {
 dependencies {
     compile project(':mediator-common')
 
-    // SDSB dependencies
-    compile 'ee.cyber.sdsb:serverconf:1.0'
-    compile 'ee.cyber.sdsb:signer-protocol:1.0'
-    compile 'ee.cyber.sdsb:common-ui:1.0'
+    // X-Road 6.0 dependencies
+    compile 'ee.ria.xroad:serverconf:1.0'
+    compile 'ee.ria.xroad:signer-protocol:1.0'
+    compile 'ee.ria.xroad:common-ui:1.0'
 
     // Additional 3rd party dependencies
     compile 'commons-cli:commons-cli:1.2'
@@ -58,11 +58,11 @@ task runServiceExporter(type: JavaExec) {
     args '-export'
 }
 
-task runSDSBChecker(type: JavaExec) {
+task runXROADChecker(type: JavaExec) {
     main = 'ee.cyber.xroad.serviceimporter.Main'
     classpath = sourceSets.main.runtimeClasspath
     environment += ["LD_LIBRARY_PATH":"src/main/c"]
-    args '-checksdsb'
+    args '-checkxroad'
 }
 
 task runXLockTest(type: JavaExec) {

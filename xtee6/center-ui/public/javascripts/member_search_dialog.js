@@ -15,7 +15,7 @@
             { "mData": "member_code" },
             { "mData": "member_class" },
             { "mData": "subsystem_code" },
-            { "mData": "sdsb_instance" },
+            { "mData": "xroad_instance" },
             { "mData": "type" },
         ];
 

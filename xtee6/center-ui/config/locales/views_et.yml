@@ -23,7 +23,7 @@ et:
 
   about:
     index:
-      name:  "SDSB keskserver"
+      name:  "XROAD keskserver"
       version: "versioon"
 
   backup:
@@ -191,7 +191,7 @@ et:
       code: "Kood"
       class: "Klass"
       subsystem: "Alamsüsteem"
-      sdsb: "SDSB"
+      xroad: "XROAD"
       type: "Tüüp"
       added: "Lisatud"
       description:

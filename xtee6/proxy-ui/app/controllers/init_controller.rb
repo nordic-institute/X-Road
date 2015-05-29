@@ -1,10 +1,10 @@
 require 'net/http'
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ClientType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ServerConfType
-java_import Java::ee.cyber.sdsb.common.identifier.ClientId
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServerConfType
+java_import Java::ee.ria.xroad.common.identifier.ClientId
+java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class InitController < ApplicationController
 
@@ -104,7 +104,7 @@ class InitController < ApplicationController
 
     if init_owner
       owner_id = ClientId.create(
-        sdsb_instance,
+        xroad_instance,
         params[:owner_class],
         params[:owner_code], nil)
 
@@ -171,7 +171,7 @@ class InitController < ApplicationController
     classes = []
 
     if globalconf_initialized?
-      GlobalConf::getMemberClasses(sdsb_instance).each do |memberClass|
+      GlobalConf::getMemberClasses(xroad_instance).each do |memberClass|
         classes << memberClass
       end
     end
@@ -189,7 +189,7 @@ class InitController < ApplicationController
     codes = Set.new
 
     if globalconf_initialized?
-      GlobalConf::getMembers(sdsb_instance).each do |member|
+      GlobalConf::getMembers(xroad_instance).each do |member|
         unless params[:member_class] &&
             params[:member_class] != member.id.memberClass
           codes << member.id.memberCode

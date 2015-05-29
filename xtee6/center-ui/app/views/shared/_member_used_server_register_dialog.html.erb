@@ -1,6 +1,6 @@
 <%= dialog "member_used_server_register_dialog", t("members.edit.used_servers.add.title") do %>
   <section class="container">
-    <legend><%= t 'members.edit.used_servers.add.client.legend' %></legend>
+    <h2><span><%= t 'members.edit.used_servers.add.client.legend' %></span></h2>
     <table class="details">
       <tr>
         <td class="description"><%= t 'securityservers.clients.name' %></td>
@@ -21,11 +21,10 @@
     </table>
   </section>
   <section class="container">
-    <legend><%= t 'securityservers.info.legend' %></legend>
+    <h2><span><%= t 'securityservers.info.legend' %></span></h2>
     <table class="details">
       <tr>
-        <td></td>
-        <td>
+        <td colspan="2" class="acenter">
           <% if can?(:view_security_server_details) %>
             <button id="used_server_server_search" >
               <%= t 'common.search' %>

@@ -4,8 +4,9 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
+    apply plugin: 'pmd'
 
-    group = 'ee.cyber.sdsb'
+    group = 'ee.ria.xroad'
     version = '1.0'
 
     repositories {
@@ -90,10 +91,14 @@ subprojects {
 
     checkstyle {
         toolVersion = "6.1.1"
-        configFile = new File(rootDir, "checkstyle.xml")
-        configProperties.config_loc = "$rootDir"
+        configFile = new File(rootDir, "doc/checkstyle-ria.xml")
+        configProperties.config_loc = "$rootDir/doc"
         ignoreFailures = true
         showViolations = false
+    }
+
+    pmd {
+        ignoreFailures = true
     }
 }
 

@@ -5,21 +5,27 @@ import java.util.concurrent.TimeUnit;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
 
 /**
  * Thread that periodically closes expired and idle connections.
  */
+@Slf4j
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class IdleConnectionMonitorThread extends Thread {
+
+    private static final int DEFAULT_CONNECTION_IDLE_TIME = 1000;
+    private static final int DEFAULT_INTERVAL = 5000;
 
     private final PoolingNHttpClientConnectionManager connectionManager;
 
     private volatile boolean shutdown;
 
-    @Setter private int intervalMilliseconds = 5000;
-    @Setter private int connectionIdleTimeMilliseconds = 1000;
+    @Setter
+    private int intervalMilliseconds = DEFAULT_INTERVAL;
+    @Setter
+    private int connectionIdleTimeMilliseconds = DEFAULT_CONNECTION_IDLE_TIME;
 
     public void closeNow() {
         connectionManager.closeExpiredConnections();
@@ -37,7 +43,7 @@ class IdleConnectionMonitorThread extends Thread {
                 }
             }
         } catch (InterruptedException ex) {
-            // terminate
+            log.trace("Idle connection monitor thread terminated");
         }
     }
 

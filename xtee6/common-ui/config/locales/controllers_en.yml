@@ -7,6 +7,7 @@ en:
   common:
     params_error: "Error in query parameters"
     changes_saved: "Changes saved"
+    cert_imported: "Certificate imported successfully"
     proxy_org_name: "X-Road Security Server"
     proxy_org_name_az: "EHDIS Security Server"
     present: "Present"
@@ -43,7 +44,8 @@ en:
       sign_to_auth: "Signing certificate cannot be imported to authentication keys"
     cert_chain_validation_failed: "Certificate chain validation failed: %{0}"
     token_not_found: "Token '%{0}' not found"
-    token_not_active: "Token '%{0}' not active"
+    token_not_available: "Token '%{0}' not available"
+    token_not_active: "Token PIN not entered"
     token_not_initialized: "Token '%{0}' not initialized"
     key_not_found: "Key '%{0}' not found"
     key_not_available: "Key '%{0}' not available"
@@ -91,6 +93,8 @@ en:
     error:
       delete: "Deletion of backup files failed, reason: '%{reason}'"
       not_tar: "Content of uploaded file must be in tar format"
+      invalid_extension: "Uploaded file name '%{file}' has invalid extension, valid ones are '%{extensions}'"
+      invalid_content_type: "Invalid content type for uploaded file: '%{content_type}', allowed ones are '%{allowed_content_types}'"
 
   conf_verification:
     missing_private_params: "Configuration anchor import failed: invalid anchor file"

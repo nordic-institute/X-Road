@@ -7,13 +7,16 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.AbstractXmlConf;
-import ee.cyber.sdsb.common.conf.globalconf.ConfigurationDirectory;
-import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.xroad.mediator.identifiermapping.MappingsType;
 import ee.cyber.xroad.mediator.identifiermapping.MappingsType.Mapping;
 import ee.cyber.xroad.mediator.identifiermapping.ObjectFactory;
+import ee.ria.xroad.common.conf.AbstractXmlConf;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.identifier.ClientId;
 
+/**
+ * Default implementation of the identifier mapping configuration.
+ */
 @Slf4j
 public class IdentifierMappingImpl extends AbstractXmlConf<MappingsType>
         implements IdentifierMappingProvider {
@@ -21,9 +24,12 @@ public class IdentifierMappingImpl extends AbstractXmlConf<MappingsType>
     private final Map<String, ClientId> shortNameToClientId = new HashMap<>();
     private final Map<ClientId, String> clientIdToShortName = new HashMap<>();
 
-    public IdentifierMappingImpl() {
-        super(ObjectFactory.class,
-                MediatorSystemProperties.getIdentifierMappingFile());
+    /**
+     * Loads identifier mapping configuration from the specified file.
+     * @param fileName the name of the file
+     */
+    public IdentifierMappingImpl(String fileName) {
+        super(ObjectFactory.class, fileName);
         cacheMappings();
     }
 

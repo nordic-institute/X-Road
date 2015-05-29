@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
 
 class AnchorUnmarshaller
   def initialize(anchor_file)

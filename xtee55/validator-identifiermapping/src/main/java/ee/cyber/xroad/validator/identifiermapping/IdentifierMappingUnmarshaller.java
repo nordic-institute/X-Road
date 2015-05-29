@@ -10,7 +10,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 
-public class IdentifierMappingUnmarshaller {
+final class IdentifierMappingUnmarshaller {
+
+    private IdentifierMappingUnmarshaller() {
+    }
 
     @SuppressWarnings("unchecked")
     public static MappingsType unmarshal(byte[] fileContent) throws Exception {

@@ -1,7 +1,7 @@
 require 'fileutils'
 
-def get_sdsb_home
-  return ENV['SDSB_HOME']
+def get_xroad_home
+  return ENV['XROAD_HOME']
 end
 
 def is_privilege_row?(row)
@@ -9,17 +9,17 @@ def is_privilege_row?(row)
 end
 
 def get_filepath(subproject, file)
-  return "#{get_sdsb_home()}/#{subproject}/config/#{file}"
+  return "#{get_xroad_home()}/#{subproject}/config/#{file}"
 end
 
 def get_allowed_roles(subproject)
   result = [
-    "sdsb-security-officer",
-    "sdsb-registration-officer",
-    "sdsb-system-administrator"
+    "xroad-security-officer",
+    "xroad-registration-officer",
+    "xroad-system-administrator"
   ]
 
-  result << "sdsb-service-administrator" if "proxy-ui" == subproject
+  result << "xroad-service-administrator" if "proxy-ui" == subproject
 
   return result
 end
@@ -28,8 +28,8 @@ def generate_privileges(role, subproject = "center-ui")
   privileges_file = get_filepath(subproject, "privileges.yml")
   new_privileges = ""
 
-  if get_sdsb_home().empty?
-    raise "SDSB home must be set!"
+  if get_xroad_home().empty?
+    raise "XROAD home must be set!"
   end
 
   allowed_roles = get_allowed_roles(subproject)

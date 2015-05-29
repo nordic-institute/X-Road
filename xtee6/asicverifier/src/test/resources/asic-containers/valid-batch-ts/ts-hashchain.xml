@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:HashChain xmlns:ns2="http://cyber.ee/hashchain" xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <ns2:DefaultDigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+    <ns2:HashStep id="STEP0">
+        <ns2:HashValue>
+            <DigestValue>27o9AYPcmUcUz3YwWvOgYduNeTJrPRggKHQj9LTMizE=</DigestValue>
+        </ns2:HashValue>
+        <ns2:DataRef URI="/META-INF/signatures.xml">
+            <DigestValue>xIrumPeUiHwYJAUnI+W3PsByUKec1Ahftt0mvLsdI4Q=</DigestValue>
+        </ns2:DataRef>
+    </ns2:HashStep>
+</ns2:HashChain>

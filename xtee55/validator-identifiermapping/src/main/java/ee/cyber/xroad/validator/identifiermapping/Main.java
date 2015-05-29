@@ -5,12 +5,19 @@ import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 
-import ee.cyber.sdsb.common.CodedException;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 
-import static ee.cyber.sdsb.common.ErrorCodes.translateException;
 import static ee.cyber.xroad.validator.identifiermapping.IdentifierMappingSchemaValidator.createSchema;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
-public class Main {
+/**
+ * Identifier mapping validator program.
+ */
+public final class Main {
+
+    private Main() {
+    }
 
     /**
      * Starting point of running identifier mapping validator. Errors and
@@ -38,7 +45,10 @@ public class Main {
 
     private static IdentifierMappingFileValidator getValidator(
             byte[] mappingFileContent) throws Exception {
-        try (Conf conf = new Conf()) {
+        DbConf dbConf = new DbConf(
+                SystemProperties.getCenterDatabasePropertiesFile());
+
+        try (Conf conf = new Conf(dbConf)) {
             IdentifierMappingFileValidator validator =
                     new IdentifierMappingFileValidator(
                             new IdentifierMappingSchemaValidator(createSchema()),
@@ -86,7 +96,7 @@ public class Main {
     }
 
     private static boolean isStackTraceLine(String line) {
-        // TODO: This is quite naive check, provide more bulletproof.
+        // TODO This is quite naive check, provide more bulletproof.
         return Character.isWhitespace(line.charAt(0))
                 && line.trim().startsWith("at");
     }

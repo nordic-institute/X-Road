@@ -3,72 +3,78 @@ package ee.cyber.xroad.monitoragent;
 import java.util.Date;
 
 import akka.actor.UntypedActor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.monitoring.FaultInfo;
-import ee.cyber.sdsb.common.monitoring.MessageInfo;
-import ee.cyber.sdsb.common.monitoring.ServerProxyFailed;
-import ee.cyber.sdsb.common.monitoring.SuccessfulMessage;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.monitoring.FaultInfo;
+import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
+import ee.ria.xroad.common.monitoring.ServerProxyFailed;
+import ee.ria.xroad.common.monitoring.SuccessfulMessage;
 
-import static ee.cyber.sdsb.common.monitoring.MessageInfo.Origin;
 import static ee.cyber.xroad.monitoragent.DataSender.send;
 import static ee.cyber.xroad.monitoragent.MessageParam.*;
 import static ee.cyber.xroad.monitoragent.MessageType.ALERT;
 import static ee.cyber.xroad.monitoragent.MessageType.QUERY_NOTIFICATION;
 import static org.apache.commons.lang3.tuple.ImmutablePair.of;
 
+/**
+ * Actor that receives message processing outcome information and
+ * forwards notifications to appropriate recipients.
+ */
+@Slf4j
 public class DataReceiver extends UntypedActor {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            DataReceiver.class);
+
+    private static final int QUERY_PARAMETER_COUNT = 6;
 
     @Override
     public void onReceive(Object message) {
         if (message instanceof SuccessfulMessage) {
             SuccessfulMessage m = (SuccessfulMessage) message;
-            LOG.debug("Received: success({}, {}, {})",
-                    new Object[] {m.message, m.startTime, m.endTime});
+            log.debug("Received: success({}, {}, {})",
+                    new Object[] {m.getMessage(), m.getStartTime(),
+                        m.getEndTime()});
 
-            send(socket(m.message.origin), QUERY_NOTIFICATION,
-                    queryInfo(m.message, m.startTime, m.endTime));
+            send(socket(m.getMessage().getOrigin()), QUERY_NOTIFICATION,
+                    queryInfo(m.getMessage(), m.getStartTime(),
+                            m.getEndTime()));
         } else if (message instanceof ServerProxyFailed) {
             ServerProxyFailed m = (ServerProxyFailed) message;
-            LOG.debug("Received: serverProxyFailed({})", m.message);
+            log.debug("Received: serverProxyFailed({})", m.getMessage());
 
             Pair<MessageParam, String>[] queryInfo =
-                    queryInfo(m.message, null, null);
+                    queryInfo(m.getMessage(), null, null);
             // Replace the query name with provider.state so that
             // zabbix can filter for it.
-            // TODO: implement the replacement better.
+            // TODO implement the replacement better.
             queryInfo[2] = of(QUERY_NAME,
-                    convertId(m.message.service.getClientId()) + "."
-                            + m.message.service.getServiceCode());
+                    convertId(m.getMessage().getService().getClientId()) + "."
+                            + m.getMessage().getService().getServiceCode());
 
             send(senderSocket(), QUERY_NOTIFICATION, queryInfo);
         } else if (message instanceof FaultInfo) {
             FaultInfo m = (FaultInfo) message;
-            LOG.debug("Received: failure({}, {}, {})",
-                    new Object[] {m.message, m.faultCode, m.faultMessage});
+            log.debug("Received: failure({}, {}, {})",
+                    new Object[] {m.getMessage(), m.getFaultCode(), m.getFaultMessage()});
 
             // Send the query info with null times to record the failed query.
-            if (m.message != null) {
+            if (m.getMessage() != null) {
                 send(senderSocket(), QUERY_NOTIFICATION,
-                        queryInfo(m.message, null, null));
+                        queryInfo(m.getMessage(), null, null));
             }
             // Send the alert for fault.
-            if (m.faultCode != null || m.faultMessage != null) {
+            if (m.getFaultCode() != null || m.getFaultMessage() != null) {
                 send(senderSocket(), ALERT,
-                        faultInfo(m.faultCode, m.faultMessage));
+                        faultInfo(m.getFaultCode(), m.getFaultMessage()));
             }
         } else {
-            LOG.error("Received: unknown message {}", message);
+            log.error("Received: unknown message {}", message);
         }
     }
 
     private String socket(Origin origin) {
-        // TODO: extract the constants to some class.
+        // TODO extract the constants to some class.
         switch (origin) {
             case CLIENT_PROXY:
                 return localSocket();
@@ -93,16 +99,17 @@ public class DataReceiver extends UntypedActor {
 
     private Pair<MessageParam, String>[] queryInfo(MessageInfo message,
             Date startTime, Date endTime) {
-        Pair<MessageParam, String>[] ret = new Pair[6];
+        Pair<MessageParam, String>[] ret = new Pair[QUERY_PARAMETER_COUNT];
 
-        ret[0] = of(QUERY_CONSUMER, convertId(message.client));
-        ret[1] = of(QUERY_USER_ID, message.userId);
-        ret[2] = of(QUERY_NAME,
-                convertId(message.service.getClientId()) + "."
-                        + message.service.getServiceCode());
-        ret[3] = of(QUERY_ID, message.queryId);
-        ret[4] = of(QUERY_START_TIME, convertDate(startTime));
-        ret[5] = of(QUERY_END_TIME, convertDate(endTime));
+        int idx = 0;
+        ret[idx++] = of(QUERY_CONSUMER, convertId(message.getClient()));
+        ret[idx++] = of(QUERY_USER_ID, message.getUserId());
+        ret[idx++] = of(QUERY_NAME,
+                convertId(message.getService().getClientId()) + "."
+                        + message.getService().getServiceCode());
+        ret[idx++] = of(QUERY_ID, message.getQueryId());
+        ret[idx++] = of(QUERY_START_TIME, convertDate(startTime));
+        ret[idx] = of(QUERY_END_TIME, convertDate(endTime));
 
         return ret;
     }
@@ -118,7 +125,7 @@ public class DataReceiver extends UntypedActor {
     }
 
     private static String convertId(ClientId clientId) {
-        // TODO: perform conversion
+        // TODO perform conversion
         return clientId.getMemberCode();
     }
 

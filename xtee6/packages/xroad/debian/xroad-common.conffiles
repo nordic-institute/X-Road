@@ -1,8 +1,8 @@
-etc/sdsb/devices.ini
-etc/sdsb/services/global.conf
-etc/sdsb/services/signer.conf
-etc/sdsb/nginx/default-sdsb.conf
-etc/sdsb/nginx/nginx-secure-addons.conf
-etc/sdsb/conf.d/common.ini
-etc/sdsb/conf.d/signer.ini
-etc/sdsb/conf.d/signer-logback.xml
+etc/xroad/devices.ini
+etc/xroad/services/global.conf
+etc/xroad/services/signer.conf
+etc/xroad/nginx/default-xroad.conf
+etc/xroad/nginx/nginx-secure-addons.conf
+etc/xroad/conf.d/common.ini
+etc/xroad/conf.d/signer.ini
+etc/xroad/conf.d/signer-logback.xml

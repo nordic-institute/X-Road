@@ -5,19 +5,10 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
-import ee.cyber.sdsb.common.message.AbstractSoapMessage;
-import ee.cyber.sdsb.common.message.SoapFault;
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.message.SoapMessageDecoder;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.CachingStream;
 import ee.cyber.xroad.mediator.IdentifierMapping;
 import ee.cyber.xroad.mediator.IdentifierMappingProvider;
 import ee.cyber.xroad.mediator.message.MessageEncoder;
@@ -27,19 +18,29 @@ import ee.cyber.xroad.mediator.message.SoapMessageConverter;
 import ee.cyber.xroad.mediator.message.SoapMessageEncoder;
 import ee.cyber.xroad.mediator.message.SoapParserImpl;
 import ee.cyber.xroad.mediator.util.IOPipe;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.message.AbstractSoapMessage;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.CachingStream;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.sdsb.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.cyber.sdsb.common.util.MimeTypes.MULTIPART_RELATED;
-import static ee.cyber.sdsb.common.util.MimeUtils.getBaseContentType;
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
+import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
+/**
+ * Base class for mediator message processors.
+ */
+@Slf4j
 public abstract class AbstractMediatorMessageProcessor
         implements MediatorMessageProcessor {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(AbstractMediatorMessageProcessor.class);
-
-    private static final int SEND_TIMEOUT_SECONDS = 120; // TODO: Make configurable
+    private static final int SEND_TIMEOUT_SECONDS = 120; // TODO Make configurable
 
     protected final IOPipe requestPipe = new IOPipe();
 
@@ -47,6 +48,7 @@ public abstract class AbstractMediatorMessageProcessor
     protected final HttpClientManager httpClientManager;
 
     protected AsyncHttpSender sender;
+    private InputStream cachedRequest;
 
     protected MessageVersion inboundRequestVersion;
     protected MessageVersion inboundResponseVersion;
@@ -75,14 +77,13 @@ public abstract class AbstractMediatorMessageProcessor
 
             processResponse(response);
         } finally {
-            if (sender != null) {
-                sender.close();
-            }
+            closeQuietly(sender);
+            closeQuietly(cachedRequest);
         }
     }
 
     void processRequest(final MediatorRequest request) throws Exception {
-        LOG.trace("processRequest({})", request.getContentType());
+        log.trace("processRequest({})", request.getContentType());
 
         RequestDecoderCallback cb = new RequestDecoderCallback(request);
 
@@ -90,9 +91,12 @@ public abstract class AbstractMediatorMessageProcessor
 
         if (cb.sendWithHttp10) {
             cb.encoder.close();
-            LOG.trace("Sending cached message with length {}",
+            log.trace("Sending cached message with length {}",
                     cb.counter.getByteCount());
-            cb.startSending(cb.cache.getCachedContents(),
+            // Start the sending operation. Cache will be closed when the
+            // response is received.
+            cachedRequest = cb.cache.getCachedContents();
+            cb.startSending(cachedRequest,
                     cb.counter.getByteCount());
         }
     }
@@ -110,7 +114,7 @@ public abstract class AbstractMediatorMessageProcessor
 
         @Override
         public void soap(SoapMessage message) throws Exception {
-            LOG.trace("soap({})", message.getXml());
+            log.trace("soap({})", message.getXml());
 
             inboundRequestVersion = MessageVersion.fromMessage(message);
             inboundRequestHeaderClass = getHeaderClass(message);
@@ -122,12 +126,12 @@ public abstract class AbstractMediatorMessageProcessor
 
             sendWithHttp10 = shouldSendWithHttp10(outboundRequestMessage);
             if (sendWithHttp10) {
-                LOG.trace("Sending request with HTTP 1.0");
+                log.trace("Sending request with HTTP 1.0");
                 cache = new CachingStream();
                 counter = new CountingOutputStream(cache);
                 encoder = getEncoder(counter);
             } else {
-                LOG.trace("Sending request with HTTP 1.1 chunked encoding");
+                log.trace("Sending request with HTTP 1.1 chunked encoding");
                 encoder = getEncoder(requestPipe.out);
                 startSending(requestPipe.in, CHUNKED_LENGTH);
             }
@@ -158,13 +162,13 @@ public abstract class AbstractMediatorMessageProcessor
     }
 
     void processResponse(final MediatorResponse response) throws Exception {
-        LOG.trace("processResponse()");
+        log.trace("processResponse()");
 
         final OutputStream out = response.getOutputStream();
         SoapMessageDecoder.Callback cb = new MessageDecoderCallback() {
             @Override
             public void soap(SoapMessage message) throws Exception {
-                LOG.trace("soap({})", message.getXml());
+                log.trace("soap({})", message.getXml());
 
                 inboundResponseVersion = MessageVersion.fromMessage(message);
 
@@ -192,7 +196,7 @@ public abstract class AbstractMediatorMessageProcessor
 
     protected void startSending(URI address, String contentType,
             InputStream content, long contentLength) throws Exception {
-        LOG.debug("startSending({}, {})", address, contentType);
+        log.debug("startSending({}, {})", address, contentType);
 
         sender = createSender();
 
@@ -201,7 +205,7 @@ public abstract class AbstractMediatorMessageProcessor
 
     protected void parseMessage(String contentType, InputStream content,
             SoapMessageDecoder.Callback decoderCallback) throws Exception {
-        LOG.debug("parseMessage({})", contentType);
+        log.debug("parseMessage({})", contentType);
 
         SoapMessageDecoder soapMessageDecoder =
                 new SoapMessageDecoder(contentType, decoderCallback,
@@ -298,7 +302,7 @@ public abstract class AbstractMediatorMessageProcessor
 
         @Override
         public void onCompleted() {
-            LOG.trace("onCompleted()");
+            log.trace("onCompleted()");
             try {
                 if (encoder != null) {
                     encoder.close();
@@ -310,7 +314,7 @@ public abstract class AbstractMediatorMessageProcessor
 
         @Override
         public void onError(Exception e) throws Exception {
-            LOG.error("onError()", e);
+            log.error("onError()", e);
             if (encoder != null) {
                 encoder.close();
             }
@@ -321,7 +325,7 @@ public abstract class AbstractMediatorMessageProcessor
         @Override
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
-            LOG.trace("attachment({})", contentType);
+            log.trace("attachment({})", contentType);
 
             if (encoder != null && encoder instanceof MultipartMessageEncoder) {
                 ((MultipartMessageEncoder) encoder).attachment(contentType,
@@ -338,6 +342,10 @@ public abstract class AbstractMediatorMessageProcessor
         }
     }
 
+    /**
+     * @param str the string
+     * @return the given string with the leading character removed if it is '/'
+     */
     public static String stripSlash(String str) {
         return str != null && str.startsWith("/")
                 ? str.substring(1) : str; // Strip '/'

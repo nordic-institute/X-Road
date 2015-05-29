@@ -5,7 +5,7 @@
     <mapping>
         <oldId>0123456789</oldId>
         <newId id:objectType="SUBSYSTEM">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
             <id:memberCode>ppa</id:memberCode>
         </newId>
@@ -13,7 +13,7 @@
     <mapping>
         <oldId>xrddl-andmekogu</oldId>
         <newId id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
             <id:memberCode>liiklusregister</id:memberCode>
         </newId>
@@ -21,7 +21,7 @@
     <mapping>
         <oldId>xrdrpc-andmekogu</oldId>
         <newId id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
             <id:memberCode>fooriregister</id:memberCode>
         </newId>
@@ -29,7 +29,7 @@
     <mapping>
         <oldId>consumer</oldId>
         <newId id:objectType="SUBSYSTEM">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </newId>
@@ -37,7 +37,7 @@
     <mapping>
         <oldId>producer_sslauth</oldId>
         <newId id:objectType="SUBSYSTEM">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer_sslauth</id:memberCode>
         </newId>

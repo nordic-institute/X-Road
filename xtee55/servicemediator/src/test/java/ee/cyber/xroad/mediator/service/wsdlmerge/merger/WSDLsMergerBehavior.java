@@ -12,12 +12,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import ee.cyber.sdsb.common.ExpectedCodedException;
-import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_ADAPTER_WSDL_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ADAPTER_WSDL_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests WSDL-s merger.
+ */
 public class WSDLsMergerBehavior {
     private static final String XRDDL_WSDL_FILE =
             "src/test/resources/xrddl.wsdl";
@@ -25,6 +28,11 @@ public class WSDLsMergerBehavior {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    /**
+     * Tests situation that single WSDL must remain unmodified.
+     *
+     * @throws Exception thrown when returning fails.
+     */
     @Test
     public void shouldReturnSingleWsdlExactlyAsIs() throws Exception {
         // Given
@@ -51,6 +59,12 @@ public class WSDLsMergerBehavior {
         assertEquals(expectedWsdlContent, actualWsdlContent);
     }
 
+    /**
+     * Tests situation when adapter WSDL is not reachable.
+     *
+     * @throws Exception indicates success when CodedException with  error code
+     * 'X_ADAPTER_WSDL_NOT_FOUND' is thrown.
+     */
     @Test
     public void shouldThrowErrorIfNoMergeableWsdlsFound() throws Exception {
         // Given
@@ -58,7 +72,7 @@ public class WSDLsMergerBehavior {
 
         // When/then
         new WSDLsMerger(
-                new ArrayList<String>(),
+                new ArrayList<>(),
                 new WSDLProvider(),
                 ClientId.create("EE", "foo", "bar"));
     }

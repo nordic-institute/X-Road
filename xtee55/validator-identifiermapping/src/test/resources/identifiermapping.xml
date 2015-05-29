@@ -7,7 +7,7 @@
   <mapping>
     <oldId>xts1client</oldId>
     <newId id:objectType="MEMBER">
-      <id:sdsbInstance>EE</id:sdsbInstance>
+      <id:xRoadInstance>EE</id:xRoadInstance>
       <id:memberClass>GOV</id:memberClass>
       <id:memberCode>XTS1CLIENT</id:memberCode>
     </newId>
@@ -15,7 +15,7 @@
   <mapping>
     <oldId>xts1client2</oldId>
     <newId id:objectType="MEMBER">
-      <id:sdsbInstance>EE</id:sdsbInstance>
+      <id:xRoadInstance>EE</id:xRoadInstance>
       <id:memberClass>GOV</id:memberClass>
       <id:memberCode>XTS1CLIENT2</id:memberCode>
     </newId>
@@ -23,7 +23,7 @@
   <mapping>
     <oldId>xts2client</oldId>
     <newId id:objectType="MEMBER">
-      <id:sdsbInstance>EE</id:sdsbInstance>
+      <id:xRoadInstance>EE</id:xRoadInstance>
       <id:memberClass>GOV</id:memberClass>
       <id:memberCode>XTS2CLIENT</id:memberCode>
     </newId>

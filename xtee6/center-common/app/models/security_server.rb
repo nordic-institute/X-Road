@@ -4,11 +4,11 @@ class SecurityServer < ActiveRecord::Base
 
   class DuplicateSecurityServerValidator < ActiveModel::Validator
     def validate(new_record)
-      sdsb_member = SdsbMember.find(new_record.sdsb_member_id)
+      xroad_member = XroadMember.find(new_record.xroad_member_id)
 
       server_code = new_record.server_code
-      member_code = sdsb_member.member_code
-      member_class_code = sdsb_member.member_class.code
+      member_code = xroad_member.member_code
+      member_class_code = xroad_member.member_class.code
 
       potentially_existing_server =
         SecurityServer.find_server(server_code, member_code, member_class_code)
@@ -54,10 +54,10 @@ class SecurityServer < ActiveRecord::Base
   end
 
   validates_with Validators::MaxlengthValidator
-  validates_presence_of :sdsb_member_id
+  validates_presence_of :xroad_member_id
   validates_with DuplicateSecurityServerValidator, :on => :create
 
-  belongs_to :owner, :class_name => "SdsbMember", :foreign_key => "sdsb_member_id"
+  belongs_to :owner, :class_name => "XroadMember", :foreign_key => "xroad_member_id"
 
   has_and_belongs_to_many :security_categories,
       :join_table => "security_servers_security_categories"

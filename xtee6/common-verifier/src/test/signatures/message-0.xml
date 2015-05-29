@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
     <SOAP-ENV:Header>
-        <sdsb:client id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
-        </sdsb:client>
-        <sdsb:service id:objectType="SERVICE">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer</id:memberCode>
             <id:serviceCode>getState</id:serviceCode>
-        </sdsb:service>
-        <sdsb:userId>EE:PIN:abc4567</sdsb:userId>
-        <sdsb:id>0113822191372dc79b094c13c4b7e567</sdsb:id>
-        <sdsb:issue/>
+        </xroad:service>
+        <xroad:userId>EE:PIN:abc4567</xroad:userId>
+        <xroad:id>0113822191372dc79b094c13c4b7e567</xroad:id>
+        <xroad:issue/>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <sdsb:getState>aäõ</sdsb:getState>
+        <xroad:getState>aäõ</xroad:getState>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

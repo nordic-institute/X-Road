@@ -6,10 +6,11 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.cyber.xroad.mediator.MediatorServerConf;
 import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 import ee.cyber.xroad.mediator.common.MediatorRequest;
@@ -26,6 +27,11 @@ public class WSDLMergeRequestProcessor implements MediatorMessageProcessor {
 
     private ClientId clientId;
 
+    /**
+     * Creates processor for WSDL merge request.
+     *
+     * @param request request to be processed.
+     */
     public WSDLMergeRequestProcessor(HttpServletRequest request) {
         this.clientId = getClientId(request);
 
@@ -49,10 +55,14 @@ public class WSDLMergeRequestProcessor implements MediatorMessageProcessor {
     }
 
     private static ClientId getClientId(HttpServletRequest request) {
+        String subsystemParamValue = request.getParameter("subsystemCode");
+        String subsystemCode = StringUtils.isNotBlank(subsystemParamValue)
+                ? subsystemParamValue : null;
+
         return ClientId.create(
-                request.getParameter("sdsbInstance"),
+                request.getParameter("xRoadInstance"),
                 request.getParameter("memberClass"),
                 request.getParameter("memberCode"),
-                request.getParameter("subsystemCode"));
+                subsystemCode);
     }
 }

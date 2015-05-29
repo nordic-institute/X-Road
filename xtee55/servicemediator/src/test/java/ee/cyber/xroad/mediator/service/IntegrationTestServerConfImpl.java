@@ -9,29 +9,27 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.conf.InternalSSLKey;
-import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
-import ee.cyber.sdsb.common.identifier.SecurityServerId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
 import ee.cyber.xroad.mediator.MediatorServerConfProvider;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static ee.cyber.sdsb.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
+@Slf4j
 class IntegrationTestServerConfImpl implements
         MediatorServerConfProvider {
 
     private static final int SERVICE_TIMEOUT = 10;
-    private static final Logger LOG =
-            LoggerFactory.getLogger(IntegrationTestServerConfImpl.class);
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -67,8 +65,8 @@ class IntegrationTestServerConfImpl implements
     @Override
     public List<X509Certificate> getIsCerts(ClientId client)
             throws Exception {
-        LOG.trace("Getting IS certs for client '{}'", client);
-        // TODO: Verify if works!
+        log.trace("Getting IS certs for client '{}'", client);
+        // TODO Verify if works!
 
         if (getClientProducerSslnoauth().equals(client)
                 || getClientProducerSslauth().equals(client)) {
@@ -80,7 +78,7 @@ class IntegrationTestServerConfImpl implements
 
     @Override
     public InternalSSLKey getSSLKey() throws Exception {
-        // TODO: Verify if works!
+        // TODO Verify if works!
         File keyFile = new File("src/test/resources/sslkey.p12");
 
         KeyStore ks = loadPkcs12KeyStore(keyFile, "internal".toCharArray());
@@ -134,7 +132,7 @@ class IntegrationTestServerConfImpl implements
     }
 
     @Override
-    public boolean isSdsbService(ServiceId serviceId) {
+    public boolean isXroadService(ServiceId serviceId) {
 
         if (getServiceProducerNosslGetRandom().equals(serviceId)
                 || getServiceLiiklusregisterGetRandom().equals(
@@ -265,7 +263,7 @@ class IntegrationTestServerConfImpl implements
 
     private ServiceId getServiceKiiruskaameraregisterGetRandom() {
         return ServiceId.create(
-                getClientKiiruskaameraregister(), "sdsbGetRandom");
+                getClientKiiruskaameraregister(), "xroadGetRandom");
     }
 
     private ServiceId getServiceProducerTestQuery() {

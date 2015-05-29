@@ -10,14 +10,14 @@ import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 
-import ee.cyber.sdsb.common.identifier.ClientId;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import static ee.cyber.sdsb.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 class HttpClientManagerImpl implements HttpClientManager {
 
-    // TODO: Fine-tune connection parameters
+    // TODO Fine-tune connection parameters
     private static final int CLIENT_TIMEOUT = 300000; // in milliseconds.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;

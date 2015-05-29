@@ -46,7 +46,7 @@ def create_system_parameters
 
   SystemParameter.create(
       :key => SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CODE ,
-      :value => "sdsbkeskus")
+      :value => "xroadkeskus")
 
   SystemParameter.create(
       :key => SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
@@ -57,21 +57,21 @@ def create_members_and_security_servers
   riigiasutus = create_member_classes[0]
   first_member_code = "12345678"
 
-  first_member = SdsbMember.create!(
+  first_member = XroadMember.create!(
       :member_code => first_member_code,
       :name => "Turvaserveritega liige",
       :member_class => riigiasutus,
       :administrative_contact => "vladislav@turvaserver.com")
 
   first_subsystem = Subsystem.create!(
-      :sdsb_member_id => first_member.id,
+      :xroad_member_id => first_member.id,
       :subsystem_code => "firstSubsystemCode")
 
   second_subsystem = Subsystem.create!(
-      :sdsb_member_id => first_member.id,
+      :xroad_member_id => first_member.id,
       :subsystem_code => "secondSubsystemCode")
 
-  second_member = SdsbMember.create!(
+  second_member = XroadMember.create!(
       :member_code => "87654321",
       :name => "Yhe turvaserveriga liige",
       :member_class => riigiasutus,
@@ -145,7 +145,7 @@ def create_approved_cas
   approved_ca = ApprovedCa.new
   approved_ca.authentication_only = false
   approved_ca.identifier_decoder_member_class = "GOV"
-  approved_ca.identifier_decoder_method_name = "ee.cyber.sdsb.Extractor.extract"
+  approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.extract"
 
   top_ca_ocsp = OcspInfo.new()
   top_ca_ocsp.url = "http://iks2-ubuntu.cyber.ee:8080/ejbca/publicweb/status/ocsp"
@@ -227,17 +227,17 @@ def create_security_servers(first_member, second_member)
   owned1 = SecurityServer.create!(
       :server_code => "owned1",
       :address => "iks2-test2.cyber.ee",
-      :sdsb_member_id => first_member.id)
+      :xroad_member_id => first_member.id)
 
   used1 = SecurityServer.create!(
       :server_code => "used1",
       :address => "iks2-test1.cyber.ee",
-      :sdsb_member_id => second_member.id)
+      :xroad_member_id => second_member.id)
 
   used2 = SecurityServer.create!(
       :server_code => "used2",
       :address => "www.used2.com",
-      :sdsb_member_id => second_member.id)
+      :xroad_member_id => second_member.id)
 
   AuthCert.create!(
       :certificate => get_first_auth_cert,

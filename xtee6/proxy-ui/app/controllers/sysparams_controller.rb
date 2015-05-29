@@ -1,6 +1,6 @@
-java_import Java::ee.cyber.sdsb.asyncdb.AsyncSenderConf
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.ConfigurationAnchor
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.TspType
+java_import Java::ee.ria.xroad.asyncdb.AsyncSenderConf
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
 
 class SysparamsController < ApplicationController
 
@@ -38,11 +38,11 @@ class SysparamsController < ApplicationController
     authorize!(:upload_anchor)
 
     validate_params({
-      :anchor_upload_file => [:required]
+      :file_upload => [:required]
     })
 
     anchor_details =
-      save_temp_anchor_file(params[:anchor_upload_file].read)
+      save_temp_anchor_file(params[:file_upload].read)
 
     upload_success(anchor_details)
   end
@@ -171,7 +171,7 @@ class SysparamsController < ApplicationController
   def internal_ssl_generate
     authorize!(:generate_internal_ssl)
 
-    script_path = "/usr/share/sdsb/scripts/generate_certificate.sh"
+    script_path = "/usr/share/xroad/scripts/generate_certificate.sh"
 
     output = %x[#{script_path} -n internal -f -S -p 2>&1]
 
@@ -224,9 +224,9 @@ class SysparamsController < ApplicationController
   def read_approved_tsps
     approved_tsps = []
 
-    GlobalConf::getApprovedTsps(sdsb_instance).each do |tsp|
+    GlobalConf::getApprovedTsps(xroad_instance).each do |tsp|
       approved_tsps << {
-        :name => GlobalConf::getApprovedTspName(sdsb_instance, tsp),
+        :name => GlobalConf::getApprovedTspName(xroad_instance, tsp),
         :url => tsp
       }
     end

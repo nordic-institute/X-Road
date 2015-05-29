@@ -1,27 +1,11 @@
-div.dialog-bgr {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100%;
-    background: rgba($base-color-dark, 0.3);
-    display: none;
-}
-
 .ui-widget-overlay {
     background: rgba($base-color-dark, 0.1);
     z-index: 1000;
 }
 
-.darker-overlay-bgr {
-    background: rgba($base-color-dark, 0.5);
-}
-
 .ui-dialog {
     border: none;
     position: absolute;
-    // top: calc(50% - 400px / 2);
-    // left: calc(50% - 400px / 2);
     background: #fff;
     box-shadow: 0px 0px 25px rgba(85, 85, 85, 0.5);
     font-size: 1em;
@@ -145,55 +129,10 @@ div.dialog-bgr {
         padding-top: 1em;
         width: auto !important;
     }
-
-    header.dialog-header {
-        height: 50px;
-        border-bottom: 1px solid #ddd;
-    }
-
-    section.dialog-content {
-        width: 100%;
-        // height: calc(100% - 100px);
-    }
-
-    footer.dialog-footer {
-        height: 50px;
-        border-top: 1px solid #ddd;
-    }
-
-    div.info-holder {
-        margin: 10px 0;
-
-        h1.item-title {
-            @include reset;
-            font-size: 10pt;
-            font-family: "Open Sans";
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-
-        h2.item-content {
-            input {
-                @include reset;
-                border: none;
-                background: transparent;
-                font-size: 16pt;
-                height: 30px;
-                font-family: "Open Sans";
-                font-weight: 500;
-                box-shadow: none;
-                width: 280px;
-
-                &:focus {
-                    box-shadow: none;
-                    border: none;
-                }
-            }
-
-            button {
-                height: 30px;
-                font-size: 11pt;
-            }
-        }
+    h2 {
+        font-size: 16px;
+        margin-bottom: 10px;
+        font-weight: normal;
+        text-transform: uppercase;
     }
 }

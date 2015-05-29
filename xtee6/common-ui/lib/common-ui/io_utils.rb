@@ -1,7 +1,7 @@
 require 'thread'
 require 'fileutils'
 
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 java_import Java::java.lang.System
 java_import Java::java.io.RandomAccessFile
@@ -29,7 +29,7 @@ module CommonUi
 
     # Writes in threadsafe manner reasonably small binary files.
     def write_binary(file_path, content)
-      Rails.logger.debug("write_binary(#{file_path}, #{content})")
+      Rails.logger.debug("write_binary(#{file_path}, #{content.length} bytes)")
 
       @@mutex.synchronize do
         File.open(file_path, 'wb') {|f| f.write(content) }
@@ -87,7 +87,7 @@ module CommonUi
     end
 
     def get_log_dir
-      return System.getProperty("ee.cyber.sdsb.appLog.path", "/var/log/sdsb")
+      return System.getProperty("ee.ria.xroad.appLog.path", "/var/log/xroad")
     end
 
     # Returns the full path to a file in temp dir.

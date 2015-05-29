@@ -2,7 +2,7 @@ require 'open3'
 
 module OptionalConfParts
   def self.get_optional_parts_dir
-    return "#{Java::ee.cyber.sdsb.common.SystemProperties::getConfPath()}/"\
+    return "#{Java::ee.ria.xroad.common.SystemProperties::getConfPath()}/"\
         "configuration-parts"
   end
 

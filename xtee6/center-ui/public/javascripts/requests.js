@@ -1,4 +1,4 @@
-var SDSB_REQUESTS = function() {
+var XROAD_REQUESTS = function() {
     var oManagementRequests;
     var translationsToDbValues = {};
 
@@ -111,7 +111,7 @@ var SDSB_REQUESTS = function() {
         };
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("requests");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("requests");
             enableActions();
         }
 
@@ -165,11 +165,11 @@ var SDSB_REQUESTS = function() {
 
         $("#management_requests_all tbody tr[class!=dataTables_empty]")
                 .live("dblclick", function() {
-            SDSB_REQUEST_EDIT.open(oManagementRequests.getFocusData());
+            XROAD_REQUEST_EDIT.open(oManagementRequests.getFocusData());
         });
 
         $("#request_details").click(function() {
-            SDSB_REQUEST_EDIT.open(oManagementRequests.getFocusData());
+            XROAD_REQUEST_EDIT.open(oManagementRequests.getFocusData());
         });
     });
 

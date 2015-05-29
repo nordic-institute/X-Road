@@ -6,8 +6,8 @@ description	"xtee55 clientmediator"
 start on runlevel [2345]
 stop on runlevel [!2345]
 
-#setuid sdsb
-#setgid sdsb
+#setuid xroad
+#setgid xroad
 
 respawn
 respawn limit 10 5
@@ -17,16 +17,16 @@ expect daemon
 
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
 end script
 
 
 script
    exec >>/tmp/ddd55_1.log 2>&1
-   . /etc/sdsb/services/xtee55-clientmediator.conf
+   . /etc/xroad/services/xtee55-clientmediator.conf
    set -x
 
-   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name x55-cmediator --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${X55_CM_PARAMS} ${SDSB_PARAMS} -Djava.net.preferIPv4Stack=true -jar /usr/share/sdsb/jlib/clientmediator.jar 
+   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name x55-cmediator --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${X55_CM_PARAMS} ${xroad_PARAMS} -Djava.net.preferIPv4Stack=true -jar /usr/share/xroad/jlib/clientmediator.jar 
 end script
 

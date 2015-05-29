@@ -17,11 +17,13 @@ import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.BindingOperat
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBinding;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBindingOperation;
 
+/**
+ * Creates mock WSDL for testing.
+ */
 @Slf4j
 public class MockWSDLCreator {
     private List<String> serviceNames;
-    private boolean isDoclit;
-    private String version; 
+    private String version;
     private String suffix;
     private String xrdNs;
     private String targetNs = TestNS.XRDDL_TNS;
@@ -29,31 +31,53 @@ public class MockWSDLCreator {
 
     private String firstServiceName;
 
-    public MockWSDLCreator(String serviceName, boolean isDoclit,
+    /**
+     * Creates basic mock WSDL.
+     *
+     * @param serviceName service name
+     * @param version service version
+     * @param suffix suffix for service name
+     * @param xrdNs X-Road namespace used.
+     */
+    public MockWSDLCreator(String serviceName,
             String version, String suffix, String xrdNs) {
-        this(isDoclit, version, suffix, xrdNs);
+        this(version, suffix, xrdNs);
 
         this.serviceNames = Collections.singletonList(serviceName);
     }
 
-    public MockWSDLCreator(List<String> serviceNames, boolean isDoclit,
+    /**
+     * Creates mock WSDL with multiple service names, target namespace
+     * and database name.
+     *
+     * @param serviceNames service name.
+     * @param version service version.
+     * @param suffix suffix for service name.
+     * @param xrdNs X-Road namespace used.
+     * @param targetNs target namespace.
+     * @param dbName database name.
+     */
+    public MockWSDLCreator(List<String> serviceNames,
             String version, String suffix, String xrdNs, String targetNs,
             String dbName) {
-        this(isDoclit, version, suffix, xrdNs);
+        this(version, suffix, xrdNs);
 
         this.serviceNames = serviceNames;
         this.targetNs = targetNs;
         this.dbName = dbName;
     }
 
-    private MockWSDLCreator(boolean isDoclit,
-            String version, String suffix, String xrdNs) {
-        this.isDoclit = isDoclit;
+    private MockWSDLCreator(String version, String suffix, String xrdNs) {
         this.version = version;
         this.suffix = suffix;
         this.xrdNs = xrdNs;
     }
 
+    /**
+     * Creates mock WSDL.
+     *
+     * @return mock WSDL created.
+     */
     public WSDL getWSDL() {
         firstServiceName = serviceNames.get(0);
 
@@ -75,7 +99,6 @@ public class MockWSDLCreator {
                 portTypes,
                 bindings,
                 services,
-                isDoclit,
                 xrdNs,
                 targetNs,
                 dbName);
@@ -107,7 +130,7 @@ public class MockWSDLCreator {
 
     private List<Message> getMessages() {
         List<Message> messages = new ArrayList<>();
-        messages.add(getXroadStandardHeader());
+        messages.add(getV5XRoadStandardHeader());
 
         for (String each : serviceNames) {
             String requestName = getRequestName(each, suffix);
@@ -154,8 +177,8 @@ public class MockWSDLCreator {
 
         PortType portType = new PortType(
                 portName, portOps);
-        List<PortType> portTypes = Arrays.asList(portType);
-        return portTypes;
+
+        return Arrays.asList(portType);
     }
 
     private List<Binding> getBindings(String portName, String bindingName) {
@@ -177,8 +200,8 @@ public class MockWSDLCreator {
                 bindingName,
                 new QName(targetNs, portName),
                 bindingOps);
-        List<Binding> bindings = Arrays.asList(binding);
-        return bindings;
+
+        return Arrays.asList(binding);
     }
 
     private List<Service> getServices(String bindingName) {
@@ -192,24 +215,26 @@ public class MockWSDLCreator {
         List<ServicePort> servicePorts = Arrays.asList(servicePort);
 
         Service service = new Service("firstDatabaseService", servicePorts);
-        List<Service> services = Arrays.asList(service);
-        return services;
+
+        return Arrays.asList(service);
     }
 
-    private String getRequestName(String serviceName, String suffix) {
-        return String.format("%sRequest%s", serviceName, suffix);
+    private String getRequestName(String serviceName, String requestSuffix) {
+        return String.format("%sRequest%s", serviceName, requestSuffix);
     }
 
-    private String getResponseName(String serviceName, String suffix) {
-        return String.format("%sResponse%s", serviceName, suffix);
+    private String getResponseName(String serviceName, String responseSuffix) {
+        return String.format("%sResponse%s", serviceName, responseSuffix);
     }
 
-    private String getRequestElementName(String serviceName, String suffix) {
-        return String.format("<%sRequestElem%s/>", serviceName, suffix);
+    private String getRequestElementName(
+            String serviceName, String requestSuffix) {
+        return String.format("<%sRequestElem%s/>", serviceName, requestSuffix);
     }
 
-    private String getResponseElementName(String serviceName, String suffix) {
-        return String.format("<%sResponseElem%s/>", serviceName, suffix);
+    private String getResponseElementName(
+            String serviceName, String responseSuffix) {
+        return String.format("<%sResponseElem%s/>", serviceName, responseSuffix);
     }
 
     private String getPortName() {
@@ -237,7 +262,12 @@ public class MockWSDLCreator {
         }
     }
 
-    public static Message getXroadStandardHeader() {
+    /**
+     * Returns X-Road V5 standard header.
+     *
+     * @return X-Road V5 standard header.
+     */
+    public static Message getV5XRoadStandardHeader() {
         MessagePart consumer = new MessagePart(
                 "consumer",
                 new QName(TestNS.XROAD_NS, "consumer"),

@@ -28,16 +28,26 @@
     </context-param>
 
     <session-config>
-        <session-timeout>120</session-timeout>
+        <session-timeout>30</session-timeout>
     </session-config>
 
     <filter>
         <filter-name>AuthFilter</filter-name>
-        <filter-class>ee.cyber.sdsb.commonui.jaas.AuthFilter</filter-class>
+        <filter-class>ee.ria.xroad.commonui.jaas.AuthFilter</filter-class>
     </filter>
 
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>SessionTimeoutFilter</filter-name>
+        <filter-class>ee.ria.xroad.commonui.SessionTimeoutFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>SessionTimeoutFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
@@ -57,7 +67,7 @@
 
     <login-config>
         <auth-method>FORM</auth-method>
-        <realm-name>sdsb</realm-name>
+        <realm-name>xroad</realm-name>
         <form-login-config>
             <form-login-page>
                 /login

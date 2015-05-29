@@ -237,6 +237,7 @@ en:
       registration_request: "Registration request"
       server_dns_or_ip: "Security server DNS name or IP address"
       no_keys: "No objects found"
+      unregister_cert_confirm: "Are you sure you want to unregister certificate '{{hash}}'?"
       delete_cert_confirm: "Are you sure you want to delete certificate '{{hash}}'?"
       locked: "BLOCKED"
       logout: "Logout"

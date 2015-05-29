@@ -1,5 +1,8 @@
 etc/* etc/
 usr/* usr/
-../default-configuration/*.ini etc/sdsb/conf.d/
-../default-configuration/*.xml etc/sdsb/conf.d/
+../default-configuration/client-mediator.ini etc/xroad/conf.d/
+../default-configuration/mediator-common.ini etc/xroad/conf.d/
+../default-configuration/service-importer.ini etc/xroad/conf.d/
+../default-configuration/service-mediator.ini etc/xroad/conf.d/
+../default-configuration/*.xml etc/xroad/conf.d/
 

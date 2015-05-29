@@ -1,4 +1,4 @@
-var SDSB_GROUPS = function() {
+var XROAD_GROUPS = function() {
     var oGlobalGroups;
 
     function enableActions() {
@@ -38,7 +38,7 @@ var SDSB_GROUPS = function() {
 
     function initGroupsTable() {
         var opts = defaultTableOpts();
-        opts.fnDrawCallback = SDSB_GROUPS.onDraw;
+        opts.fnDrawCallback = XROAD_GROUPS.onDraw;
         opts.bServerSide = true;
         opts.sScrollY = 400;
         opts.bScrollCollapse = true;
@@ -54,7 +54,7 @@ var SDSB_GROUPS = function() {
         opts.sAjaxSource = "groups/global_groups_refresh";
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("groups");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("groups");
             enableActions();
         }
 
@@ -94,11 +94,11 @@ var SDSB_GROUPS = function() {
         });
 
         $("#global_groups tbody tr").live("dblclick", function() {
-            SDSB_GROUP_EDIT.open(oGlobalGroups.getFocusData());
+            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
         });
 
         $("#group_details").click(function() {
-            SDSB_GROUP_EDIT.open(oGlobalGroups.getFocusData());
+            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
         });
 
         $("#group_add_dialog").initDialog({

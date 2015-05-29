@@ -12,15 +12,15 @@ expect daemon
 
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
-    chown sdsb:sdsb /etc/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
+    chown xroad:xroad /etc/xroad
 end script
 
 script
   set -x
-  . /etc/sdsb/services/confclient.conf
-  exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name xroad-confclient --exec ${JAVA_HOME}/bin/java -- ${CONFCLIENT_PARAMS} ${SDSB_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain
+  . /etc/xroad/services/confclient.conf
+  exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name xroad-confclient --exec ${JAVA_HOME}/bin/java -- ${CONFCLIENT_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain
 end script
 
 

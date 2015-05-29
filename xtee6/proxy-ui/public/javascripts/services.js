@@ -24,14 +24,14 @@
               " #wsdl_disable, #wsdl_enable").disable();
         }
 
-        if ($(".service:not(.adapter_service, .meta_service).row_selected, " +
+        if ($(".service:not(.adapter_service, .meta_service).row_selected:visible, " +
               ".wsdl:not(.meta).row_selected").length == 1) {
             $("#service_params").enable();
         } else {
             $("#service_params").disable();
         }
 
-        if ($(".service.row_selected").length == 1) {
+        if ($(".service.row_selected:visible").length == 1) {
             $("#service_acl").enable();
         } else {
             $("#service_acl").disable();
@@ -354,11 +354,6 @@
                   }
 
                   return data + " (" + full.subjects_count + ")";
-              },
-              "fnCreatedCell": function(nTd, sData, oData) {
-                  if (oData.wsdl) {
-                      $(nTd).addClass("noclip");
-                  }
               } },
             { "mData": "title" },
             { "mData": "url",
@@ -388,6 +383,9 @@
 
         opts.fnRowCallback = function(nRow, oData) {
             if (oData.wsdl) {
+                $("td:nth-child(2)", nRow).attr("colspan", "3");
+                $("td:nth-child(3), td:nth-child(4)", nRow).hide();
+
                 $(nRow).addClass("wsdl");
 
                 if (oData.adapter) {
@@ -417,7 +415,7 @@
 
         oServices = $("#services").dataTable(opts);
 
-        $(".services_actions").prependTo("#services_wrapper .dataTables_header");
+        $(".services_actions").appendTo("#services_wrapper .dataTables_header");
 
         $("#services tbody td.open, #services tbody td.closed").live("click",
                 function() {
@@ -438,12 +436,13 @@
             }
 
             oServices.fnDraw();
+            enableActions();
 
             oServices.closest(".ui-dialog-content")
                 .trigger("dialogresizestop");
         });
 
-        $("#services tbody td:not(.open)").live("click", function() {
+        $("#services tbody td:not(.open, .closed)").live("click", function() {
             var row = $(this).parent();
 
             if (row.hasClass("wsdl") && row.hasClass("meta")) {

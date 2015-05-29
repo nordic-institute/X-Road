@@ -44,7 +44,7 @@ class CentralServicesController < ApplicationController
     central_services.each do |each|
       service_id = each.target_service
       provider_name = service_id ?
-          SdsbMember.get_name(service_id.member_class, service_id.member_code) :
+          XroadMember.get_name(service_id.member_class, service_id.member_code) :
           ""
       result << {
         :central_service_code => each.service_code,

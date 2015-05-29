@@ -1,6 +1,6 @@
 require 'securerandom'
 
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 class ImportController < ApplicationController
 
@@ -49,7 +49,7 @@ class ImportController < ApplicationController
   def import_v5_data
     authorize!(:execute_v5_import)
 
-    file_param = params[:v5_mapping_file]
+    file_param = params[:file_upload]
 
     if !file_param || !file_param.original_filename
       raise t("common.filename_empty")
@@ -76,22 +76,22 @@ class ImportController < ApplicationController
     case exit_status
     when 0
       notice(t("import.execute.success"))
-      upload_success(status, "SDSB_IMPORT.uploadCallback")
+      upload_success(status, "XROAD_IMPORT.uploadCallback")
     when 1
       notice(t("import.execute.warnings",
           :log_path => import_log_path))
-      upload_success(status, "SDSB_IMPORT.uploadCallback")
+      upload_success(status, "XROAD_IMPORT.uploadCallback")
     when 2
       error(t("import.execute.failure",
           :log_path => import_log_path))
-      upload_error(status, "SDSB_IMPORT.uploadCallback")
+      upload_error(status, "XROAD_IMPORT.uploadCallback")
     else
       error(t("import.execute.other_error"))
-      upload_error(status, "SDSB_IMPORT.uploadCallback")
+      upload_error(status, "XROAD_IMPORT.uploadCallback")
     end
   rescue => e
     error(e.message)
-    upload_error(nil, "SDSB_IMPORT.uploadCallback")
+    upload_error(nil, "XROAD_IMPORT.uploadCallback")
   end
 
   private
@@ -132,7 +132,7 @@ class ImportController < ApplicationController
     user = db_config["username"]
     pass = db_config["password"]
 
-    commandline = ["/usr/share/sdsb/bin/xtee55_clients_importer",
+    commandline = ["/usr/share/xroad/bin/xtee55_clients_importer",
         "-d", data_file, "-b", database, "-u", user, "-p", pass]
     logger.debug("Executing V5 clients import")
 

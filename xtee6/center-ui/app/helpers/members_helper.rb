@@ -20,11 +20,11 @@ module MembersHelper
     MemberClass.get_all_codes
   end
 
-  def sdsb_instances
+  def xroad_instances
     instances = []
 
-    ClientId.select("DISTINCT sdsb_instance").each do |client_id|
-      instances << client_id.sdsb_instance
+    ClientId.select("DISTINCT xroad_instance").each do |client_id|
+      instances << client_id.xroad_instance
     end
 
     instances

@@ -13,6 +13,9 @@ import org.stringtemplate.v4.ST;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.Marshallable;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.TemplateAware;
 
+/**
+ * Abstraction for WSDL binding.
+ */
 @Data
 public abstract class Binding implements Marshallable, TemplateAware {
 

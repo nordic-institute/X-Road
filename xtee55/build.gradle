@@ -3,21 +3,27 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
     apply plugin: 'idea'
-
+    apply plugin: 'checkstyle'
 
     group = 'ee.cyber.xroad'
     version = '0.1'
 
+    configurations {
+        provided
+    }
+
     repositories {
         mavenCentral()
-        mavenLocal() // used for local SDSB libraries
+        mavenLocal() // used for local X-Road 6.0 libraries
     }
 
     dependencies {
         testCompile 'junit:junit:4.11'
+
+        provided 'org.projectlombok:lombok:1.14.8'
     }
 
-   configurations.all {
+    configurations.all {
         // Let's replace the c3p0 ver. 0.9.1.1 required by Quartz
         // with ver. 0.9.2.1 used by Hibernate
         resolutionStrategy.eachDependency {
@@ -40,6 +46,29 @@ subprojects {
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
+    }
+
+    sourceSets.main.compileClasspath += configurations.provided
+    sourceSets.test.compileClasspath += configurations.provided
+
+    eclipse {
+        classpath {
+            plusConfigurations += [configurations.provided]
+        }
+    }
+
+    idea {
+        module {
+            scopes.PROVIDED.plus += [configurations.provided]
+        }
+    }
+
+    checkstyle {
+        toolVersion = "6.1.1"
+        configFile = new File(rootDir, "doc/checkstyle-ria.xml")
+        configProperties.config_loc = "$rootDir/doc"
+        ignoreFailures = true
+        showViolations = false
     }
 }
 

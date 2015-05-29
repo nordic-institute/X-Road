@@ -2,9 +2,10 @@ require "fileutils"
 require "common-ui/io_utils"
 require "common-ui/script_utils"
 require "common-ui/tar_file"
+require "common-ui/uploaded_file"
 
 java_import Java::java.io.RandomAccessFile
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 # TODO: whitelist known backup files and do not allow random filenames
 # from client!
@@ -68,7 +69,7 @@ module CommonUi
       tarfile =
         backup_file("conf_backup_#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar")
 
-      commandline = [ScriptUtils.get_script_file("backup_sdsb.sh"), tarfile]
+      commandline = [ScriptUtils.get_script_file("backup_xroad.sh"), tarfile]
 
       Rails.logger.info("Running configuration backup with command "\
                   "'#{commandline}'")
@@ -90,7 +91,7 @@ module CommonUi
       end
 
       commandline = [
-        ScriptUtils.get_script_file("restore_sdsb.sh"), backup_file(conf_file) ]
+        ScriptUtils.get_script_file("restore_xroad.sh"), backup_file(conf_file) ]
 
       lockfile = try_restore_lock
 

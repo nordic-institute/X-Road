@@ -27,4 +27,13 @@ CenterUi::Application.configure do
 
   # Only use best-standards-support built into browsers
   config.action_dispatch.best_standards_support = :builtin
+
+  # Use SQL instead of Active Record's schema dumper when creating the database.
+  # This is necessary if your schema can't be completely dumped by the schema dumper,
+  # like if you have constraints or database-specific column types.
+  # XXX Make sure the version of pg_dump found first in your path matches the
+  # version of Postgres used.
+  # XXX Make sure the local connections are authenticated using the md5 scheme;
+  # this is set in pg_hba.conf.
+  config.active_record.schema_format = :sql
 end

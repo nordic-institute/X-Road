@@ -12,23 +12,23 @@ import javax.xml.soap.SOAPMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.message.Soap;
-import ee.cyber.sdsb.common.message.SoapHeader;
-import ee.cyber.sdsb.common.message.SoapUtils;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_BODY;
-import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_MESSAGE;
-import static ee.cyber.sdsb.common.message.SoapUtils.getServiceName;
-import static ee.cyber.sdsb.common.message.SoapUtils.isRpcMessage;
-import static ee.cyber.xroad.mediator.message.XRoadNamespaces.getSoapHeaderClass;
+import static ee.cyber.xroad.mediator.message.V5XRoadNamespaces.getSoapHeaderClass;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
+import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
+import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
 
 /**
- * An implementation of Soap parser that supports SDSB SOAP message and legacy
+ * An implementation of Soap parser that supports X-Road 6.0 SOAP message and legacy
  * X-Road 5.0 SOAP message.
  */
 public class SoapParserImpl
-        extends ee.cyber.sdsb.common.message.SoapParserImpl {
+        extends ee.ria.xroad.common.message.SoapParserImpl {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(SoapParserImpl.class);
@@ -53,19 +53,19 @@ public class SoapParserImpl
 
         // Special cases -- meta services
         String serviceName = serviceElement.getLocalName();
-        if (!isSdsbMessage(soapHeaderClass)) {
-            if (serviceName.startsWith(XRoadMetaServiceImpl.LIST_METHODS)) {
+        if (!isXroadMessage(soapHeaderClass)) {
+            if (serviceName.startsWith(V5XRoadMetaServiceImpl.LIST_METHODS)) {
                 LOG.debug("Reading X-Road 5.0 ListMethods");
 
-                // TODO: In the future, ServiceMediator should respond to ListMethods
-                return new XRoadListMethods(rawXml, charset, soap, serviceName,
+                // TODO In the future, ServiceMediator should respond to ListMethods
+                return new V5XRoadListMethods(rawXml, charset, soap, serviceName,
                         isRpcMessage(soap));
-            } else if (serviceName.startsWith(XRoadMetaServiceImpl.TEST_SYSTEM)) {
+            } else if (serviceName.startsWith(V5XRoadMetaServiceImpl.TEST_SYSTEM)) {
                 LOG.debug("Reading X-Road 5.0 TestSystem");
 
-                return new XRoadTestSystem(rawXml, charset, soap,
+                return new V5XRoadTestSystem(rawXml, charset, soap,
                         isRpcMessage(soap));
-            } else if (XRoadMetaServiceImpl.isMetaService(serviceName)) {
+            } else if (V5XRoadMetaServiceImpl.isMetaService(serviceName)) {
                 LOG.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
 
                 return createXRoadMetaServiceMessage(rawXml, soap, charset,
@@ -81,9 +81,9 @@ public class SoapParserImpl
                     "Unable to determine SOAP version");
         }
 
-        if (isSdsbMessage(soapHeaderClass)) {
-            return createSdsbMessage(rawXml, soap, charset);
-        } else if (isXroadMessage(soapHeaderClass)) {
+        if (isXroadMessage(soapHeaderClass)) {
+            return createXroadMessage(rawXml, soap, charset);
+        } else if (isV5XRoadMessage(soapHeaderClass)) {
             return createXRoadMessage(rawXml, soap, charset, soapHeaderClass);
         }
 
@@ -92,17 +92,17 @@ public class SoapParserImpl
         throw new CodedException(X_INVALID_MESSAGE, "Unknown SOAP version");
     }
 
-    private Soap createSdsbMessage(byte[] rawXml, SOAPMessage soap,
+    private Soap createXroadMessage(byte[] rawXml, SOAPMessage soap,
             String charset) throws Exception {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
         SoapHeader h = null;
         if (soap.getSOAPHeader() != null) {
             validateSOAPHeader(soap.getSOAPHeader());
-            h = unmarshalHeader(SdsbSoapHeader.class, soap.getSOAPHeader());
+            h = unmarshalHeader(XroadSoapHeader.class, soap.getSOAPHeader());
         }
 
-        LOG.debug("Reading SDSB SOAP message");
+        LOG.debug("Reading X-Road 6.0 SOAP message");
 
         return createMessage(rawXml, h, soap, charset);
     }
@@ -116,21 +116,21 @@ public class SoapParserImpl
 
         validateSOAPHeader(soapHeader);
 
-        AbstractXRoadSoapHeader xroadHeader =
+        AbstractV5XRoadSoapHeader xroadHeader =
                 unmarshalHeader(xroadHeaderClass, soapHeader);
 
         LOG.debug("Reading X-Road 5.0 SOAP {} message",
-                xroadHeader instanceof XRoadRpcSoapHeader
+                xroadHeader instanceof V5XRoadRpcSoapHeader
                         ? "(RPC encoded)" : "(D/L wrapped)");
 
-        return new XRoadSoapMessageImpl(xml, charset, xroadHeader, soap,
+        return new V5XRoadSoapMessageImpl(xml, charset, xroadHeader, soap,
                 getServiceName(soap.getSOAPBody()));
     }
 
     private static Soap createXRoadMetaServiceMessage(byte[] xml,
             SOAPMessage soap, String charset, Class<?> xroadHeaderClass,
             String serviceName) throws Exception {
-        AbstractXRoadSoapHeader xroadHeader;
+        AbstractV5XRoadSoapHeader xroadHeader;
         SOAPHeader soapHeader = soap.getSOAPHeader();
         if (soapHeader != null) {
             xroadHeader = unmarshalHeader(xroadHeaderClass, soapHeader);
@@ -138,7 +138,7 @@ public class SoapParserImpl
             // Apparently, X-Road 5.0 meta-service responses might not contain
             // headers, so we just create dummy headers if they are missing.
             xroadHeader =
-                    (AbstractXRoadSoapHeader) xroadHeaderClass.newInstance();
+                    (AbstractV5XRoadSoapHeader) xroadHeaderClass.newInstance();
             xroadHeader.setConsumer("dummy");
             xroadHeader.setProducer("dummy");
             xroadHeader.setService("dummy." + serviceName);
@@ -146,7 +146,7 @@ public class SoapParserImpl
             xroadHeader.setUserId("dummy");
         }
 
-        return new XRoadMetaServiceImpl(xml, charset, xroadHeader, soap);
+        return new V5XRoadMetaServiceImpl(xml, charset, xroadHeader, soap);
     }
 
     private static SOAPElement getServiceElement(SOAPBody soapBody) {
@@ -170,7 +170,7 @@ public class SoapParserImpl
             }
         }
 
-        String nsURI = XRoadNamespaces.NS_DL_EE;
+        String nsURI = V5XRoadNamespaces.NS_DL_EE;
         String nsPrefix = serviceElement.getPrefix();
         if (nsPrefix != null) {
             String ns = soap.getSOAPPart().lookupNamespaceURI(nsPrefix);
@@ -182,19 +182,19 @@ public class SoapParserImpl
         soapHeaderClass = getSoapHeaderClass(
                 new HashSet<String>(Arrays.asList(nsURI)));
         if (soapHeaderClass == null) {
-            soapHeaderClass = XRoadDlSoapHeader.EE.class;
+            soapHeaderClass = V5XRoadDlSoapHeader.EE.class;
         }
 
         return soapHeaderClass;
     }
 
-    private static boolean isSdsbMessage(Class<?> soapHeaderClass) {
+    private static boolean isXroadMessage(Class<?> soapHeaderClass) {
         return soapHeaderClass != null
                 && soapHeaderClass.equals(SoapHeader.class);
     }
 
-    private static boolean isXroadMessage(Class<?> soapHeaderClass) {
+    private static boolean isV5XRoadMessage(Class<?> soapHeaderClass) {
         return soapHeaderClass != null
-                && XRoadSoapHeader.class.isAssignableFrom(soapHeaderClass);
+                && V5XRoadSoapHeader.class.isAssignableFrom(soapHeaderClass);
     }
 }

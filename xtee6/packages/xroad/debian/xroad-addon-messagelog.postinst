@@ -1,0 +1,43 @@
+#!/bin/bash
+
+    dbs="messagelog"
+
+    if ! netstat -na | grep -q :5432
+    then
+      echo  "Is postgres running on port 5432 ?"
+      echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+      exit 100
+    fi
+
+    if ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
+    then
+      echo "postgreSQL is not UTF8 compatible."
+      echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+      exit 101
+    fi
+
+    for db in $dbs
+    do
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db'\" "` == "1" ]]
+      then
+        echo  "$db user exists, skipping schema creation"
+      else
+        echo "CREATE ROLE $db LOGIN PASSWORD '$db';" | su - postgres -c psql postgres
+      fi
+
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db'\""`  == "1" ]]
+      then
+        echo "database $db exists"
+      else
+        su - postgres -c "createdb $db -O $db -E UTF-8"
+      fi
+
+      echo "running ${db} migrations"
+        cd /usr/share/xroad/db/
+        /usr/share/xroad/db/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://localhost/${db}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db}-changelog.xml --password=${db} --username=${db}  update
+    done
+
+service xroad-proxy restart || service xroad-proxy start
+
+exit 0
+

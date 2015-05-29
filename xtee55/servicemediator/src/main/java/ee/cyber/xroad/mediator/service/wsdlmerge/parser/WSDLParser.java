@@ -1,13 +1,5 @@
 package ee.cyber.xroad.mediator.service.wsdlmerge.parser;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
 import javax.wsdl.Definition;
 import javax.wsdl.Input;
 import javax.wsdl.Output;
@@ -20,25 +12,26 @@ import javax.wsdl.extensions.schema.SchemaImport;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
-import ee.cyber.sdsb.common.message.SoapHeader;
-import ee.cyber.xroad.mediator.message.XRoadNamespaces;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.cyber.xroad.mediator.message.V5XRoadNamespaces;
+import ee.cyber.xroad.mediator.service.wsdlmerge.merger.InvalidWSDLCombinationException;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.*;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.Binding;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.BindingOperation;
-import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBinding;
-import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBindingOperation;
-import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.RpcBinding;
-import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.RpcBindingOperation;
 
 /**
  * Parses WSDL to get data sufficient to merge WSDL-s later.
@@ -50,8 +43,6 @@ public class WSDLParser {
             "http://schemas.xmlsoap.org/wsdl/soap/";
     private static final String SOAP12_NS =
             "http://schemas.xmlsoap.org/wsdl/soap12/";
-    private static final String XSD_NS =
-            "http://www.w3.org/2001/XMLSchema";
 
     private static final List<String> SUPPORTED_XRD_NAMESPACES;
 
@@ -60,11 +51,10 @@ public class WSDLParser {
 
     static {
         SUPPORTED_XRD_NAMESPACES = Arrays.asList(
-                XRoadNamespaces.NS_RPC,
-                XRoadNamespaces.NS_DL_EE,
-                XRoadNamespaces.NS_DL_EU,
-                XRoadNamespaces.NS_DL_XX,
-                SoapHeader.NS_SDSB
+                V5XRoadNamespaces.NS_DL_EE,
+                V5XRoadNamespaces.NS_DL_EU,
+                V5XRoadNamespaces.NS_DL_XX,
+                SoapHeader.NS_XROAD
         );
 
         SOAP_NS_MATCH_CONDITION =
@@ -108,11 +98,18 @@ public class WSDLParser {
     private List<Binding> bindings = new ArrayList<>();
     private List<Service> services = new ArrayList<>();
 
-    private WSDLStyle wsdlStyle;
+    private DoclitWSDLStyle wsdlStyle;
     private String xrdNamespace;
     private String soapNamespace;
     private String targetNamespace;
 
+    /**
+     * Creates parser for WSDL input stream.
+     *
+     * @param wsdlInputStream input stream to parse WSDL from.
+     * @param orderNo order number of WSDL to be parsed.
+     * @throws Exception thrown when parsing WSDL fails.
+     */
     public WSDLParser(InputStream wsdlInputStream, int orderNo)
             throws Exception {
         this.orderNo = orderNo;
@@ -162,12 +159,9 @@ public class WSDLParser {
                 WSDLException.INVALID_WSDL, condition.getErrorMsg());
     }
 
-    private void setWSDLStyle(Definition definition) {
+    private void setWSDLStyle(Definition definition)
+            throws InvalidWSDLCombinationException {
         Object[] bindingsArray = definition.getBindings().values().toArray();
-
-        if (bindingsArray.length == 0) {
-            this.wsdlStyle = new DoclitWSDLStyle();
-        }
 
         javax.wsdl.Binding firstBinding =
                 (javax.wsdl.Binding) bindingsArray[0];
@@ -177,21 +171,23 @@ public class WSDLParser {
                 firstBinding.getExtensibilityElements(),
                 soapBinding).parse();
 
-        this.wsdlStyle = "document".equals(soapBindingStyle)
-                ? new DoclitWSDLStyle() : new RpcWSDLStyle();
+        if (!"document".equals(soapBindingStyle)) {
+            throw new InvalidWSDLCombinationException(
+                    "SOAP binding styles other than 'document' are forbidden. "
+                    + "Current: '" + soapBindingStyle + "'.");
+        }
 
-        LOG.trace("WSDL style set to '{}'",
-                this.wsdlStyle.getClass().getSimpleName());
+        this.wsdlStyle = new DoclitWSDLStyle(xrdNamespace);
     }
 
     private Definition getWSDLDefinition(InputStream wsdlInputStream)
             throws WSDLException {
-        InputSource inputSource = new InputSource(wsdlInputStream);
         WSDLReader wsdlReader = WSDLFactory.newInstance().newWSDLReader();
-        wsdlReader.setFeature("javax.wsdl.importDocuments", true);
+        wsdlReader.setFeature("javax.wsdl.importDocuments", false);
+        wsdlReader.setFeature("com.ibm.wsdl.parseXMLSchemas", true);
 
-        Definition definition = wsdlReader.readWSDL(null, inputSource);
-        return definition;
+        return wsdlReader.readWSDL(
+                new MergeableWSDLLocator(wsdlInputStream));
     }
 
     // -- Parsing WSDL parts - start ---
@@ -268,7 +264,7 @@ public class WSDLParser {
                 String partName = partEntry.getKey();
                 Part partElement = partEntry.getValue();
 
-                parts.add(getNewMessagePart(wsdlMessage, partName, partElement));
+                parts.add(getNewMessagePart(partName, partElement));
             }
 
             Message message = new Message(
@@ -409,7 +405,7 @@ public class WSDLParser {
 
     @SuppressWarnings("unchecked")
     private List<ServicePort> parseServicePorts(javax.wsdl.Service service) {
-        List<ServicePort> newPorts = new ArrayList<ServicePort>();
+        List<ServicePort> newPorts = new ArrayList<>();
 
         for (Object eachPort : service.getPorts().entrySet()) {
             Map.Entry<String, Port> portEntry =
@@ -444,7 +440,6 @@ public class WSDLParser {
     // -- Parsing WSDL parts - start ---
 
     private MessagePart getNewMessagePart(
-            javax.wsdl.Message wsdlMessage,
             String partName,
             Part partElement) {
 
@@ -478,6 +473,11 @@ public class WSDLParser {
         return String.format("%s_%d", value, orderNo);
     }
 
+    /**
+     * Returns parsing result.
+     *
+     * @return - WSDL object parsed.
+     */
     public WSDL getWSDL() {
         return new WSDL(
                 schemaElements,
@@ -485,159 +485,9 @@ public class WSDLParser {
                 portTypes,
                 bindings,
                 services,
-                (wsdlStyle instanceof DoclitWSDLStyle),
                 xrdNamespace,
                 targetNamespace,
                 "");
-    }
-
-    /**
-     * Encapsulates WSDL style specific parsing logic.
-     */
-    private abstract static class WSDLStyle {
-        boolean isSchemaElement(Node element) {
-            String elementLocalName = element.getLocalName();
-            if (StringUtils.isBlank(elementLocalName)) {
-                return false;
-            }
-
-            QName elementQName = new QName(
-                    element.getNamespaceURI(), elementLocalName);
-
-            for (QName each : getValidSchemaElementQNames()) {
-                if (each.equals(elementQName)) {
-                    return true;
-                }
-            }
-
-            NamedNodeMap attributes = element.getAttributes();
-
-            if (attributes == null) {
-                return false;
-            }
-
-            Node nameNode = attributes.getNamedItem("name");
-
-            if (nameNode == null) {
-                return false;
-            }
-
-            return (StringUtils.isNotBlank(nameNode.getTextContent()));
-        }
-
-        @SuppressWarnings("unchecked")
-        boolean isXrdStandardHeader(javax.wsdl.Message wsdlMessage) {
-            Map<String, QName> messageParts = new HashMap<>();
-            for (Object each : wsdlMessage.getParts().entrySet()) {
-                Map.Entry<String, Part> partEntry =
-                        (Map.Entry<String, Part>) each;
-                String partName = partEntry.getKey();
-                Part part = partEntry.getValue();
-                messageParts.put(partName, part.getElementName());
-            }
-
-            for (Map.Entry<String, QName> entry
-                    : getStandardHeaderParts().entrySet()) {
-                String standardHeaderPartName = entry.getKey();
-                QName standardHeaderPartElement = entry.getValue();
-
-                QName messagePartName = messageParts
-                        .get(standardHeaderPartName);
-
-                if (!messagePartExists(standardHeaderPartElement,
-                        messagePartName)) {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected abstract Binding getBinding(
-                String name, QName type, List<BindingOperation> operations);
-
-        protected abstract BindingOperation getBindingOperations(
-                String name, String version, List<Marshallable> xrdNodes);
-
-        protected abstract QName[] getValidSchemaElementQNames();
-
-        protected abstract Map<String, QName> getStandardHeaderParts();
-
-        private boolean messagePartExists(QName standardHeaderPartElement,
-                QName messagePartName) {
-            return messagePartName != null
-                    && standardHeaderPartElement.equals(messagePartName);
-        }
-    }
-
-    private class DoclitWSDLStyle extends WSDLStyle {
-
-        @Override
-        protected QName[] getValidSchemaElementQNames() {
-            return new QName[] { new QName(XSD_NS, "element") };
-        }
-
-        @Override
-        protected Map<String, QName> getStandardHeaderParts() {
-            Map<String, QName> result = new HashMap<>();
-
-            result.put("consumer", new QName(xrdNamespace, "consumer"));
-            result.put("producer", new QName(xrdNamespace, "producer"));
-            result.put("userId", new QName(xrdNamespace, "userId"));
-            result.put("service", new QName(xrdNamespace, "service"));
-            result.put("id", new QName(xrdNamespace, "id"));
-
-            return result;
-        }
-
-        @Override
-        protected Binding getBinding(String name, QName type,
-                List<BindingOperation> operations) {
-            return new DoclitBinding(name, type, operations);
-        }
-
-        @Override
-        protected BindingOperation getBindingOperations(String name,
-                String version, List<Marshallable> xrdNodes) {
-            return new DoclitBindingOperation(name, version, xrdNodes);
-        }
-    }
-
-    private class RpcWSDLStyle extends WSDLStyle {
-
-        @Override
-        protected QName[] getValidSchemaElementQNames() {
-            return new QName[] {
-                    new QName(XSD_NS, "simpleType"),
-                    new QName(XSD_NS, "complexType")
-            };
-        }
-
-        @Override
-        protected Map<String, QName> getStandardHeaderParts() {
-            Map<String, QName> result = new HashMap<>();
-
-            result.put("asutus", new QName(xrdNamespace, "asutus"));
-            result.put("andmekogu", new QName(xrdNamespace, "andmekogu"));
-            result.put("isikukood", new QName(xrdNamespace, "isikukood"));
-            result.put("id", new QName(xrdNamespace, "id"));
-            result.put("nimi", new QName(xrdNamespace, "nimi"));
-
-            return result;
-        }
-
-        @Override
-        protected Binding getBinding(String name, QName type,
-                List<BindingOperation> operations) {
-            return new RpcBinding(name, type, operations);
-        }
-
-        @Override
-        protected BindingOperation getBindingOperations(String name,
-                String version, List<Marshallable> xrdNodes) {
-            return new RpcBindingOperation(
-                    name, version, xrdNodes, targetNamespace);
-        }
     }
 
     private interface NamespaceMatchCondition {

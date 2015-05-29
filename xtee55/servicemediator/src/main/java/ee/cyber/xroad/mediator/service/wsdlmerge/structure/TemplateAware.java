@@ -9,5 +9,11 @@ import org.stringtemplate.v4.ST;
  * themselves.
  */
 public interface TemplateAware {
-    public ST getTemplate() throws IOException;
+    /**
+     * Returns template used to render this object.
+     *
+     * @return template used for rendering.
+     * @throws IOException thrown when template cannot be returned.
+     */
+    ST getTemplate() throws IOException;
 }

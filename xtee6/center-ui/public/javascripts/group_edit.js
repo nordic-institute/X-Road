@@ -1,4 +1,4 @@
-var SDSB_GROUP_EDIT = function() {
+var XROAD_GROUP_EDIT = function() {
     var oGroupMembers, oAddableMembers;
 
     var groupId, groupCode, isReadonly;
@@ -6,6 +6,10 @@ var SDSB_GROUP_EDIT = function() {
     /* -- PUBLIC - START -- */
 
     function openById(groupId) {
+        if (!can("view_group_details")) {
+            return;
+        }
+
         var params = {groupId: groupId};
         $.get("groups/find_by_id", params, function(response){
             var groupData = {
@@ -20,6 +24,10 @@ var SDSB_GROUP_EDIT = function() {
     }
 
     function open(groupData) {
+        if (!can("view_group_details")) {
+            return;
+        }
+
         groupId = groupData.id;
         groupCode = groupData.code;
         isReadonly = groupData.is_readonly;
@@ -51,9 +59,9 @@ var SDSB_GROUP_EDIT = function() {
 
     function refreshGlobalGroupsList() {
         try {
-            SDSB_GROUPS.updateTable();
+            XROAD_GROUPS.updateTable();
         } catch (e) {
-            /* Do nothing as SDSB_GROUPS.updateTable may not be
+            /* Do nothing as XROAD_GROUPS.updateTable may not be
             present everywhere. */
         }
     }
@@ -99,7 +107,7 @@ var SDSB_GROUP_EDIT = function() {
 
         $.each(oGroupMembers.getSelectedData(), function(index, each) {
             result.push({
-                sdsbInstance: each.sdsb,
+                xRoadInstance: each.xroad,
                 memberClass: each.member_class,
                 memberCode: each.member_code,
                 subsystemCode: each.subsystem
@@ -187,7 +195,7 @@ var SDSB_GROUP_EDIT = function() {
             { "mData": "member_code" },
             { "mData": "member_class", "sWidth": "5em" },
             { "mData": "subsystem" },
-            { "mData": "sdsb", "sWidth": "5em" },
+            { "mData": "xroad", "sWidth": "5em" },
             { "mData": "type" },
             { "mData": "added", "sWidth": "13em" }
         ];
@@ -225,7 +233,7 @@ var SDSB_GROUP_EDIT = function() {
             { "mData": "member_code" },
             { "mData": "member_class" },
             { "mData": "subsystem" },
-            { "mData": "sdsb" },
+            { "mData": "xroad" },
             { "mData": "type" }
         ];
         opts.oTableTools = {
@@ -290,7 +298,7 @@ var SDSB_GROUP_EDIT = function() {
                 memberCode: select("code").val(),
                 memberClass: select("class").val(),
                 subsystem: select("subsystem").val(),
-                sdsbInstance: select("sdsb").val(),
+                xRoadInstance: select("xroad").val(),
                 objectType: select("type").val()
             })
         };

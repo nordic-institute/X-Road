@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CENTERUI_HOME=$SDSB_HOME/center-ui
+CENTERUI_HOME=$XROAD_HOME/center-ui
 
 FILE_INPUT=$(cat)
 echo $FILE_INPUT > $CENTERUI_HOME/build/optional_content

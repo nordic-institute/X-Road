@@ -13,15 +13,15 @@ umask 007
 expect daemon
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
 end script
 
 script
 exec >>/tmp/ddd.log 2>&1
 set -x
 
-  . /etc/sdsb/services/signer.conf
-   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name xroad-signer --exec ${JAVA_HOME}/bin/java -- ${SIGNER_PARAMS} ${SDSB_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.cyber.sdsb.signer.SignerMain
+  . /etc/xroad/services/signer.conf
+   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name xroad-signer --exec ${JAVA_HOME}/bin/java -- ${SIGNER_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.signer.SignerMain
 end script
 

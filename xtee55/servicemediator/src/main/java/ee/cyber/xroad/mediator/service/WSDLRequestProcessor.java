@@ -19,34 +19,30 @@ import javax.xml.soap.SOAPMessage;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.protocol.HttpContext;
 import org.eclipse.jetty.http.MimeTypes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.message.SoapFault;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.MimeUtils;
-import ee.cyber.xroad.mediator.IdentifierMappingImpl;
+import ee.cyber.xroad.mediator.IdentifierMapping;
 import ee.cyber.xroad.mediator.MediatorServerConf;
 import ee.cyber.xroad.mediator.common.AbstractMediatorMessageProcessor;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
 import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 import ee.cyber.xroad.mediator.common.MediatorRequest;
 import ee.cyber.xroad.mediator.common.MediatorResponse;
-import ee.cyber.xroad.mediator.message.XRoadListMethods;
-import ee.cyber.xroad.mediator.message.XRoadNamespaces;
+import ee.cyber.xroad.mediator.message.V5XRoadListMethods;
+import ee.cyber.xroad.mediator.message.V5XRoadNamespaces;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.sdsb.common.message.SoapUtils.*;
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.message.SoapUtils.*;
 
+@Slf4j
 class WSDLRequestProcessor implements MediatorMessageProcessor {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(WSDLRequestProcessor.class);
 
     /**
      * List of known namespaces to use when sending listMethods request.
@@ -56,10 +52,10 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
      * a valid response or try all namespaces.
      */
     private static final String[] NAMESPACES = {
-            XRoadNamespaces.NS_DL_EE,
-            XRoadNamespaces.NS_DL_EU,
-            XRoadNamespaces.NS_DL_XX,
-            XRoadNamespaces.NS_RPC
+            V5XRoadNamespaces.NS_DL_EE,
+            V5XRoadNamespaces.NS_DL_EU,
+            V5XRoadNamespaces.NS_DL_XX,
+            V5XRoadNamespaces.NS_RPC
         };
 
     /**
@@ -104,7 +100,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
                     "Target address not specified");
         }
 
-        LOG.info("Processing WSDL request '{}'...", targetAddress);
+        log.info("Processing WSDL request '{}'...", targetAddress);
 
         for (String nsUri : getNamespaceUris(targetAddress)) {
             if (trySendReceive(nsUri, response)) {
@@ -113,7 +109,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
             }
         }
 
-        LOG.error("Could not get successful response from backend ({}) "
+        log.error("Could not get successful response from backend ({}) "
                 + "using any known namespace uri", targetAddress);
         throw new CodedException(X_INTERNAL_ERROR, "ListMethods failed");
     }
@@ -126,7 +122,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
                 sendRequest(sender, nsUri, targetAddress);
                 handleResponse(sender, targetAddress, response);
             } catch (Exception e) {
-                LOG.error("ListMethods failed (NS = {}, URL = {}): {}",
+                log.error("ListMethods failed (NS = {}, URL = {}): {}",
                         new Object[] {nsUri, targetAddress, e});
                 return false;
             }
@@ -136,16 +132,16 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
     }
 
     private void sendRequest(AsyncHttpSender sender, String nsUri,
-            URI targetAddress) throws Exception {
-        LOG.debug("Sending ListMethods request (NS = {}) to {}...", nsUri,
-                targetAddress);
+            URI address) throws Exception {
+        log.debug("Sending ListMethods request (NS = {}) to {}...", nsUri,
+                address);
 
         sender.addHeader("SOAPAction", "");
 
         sender.setAttribute(ServerTrustVerifier.class.getName(),
                 new TrustVerifier());
 
-        sender.doPost(targetAddress, XRoadListMethods.getXmlAsString(nsUri),
+        sender.doPost(address, V5XRoadListMethods.getXmlAsString(nsUri),
                 MimeTypes.TEXT_XML);
         sender.waitForResponse(AsyncHttpSender.DEFAULT_TIMEOUT_SEC);
     }
@@ -157,7 +153,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
         String charset = getCharset(sender.getResponseContentType());
         SOAPMessage soap = readSoap(sender.getResponseContent(), charset);
 
-        LOG.debug("ListMethods response: {}", getXml(soap, charset));
+        log.debug("ListMethods response: {}", getXml(soap, charset));
 
         List<String> methods = listMethods(soap.getSOAPBody());
 
@@ -226,7 +222,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
 
     private URI getTargetAddress(String producerName) throws Exception {
         ClientId clientId = clientId(producerName);
-        LOG.debug("getTargetAddress({})", clientId);
+        log.debug("getTargetAddress({})", clientId);
 
         String address = MediatorServerConf.getBackendURL(clientId);
         if (address != null) {
@@ -260,7 +256,7 @@ class WSDLRequestProcessor implements MediatorMessageProcessor {
     }
 
     private static ClientId clientId(String producer) throws Exception {
-        return new IdentifierMappingImpl().getClientId(producer);
+        return IdentifierMapping.getInstance().getClientId(producer);
     }
 
     private static void writeWSDL(Definition wsdl, OutputStream out)

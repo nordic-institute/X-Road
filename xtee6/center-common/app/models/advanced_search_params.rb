@@ -1,13 +1,13 @@
 class AdvancedSearchParams
-  attr_reader :name, :sdsb_instance, :member_class, :member_code,
+  attr_reader :name, :xroad_instance, :member_class, :member_code,
       :subsystem_code, :object_type, :service_code, :service_version,
       :central_service_code, :server_code
 
   def initialize(params = {})
     @name = nil_or_empty?(params[:name]) ?
         nil : params[:name].downcase
-    @sdsb_instance = nil_or_empty?(params[:sdsb_instance]) ?
-        nil : params[:sdsb_instance].downcase
+    @xroad_instance = nil_or_empty?(params[:xroad_instance]) ?
+        nil : params[:xroad_instance].downcase
     @member_class = nil_or_empty?(params[:member_class]) ?
         nil : params[:member_class].downcase
     @member_code = nil_or_empty?(params[:member_code]) ?
@@ -36,7 +36,7 @@ class AdvancedSearchParams
     string = "AdvancedSearchParams:\n"
 
     string << "\tName: '#@name'\n" if @name
-    string << "\tSDSB instance: '#@sdsb_instance'\n" if @sdsb_instance
+    string << "\tX-Road instance: '#@xroad_instance'\n" if @xroad_instance
     string << "\tMember class: '#@member_class'\n" if @member_class
     string << "\tMember code: '#@member_code'\n" if @member_code
     string << "\tSubsystem code: '#@subsystem_code'\n" if @subsystem_code

@@ -49,7 +49,7 @@ class GlobalGroupMember < ActiveRecord::Base
         "identifiers.member_code" => searchable.member_code,
         "identifiers.member_class" => searchable.member_class,
         "identifiers.subsystem_code" => searchable.subsystem_code,
-        "identifiers.sdsb_instance" => searchable.sdsb_instance,
+        "identifiers.xroad_instance" => searchable.xroad_instance,
         "identifiers.object_type" => searchable.object_type
     }
   end
@@ -59,7 +59,7 @@ class GlobalGroupMember < ActiveRecord::Base
         "identifiers.member_code",
         "identifiers.member_class",
         "identifiers.subsystem_code",
-        "identifiers.sdsb_instance",
+        "identifiers.xroad_instance",
         "identifiers.object_type",
         "CAST(identifiers.created_at AS TEXT)"
     ]

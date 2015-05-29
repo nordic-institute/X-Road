@@ -55,9 +55,9 @@ module ApplicationHelper
   def server_status_class
     return nil unless x55_installed?
 
-    if !sdsb_activated?
+    if !xroad_activated?
       return "inactive"
-    elsif sdsb_promoted?
+    elsif xroad_promoted?
       return "promoted"
     else
       return "dependent"

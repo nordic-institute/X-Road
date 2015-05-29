@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.util.CertUtils
+java_import Java::ee.ria.xroad.common.util.CertUtils
 
 class AuthCertValidator
 

@@ -1,10 +1,10 @@
 dependencies {
     compile project(':mediator-common')
     
-    // SDSB dependencies
-    compile 'ee.cyber.sdsb:common-util:1.0'
-    compile 'ee.cyber.sdsb:proxy:1.0'
-    compile 'ee.cyber.sdsb:common-test:1.0'
+    // X-Road 6.0 dependencies
+    compile 'ee.ria.xroad:common-util:1.0'
+    compile 'ee.ria.xroad:proxy:1.0'
+    compile 'ee.ria.xroad:common-test:1.0'
 
     // Additional 3rd party dependencies
     compile 'org.eclipse.jetty:jetty-server:8.1.7.v20120910'

@@ -2,15 +2,15 @@
 <wsdl:definitions 
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:xrd="http://x-road.ee/xsd/x-road.xsd"
-    xmlns:tns="http://sdsb-andmekogu.x-road.ee/producer"
+    xmlns:tns="http://xroad-andmekogu.x-road.ee/producer"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    name="sdsbGetRandom"
-    targetNamespace="http://sdsb-andmekogu.x-road.ee/producer">
+    name="xroadGetRandom"
+    targetNamespace="http://xroad-andmekogu.x-road.ee/producer">
   <wsdl:types>
-    <xsd:schema targetNamespace="http://sdsb-andmekogu.x-road.ee/producer">
+    <xsd:schema targetNamespace="http://xroad-andmekogu.x-road.ee/producer">
       <xsd:import namespace="http://x-road.ee/xsd/x-road.xsd" schemaLocation="http://x-road.ee/xsd/x-road.xsd"/>
-      <xsd:element name="sdsbGetRandom">
+      <xsd:element name="xroadGetRandom">
         <xsd:complexType>
           <xsd:sequence>
            <xsd:element name="request">
@@ -29,7 +29,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="sdsbGetRandomResponse">
+      <xsd:element name="xroadGetRandomResponse">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="response" type="xsd:string">
@@ -42,7 +42,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="sdsbSmallAttachment">
+      <xsd:element name="xroadSmallAttachment">
         <xsd:complexType>
           <xsd:sequence>
            <xsd:element name="request" type="xsd:string">
@@ -55,7 +55,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="sdsbSmallAttachmentResponse">
+      <xsd:element name="xroadSmallAttachmentResponse">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="response" type="xsd:string">
@@ -68,7 +68,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="sdsbBigAttachment">
+      <xsd:element name="xroadBigAttachment">
         <xsd:complexType>
           <xsd:sequence>
            <xsd:element name="request" type="xsd:string">
@@ -81,7 +81,7 @@
           </xsd:sequence>
         </xsd:complexType>
       </xsd:element>
-      <xsd:element name="sdsbBigAttachmentResponse">
+      <xsd:element name="xroadBigAttachmentResponse">
         <xsd:complexType>
           <xsd:sequence>
             <xsd:element name="response" type="xsd:string">
@@ -105,62 +105,62 @@
     <wsdl:part name="id" element="xrd:id"/>
   </wsdl:message>
 
-  <wsdl:message name="sdsbGetRandom">
-    <wsdl:part name="body"  element="tns:sdsbGetRandom" />
+  <wsdl:message name="xroadGetRandom">
+    <wsdl:part name="body"  element="tns:xroadGetRandom" />
   </wsdl:message>
-  <wsdl:message name="sdsbGetRandomResponse">
-    <wsdl:part name="body"  element="tns:sdsbGetRandomResponse" />
+  <wsdl:message name="xroadGetRandomResponse">
+    <wsdl:part name="body"  element="tns:xroadGetRandomResponse" />
   </wsdl:message>
-  <wsdl:message name="sdsbSmallAttachment">
-    <wsdl:part name="body"  element="tns:sdsbSmallAttachment" />
+  <wsdl:message name="xroadSmallAttachment">
+    <wsdl:part name="body"  element="tns:xroadSmallAttachment" />
   </wsdl:message>
-  <wsdl:message name="sdsbSmallAttachmentResponse">
-    <wsdl:part name="body"  element="tns:sdsbSmallAttachmentResponse" />
+  <wsdl:message name="xroadSmallAttachmentResponse">
+    <wsdl:part name="body"  element="tns:xroadSmallAttachmentResponse" />
   </wsdl:message>
-  <wsdl:message name="sdsbBigAttachment">
-    <wsdl:part name="body"  element="tns:sdsbBigAttachment" />
+  <wsdl:message name="xroadBigAttachment">
+    <wsdl:part name="body"  element="tns:xroadBigAttachment" />
   </wsdl:message>
-  <wsdl:message name="sdsbBigAttachmentResponse">
-    <wsdl:part name="body"  element="tns:sdsbBigAttachmentResponse" />
+  <wsdl:message name="xroadBigAttachmentResponse">
+    <wsdl:part name="body"  element="tns:xroadBigAttachmentResponse" />
   </wsdl:message>
 
-  <wsdl:portType name="sdsbGetRandom">
-    <wsdl:operation name="sdsbGetRandom">
+  <wsdl:portType name="xroadGetRandom">
+    <wsdl:operation name="xroadGetRandom">
       <wsdl:documentation>
         <xrd:title>Suvaline sisend document/literal stiilis</xrd:title>
         <xrd:notes>Suvalisele sisendile tuleb ka suvaline vastus.</xrd:notes>
       </wsdl:documentation>
-      <wsdl:input message="tns:sdsbGetRandom"/>
-      <wsdl:output message="tns:sdsbGetRandomResponse"/>
+      <wsdl:input message="tns:xroadGetRandom"/>
+      <wsdl:output message="tns:xroadGetRandomResponse"/>
     </wsdl:operation>
   </wsdl:portType>
 
-  <wsdl:portType name="sdsbSmallAttachment">
-    <wsdl:operation name="sdsbSmallAttachment">
+  <wsdl:portType name="xroadSmallAttachment">
+    <wsdl:operation name="xroadSmallAttachment">
       <wsdl:documentation>
         <xrd:title>Väikese manusega päring document/literal stiilis</xrd:title>
         <xrd:notes>Vastuseks tuleb manuse suurus.</xrd:notes>
       </wsdl:documentation>
-      <wsdl:input message="tns:sdsbSmallAttachment"/>
-      <wsdl:output message="tns:sdsbSmallAttachmentResponse"/>
+      <wsdl:input message="tns:xroadSmallAttachment"/>
+      <wsdl:output message="tns:xroadSmallAttachmentResponse"/>
     </wsdl:operation>
   </wsdl:portType>
 
-  <wsdl:portType name="sdsbBigAttachment">
-    <wsdl:operation name="sdsbBigAttachment">
+  <wsdl:portType name="xroadBigAttachment">
+    <wsdl:operation name="xroadBigAttachment">
       <wsdl:documentation>
         <xrd:title>Suure manusega päring document/literal stiilis</xrd:title>
         <xrd:notes>Vastuseks tuleb manuse suurus.</xrd:notes>
       </wsdl:documentation>
-      <wsdl:input message="tns:sdsbBigAttachment"/>
-      <wsdl:output message="tns:sdsbBigAttachmentResponse"/>
+      <wsdl:input message="tns:xroadBigAttachment"/>
+      <wsdl:output message="tns:xroadBigAttachmentResponse"/>
     </wsdl:operation>
   </wsdl:portType>
 
-  <wsdl:binding name="sdsbGetRandomSOAP" type="tns:sdsbGetRandom">
+  <wsdl:binding name="xroadGetRandomSOAP" type="tns:xroadGetRandom">
     <soap:binding style="document"
       transport="http://schemas.xmlsoap.org/soap/http" />
-    <wsdl:operation name="sdsbGetRandom">
+    <wsdl:operation name="xroadGetRandom">
       <soap:operation soapAction="" style="document"/>
       <xrd:version>v1</xrd:version>
       <wsdl:input>
@@ -182,10 +182,10 @@
     </wsdl:operation>
   </wsdl:binding>
 
-  <wsdl:binding name="sdsbSmallAttachmentSOAP" type="tns:sdsbSmallAttachment">
+  <wsdl:binding name="xroadSmallAttachmentSOAP" type="tns:xroadSmallAttachment">
     <soap:binding style="document"
       transport="http://schemas.xmlsoap.org/soap/http" />
-    <wsdl:operation name="sdsbSmallAttachment">
+    <wsdl:operation name="xroadSmallAttachment">
       <soap:operation soapAction="" style="document"/>
       <xrd:version>v1</xrd:version>
       <wsdl:input>
@@ -207,10 +207,10 @@
     </wsdl:operation>
   </wsdl:binding>
 
-  <wsdl:binding name="sdsbBigAttachmentSOAP" type="tns:sdsbBigAttachment">
+  <wsdl:binding name="xroadBigAttachmentSOAP" type="tns:xroadBigAttachment">
     <soap:binding style="document"
       transport="http://schemas.xmlsoap.org/soap/http" />
-    <wsdl:operation name="sdsbBigAttachment">
+    <wsdl:operation name="xroadBigAttachment">
       <soap:operation soapAction="" style="document"/>
       <xrd:version>v1</xrd:version>
       <wsdl:input>
@@ -232,18 +232,18 @@
     </wsdl:operation>
   </wsdl:binding>
 
-  <wsdl:service name="sdsb-andmekoguService">
-    <wsdl:port binding="tns:sdsbGetRandomSOAP" name="sdsbGetRandomSOAP">
-      <soap:address location="http://iks2-testhost:8080/testservice-0.1/sdsb"/>
-      <xrd:address producer="sdsb-andmekogu"/>
+  <wsdl:service name="xroad-andmekoguService">
+    <wsdl:port binding="tns:xroadGetRandomSOAP" name="xroadGetRandomSOAP">
+      <soap:address location="http://iks2-testhost:8080/testservice-0.1/xroad"/>
+      <xrd:address producer="xroad-andmekogu"/>
     </wsdl:port>
-    <wsdl:port binding="tns:sdsbSmallAttachmentSOAP" name="sdsbSmallAttachmentSOAP">
-      <soap:address location="http://iks2-testhost:8080/testservice-0.1/sdsb"/>
-      <xrd:address producer="sdsb-andmekogu"/>
+    <wsdl:port binding="tns:xroadSmallAttachmentSOAP" name="xroadSmallAttachmentSOAP">
+      <soap:address location="http://iks2-testhost:8080/testservice-0.1/xroad"/>
+      <xrd:address producer="xroad-andmekogu"/>
     </wsdl:port>
-    <wsdl:port binding="tns:sdsbBigAttachmentSOAP" name="sdsbBigAttachmentSOAP">
-      <soap:address location="http://iks2-testhost:8080/testservice-0.1/sdsb"/>
-      <xrd:address producer="sdsb-andmekogu"/>
+    <wsdl:port binding="tns:xroadBigAttachmentSOAP" name="xroadBigAttachmentSOAP">
+      <soap:address location="http://iks2-testhost:8080/testservice-0.1/xroad"/>
+      <xrd:address producer="xroad-andmekogu"/>
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>

@@ -7,18 +7,18 @@ stop on runlevel [!2345]
 respawn
 respawn limit 10 5
 umask 007
-setuid sdsb
-setgid sdsb
+setuid xroad
+setgid xroad
 console log
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
 end script
 
 script
   set -x
-  . /etc/sdsb/services/async-sender.conf
-  exec ${JAVA_HOME}/bin/java ${ASYNC_PARAMS} ${SDSB_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.cyber.sdsb.asyncsender.Main
+  . /etc/xroad/services/async-sender.conf
+  exec ${JAVA_HOME}/bin/java ${ASYNC_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.asyncsender.Main
 end script
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns3:deviceConf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/sdsb.xsd">
+<ns3:deviceConf xmlns:ns2="http://x-road.eu/xsd/identifiers" xmlns:ns3="http://x-road.eu/xsd/xroad.xsd">
     <device>
         <deviceType>softToken</deviceType>
         <friendlyName>Software Token</friendlyName>
@@ -10,7 +10,7 @@
             <keyId>70726f6475636572</keyId>
             <cert active="true" id="e82e0b2b184d4387c2afd83708d4cfeaeb872cf7">
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>producer</ns2:memberCode>
                 </memberId>
@@ -22,7 +22,7 @@
             <keyId>636f6e73756d6572</keyId>
             <cert active="true" id="0154d0eada503b2df90202c8e8382de9f5988c01">
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>consumer</ns2:memberCode>
                 </memberId>
@@ -34,7 +34,7 @@
             <keyId>02d66ds589f5b8626875ef99a11a84f7b2aa202f</keyId>
             <cert active="true" id="0154d0eada503b2df90202c8e8382de9f5988c01">
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>producer</ns2:memberCode>
                 </memberId>
@@ -54,7 +54,7 @@
             <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2FBFyggzZk+Oo+d/p3FXMzwMLCyksgcBHEXDrKRFHKZbxd9PKqQDz4SgZnuvy3d5pN5MOOiPPv4Sp0OiZUivBtoIEnkQRox9ZW3fSAWPTpxQTaoWukAhuAK7rt8eyErp5eMlysmpNNEVCt1AAb5xjDrpSyf25MbCgH7ugePX5T9xQg/ulj7N3den+3w7RLlAgitV1kc28yNu3ePOhO3+a/2jNcMI89Iqa92mtPjlR9RlIcqmVDi6qmZ9lBfvJoCjbIAG3TS2JkRBlo7SQ39y2flH0AJPesdy+LavssRZJUH7O5vXatSPXVr9LsG2V7V+0tbY+s0GH6wAz2dTvj0ezwIDAQAB</publicKey>
             <certRequest>
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>consumer</ns2:memberCode>
                 </memberId>
@@ -62,7 +62,7 @@
             </certRequest>
             <certRequest>
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>producer</ns2:memberCode>
                 </memberId>
@@ -82,7 +82,7 @@
             <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArMsw+thnw3cctKEnjgFvemv4a7M2x58tcY9PigbEHUyT9zrp/c29ANJMqqozZ0uBwBIUQGRXgPww5h5JphmtOS+IRAZCg9PKuJgh/6R08ut5BJQTgfHV/vZsoaFqD9y7JlKmDoU6Tas/LNsnBT/+1GIzETdeEuRpXzJJWE5S56UD61yu7ZgOQcV+UUfza4CNnE8oF3W1sn2+BwCbsmyeb2Jz9JiIjxfYdL0RQZ058xyVfl29OHscTa6j6w4CO52OWtobViNGOS/mz4tHZ8UidVs/RmHP4ASNOAPl9sJ5dbiX8tvFUa9wYT+FksTYMY6JzR9W1BLHtEedLPmLORW/HQIDAQAB</publicKey>
             <cert active="true" id="0154d0eada503b2df90202c8e8382de9f5988c01">
                 <memberId ns2:objectType="MEMBER">
-                    <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+                    <ns2:xRoadInstance>EE</ns2:xRoadInstance>
                     <ns2:memberClass>BUSINESS</ns2:memberClass>
                     <ns2:memberCode>producer</ns2:memberCode>
                 </memberId>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
     <instanceIdentifier>EE</instanceIdentifier>
 
     <!-- Members - start -->
@@ -49,8 +49,8 @@
 
     <member id="center">
         <memberClass>riigiasutus</memberClass>
-        <memberCode>sdsbkeskus</memberCode>
-        <name>SDSB Center</name>
+        <memberCode>xroadkeskus</memberCode>
+        <name>XROAD Center</name>
     </member>
     <!-- Members - end -->
 
@@ -97,19 +97,19 @@
         <groupCode>riigiasutused</groupCode>
         <description>No need to describe</description>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
             <id:memberCode>maanteeamet</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
             <id:memberCode>ppa</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
-            <id:memberCode>sdsbkeskus</id:memberCode>
+            <id:memberCode>xroadkeskus</id:memberCode>
         </member>
     </globalGroup>
 
@@ -186,7 +186,7 @@
         </topCA>
         <nameExtractor>
             <memberClass>TODO</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
         </nameExtractor>
     </pki>
     <pki>
@@ -243,7 +243,7 @@
         </topCA>
         <nameExtractor>
             <memberClass>TODO</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.</methodName>
         </nameExtractor>
     </pki>
     <pki>
@@ -300,7 +300,7 @@
         </topCA>
         <nameExtractor>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </nameExtractor>
     </pki>
 
@@ -329,9 +329,9 @@
         <managementRequestServiceAddress>http://mgmt.com:1234</managementRequestServiceAddress>
         <managementRequestServiceId
             id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>riigiasutus</id:memberClass>
-            <id:memberCode>sdsbkeskus</id:memberCode>
+            <id:memberCode>xroadkeskus</id:memberCode>
         </managementRequestServiceId>
     </globalSettings>
 </tns:conf>

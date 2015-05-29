@@ -1,8 +1,7 @@
 <% content_for :head do %>
-  <%= javascript_include_tag "tsps" %>
-  <%= javascript_include_tag "tsp_edit" %>
-  <%= javascript_include_tag "certs_uploader" %>
   <%= javascript_include_tag "centerui_common" %>
+  <%= javascript_include_tag "url_and_cert_dialog" %>
+  <%= javascript_include_tag "tsps" %>
 <% end %>
 
 <% content_for :content do %>
@@ -28,5 +27,6 @@
     </thead>
   </table>
 
-  <%= render :partial => "tsp_edit_dialog" %>
+  <%= render :partial => "shared/cert_details_dialog" %>
+  <%= url_and_cert_dialog("tsp") %>
 <% end %>

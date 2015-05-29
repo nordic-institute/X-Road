@@ -5,7 +5,7 @@
     <mapping>
         <oldId>consumer</oldId>
         <newId id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </newId>
@@ -13,7 +13,7 @@
     <mapping>
         <oldId>producer</oldId>
         <newId id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer</id:memberCode>
         </newId>

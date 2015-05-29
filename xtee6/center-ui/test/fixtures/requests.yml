@@ -4,6 +4,8 @@ request_for_owned_server:
   type: "ClientRegRequest"
   security_server_id: <%= ActiveRecord::Fixtures.identify(:identifier_owned_server_request_server) %>
   sec_serv_user_id: <%= ActiveRecord::Fixtures.identify(:identifier_owned_server_request_user) %>
+  server_owner_class: "riigiasutus"
+  server_owner_code: "member_in_vallavalitsused"
   origin: "CENTER"
   created_at: <%= 5.day.ago.to_s(:db) %>
   updated_at: <%= 5.day.ago.to_s(:db) %>
@@ -13,6 +15,8 @@ request_for_used_server:
   type: "ClientRegRequest"
   security_server_id: <%= ActiveRecord::Fixtures.identify(:identifier_used_server_request_server) %>
   sec_serv_user_id: <%= ActiveRecord::Fixtures.identify(:identifier_used_server_request_user) %>
+  server_owner_class: "riigiasutus"
+  server_owner_code: "member_out_of_vallavalitsused"
   origin: "SECURITY_SERVER"
   created_at: <%= 4.day.ago.to_s(:db) %>
   updated_at: <%= 4.day.ago.to_s(:db) %>
@@ -23,6 +27,8 @@ request_for_nobody:
   type: "ClientRegRequest"
   security_server_id: <%= ActiveRecord::Fixtures.identify(:identifier_nobody_request_server) %>
   sec_serv_user_id: <%= ActiveRecord::Fixtures.identify(:identifier_nobody_request_user) %>
+  server_owner_class: "riigiasutus"
+  server_owner_code: "member_out_of_vallavalitsused"
   origin: "CENTER"
   created_at: <%= 6.day.ago.to_s(:db) %>
   updated_at: <%= 6.day.ago.to_s(:db) %>

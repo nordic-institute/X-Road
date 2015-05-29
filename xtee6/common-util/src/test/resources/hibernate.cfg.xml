@@ -27,7 +27,7 @@
     <property name="hbm2ddl.auto">update</property>
 -->
     
-    <!-- Mappings are added in ee.cyber.sdsb.common.db.Mappings class -->
+    <!-- Mappings are added in ee.ria.xroad.common.db.Mappings class -->
 
   </session-factory>
 </hibernate-configuration>

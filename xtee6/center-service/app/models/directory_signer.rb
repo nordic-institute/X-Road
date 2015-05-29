@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.signer.SignerHelper
+java_import Java::ee.ria.xroad.common.signer.SignerHelper
 
 # Responsible of creating signed directory to the point when its content is
 # stored into database.

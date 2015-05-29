@@ -1,32 +1,38 @@
 package ee.cyber.xroad.mediator.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.SystemPropertiesLoader;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
 
-import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_USER_LOCAL;
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_MEDIATOR_COMMON;
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_SERVICE_MEDIATOR;
 
-public class Main {
+/**
+ * Service mediator program.
+ */
+@Slf4j
+public final class Main {
 
     static {
-        new SystemPropertiesLoader(MediatorSystemProperties.PREFIX) {
-            @Override
-            public void load() {
-                load(CONF_FILE_MEDIATOR_COMMON);
-                load(CONF_FILE_SERVICE_MEDIATOR);
-                load(CONF_FILE_USER_LOCAL);
-            }
-        };
+        SystemPropertiesLoader.create().withCommon().load();
+        SystemPropertiesLoader.create(MediatorSystemProperties.PREFIX)
+            .withLocal()
+            .with(CONF_FILE_MEDIATOR_COMMON)
+            .with(CONF_FILE_SERVICE_MEDIATOR)
+            .load();
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+    private Main() {
+    }
 
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
-        LOG.info("ServiceMediator starting...");
+        log.info("ServiceMediator starting...");
 
         try {
             ServiceMediator mediator = new ServiceMediator();
@@ -35,11 +41,11 @@ public class Main {
                 mediator.start();
                 mediator.join();
             } finally {
-                LOG.info("ServiceMediator shutting down...");
+                log.info("ServiceMediator shutting down...");
                 mediator.stop();
             }
         } catch (Exception e) {
-            LOG.error("ServiceMediator crashed with exception:", e);
+            log.error("ServiceMediator crashed with exception:", e);
         }
     }
 

@@ -27,18 +27,18 @@ def prepare_database()
         :description => "Organization")
   end
 
-  member_a = SdsbMember.create(
+  member_a = XroadMember.create(
       :member_class => member_class,
       :member_code => "MEM_A#{$unique_suffix}",
       :name => "Test member 1",
       :administrative_contact => "foo@bar.ee")
-  member_b = SdsbMember.create(
+  member_b = XroadMember.create(
       :member_class => member_class,
       :member_code => "MEM_B#{$unique_suffix}",
       :name => "Test member 2",
       :administrative_contact => "foo@bar.ee")
   subsystem_b = Subsystem.create(
-      :sdsb_member => member_b,
+      :xroad_member => member_b,
       :subsystem_code => "SUBSYS_B")
 
   GlobalGroup.create(:group_code => "security-server-owners")
@@ -53,7 +53,7 @@ def cleanup_database()
   AuthCertDeletionRequest.delete_all()
   ClientDeletionRequest.delete_all()
   Subsystem.delete_all()
-  SdsbMember.delete_all()
+  XroadMember.delete_all()
   MemberClass.delete_all()
   SecurityServer.delete_all()
   SystemParameter.delete_all()

@@ -23,15 +23,6 @@
       <label><%= t 'common.generated' %>:</label>
       <span class="anchor-generated_at"></span>
     </p>
-
-    <%= dialog "anchor_upload_dialog", t('anchor.upload_title') do %>
-      <%= form_tag "sysparams/anchor_upload", :id => "anchor_upload_form",
-            :multipart => true, :target => "upload_target" do %>
-        <%= file_field_tag "anchor_upload_file" %>
-      <% end %>
-
-      <iframe id="upload_target" name="upload_target"></iframe>
-    <% end %>
   </div>
 
   <div class="box">

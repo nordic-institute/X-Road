@@ -31,7 +31,7 @@ class ApprovedCa < ActiveRecord::Base
 
   def prepare_name_extractor
     if self.name_extractor_missing?
-      raise SdsbArgumentError.new(:no_name_extractor_method)
+      raise XroadArgumentError.new(:no_name_extractor_method)
     end
 
     if self.authentication_only?

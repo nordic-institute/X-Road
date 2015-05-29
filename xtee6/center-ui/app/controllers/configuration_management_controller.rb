@@ -1,9 +1,9 @@
 require 'fileutils'
 
-java_import Java::ee.cyber.sdsb.common.SystemProperties
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
-java_import Java::ee.cyber.sdsb.common.util.HashCalculator
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.SystemProperties
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.HashCalculator
+java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class ConfigurationManagementController < ApplicationController
 
@@ -209,6 +209,19 @@ class ConfigurationManagementController < ApplicationController
     })
 
     key = ConfigurationSigningKey.find(params[:id])
+
+    # Only activate available keys
+    token = SignerProxy::getToken(key.token_identifier)
+    token.keyInfo.each do |key_info|
+      if key_info.id == key.key_identifier
+        if !token.available || !key_info.available
+          raise t("configuration_management.sources.token_or_key_not_available")
+        end
+
+        break
+      end
+    end
+
     key.configuration_source.update_attributes!({
       :active_key => key
     })
@@ -226,10 +239,24 @@ class ConfigurationManagementController < ApplicationController
     key = ConfigurationSigningKey.find(params[:id])
     key.destroy
 
+    notice(t("configuration_management.sources.deleting_key_from_conf_success"))
+
     begin
-      SignerProxy::deleteKey(key.key_identifier, true)
+      token = SignerProxy::getToken(key.token_identifier)
+      token_name = (token && token.friendlyName) || key.token_identifier
+
+      translate_coded_exception do
+        SignerProxy::deleteKey(key.key_identifier, true)
+      end
+
+      notice!(t("configuration_management.sources.deleting_key_from_token_success", {
+        :token => token_name
+      }))
     rescue
-      error($!.message)
+      error(t("configuration_management.sources.deleting_key_from_token_failed", {
+        :token => token_name,
+        :reason => $!.message
+      }))
     end
 
     source = key.configuration_source
@@ -252,7 +279,7 @@ class ConfigurationManagementController < ApplicationController
     validate_params({
       :source_type => [:required],
       :content_identifier => [:required],
-      :conf_part_file => [:required],
+      :file_upload => [:required],
       :part_file_name => [:required]
     })
 
@@ -273,7 +300,7 @@ class ConfigurationManagementController < ApplicationController
     validation_program =
         optional_parts_conf.getValidationProgram(file_name)
 
-    file_bytes = params[:conf_part_file].read()
+    file_bytes = params[:file_upload].read
 
     file_validator = OptionalConfParts::Validator.new(
         validation_program, file_bytes, content_identifier)
@@ -289,7 +316,7 @@ class ConfigurationManagementController < ApplicationController
       :stderr => validator_stderr
     }
 
-    upload_success(response, "SDSB_CONFIGURATION_SOURCE.uploadCallback")
+    upload_success(response, "XROAD_CONFIGURATION_SOURCE.uploadCallback")
   rescue Exception => e
     log_stacktrace(e)
 
@@ -297,27 +324,28 @@ class ConfigurationManagementController < ApplicationController
 
     error(e.message)
 
-    upload_error(
-        {:stderr => validator_stderr},
-        "SDSB_CONFIGURATION_SOURCE.uploadCallback")
+    upload_error({
+      :stderr => validator_stderr
+    }, "XROAD_CONFIGURATION_SOURCE.uploadCallback")
   end
 
   def upload_trusted_anchor
     authorize!(:upload_trusted_anchor)
 
-    @temp_anchor_path = get_temp_anchor_path()
-    @anchor_xml = get_anchor_xml()
+    @temp_anchor_path = get_temp_anchor_path
+    @anchor_xml = params[:file_upload].read
     @anchor_hash = get_anchor_hash()
 
-    save_temp_anchor()
+    save_temp_anchor
 
     # File must be saved to disk in order to use unmarshaller!
     @anchor_unmarshaller = AnchorUnmarshaller.new(@temp_anchor_path)
 
     anchor_info = get_anchor_info()
-    upload_success(
-        {:anchor_info => anchor_info}, "SDSB_TRUSTED_ANCHORS.uploadCallback")
-  rescue Java::ee.cyber.sdsb.common.CodedException => e
+    upload_success({
+      :anchor_info => anchor_info
+    }, "XROAD_TRUSTED_ANCHORS.uploadCallback")
+  rescue Java::ee.ria.xroad.common.CodedException => e
     log_stacktrace(e)
 
     logger.error("Schema validation of uploaded anchor failed, message:\n'"\
@@ -325,12 +353,12 @@ class ConfigurationManagementController < ApplicationController
 
     error(t("configuration_management.trusted_anchors.error.anchor_malformed"))
 
-    upload_error(nil, "SDSB_TRUSTED_ANCHORS.uploadCallback")
+    upload_error(nil, "XROAD_TRUSTED_ANCHORS.uploadCallback")
   rescue RuntimeError => e
     log_stacktrace(e)
 
     error(e.message)
-    upload_error(nil, "SDSB_TRUSTED_ANCHORS.uploadCallback")
+    upload_error(nil, "XROAD_TRUSTED_ANCHORS.uploadCallback")
   end
 
   def save_uploaded_trusted_anchor
@@ -391,6 +419,8 @@ class ConfigurationManagementController < ApplicationController
         :id => key.id,
         :token_id => key.token_identifier,
         :token_friendly_name => key.token_identifier,
+        :token_active => false,
+        :token_available => false,
         :key_id => key.key_identifier,
         :key_generated_at => format_time(key_generation_time),
         :key_active => source.active_key && key.id == source.active_key.id,
@@ -401,8 +431,10 @@ class ConfigurationManagementController < ApplicationController
     SignerProxy::getTokens.each do |token|
       token.keyInfo.each do |key|
         if keys.has_key?(key.id)
-          keys[key.id][:key_available] = key.available
           keys[key.id][:token_active] = token.active
+          keys[key.id][:token_available] = token.available
+          keys[key.id][:key_available] =
+            key.available || (token.available && !token.active)
         end
       end
 
@@ -419,7 +451,7 @@ class ConfigurationManagementController < ApplicationController
       :download_url => download_url,
       :keys => keys.values,
       :parts => DistributedFiles.get_configuration_parts_as_json(
-          source.source_type),
+          source.source_type)
     })
   end
 
@@ -433,24 +465,18 @@ class ConfigurationManagementController < ApplicationController
 
   # -- Methods related to anchor upload - start ---
 
-  def get_anchor_xml
-    file_param = params[:upload_trusted_anchor_file]
-    return file_param.read().force_encoding(Rails.configuration.encoding)
-  end
-
-  def save_temp_anchor()
+  def save_temp_anchor
     raise "Temp anchor path must be present" if @temp_anchor_path.blank?
     raise "Anchor XML must be present" if @anchor_xml.blank?
     raise "Anchor hash must be present" if @anchor_hash.blank?
 
-    temp_anchor_path = get_temp_anchor_path()
-    CommonUi::IOUtils.write(@temp_anchor_path, @anchor_xml)
+    CommonUi::IOUtils.write_binary(@temp_anchor_path, @anchor_xml)
 
     session[:anchor_temp_path] = @temp_anchor_path
     session[:anchor_hash] = @anchor_hash
   end
 
-  def get_temp_anchor_path()
+  def get_temp_anchor_path
     CommonUi::IOUtils.temp_file("uploaded_anchor_#{request.session_options[:id]}")
   end
 

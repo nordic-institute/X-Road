@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xrd="http://bar.baz"
+        xmlns:foo="http://x-road.eu/xsd/x-road.xsd">
+    <SOAP-ENV:Header>
+        <foo:consumer>consumer</foo:consumer>
+        <foo:producer>producer</foo:producer>
+        <foo:userId>EE37702211234</foo:userId>
+        <foo:service>producer.testQuery.v1</foo:service>
+        <foo:id>1234567890</foo:id>
+        <xrd:consumer>xxx</xrd:consumer>
+        <xrd:producer>xxx</xrd:producer>
+        <xrd:userId>xxx</xrd:userId>
+        <xrd:service>xxx</xrd:service>
+        <xrd:id>xxx</xrd:id>
+        <xrd:unit>xxx</xrd:unit>        
+        <xrd:position>xxx</xrd:position>
+        <xrd:userName>xxx</xrd:userName>
+        <xrd:async>xxx</xrd:async>
+        <xrd:paid>xxx</xrd:paid>
+        <xrd:issue>xxx</xrd:issue>
+        <xrd:encrypt>xxx</xrd:encrypt>
+        <xrd:encrypted>xxx</xrd:encrypted>
+        <xrd:foobar>baz</xrd:foobar>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.xroad.net">
+            <request>
+                <name>foo</name>
+                <age>35</age>
+            </request>
+        </ns1:testQuery>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

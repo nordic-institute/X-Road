@@ -6,8 +6,6 @@ Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
 Package: xroad-jruby
-Replaces: jruby-sdsb
-Conflicts: jruby-sdsb
 Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Jruby for X-Road

@@ -1,4 +1,4 @@
-var SDSB_APPROVED_CA_DIALOG = function() {
+var XROAD_APPROVED_CA_DIALOG = function() {
     var ocspResponders;
     var intermediateCas;
 
@@ -28,6 +28,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
 
         $(document).on("change", "#ca_cert", function() {
             $("#ca_cert_file").val($("#ca_cert").val());
+            $("#ca_cert_submit").enable();
         });
     }
 
@@ -47,7 +48,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
                       params.temp_cert_id = tempCaCertId;
 
                       $.post(action("add_top_ca"), params, function(response) {
-                          SDSB_CAS.refreshCas();
+                          XROAD_CAS.refreshCas();
 
                           $("#ca_settings_dialog").dialog("close");
                           openEditDialog(response.data);
@@ -102,7 +103,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
             };
 
             $.get(action("ca_cert"), params, function(response) {
-                SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
             }, "json");
 
             return false;
@@ -129,7 +130,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
             params.ca_id = caId;
 
             $.post(action("edit_ca_settings"), params, function() {
-                SDSB_CAS.refreshCas();
+                XROAD_CAS.refreshCas();
             }, "json");
         });
     }
@@ -164,36 +165,36 @@ var SDSB_APPROVED_CA_DIALOG = function() {
             };
 
             $.get(action("ocsp_responder_cert"), params, function(response) {
-                SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
             }, "json");
         });
     }
 
     function initOCSPResponderDialog() {
-        SDSB_URL_AND_CERT_DIALOG.initForPrefix("ocsp_responder",
+        XROAD_URL_AND_CERT_DIALOG.initForPrefix("ocsp_responder",
                 function(params) { // onAdd
             $.post(action("add_ocsp_responder"), params, function(response) {
-                if (SDSB_INTERMEDIATE_CA_DIALOG.isOpen()) {
-                    SDSB_INTERMEDIATE_CA_DIALOG.refreshOCSPResponders();
+                if (XROAD_INTERMEDIATE_CA_DIALOG.isOpen()) {
+                    XROAD_INTERMEDIATE_CA_DIALOG.refreshOCSPResponders();
                 } else {
                     refreshOCSPResponders();
                 }
-                SDSB_URL_AND_CERT_DIALOG.closeDialog("ocsp_responder");
+                XROAD_URL_AND_CERT_DIALOG.closeDialog("ocsp_responder");
             }, "json");
 
         }, function(params) { // onEdit
             $.post(action("edit_ocsp_responder"), params, function(response) {
-                if (SDSB_INTERMEDIATE_CA_DIALOG.isOpen()) {
-                    SDSB_INTERMEDIATE_CA_DIALOG.refreshOCSPResponders();
+                if (XROAD_INTERMEDIATE_CA_DIALOG.isOpen()) {
+                    XROAD_INTERMEDIATE_CA_DIALOG.refreshOCSPResponders();
                 } else {
                     refreshOCSPResponders();
                 }
-                SDSB_URL_AND_CERT_DIALOG.closeDialog("ocsp_responder");
+                XROAD_URL_AND_CERT_DIALOG.closeDialog("ocsp_responder");
             }, "json");
 
         }, function(params) { // onCertView
             $.get(action("ocsp_responder_cert"), params, function(response) {
-                SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
             }, "json");
         });
     }
@@ -205,7 +206,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
                 ocsp_responder_id: selected.id
             };
 
-            SDSB_URL_AND_CERT_DIALOG.openEditDialog(
+            XROAD_URL_AND_CERT_DIALOG.openEditDialog(
                 "ocsp_responder", _("approved_cas.edit_ocsp_responder"),
                 true, selected.url, selected.has_cert, params);
         });
@@ -214,7 +215,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
             var params = {
                 ca_id: caId
             };
-            SDSB_URL_AND_CERT_DIALOG.openAddDialog("ocsp_responder",
+            XROAD_URL_AND_CERT_DIALOG.openAddDialog("ocsp_responder",
                 _("approved_cas.add_ocsp_responder"), true, params);
         });
 
@@ -249,11 +250,11 @@ var SDSB_APPROVED_CA_DIALOG = function() {
     function initIntermediateCAsTab() {
         $("#intermediate_ca_edit").click(function() {
             var selected = intermediateCas.getFocusData();
-            SDSB_INTERMEDIATE_CA_DIALOG.openEditDialog(caId, selected);
+            XROAD_INTERMEDIATE_CA_DIALOG.openEditDialog(caId, selected);
         });
 
         $("#intermediate_ca_add").click(function() {
-            SDSB_INTERMEDIATE_CA_DIALOG.openAddDialog(caId);
+            XROAD_INTERMEDIATE_CA_DIALOG.openAddDialog(caId);
         });
 
         $("#intermediate_ca_delete").click(function() {
@@ -318,7 +319,7 @@ var SDSB_APPROVED_CA_DIALOG = function() {
         $("#ca_cert_upload_dialog form #ca_id").disable();
 
         $("#ca_cert_file").val("");
-        $("#ca_cert_submit").text(_("common.next"));
+        $("#ca_cert_submit").text(_("common.next")).disable();
         $("#ca_cert_upload_dialog").dialog("open");
     }
 

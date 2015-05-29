@@ -4,7 +4,6 @@ class BaseBackupController < ApplicationController
 
   before_filter :verify_get, :only => [
     :index,
-    :check_backup_file_existence,
     :refresh_files,
     :download
   ]
@@ -20,14 +19,6 @@ class BaseBackupController < ApplicationController
 
   def index
     authorize!(:backup_configuration)
-  end
-
-  def check_backup_file_existence
-    authorize!(:backup_configuration)
-
-    exists = !CommonUi::BackupUtils.backup_files[params[:fileName]].nil?
-
-    render_json(:exists => exists)
   end
 
   def refresh_files
@@ -101,12 +92,12 @@ class BaseBackupController < ApplicationController
   def upload_new
     authorize!(:backup_configuration)
 
-    CommonUi::BackupUtils.upload_new_file(params[:new_backup_file_upload])
+    CommonUi::BackupUtils.upload_new_file(params[:file_upload])
 
     notice(t("backup.success.upload"))
-    upload_success(nil, "SDSB_BACKUP.uploadCallback")
+    upload_success(nil, "XROAD_BACKUP.uploadCallback")
   rescue Exception => e
     error(e.message)
-    upload_error(nil, "SDSB_BACKUP.uploadCallback")
+    upload_error(nil, "XROAD_BACKUP.uploadCallback")
   end
 end

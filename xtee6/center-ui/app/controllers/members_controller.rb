@@ -38,7 +38,7 @@ class MembersController < ApplicationController
   end
 
   def get_records_count
-    render_json_without_messages(:count => SdsbMember.count)
+    render_json_without_messages(:count => XroadMember.count)
   end
 
   def can_see_details
@@ -57,8 +57,8 @@ class MembersController < ApplicationController
     query_params = get_list_query_params(
       get_column(get_sort_column_no))
 
-    members = SdsbMember.get_members(query_params)
-    count = SdsbMember.get_member_count(searchable)
+    members = XroadMember.get_members(query_params)
+    count = XroadMember.get_member_count(searchable)
 
     result = []
     members.each do |each|
@@ -94,7 +94,7 @@ class MembersController < ApplicationController
         :member_class => provider_id.member_class,
         :member_code => provider_id.member_code,
         :subsystem_code => provider_id.subsystem_code,
-        :sdsb_instance => provider_id.sdsb_instance,
+        :xroad_instance => provider_id.xroad_instance,
         :type => provider_id.object_type
       }
     end
@@ -130,7 +130,7 @@ class MembersController < ApplicationController
 
     member = find_member(params[:memberClass], params[:memberCode])
 
-    render_json(SdsbMember.get_used_servers(member.id))
+    render_json(XroadMember.get_used_servers(member.id))
   end
 
   def management_requests
@@ -142,9 +142,9 @@ class MembersController < ApplicationController
     query_params = get_list_query_params(
       get_management_requests_column(get_sort_column_no))
 
-    requests = SdsbMember.get_management_requests(
+    requests = XroadMember.get_management_requests(
         member_class, member_code, query_params)
-    count = SdsbMember.get_management_requests_count(member_class, member_code)
+    count = XroadMember.get_management_requests_count(member_class, member_code)
 
     result = []
     add_requests_to_result(requests, result)
@@ -155,7 +155,7 @@ class MembersController < ApplicationController
   def remaining_global_groups
     authorize!(:view_member_details)
 
-    remaining_groups = SdsbMember.get_remaining_global_groups(
+    remaining_groups = XroadMember.get_remaining_global_groups(
         params[:memberClass], params[:memberCode], params[:subsystemCode])
 
     result = []
@@ -173,7 +173,7 @@ class MembersController < ApplicationController
   def get_member_by_id
     authorize!(:view_member_details)
 
-    member = SdsbMember.find(params[:memberId])
+    member = XroadMember.find(params[:memberId])
     render_json_without_messages(get_all_member_data(member))
   end
 
@@ -195,7 +195,7 @@ class MembersController < ApplicationController
     member_class = params[:memberClass]
     member_code = params[:memberCode]
 
-    SdsbMember.create!(
+    XroadMember.create!(
         :name => params[:memberName],
         :member_class => MemberClass.find_by_code(member_class),
         :member_code => member_code)
@@ -203,7 +203,7 @@ class MembersController < ApplicationController
     notice(t("members.added",
         {:member_class => member_class, :member_code => member_code}))
 
-    saved_member = SdsbMember.find_by_code(member_class, member_code)
+    saved_member = XroadMember.find_by_code(member_class, member_code)
     render_json(get_all_member_data(saved_member))
   end
 
@@ -224,7 +224,7 @@ class MembersController < ApplicationController
 
     member_to_delete = find_member(params[:memberClass], params[:memberCode])
 
-    SdsbMember.destroy(member_to_delete)
+    XroadMember.destroy(member_to_delete)
 
     render_json({})
   end
@@ -233,7 +233,7 @@ class MembersController < ApplicationController
     authorize!(:remove_member_subsystem)
 
     member = find_member(params[:memberClass], params[:memberCode])
-    subsystem = Subsystem.where(:sdsb_member_id => member.id,
+    subsystem = Subsystem.where(:xroad_member_id => member.id,
         :subsystem_code => params[:subsystemCode]).first
 
     Subsystem.destroy(subsystem)
@@ -250,10 +250,10 @@ class MembersController < ApplicationController
     notice(t("common.cert_imported"))
 
     upload_success(auth_cert_data,
-        "SDSB_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
+        "XROAD_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
+    upload_error(nil, "XROAD_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
   end
 
   def add_new_owned_server_request
@@ -267,7 +267,7 @@ class MembersController < ApplicationController
     end
 
     potentially_existing_server = SecurityServer.where(
-        :sdsb_member_id => owner.id,
+        :xroad_member_id => owner.id,
         :server_code => server_code).first
 
     if potentially_existing_server
@@ -304,7 +304,7 @@ class MembersController < ApplicationController
 
     if must_save_subsystem(member_class, member_code, subsystem_code)
       Subsystem.create!(
-              :sdsb_member => member,
+              :xroad_member => member,
               :subsystem_code => subsystem_code)
     end
 
@@ -422,7 +422,7 @@ class MembersController < ApplicationController
   end
 
   def get_global_groups_as_json(member_class, member_code)
-    group_members = SdsbMember.get_global_group_members(
+    group_members = XroadMember.get_global_group_members(
         member_class, member_code)
 
     result = []
@@ -496,7 +496,7 @@ class MembersController < ApplicationController
   end
 
   def find_member(member_class, member_code)
-    member = SdsbMember.find_by_code(member_class, member_code)
+    member = XroadMember.find_by_code(member_class, member_code)
 
     raise "Member with member class '#{member_class}' and member code"\
          " '#{member_code}' not found." unless member
@@ -544,7 +544,7 @@ class MembersController < ApplicationController
     when 3
       return 'identifiers.subsystem_code'
     when 4
-      return 'identifiers.sdsb_instance'
+      return 'identifiers.xroad_instance'
     when 5
       return 'identifiers.object_type'
     else

@@ -1,6 +1,6 @@
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.GroupMemberType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.LocalGroupType
-java_import Java::ee.cyber.sdsb.common.identifier.LocalGroupId
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.GroupMemberType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.LocalGroupType
+java_import Java::ee.ria.xroad.common.identifier.LocalGroupId
 
 module Clients::Groups
 
@@ -234,7 +234,7 @@ module Clients::Groups
           :code => member_id.memberCode,
           :class => member_id.memberClass,
           :subsystem => member_id.subsystemCode,
-          :instance => member_id.sdsbInstance,
+          :instance => member_id.xRoadInstance,
           :type => member_id.objectType.toString,
           :added => format_time(member.added)
         }

@@ -1,6 +1,6 @@
 require 'test_helper'
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.PrivateParametersSchemaValidator
+java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParametersSchemaValidator
 
 class PrivateParametersGenerator
   # We use cert in the source tree for testing.

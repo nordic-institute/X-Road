@@ -16,12 +16,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
-import ee.cyber.sdsb.common.ExpectedCodedException;
+import ee.ria.xroad.common.ExpectedCodedException;
 
+/**
+ * Tests to verify correct identifier mapping validator behavior.
+ */
 public class IdentifierMappingFileValidatorBehavior {
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    /**
+     * Set up configuration.
+     */
     @Before
     public void setUp() {
         System.setProperty(
@@ -29,6 +35,10 @@ public class IdentifierMappingFileValidatorBehavior {
                 "doc/identifier-mapping.xsd");
     }
 
+    /**
+     * Test to ensure a valid identifier mapping can be validated.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void shouldValidateIdentifierMappingSuccessfully() throws Exception {
         // Given
@@ -47,6 +57,10 @@ public class IdentifierMappingFileValidatorBehavior {
         validator.validate();
     }
 
+    /**
+     * Test to ensure an invalid identifier mapping cannot be validated.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void shouldRaiseErrorWhenInvalidXml() throws Exception {
         // Given
@@ -60,14 +74,17 @@ public class IdentifierMappingFileValidatorBehavior {
         IdentifierMappingFileValidator validator =
                 new IdentifierMappingFileValidator(
                         getSchemaValidator(),
-                        fileContent,
-                        currentInstanceIdentifier,
+                        fileContent, currentInstanceIdentifier,
                         allowedMemberClasses);
 
         // When/then
         validator.validate();
     }
 
+    /**
+     * Test to ensure an identifier mapping with disallowed member classes cannot be validated.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void shouldRaiseErrorWhenInvalidMemberClasses() throws Exception {
         // Given
@@ -90,6 +107,10 @@ public class IdentifierMappingFileValidatorBehavior {
         validator.validate();
     }
 
+    /**
+     * Test to ensure an identifier mapping with an invalid instance identifier cannot be validated.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void shouldRaiseErrorWhenInvalidInstanceCode() throws Exception {
         // Given

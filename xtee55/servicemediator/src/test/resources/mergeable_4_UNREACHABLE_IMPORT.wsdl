@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<wsdl:definitions
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:xrd="http://x-road.ee/xsd/x-road.xsd"
+    xmlns:tns="http://transpordiamet.x-road.ee/producer"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    name="xroadGetRandom"
+    targetNamespace="http://transpordiamet.x-road.ee/producer">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://transpordiamet.x-road.ee/producer">
+      <!-- Intended to be unreachable import. -->
+      <xsd:import namespace="http://sedaeiole.aq/xsd/x-road.xsd" schemaLocation="http://sedaeiole.aq/xsd/x-road.xsd"/>
+      <xsd:element name="xroadBigSoap">
+        <xsd:complexType>
+          <xsd:sequence>
+           <xsd:element name="request">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="content" type="xsd:string">
+                    <xsd:annotation>
+                      <xsd:appinfo>
+                        <xrd:title>Big SOAP content</xrd:title>
+                      </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="responseSize" type="xsd:integer">
+                    <xsd:annotation>
+                      <xsd:appinfo>
+                        <xrd:title>Size of the response to be returned</xrd:title>
+                      </xsd:appinfo>
+                    </xsd:annotation>
+                  </xsd:element>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="xroadBigSoapResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="response" type="xsd:string">
+              <xsd:annotation>
+                <xsd:appinfo>
+                  <xrd:title>Size of content</xrd:title>
+                </xsd:appinfo>
+              </xsd:annotation>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="standardheader">
+    <wsdl:part name="consumer" element="xrd:consumer"/>
+    <wsdl:part name="producer" element="xrd:producer"/>
+    <wsdl:part name="userId" element="xrd:userId"/>
+    <wsdl:part name="service" element="xrd:service"/>
+    <wsdl:part name="id" element="xrd:id"/>
+  </wsdl:message>
+
+  <wsdl:message name="xroadBigSoap">
+    <wsdl:part name="body"  element="tns:xroadBigSoap" />
+  </wsdl:message>
+  <wsdl:message name="xroadBigSoapResponse">
+    <wsdl:part name="body"  element="tns:xroadBigSoapResponse" />
+  </wsdl:message>
+
+  <wsdl:portType name="xroadPortType">
+    <wsdl:operation name="xroadBigSoap">
+      <wsdl:documentation>
+        <xrd:title>Suure SOAP-ga päring document/literal stiilis</xrd:title>
+        <xrd:notes>Vastuseks tuleb SOAP sisu suurus.</xrd:notes>
+      </wsdl:documentation>
+      <wsdl:input message="tns:xroadBigSoap"/>
+      <wsdl:output message="tns:xroadBigSoapResponse"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="xroadBinding" type="tns:xroadPortType">
+    <soap:binding style="document"
+      transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="xroadBigSoap">
+      <soap:operation soapAction="" style="document"/>
+      <xrd:version>v1</xrd:version>
+      <wsdl:input>
+        <soap:body parts="body" use="literal"/>
+        <soap:header message="tns:standardheader" part="consumer" use="literal"/>
+        <soap:header message="tns:standardheader" part="producer" use="literal"/>
+        <soap:header message="tns:standardheader" part="userId" use="literal"/>
+        <soap:header message="tns:standardheader" part="id" use="literal"/>
+        <soap:header message="tns:standardheader" part="service" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body parts="body" use="literal"/>
+        <soap:header message="tns:standardheader" part="consumer" use="literal"/>
+        <soap:header message="tns:standardheader" part="producer" use="literal"/>
+        <soap:header message="tns:standardheader" part="userId" use="literal"/>
+        <soap:header message="tns:standardheader" part="id" use="literal"/>
+        <soap:header message="tns:standardheader" part="service" use="literal"/>
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="transpordiametService">
+    <wsdl:port binding="tns:xroadBinding" name="xroadServicePort">
+      <!-- iks2-v5-test1.cyber.ee -->
+      <soap:address location="http://192.168.74.215/cgi-bin/consumer_proxy"/>
+      <xrd:address producer="transpordiamet"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

@@ -2,8 +2,8 @@
 <configuration>
 
     <define name="logOutputPath" class="ee.cyber.xroad.mediator.util.LogOutputPathPropertyDefiner" />
-    <define name="sdsbLogLevel" class="ee.cyber.sdsb.common.LogLevelPropertyDefiner" />
     <define name="xroadLogLevel" class="ee.cyber.xroad.mediator.util.LogLevelPropertyDefiner" />
+    <define name="xtee55LogLevel" class="ee.cyber.xroad.mediator.util.LogLevelPropertyDefiner" />
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -26,8 +26,8 @@
         </encoder>
     </appender>
 
-    <logger name="ee.cyber.sdsb" level="${sdsbLogLevel}"/>
-    <logger name="ee.cyber.xroad" level="${xroadLogLevel}" />
+    <logger name="ee.ria.xroad" level="${xroadLogLevel}"/>
+    <logger name="ee.cyber.xroad" level="${xtee55LogLevel}" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

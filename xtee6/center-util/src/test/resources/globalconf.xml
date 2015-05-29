@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd">
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../../../common-util/src/main/resources/globalconf.xsd">
     <pki>
         <name>pki1</name>
         <topCA>
@@ -51,7 +51,7 @@
         </topCA>
         <nameExtractor>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName
             </methodName>
         </nameExtractor>
     </pki>

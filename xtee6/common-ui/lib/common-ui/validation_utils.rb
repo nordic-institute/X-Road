@@ -20,7 +20,8 @@ module CommonUi
       :controller => [],
       :authenticity_token => [],
       :utf8 => [],
-      :ignore => []
+      :ignore => [],
+      :allowTimeout => []
     }
 
     def strip_params

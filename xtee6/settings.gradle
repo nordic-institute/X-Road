@@ -3,6 +3,7 @@ include "common-util"
 include "common-verifier"
 include "common-ui"
 include "common-db"
+include "common-messagelog"
 include "signer-protocol"
 include "serverconf"
 
@@ -17,9 +18,10 @@ include "async-db"
 include "async-sender"
 include "configuration-proxy"
 include "configuration-client"
+include "asicverifier"
+include "asic-util"
 
 // Utils
-include "asicverifier"
 include "signer-console"
 
 // Tests
@@ -27,6 +29,8 @@ include "common-test"
 
 // Addons
 include "addons:hwtoken"
+include "addons:messagelog"
+include "addons:metaservice"
 
 // Legacy stuff
 include "legacy:securelog:common"

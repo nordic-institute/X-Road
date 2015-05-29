@@ -1,4 +1,4 @@
-var SDSB_REQUEST_CLIENT_DELETION = function(){
+var XROAD_REQUEST_CLIENT_DELETION = function(){
     /* -- PUBLIC - START -- */
 
     function openDialog(fnAfterRequestAdded) {
@@ -18,7 +18,10 @@ var SDSB_REQUEST_CLIENT_DELETION = function(){
                 click : function() {
                     $(this).dialog("close");
                 }
-            } ]
+            } ],
+            open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+            }
         }).dialog("open");
     }
 

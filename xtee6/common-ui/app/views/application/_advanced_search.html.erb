@@ -5,12 +5,8 @@
   </ul>
 
   <div id="<%= prefix %>_simple_search_tab" class="simple_search">
-    <table class="details">
-      <tr>
-        <td><%= view_flow.content.delete(:simple_search) %></td>
-        <td><button class="search"><%= t 'common.search' %></button></td>
-      </tr>
-    </table>
+    <%= view_flow.content.delete(:simple_search) %>
+    <button class="search"><%= t 'common.search' %></button>
   </div>
 
   <div id="<%= prefix %>_advanced_search_tab" class="advanced_search">

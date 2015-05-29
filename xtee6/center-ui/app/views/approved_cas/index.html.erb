@@ -34,7 +34,7 @@
         <td>
           <%= form_tag "", :multipart => true, :target => "upload_target" do %>
             <%= hidden_field_tag "ca_id" %>
-            <%= upload_button "ca_cert", nil, "common.browse" %>
+            <%= browse_button "ca_cert" %>
           <% end %>
         </td>
       </tr>

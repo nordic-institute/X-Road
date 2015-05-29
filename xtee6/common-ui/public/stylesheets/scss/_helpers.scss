@@ -92,4 +92,11 @@ section.container {
     &:last-of-type {
         margin: 10px 10px 10px;
     }
+
+    legend {
+        font-size: 12pt;
+        font-weight: 500;
+        line-height: 30px;
+        text-transform: uppercase;
+    }
 }

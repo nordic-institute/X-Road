@@ -1,4 +1,4 @@
-var SDSB_MEMBER_EDIT = function() {
+var XROAD_MEMBER_EDIT = function() {
     var oAddableUsedServers;
     var remainingGlobalGroups = {};
 
@@ -41,7 +41,7 @@ var SDSB_MEMBER_EDIT = function() {
                             onSubmit(newName);
                         }
 
-                        SDSB_MEMBERS.redrawMembersTable();
+                        XROAD_MEMBERS.redrawMembersTable();
 
                         $(self).dialog("close");
                     }, "json");
@@ -100,6 +100,9 @@ var SDSB_MEMBER_EDIT = function() {
                     $(this).dialog("close");
                 }
             }],
+            open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+            },
             close: function() {
                 $(this).dialog("destroy");
             }
@@ -165,7 +168,7 @@ var SDSB_MEMBER_EDIT = function() {
                 $.get("members/subsystem_codes", memberId, function(response) {
                     var options = response.data;
 
-                    SDSB_CENTERUI_COMMON.fillSelectWithEmptyOption(
+                    XROAD_CENTERUI_COMMON.fillSelectWithEmptyOption(
                         "member_to_group_add_select_subsystem", options);
 
                     if (options.length > 0) {
@@ -296,6 +299,7 @@ var SDSB_MEMBER_EDIT = function() {
                 }
             }],
             open: function() {
+                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
                 initUsedServerSubsystemCodeAutocomplete();
             },
             close: function() {

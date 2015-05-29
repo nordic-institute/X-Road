@@ -2,9 +2,8 @@
 
 echo "installing xtee55 importer gem, will download dependencies"
 
-export PATH=/usr/share/sdsb/jruby/bin/:$PATH
+export PATH=/usr/share/xroad/jruby/bin/:$PATH
 
-gem install /usr/share/sdsb/jlib/xtee55_clients_importer.gem || exit 1
-
+gem install /usr/share/xroad/jlib/xtee55_clients_importer.gem || exit 1
 
 exit 0

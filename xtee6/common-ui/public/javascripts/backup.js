@@ -1,4 +1,4 @@
-var SDSB_BACKUP = function() {
+var XROAD_BACKUP = function() {
     var oBackupFiles;
     var restoreInProgress = false;
 
@@ -36,63 +36,24 @@ var SDSB_BACKUP = function() {
                 .find(".dataTables_scrollHead").hide();
         };
 
-        opts.bScrollInfinite = true;
-
         opts.aaSorting = [[0, "desc"]];
 
         oBackupFiles = $("#backup_files").dataTable(opts);
-        oBackupFiles.fnSetFilteringDelay(600);
-    }
-
-    function openBackupFileUploadDialog() {
-        clearMessages();
-
-        $("#backup_file_upload_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: "auto",
-            width: "400px",
-            buttons: [
-                { text: _("common.cancel"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        }).dialog("open");
     }
 
     function uploadCallback(response) {
         if (response.success) {
-            $("#backup_file_upload_dialog").dialog("close");
-            resetUploadForm();
             refreshBackupFiles();
+            closeFileUploadDialog();
         }
 
         showMessages(response.messages);
     }
 
-    function resetUploadForm() {
-        $("#new_backup_file_upload").val("");
-    }
-
     function refreshBackupFiles() {
         $.get(action("refresh_files"), {}, function(response) {
-            oBackupFiles.fnClearTable();
-            oBackupFiles.fnAddData(response.data);
-            oBackupFiles.fnDraw();
+            oBackupFiles.fnReplaceData(response.data);
         });
-    }
-
-    // -- Button handlers - start ---
-
-    function handleBackup() {
-        $.post(action("backup"), null, function(response) {
-            refreshBackupFiles();
-            initConsoleOutput(
-                response.data.console_output,
-                _("backup.index.console_output"));
-        }, "json");
     }
 
     function handleRestore(fileName) {
@@ -120,73 +81,54 @@ var SDSB_BACKUP = function() {
         }, "json");
     }
 
-    function handleUpload() {
-        openBackupFileUploadDialog();
-    }
-
-    // -- Button handlers - end ---
-
     function setButtonEnabled(buttonId, enabled) {
         var button = $("#" + buttonId);
         enabled ? button.enable() : button.disable();
     }
 
-    function uploadBackupFile() {
-        var uploadForm = $("#upload_new_backup_file");
-        var fileName = getUploadableBackupFileName();
-        var checkParams = {fileName: fileName};
+    $(document).ready(function() {
+        initBackupFilesTable();
+        refreshBackupFiles();
 
-        $.get("backup/check_backup_file_existence",  checkParams,
-                function(response){
-            var fileExists = response.data.exists
+        $("#backup_upload").click(function() {
+            openFileUploadDialog(action("upload_new"),
+                _("backup.index.upload_file_title"), null, function() {
+                    var form = $(this).closest(".ui-dialog").find("form");
+                    var fileName = $("input[type=file]", form)[0].files[0].name;
+                    var fileExists = false;
 
-            if(fileExists) {
-                confirm("backup.upload.file_exists", {file: fileName},
-                        function() {
-                    uploadForm.submit();
+                    $.each(oBackupFiles.fnGetData(), function(idx, val) {
+                        if (val.name == fileName) {
+                            fileExists = true;
+                            return false;
+                        }
+                    });
+
+                    if (fileExists) {
+                        confirm("backup.index.uploaded_file_exists",
+                            {file: fileName}, function() {
+                                form.submit();
+                            });
+                    } else {
+                        form.submit();
+                    }
                 });
-            } else {
-                uploadForm.submit();
-            }
-        }, "json");
-    }
+        });
 
-    function getUploadableBackupFileName() {
-        return $("#new_backup_file_upload")[0].files[0].name;
-    }
+        $("#backup").click(function() {
+            $.post(action("backup"), null, function(response) {
+                refreshBackupFiles();
+                initConsoleOutput(
+                    response.data.console_output,
+                    _("backup.index.console_output"));
+            }, "json");
+        });
+    });
 
     return {
-        initBackupFilesTable: initBackupFilesTable,
-        refreshBackupFiles: refreshBackupFiles,
-
-        handleBackup: handleBackup,
-        handleUpload: handleUpload,
-
-        uploadBackupFile: uploadBackupFile,
         uploadCallback: uploadCallback,
-        resetUploadForm: resetUploadForm,
-
         restoreInProgress: function() {
             return restoreInProgress;
         }
     };
-
 }();
-
-$(document).ready(function() {
-    SDSB_BACKUP.initBackupFilesTable();
-    SDSB_BACKUP.refreshBackupFiles();
-    SDSB_BACKUP.resetUploadForm();
-
-    $("#backup_upload").live("click", function() {
-        SDSB_BACKUP.handleUpload();
-    });
-
-    $("#new_backup_file_upload").live("change", function() {
-        SDSB_BACKUP.uploadBackupFile();
-    });
-
-    $("#backup").click(function() {
-        SDSB_BACKUP.handleBackup();
-    });
-});

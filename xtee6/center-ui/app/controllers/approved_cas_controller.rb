@@ -102,10 +102,10 @@ class ApprovedCasController < ApplicationController
 
     upload_success({
       :temp_cert_id => cert_data[:temp_cert_id]
-    }, "SDSB_APPROVED_CA_DIALOG.certUploadCallback")
+    }, "XROAD_APPROVED_CA_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_APPROVED_CA_DIALOG.certUploadCallback")
+    upload_error(nil, "XROAD_APPROVED_CA_DIALOG.certUploadCallback")
   end
 
   def add_top_ca
@@ -165,10 +165,10 @@ class ApprovedCasController < ApplicationController
 
     upload_success(
       intermediate_ca_to_json(intermediate_ca),
-      "SDSB_INTERMEDIATE_CA_DIALOG.certUploadCallback")
+      "XROAD_INTERMEDIATE_CA_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
-    upload_error(nil, "SDSB_INTERMEDIATE_CA_DIALOG.certUploadCallback")
+    upload_error(nil, "XROAD_INTERMEDIATE_CA_DIALOG.certUploadCallback")
   end
 
   def delete_intermediate_ca
@@ -220,12 +220,12 @@ class ApprovedCasController < ApplicationController
     notice(t("common.cert_imported"))
 
     upload_success(cert_data,
-        "SDSB_URL_AND_CERT_DIALOG.certUploadCallback")
+        "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
   rescue RuntimeError => e
     error(e.message)
     upload_error({
       :prefix => "ocsp_responder"
-    }, "SDSB_URL_AND_CERT_DIALOG.certUploadCallback")
+    }, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
   end
 
   def add_ocsp_responder

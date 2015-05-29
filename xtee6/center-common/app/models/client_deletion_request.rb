@@ -40,12 +40,12 @@ class ClientDeletionRequest < DeletionRequest
         joins(:security_server, :sec_serv_user).
         where(
           :identifiers => { # association security_server
-            :sdsb_instance => server_id.sdsb_instance,
+            :xroad_instance => server_id.xroad_instance,
             :member_class => server_id.member_class,
             :member_code => server_id.member_code,
             :server_code => server_id.server_code},
           :sec_serv_users_requests => { # association sec_serv_user
-            :sdsb_instance => client_id.sdsb_instance,
+            :xroad_instance => client_id.xroad_instance,
             :member_class => client_id.member_class,
             :member_code => client_id.member_code,
             :subsystem_code => client_id.subsystem_code})

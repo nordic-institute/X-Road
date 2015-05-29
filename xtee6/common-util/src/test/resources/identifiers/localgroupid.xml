@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
-<sdsb:group id:objectType="LOCALGROUP"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+<xroad:group id:objectType="LOCALGROUP"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <id:groupCode>lokaalgrupp</id:groupCode>
-</sdsb:group>
+</xroad:group>
 

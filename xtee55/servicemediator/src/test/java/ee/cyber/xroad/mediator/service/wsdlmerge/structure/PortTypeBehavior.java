@@ -18,6 +18,12 @@ import static org.junit.Assert.assertEquals;
  * Covers classes {@link PortType} and {@link PortOperation}.
  */
 public class PortTypeBehavior {
+
+    /**
+     * Tests that port type can be turned into XML.
+     *
+     * @throws Exception thrown when turning port type into XML fails.
+     */
     @Test
     public void shouldTurnPortTypeIntoXml() throws Exception {
         // Given

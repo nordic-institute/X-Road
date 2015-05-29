@@ -8,20 +8,20 @@ else
 fi
 
 classes=build/classes/test
-classname=ee.cyber.sdsb.proxy.testsuite.ProxyTestSuite
+classname=ee.ria.xroad.proxy.testsuite.ProxyTestSuite
 
 if [ "$1" = "-proxy" ]
 then
 	shift
 	classes=build/libs/proxy-1.0.jar
-	classname=ee.cyber.sdsb.proxy.ProxyMain
+	classname=ee.ria.xroad.proxy.ProxyMain
 fi
 
-$javabin -Dee.cyber.sdsb.proxy.ocspCachePath=build/ocsp-cache\
-    -Dee.cyber.sdsb.tempFiles.path=build/attach-tmp -Xmx2000m\
-    -Dee.cyber.sdsb.appLog.path=log\
-    -Dee.cyber.sdsb.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml\
+$javabin -Dxroad.proxy.ocspCachePath=build/ocsp-cache\
+    -Dxroad.tempFiles.path=build/attach-tmp -Xmx2000m\
+    -Dxroad.appLog.path=log\
+    -Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml\
     -Dlogback.configurationFile=src/test/logback-proxytest.xml\
-    -Dee.cyber.sdsb.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml\
-    -Dee.cyber.sdsb.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml\
+    -Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml\
+    -Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml\
     -cp ../libs/hsqldb.jar:../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../common-verifier/build/classes/test:$classes $classname $*

@@ -1,5 +1,8 @@
 package ee.cyber.xroad.monitoragent;
 
+/**
+ * Enumeration that identifies message parameters.
+ */
 public enum MessageParam {
     // Parameters for query notification
     QUERY_CONSUMER(21),

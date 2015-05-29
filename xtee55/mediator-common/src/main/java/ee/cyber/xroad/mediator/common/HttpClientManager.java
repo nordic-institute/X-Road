@@ -2,7 +2,7 @@ package ee.cyber.xroad.mediator.common;
 
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 
-import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ClientId;
 
 /**
  * This interface provides methods for acquiring HttpClient instances based on
@@ -14,13 +14,14 @@ import ee.cyber.sdsb.common.identifier.ClientId;
 public interface HttpClientManager {
 
     /**
-     * Returns a default instance of http client. Used when the client
+     * @return a default instance of http client. Used when the client
      * identifier is not available or does not matter.
      */
     CloseableHttpAsyncClient getDefaultHttpClient();
 
     /**
-     * Returns a new or cached instance of http client for the given client
+     * @param client the client ID
+     * @return a new or cached instance of http client for the given client
      * identifier. The created http client could be customized based on the
      * client identifier (such as custom SSL key/trust managers etc.)
      */

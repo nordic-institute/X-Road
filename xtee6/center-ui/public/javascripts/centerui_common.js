@@ -1,7 +1,8 @@
 /**
  * Common logic for views.
  */
-var SDSB_CENTERUI_COMMON = function() {
+var XROAD_CENTERUI_COMMON = function() {
+    var DIALOG_MAX_HEIGHT = 0.8;
 
     /* -- PUBLIC - START -- */
 
@@ -46,12 +47,17 @@ var SDSB_CENTERUI_COMMON = function() {
         }, "json");
     }
 
+    function limitDialogMaxHeight(dialog) {
+        dialog.dialog({ maxHeight: $(window).height() * DIALOG_MAX_HEIGHT });
+    }
+
     /* -- PUBLIC - END -- */
 
     return {
         getDetailsLink: getDetailsLink,
         fillSelectWithEmptyOption: fillSelectWithEmptyOption,
         openDetailsIfAllowed: openDetailsIfAllowed,
-        updateRecordsCount: updateRecordsCount
+        updateRecordsCount: updateRecordsCount,
+        limitDialogMaxHeight: limitDialogMaxHeight
     };
 }();

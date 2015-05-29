@@ -1,11 +1,10 @@
-def mainClass = 'ee.cyber.sdsb.asyncsender.Main'
+def mainClass = 'ee.ria.xroad.asyncsender.Main'
 
 dependencies {
     compile project(':common-util')
     compile project(':async-db')
-    
+
     testCompile project(':common-test')
-    testCompile 'org.mockito:mockito-core:1.9.0'
 }
 
 jar {

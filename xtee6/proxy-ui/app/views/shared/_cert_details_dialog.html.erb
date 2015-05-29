@@ -1,9 +1,9 @@
 <%= dialog "cert_details_dialog", t('.cert_details') do %>
   <section class="container">
-    <textarea id="dump" readonly class="dump" wrap="off"></textarea>
+    <pre id="dump"></pre>
   </section>
   <section class="container">
-    <legend><%= t '.hash', :alg => "SHA-1" %></legend>
-    <p id="hash" class="mono"></p>
+    <h2><span><%= t '.hash', :alg => "SHA-1" %></span></h2>
+    <pre id="hash" class="mono"></pre>
   </section>
 <% end %>

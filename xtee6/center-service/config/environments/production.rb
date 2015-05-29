@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 CenterService::Application.configure do
   # Settings specified here will take precedence over those in config/application.rb

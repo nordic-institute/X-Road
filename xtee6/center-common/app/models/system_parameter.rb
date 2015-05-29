@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::javax.xml.crypto.dsig.DigestMethod
 
 class SystemParameter < ActiveRecord::Base
@@ -93,7 +93,7 @@ class SystemParameter < ActiveRecord::Base
 
     return nil unless provider_class && provider_code
 
-    Java::ee.cyber.sdsb.common.identifier.ClientId.create(
+    Java::ee.ria.xroad.common.identifier.ClientId.create(
         instance_identifier,
         provider_class,
         provider_code,

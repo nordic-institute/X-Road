@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:tns="http://www.example.org/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     name="centralservice" targetNamespace="http://www.example.org/centralservice/">
     <wsdl:types>
         <!-- Schema for identifiers (reduced) -->
         <xsd:schema elementFormDefault="qualified"
             targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers">
-            <xsd:complexType name="SdsbIdentifierType">
+            <xsd:complexType name="XroadIdentifierType">
                 <xsd:annotation>
                     <xsd:documentation>Globally unique identifier in the
-                        SDSB system. Identifier consists of object type
+                        XROAD system. Identifier consists of object type
                         specifier and list of hierarchical codes
-                        (starting with code that identifiers the SDSB
+                        (starting with code that identifiers the XROAD
                         instance).
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element minOccurs="0" ref="sdsbInstance" />
+                    <xsd:element minOccurs="0" ref="xRoadInstance" />
                     <xsd:element minOccurs="0" ref="memberClass" />
                     <xsd:element minOccurs="0" ref="memberCode" />
                     <xsd:element minOccurs="0" ref="subsystemCode" />
@@ -27,9 +27,9 @@
                 </xsd:sequence>
                 <xsd:attribute ref="objectType" use="required" />
             </xsd:complexType>
-            <xsd:simpleType name="SdsbObjectType">
+            <xsd:simpleType name="XroadObjectType">
                 <xsd:annotation>
-                    <xsd:documentation>Enumeration for SDSB identifier
+                    <xsd:documentation>Enumeration for XROAD identifier
                         types that can be used in requests.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -40,9 +40,9 @@
                     <xsd:enumeration value="SERVICE" />
                 </xsd:restriction>
             </xsd:simpleType>
-            <xsd:element name="sdsbInstance" type="xsd:string">
+            <xsd:element name="xRoadInstance" type="xsd:string">
                 <xsd:annotation>
-                    <xsd:documentation>Identifies the SDSB instance.
+                    <xsd:documentation>Identifies the XROAD instance.
                         This field is applicable to all identifier
                         types.
                     </xsd:documentation>
@@ -65,14 +65,14 @@
             <xsd:element name="subsystemCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        subsystem of given SDSB member.
+                        subsystem of given XROAD member.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="serviceCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        service offered by given SDSB member or
+                        service offered by given XROAD member or
                         subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -86,17 +86,17 @@
             <xsd:element name="serverCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies
-                        security server offered by a given SDSB member
+                        security server offered by a given XROAD member
                         or subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:attribute name="objectType" type="SdsbObjectType" />
-            <xsd:complexType name="SdsbClientIdentifierType">
+            <xsd:attribute name="objectType" type="XroadObjectType" />
+            <xsd:complexType name="XroadClientIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="SdsbIdentifierType">
+                    <xsd:restriction base="XroadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="sdsbInstance" />
+                            <xsd:element ref="xRoadInstance" />
                             <xsd:element ref="memberClass" />
                             <xsd:element ref="memberCode" />
                             <xsd:element minOccurs="0"
@@ -105,11 +105,11 @@
                     </xsd:restriction>
                 </xsd:complexContent>
             </xsd:complexType>
-            <xsd:complexType name="SdsbServiceIdentifierType">
+            <xsd:complexType name="XroadServiceIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="SdsbIdentifierType">
+                    <xsd:restriction base="XroadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="sdsbInstance" />
+                            <xsd:element ref="xRoadInstance" />
                             <xsd:element ref="memberClass" />
                             <xsd:element ref="memberCode" />
                             <xsd:element minOccurs="0"
@@ -121,11 +121,11 @@
                     </xsd:restriction>
                 </xsd:complexContent>
             </xsd:complexType>
-            <xsd:complexType name="SdsbSecurityServerIdentifierType">
+            <xsd:complexType name="XroadSecurityServerIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="SdsbIdentifierType">
+                    <xsd:restriction base="XroadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="sdsbInstance" />
+                            <xsd:element ref="xRoadInstance" />
                             <xsd:element ref="memberClass" />
                             <xsd:element ref="memberCode" />
                             <xsd:element ref="serverCode" />
@@ -137,7 +137,7 @@
 
         <!-- Schema for requests (reduced) -->
         <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema"
-            xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" targetNamespace="http://x-road.eu/xsd/sdsb.xsd"
+            xmlns:tns="http://x-road.eu/xsd/xroad.xsd" targetNamespace="http://x-road.eu/xsd/xroad.xsd"
             xmlns:id="http://x-road.eu/xsd/identifiers"
             elementFormDefault="qualified">
 
@@ -155,8 +155,8 @@
                 type="tns:authCertDeletionType" />
 
             <!-- Header fields -->
-            <xsd:element name="client" type="id:SdsbClientIdentifierType" />
-            <xsd:element name="service" type="id:SdsbServiceIdentifierType" />
+            <xsd:element name="client" type="id:XroadClientIdentifierType" />
+            <xsd:element name="service" type="id:XroadServiceIdentifierType" />
             <xsd:element name="userId" type="xsd:string" />
             <xsd:element name="id" type="xsd:string" />
             <xsd:element name="async" type="xsd:boolean" />
@@ -164,7 +164,7 @@
             <xsd:complexType name="authCertDeletionType">
                 <xsd:sequence>
                     <xsd:element name="server"
-                        type="id:SdsbSecurityServerIdentifierType">
+                        type="id:XroadSecurityServerIdentifierType">
                         <xsd:annotation>
                             <xsd:documentation>Identity of this security
                                 server.
@@ -188,7 +188,7 @@
             <xsd:complexType name="ClientRequestType">
                 <xsd:sequence>
                     <xsd:element name="server"
-                        type="id:SdsbSecurityServerIdentifierType">
+                        type="id:XroadSecurityServerIdentifierType">
                         <xsd:annotation>
                             <xsd:documentation>Identity of this security
                                 server.
@@ -196,9 +196,9 @@
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="client"
-                        type="id:SdsbClientIdentifierType">
+                        type="id:XroadClientIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of the SDSB
+                            <xsd:documentation>Identity of the XROAD
                                 member
                                 or subsystem requesting to be a
                                 client
@@ -216,32 +216,32 @@
     </wsdl:types>
 
     <wsdl:message name="requestheader">
-        <wsdl:part name="client" element="sdsb:client" />
-        <wsdl:part name="service" element="sdsb:service" />
-        <wsdl:part name="userId" element="sdsb:userId" />
-        <wsdl:part name="id" element="sdsb:id" />
-        <wsdl:part name="async" element="sdsb:async" />
+        <wsdl:part name="client" element="xroad:client" />
+        <wsdl:part name="service" element="xroad:service" />
+        <wsdl:part name="userId" element="xroad:userId" />
+        <wsdl:part name="id" element="xroad:id" />
+        <wsdl:part name="async" element="xroad:async" />
     </wsdl:message>
 
     <wsdl:message name="clientReg">
-        <wsdl:part element="sdsb:clientReg" name="parameters" />
+        <wsdl:part element="xroad:clientReg" name="parameters" />
     </wsdl:message>
     <wsdl:message name="clientRegResponse">
-        <wsdl:part element="sdsb:clientRegResponse" name="parameters" />
+        <wsdl:part element="xroad:clientRegResponse" name="parameters" />
     </wsdl:message>
 
     <wsdl:message name="clientDeletion">
-        <wsdl:part element="sdsb:clientDeletion" name="parameters" />
+        <wsdl:part element="xroad:clientDeletion" name="parameters" />
     </wsdl:message>
     <wsdl:message name="clientDeletionResponse">
-        <wsdl:part element="sdsb:clientDeletionResponse" name="parameters" />
+        <wsdl:part element="xroad:clientDeletionResponse" name="parameters" />
     </wsdl:message>
 
     <wsdl:message name="authCertDeletion">
-        <wsdl:part element="sdsb:authCertDeletion" name="parameters" />
+        <wsdl:part element="xroad:authCertDeletion" name="parameters" />
     </wsdl:message>
     <wsdl:message name="authCertDeletionResponse">
-        <wsdl:part element="sdsb:authCertDeletionResponse"
+        <wsdl:part element="xroad:authCertDeletionResponse"
             name="parameters" />
     </wsdl:message>
 

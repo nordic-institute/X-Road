@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" 
-    xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" 
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd">
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
 
     <instanceIdentifier>EE</instanceIdentifier>
 
@@ -77,7 +77,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass>BUSINESS</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -154,7 +154,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass>BUSINESS</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -231,7 +231,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
     <approvedCA>
@@ -261,7 +261,7 @@
         </topCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
 
@@ -361,7 +361,7 @@
         </intermediateCA>
         <identifierDecoder>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectClientId</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
         </identifierDecoder>
     </approvedCA>
 
@@ -454,23 +454,23 @@
         <groupCode>Test group</groupCode>
         <description>Description</description>
         <groupMember id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>member1</id:memberCode>
             <id:subsystemCode>subsys</id:subsystemCode>
         </groupMember>
         <groupMember id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>member2</id:memberCode>
         </groupMember>
         <groupMember id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>member3</id:memberCode>
         </groupMember>
         <groupMember id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>member4</id:memberCode>
         </groupMember>
@@ -479,7 +479,7 @@
     <centralService>
         <serviceCode>central1</serviceCode>
         <implementingService id:objectType="SERVICE">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>foobar</id:memberCode>
             <id:serviceCode>bazservice</id:serviceCode>

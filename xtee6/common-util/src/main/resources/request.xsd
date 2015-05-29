@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers"
     elementFormDefault="qualified">
     <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
 
@@ -11,7 +11,7 @@
 
     <complexType name="AuthCertRegRequestType">
         <sequence>
-            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+            <element name="server" type="id:XroadSecurityServerIdentifierType">
                 <annotation>
                     <documentation>Identity of this security server.</documentation>
                 </annotation>
@@ -30,7 +30,7 @@
     </complexType>
     <complexType name="AuthCertDeletionRequestType">
         <sequence>
-            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+            <element name="server" type="id:XroadSecurityServerIdentifierType">
                 <annotation>
                     <documentation>Identity of this security server.</documentation>
                 </annotation>
@@ -45,14 +45,14 @@
     </complexType>
     <complexType name="ClientRequestType">
         <sequence>
-            <element name="server" type="id:SdsbSecurityServerIdentifierType">
+            <element name="server" type="id:XroadSecurityServerIdentifierType">
                 <annotation>
                     <documentation>Identity of this security server.</documentation>
                 </annotation>
             </element>
-            <element name="client" type="id:SdsbClientIdentifierType">
+            <element name="client" type="id:XroadClientIdentifierType">
                 <annotation>
-                    <documentation>Identity of the SDSB member or subsystem requesting to be a client of this security server 
+                    <documentation>Identity of the XROAD member or subsystem requesting to be a client of this security server 
                     or who needs to be deleted from the list of clients of this server server.</documentation>
                 </annotation>
             </element>

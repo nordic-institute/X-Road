@@ -1,15 +1,23 @@
 package ee.cyber.xroad.serviceimporter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-public class ServiceImporterTest {
+/**
+ * Service importer test program.
+ */
+@Slf4j
+public final class ServiceImporterTest {
 
-    private static final Logger LOG = LoggerFactory.getLogger(
-            ServiceImporterTest.class);
+    private ServiceImporterTest() {
+    }
 
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
-        LOG.debug("Starting up.");
-        LOG.debug("Shutting down.");
+        log.debug("Starting up.");
+        log.debug("Shutting down.");
     }
 }

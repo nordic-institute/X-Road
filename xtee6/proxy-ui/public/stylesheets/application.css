@@ -1,4 +1,4 @@
-.ui-dialog-titlebar .sdsb-id {
+.ui-dialog-titlebar .xroad-id {
   font-weight: 300; }
 
 #services .fa {
@@ -20,6 +20,31 @@
   height: 100%; }
   #group_description_edit_dialog .dialog-body textarea {
     height: calc(100% - 15px); }
+
+#keys_wrapper tr.key td {
+  padding-left: 20px; }
+#keys_wrapper tr .cert-friendly-name {
+  padding-left: 40px; }
+
+#keys .token {
+  line-height: 34px; }
+#keys .unsaved {
+  background-color: rgba(239, 227, 12, 0.7); }
+#keys .token-unavailable,
+#keys .key-unavailable {
+  background-color: #a8a8a8; }
+#keys .token-active .activate_token {
+  display: none; }
+#keys .token-active .deactivate_token {
+  display: inline; }
+#keys .token-inactive .deactivate_token {
+  display: none; }
+#keys .token-inactive .activate_token {
+  display: inline; }
+#keys .token .locked,
+#keys .token.token-available.token-inactive {
+  color: red;
+  font-family: "open_sansbold"; }
 
 .token-name {
   width: 80%;

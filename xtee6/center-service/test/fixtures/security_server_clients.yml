@@ -1,10 +1,10 @@
-sdsbMember_first:
-  type: "SdsbMember"
-  name: "SDSB member name"
+xroadMember_first:
+  type: "XroadMember"
+  name: "XROAD member name"
   member_code: "codeOfMember"
   member_class_id: <%= ActiveRecord::Fixtures.identify(:memberClass_gov) %>
 
 subsystem_first:
   type: "Subsystem"
-  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:sdsbMember_first) %>
+  xroad_member_id: <%= ActiveRecord::Fixtures.identify(:xroadMember_first) %>
   subsystem_code: "codeOfSubsystem"

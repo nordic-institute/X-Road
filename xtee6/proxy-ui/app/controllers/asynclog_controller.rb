@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.SystemProperties
+java_import Java::ee.ria.xroad.common.SystemProperties
 
 class AsynclogController < ApplicationController
 

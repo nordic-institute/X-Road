@@ -1,6 +1,5 @@
 package ee.cyber.xroad.serviceimporter;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -9,14 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -36,15 +28,15 @@ class XConf {
 
     // A regex to check for UTF-8 encoding.
     // http://www.w3.org/International/questions/qa-forms-utf-8
-    private static Pattern UTF_8_PATTERN = Pattern.compile(
-        "([\\x09\\x0A\\x0D\\x20-\\x7E]" +
-        "|[\\xC2-\\xDF][\\x80-\\xBF]" +
-        "|\\xE0[\\xA0-\\xBF][\\x80-\\xBF]" +
-        "|[\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}" +
-        "|\\xED[\\x80-\\x9F][\\x80-\\xBF]" +
-        "|\\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}" +
-        "|[\\xF1-\\xF3][\\x80-\\xBF]{3}" +
-        "|\\xF4[\\x80-\\x8F][\\x80-\\xBF]{2})*");
+    private static final Pattern UTF_8_PATTERN = Pattern.compile(
+            "([\\x09\\x0A\\x0D\\x20-\\x7E]"
+            + "|[\\xC2-\\xDF][\\x80-\\xBF]"
+            + "|\\xE0[\\xA0-\\xBF][\\x80-\\xBF]"
+            + "|[\\xE1-\\xEC\\xEE\\xEF][\\x80-\\xBF]{2}"
+            + "|\\xED[\\x80-\\x9F][\\x80-\\xBF]"
+            + "|\\xF0[\\x90-\\xBF][\\x80-\\xBF]{2}"
+            + "|[\\xF1-\\xF3][\\x80-\\xBF]{3}"
+            + "|\\xF4[\\x80-\\x8F][\\x80-\\xBF]{2})*");
 
     XLock lock;
 

@@ -15,8 +15,8 @@ sourceSets {
 }
 
 dependencies {
-    // SDSB dependencies
-    compile 'ee.cyber.sdsb:common-util:1.0'
+    // X-Road 6.0 dependencies
+    compile 'ee.ria.xroad:common-util:1.0'
 
     compile 'org.postgresql:postgresql:9.3-1100-jdbc41'
 
@@ -24,7 +24,7 @@ dependencies {
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.11'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.11'
 
-    testCompile 'ee.cyber.sdsb:common-test:1.0'
+    testCompile 'ee.ria.xroad:common-test:1.0'
 }
 
 fatJarPrepareFiles {

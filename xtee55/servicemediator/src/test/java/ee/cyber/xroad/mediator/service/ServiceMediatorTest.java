@@ -10,15 +10,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.ExpectedCodedException;
-import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
-import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.MimeUtils;
 import ee.cyber.xroad.mediator.EmptyGlobalConf;
 import ee.cyber.xroad.mediator.EmptyServerConf;
 import ee.cyber.xroad.mediator.IdentifierMappingProvider;
@@ -28,263 +19,308 @@ import ee.cyber.xroad.mediator.MockSender;
 import ee.cyber.xroad.mediator.TestResources;
 import ee.cyber.xroad.mediator.common.MediatorRequest;
 import ee.cyber.xroad.mediator.common.MediatorResponse;
-import ee.cyber.xroad.mediator.message.XRoadListMethods;
+import ee.cyber.xroad.mediator.message.V5XRoadListMethods;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.*;
-import static ee.cyber.xroad.mediator.util.MediatorUtils.isSdsbSoapMessage;
-import static ee.cyber.xroad.mediator.util.MediatorUtils.isXroadSoapMessage;
+import static ee.cyber.xroad.mediator.util.MediatorUtils.isV5XRoadSoapMessage;
+import static ee.cyber.xroad.mediator.util.MediatorUtils.isV6XRoadSoapMessage;
+import static ee.ria.xroad.common.ErrorCodes.*;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+/**
+ * Tests to verify correct service mediator behavior.
+ */
 public class ServiceMediatorTest {
 
-    private boolean isSdsbService;
+    private boolean isXroadService;
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
+    /**
+     * Set up configuration.
+     */
     @Before
     public void setUp() {
-        isSdsbService = false;
+        isXroadService = false;
         GlobalConf.reload(new EmptyGlobalConf());
         MediatorServerConf.reload(new TestServerConf());
     }
 
-    @Test
-    public void sdsbMessageInOut() throws Exception {
-        isSdsbService = true;
-
-        (new MockServiceMediatorMessageProcessor(
-                TEXT_XML, "sdsb-simple.request",
-                TEXT_XML, "sdsb-simple.response") {
-            @Override
-            void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
-            }
-            @Override
-            void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
-            }
-        }).process();
-    }
-
-    @Test
-    public void sdsbMessageWithXRoadHeadersInOut() throws Exception {
-        isSdsbService = true;
-
-        (new MockServiceMediatorMessageProcessor(
-                TEXT_XML, "sdsb-simple-xrdheaders.request",
-                TEXT_XML, "sdsb-simple.response") {
-            @Override
-            void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
-            }
-            @Override
-            void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
-            }
-        }).process();
-    }
-
+    /**
+     * Sends an X-Road 6.0 SOAP message to service mediator,
+     * response is an X-Road 6.0 message.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void xroadMessageInOut() throws Exception {
-        isSdsbService = false;
+        isXroadService = true;
 
         (new MockServiceMediatorMessageProcessor(
                 TEXT_XML, "xroad-simple.request",
                 TEXT_XML, "xroad-simple.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isXroadSoapMessage(in));
-                assertTrue(isXroadSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isXroadSoapMessage(in));
-                assertTrue(isXroadSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
-     * Sends an SDSB SOAP message to service mediator,
-     * message converted to X-Road 5.0.
+     * Sends an X-Road 6.0 SOAP message with legacy headers to service mediator,
+     * response is an X-Road 6.0 message.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMessageInXroadMessageOut() throws Exception {
-        isSdsbService = false;
+    public void xroadMessageWithV5XRoadHeadersInOut() throws Exception {
+        isXroadService = true;
 
         (new MockServiceMediatorMessageProcessor(
-                TEXT_XML, "sdsb-simple.request",
+                TEXT_XML, "xroad-simple-xrdheaders.request",
                 TEXT_XML, "xroad-simple.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isXroadSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isXroadSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
      * Sends an X-Road 5.0 SOAP message to service mediator,
-     * message converted to SDSB.
+     * response is an X-Road 5.0 message.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void xroadMessageInSdsbMessageOut() throws Exception {
-        isSdsbService = true;
+    public void v5XroadMessageInOut() throws Exception {
+        isXroadService = false;
+
+        (new MockServiceMediatorMessageProcessor(
+                TEXT_XML, "v5xroad-simple.request",
+                TEXT_XML, "v5xroad-simple.response") {
+            @Override
+            void verifyRequest(SoapMessage in, SoapMessage out) {
+                assertTrue(isV5XRoadSoapMessage(in));
+                assertTrue(isV5XRoadSoapMessage(out));
+            }
+            @Override
+            void verifyResponse(SoapMessage in, SoapMessage out) {
+                assertTrue(isV5XRoadSoapMessage(in));
+                assertTrue(isV5XRoadSoapMessage(out));
+            }
+        }).process();
+    }
+
+    /**
+     * Sends an X-Road 6.0 SOAP message to service mediator,
+     * message converted to X-Road 5.0.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void v6XRoadMessageInV5XRoadMessageOut() throws Exception {
+        isXroadService = false;
 
         (new MockServiceMediatorMessageProcessor(
                 TEXT_XML, "xroad-simple.request",
-                TEXT_XML, "sdsb-simple.response") {
+                TEXT_XML, "v5xroad-simple.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isXroadSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV5XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isXroadSoapMessage(out));
+                assertTrue(isV5XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
-     * Sends an SDSB multipart message to service mediator,
-     * simple SDSB response.
+     * Sends an X-Road 5.0 SOAP message to service mediator,
+     * message converted to X-Road 6.0.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMultipartMessageInSimpleOut() throws Exception {
-        isSdsbService = true;
+    public void v5XroadMessageInXroadMessageOut() throws Exception {
+        isXroadService = true;
+
+        (new MockServiceMediatorMessageProcessor(
+                TEXT_XML, "v5xroad-simple.request",
+                TEXT_XML, "xroad-simple.response") {
+            @Override
+            void verifyRequest(SoapMessage in, SoapMessage out) {
+                assertTrue(isV5XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
+            }
+            @Override
+            void verifyResponse(SoapMessage in, SoapMessage out) {
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV5XRoadSoapMessage(out));
+            }
+        }).process();
+    }
+
+    /**
+     * Sends an X-Road 6.0 multipart message to service mediator,
+     * simple X-Road 6.0 response.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void xroadMultipartMessageInSimpleOut() throws Exception {
+        isXroadService = true;
 
         String contentType = MimeUtils.mpRelatedContentType("mainBoundary");
         (new MockServiceMediatorMessageProcessor(
-                contentType, "sdsb-multipart.request",
-                TEXT_XML, "sdsb-simple.response") {
+                contentType, "xroad-multipart.request",
+                TEXT_XML, "xroad-simple.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
-     * Sends an SDSB multipart message to service mediator,
-     * multipart SDSB response.
+     * Sends an X-Road 6.0 multipart message to service mediator,
+     * multipart X-Road 6.0 response.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMultipartMessageInOut() throws Exception {
-        isSdsbService = true;
+    public void xroadMultipartMessageInOut() throws Exception {
+        isXroadService = true;
 
         String contentType = MimeUtils.mpRelatedContentType("mainBoundary");
         (new MockServiceMediatorMessageProcessor(
-                contentType, "sdsb-multipart.request",
-                contentType, "sdsb-multipart.response") {
+                contentType, "xroad-multipart.request",
+                contentType, "xroad-multipart.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
-     * Sends an SDSB multipart message with invalid SOAP.
+     * Sends an X-Road 6.0 multipart message with invalid SOAP.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMultipartInvalidSoapIn() throws Exception {
+    public void xroadMultipartInvalidSoapIn() throws Exception {
         thrown.expectError(X_INVALID_SOAP);
 
         String contentType = MimeUtils.mpRelatedContentType("mainBoundary");
         new MockServiceMediatorMessageProcessor(
-                contentType, "sdsb-multipart-invalidmessage.request",
+                contentType, "xroad-multipart-invalidmessage.request",
                 contentType, null).process();
     }
 
     /**
-     * Sends an SDSB message to service mediator,
+     * Sends an X-Road 6.0 message to service mediator,
      * proxy responds with X-Road 5.0 message.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMessageInUnexpectedXroadResponse() throws Exception {
+    public void v6XRoadMessageInUnexpectedV5XRoadResponse() throws Exception {
         thrown.expectError(X_INTERNAL_ERROR);
 
-        isSdsbService = true;
+        isXroadService = true;
 
         (new MockServiceMediatorMessageProcessor(
-                TEXT_XML, "sdsb-simple.request",
-                TEXT_XML, "xroad-simple.response") {
+                TEXT_XML, "xroad-simple.request",
+                TEXT_XML, "v5xroad-simple.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(isSdsbSoapMessage(in));
-                assertTrue(isSdsbSoapMessage(out));
+                assertTrue(isV6XRoadSoapMessage(in));
+                assertTrue(isV6XRoadSoapMessage(out));
             }
         }).process();
     }
 
     /**
-     * Sends an SDSB SOAP message to service mediator, no conversion,
+     * Sends an X-Road 6.0 SOAP message to service mediator, no conversion,
      * service responds with SOAP fault.
+     * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void sdsbMessageInFaultResponse() throws Exception {
-        isSdsbService = true;
+    public void xroadMessageInFaultResponse() throws Exception {
+        isXroadService = true;
         try {
             new MockServiceMediatorMessageProcessor(
-                    TEXT_XML, "sdsb-simple.request",
-                    TEXT_XML, "sdsb-fault.response").process();
+                    TEXT_XML, "xroad-simple.request",
+                    TEXT_XML, "xroad-fault.response").process();
         } catch (CodedException.Fault fault) {
             assertEquals("CODE", fault.getFaultCode());
             assertEquals("STRING", fault.getFaultString());
         }
     }
 
+    /**
+     * Sends a listMethods meta request.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void listMethods() throws Exception {
-        isSdsbService = true;
+        isXroadService = true;
 
         (new MockServiceMediatorMessageProcessor("/consumer",
                 TEXT_XML, "listMethods.request",
                 TEXT_XML, "listMethods.response") {
             @Override
             void verifyRequest(SoapMessage in, SoapMessage out) {
-                assertTrue(in instanceof XRoadListMethods);
-                assertTrue(out instanceof XRoadListMethods);
+                assertTrue(in instanceof V5XRoadListMethods);
+                assertTrue(out instanceof V5XRoadListMethods);
             }
             @Override
             void verifyResponse(SoapMessage in, SoapMessage out) {
-                assertTrue(in instanceof XRoadListMethods);
-                assertTrue(out instanceof XRoadListMethods);
+                assertTrue(in instanceof V5XRoadListMethods);
+                assertTrue(out instanceof V5XRoadListMethods);
             }
         }).process();
     }
 
+    /**
+     * Sends a message to disabled service, response is a SOAP fault.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void serviceDisabled() throws Exception {
         thrown.expectError(X_SERVICE_DISABLED);
@@ -297,8 +333,8 @@ public class ServiceMediatorTest {
         });
 
         new MockServiceMediatorMessageProcessor("",
-                TEXT_XML, "sdsb-simple.request",
-                TEXT_XML, "sdsb-fault.response").process();
+                TEXT_XML, "xroad-simple.request",
+                TEXT_XML, "xroad-fault.response").process();
     }
 
     // -------------------------- Helpers -------------------------------------
@@ -306,8 +342,8 @@ public class ServiceMediatorTest {
     private class TestServerConf extends EmptyServerConf
             implements MediatorServerConfProvider {
         @Override
-        public boolean isSdsbService(ServiceId serviceId) {
-            return isSdsbService;
+        public boolean isXroadService(ServiceId serviceId) {
+            return isXroadService;
         }
 
         @Override

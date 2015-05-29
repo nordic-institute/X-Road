@@ -4,7 +4,7 @@
     <SOAP-ENV:Header>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:testQuery xmlns:ns1="http://cosumer.ee.sdsb.net">
+        <ns1:testQuery xmlns:ns1="http://cosumer.ee.xroad.net">
             <request>
                 <name>foo</name>
                 <age>35</age>

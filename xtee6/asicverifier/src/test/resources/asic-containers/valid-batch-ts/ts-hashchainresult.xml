@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:HashChainResult URI="/ts-hashchain.xml#STEP0" xmlns:ns2="http://cyber.ee/hashchain" xmlns="http://www.w3.org/2000/09/xmldsig#">
+    <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+    <DigestValue>EotoIPAzLu6sy4L5VHhw7tYqx/zhVbwn4cYYd7E77Mw=</DigestValue>
+</ns2:HashChainResult>

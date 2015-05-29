@@ -107,21 +107,22 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
     first_member = result[0]
     first_member_id = first_member[:identifier]
-    first_member_name = first_member[:name]
+    expected_server_codes =
+        ["member_out_of_vallavalitsused", "member_as_server_client"]
 
-    assert_equal("Testing member as server client",
-        first_member_name)
-    assert_equal("member_as_server_client", first_member_id.member_code)
+    expected_server_codes.delete_if { |c| c == first_member_id.member_code}
     assert_nil(first_member_id.subsystem_code)
 
     second_member = result[1]
     second_member_id = second_member[:identifier]
-    second_member_name = second_member[:name]
 
-    assert_equal("This member should NOT belong to group 'vallavalitsused'",
-        second_member_name)
-    assert_equal("member_out_of_vallavalitsused", second_member_id.member_code)
+    expected_server_codes.delete_if { |c| c == second_member_id.member_code}
     assert_nil(second_member_id.subsystem_code)
+
+    assert_equal(
+        0,
+        expected_server_codes.size,
+        "Following server codes not found: '#{expected_server_codes}'")
   end
 
   test "Get count of all clients not in group" do
@@ -225,7 +226,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
   test "Should remove related global group memberships when member destroyed" do
     # Given
-    member_to_destroy = SdsbMember.create!(
+    member_to_destroy = XroadMember.create!(
       :member_class => get_riigiasutus(),
       :member_code => "deletable",
       :name => "DeletableName",
@@ -239,7 +240,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     second_group.add_member(group_member_id.clean_copy())
 
     # When
-    SdsbMember.destroy(member_to_destroy)
+    XroadMember.destroy(member_to_destroy)
 
     # Then
     assert(!first_group.has_member?(group_member_id.clean_copy()),
@@ -253,7 +254,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     # Given
     server_to_destroy = get_security_server()
 
-    member_to_destroy = SdsbMember.create!(
+    member_to_destroy = XroadMember.create!(
       :member_class => get_riigiasutus(),
       :member_code => "memberToDestroy",
       :name => "DeletableName",
@@ -262,11 +263,11 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
     subsystem_to_destroy = Subsystem.create!(
       :subsystem_code => "subsystemToDestroy",
-      :sdsb_member => member_to_destroy,
+      :xroad_member => member_to_destroy,
       :security_servers => [server_to_destroy])
 
     # When
-    SdsbMember.destroy(member_to_destroy)
+    XroadMember.destroy(member_to_destroy)
 
     # Then
     client_deletion_requests = ClientDeletionRequest.all

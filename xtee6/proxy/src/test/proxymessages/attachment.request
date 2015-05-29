@@ -1,17 +1,17 @@
 --xtop569125687hcu8vfma
 Content-Type: text/xml
 
-<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd">
+<?xml version="1.0" encoding="utf-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
     <SOAP-ENV:Header>
-        <sdsb:consumer>consumer</sdsb:consumer>
-        <sdsb:producer>producer</sdsb:producer>
-        <sdsb:userId>EE37702211234</sdsb:userId>
-        <sdsb:id>d6481f3ee7181712964f246b3e5f3f07</sdsb:id>
-        <sdsb:service>producer.test</sdsb:service>
-        <sdsb:issue>issue</sdsb:issue>
+        <xroad:consumer>consumer</xroad:consumer>
+        <xroad:producer>producer</xroad:producer>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>d6481f3ee7181712964f246b3e5f3f07</xroad:id>
+        <xroad:service>producer.test</xroad:service>
+        <xroad:issue>issue</xroad:issue>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:test xmlns:ns1="http://cosumer.ee.sdsb.net"/>
+        <ns1:test xmlns:ns1="http://cosumer.ee.xroad.net"/>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
 --xtop569125687hcu8vfma

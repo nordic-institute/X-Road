@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd"
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers">
     <import namespace="http://x-road.eu/xsd/identifiers"
         schemaLocation="../identifiers.xsd" id="id"/>
@@ -79,7 +79,7 @@
                 </annotation>
             </element>
             <element name="managementRequestServiceProviderId"
-                type="id:SdsbClientIdentifierType">
+                type="id:XroadClientIdentifierType">
                 <annotation>
                     <documentation>
                         Identifier of the X-Road member or subsystem providing the management request services.

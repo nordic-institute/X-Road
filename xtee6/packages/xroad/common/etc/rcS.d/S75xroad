@@ -1,3 +1,3 @@
 
 
-test -d /var/run/sdsb || mkdir -m0755 /var/run/sdsb/ && chown sdsb:sdsb /var/run/sdsb
+test -d /var/run/xroad || mkdir -m0755 /var/run/xroad/ && chown xroad:xroad /var/run/xroad

@@ -46,17 +46,17 @@ Content-Date: 2013-05-29T13:59:41+0000
         <groupCode>linnuvabrik</groupCode>
         <description>Eriti ohtlik grupeering</description>
         <member ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>BUSINESS</ns2:memberClass>
             <ns2:memberCode>kallekurg</ns2:memberCode>
         </member>
         <member ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>BUSINESS</ns2:memberClass>
             <ns2:memberCode>martinlind</ns2:memberCode>
         </member>
         <member ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>BUSINESS</ns2:memberClass>
             <ns2:memberCode>olgerdharakas</ns2:memberCode>
         </member>
@@ -65,7 +65,7 @@ Content-Date: 2013-05-29T13:59:41+0000
         <groupCode>nahatehas</groupCode>
         <description>Siin tehakse nahka</description>
         <member ns2:objectType="MEMBER">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>BUSINESS</ns2:memberClass>
             <ns2:memberCode>kauponahk</ns2:memberCode>
         </member>
@@ -73,7 +73,7 @@ Content-Date: 2013-05-29T13:59:41+0000
     <centralService>
         <serviceCode>serviceCode</serviceCode>
         <implementingService ns2:objectType="SERVICE">
-            <ns2:sdsbInstance>EE</ns2:sdsbInstance>
+            <ns2:xRoadInstance>EE</ns2:xRoadInstance>
             <ns2:memberClass>BUSINESS</ns2:memberClass>
             <ns2:memberCode>10</ns2:memberCode>
             <ns2:serviceCode>teenus</ns2:serviceCode>

@@ -1,4 +1,4 @@
-var SDSB_MEMBERS = function() {
+var XROAD_MEMBERS = function() {
     var oMembers;
 
     function enableActions() {
@@ -51,7 +51,7 @@ var SDSB_MEMBERS = function() {
         ];
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("members");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("members");
             enableActions();
         }
 
@@ -73,7 +73,7 @@ var SDSB_MEMBERS = function() {
             redrawMembersTable();
             $(dialog).dialog("close");
 
-            SDSB_MEMBER_EDIT.open(response.data);
+            XROAD_MEMBER_EDIT.open(response.data);
         }, "json");
     }
 
@@ -101,8 +101,8 @@ var SDSB_MEMBERS = function() {
         $("#member_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 430,
-            width: 360,
+            height: 350,
+            width: 500,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -123,7 +123,7 @@ var SDSB_MEMBERS = function() {
         });
 
         $("#members tbody tr").live("dblclick", function() {
-            SDSB_MEMBER_EDIT.open(oMembers.getFocusData());
+            XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
         });
 
         $("#members tbody td").live("click", function(ev) {
@@ -134,7 +134,7 @@ var SDSB_MEMBERS = function() {
         });
 
         $("#member_details").click(function() {
-            SDSB_MEMBER_EDIT.open(oMembers.getFocusData());
+            XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
         });
     });
 

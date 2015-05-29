@@ -1,8 +1,8 @@
 XROADTOP = $(shell cd ../ ; pwd)
 
-LIBSRC = xmem.c passwordstore.ci ee_cyber_sdsb_common_util_PasswordStore.c
+LIBSRC = xmem.c passwordstore.ci ee_ria_xroad_common_util_PasswordStore.c
 
-OBJECTS = xmem.o passwordstore.o ee_cyber_sdsb_common_util_PasswordStore.o
+OBJECTS = xmem.o passwordstore.o ee_ria_xroad_common_util_PasswordStore.o
 
 TEST_PROGRAMS = test_passwordstore_write test_passwordstore_read \
 		test_passwordstore_clear

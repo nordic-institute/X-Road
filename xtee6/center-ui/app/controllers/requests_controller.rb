@@ -58,11 +58,17 @@ class RequestsController < ApplicationController
 
     request = Request.find(params[:id])
 
+    server_owner_name = XroadMember.get_name(
+        request.server_owner_class, request.server_owner_code)
+
+    request.update_server_owner_name(server_owner_name)
+
     additional_data = {
       :complementary_id => request.get_complementary_id(),
       :revoking_id => request.get_revoking_request_id(),
       :comments => request.comments,
-      :server_address => request.address
+      :server_address => request.address,
+      :server_owner_name => server_owner_name
     }
 
     render_json(additional_data)

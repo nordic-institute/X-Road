@@ -1,8 +1,8 @@
 # This table will hold files to be distributed by the Central. It contains
 # file name and file data (as blob) pairs.
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.SharedParameters
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.PrivateParameters
+java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
+java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParameters
 
 class DistributedFiles < ActiveRecord::Base
   validates_with Validators::MaxlengthValidator
@@ -58,7 +58,7 @@ class DistributedFiles < ActiveRecord::Base
   end
 
   def self.get_optional_parts_conf
-    return Java::ee.cyber.sdsb.commonui.OptionalPartsConf.new(
+    return Java::ee.ria.xroad.commonui.OptionalPartsConf.new(
         OptionalConfParts.get_optional_parts_dir())
   end
 

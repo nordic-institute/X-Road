@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="toja" id="0-initial">
+        <createTable tableName="LOGRECORD">
+            <column name="ID" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="DISCRIMINATOR" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="TIME" type="BIGINT"/>
+            <column name="ARCHIVED" type="BOOLEAN"/>
+            <column name="QUERYID" type="VARCHAR(255)"/>
+            <column name="MESSAGE" type="CLOB"/>
+            <column name="SIGNATURE" type="CLOB"/>
+            <column name="HASHCHAIN" type="CLOB"/>
+            <column name="HASHCHAINRESULT" type="CLOB"/>
+            <column name="SIGNATUREHASH" type="CLOB"/>
+            <column name="TIMESTAMPRECORD" type="BIGINT"/>
+            <column name="TIMESTAMPHASHCHAIN" type="CLOB"/>
+            <column name="RESPONSE" type="BOOLEAN"/>
+            <column name="TIMESTAMP" type="CLOB"/>
+        </createTable>
+        <addPrimaryKey columnNames="ID" constraintName="LOGRECORDPK" tableName="LOGRECORD"/>
+        <addForeignKeyConstraint baseColumnNames="TIMESTAMPRECORD" baseTableName="LOGRECORD" constraintName="FK_QO6ACK8SAD6FQIB90XGHDAYLH" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="LOGRECORD"/>
+        <createSequence sequenceName="hibernate_sequence"/>
+    </changeSet>
+</databaseChangeLog>

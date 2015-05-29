@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$1" = "upgrade" ];
+then
+    if dpkg --compare-versions "$2" lt-nl "6.3"
+    then
+
+      find /etc/xroad/confproxy/ -name anchor.xml -exec  sed -i 's/xsd\/sdsb\.xsd/xsd\/xroad\.xsd/g' {} \;
+
+    fi
+fi
+

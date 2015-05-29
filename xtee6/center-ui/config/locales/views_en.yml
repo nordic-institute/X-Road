@@ -38,9 +38,7 @@ en:
   backup:
     index:
       item:
-        restore_confirm: "During restore You will be logged out of global configuration signing token. Are you sure you want to restore configuration from file '{{file}}'?"
-    upload:
-      file_exists: "Backup file with name '{{file}}' already exists, do You want to overwrite it?"
+        restore_confirm: "During restore you will be logged out of global configuration signing token. Are you sure you want to restore configuration from file '{{file}}'?"
 
   orgs:
     index:
@@ -223,7 +221,7 @@ en:
       code: "Code"
       class: "Class"
       subsystem: "Subsystem"
-      sdsb: "Instance"
+      xroad: "Instance"
       type: "Type"
       added: "Added"
       delete_group: "Delete group"
@@ -305,6 +303,8 @@ en:
     last_result: "Last Result"
 
   import_v5:
+    file_type: "File Type"
+    file_info: "File Info"
     upload_file:
       title: "Upload File"
       enter_file_name: "Enter File Name"

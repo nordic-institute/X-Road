@@ -1,8 +1,8 @@
-var SDSB_REQUEST_EDIT = function(){
+var XROAD_REQUEST_EDIT = function(){
     /* -- PUBLIC - START -- */
 
     function open(requestData) {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed("requests/can_see_details",
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed("requests/can_see_details",
                 function(){
             fillRequestDetails(requestData);
         });
@@ -62,33 +62,33 @@ var SDSB_REQUEST_EDIT = function(){
         case 'AuthCertRegRequest':
             $.get("requests/get_auth_cert_reg_request_data", params,
                     function(response) {
-                $("#auth_cert_reg_request_edit_dialog").dialog("open");
+                openRequestEditDialog(
+                    $("#auth_cert_reg_request_edit_dialog"));
                 fillRequestAuthCertData(response.data);
-                blurInputs();
             }, "json");
             break;
         case 'ClientRegRequest':
             $.get("requests/get_client_reg_request_data", params,
                     function(response) {
-                $("#client_reg_request_edit_dialog").dialog("open");
+                openRequestEditDialog(
+                    $("#client_reg_request_edit_dialog"));
                 fillClientData(response.data);
-                blurInputs();
             }, "json");
             break;
         case 'AuthCertDeletionRequest':
             $.get("requests/get_auth_cert_deletion_request_data", params,
                     function(response) {
-                $("#auth_cert_deletion_request_edit_dialog").dialog("open");
+                openRequestEditDialog(
+                    $("#auth_cert_deletion_request_edit_dialog"));
                 fillRequestAuthCertData(response.data)
-                blurInputs();
             }, "json");
             break;
         case 'ClientDeletionRequest':
             $.get("requests/get_client_deletion_request_data", params,
                     function(response) {
-                $("#client_deletion_request_edit_dialog").dialog("open");
+                openRequestEditDialog(
+                    $("#client_deletion_request_edit_dialog"));
                 fillClientData(response.data);
-                blurInputs();
             }, "json");
             break;
         default:
@@ -96,6 +96,12 @@ var SDSB_REQUEST_EDIT = function(){
             alert("Type '" + requestData.type + "'is not supported");
             break;
         };
+    }
+
+    function openRequestEditDialog(dialog) {
+        XROAD_CENTERUI_COMMON.limitDialogMaxHeight(dialog);
+        dialog.dialog("open");
+        blurInputs();
     }
 
     function initializeRequestDetailsForm(requestData) {
@@ -167,17 +173,17 @@ var SDSB_REQUEST_EDIT = function(){
     }
 
     function updateManagementRequestsTable() {
-        if (typeof SDSB_REQUESTS != 'undefined') {
-            SDSB_REQUESTS.updateTable();
+        if (typeof XROAD_REQUESTS != 'undefined') {
+            XROAD_REQUESTS.updateTable();
         }
 
-        if (typeof SDSB_MEMBER_EDIT != 'undefined') {
+        if (typeof XROAD_MEMBER_EDIT != 'undefined') {
             // TODO: need to refresh requests for topmost member_edit dialog
-            // SDSB_MEMBER_EDIT.refreshManagementRequests();
+            // XROAD_MEMBER_EDIT.refreshManagementRequests();
         }
 
-        if (typeof SDSB_SECURITYSERVER_EDIT != 'undefined') {
-            SDSB_SECURITYSERVER_EDIT.refreshManagementRequests();
+        if (typeof XROAD_SECURITYSERVER_EDIT != 'undefined') {
+            XROAD_SECURITYSERVER_EDIT.refreshManagementRequests();
         }
     }
 

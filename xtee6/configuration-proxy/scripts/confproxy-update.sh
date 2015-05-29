@@ -7,19 +7,19 @@ die () {
 }
 
 
-if [ "$(id -nu )" != "sdsb" ]
+if [ "$(id -nu )" != "xroad" ]
 then
- die "ABORTED. This script must run under sdsb user "
+ die "ABORTED. This script must run under xroad user "
 fi
 
 
 
-. /etc/sdsb/services/confproxy.conf
+. /etc/xroad/services/confproxy.conf
 
 (
 flock -n 200 || die "there is update process running"
 
 umask 0002
-${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${CONFPROXY_PARAMS} -cp ${CP} ee.cyber.sdsb.confproxy.ConfProxyMain $@
+${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${CONFPROXY_PARAMS} -cp ${CP} ee.ria.xroad.confproxy.ConfProxyMain $@
 
-) 200>/var/lock/sdsb.confproxy.lock
+) 200>/var/lock/xroad.confproxy.lock

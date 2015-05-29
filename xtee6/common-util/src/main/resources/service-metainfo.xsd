@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
     elementFormDefault="qualified"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd"
-    xmlns="http://x-road.eu/xsd/sdsb.xsd"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+    xmlns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers">
     <xs:import schemaLocation="identifiers.xsd" id="id"
         namespace="http://x-road.eu/xsd/identifiers"/>
     <xs:complexType name="ClientListType">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0"
-                name="member" type="id:SdsbClientIdentifierType"/>
+                name="member" type="ClientType"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="CentralServiceListType">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0"
                 name="centralService"
-                type="id:SdsbCentralServiceIdentifierType"/>
+                type="id:XroadCentralServiceIdentifierType"/>
         </xs:sequence>
     </xs:complexType>
     <xs:complexType name="MethodListType">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0"
-                name="service" type="id:SdsbServiceIdentifierType" />
+                name="service" type="id:XroadServiceIdentifierType" />
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ClientType">
+        <xs:sequence>
+            <xs:element name="id" type="id:XroadClientIdentifierType"/>
+            <xs:element name="name" type="xs:string" minOccurs="0"/>
         </xs:sequence>
     </xs:complexType>
     <xs:element name="clientList" type="ClientListType"/>

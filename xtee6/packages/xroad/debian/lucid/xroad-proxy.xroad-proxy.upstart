@@ -14,16 +14,16 @@ umask 007
 expect daemon
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
-    chown sdsb:sdsb /etc/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
+    chown xroad:xroad /etc/xroad
 end script
 
 script
 exec >>/tmp/ddd3.log 2>&1
 set -x
 
-  . /etc/sdsb/services/proxy.conf
-   exec start-stop-daemon --start --background --chuid sdsb:sdsb -k 0007 --name xroad-proxy --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${PROXY_PARAMS} ${SDSB_PARAMS} -Djava.net.preferIPv4Stack=true -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.cyber.sdsb.proxy.ProxyMain
+  . /etc/xroad/services/proxy.conf
+   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name xroad-proxy --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${PROXY_PARAMS} ${XROAD_PARAMS} -Djava.net.preferIPv4Stack=true -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.proxy.ProxyMain
 end script
 

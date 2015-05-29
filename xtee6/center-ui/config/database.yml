@@ -15,3 +15,10 @@ test:
   adapter: jdbcsqlite3
   encoding: utf8
   database: build/centerui_test.sqlite3
+
+test_pg:
+  adapter: postgresql
+  encoding: utf8
+  username: centerui_test_pg
+  password: centerui
+  database: centerui_test_pg

@@ -17,10 +17,10 @@
         </encoder>
     </appender>
     
-    <logger name="ee.cyber.sdsb" level="TRACE" />
+    <logger name="ee.ria.xroad" level="TRACE" />
     
     <!-- Temporarily disable logger for proxy UI -->
-    <logger name="ee.cyber.sdsb.proxyui" level="OFF" />
+    <logger name="ee.ria.xroad.proxyui" level="OFF" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

@@ -23,13 +23,13 @@ build:
 ifdef lucid
 	  echo "PREPARE LUCID" 
 	  cp debian/lucid/*upstart debian/ 
-	  cp debian/lucid/proxy_restore_db.sh proxy/usr/share/sdsb/scripts/restore_db.sh 
-	  cp debian/lucid/center_restore_db.sh center/usr/share/sdsb/scripts/restore_db.sh 
+	  cp debian/lucid/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh 
+	  cp debian/lucid/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh 
 else
 	  echo "PREPARE TRUSTY" 
 	  cp debian/trusty/*upstart debian/ 
-	  cp debian/trusty/proxy_restore_db.sh proxy/usr/share/sdsb/scripts/restore_db.sh 
-	  cp debian/trusty/center_restore_db.sh center/usr/share/sdsb/scripts/restore_db.sh 
+	  cp debian/trusty/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh 
+	  cp debian/trusty/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh 
 endif
 	
 

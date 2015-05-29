@@ -7,7 +7,7 @@ class AuthCertRegProcessing < RequestProcessing
         .joins(:security_server, :request_processing)
         .where(
           :identifiers => { # association security_server
-            :sdsb_instance => server_id.sdsb_instance,
+            :xroad_instance => server_id.xroad_instance,
             :member_class => server_id.member_class,
             :member_code => server_id.member_code,
             :server_code => server_id.server_code},
@@ -32,7 +32,7 @@ class AuthCertRegProcessing < RequestProcessing
 
       # Find the owner.
       owner_id = request.security_server.owner_id
-      owner = SdsbMember.find_by_id(owner_id)
+      owner = XroadMember.find_by_id(owner_id)
       if owner == nil
         raise I18n.t("requests.client_not_found",
             :client => owner_id.to_s)

@@ -4,17 +4,20 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 
-import ee.cyber.sdsb.common.conf.InternalSSLKey;
-import ee.cyber.sdsb.common.conf.serverconf.IsAuthentication;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.SecurityCategoryId;
-import ee.cyber.sdsb.common.identifier.SecurityServerId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
+/**
+ * Empty test serverconf implementation.
+ */
 public class EmptyServerConf implements MediatorServerConfProvider {
 
     @Override
-    public boolean isSdsbService(ServiceId serviceId) {
+    public boolean isXroadService(ServiceId serviceId) {
         return false;
     }
 

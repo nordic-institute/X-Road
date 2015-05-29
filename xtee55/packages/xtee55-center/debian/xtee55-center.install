@@ -1,2 +1,3 @@
 usr/* usr/
-../../validator-identifiermapping/build/libs/validator-identifiermapping-0.1.jar usr/share/sdsb/jlib/
+../../validator-identifiermapping/build/libs/validator-identifiermapping-0.1.jar usr/share/xroad/jlib/
+../default-configuration/identifier-mapping.ini etc/xroad/configuration-parts/

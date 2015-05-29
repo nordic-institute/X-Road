@@ -10,22 +10,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Conf implements Closeable {
-    public static final String PROP_DB_HOST =
-            "ee.cyber.xroad.validator.identifiermapping.db.host";
-    public static final String PROP_DB_PORT =
-            "ee.cyber.xroad.validator.identifiermapping.db.port";
-    public static final String PROP_DB_DATABASE =
-            "ee.cyber.xroad.validator.identifiermapping.db.database";
-    public static final String PROP_DB_USERNAME =
-            "ee.cyber.xroad.validator.identifiermapping.db.username";
-    public static final String PROP_DB_PASSWORD =
-            "ee.cyber.xroad.validator.identifiermapping.db.password";
+class Conf implements Closeable {
 
+    private DbConf dbConf;
     private Connection connection;
 
-    public Conf() throws Exception {
-        checkPresenceOfDriver();
+    public Conf(DbConf dbConf) throws Exception {
+        this.dbConf = dbConf;
 
         establishDbConnection();
     }
@@ -85,38 +76,13 @@ public class Conf implements Closeable {
     }
 
     private void establishDbConnection() throws SQLException {
-        String url = String.format("jdbc:postgresql://%s:%s/%s",
-                getDbHost(), getDbPort(), getDbDatabase());
 
         connection = DriverManager.getConnection(
-                url, getDbUsername(), getDbPassword());
+                dbConf.getUrl(), dbConf.getUsername(), dbConf.getPassword());
 
         connection.setReadOnly(true);
 
         System.out.println("Database connection established successfully");
     }
 
-    private static String getDbHost() {
-        return System.getProperty(PROP_DB_HOST, "localhost");
-    }
-
-    private static String getDbPort() {
-        return System.getProperty(PROP_DB_PORT, "5432");
-    }
-
-    private static String getDbDatabase() {
-        return System.getProperty(PROP_DB_DATABASE, "centerui_production");
-    }
-
-    private static String getDbUsername() {
-        return System.getProperty(PROP_DB_USERNAME);
-    }
-
-    private static String getDbPassword() {
-        return System.getProperty(PROP_DB_PASSWORD);
-    }
-
-    private static void checkPresenceOfDriver() throws ClassNotFoundException {
-        Class.forName("org.postgresql.Driver");
-    }
 }

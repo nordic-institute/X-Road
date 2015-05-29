@@ -1,5 +1,6 @@
 package ee.cyber.xroad.mediator.service.wsdlmerge.merger;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,10 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.namespace.QName;
-
 import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 
@@ -19,7 +17,6 @@ import ee.cyber.xroad.mediator.service.wsdlmerge.structure.*;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.Binding;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.BindingOperation;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.DoclitBinding;
-import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.RpcBinding;
 
 /**
  * Creates combined WSDL out of parsed artifacts.
@@ -41,7 +38,6 @@ class WSDLMerger {
     private QName mergedBindingType = null;
     private Service mergedService = null;
 
-    private boolean isDoclit = false;
     private String oldTargetNamespace = null;
 
     private String newTargetNamespace = null;
@@ -50,7 +46,6 @@ class WSDLMerger {
     private Map<String, BindingOperation> nameToBindingOp = new HashMap<>();
 
     private Set<String> xrdNamespaces = new HashSet<>();
-    private Set<Boolean> wsdlStyles = new HashSet<>();
 
     /** Just a placeholder for binding operations' cleanup. */
     private List<BindingOperation> tempBindingOps = null;
@@ -68,7 +63,6 @@ class WSDLMerger {
         extractInputWsdls();
 
         validateXrdNamespaces();
-        validateWsdlStyles();
 
         organizeBindingOps();
         validateSchemaElementNames();
@@ -88,7 +82,6 @@ class WSDLMerger {
             addMessages(eachWsdl);
 
             xrdNamespaces.add(eachWsdl.getXrdNamespace());
-            wsdlStyles.add(eachWsdl.isDoclit());
 
             for (PortType eachPort : eachWsdl.getPortTypes()) {
                 mergedPortOps.addAll(eachPort.getOperations());
@@ -99,7 +92,6 @@ class WSDLMerger {
             }
 
             if (first) {
-                isDoclit = eachWsdl.isDoclit();
                 oldTargetNamespace = eachWsdl.getTargetNamespace();
 
                 PortType firstPortType = eachWsdl.getPortTypes().get(0);
@@ -142,38 +134,9 @@ class WSDLMerger {
         }
 
         String errorMsg = String.format(
-                "All mergeable WSDLs must use the same XRoad namespace, "
-                        + "but there are several: '%s'",
+                "WSDLs must use the same X-Road namespace. Found: %s",
                 StringUtils.join(xrdNamespaces, ", "));
         throw new InvalidWSDLCombinationException(errorMsg);
-    }
-
-    private void validateWsdlStyles() throws InvalidWSDLCombinationException {
-        if (mergingWithNonDoclitWSDLs()) {
-            throw new InvalidWSDLCombinationException(
-                    "Only document/literal WSDLS can be merged, but WSDL "
-                            + "styles other than that are in the server "
-                            + "configuration.");
-        }
-
-        if (wsdlStyles.size() == 1) {
-            return;
-        }
-
-        throw new InvalidWSDLCombinationException(
-                "All mergeable WSDL-s should be either of style "
-                        + "'rpc/encoded' or 'document-literal/wrapped', "
-                        + "but not both.");
-    }
-
-    private boolean mergingWithNonDoclitWSDLs() {
-        for (WSDL each : wsdls) {
-            if (!each.isDoclit()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private void organizeBindingOps() throws InvalidWSDLCombinationException {
@@ -202,7 +165,7 @@ class WSDLMerger {
 
     private void validateSchemaElementNames()
             throws InvalidWSDLCombinationException {
-        Set<String> existingNames = new HashSet<String>();
+        Set<String> existingNames = new HashSet<>();
 
         for (XrdNode each : mergedSchemaElements) {
             if (!existingNames.add(each.getName())) {
@@ -216,7 +179,7 @@ class WSDLMerger {
     }
 
     /**
-     * @return Binding operation about to be removed.
+     * Adds newest version of the operation.
      */
     private void addNewestOpVersion(
             BindingOperation existingOp, BindingOperation newOp) {
@@ -441,14 +404,8 @@ class WSDLMerger {
     }
 
     private String getMergedWsdlTargetNamespace() {
-        if (isDoclit) {
-            return String.format(
-                    getDoclitTargetNamespaceTemplate(), databaseV5Name);
-        } else {
-            return String.format(
-                    "http://producers.%s.xtee.riik.ee/producer/%s",
-                    databaseV5Name, databaseV5Name);
-        }
+        return String.format(
+                getDoclitTargetNamespaceTemplate(), databaseV5Name);
     }
 
     private String getDoclitTargetNamespaceTemplate() {
@@ -503,12 +460,7 @@ class WSDLMerger {
         List<PortType> mergedPortTypes = Collections.singletonList(
                 new PortType(mergedPortTypeName, mergedPortOps));
 
-        Binding mergedBinding = isDoclit
-                ? new DoclitBinding(
-                        mergedBindingName,
-                        mergedBindingType,
-                        mergedBindingOps)
-                : new RpcBinding(
+        Binding mergedBinding = new DoclitBinding(
                         mergedBindingName,
                         mergedBindingType,
                         mergedBindingOps);
@@ -525,7 +477,6 @@ class WSDLMerger {
                 mergedPortTypes,
                 mergedBindings,
                 mergedServices,
-                isDoclit,
                 xrdNamespace,
                 newTargetNamespace,
                 databaseV5Name);

@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -14,69 +15,72 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.SystemPropertiesLoader;
-import ee.cyber.sdsb.common.db.HibernateUtil;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.util.CryptoUtils;
+import ee.cyber.xroad.mediator.IdentifierMapping;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import static ee.cyber.sdsb.common.ErrorCodes.translateException;
-import static ee.cyber.sdsb.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.*;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 
 /**
- * Conf related utils for 5.0->SDSB migration.
+ * Conf related utils for 5.0->6.0 migration.
  */
-public class Main {
+@Slf4j
+public final class Main {
+
+    private static final int DELETE_OPTION_LENGTH = 4;
 
     static {
-        new SystemPropertiesLoader(MediatorSystemProperties.PREFIX) {
-            @Override
-            public void loadWithCommonAndLocal() {
-                load(CONF_FILE_MEDIATOR_COMMON);
-                load(CONF_FILE_SERVICE_IMPORTER);
-                load(CONF_FILE_SERVICE_MEDIATOR);
-            }
-        };
+        SystemPropertiesLoader.create(MediatorSystemProperties.PREFIX)
+            .withLocal()
+            .with(CONF_FILE_MEDIATOR_COMMON)
+            .with(CONF_FILE_CLIENT_MEDIATOR)
+            .with(CONF_FILE_SERVICE_MEDIATOR)
+            .load();
 
-        new SystemPropertiesLoader() { // default prefix
-            @Override
-            public void loadWithCommonAndLocal() {
-                load(CONF_FILE_SIGNER);
-            }
-        };
+        SystemPropertiesLoader.create().withCommonAndLocal()
+            .with(CONF_FILE_SIGNER)
+            .load();
     }
-
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
     private static final String LOCK_FILE = "serviceimporter.lock";
 
+    private Main() {
+    }
+
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
         int exitCode = 0;
 
         try {
             CommandLine commandLine = parseArgs(args);
 
-            //Path globalConfPath = Paths.get(SystemProperties.getGlobalConfFile());
+            Path globalConfPath = Paths.get(SystemProperties.getConfigurationAnchorFile());
             Path identifierMappingPath = Paths.get(
-                    MediatorSystemProperties.getIdentifierMappingFile());
+                    IdentifierMapping.getIdentifierMappingFile());
 
             String[] delete = commandLine.getOptionValues("delete");
 
-            LOG.debug("Delete client/org = {}", Arrays.toString(delete));
+            log.debug("Delete client/org = {}", Arrays.toString(delete));
 
             int optionsLength = commandLine.getOptions().length;
 
             if (commandLine.hasOption("import") || optionsLength == 0
                 || (delete != null && optionsLength == 1)) {
 
-                if (/*!requireFile(globalConfPath) ||*/ // TODO: globalconf check
-                    !requireFile(identifierMappingPath)) {
+                if (!requireFile(globalConfPath)
+                        || !requireFile(identifierMappingPath)) {
                     return;
                 }
 
@@ -100,36 +104,37 @@ public class Main {
 
                 ClientId deleteClientId = null;
                 if (delete != null) {
-                    if (delete.length != 4) {
+                    if (delete.length != DELETE_OPTION_LENGTH) {
                         throw new RuntimeException(
                             "Invalid value for -delete option");
                     }
 
+                    int idx = 0;
                     deleteClientId = ClientId.create(
-                            decodeBase64(delete[0]),
-                            decodeBase64(delete[1]),
-                            decodeBase64(delete[2]),
-                            StringUtils.isBlank(delete[3])
-                                    ? null : decodeBase64(delete[3]));
+                            decodeBase64(delete[idx++]),
+                            decodeBase64(delete[idx++]),
+                            decodeBase64(delete[idx++]),
+                            StringUtils.isBlank(delete[idx])
+                                    ? null : decodeBase64(delete[idx]));
                 }
 
                 doExport(deleteClientId);
             }
 
-            if (commandLine.hasOption("checksdsb")) {
-                if (!new SDSBChecker().canActivate()) {
+            if (commandLine.hasOption("checkxroad")) {
+                if (!new XROADChecker().canActivate()) {
                     exitCode = 1;
                 }
             }
 
             if (commandLine.hasOption("checkpromote")) {
-                if (!new SDSBChecker().canPromote()) {
+                if (!new XROADChecker().canPromote()) {
                     exitCode = 1;
                 }
             }
 
         } catch (Throwable e) {
-            LOG.error("ServiceImporter failed", e);
+            log.error("ServiceImporter failed", e);
             System.err.println("ServiceImporter failed: " + e.getMessage());
 
             exitCode = 2;
@@ -183,7 +188,7 @@ public class Main {
             return true;
         }
 
-        LOG.warn("SDSB not configured (missing '{}')", path.toString());
+        log.warn("X-Road 6.0 not configured (missing '{}')", path.toString());
         return false;
     }
 
@@ -193,21 +198,21 @@ public class Main {
 
         OptionGroup mainOperations = new OptionGroup();
         mainOperations.addOption(
-            new Option("import", "import services conf from 5.0 to SDSB"));
+            new Option("import", "import services conf from 5.0 to 6.0"));
         mainOperations.addOption(
-            new Option("export", "export services conf from SDSB to 5.0"));
+            new Option("export", "export services conf from 6.0 to 5.0"));
         mainOperations.addOption(
-            new Option("checksdsb", "check if SDSB can be activated"));
+            new Option("checkxroad", "check if X-Road 6.0 can be activated"));
         mainOperations.addOption(
-                new Option("checkpromote", "check if SDSB can be promoted"));
+                new Option("checkpromote", "check if X-Road 6.0 can be promoted"));
 
         // -delete option has the value of either
-        // 'sdsbInstance,memberClass,memberCode,subsystemCode' or 'shortName'
+        // 'xRoadInstance,memberClass,memberCode,subsystemCode' or 'shortName'
         Option deleteOption =
             new Option("delete", true, "delete specified client/org");
         deleteOption.setRequired(false);
         deleteOption.setValueSeparator(',');
-        deleteOption.setArgs(4);
+        deleteOption.setArgs(DELETE_OPTION_LENGTH);
 
         options.addOptionGroup(mainOperations);
         options.addOption(deleteOption);

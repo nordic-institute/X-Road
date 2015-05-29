@@ -1,4 +1,4 @@
 securityServer_first:
   server_code: "serverCode"
   address: "http://www.securityserver.example.com"
-  sdsb_member_id: <%= ActiveRecord::Fixtures.identify(:sdsbMember_first) %>
+  xroad_member_id: <%= ActiveRecord::Fixtures.identify(:xroadMember_first) %>

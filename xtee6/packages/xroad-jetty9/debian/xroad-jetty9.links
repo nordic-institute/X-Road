@@ -1,4 +1,4 @@
-etc/sdsb/jetty/jetty-login.conf usr/share/sdsb/jetty9/etc/login.conf
-etc/sdsb/jetty/xroad.mod usr/share/sdsb/jetty9/modules/xroad.mod
-etc/sdsb/jetty/start.ini usr/share/sdsb/jetty9/start.ini
+etc/xroad/jetty/jetty-login.conf usr/share/xroad/jetty9/etc/login.conf
+etc/xroad/jetty/xroad.mod usr/share/xroad/jetty9/modules/xroad.mod
+etc/xroad/jetty/start.ini usr/share/xroad/jetty9/start.ini
 

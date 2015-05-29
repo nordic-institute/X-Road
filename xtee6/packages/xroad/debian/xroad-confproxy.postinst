@@ -7,15 +7,15 @@
 case "$1" in
     configure)
 
-    dpkg-divert --package xroad-confproxy --add --rename --divert /etc/sdsb/nginx/default-sdsb.conf.disabled /etc/sdsb/nginx/default-sdsb.conf
+    dpkg-divert --package xroad-confproxy --add --rename --divert /etc/xroad/nginx/default-xroad.conf.disabled /etc/xroad/nginx/default-xroad.conf
 
-    mkdir -p  /var/lib/sdsb/public
-    chmod 755 /var/lib/sdsb/public 
-    chown sdsb:sdsb /var/lib/sdsb/public
+    mkdir -p  /var/lib/xroad/public
+    chmod 755 /var/lib/xroad/public 
+    chown xroad:xroad /var/lib/xroad/public
 
-    mkdir -p  /etc/sdsb/confproxy
-    chmod 755 /etc/sdsb/confproxy
-    chown sdsb:sdsb /etc/sdsb/confproxy
+    mkdir -p  /etc/xroad/confproxy
+    chmod 755 /etc/xroad/confproxy
+    chown xroad:xroad /etc/xroad/confproxy
 
 
     ;;

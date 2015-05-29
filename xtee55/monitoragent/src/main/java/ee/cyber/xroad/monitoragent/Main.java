@@ -3,14 +3,23 @@ package ee.cyber.xroad.monitoragent;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.typesafe.config.ConfigFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-public class Main {
-    private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+/**
+ * Main monitoring agent program.
+ */
+@Slf4j
+public final class Main {
 
+    private Main() {
+    }
+
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     */
     public static void main(String[] args) {
-        LOG.info("Monitor agent starting up.");
+        log.info("Monitor agent starting up.");
 
         ActorSystem actorSystem = ActorSystem.create("XroadMonitoringAgent",
                 ConfigFactory.load().getConfig("monitoringagent"));
@@ -19,6 +28,6 @@ public class Main {
         actorSystem.awaitTermination();
 
         actorSystem.shutdown();
-        LOG.info("Monitor agent starting shutting down.");
+        log.info("Monitor agent starting shutting down.");
     }
 }

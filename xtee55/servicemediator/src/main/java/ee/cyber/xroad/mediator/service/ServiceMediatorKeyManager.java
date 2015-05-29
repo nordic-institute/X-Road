@@ -10,11 +10,10 @@ import javax.net.ssl.X509ExtendedKeyManager;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.InternalSSLKey;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class ServiceMediatorKeyManager extends X509ExtendedKeyManager {
@@ -53,7 +52,7 @@ class ServiceMediatorKeyManager extends X509ExtendedKeyManager {
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
         LOG.trace("getCertificateChain: {}", sslKey.getCert());
-        return new X509Certificate[] { sslKey.getCert() };
+        return new X509Certificate[] {sslKey.getCert()};
     }
 
     @Override

@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.asyncdb.AsyncDB
+java_import Java::ee.ria.xroad.asyncdb.AsyncDB
 
 class AsyncController < ApplicationController
 
@@ -13,7 +13,7 @@ class AsyncController < ApplicationController
 
     providers = []
 
-    clear_cached_sdsb_ids
+    clear_cached_xroad_ids
 
     queues = AsyncDB::getMessageQueues
     queues.each do |queue|
@@ -31,7 +31,7 @@ class AsyncController < ApplicationController
         :last_success => format_time(provider.getLastSuccessTime),
         :last_success_id => provider.getLastSuccessId
       }
-      cache_sdsb_id(provider.getName)
+      cache_xroad_id(provider.getName)
     end if queues
 
     render_json(providers)
@@ -40,7 +40,7 @@ class AsyncController < ApplicationController
   def reset
     authorize!(:reset_async_req_send_count)
 
-    provider_id = get_cached_sdsb_id(params[:provider_id])
+    provider_id = get_cached_xroad_id(params[:provider_id])
     AsyncDB::getMessageQueue(provider_id).resetCount
 
     render_json
@@ -49,7 +49,7 @@ class AsyncController < ApplicationController
   def requests
     authorize!(:view_async_reqs)
 
-    provider_id = get_cached_sdsb_id(params[:provider_id])
+    provider_id = get_cached_xroad_id(params[:provider_id])
     queue = AsyncDB::getMessageQueue(provider_id)
 
     requests = []
@@ -71,7 +71,7 @@ class AsyncController < ApplicationController
   def remove
     authorize!(:remove_restore_async_req)
 
-    provider_id = get_cached_sdsb_id(params[:provider_id])
+    provider_id = get_cached_xroad_id(params[:provider_id])
     queue = AsyncDB::getMessageQueue(provider_id)
     queue.markAsRemoved(params[:request_id])
 
@@ -81,7 +81,7 @@ class AsyncController < ApplicationController
   def restore
     authorize!(:remove_restore_async_req)
 
-    provider_id = get_cached_sdsb_id(params[:provider_id])
+    provider_id = get_cached_xroad_id(params[:provider_id])
     queue = AsyncDB::getMessageQueue(provider_id)
     queue.restore(params[:request_id])
 
@@ -94,16 +94,16 @@ class AsyncController < ApplicationController
     Time.at(time.getTime / 1000).strftime(TIME_FORMAT) if time
   end
 
-  def cache_sdsb_id(sdsb_id)
-    key = sdsb_id.toString
-    session[:sdsb_ids][key] = sdsb_id
+  def cache_xroad_id(xroad_id)
+    key = xroad_id.toString
+    session[:xroad_ids][key] = xroad_id
   end
 
-  def get_cached_sdsb_id(key)
-    session[:sdsb_ids][key]
+  def get_cached_xroad_id(key)
+    session[:xroad_ids][key]
   end
 
-  def clear_cached_sdsb_ids
-    session[:sdsb_ids] = {}
+  def clear_cached_xroad_ids
+    session[:xroad_ids] = {}
   end
 end

@@ -10,19 +10,19 @@ respawn
 respawn limit 5 10
 umask 007
 
-setuid sdsb
-setgid sdsb
+setuid xroad
+setgid xroad
 console log
-chdir /usr/share/sdsb/jetty9
+chdir /usr/share/xroad/jetty9
 
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
+    mkdir -p -m0755 /var/run/xroad
 end script
 
 script
   set -x
-  . /etc/sdsb/services/jetty.conf
-  exec ${JAVA_HOME}/bin/java ${JETTY_PARAMS} ${SDSB_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/sdsb/jetty9
+  . /etc/xroad/services/jetty.conf
+  exec ${JAVA_HOME}/bin/java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9
 end script
 

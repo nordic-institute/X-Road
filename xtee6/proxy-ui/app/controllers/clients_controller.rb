@@ -1,8 +1,8 @@
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.model.ClientType
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx
-java_import Java::ee.cyber.sdsb.common.identifier.SdsbObjectType
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
+java_import Java::ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl
+java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
+java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
+java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class ClientsController < ApplicationController
 
@@ -17,18 +17,18 @@ class ClientsController < ApplicationController
     @instances = GlobalConf::getInstanceIdentifiers
 
     @member_classes = GlobalConf::getMemberClasses
-    @member_classes_instance = GlobalConf::getMemberClasses(sdsb_instance)
+    @member_classes_instance = GlobalConf::getMemberClasses(xroad_instance)
     
     @subject_types = [
-      SdsbObjectType::MEMBER.toString(),
-      SdsbObjectType::SUBSYSTEM.toString(),
-      SdsbObjectType::GLOBALGROUP.toString(),
-      SdsbObjectType::LOCALGROUP.toString(),
+      XroadObjectType::MEMBER.toString(),
+      XroadObjectType::SUBSYSTEM.toString(),
+      XroadObjectType::GLOBALGROUP.toString(),
+      XroadObjectType::LOCALGROUP.toString(),
     ]
 
     @member_types = [
-      SdsbObjectType::MEMBER.toString(),
-      SdsbObjectType::SUBSYSTEM.toString()
+      XroadObjectType::MEMBER.toString(),
+      XroadObjectType::SUBSYSTEM.toString()
     ]
   end
 
@@ -46,7 +46,7 @@ class ClientsController < ApplicationController
     })
 
     members = []
-    GlobalConf::getMembers(sdsb_instance).each do |member|
+    GlobalConf::getMembers(xroad_instance).each do |member|
       if match(member.id.memberClass, params[:search_member]) ||
           match(member.id.memberCode, params[:search_member]) ||
           match(member.id.subsystemCode, params[:search_member]) ||
@@ -91,7 +91,7 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      sdsb_instance,
+      xroad_instance,
       params[:add_member_class],
       params[:add_member_code],
       params[:add_subsystem_code])
@@ -114,7 +114,7 @@ class ClientsController < ApplicationController
     end
 
     if params[:add_subsystem_code]
-      member_found = GlobalConf::getMembers(sdsb_instance).index do |member|
+      member_found = GlobalConf::getMembers(xroad_instance).index do |member|
         member.id == client_id
       end
 
@@ -188,7 +188,7 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      sdsb_instance,
+      xroad_instance,
       params[:member_class],
       params[:member_code],
       params[:subsystem_code])
@@ -244,7 +244,7 @@ class ClientsController < ApplicationController
     end
 
     client_id = ClientId.create(
-      sdsb_instance,
+      xroad_instance,
       params[:member_class],
       params[:member_code],
       params[:subsystem_code])
@@ -379,7 +379,7 @@ class ClientsController < ApplicationController
       :client_id => client.identifier.toString,
       :member_name => GlobalConf::getMemberName(client.identifier),
       :type => client.identifier.objectType.toString,
-      :instance => client.identifier.sdsbInstance,
+      :instance => client.identifier.xRoadInstance,
       :member_class => client.identifier.memberClass,
       :member_code => client.identifier.memberCode,
       :subsystem_code => client.identifier.subsystemCode,
@@ -426,7 +426,7 @@ class ClientsController < ApplicationController
       cache_client_ids
     end
 
-    ClientDAOImpl.instance.getClient(
+    ClientDAOImpl.new.getClient(
       ServerConfDatabaseCtx.session, session[:client_ids][key])
   end
 end

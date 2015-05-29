@@ -1,6 +1,6 @@
 function generateIdElement(data) {
     var wrap = $("<div/>");
-    var span = $("<span/>").addClass("sdsb-id");
+    var span = $("<span/>").addClass("xroad-id");
     var spanText = [];
     var spanTitle = [];
 

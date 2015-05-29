@@ -37,15 +37,18 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import ee.cyber.sdsb.common.SystemProperties;
-import ee.cyber.sdsb.common.util.CryptoUtils;
 import ee.cyber.xroad.mediator.MediatorServerConf;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
 import ee.cyber.xroad.mediator.TestResources;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import static ee.cyber.sdsb.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
-public class ServiceMediatorIntegrationTest {
+/**
+ * Service mediator integration test program.
+ */
+public final class ServiceMediatorIntegrationTest {
 
     private static final int SERVER_HTTP_PORT = 8060;
     private static final int SERVER_HTTPS_PORT = 8061;
@@ -59,8 +62,16 @@ public class ServiceMediatorIntegrationTest {
     private static X509Certificate serverCert;
     private static PrivateKey serverKey;
 
-    private static String responseFile = "sdsb-simple.response";
+    private static String responseFile = "xroad-simple.response";
 
+    private ServiceMediatorIntegrationTest() {
+    }
+
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
                 "src/test/resources/globalconf");
@@ -68,9 +79,9 @@ public class ServiceMediatorIntegrationTest {
         System.setProperty(MediatorSystemProperties.IDENTIFIER_MAPPING_FILE,
                 "src/test/resources/identifiermapping.xml");
 
-        System.setProperty(MediatorSystemProperties.XROAD_PROXY_ADDRESS,
+        System.setProperty(MediatorSystemProperties.V5_XROAD_PROXY_ADDRESS,
                 "http://127.0.0.1:" + SERVER_HTTP_PORT);
-        System.setProperty(MediatorSystemProperties.XROAD_URIPROXY_ADDRESS,
+        System.setProperty(MediatorSystemProperties.V5_XROAD_URIPROXY_ADDRESS,
                 "http://127.0.0.1:" + SERVER_HTTP_PORT);
 
         System.setProperty(
@@ -92,7 +103,7 @@ public class ServiceMediatorIntegrationTest {
             //doGet("?backend=https://127.0.0.1:8061/" + TEST_CASE_1);
             responseFile = "listMethods.response";
             String clientId =
-                    String.format("&sdsbInstance=%s&memberClass=%s&memberCode=%s",
+                    String.format("&xRoadInstance=%s&memberClass=%s&memberCode=%s",
                             "EE", "BUSINESS", "producer_sslauth");
             String url = URLEncoder.encode("https://127.0.0.1:" + port + "/");
             doGet("?backend=" + url + clientId);
@@ -104,7 +115,7 @@ public class ServiceMediatorIntegrationTest {
             //doPost("consumer", "producer_sslnoauth");
             //doPost("consumer", "producer_sslnoauth");
 
-            responseFile = "sdsb-simple.response";
+            responseFile = "xroad-simple.response";
             for (int i = 0; i < 0; i++) {
                 Thread.sleep(1000);
                 doPost("consumer", "producer_nossl");
@@ -142,7 +153,9 @@ public class ServiceMediatorIntegrationTest {
         System.out.println(CryptoUtils.encodeBase64(serverCert.getEncoded()));
 
         try {
-            System.out.println(CryptoUtils.encodeBase64(IOUtils.toByteArray(new FileInputStream("src/test/resources/intcert.pem"))));
+            System.out.println(CryptoUtils.encodeBase64(
+                    IOUtils.toByteArray(new FileInputStream(
+                            "src/test/resources/intcert.pem"))));
 
             //KeyStore ks2 = CryptoUtils.loadKeyStore("pkcs12",
             //        "src/test/resources/intkey.p12", "sslkey".toCharArray());
@@ -201,8 +214,8 @@ public class ServiceMediatorIntegrationTest {
         dummyService.addConnector(httpConnector);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] { new TestServerKeyManager() },
-                new TrustManager[] { new TestServerTrustManager() },
+        ctx.init(new KeyManager[] {new TestServerKeyManager()},
+                new TrustManager[] {new TestServerTrustManager()},
                 new SecureRandom());
         SslContextFactory cf = new SslContextFactory(true);
         cf.setSslContext(ctx);
@@ -235,6 +248,8 @@ public class ServiceMediatorIntegrationTest {
                             case TEST_CASE_FAULT:
                                 sendResponse(response, "fault.response");
                                 break;
+                            default:
+                                break;
                         }
                     }
                 } finally {
@@ -265,11 +280,11 @@ public class ServiceMediatorIntegrationTest {
     }
 
     private static void sendResponse(HttpServletResponse response,
-            String responseFile) throws IOException {
+            String responseFilename) throws IOException {
         response.setContentType(MimeTypes.TEXT_XML);
 
         String data = IOUtils.toString(
-                new FileInputStream("src/test/resources/" + responseFile));
+                new FileInputStream("src/test/resources/" + responseFilename));
         System.out.println("sending response: " + data);
         IOUtils.write(data, response.getOutputStream());
     }
@@ -277,7 +292,7 @@ public class ServiceMediatorIntegrationTest {
     private static String getRequest(String clientMemberCode,
             String serviceMemberCode) throws Exception {
         String data = IOUtils.toString(new FileInputStream(
-                "src/test/resources/sdsb-soap-template.request"));
+                "src/test/resources/xroad-soap-template.request"));
 
         data = data.replaceFirst("<id:memberCode>consumer</id:memberCode>",
                 "<id:memberCode>" + clientMemberCode + "</id:memberCode>");
@@ -289,7 +304,7 @@ public class ServiceMediatorIntegrationTest {
 
     private static String getWsdlRequestUrl() {
         return String.format(
-                "wsdl?sdsbInstance=%s&memberClass=%s&memberCode=%s",
+                "wsdl?xRoadInstance=%s&memberClass=%s&memberCode=%s",
                 "EE", "BUSINESS", "producer_nossl");
     }
 
@@ -313,7 +328,7 @@ public class ServiceMediatorIntegrationTest {
 
         @Override
         public X509Certificate[] getCertificateChain(String alias) {
-            return new X509Certificate[] { serverCert };
+            return new X509Certificate[] {serverCert};
         }
 
         @Override
@@ -354,7 +369,7 @@ public class ServiceMediatorIntegrationTest {
         @Override
         public X509Certificate[] getAcceptedIssuers() {
             System.out.println("getAcceptedIssuers " + serverCert);
-            return new X509Certificate[] { serverCert };
+            return new X509Certificate[] {serverCert};
         }
 
         @Override

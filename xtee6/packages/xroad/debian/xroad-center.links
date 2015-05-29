@@ -1,3 +1,3 @@
-etc/sdsb/nginx/sdsb-center.conf etc/nginx/sites-enabled/sdsb-center
-etc/sdsb/nginx/insecure-sdsb-center.conf etc/nginx/sites-enabled/insecure-sdsb-center
-etc/sdsb/nginx/sdsb-public.conf etc/nginx/sites-enabled/sdsb-public
+etc/xroad/nginx/xroad-center.conf etc/nginx/sites-enabled/xroad-center
+etc/xroad/nginx/insecure-xroad-center.conf etc/nginx/sites-enabled/insecure-xroad-center
+etc/xroad/nginx/xroad-public.conf etc/nginx/sites-enabled/xroad-public

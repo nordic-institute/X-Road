@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<asic:ASiCManifest xmlns:asic="http://uri.etsi.org/2918/v1.2.1#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+<asic:SigReference URI="META-INF/timestamp.tst" MimeType="vnd.etsi.timestamp-token"/>
+<asic:DataObjectReference URI="ts-hashchainresult.xml" MimeType="text/xml">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512" />
+<ds:DigestValue>GUa+9z8twUUbcLxqQ01g6TWKfyUhr8azf5h+70VC/G80Aj6psyHM5a/Ch14TfmPXoiwLwLzcEt4WoyR4N+tiDQ==</ds:DigestValue>
+</asic:DataObjectReference>
+</asic:ASiCManifest>

@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 class SharedParametersGenerator
 
@@ -32,7 +32,7 @@ class SharedParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.cyber.sdsb.common.conf.globalconf.sharedparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.sharedparameters.ObjectFactory
   end
 
   def get_root_type_creator
@@ -89,7 +89,7 @@ class SharedParametersGenerator
   end
 
   def add_members
-    SdsbMember.find_each do |each_member|
+    XroadMember.find_each do |each_member|
       member_type = @marshaller.factory.createMemberType()
       member_type.name = each_member.name
       member_type.memberCode = each_member.member_code
@@ -207,8 +207,8 @@ class SharedParametersGenerator
   end
 
   def get_client_identifier(client)
-    return Java::ee.cyber.sdsb.common.identifier.ClientId.create(
-        client.sdsb_instance,
+    return Java::ee.ria.xroad.common.identifier.ClientId.create(
+        client.xroad_instance,
         client.member_class,
         client.member_code,
         client.subsystem_code)
@@ -217,8 +217,8 @@ class SharedParametersGenerator
   def get_service_identifier(service)
     return nil if service == nil
 
-    return Java::ee.cyber.sdsb.common.identifier.ServiceId.create(
-      service.sdsb_instance,
+    return Java::ee.ria.xroad.common.identifier.ServiceId.create(
+      service.xroad_instance,
       service.member_class,
       service.member_code,
       service.subsystem_code,

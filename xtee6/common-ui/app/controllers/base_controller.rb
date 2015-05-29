@@ -6,12 +6,15 @@ require "common-ui/script_utils"
 require "common-ui/backup_utils"
 require "common-ui/validation_utils"
 
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo
+java_import Java::ee.ria.xroad.common.SystemProperties
+java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
 
 java_import Java::org.apache.commons.lang3.exception.ExceptionUtils
 
 class BaseController < ActionController::Base
+
+  UI_SKIN_FILE = "ui-skin.css";
 
   include CommonUi::UserUtils
   include CommonUi::ValidationUtils
@@ -41,6 +44,10 @@ class BaseController < ActionController::Base
   helper_method :format_time
 
   def index
+  end
+
+  def skin
+    send_file(SystemProperties.getConfPath + UI_SKIN_FILE)
   end
 
   def menu
@@ -156,8 +163,20 @@ class BaseController < ActionController::Base
 
   def translate_coded_exception
     yield
-  rescue Java::ee.cyber.sdsb.common.CodedException => e
-    raise e unless e.translationCode
+  rescue Java::ee.ria.xroad.common.CodedException => e
+    unless e.translationCode
+      # no translationCode, let's try to translate the first faultCode
+      begin
+        translation = 
+          t("coded_exception.fault_code.#{e.faultCode.split('.')[0]}",
+            :reason => e.faultString, :raise => true)
+      rescue
+        raise e
+      end
+
+      logger.error(ExceptionUtils.getStackTrace(e))
+      raise translation
+    end
 
     args_hash = {}
 
@@ -167,6 +186,7 @@ class BaseController < ActionController::Base
       idx += 1
     end if e.arguments
 
+    logger.error(ExceptionUtils.getStackTrace(e))
     raise t("coded_exception.#{e.translationCode}", args_hash)
   end
 
@@ -203,8 +223,6 @@ class BaseController < ActionController::Base
 
     prefix = "#{params[:controller]}.#{params[:action]}_params."
 
-    logger.debug("\n\n\n\nlooking up #{prefix}#{exception.param}.#{exception.validator}\n\n\n\n")
-
     message = t("#{prefix}#{exception.param}.#{exception.validator}", {
       :default => exception.message
     })
@@ -225,7 +243,7 @@ class BaseController < ActionController::Base
   def render_java_error(exception)
     logger.error(ExceptionUtils.getStackTrace(exception))
 
-    if exception.java_kind_of?(Java::ee.cyber.sdsb.common.CodedException)
+    if exception.java_kind_of?(Java::ee.ria.xroad.common.CodedException)
       exception_message = exception.getFaultString
     else
       exception_message = ExceptionUtils.getRootCauseMessage(exception)
@@ -237,6 +255,9 @@ class BaseController < ActionController::Base
   def render_error_response(exception_message)
     error(get_full_error_message(exception_message))
 
+    # in case of error, only notices from :notice! are rendered
+    flash.delete(:notice)
+
     if request.content_type == "multipart/form-data"
       upload_error
       return
@@ -245,7 +266,7 @@ class BaseController < ActionController::Base
     if request.xhr?
       # ajax request only gets the messages
       # status => 500 invokes .ajaxError() callback in jQuery
-      render :partial => "application/error", :status => 500
+      render :json => { :messages => flash.discard }, :status => 500
     else
       # regular request gets the whole layout with messages
       render :template => "application/index"
@@ -271,6 +292,11 @@ class BaseController < ActionController::Base
 
   def notice(text)
     add_flash(:notice, text)
+    logger.info(text)
+  end
+
+  def notice!(text)
+    add_flash(:notice!, text)
     logger.info(text)
   end
 

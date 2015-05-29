@@ -7,9 +7,9 @@ import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 
-import ee.cyber.sdsb.common.util.SchemaValidator;
+import ee.ria.xroad.common.util.SchemaValidator;
 
-public class IdentifierMappingSchemaValidator extends SchemaValidator {
+class IdentifierMappingSchemaValidator extends SchemaValidator {
     public static final String PROP_SCHEMA_FILE =
             "ee.cyber.xroad.validator.identifiermapping.schemaFile";
 

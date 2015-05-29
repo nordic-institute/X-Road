@@ -17,13 +17,13 @@ class SecurityServerClient < ActiveRecord::Base
     remove_client_from_global_groups(record)
   }
 
-  # Finds a SDSB member or subsystem by ClientId
+  # Finds a XROAD member or subsystem by ClientId
   # Returns nil, if not found.
   def self.find_by_id(client_id)
     puts "SecurityServerClient.find_by_id(#{client_id})"
     if client_id.subsystem_code == nil
-      # Find SDSB member
-      return SdsbMember.find_by_code(client_id.member_class, client_id.member_code)
+      # Find XROAD member
+      return XroadMember.find_by_code(client_id.member_class, client_id.member_code)
     else
       # Find subsystem
       return Subsystem.find_by_code(
@@ -96,7 +96,7 @@ class SecurityServerClient < ActiveRecord::Base
 
     identifiers.each do |each|
       result << {
-        :name => SdsbMember.get_name(each.member_class, each.member_code),
+        :name => XroadMember.get_name(each.member_class, each.member_code),
         :identifier => each
       }
     end
@@ -113,7 +113,7 @@ class SecurityServerClient < ActiveRecord::Base
       group_member_id = each_member.group_member
 
       all_member_ids = ClientId.where({
-          :sdsb_instance => group_member_id.sdsb_instance,
+          :xroad_instance => group_member_id.xroad_instance,
           :member_class => group_member_id.member_class,
           :member_code => group_member_id.member_code,
           :subsystem_code => group_member_id.subsystem_code
@@ -214,7 +214,7 @@ class SecurityServerClient < ActiveRecord::Base
         "identifiers.member_code" => searchable.member_code,
         "identifiers.member_class" => searchable.member_class,
         "identifiers.subsystem_code" => searchable.subsystem_code,
-        "identifiers.sdsb_instance" => searchable.sdsb_instance,
+        "identifiers.xroad_instance" => searchable.xroad_instance,
         "identifiers.object_type" => searchable.object_type
     }
   end
@@ -225,7 +225,7 @@ class SecurityServerClient < ActiveRecord::Base
         "identifiers.member_code",
         "identifiers.member_class",
         "identifiers.subsystem_code",
-        "identifiers.sdsb_instance",
+        "identifiers.xroad_instance",
         "identifiers.object_type"
     ]
   end

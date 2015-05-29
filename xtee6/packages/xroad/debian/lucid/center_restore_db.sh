@@ -6,7 +6,7 @@ DROP DATABASE IF EXISTS centerui_backup;
 CREATE DATABASE centerui_restore ENCODING 'UTF-8';
 EOC
 
-PGPASSWORD=centerui pg_restore -h 127.0.0.1 -U centerui -O -x -1 -n public -d centerui_restore /var/lib/sdsb/dbdump.dat
+PGPASSWORD=centerui pg_restore -h 127.0.0.1 -U centerui -O -x -1 -n public -d centerui_restore /var/lib/xroad/dbdump.dat
 
 
 cat << EOC | su - postgres -c "psql postgres"

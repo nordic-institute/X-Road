@@ -17,7 +17,9 @@
 </table>
 
 <section class="container">
-  <textarea readonly class="dump" style="height: auto;" wrap="off"><%= t '.key_info' %>:
+  <h2><span><%= t '.key_info' %></span></h2>
+  <pre>
     <%= t '.key_id' %>: <%= @key.id %>
-    <%= t '.readonly' %>: <%= @token.readOnly %></textarea>
+    <%= t '.readonly' %>: <%= @token.readOnly %>
+  </pre>
 </section>

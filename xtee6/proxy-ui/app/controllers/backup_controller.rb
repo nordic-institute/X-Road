@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx
+java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
 
 class BackupController < BaseBackupController
 

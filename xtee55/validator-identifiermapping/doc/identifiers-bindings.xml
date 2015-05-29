@@ -4,29 +4,29 @@
     version="2.1">
 
     <jxb:bindings schemaLocation="identifiers.xsd">
-        <jxb:bindings node="//xs:complexType[@name='SdsbClientIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.ClientId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadClientIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.ClientId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbServiceIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.ServiceId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadServiceIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.ServiceId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbSecurityCategoryIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.SecurityCategoryId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadSecurityCategoryIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.SecurityCategoryId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbCentralServiceIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.CentralServiceId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadCentralServiceIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.CentralServiceId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbSecurityServerIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.SecurityServerId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadSecurityServerIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.SecurityServerId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbGlobalGroupIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.GlobalGroupId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadGlobalGroupIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.GlobalGroupId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbLocalGroupIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.LocalGroupId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadLocalGroupIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.LocalGroupId"/>
         </jxb:bindings>
-        <jxb:bindings node="//xs:complexType[@name='SdsbIdentifierType']">
-            <jxb:class ref="ee.cyber.sdsb.common.identifier.SdsbId"/>
+        <jxb:bindings node="//xs:complexType[@name='XroadIdentifierType']">
+            <jxb:class ref="ee.ria.xroad.common.identifier.XroadId"/>
         </jxb:bindings>
     </jxb:bindings>
 </jxb:bindings>

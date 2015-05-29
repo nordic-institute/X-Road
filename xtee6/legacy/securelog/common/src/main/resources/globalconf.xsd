@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad_legacy.xsd"
+    targetNamespace="http://x-road.eu/xsd/xroad_legacy.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
     <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="identifiers.xsd" id="id"/>
     <complexType name="GlobalConfType">
         <sequence>
             <element name="instanceIdentifier" type="string">
                 <annotation>
-                    <documentation>Name that identifies this instance of the SDSB system.</documentation>
+                    <documentation>Name that identifies this instance of the XROAD system.</documentation>
                 </annotation>
             </element>
             <element name="member" type="tns:MemberType" minOccurs="0" maxOccurs="unbounded">
@@ -70,7 +70,7 @@
 
     <complexType name="MemberType">
         <annotation>
-            <documentation>Represents information about a member of the SDSB.</documentation>
+            <documentation>Represents information about a member of the XROAD.</documentation>
         </annotation>
         <sequence>
             <element name="memberClass" type="tns:MemberClassCodeType">
@@ -121,7 +121,7 @@
             </element>
             <element maxOccurs="unbounded" minOccurs="0" name="client" type="IDREF">
                 <annotation>
-                    <documentation>Reference to a client of this security server. Client can be either SDSB member or a subsystem.</documentation>
+                    <documentation>Reference to a client of this security server. Client can be either XROAD member or a subsystem.</documentation>
                 </annotation>
             </element>
             <element maxOccurs="unbounded" minOccurs="0" name="securityCategory"
@@ -180,7 +180,7 @@ The method takes as argument java.security.cert.X509Certificate object and retur
         <sequence>
             <element name="groupCode" type="string">
                 <annotation>
-                    <documentation>Code that uniquely identifies this group in a given SDSB instance.</documentation>
+                    <documentation>Code that uniquely identifies this group in a given XROAD instance.</documentation>
                 </annotation>
             </element>
             <element name="description" type="string">
@@ -188,7 +188,7 @@ The method takes as argument java.security.cert.X509Certificate object and retur
                     <documentation>Human-readable name of the group.</documentation>
                 </annotation>
             </element>
-            <element name="member" type="id:SdsbClientIdentifierType" minOccurs="0"
+            <element name="member" type="id:XroadClientIdentifierType" minOccurs="0"
                 maxOccurs="unbounded">
                 <annotation>
                     <documentation>Identifier of subject belonging to group.</documentation>
@@ -273,7 +273,7 @@ The method takes as argument java.security.cert.X509Certificate object and retur
         <sequence>
             <element name="code" type="tns:MemberClassCodeType">
                 <annotation>
-                    <documentation>Code that uniquely identifies member class in this SDSB instance.</documentation>
+                    <documentation>Code that uniquely identifies member class in this XROAD instance.</documentation>
                 </annotation>
             </element>
             <element name="description" type="string"/>
@@ -297,10 +297,10 @@ The method takes as argument java.security.cert.X509Certificate object and retur
         <sequence>
             <element name="serviceCode" type="string">
                 <annotation>
-                    <documentation>Code that uniquely identifies central service in this SDSB instance.</documentation>
+                    <documentation>Code that uniquely identifies central service in this XROAD instance.</documentation>
                 </annotation>
             </element>
-            <element minOccurs="0" name="implementingService" type="id:SdsbServiceIdentifierType">
+            <element minOccurs="0" name="implementingService" type="id:XroadServiceIdentifierType">
                 <annotation>
                     <documentation>Real service that implements the central service</documentation>
                 </annotation>
@@ -332,7 +332,7 @@ The method takes as argument java.security.cert.X509Certificate object and retur
                     <documentation>Address of the management request service.</documentation>
                 </annotation>
             </element>
-            <element name="managementRequestServiceId" type="id:SdsbClientIdentifierType">
+            <element name="managementRequestServiceId" type="id:XroadClientIdentifierType">
                 <annotation>
                     <documentation>Identifier of the management request service.</documentation>
                 </annotation>

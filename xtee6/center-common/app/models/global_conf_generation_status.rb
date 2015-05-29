@@ -63,6 +63,6 @@ class GlobalConfGenerationStatus
 
   def self.get_log_file
     log_dir = CommonUi::IOUtils.get_log_dir()
-    return "#{log_dir}/sdsb_distributed_files-distributed_files-globalconf"
+    return "#{log_dir}/xroad_distributed_files-distributed_files-globalconf"
   end
 end

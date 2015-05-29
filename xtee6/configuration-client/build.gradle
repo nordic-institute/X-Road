@@ -2,7 +2,7 @@ plugins {
     id "eu.appsatori.fatjar" version "0.3"
 }
 
-def mainClass = 'ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain'
+def mainClass = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
 
 dependencies {
     compile project(':common-verifier')
@@ -31,8 +31,8 @@ build.dependsOn fatJar
 buildall.dependsOn fatJar
 
 task runConfigurationClient(type: JavaExec) {
-    jvmArgs '-Dee.cyber.sdsb.conf.path=build/',
-            '-Dee.cyber.sdsb.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+    jvmArgs '-Dxroad.conf.path=build/',
+            '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
     
     main = mainClass
     classpath = sourceSets.main.runtimeClasspath

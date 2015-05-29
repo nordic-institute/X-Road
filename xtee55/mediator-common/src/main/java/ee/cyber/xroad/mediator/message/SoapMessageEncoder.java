@@ -8,7 +8,7 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.cyber.sdsb.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessage;
 
 /**
  * Message encoder that encodes only SOAP messages.
@@ -20,6 +20,10 @@ public class SoapMessageEncoder implements MessageEncoder {
 
     private final OutputStream out;
 
+    /**
+     * Constructs a SOAP message encoder with the given output stream.
+     * @param out the output stream
+     */
     public SoapMessageEncoder(OutputStream out) {
         this.out = out;
     }

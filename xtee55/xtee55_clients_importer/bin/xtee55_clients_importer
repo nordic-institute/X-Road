@@ -1,4 +1,4 @@
-#!/usr/share/sdsb/jruby/bin/jruby
+#!/usr/share/xroad/jruby/bin/jruby
 
 require 'rubygems'
 require 'java'

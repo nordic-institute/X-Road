@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # postinst script for xroad-center
 #
 # see: dh_installdeb(1)
@@ -40,19 +40,52 @@ case "$1" in
     su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='centerui'\" | grep -q 1"
     if [ $? = 1 ]
     then
-      su - postgres -c /usr/share/sdsb/db/create_schema.sh
+      su - postgres -c /usr/share/xroad/db/create_schema.sh
     else 
       echo  "user exists, skipping postgres schema creation"
     fi
+
+      update_needed=`su - postgres -c "psql centerui_production -tAc \"SELECT count(1) FROM schema_migrations\"" 2>/dev/null`
+      if [[ $? == 0 ]]
+       then
+       case $update_needed in
+         [1-9])
+          echo "no upgrade needed"
+        ;;
+        25)
+          echo "reset db changelog"
+          #DO NOT CHANGE ident
+          su - postgres -c "psql centerui_production -tA" << EOF
+alter table identifiers rename sdsb_instance to xroad_instance;
+alter table security_server_clients rename sdsb_member_id to xroad_member_id;
+alter table security_servers rename sdsb_member_id to xroad_member_id;
+alter table security_server_clients rename constraint security_server_clients_sdsb_member_id_fk to security_server_clients_xroad_member_id_fk;
+alter table security_servers rename constraint security_servers_sdsb_member_id_fk to security_servers_xroad_member_id_fk;
+truncate table schema_migrations;
+INSERT INTO schema_migrations VALUES ('20150408102110');
+update approved_cas set identifier_decoder_method_name = replace( identifier_decoder_method_name, 'ee.cyber.sdsb.common','ee.ria.xroad.common');
+update security_server_clients set type = 'XroadMember' where type = 'SdsbMember';
+update distributed_files set file_data = decode(replace(encode(file_data,'escape'), 'sdsbInstance','xRoadInstance'),'escape'), file_updated_at = current_timestamp where content_identifier='IDENTIFIERMAPPING';
+update distributed_files set file_data = decode(replace(encode(file_data,'escape'), 'sdsb.xsd','xroad.xsd'),'escape'), file_updated_at = current_timestamp where content_identifier='CENTRALMONITORAGENTS';
+EOF
+        ;;
+        *)
+	echo "not-compatible version of DB. quiting"
+	exit 2
+        ;;
+        esac
+      fi
+
+
     echo "running db migrations"
-    /usr/share/sdsb/db/migrate.sh db:migrate
+    /usr/share/xroad/db/migrate.sh db:migrate
 
     RET=""
     db_get xroad-common/username
     AUSER="$RET"
     
     #add groups
-    groups="sdsb-security-officer sdsb-system-administrator sdsb-registration-officer"
+    groups="xroad-security-officer xroad-system-administrator xroad-registration-officer"
     for groupname in $groups
     do
       if ! getent group $groupname > /dev/null; then
@@ -61,17 +94,17 @@ case "$1" in
         adduser $AUSER $groupname
     done
 
-    #mkdir -p  /var/lib/sdsb/public
-    chmod 755 /var/lib/sdsb/public 
-    chown sdsb:sdsb /var/lib/sdsb/public
+    #mkdir -p  /var/lib/xroad/public
+    chmod 755 /var/lib/xroad/public 
+    chown xroad:xroad /var/lib/xroad/public
 
-    test -d /var/cache/sdsb && test -w /var/cache/sdsb || mkdir /var/cache/sdsb ; chown sdsb:sdsb /var/cache/sdsb
-    test -d /etc/sdsb/configuration-parts || mkdir /etc/sdsb/configuration-parts ; chown sdsb:sdsb /etc/sdsb/configuration-parts
+    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
+    test -d /etc/xroad/configuration-parts || mkdir /etc/xroad/configuration-parts ; chown xroad:xroad /etc/xroad/configuration-parts
 
 
-    mkdir -p  /var/lib/sdsb/import
-    chmod 755 /var/lib/sdsb/import
-    chown sdsb:sdsb /var/lib/sdsb/import
+    mkdir -p  /var/lib/xroad/import
+    chmod 755 /var/lib/xroad/import
+    chown xroad:xroad /var/lib/xroad/import
 
     ;;
 
@@ -90,6 +123,7 @@ esac
 #DEBHELPER#
 
 service xroad-jetty restart || service xroad-jetty start
+service xroad-signer restart || service xroad-signer start
 invoke-rc.d nginx restart
 
 db_stop

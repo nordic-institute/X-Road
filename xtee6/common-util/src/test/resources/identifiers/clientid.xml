@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
-<sdsb:client id:objectType="MEMBER"
-        xmlns:sdsb="http://x-road.eu/xsd/sdsb.xsd"
+<xroad:client id:objectType="MEMBER"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
-    <id:sdsbInstance>EE</id:sdsbInstance>
+    <id:xRoadInstance>EE</id:xRoadInstance>
     <id:memberClass>COMPANY</id:memberClass>
     <id:memberCode>FOOBAR</id:memberCode>
-</sdsb:client>
+</xroad:client>
 

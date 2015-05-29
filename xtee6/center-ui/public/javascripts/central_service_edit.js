@@ -1,4 +1,4 @@
-var SDSB_CENTRAL_SERVICE_EDIT = function() {
+var XROAD_CENTRAL_SERVICE_EDIT = function() {
     var oProviders;
 
     var dialogTitle;
@@ -8,7 +8,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
     /* -- PUBLIC - START -- */
 
     function open(serviceData) {
-        SDSB_CENTERUI_COMMON.openDetailsIfAllowed(
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed(
                 "central_services/can_see_details", function() {
             fillCentralServiceMemberClassSelect(function(){
                 if (serviceData == null) {
@@ -150,7 +150,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
         confirm("central_services.remove_target_service_confirm",
                 {service: serviceCode}, function() {
             $.post("central_services/delete_target_service", params, function(){
-                SDSB_CENTRAL_SERVICES.refreshTable();
+                XROAD_CENTRAL_SERVICES.refreshTable();
                 clearImplementingServiceData();
             }, "json");
         });
@@ -162,7 +162,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
                 "save_service" : "update_service";
 
         $.post("central_services/" + controllerAction, serviceData, function() {
-            SDSB_CENTRAL_SERVICES.refreshTable();
+            XROAD_CENTRAL_SERVICES.refreshTable();
             $(dialog).dialog("close");
         }, "json");
     }
@@ -192,7 +192,7 @@ var SDSB_CENTRAL_SERVICE_EDIT = function() {
 
     function fillCentralServiceMemberClassSelect(callback) {
         $.get("application/member_classes", null, function(response){
-            SDSB_CENTERUI_COMMON.fillSelectWithEmptyOption(
+            XROAD_CENTERUI_COMMON.fillSelectWithEmptyOption(
                     "central_service_details_target_provider_class",
                     response.data);
             callback();

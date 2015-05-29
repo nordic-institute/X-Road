@@ -9,11 +9,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.util.XmlUtils;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.util.XmlUtils;
 import ee.cyber.xroad.mediator.IdentifierMappingProvider;
 
-import static ee.cyber.sdsb.common.message.SoapUtils.MESSAGE_FACTORY;
+import static ee.ria.xroad.common.message.SoapUtils.MESSAGE_FACTORY;
 
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter

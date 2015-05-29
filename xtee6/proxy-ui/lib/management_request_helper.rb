@@ -1,6 +1,6 @@
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.GlobalConf
-java_import Java::ee.cyber.sdsb.common.identifier.SecurityServerId
-java_import Java::ee.cyber.sdsb.common.request.ManagementRequestSender
+java_import Java::ee.ria.xroad.common.conf.globalconf.GlobalConf
+java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
+java_import Java::ee.ria.xroad.common.request.ManagementRequestSender
 
 module ManagementRequestHelper
 
@@ -36,7 +36,7 @@ module ManagementRequestHelper
     server_code = serverconf.serverCode
 
     SecurityServerId.create(
-      owner.sdsbInstance, owner.memberClass,
+      owner.xRoadInstance, owner.memberClass,
       owner.memberCode, server_code)
   end
 end

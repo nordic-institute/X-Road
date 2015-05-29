@@ -150,7 +150,7 @@
         var selected = oAclSubjects.getFocusData();
         var titleParams = {
             name: selected.name_description ? selected.name_description : "",
-            id: $(".sdsb-id", oAclSubjects.getFocus()).text()
+            id: $(".xroad-id", oAclSubjects.getFocus()).text()
         };
         var title =
             _("clients.acl_subject_open_services_dialog.title", titleParams);

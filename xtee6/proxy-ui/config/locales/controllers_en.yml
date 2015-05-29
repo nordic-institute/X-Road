@@ -1,6 +1,8 @@
 en:
   coded_exception:
     listing_adapter_methods_failed: "Could not get valid response to listMethods request. Adapter specified by the Adapter URL must provide a valid response to listMethods request."
+    fault_code:
+      MalformedGlobalConf: "Global configuration is malformed: %{reason}"
 
   application:
     globalconf_invalid: "Global configuration is expired"

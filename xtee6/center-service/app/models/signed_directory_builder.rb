@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 # Constructs signed directory into the target file.
 class SignedDirectoryBuilder

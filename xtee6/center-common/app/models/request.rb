@@ -108,6 +108,12 @@ class Request < ActiveRecord::Base
     respond_to?(:request_processing) && request_processing
   end
 
+  def update_server_owner_name(current_server_owner_name)
+    return if self.server_owner_name == current_server_owner_name
+
+    update_attributes!(:server_owner_name => current_server_owner_name)
+  end
+
   # Static database-related methods
 
   def self.get_requests(query_params, converted_search_params = [])
@@ -127,7 +133,7 @@ class Request < ActiveRecord::Base
 
   def self.update_names(member_class, member_code, member_name)
     identifier_search_params = { :identifiers => {
-      :sdsb_instance => SystemParameter.instance_identifier,
+      :xroad_instance => SystemParameter.instance_identifier,
       :member_class => member_class,
       :member_code => member_code}
     }
@@ -208,12 +214,12 @@ class Request < ActiveRecord::Base
         .joins(:security_server, :sec_serv_user, :request_processing)\
         .where(
           :identifiers => { # association security_server
-            :sdsb_instance => server_id.sdsb_instance,
+            :xroad_instance => server_id.xroad_instance,
             :member_class => server_id.member_class,
             :member_code => server_id.member_code,
             :server_code => server_id.server_code},
           :sec_serv_users_requests => { # association sec_serv_user
-            :sdsb_instance => client_id.sdsb_instance,
+            :xroad_instance => client_id.xroad_instance,
             :member_class => client_id.member_class,
             :member_code => client_id.member_code,
             :subsystem_code => client_id.subsystem_code},
@@ -234,7 +240,7 @@ class Request < ActiveRecord::Base
 
     identifier_search_params = {
       :identifiers => {
-        :sdsb_instance => server_id.sdsb_instance,
+        :xroad_instance => server_id.xroad_instance,
         :member_class => server_id.member_class,
         :member_code => server_id.member_code,
         :server_code => server_id.server_code}
@@ -270,7 +276,7 @@ class Request < ActiveRecord::Base
     return 1 if client == nil # To keep following callbacks running
 
     server_user_name = client.is_a?(Subsystem) ?
-    client.sdsb_member.name : client.name
+    client.xroad_member.name : client.name
     rec.server_user_name = server_user_name
   end
 end

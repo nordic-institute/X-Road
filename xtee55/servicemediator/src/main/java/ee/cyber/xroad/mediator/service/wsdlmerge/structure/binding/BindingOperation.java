@@ -8,6 +8,9 @@ import org.stringtemplate.v4.ST;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.Marshallable;
 import ee.cyber.xroad.mediator.service.wsdlmerge.structure.TemplateAware;
 
+/**
+ * Abstraction for WSDL binding operation.
+ */
 @Data
 public abstract class BindingOperation implements Marshallable, TemplateAware {
     protected final String name;

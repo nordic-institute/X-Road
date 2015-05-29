@@ -8,6 +8,9 @@ import javax.xml.namespace.QName;
 import lombok.Data;
 import org.stringtemplate.v4.ST;
 
+/**
+ * Abstraction for WSDL port operation.
+ */
 @Data
 public class PortOperation implements Marshallable, TemplateAware {
     private final String name;

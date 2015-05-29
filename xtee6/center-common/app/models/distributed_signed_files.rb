@@ -22,7 +22,7 @@ class DistributedSignedFiles < ActiveRecord::Base
 
   def self.get_log_file(table_name, file_id)
     return "#{CommonUi::IOUtils.get_log_dir()}/"\
-        "sdsb_distributed_files-#{table_name}-#{file_id}"
+        "xroad_distributed_files-#{table_name}-#{file_id}"
   end
 
   def self.write_to_log(writable, table_name, file_id, first_line = nil)

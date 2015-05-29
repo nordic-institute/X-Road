@@ -4,20 +4,29 @@ import java.util.Date;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
-import ee.cyber.sdsb.common.monitoring.MessageInfo;
-import ee.cyber.sdsb.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.monitoring.MonitorAgent;
 
-public class TestMonitorAgent {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            TestMonitorAgent.class);
+/**
+ * Monitor agent test program.
+ */
+@Slf4j
+public final class TestMonitorAgent {
 
+    private TestMonitorAgent() {
+    }
+
+    /**
+     * Main program access point.
+     * @param args command-line arguments
+     * @throws Exception in case of any errors
+     */
     public static void main(String[] args) throws Exception {
-        LOG.debug("Starting up.");
+        log.debug("Starting up.");
 
         ActorSystem actorSystem = ActorSystem.create("TestMonitorAgent",
                 ConfigFactory.load().getConfig("testmonitoragent"));
@@ -25,7 +34,7 @@ public class TestMonitorAgent {
         MonitorAgent.init(actorSystem);
 
         while (true) {
-            LOG.debug("Sending message");
+            log.debug("Sending message");
             MonitorAgent.success(
                     new MessageInfo(
                         MessageInfo.Origin.SERVER_PROXY,
@@ -35,7 +44,7 @@ public class TestMonitorAgent {
                         "1234567890"),
                     new Date(), new Date());
             Thread.sleep(1000);
-            LOG.debug("Sending serverProxyFailed");
+            log.debug("Sending serverProxyFailed");
             MonitorAgent.serverProxyFailed(new MessageInfo(
                     MessageInfo.Origin.SERVER_PROXY,
                     ClientId.create("EE", "ORG", "Foo"),
@@ -43,10 +52,10 @@ public class TestMonitorAgent {
                     "3232312313",
                     "1234567890"));
             Thread.sleep(1000);
-            LOG.debug("Sending fault");
+            log.debug("Sending fault");
             MonitorAgent.failure(null, "Foo", "Bar");
             Thread.sleep(1000);
-            LOG.debug("Sending fault with message");
+            log.debug("Sending fault with message");
             MonitorAgent.failure(
                     new MessageInfo(
                         MessageInfo.Origin.SERVER_PROXY,

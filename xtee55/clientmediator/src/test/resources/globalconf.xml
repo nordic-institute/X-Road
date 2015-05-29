@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://x-road.eu/xsd/sdsb.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../../../common-util/src/main/resources/globalconf.xsd ">
     <instanceIdentifier>EE</instanceIdentifier>
 
     <!-- Members - start -->
@@ -73,23 +73,23 @@
         <groupCode>A-Team</groupCode>
         <description>No need to describe</description>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:xRoadInstance>US</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>hannibal</id:memberCode>
             <id:subsystemCode>underground</id:subsystemCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:xRoadInstance>US</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>ba</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:xRoadInstance>US</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>murdock</id:memberCode>
         </member>
         <member id:objectType="MEMBER">
-            <id:sdsbInstance>US</id:sdsbInstance>
+            <id:xRoadInstance>US</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>face</id:memberCode>
         </member>
@@ -98,7 +98,7 @@
     <centralService>
         <serviceCode>serviceCode</serviceCode>
         <implementingService id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>chuckNorris</id:memberCode>
             <id:serviceCode>central</id:serviceCode>
@@ -176,7 +176,7 @@
         </topCA>
         <nameExtractor>
             <memberClass>TODO</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </nameExtractor>
     </pki>
     <pki>
@@ -254,7 +254,7 @@
         </topCA>
         <nameExtractor>
             <memberClass>TODO</memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </nameExtractor>
     </pki>
     <pki>
@@ -332,7 +332,7 @@
         </topCA>
         <nameExtractor>
             <memberClass></memberClass>
-            <methodName>ee.cyber.sdsb.common.cert.CertHelper.getSubjectCommonName</methodName>
+            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
         </nameExtractor>
     </pki>
 
@@ -359,7 +359,7 @@
     <globalSettings>
         <managementRequestServiceAddress>http://mgmt.com:1234</managementRequestServiceAddress>
         <managementRequestServiceId id:objectType="MEMBER">
-            <id:sdsbInstance>EE</id:sdsbInstance>
+            <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>servicemember2</id:memberCode>
         </managementRequestServiceId>

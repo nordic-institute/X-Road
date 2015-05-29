@@ -1,5 +1,5 @@
 confproxy/etc/* etc/
-../../configuration-proxy/scripts/* usr/share/sdsb/scripts
-../../configuration-proxy/build/libs/configuration-proxy-1.0.jar usr/share/sdsb/jlib/
-../default-configuration/confproxy.ini etc/sdsb/conf.d
-../default-configuration/confproxy-logback.xml etc/sdsb/conf.d
+../../configuration-proxy/scripts/* usr/share/xroad/scripts
+../../configuration-proxy/build/libs/configuration-proxy-1.0.jar usr/share/xroad/jlib/
+../default-configuration/confproxy.ini etc/xroad/conf.d
+../default-configuration/confproxy-logback.xml etc/xroad/conf.d

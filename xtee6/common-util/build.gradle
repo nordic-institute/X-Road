@@ -32,17 +32,17 @@ dependencies {
     compile 'org.quartz-scheduler:quartz:2.1.6'
     compile 'joda-time:joda-time:2.1'
     compile 'xalan:serializer:2.7.1'
-    
+
     compile 'org.apache.httpcomponents:httpasyncclient:4.0'
     compile 'org.apache.httpcomponents:httpclient:4.3.1'
     compile 'org.apache.httpcomponents:httpcore:4.3'
-            
+
     compile 'com.typesafe.akka:akka-actor_2.10:2.2.1'
     compile 'com.typesafe.akka:akka-remote_2.10:2.2.1'
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.0'
 
-    testCompile 'org.mockito:mockito-core:1.9.0'
+    testCompile 'org.mockito:mockito-core:1.10.19'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
@@ -57,21 +57,21 @@ task createDirs() {
 }
 
 task xjc() {
-    ant.taskdef(name: 'xjc', 
-        classname: 'com.sun.tools.xjc.XJCTask', 
+    ant.taskdef(name: 'xjc',
+        classname: 'com.sun.tools.xjc.XJCTask',
         classpath: configurations.xjc.asPath)
 
     // Generate classes for identifiers
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.identifier',
+        package: 'ee.ria.xroad.common.identifier',
         schema: 'src/main/resources/identifiers.xsd'
     )
 
     // Generate classes for message, using identifier classes
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.message',
+        package: 'ee.ria.xroad.common.message',
         schema: 'src/main/resources/message.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
@@ -79,7 +79,7 @@ task xjc() {
     // Generate classes for federateable global external conf
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.conf.globalconf.sharedparameters',
+        package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters',
         schema: 'src/main/resources/globalconf/external-conf.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
@@ -87,7 +87,7 @@ task xjc() {
     // Generate classes for federateable global internal conf
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.conf.globalconf.privateparameters',
+        package: 'ee.ria.xroad.common.conf.globalconf.privateparameters',
         schema: 'src/main/resources/globalconf/internal-conf.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
@@ -95,7 +95,7 @@ task xjc() {
     // Generate classes for request, using identifier classes
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.request',
+        package: 'ee.ria.xroad.common.request',
         schema: 'src/main/resources/request.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
@@ -103,14 +103,14 @@ task xjc() {
     // Generate classes for hash chains
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.hashchain',
+        package: 'ee.ria.xroad.common.hashchain',
         schema: 'src/main/resources/hashchain.xsd',
     )
 
     // Generate classes for service metainfo
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.cyber.sdsb.common.metadata',
+        package: 'ee.ria.xroad.common.metadata',
         schema: 'src/main/resources/service-metainfo.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )

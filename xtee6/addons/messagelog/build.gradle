@@ -1,0 +1,12 @@
+dependencies {
+    compile project(':proxy')
+
+    testCompile project(':common-test')
+    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+
+// It seems that these are not used after all.
+//    testCompile project(':common-verifier').sourceSets.test.output
+//    testCompile files(this.project(':common-util').sourceSets.test.output)
+//    testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
+}

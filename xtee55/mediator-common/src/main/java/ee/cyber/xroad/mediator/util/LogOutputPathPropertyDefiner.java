@@ -2,8 +2,11 @@ package ee.cyber.xroad.mediator.util;
 
 import ch.qos.logback.core.PropertyDefinerBase;
 
-import ee.cyber.sdsb.common.SystemProperties;
+import ee.ria.xroad.common.SystemProperties;
 
+/**
+ * Log output path property definer for the logging system.
+ */
 public class LogOutputPathPropertyDefiner extends PropertyDefinerBase {
 
     @Override

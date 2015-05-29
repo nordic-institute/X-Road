@@ -1,0 +1,14 @@
+<%= dialog "file_upload_dialog" do %>
+  <table class="details">
+    <tr>
+      <td style="width: 100%;">
+        <input type="text" disabled="disabled" class="selected_file"/>
+      </td>
+      <td>
+        <%= form_tag nil, :multipart => true, :target => "upload_target" do %>
+          <%= browse_button("file_upload") %>
+        <% end %>
+      </td>
+    </tr>
+  </table>
+<% end %>

@@ -1,6 +1,6 @@
 identifier_firstGlobalGroupMember:
   object_type: "SUBSYSTEM"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "GOV"
   member_code: "globalGroupMember"
   subsystem_code: "globalGroupMemberSubsystem"
@@ -8,7 +8,7 @@ identifier_firstGlobalGroupMember:
 
 identifier_firstCentralService:
   object_type: "SERVICE"
-  sdsb_instance: "EE"
+  xroad_instance: "EE"
   member_class: "GOV"
   member_code: "serviceProvider"
   subsystem_code: "serviceProviderSubsystem"

@@ -1,0 +1,8 @@
+
+@font-face {
+  font-family: 'GothamPro-Bold';
+  src: url('GothamPro-Bold.eot?#iefix') format('embedded-opentype'),  url('GothamPro-Bold.otf')  format('opentype'),
+	     url('GothamPro-Bold.woff') format('woff'), url('GothamPro-Bold.ttf')  format('truetype'), url('GothamPro-Bold.svg#GothamPro-Bold') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}

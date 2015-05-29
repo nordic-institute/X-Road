@@ -3,15 +3,15 @@ java_import Java::java.util.ArrayList
 java_import Java::org.bouncycastle.pkcs.PKCS10CertificationRequest
 java_import Java::org.bouncycastle.asn1.x500.style.BCStyle
 
-java_import Java::ee.cyber.sdsb.common.identifier.SdsbObjectType
-java_import Java::ee.cyber.sdsb.common.util.CertUtils
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
-java_import Java::ee.cyber.sdsb.proxyui.ImportCertUtil
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.CertificateInfo
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenInfo
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.TokenStatusInfo
+java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
+java_import Java::ee.ria.xroad.common.util.CertUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.proxyui.ImportCertUtil
+java_import Java::ee.ria.xroad.signer.protocol.dto.CertificateInfo
+java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
+java_import Java::ee.ria.xroad.signer.protocol.dto.TokenInfo
+java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
 
 class KeysController < ApplicationController
 
@@ -101,12 +101,12 @@ class KeysController < ApplicationController
 
   def import_cert
     validate_params({
-      :file => [:required]
+      :file_upload => [:required]
     })
 
     GlobalConf::verifyValidity
 
-    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file].read)
+    uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file_upload].read)
 
     java_cert_obj = CryptoUtils::readCertificate(uploaded_cert.to_java_bytes)
 
@@ -121,7 +121,7 @@ class KeysController < ApplicationController
       authorize!(:import_sign_cert)
 
       client_id = ImportCertUtil::getClientIdForSigningCert(
-        sdsb_instance, java_cert_obj)
+        xroad_instance, java_cert_obj)
 
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
@@ -156,7 +156,7 @@ class KeysController < ApplicationController
       authorize!(:import_sign_cert)
 
       client_id = ImportCertUtil::getClientIdForSigningCert(
-        sdsb_instance, java_cert_obj)
+        xroad_instance, java_cert_obj)
 
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
@@ -404,7 +404,7 @@ class KeysController < ApplicationController
     serverconf.client.each do |client|
       # no certs for subsystems
       client_id = ClientId.create(
-        client.identifier.sdsbInstance,
+        client.identifier.xRoadInstance,
         client.identifier.memberClass,
         client.identifier.memberCode, nil)
 

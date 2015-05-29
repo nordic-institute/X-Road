@@ -1,0 +1,41 @@
+#group_add_dialog textarea {
+    width: calc(100% - 12px);
+    height: 160px;
+}
+
+#configuration_management_tabs li:first-child:nth-last-child(1) {
+	display: none;
+}
+
+#central_service_details_service_code {
+    font-weight: bold;
+    color: #000;
+}
+
+.member_edit_dialog {
+    .dialog-body {
+        min-width: 60em;
+    }
+}
+
+#member_name_edit_dialog {
+    .dialog-body {
+       height: 100%;
+
+       textarea {
+           height: calc(100% - 15px);
+       }
+    }
+}
+
+#securityserver_edit_dialog {
+    .dialog-body {
+        min-width: 45em;
+    }
+}
+
+#securityserver_details_identifier,
+#add_auth_cert_temp_id,
+#upload_trusted_anchor {
+    display: none;
+}

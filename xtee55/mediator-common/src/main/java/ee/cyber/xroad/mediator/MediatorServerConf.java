@@ -2,39 +2,56 @@ package ee.cyber.xroad.mediator;
 
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
-import ee.cyber.sdsb.common.conf.serverconf.ServerConfProvider;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.ServiceId;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
+/**
+ * Mediator server configuration.
+ */
+@Slf4j
 public final class MediatorServerConf extends ServerConf {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(MediatorServerConf.class);
 
-    public static boolean isSdsbService(ServiceId serviceId) {
-        LOG.trace("isSdsbService({})", serviceId);
+    /**
+     * @param serviceId the X-Road 6.0 service identifier
+     * @return true if this service identifier corresponds to a X-Road 6.0 service
+     */
+    public static boolean isXroadService(ServiceId serviceId) {
+        log.trace("isXroadService({})", serviceId);
 
-        return instance().isSdsbService(serviceId);
+        return instance().isXroadService(serviceId);
     }
 
+    /**
+     * @param serviceId the X-Road 6.0 service identifier
+     * @return the backend URL of the service with the given identifier
+     */
     public static String getBackendURL(ServiceId serviceId) {
-        LOG.trace("getBackendURL({})", serviceId);
+        log.trace("getBackendURL({})", serviceId);
 
         return instance().getBackendURL(serviceId);
     }
 
+    /**
+     * @param clientId the X-Road 6.0 client identifier
+     * @return the first backend URL found for the client with the given identifier
+     */
     public static String getBackendURL(ClientId clientId) {
-        LOG.trace("getBackendURL({})", clientId);
+        log.trace("getBackendURL({})", clientId);
 
         return instance().getBackendURL(clientId);
     }
 
+    /**
+     * @param clientId the X-Road 6.0 client identifier
+     * @return all adapter WSDL URLs for the client with the given identifier
+     */
     public static List<String> getAdapterWSDLUrls(ClientId clientId) {
-        LOG.trace("getAdapterWSDLUrls({})", clientId);
+        log.trace("getAdapterWSDLUrls({})", clientId);
 
         return instance().getAdapterWSDLUrls(clientId);
     }

@@ -49,7 +49,7 @@ task logReaderJar(type: Jar) {
     from sourceSets.consoleui.runtimeClasspath
     
     manifest {
-        attributes 'Main-Class': 'ee.cyber.xroad.logreader.LogReaderMain'
+        attributes 'Main-Class': 'ee.ria.xroad_legacy.logreader.LogReaderMain'
     }
     
     description = "Creates the command line ASiC container extractor jar";
@@ -63,7 +63,7 @@ task logReaderWar(type: War) {
 }
 
 task runLogReader(type: JavaExec) {
-    main = 'ee.cyber.xroad.logreader.LogReaderMain'
+    main = 'ee.ria.xroad_legacy.logreader.LogReaderMain'
     classpath = sourceSets.consoleui.runtimeClasspath
     standardInput = System.in;
 

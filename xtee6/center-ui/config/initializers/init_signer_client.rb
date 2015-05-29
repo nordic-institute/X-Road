@@ -1,6 +1,6 @@
 unless $rails_rake_task
   # Starts signer client to see status of it.
-  java_import Java::ee.cyber.sdsb.centerui.CenterUIServices
+  java_import Java::ee.ria.xroad.centerui.CenterUIServices
 
   CenterUIServices::start()
 

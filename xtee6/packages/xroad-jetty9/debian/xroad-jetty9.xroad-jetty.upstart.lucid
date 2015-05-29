@@ -14,14 +14,14 @@ umask 007
 expect daemon
 
 pre-start script
-    mkdir -p -m0755 /var/run/sdsb
-    chown sdsb:sdsb /var/run/sdsb
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
 end script
 
 script
   exec >>/tmp/ddd5.log 2>&1
   set -x
-  . /etc/sdsb/services/jetty.conf
-   exec start-stop-daemon --start --background --chdir /usr/share/sdsb/jetty9 -k 0007 --chuid sdsb:sdsb --name xroad-jetty --exec ${JAVA_HOME}/bin/java -- ${JETTY_PARAMS} ${SDSB_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/sdsb/jetty9
+  . /etc/xroad/services/jetty.conf
+   exec start-stop-daemon --start --background --chdir /usr/share/xroad/jetty9 -k 0007 --chuid xroad:xroad --name xroad-jetty --exec ${JAVA_HOME}/bin/java -- ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9
 end script
 

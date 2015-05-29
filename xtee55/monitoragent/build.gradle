@@ -5,8 +5,8 @@ plugins {
 dependencies {
     compile project(':mediator-common')
 
-    // SDSB dependencies
-    compile 'ee.cyber.sdsb:common-util:1.0'
+    // X-Road 6.0 dependencies
+    compile 'ee.ria.xroad:common-util:1.0'
 }
 
 fatJarPrepareFiles {
@@ -28,7 +28,7 @@ build.dependsOn fatJar
 
 task runMonitorAgent(type: JavaExec) {
     jvmArgs '-Dee.cyber.xroad.monitoragent.runProgram=echo',
-        '-Dee.cyber.sdsb.appLog.path=log'
+        '-Dxroad.appLog.path=log'
 
     main = 'ee.cyber.xroad.monitoragent.Main'
     classpath = sourceSets.main.runtimeClasspath
@@ -37,6 +37,6 @@ task runMonitorAgent(type: JavaExec) {
 task runAgentTest(type: JavaExec) {
     main = 'ee.cyber.xroad.monitoragent.TestMonitorAgent'
     classpath = sourceSets.test.runtimeClasspath
-    jvmArgs '-Dee.cyber.sdsb.monitoringagent.uri=akka.tcp://XroadMonitoringAgent@127.0.0.1:2552/user/DataReceiver',
-        '-Dee.cyber.sdsb.appLog.path=log'
+    jvmArgs '-Dxroad.monitoringagent.uri=akka.tcp://XroadMonitoringAgent@127.0.0.1:2552/user/DataReceiver',
+        '-Dxroad.appLog.path=log'
 }

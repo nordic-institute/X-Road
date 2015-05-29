@@ -9,21 +9,27 @@
 <% content_for :content do %>
   <section class="container" id="init-container">
     <% if @init_anchor %>
-      <%= form_tag "init/anchor_upload", :id => "anchor_upload_form",
-        :multipart => true, :target => "upload_target", :class => "cf" do %>
-        <legend><%= t 'anchor.import_title' %></legend>
-        <br/>
-        <%= file_field_tag "anchor_upload_file" %>
-        <br/>
-        <button id="anchor_upload_submit" class="right"><%= t 'common.import' %></button>
-      <% end %>
+      <h2><%= t 'anchor.import_title' %></h2>
 
-      <iframe id="upload_target" name="upload_target"></iframe>
+      <table class="details">
+        <tr>
+          <td>
+            <input type="text" disabled="disabled" class="selected_file"/>
+          </td>
+          <td style="width: 12em;">
+            <%= form_tag "init/anchor_upload", :id => "anchor_upload_form",
+                  :multipart => true, :target => "upload_target" do %>
+              <%= browse_button("anchor_upload_file") %>
+              <button id="anchor_upload_submit"><%= t 'common.import' %></button>
+            <% end %>
+          </td>
+        </tr>
+      </table>
     <% end %>
 
     <% if @init_serverconf || @init_software_token %>
       <%= form_tag nil, :id => "serverconf_form" do %>
-        <legend><%= t '.security_server_owner' %></legend>
+        <h2><%= t '.security_server_owner' %></h2>
         <table class="details">
           <tr>
             <td><%= t '.member_class' %></td>
@@ -40,8 +46,7 @@
           </tr>
         </table>
 
-        <br/>
-        <legend><%= t '.security_server' %></legend>
+        <h2><%= t '.security_server' %></h2>
         <table class="details">
           <tr>
             <td style="width: 15em;"><%= t '.security_server_code' %></td>
@@ -49,8 +54,7 @@
           </tr>
         </table>
 
-        <br/>
-        <legend><%= t '.software_token' %></legend>
+        <h2><%= t '.software_token' %></h2>
         <table class="details">
           <tr>
             <td style="width: 15em;"><%= t '.pin' %></td>
@@ -61,9 +65,9 @@
             <td><%= password_field_tag "pin_repeat", nil, :disabled => !@init_software_token %></td>
           </tr>
         </table>
-
-        <br/>
-        <button id="submit_serverconf" class="right"><%= t 'common.submit' %></button>
+        <p class="button-container">
+          <button id="submit_serverconf"><%= t 'common.submit' %></button>
+        </p>
       <% end %>
     <% end %>
   </section>

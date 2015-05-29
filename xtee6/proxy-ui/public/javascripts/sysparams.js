@@ -24,7 +24,7 @@ function uploadCallback(response) {
         details: $("<p>").append(details).html()
     };
 
-    $("#anchor_upload_dialog").dialog("close");
+    closeFileUploadDialog();
 
     confirm("anchor.upload_confirm", confirmParams, function() {
         $.post(action("anchor_apply"), null, function() {
@@ -65,37 +65,9 @@ function initTables() {
 }
 
 function initAnchorActions() {
-    $("#anchor_upload_dialog").initDialog({
-        autoOpen: false,
-        modal: true,
-        height: 200,
-        width: 600,
-        buttons: [
-        {
-            text: _("common.upload"),
-            id: "anchor_upload_submit",
-            disabled: "disabled",
-            click: function() {
-                $("#anchor_upload_form").submit();
-            }
-        },
-        {
-            text: _("common.cancel"),
-            click: function() {
-                $(this).dialog("close");
-            }
-        }]
-    });
-
-    $("#anchor_upload_file").change(function() {
-        if ($(this).val() != "") {
-            $("#anchor_upload_submit").enable();
-        }
-    }).val("");
-
     $("#anchor_upload").click(function() {
-        $("#anchor_upload_file").val("");
-        $("#anchor_upload_dialog").dialog("open");
+        openFileUploadDialog(
+            action("anchor_upload"), _("anchor.upload_title"));
     });
 
     $("#anchor_download").click(function() {
@@ -104,7 +76,7 @@ function initAnchorActions() {
 }
 
 function initTspActions() {
-        $("#tsp_add_dialog").initDialog({
+    $("#tsp_add_dialog").initDialog({
         autoOpen: false,
         width: 600,
         height: 400,

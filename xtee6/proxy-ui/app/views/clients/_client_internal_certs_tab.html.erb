@@ -4,7 +4,7 @@
 
 <% if can?(:view_client_internal_connection_type) %>
 <section class="container">
-  <legend><%= t '.connection_type' %></legend>
+  <h2><span><%= t '.connection_type' %></span></h2>
   <p><%= t('.connection_type_hint').html_safe %></p>
   <div>
     <%= select_tag "connection_type", options_for_select(
@@ -17,7 +17,8 @@
 <% end %>
 
 <section class="container">
-  <legend>Internal SSL Certificates</legend>
+  <h2><span><%= t(".internal_ssl_certs") %></span></h2>
+
   <table id="internal_certs">
     <thead>
       <tr>
@@ -43,7 +44,7 @@
 
 <% if can?(:view_proxy_internal_cert) %>
 <section class="container">
-  <legend><%= t '.security_server_cert' %></legend>
+  <h2><span><%= t '.security_server_cert' %></span></h2>
 
   <table id="proxy_internal_cert">
     <thead>
@@ -59,16 +60,6 @@
   </div>
   <% end %>
 </section>
-<% end %>
-
-<%= dialog "internal_cert_add_dialog", t('.import_certificate') do %>
-  <br/>
-  <%= form_tag "#{controller.controller_name}/internal_cert_add",
-          :multipart => true, :target => "upload_target" do %>
-    <%= file_field_tag "cert" %>
-    <%= hidden_field_tag 'client_id' %>
-  <% end %>
-  <iframe id="upload_target" name="upload_target"></iframe>
 <% end %>
 
 <%= render :partial => "shared/cert_details_dialog" %>

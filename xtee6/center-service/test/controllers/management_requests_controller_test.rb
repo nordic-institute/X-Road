@@ -39,7 +39,7 @@ class ManagementRequestsControllerTest < ActionController::TestCase
   # For some reason parser wants message inlined.
   def read_request_message
     raw_request = CommonUi::IOUtils.read_to_array(
-        "#{ENV["SDSB_HOME"]}/center-service/test/resources/"\
+        "#{ENV["XROAD_HOME"]}/center-service/test/resources/"\
         "client_reg_request_CONTROLLERTEST_WRONG_INSTANCE.soap")
 
     raw_request.map!() { |line| line.strip() }

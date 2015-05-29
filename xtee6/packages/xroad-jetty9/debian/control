@@ -6,10 +6,7 @@ Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
 Package: xroad-jetty9
-Conflicts: xroad-jetty8
-Replaces: xroad-jetty8
-Provides: xroad-jetty8
 Architecture: all
-Depends: ${misc:Depends}, java8-runtime-headless, xroad-common
+Depends: ${misc:Depends}, java8-runtime-headless, xroad-common (>= 6.3)
 Description: Jetty9 for X-Road purposes
  Jetty9 modified for X-Road usage. Used by web services

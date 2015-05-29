@@ -27,6 +27,12 @@ public class WSDLStreamsMerger {
     private List<InputStream> inputWsdlStreams;
     private String databaseV5Name;
 
+    /**
+     * Creates WSDL streams merger
+     * @param inputWsdlStreams input streams of WSDLs to be merged.
+     * @param databaseV5Name short name for V5 database.
+     * @throws Exception thrown when merging streams fails.
+     */
     public WSDLStreamsMerger(
             List<InputStream> inputWsdlStreams, String databaseV5Name)
             throws Exception {

@@ -1,0 +1,6 @@
+dependencies {
+    compile project(':common-verifier')
+
+    testCompile project(':common-test')
+}
+

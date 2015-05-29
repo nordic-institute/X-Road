@@ -79,7 +79,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
       {
         # Case intentionally altered
         :name => "THis member should nOt belong to group 'vallavalitsused'",
-        :sdsb_instance => "EE",
+        :xroad_instance => "EE",
         :member_class => "riigi", #Intentionally abbreviated
         :member_code => "member_out_of_vallavalitsused",
         :subsytem_code => "subsystem_in_vallavalitsused",
@@ -107,7 +107,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     advanced_search_params = AdvancedSearchParams.new(
       {
         :name => "This member should NOT belong to group 'vallavalitsused'",
-        :sdsb_instance => "LV", # This one should be not found
+        :xroad_instance => "LV", # This one should be not found
         :member_class => "riigiasutus",
         :member_code => "member_out_of_vallavalitsused",
         :subsystem_code => "subsystem_in_vallavalitsused",

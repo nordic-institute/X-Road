@@ -17,7 +17,7 @@
         </encoder>
     </appender>
 
-    <logger name="ee.cyber.sdsb" level="TRACE" />
+    <logger name="ee.ria.xroad" level="TRACE" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

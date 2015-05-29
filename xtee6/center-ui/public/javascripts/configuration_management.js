@@ -1,4 +1,4 @@
-var SDSB_CONFIGURATION_MANAGEMENT = function() {
+var XROAD_CONFIGURATION_MANAGEMENT = function() {
 
     var tabRefreshers = {
         "#trusted_anchors_tab": refreshTrustedAnchors
@@ -11,7 +11,7 @@ var SDSB_CONFIGURATION_MANAGEMENT = function() {
 
                 var href = $("a", ui.newTab).attr("href");
                 if (href == "#source_tab") {
-                    SDSB_CONFIGURATION_SOURCE.refresh();
+                    XROAD_CONFIGURATION_SOURCE.refresh();
                     return;
                 }
 
@@ -34,7 +34,7 @@ var SDSB_CONFIGURATION_MANAGEMENT = function() {
     /* -- Tab specific refreshing logic - start -- */
 
     function refreshTrustedAnchors() {
-        SDSB_TRUSTED_ANCHORS.init();
+        XROAD_TRUSTED_ANCHORS.init();
     }
 
     /* -- Tab specific refreshing logic - end -- */

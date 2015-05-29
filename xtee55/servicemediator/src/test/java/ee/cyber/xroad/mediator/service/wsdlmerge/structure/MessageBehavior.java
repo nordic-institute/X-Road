@@ -17,6 +17,11 @@ import static org.junit.Assert.assertEquals;
 public class MessageBehavior {
     private static final String XRD_NS = "http://x-road.eu/xsd/x-road.xsd";
 
+    /**
+     * Tests XML representation of message element.
+     *
+     * @throws IOException thrown if message element cannot be turned into XML.
+     */
     @Test
     public void shouldTurnMessageWithElementIntoXml() throws IOException {
         // Given
@@ -45,6 +50,11 @@ public class MessageBehavior {
         assertEquals(expectedXml, actualXml);
     }
 
+    /**
+     * Tests that message with referenced type can be turned into XML.
+     *
+     * @throws IOException thrown if message element cannot be turned into XML.
+     */
     @Test
     public void shouldTurnMessageWithTypeIntoXml() throws IOException {
         // Given

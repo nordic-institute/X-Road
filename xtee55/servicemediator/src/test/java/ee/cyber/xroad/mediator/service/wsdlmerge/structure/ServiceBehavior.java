@@ -19,6 +19,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServiceBehavior {
 
+    /**
+     * Tests that service can be turned into XML.
+     *
+     * @throws Exception thrown when turning service into XML fails.
+     */
     @Test
     public void shouldTurnServiceIntoXml() throws Exception {
         // Given

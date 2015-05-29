@@ -11,11 +11,11 @@
         <New class="org.eclipse.jetty.security.ConstraintSecurityHandler">
             <Set name="loginService">
                 <New class="org.eclipse.jetty.jaas.JAASLoginService">
-                    <Set name="name">sdsb</Set>
+                    <Set name="name">xroad</Set>
                     <Set name="loginModuleName">pam</Set>
                     <Set name="roleClassNames">
                         <Array type="java.lang.String">
-                            <Item>ee.cyber.sdsb.commonui.jaas.JAASRole</Item>
+                            <Item>ee.ria.xroad.commonui.jaas.JAASRole</Item>
                         </Array>
                     </Set>
                 </New>

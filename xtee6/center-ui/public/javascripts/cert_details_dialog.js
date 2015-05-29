@@ -1,6 +1,6 @@
-(function(SDSB_CERT_DETAILS_DIALOG, $, undefined) {
-    SDSB_CERT_DETAILS_DIALOG.openDialog = function(dump) {
-        $("#cert_details_dump").val(dump);
+(function(XROAD_CERT_DETAILS_DIALOG, $, undefined) {
+    XROAD_CERT_DETAILS_DIALOG.openDialog = function(dump) {
+        $("#cert_details_dump").text(dump);
 
         $("#cert_details_dialog").initDialog({
             modal: true,
@@ -15,4 +15,4 @@
             ]
         });
     };
-}(window.SDSB_CERT_DETAILS_DIALOG = window.SDSB_CERT_DETAILS_DIALOG || {}, jQuery));
+}(window.XROAD_CERT_DETAILS_DIALOG = window.XROAD_CERT_DETAILS_DIALOG || {}, jQuery));

@@ -9,7 +9,7 @@
 <% content_for :content do %>
   <section class="container cf" id="init-container">
     <%= form_tag do %>
-    <legend><%= t '.central_server_identification' %></legend>
+    <h2><%= t '.central_server_identification' %></h2>
     <table class="details">
       <tr>
         <td style="width: 15em;">
@@ -29,8 +29,7 @@
       </tr>
     </table>
 
-    <br/>
-    <legend><%= t '.software_token' %></legend>
+    <h2><%= t '.software_token' %></h2>
     <table class="details">
       <tr>
         <td style="width: 15em;">
@@ -47,9 +46,9 @@
         <td><%= password_field_tag "pin_repeat", nil, :disabled => !@init_software_token %></td>
       </tr>
     </table>
-
-    <br/>
-    <button id="submit" class="right"><%= t 'common.submit' %></button>
+    <p class="button-container">
+      <button id="submit" class="right"><%= t 'common.submit' %></button>
+    </p>
     <% end %>
   </section>
 <% end %>

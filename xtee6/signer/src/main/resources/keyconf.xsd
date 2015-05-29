@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- TODO The file name: serverconf.xsd vs localconf.xsd vs proxyconf.xsd vs ... ??? -->
-<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/sdsb.xsd"
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0"
-    targetNamespace="http://x-road.eu/xsd/sdsb.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
 
     <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common-util/src/main/resources/identifiers.xsd"/>
     <element name="keyConf" type="tns:KeyConfType"/>
@@ -69,7 +69,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
         <annotation>
             <documentation>What is the purpose of this key. Possible options: authentication for security server or signing on behalf of particular member.</documentation>
             <appinfo>
-                <jxb:javaType name="ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo" parseMethod="valueOf" printMethod="name"/>
+                <jxb:javaType name="ee.ria.xroad.signer.protocol.dto.KeyUsageInfo" parseMethod="valueOf" printMethod="name"/>
              </appinfo>
         </annotation>
         <restriction base="string">
@@ -79,7 +79,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
     </simpleType>
     <complexType name="CertificateType">
         <sequence>
-            <element minOccurs="0" name="memberId" type="id:SdsbClientIdentifierType">
+            <element minOccurs="0" name="memberId" type="id:XroadClientIdentifierType">
                 <annotation>
                     <documentation>If this certificate belongs to signing key, then this element contains identifier of the member that uses this certificate.</documentation>
                 </annotation>
@@ -140,7 +140,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
     </complexType>
     <complexType name="CertRequestType">
         <sequence>
-            <element minOccurs="0" name="memberId" type="id:SdsbClientIdentifierType">
+            <element minOccurs="0" name="memberId" type="id:XroadClientIdentifierType">
                 <annotation>
                     <documentation>Identifies the member on whose behalf the certificate request was sent. Not present on authentication keys.</documentation>
                 </annotation>
@@ -155,6 +155,6 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
             <annotation>
                 <documentation>ID of this element, mostly used by UIs.</documentation>
             </annotation>
-        </attribute>        
+        </attribute>
     </complexType>
 </schema>

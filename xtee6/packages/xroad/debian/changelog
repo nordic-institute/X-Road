@@ -1,8 +1,24 @@
-xroad (6.1-3) trusty; urgency=low
+xroad (6.4-0) trusty; urgency=low
 
-   Minor bugfixes.
+   * User session is closed after inactivity
+   * Data versioning at database level
+   * listClients returns member name
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 02 Feb 2015 12:01:34 +0200
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 25 May 2015 13:27:42 +0300
+
+xroad (6.3-0) trusty; urgency=low
+
+   * Xroad 6.3
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 07 Apr 2015 16:08:54 +0300
+
+xroad (6.2-0) trusty; urgency=low
+
+   [Added modules]
+   * Messagelog
+   * Metaservices
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 31 Mar 2015 11:02:36 +0300
 
 xroad (6.1-2) trusty; urgency=low
 

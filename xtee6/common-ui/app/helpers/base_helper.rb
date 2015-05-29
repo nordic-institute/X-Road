@@ -1,3 +1,5 @@
+java_import Java::ee.ria.xroad.common.SystemProperties
+
 module BaseHelper
 
   class MenuItem
@@ -42,7 +44,7 @@ module BaseHelper
   end
 
   def heading(text = nil)
-    render :partial => "layouts/heading", :locals => {:text => text}
+    render :partial => "layouts/partials/heading", :locals => {:text => text}
   end
 
   def default_content_for(name, &block)
@@ -83,6 +85,10 @@ module BaseHelper
         "#{file_field_tag(input_name)}#{t(button_text)}</label>")
   end
 
+  def browse_button(input_name, clazz = nil)
+    upload_button(input_name, clazz, "common.browse")
+  end
+
   def server_status_class
   end
 
@@ -95,5 +101,9 @@ module BaseHelper
     end
 
     result
+  end
+
+  def skin_installed?
+    File.exists?(SystemProperties.getConfPath + BaseController::UI_SKIN_FILE)
   end
 end

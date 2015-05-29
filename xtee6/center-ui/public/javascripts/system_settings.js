@@ -34,7 +34,7 @@
         $("#central_server_address_edit_dialog").initDialog({
             modal: true,
             autoOpen: false,
-            height: 180,
+            height: "auto",
             width: 500,
             buttons: [{
                 text: _("common.ok"),
@@ -78,7 +78,7 @@
                 : _("system_settings.index.member_class_edit"),
             modal: true,
             autoOpen: true,
-            height: 250,
+            height: "auto",
             width: 500,
             buttons: [{
                 text: _("common.ok"),

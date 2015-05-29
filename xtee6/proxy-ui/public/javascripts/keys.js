@@ -190,27 +190,9 @@ function initDialogs() {
         $("#generate_csr_dialog").dialog("open");
     });
 
-    $("#import_cert_dialog").initDialog({
-        autoOpen: false,
-        modal: true,
-        width: 350,
-        buttons: [
-            { text: _("common.ok"),
-              click: function() {
-                  $("#import_cert_form").submit();
-              }
-            },
-            { text: _("common.cancel"),
-              click: function() {
-                  $(this).dialog("close");
-              }
-            }
-        ]
-    });
-
     $("#import_cert").click(function() {
-        $("#import_cert_dialog input[type!=hidden]").val("");
-        $("#import_cert_dialog").dialog("open");
+        openFileUploadDialog(
+            action("import_cert"), _("keys.index.import_certificate"));
     });
 
     $("#token_details_dialog, #key_details_dialog").initDialog({
@@ -351,7 +333,7 @@ function initDialogs() {
 
 function uploadCallback(response) {
     if (response.success) {
-        $("#import_cert_dialog").dialog("close");
+        closeFileUploadDialog();
         refreshTokens();
     }
 
@@ -720,10 +702,13 @@ $(document).ready(function() {
             cert_id: focusData.cert_id
         };
 
-        $.post(action("unregister"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
-            enableActions();
-        }, "json");
+        confirm("keys.index.unregister_cert_confirm",
+                { hash: focusData.cert_friendly_name }, function() {
+            $.post(action("unregister"), params, function(response) {
+                oKeys.fnReplaceData(response.data);
+                enableActions();
+            }, "json");
+        });
     });
 
     $("#details").click(function() {

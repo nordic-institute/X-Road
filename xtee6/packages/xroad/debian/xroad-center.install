@@ -1,6 +1,6 @@
 center/usr/* usr/ 
 center/etc/* etc/
-../default-configuration/center.ini etc/sdsb/conf.d
-../default-configuration/managementservices.wsdl var/lib/sdsb/public
-../../center-service/build/libs/center-service.war usr/share/sdsb/jlib/webapps/
-../../center-ui/build/libs/center-ui.war usr/share/sdsb/jlib/webapps/
+../default-configuration/center.ini etc/xroad/conf.d
+../default-configuration/managementservices.wsdl var/lib/xroad/public
+../../center-service/build/libs/center-service.war usr/share/xroad/jlib/webapps/
+../../center-ui/build/libs/center-ui.war usr/share/xroad/jlib/webapps/

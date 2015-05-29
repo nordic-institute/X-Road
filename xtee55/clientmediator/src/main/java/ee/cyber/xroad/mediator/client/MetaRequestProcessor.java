@@ -10,9 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.MimeTypes;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
 import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
 import ee.cyber.xroad.mediator.common.HttpClientManager;
@@ -20,8 +20,8 @@ import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
 import ee.cyber.xroad.mediator.common.MediatorRequest;
 import ee.cyber.xroad.mediator.common.MediatorResponse;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.cyber.sdsb.common.metadata.MetadataRequests.*;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.metadata.MetadataRequests.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -61,20 +61,20 @@ class MetaRequestProcessor implements MediatorMessageProcessor {
     }
 
     private String getTargetAddress(MediatorRequest request,
-            MetaRequest metaRequest) {
-        if (PARAM_V6_META.equals(metaRequest.getParam())) {
+            MetaRequest metaReq) {
+        if (PARAM_V6_META.equals(metaReq.getParam())) {
             String parameters = request.getParameters() != null
                     ? "?" + request.getParameters() : "";
-            return MediatorSystemProperties.getSdsbProxyAddress()
-                    + metaRequest.getValue() + parameters;
+            return MediatorSystemProperties.getXroadProxyAddress()
+                    + metaReq.getValue() + parameters;
         }
 
-        return getUriProxyAddress(metaRequest);
+        return getUriProxyAddress(metaReq);
     }
 
     static String getUriProxyAddress(MetaRequest request) {
         String uriProxyAddress =
-                MediatorSystemProperties.getXroadUriProxyAddress();
+                MediatorSystemProperties.getV5XroadUriProxyAddress();
         uriProxyAddress += "?" + request.getParam() + "=" + request.getValue();
 
         return uriProxyAddress;

@@ -1,6 +1,6 @@
 require 'test_helper'
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.SharedParametersSchemaValidator
+java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidator
 
 class SharedParametersGeneratorTest < ActiveSupport::TestCase
 

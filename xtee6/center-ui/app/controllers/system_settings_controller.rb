@@ -10,7 +10,7 @@ class SystemSettingsController < ApplicationController
     @service_provider_id =
       SystemParameter.management_service_provider_id
 
-    @service_provider_name = SdsbMember.get_name(
+    @service_provider_name = XroadMember.get_name(
       @service_provider_id.memberClass,
       @service_provider_id.memberCode) if @service_provider_id
 
@@ -87,7 +87,7 @@ class SystemSettingsController < ApplicationController
 
     render_json({
       :id => SystemParameter.management_service_provider_id.toString,
-      :name => SdsbMember.get_name(
+      :name => XroadMember.get_name(
         params[:providerClass], params[:providerCode])
     })
   end
@@ -153,7 +153,7 @@ class SystemSettingsController < ApplicationController
     MemberClass.find_each do |member_class|
       if member_class.code.upcase == params[:code].upcase
 
-        if member_class.sdsb_members.any?
+        if member_class.xroad_members.any?
           raise t("system_settings.member_class_has_members", {
             :code => member_class.code.upcase
           })

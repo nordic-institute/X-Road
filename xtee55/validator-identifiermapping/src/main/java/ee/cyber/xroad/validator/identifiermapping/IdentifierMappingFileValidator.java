@@ -4,17 +4,19 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.identifier.ClientId;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
 
-public class IdentifierMappingFileValidator {
+class IdentifierMappingFileValidator {
+
     public static final String INVALID_INSTANCE_IDENTIFIER =
-            "IdentifiermappingInvalidSdsbInstance";
+            "IdentifiermappingInvalidXRoadInstance";
     public static final String INVALID_MEMBER_CLASSES =
             "IdentifiermappingInvalidMemberClasses";
 
     private byte[] fileContent;
     private String currentInstanceIdentifier;
+
     private List<String> allowedMemberClasses;
     private IdentifierMappingSchemaValidator schemaValidator;
 
@@ -46,7 +48,7 @@ public class IdentifierMappingFileValidator {
             ClientId newId = each.getNewId();
 
             validateMemberClass(newId.getMemberClass());
-            validateSdsbInstance(newId.getSdsbInstance());
+            validateXRoadInstance(newId.getXRoadInstance());
         });
     }
 
@@ -66,14 +68,14 @@ public class IdentifierMappingFileValidator {
         throw new CodedException(INVALID_MEMBER_CLASSES, message);
     }
 
-    private void validateSdsbInstance(String sdsbInstance) {
-        if (StringUtils.equals(sdsbInstance, currentInstanceIdentifier)) {
+    private void validateXRoadInstance(String xRoadInstance) {
+        if (StringUtils.equals(xRoadInstance, currentInstanceIdentifier)) {
             return;
         }
 
         String message = String.format(
-                "Identifier mapping includes SDSB instance "
-                + "'%s', but allowed one is '%s'.", sdsbInstance,
+                "Identifier mapping includes X-Road 6.0 instance "
+                + "'%s', but allowed one is '%s'.", xRoadInstance,
                 currentInstanceIdentifier);
 
         throw new CodedException(INVALID_INSTANCE_IDENTIFIER, message);

@@ -1,7 +1,7 @@
 et:
   about:
     index:
-      name: "SDSB turvaserver"
+      name: "XROAD turvaserver"
       version: "versioon"
 
   async:

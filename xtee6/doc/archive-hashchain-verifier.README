@@ -1,0 +1,25 @@
+Script 'archive-hashchain-verifier.rb' is for verifying if hash chain related to log archive is correct. Basically it calculates ASiC container hashes in log archive (zip) file and compares them with the ones in linking info file.
+
+If there are previous files archived, the script takes last hash step result of previous archive file into consideration as well.
+
+For script to work, it needs Ruby and gem "rubyzip" to be installed. Tested versions:
+  With plain Ruby:
+    ruby 1.9.3p551 (2014-11-13 revision 48407) [x86_64-linux]
+    rubyzip (1.1.7)
+  With JRuby:
+    jruby 1.7.16.1 (1.9.3p392) 2014-10-28 4e93f31 on OpenJDK 64-Bit Server VM 1.8.0_45-internal-b14 +jit [linux-amd64]
+    rubyzip (1.1.7, 1.1.6)
+
+Recommended way for installing proper Ruby version is using RVM, described here: https://rvm.io/rvm/install
+
+When Ruby is installed, 'rubyzip' can be added:
+
+gem install rubyzip
+
+Script will be invoked:
+
+./archive-hashchain-verifier.rb <pathToArchiveFile.zip> <(lastHashStepResult) or (-f) or (--first)>
+
+NB! If value of second argument is '-f' of '--first' (both case insensitive), it is assumed that first archive file in chain is verified (no previous hash steps has been calculated).
+
+Standard output of the script is result of last hash step of the archive file.

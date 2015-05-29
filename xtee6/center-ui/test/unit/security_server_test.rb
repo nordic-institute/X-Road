@@ -11,23 +11,23 @@ class SecurityServerTest < ActiveSupport::TestCase
 
   test "Destroy security server clients and add client deletion requests" do
     # Given
-    sdsb_member_owner = get_owner()
+    xroad_member_owner = get_owner()
     member_class_riigiasutus = get_riigiasutus()
 
-    sdsb_member_client = SdsbMember.create!(
+    xroad_member_client = XroadMember.create!(
       :member_class => member_class_riigiasutus,
       :member_code => "member_client",
       :name => "Owner name",
       :administrative_contact => "a@example.com")
 
     subsystem_client = Subsystem.create!(
-      :sdsb_member => sdsb_member_client,
+      :xroad_member => xroad_member_client,
       :subsystem_code => "subsystem_client")
 
     security_server_deletable = SecurityServer.create!(
-      :owner => sdsb_member_owner,
+      :owner => xroad_member_owner,
       :server_code => "security_server_deletable",
-      :security_server_clients => [sdsb_member_client, subsystem_client])
+      :security_server_clients => [xroad_member_client, subsystem_client])
 
     # When
     SecurityServer.destroy(security_server_deletable)
@@ -52,7 +52,7 @@ class SecurityServerTest < ActiveSupport::TestCase
 
   test "Should preserve owner name in request after owner deleted" do
     # Given
-    owner_member = SdsbMember.create!(
+    owner_member = XroadMember.create!(
       :member_class => get_riigiasutus,
       :member_code => "ownerMember",
       :name => "Owner name",
@@ -71,7 +71,7 @@ class SecurityServerTest < ActiveSupport::TestCase
       :origin => Request::CENTER).register()
 
     # When
-    SdsbMember.destroy(owner_member)
+    XroadMember.destroy(owner_member)
 
     # Then
     auth_cert_deletion_requests = AuthCertDeletionRequest.all
@@ -108,7 +108,7 @@ class SecurityServerTest < ActiveSupport::TestCase
 
   def get_owner
     id = ActiveRecord::Fixtures.identify(:member_in_vallavalitsused)
-    SdsbMember.find(id)
+    XroadMember.find(id)
   end
 
   test "Should remove owner from owners group if only one owned server" do

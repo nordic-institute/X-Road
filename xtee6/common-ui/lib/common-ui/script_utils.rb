@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 # Methods related to backup and restore scripts
 module CommonUi
@@ -45,7 +45,7 @@ module CommonUi
     end
 
     def get_script_file(filename)
-      "/usr/share/sdsb/scripts/#{filename}"
+      "/usr/share/xroad/scripts/#{filename}"
     end
 
     def verify_internal_configuration(anchor_path)

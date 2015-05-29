@@ -2,30 +2,33 @@ package ee.cyber.xroad.serviceimporter;
 
 import java.util.*;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.globalconf.GlobalConf;
-import ee.cyber.sdsb.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.cyber.sdsb.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.cyber.sdsb.common.conf.serverconf.model.*;
-import ee.cyber.sdsb.common.identifier.ClientId;
-import ee.cyber.sdsb.common.identifier.GlobalGroupId;
-import ee.cyber.sdsb.common.identifier.LocalGroupId;
-import ee.cyber.sdsb.common.identifier.SdsbId;
-import ee.cyber.sdsb.common.identifier.SdsbObjectType;
-import ee.cyber.sdsb.common.identifier.SecurityServerId;
-import ee.cyber.sdsb.common.request.ManagementRequestSender;
 import ee.cyber.xroad.mediator.BackendTypes;
-import ee.cyber.xroad.mediator.IdentifierMappingImpl;
+import ee.cyber.xroad.mediator.IdentifierMapping;
+import ee.cyber.xroad.mediator.IdentifierMappingProvider;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
+import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.*;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.XroadId;
+import ee.ria.xroad.common.identifier.XroadObjectType;
+import ee.ria.xroad.common.request.ManagementRequestSender;
 
 import static ee.cyber.xroad.serviceimporter.Helper.*;
 
+/**
+ * Handles exporting of X-Road 6.0 client data and importing of X-Road 5.0 client data.
+ */
+@Slf4j
 public class ServiceImporter {
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ServiceImporter.class);
+    private static final int SERVICE_WITH_VERSION_PARTS = 3;
 
     private static final String STATE_SAVED = "saved";
 
@@ -33,21 +36,30 @@ public class ServiceImporter {
         "getProducerACL", "getServiceACL"
     };
 
-    private IdentifierMappingImpl identifierMapping;
-    private ServerConfType serverConf;
-    private XConf xConf;
-    private Date now;
+    private final IdentifierMappingProvider identifierMapping;
+    private final XConf xConf;
+    private final Date now;
 
+    private ServerConfType serverConf;
+
+    /**
+     * Constructs a new service importer.
+     */
     public ServiceImporter() {
-        this.identifierMapping = new IdentifierMappingImpl();
+        this.identifierMapping = IdentifierMapping.getInstance();
         this.xConf = new XConf();
         this.now = new Date();
 
         GlobalConf.initForCurrentThread();
     }
 
+    /**
+     * Imports X-Road 5.0 clients, optionally deleting the client with the given short name.
+     * @param deleteShortName the client short name
+     * @throws Exception in case of any errors
+     */
     public void doImport(String deleteShortName) throws Exception {
-        LOG.info("Importing clients...");
+        log.info("Importing clients...");
 
         serverConf = getConf(); // will throw exception if server conf not initalized
 
@@ -62,12 +74,16 @@ public class ServiceImporter {
                 if (client != null) {
                     String peerType = xConf.getPeerType(consumer);
 
-                    if ("https".equals(peerType)) {
-                        client.setIsAuthentication("SSLAUTH");
-                    } else if ("https noauth".equals(peerType)) {
-                        client.setIsAuthentication("SSLNOAUTH");
-                    } else {
-                        client.setIsAuthentication("NOSSL");
+                    switch (peerType) {
+                        case "https":
+                            client.setIsAuthentication("SSLAUTH");
+                            break;
+                        case "https noauth":
+                            client.setIsAuthentication("SSLNOAUTH");
+                            break;
+                        default:
+                            client.setIsAuthentication("NOSSL");
+                            break;
                     }
 
                     importInternalSSLCerts(client, consumer, false);
@@ -99,8 +115,8 @@ public class ServiceImporter {
                 return;
             }
 
-            ClientType deleteClient = ClientDAOImpl.getInstance()
-                .getClient(ServerConfDatabaseCtx.getSession(), deleteClientId);
+            ClientType deleteClient = new ClientDAOImpl().getClient(
+                    ServerConfDatabaseCtx.getSession(), deleteClientId);
 
             if (deleteClient == null) {
                 return;
@@ -113,15 +129,15 @@ public class ServiceImporter {
             // Delete the given client if it was not imported.
             if (!importedClients.contains(deleteClientId)) {
 
-                if (ClientType.STATUS_REGINPROG.equals(status) ||
-                    ClientType.STATUS_REGISTERED.equals(status)) {
+                if (ClientType.STATUS_REGINPROG.equals(status)
+                        || ClientType.STATUS_REGISTERED.equals(status)) {
 
-                    LOG.info("Sending deletion request for client '{}'",
+                    log.info("Sending deletion request for client '{}'",
                         deleteClientId);
                     sender.sendClientDeletionRequest(serverId, deleteClientId);
                 }
 
-                LOG.info("Deleting client '{}'", deleteClientId);
+                log.info("Deleting client '{}'", deleteClientId);
                 getConf().getClient().remove(deleteClient);
             }
         } finally {
@@ -133,16 +149,16 @@ public class ServiceImporter {
         ClientId mappedId = identifierMapping.getClientId(org.getShortName());
 
         if (mappedId == null) {
-            LOG.warn("Could not find identifier mapping " +
-                     "for client '{}', skipping", org.getShortName());
+            log.warn("Could not find identifier mapping "
+                    + "for client '{}', skipping", org.getShortName());
             return null;
         }
 
-        ClientType mappedClient = ClientDAOImpl.getInstance().getClient(
+        ClientType mappedClient = new ClientDAOImpl().getClient(
                 ServerConfDatabaseCtx.getSession(), mappedId);
 
         if (mappedClient == null) {
-            LOG.info("Importing client '{}'", org.getShortName());
+            log.info("Importing client '{}'", org.getShortName());
 
             mappedClient = new ClientType();
             mappedClient.setConf(getConf());
@@ -151,12 +167,13 @@ public class ServiceImporter {
 
             getConf().getClient().add(mappedClient);
         } else {
-            LOG.info("Client '{}' already exists in SDSB", org.getShortName());
+            log.info("Client '{}' already exists in X-Road 6.0",
+                    org.getShortName());
         }
 
         // delete everything to make sure the confs are in sync
 
-        LOG.info("Deleting client WSDLs and ACLs");
+        log.info("Deleting client WSDLs and ACLs");
 
         for (WsdlType wsdl : mappedClient.getWsdl()) {
             wsdl.setClient(null);
@@ -170,7 +187,7 @@ public class ServiceImporter {
 
     private void importInternalSSLCerts(ClientType client, XConf.Org org,
             boolean keepOld) throws Exception {
-        LOG.info("Importing internal SSL certs for '{}'", org.getShortName());
+        log.info("Importing internal SSL certs for '{}'", org.getShortName());
 
         if (!keepOld) {
             client.getIsCert().clear();
@@ -196,10 +213,10 @@ public class ServiceImporter {
 
     private void importServices(ClientType client, XConf.Producer producer)
             throws Exception {
-        LOG.info("Importing services for '{}'", producer.getShortName());
+        log.info("Importing services for '{}'", producer.getShortName());
 
         if (!xConf.adapterExists(producer)) {
-            LOG.info("Adapter not configured, skipping");
+            log.info("Adapter not configured, skipping");
             return;
         }
 
@@ -222,14 +239,14 @@ public class ServiceImporter {
         newWsdl.setRefreshedDate(now);
 
         for (String serviceName : xConf.getServices(producer)) {
-            LOG.info("Importing service '{}'", serviceName);
+            log.info("Importing service '{}'", serviceName);
 
             String[] splitService = serviceName.split("\\.");
 
             ServiceType service = new ServiceType();
             service.setWsdl(newWsdl);
             service.setServiceCode(splitService[1]);
-            if (splitService.length == 3) {
+            if (splitService.length == SERVICE_WITH_VERSION_PARTS) {
                 service.setServiceVersion(splitService[2]);
             }
             service.setUrl(getServiceMediatorURL(client.getIdentifier()));
@@ -256,7 +273,7 @@ public class ServiceImporter {
     private void importServiceAcl(AclType acl, List<String> authorizedClients,
             List<String> authorizedGroups) throws Exception {
 
-        LOG.info("Importing ACL for service '{}'", acl.getServiceCode());
+        log.info("Importing ACL for service '{}'", acl.getServiceCode());
 
         if (authorizedClients != null) {
             // add those authorized clients for which we have
@@ -273,9 +290,9 @@ public class ServiceImporter {
 
                     acl.getAuthorizedSubject().add(authorizedSubject);
                 } else {
-                    LOG.warn("Could not find identifier mapping for " +
-                             "authorized subject '{}', skipping",
-                             subjectShortName);
+                    log.warn("Could not find identifier mapping for "
+                            + "authorized subject '{}', skipping",
+                            subjectShortName);
                 }
             }
         }
@@ -308,8 +325,8 @@ public class ServiceImporter {
             throws Exception {
         StringBuilder str = new StringBuilder();
 
-        str.append("sdsbInstance=");
-        str.append(urlEncode(clientId.getSdsbInstance()));
+        str.append("xRoadInstance=");
+        str.append(urlEncode(clientId.getXRoadInstance()));
         str.append("&memberClass=");
         str.append(urlEncode(clientId.getMemberClass()));
         str.append("&memberCode=");
@@ -342,7 +359,7 @@ public class ServiceImporter {
         String serverCode = serverConf.getServerCode();
 
         return SecurityServerId.create(
-            ownerId.getSdsbInstance(), ownerId.getMemberClass(),
+            ownerId.getXRoadInstance(), ownerId.getMemberClass(),
             ownerId.getMemberCode(), serverCode);
     }
 
@@ -354,8 +371,13 @@ public class ServiceImporter {
             "serviceImporter", receiver, sender);
     }
 
+    /**
+     * Exports X-Road 6.0 clients, optionally deleting the client with the given ID.
+     * @param deleteClientId the client ID
+     * @throws Exception in case of any errors
+     */
     public void doExport(ClientId deleteClientId) throws Exception {
-        LOG.info("Exporting clients...");
+        log.info("Exporting clients...");
 
         getConf(); // will throw exception if server conf not initalized
 
@@ -367,8 +389,8 @@ public class ServiceImporter {
                     identifierMapping.getShortName(client.getIdentifier());
 
                 if (shortName == null) {
-                    LOG.warn("Could not find identifier mapping for " +
-                             "client '{}', skipping", client.getIdentifier());
+                    log.warn("Could not find identifier mapping for "
+                            + "client '{}', skipping", client.getIdentifier());
                     continue;
                 }
 
@@ -379,12 +401,12 @@ public class ServiceImporter {
                 XConf.Producer producer = new XConf.Producer(shortName);
 
                 if (xConf.createOrg(consumer, fullName)) {
-                    LOG.info("Exporting client '{}' as consumer",
+                    log.info("Exporting client '{}' as consumer",
                              client.getIdentifier());
                 }
 
                 if (xConf.createOrg(producer, fullName)) {
-                    LOG.info("Exporting client '{}' as producer",
+                    log.info("Exporting client '{}' as producer",
                              client.getIdentifier());
                 }
 
@@ -409,12 +431,12 @@ public class ServiceImporter {
             XConf.Producer deleteProducer = new XConf.Producer(deleteShortName);
 
             if (xConf.orgExists(deleteConsumer)) {
-                LOG.info("Deleting consumer '{}'", deleteShortName);
+                log.info("Deleting consumer '{}'", deleteShortName);
                 xConf.deleteOrg(deleteConsumer);
             }
 
             if (xConf.orgExists(deleteProducer)) {
-                LOG.info("Deleting producer '{}'", deleteShortName);
+                log.info("Deleting producer '{}'", deleteShortName);
                 xConf.deleteOrg(deleteProducer);
             }
         } finally {
@@ -424,10 +446,10 @@ public class ServiceImporter {
 
     private void exportServices(XConf.Producer producer, ClientType client)
             throws Exception {
-        LOG.info("Exporting services for '{}'", client.getIdentifier());
+        log.info("Exporting services for '{}'", client.getIdentifier());
 
         if (client.getWsdl().isEmpty()) {
-            LOG.info("No services found, deleting adapter conf and ACL");
+            log.info("No services found, deleting adapter conf and ACL");
             xConf.deleteAdapterConf(producer);
             xConf.deleteAcl(producer);
             return;
@@ -451,7 +473,7 @@ public class ServiceImporter {
 
         int timeout = 0;
         for (WsdlType wsdl : client.getWsdl()) {
-            LOG.debug("Exporting services from WSDL '{}'", wsdl.getUrl());
+            log.debug("Exporting services from WSDL '{}'", wsdl.getUrl());
 
             for (ServiceType service : wsdl.getService()) {
                 exportService(producer, service, xconfAcl);
@@ -475,7 +497,7 @@ public class ServiceImporter {
 
     private void exportService(XConf.Producer producer, ServiceType service,
             XConfAcl xconfAcl) throws Exception {
-        LOG.debug("Exporting service '{}'", service.getServiceCode());
+        log.debug("Exporting service '{}'", service.getServiceCode());
 
         String query = producer.getShortName() + "." + service.getServiceCode();
         String queryWithVersion = service.getServiceVersion() != null
@@ -486,14 +508,14 @@ public class ServiceImporter {
 
     private void exportAcl(XConf.Producer producer, AclType aclType,
             XConfAcl xconfAcl) {
-        LOG.debug("Exporting acl for '{}'", aclType.getServiceCode());
+        log.debug("Exporting acl for '{}'", aclType.getServiceCode());
 
         String query = producer.getShortName() + "." + aclType.getServiceCode();
 
         for (AuthorizedSubjectType subject : aclType.getAuthorizedSubject()) {
-            SdsbId subjectId = subject.getSubjectId();
+            XroadId subjectId = subject.getSubjectId();
 
-            if (subjectId.getObjectType() == SdsbObjectType.GLOBALGROUP) {
+            if (subjectId.getObjectType() == XroadObjectType.GLOBALGROUP) {
                 String group = ((GlobalGroupId) subjectId).getGroupCode();
 
                 xconfAcl.groups.add(group);
@@ -504,7 +526,7 @@ public class ServiceImporter {
 
                 xconfAcl.gacl.get(query).add(group);
 
-            } else if (subjectId.getObjectType() == SdsbObjectType.LOCALGROUP) {
+            } else if (subjectId.getObjectType() == XroadObjectType.LOCALGROUP) {
                 List<GroupMemberType> localGroupMembers =
                         xconfAcl.localGroups.get(
                                 ((LocalGroupId) subjectId).getGroupCode());
@@ -525,8 +547,8 @@ public class ServiceImporter {
                         xconfAcl.cacl.get(query).add(consumerShortName);
 
                     } else {
-                        LOG.warn("Could not find identifier mapping for " +
-                                 " authorizedSubject '{}', skipping", clientId);
+                        log.warn("Could not find identifier mapping for "
+                                + " authorizedSubject '{}', skipping", clientId);
                     }
                 }
             } else {
@@ -542,8 +564,8 @@ public class ServiceImporter {
 
                     xconfAcl.cacl.get(query).add(consumerShortName);
                 } else {
-                    LOG.warn("Could not find identifier mapping for " +
-                             " authorizedSubject '{}', skipping", subjectId);
+                    log.warn("Could not find identifier mapping for "
+                            + " authorizedSubject '{}', skipping", subjectId);
                 }
             }
         }
@@ -551,7 +573,7 @@ public class ServiceImporter {
 
     private void exportInternalSSLConf(XConf.Org org, ClientType client)
             throws Exception {
-        LOG.info("Exporting internal SSL conf for '{}'", org.getShortName());
+        log.info("Exporting internal SSL conf for '{}'", org.getShortName());
 
         // both, consumer and producer, will from now on disable ssl for
         // internal connections to allow access for mediators

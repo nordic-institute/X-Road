@@ -1,9 +1,12 @@
 (function(PERIODIC_JOBS, $, undefined) {
     function refreshAlerts() {
-        if (typeof SDSB_BACKUP == "undefined" || !SDSB_BACKUP.restoreInProgress()) {
+        if (typeof XROAD_BACKUP == "undefined" || !XROAD_BACKUP.restoreInProgress()) {
             $.ajax({
                 url: "/application/alerts",
                 global: false,
+                data: {
+                    allowTimeout: true
+                },
                 success: function(response) {
                     showAlerts(response.alerts)
                 },

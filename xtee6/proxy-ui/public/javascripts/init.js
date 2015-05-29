@@ -69,6 +69,7 @@ function initConfigurationAnchorActions() {
         if ($(this).val() != "") {
             $("#anchor_upload_submit").enable();
         }
+        $(".selected_file").val($(this).val());
     }).val("");
 
     $("#anchor_upload_submit").disable();

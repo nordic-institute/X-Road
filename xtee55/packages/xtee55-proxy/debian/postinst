@@ -2,35 +2,35 @@
 
 if [ "$1" = configure ]; then
   if getent passwd ui > /dev/null; then
-    adduser ui sdsb
+    adduser ui xroad
   fi
 
   if getent passwd www-data > /dev/null; then
-    adduser www-data sdsb
+    adduser www-data xroad
   fi
 
   if getent group xtee > /dev/null; then
-    adduser sdsb xtee
+    adduser xroad xtee
   fi
 fi
 
-test -w /usr/xtee/etc/ && touch /usr/xtee/etc/sdsb_installed && chmod 644 /usr/xtee/etc/sdsb_installed
+test -w /usr/xtee/etc/ && touch /usr/xtee/etc/v6_xroad_installed && chmod 644 /usr/xtee/etc/v6_xroad_installed
 
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k client-http-port -v 8080
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k client-https-port -v 8443
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k verify-client-cert -v false
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k log-both-messages -v false
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s monitoringagent -k uri -v akka.tcp://XroadMonitoringAgent@127.0.0.1:2553/user/DataReceiver
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k client-http-port -v 8080
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k client-https-port -v 8443
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k verify-client-cert -v false
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k log-both-messages -v false
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s monitoringagent -k uri -v akka.tcp://XroadMonitoringAgent@127.0.0.1:2553/user/DataReceiver
 
 rm -f /etc/nginx/sites-enabled/xtee55-clientmediator*
 
-if [ ! -f /usr/xtee/etc/sdsb_activated ]; then
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-port -v 5501
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5578
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-address -v 127.0.0.1
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 127.0.0.1
+if [ ! -f /usr/xtee/etc/v6_xroad_activated ]; then
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-port -v 5501
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5578
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-address -v 127.0.0.1
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 127.0.0.1
 
-  cat > /etc/nginx/sites-enabled/sdsb_proxy_disabled << EOF
+  cat > /etc/nginx/sites-enabled/xroad_proxy_disabled << EOF
 # direct connection to proxy is disabled when v5.5 is not activated
 server { listen 5577;
 if (\$request_method = HEAD ) {
@@ -46,19 +46,19 @@ server {listen 5500;
 EOF
 
 else
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-port -v 5500
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5577
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k server-listen-address -v 0.0.0.0
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 0.0.0.0
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-port -v 5500
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5577
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-address -v 0.0.0.0
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 0.0.0.0
 
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k http-port -v 80
-  /usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s client-mediator -k https-port -v 443
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k http-port -v 80
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k https-port -v 443
 fi
 
 # Set the X-Road 5.5 commands needed by the proxy UI.
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy-ui -k service-importer-command -v /usr/share/sdsb/scripts/serviceimporter.sh
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy-ui -k service-exporter-command -v /usr/share/sdsb/scripts/serviceexporter.sh
-/usr/share/sdsb/scripts/modify_inifile.py -f /etc/sdsb/conf.d/local.ini -s proxy-ui -k internal-ssl-exporter-command -v /usr/share/sdsb/scripts/export_internal_sslkey.sh
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k service-importer-command -v /usr/share/xroad/scripts/serviceimporter.sh
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k service-exporter-command -v /usr/share/xroad/scripts/serviceexporter.sh
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k internal-ssl-exporter-command -v /usr/share/xroad/scripts/export_internal_sslkey.sh
 
 chmod 0440 /etc/sudoers.d/xtee
 

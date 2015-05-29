@@ -141,7 +141,7 @@ class FedDatagen
   end
 
   def self.read_file(filename)
-    filepath = "#{ENV["SDSB_HOME"]}/center-ui/test/resources/#{filename}"
+    filepath = "#{ENV["XROAD_HOME"]}/center-ui/test/resources/#{filename}"
 
     file_content = File.open(filepath, "rb") { |file| file.read() }
 

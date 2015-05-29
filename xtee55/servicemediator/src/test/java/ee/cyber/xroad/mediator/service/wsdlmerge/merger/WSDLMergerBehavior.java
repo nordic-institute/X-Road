@@ -10,9 +10,17 @@ import ee.cyber.xroad.mediator.service.wsdlmerge.structure.WSDL;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests functionality of WSDL merger.
+ */
 public class WSDLMergerBehavior {
     private static final String DB_V5_NAME = "uusandmekogu";
 
+    /**
+     * Testing normal case of merging two WSDL-s.
+     *
+     * @throws Exception thrown when merging fails.
+     */
     @Test
     public void shouldMergeTwoWsdls() throws Exception {
         // Given
@@ -29,6 +37,12 @@ public class WSDLMergerBehavior {
         assertEquals(getExpectedSimpleWsdl(), mergedWsdl);
     }
 
+    /**
+     * Tests situation when two WSDL-s with exactly the same service are trying
+     * to be merged.
+     *
+     * @throws InvalidWSDLCombinationException thrown if successful.
+     */
     @Test(expected = InvalidWSDLCombinationException.class)
     public void shouldThrowErrorWhenMultipleServicesWithSameNameAndVersion()
             throws InvalidWSDLCombinationException {
@@ -40,6 +54,12 @@ public class WSDLMergerBehavior {
         new WSDLMerger(Arrays.asList(wsdlFirst, wsdlSecond), DB_V5_NAME);
     }
 
+    /**
+     * Tests situation when WSDL-s with different target namespaces are trying
+     * to be merged.
+     *
+     * @throws InvalidWSDLCombinationException thrown if successful.
+     */
     @Test(expected = InvalidWSDLCombinationException.class)
     public void shouldThrowErrorWhenDifferentXrdNamespaces()
             throws InvalidWSDLCombinationException {
@@ -51,6 +71,12 @@ public class WSDLMergerBehavior {
         new WSDLMerger(Arrays.asList(wsdlFirst, wsdlSecond), DB_V5_NAME);
     }
 
+    /**
+     * Tests situation when WSDL-s containing services with same name, but
+     * different version are merged.
+     *
+     * @throws IOException thrown if merging fails.
+     */
     @Test
     public void shouldMergeTwoWsdlsWithDifferentVersionsOfSameService()
             throws IOException {
@@ -68,66 +94,33 @@ public class WSDLMergerBehavior {
         assertEquals(getExpectedReducedWsdl(), mergedWsdl);
     }
 
-    @Test(expected = InvalidWSDLCombinationException.class)
-    public void shouldThrowErrorWhenDifferentWsdlStyles()
-            throws InvalidWSDLCombinationException {
-        // Given
-        WSDL wsdlFirst = getDoclitWsdlContainingSmallAttachment();
-        WSDL wsdlSecond = getRpcWsdlContainingGetRandom();
-
-        // When/then
-        new WSDLMerger(Arrays.asList(wsdlFirst, wsdlSecond), DB_V5_NAME);
-    }
-
-    @Test(expected = InvalidWSDLCombinationException.class)
-    public void shouldNotAllowMergingMultipleRpcWsdls()
-            throws InvalidWSDLCombinationException {
-        // Given
-        WSDL wsdlFirst = getRpcWsdlContainingGetRandom();
-        WSDL wsdlSecond = getRpcWsdlContainingSmallAttachment();
-
-        // When/then
-        new WSDLMerger(Arrays.asList(wsdlFirst, wsdlSecond), DB_V5_NAME);
-    }
-
     // -- Methods for getting WSDL - start ---
 
     private WSDL getDoclitWsdlContainingGetRandom() {
-        return getWsdlContainingGetRandom(true);
-    }
-
-    private WSDL getRpcWsdlContainingGetRandom() {
-        return getWsdlContainingGetRandom(false);
-    }
-
-    private WSDL getRpcWsdlContainingSmallAttachment() {
-        return new MockWSDLCreator(
-                "smallAttachment", false, "v1", "", TestNS.XROAD_NS)
-                .getWSDL();
+        return getWsdlContainingGetRandom();
     }
 
     private WSDL getDoclitWsdlContainingSmallAttachment() {
         return new MockWSDLCreator(
-                "smallAttachment", true, "v1", "", TestNS.XROAD_NS)
+                "smallAttachment", "v1", "", TestNS.XROAD_NS)
                 .getWSDL();
     }
 
     private WSDL getWsdlContainingGetRandomNewerVersion() {
         return new MockWSDLCreator(
-                "getRandom", true, "v2", "_2", TestNS.XROAD_NS)
+                "getRandom", "v2", "_2", TestNS.XROAD_NS)
                 .getWSDL();
     }
 
-    private WSDL getWsdlContainingGetRandom(boolean isDoclit) {
+    private WSDL getWsdlContainingGetRandom() {
         return new MockWSDLCreator(
-                "getRandom", isDoclit, "v1", "", TestNS.XROAD_NS)
+                "getRandom", "v1", "", TestNS.XROAD_NS)
                 .getWSDL();
     }
 
     private WSDL getWsdlWithDifferentXrdNamespace() {
         return new MockWSDLCreator(
                 "smallAttachment",
-                true,
                 "v1",
                 "",
                 "http://www.xrd-different.xom").getWSDL();
@@ -136,7 +129,6 @@ public class WSDLMergerBehavior {
     private WSDL getExpectedSimpleWsdl() {
         return new MockWSDLCreator(
                 Arrays.asList("getRandom", "smallAttachment"),
-                true,
                 "v1",
                 "",
                 TestNS.XROAD_NS,
@@ -147,7 +139,6 @@ public class WSDLMergerBehavior {
     private WSDL getExpectedReducedWsdl() {
         return new MockWSDLCreator(
                 Arrays.asList("getRandom"),
-                true,
                 "v2",
                 "_2",
                 TestNS.XROAD_NS,

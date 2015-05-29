@@ -1,0 +1,46 @@
+<div id="server-info">
+  <div id="server-info-inner">
+    <div id="server-status" class="<%= server_status_class %>"
+         data-status="<%= server_status_class %>">
+      <i class="fa fa-info-circle"></i>
+    </div>
+    <div id="server-names">
+      <h1 data-owner-name="<%= @owner_name if @owner_name %>">
+        <%= @server_id.toShortString if @server_id %>
+      </h1>
+      <h2><%= t 'layouts.application.title' %></h2>
+    </div>
+  </div>
+</div>
+<div id="actions">
+  <div id="actions-inner">
+    <% default_content_for :heading do %>
+      <%= heading %>
+    <% end %>
+    <div id="user" class="cf">
+      <div class="button-group"></div>
+      <ul id="user-nav">
+        <li id="user-info">
+          <h2>
+            <span><%= current_user.name %></span>
+            <i class="fa fa-cog"></i>
+          </h2>
+          <ul id="user-menu">
+            <li>  
+              <a id="locale_select" href="#">
+                <i class="fa fa-flag"></i>
+                <%= t 'common.language', :current => I18n.locale %>
+              </a>
+            </li>
+            <li>
+              <a href="<%= url_for(:controller => :login, :action => :logout) %>">
+                <i class="fa fa-sign-out"></i>
+                <%= t 'layouts.application.logout' %>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -30,7 +30,7 @@ fatJar {
     exclude "META-INF/*.RSA"
 
     manifest {
-        attributes 'Main-Class': 'ee.cyber.sdsb.signer.console.SignerCLI'
+        attributes 'Main-Class': 'ee.ria.xroad.signer.console.SignerCLI'
     }
 }
 
@@ -40,7 +40,7 @@ buildall.dependsOn fatJar
 
 task runSignerConsole(type: JavaExec) {
     jvmArgs '-Djava.library.path=../legacy/passwordstore'
-    main = 'ee.cyber.sdsb.signer.console.SignerCLI'
+    main = 'ee.ria.xroad.signer.console.SignerCLI'
     classpath = sourceSets.test.runtimeClasspath
     standardInput = System.in;
 }

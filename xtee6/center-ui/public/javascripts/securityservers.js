@@ -1,4 +1,4 @@
-var SDSB_SECURITYSERVERS = function() {
+var XROAD_SECURITYSERVERS = function() {
     var oSecurityServers;
 
     function enableActions() {
@@ -37,7 +37,7 @@ var SDSB_SECURITYSERVERS = function() {
         ];
 
         opts.fnDrawCallback = function() {
-            SDSB_CENTERUI_COMMON.updateRecordsCount("securityservers");
+            XROAD_CENTERUI_COMMON.updateRecordsCount("securityservers");
             enableActions();
         }
 
@@ -64,11 +64,11 @@ var SDSB_SECURITYSERVERS = function() {
         });
 
         $("#securityservers tbody tr").live("dblclick", function() {
-            SDSB_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
+            XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
         });
 
         $("#securityserver_edit").click(function() {
-            SDSB_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
+            XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
         });
     });
 

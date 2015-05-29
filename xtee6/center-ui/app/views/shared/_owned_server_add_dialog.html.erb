@@ -1,6 +1,6 @@
 <%= dialog "owned_server_add_dialog", t("management_requests.details.auth_cert_reg.new.title") do %>
   <section class="container">
-    <legend><%= t 'securityservers.info.legend' %></legend>
+    <h2><span><%= t 'securityservers.info.legend' %></span></h2>
     <table class="details">
       <tr>
         <td class="description"><%= t 'securityservers.owner_name' %></td>
@@ -22,17 +22,15 @@
   </section>
 
   <section class="container">
-    <legend><%= t 'securityservers.auth_cert.cert.legend' %></legend>
-    <p>
-      <% if can?(:add_security_server_auth_cert_reg_request) %>
-        <%= form_tag "members/import_auth_cert",
-            :id => "member_auth_cert_upload", :multipart => true,
-            :target => "auth_cert_upload_target" do %>
+    <h2><span><%= t 'securityservers.auth_cert.cert.legend' %></span></h2>
+    <% if can?(:add_security_server_auth_cert_reg_request) %>
+      <%= form_tag "members/import_auth_cert", :id => "member_auth_cert_upload", :multipart => true, :target => "upload_target" do %>
+        <p class="acenter">
           <%= upload_button("owned_server_cert_upload") %>
-        <% end %>
+        </p>
       <% end %>
-    </p>
-    <iframe id="auth_cert_upload_target" name="auth_cert_upload_target"></iframe>
+    <% end %>
+
     <table class="details">
       <tr class="auth_cert_details">
         <td class="description"><%= t 'securityservers.auth_cert.ca' %></td>

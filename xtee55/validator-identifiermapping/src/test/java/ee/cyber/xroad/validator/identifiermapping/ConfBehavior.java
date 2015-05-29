@@ -2,18 +2,23 @@ package ee.cyber.xroad.validator.identifiermapping;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * Test program to see if the database can be accessed.
+ */
+public final class ConfBehavior {
 
-public class ConfBehavior {
+    private ConfBehavior() {
+    }
 
     /**
      * Purpose is just to see if we can access the database.
-     *
-     * @throws Exception
+     * @param args command-line arguments
+     * @throws Exception in case of any unexpected errors
      */
     public static void main(String[] args) throws Exception {
-        setDbProperties();
+        DbConf dbConf = new DbConf("src/test/resources/db.properties");
 
-        try (Conf conf = new Conf()) {
+        try (Conf conf = new Conf(dbConf)) {
             System.out.println("Instance identifier:");
             System.out.println("\t" + conf.getInstanceIdentifier());
 
@@ -23,12 +28,6 @@ public class ConfBehavior {
             System.out.println("\t"
                     + StringUtils.join(conf.getAllowedMemberClasses(), ", "));
         }
-    }
-
-    private static void setDbProperties() {
-        System.setProperty(Conf.PROP_DB_DATABASE, "centerui_development");
-        System.setProperty(Conf.PROP_DB_USERNAME, "centerui");
-        System.setProperty(Conf.PROP_DB_PASSWORD, "centerui");
     }
 
 }

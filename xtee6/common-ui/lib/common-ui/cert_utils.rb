@@ -1,6 +1,6 @@
 require 'openssl'
 
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 module CommonUi
   module CertUtils

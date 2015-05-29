@@ -87,7 +87,7 @@ class GlobalGroup < ActiveRecord::Base
 
   def client_id_parameters(client_id)
     { :object_type => client_id.object_type,
-      :sdsb_instance => client_id.sdsb_instance,
+      :xroad_instance => client_id.xroad_instance,
       :member_class => client_id.member_class,
       :member_code => client_id.member_code,
       :subsystem_code => client_id.subsystem_code }

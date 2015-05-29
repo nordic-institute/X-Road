@@ -1,4 +1,4 @@
-var SDSB_INTERMEDIATE_CA_DIALOG = function() {
+var XROAD_INTERMEDIATE_CA_DIALOG = function() {
     var ocspResponders;
     var caId, intermediateCaId;
 
@@ -41,7 +41,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
             };
 
             $.get(action("ca_cert"), params, function(response) {
-                SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
             }, "json");
 
             return false;
@@ -79,7 +79,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
             };
 
             $.get(action("ocsp_responder_cert"), params, function(response) {
-                SDSB_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
             }, "json");
         });
     }
@@ -91,7 +91,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
                 ocsp_responder_id: selected.id
             };
 
-            SDSB_URL_AND_CERT_DIALOG.openEditDialog(
+            XROAD_URL_AND_CERT_DIALOG.openEditDialog(
                 "ocsp_responder", _("approved_cas.edit_ocsp_responder"),
                 true, selected.url, selected.has_cert, params);
         });
@@ -100,7 +100,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
             var params = {
                 intermediate_ca_id: intermediateCaId
             };
-            SDSB_URL_AND_CERT_DIALOG.openAddDialog("ocsp_responder",
+            XROAD_URL_AND_CERT_DIALOG.openAddDialog("ocsp_responder",
                 _("approved_cas.add_ocsp_responder"), true, params);
         });
 
@@ -131,7 +131,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
 
     function certUploadCallback(response) {
         if (response.success) {
-            SDSB_APPROVED_CA_DIALOG.refreshIntermediateCAs();
+            XROAD_APPROVED_CA_DIALOG.refreshIntermediateCAs();
 
             $("#ca_cert_upload_dialog").dialog("close");
             openEditDialog(caId, response.data);
@@ -151,7 +151,7 @@ var SDSB_INTERMEDIATE_CA_DIALOG = function() {
         $("#ca_cert_upload_dialog form #ca_id").enable().val(caId);
 
         $("#ca_cert_file").val("");
-        $("#ca_cert_submit").text(_("common.ok"));
+        $("#ca_cert_submit").text(_("common.ok")).disable();
         $("#ca_cert_upload_dialog").dialog("open");
     }
 

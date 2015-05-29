@@ -4,24 +4,27 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import ee.cyber.sdsb.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.cyber.sdsb.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.cyber.sdsb.common.conf.serverconf.model.ServerConfType;
-import ee.cyber.sdsb.common.identifier.SdsbId;
+import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.identifier.XroadId;
 
-class Helper {
+final class Helper {
+
+    private Helper() {
+    }
 
     static boolean confExists() throws Exception {
-        return ServerConfDAOImpl.getInstance().confExists();
+        return new ServerConfDAOImpl().confExists();
     }
 
     static ServerConfType getConf() throws Exception {
-        return ServerConfDAOImpl.getInstance().getConf();
+        return new ServerConfDAOImpl().getConf();
     }
 
-    static <T extends SdsbId> T getIdentifier(T example) throws Exception {
-        T sdsbId = IdentifierDAOImpl.getIdentifier(example);
-        return sdsbId != null ? sdsbId : example;
+    static <T extends XroadId> T getIdentifier(T example) throws Exception {
+        T xroadId = IdentifierDAOImpl.getIdentifier(example);
+        return xroadId != null ? xroadId : example;
     }
 
     static String urlEncode(String value) throws UnsupportedEncodingException {

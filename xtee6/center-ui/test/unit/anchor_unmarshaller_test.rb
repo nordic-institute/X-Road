@@ -3,7 +3,7 @@ require 'time'
 
 class AnchorUnmarshallerTest < ActiveSupport::TestCase
   def get_anchor_file
-    return "#{ENV["SDSB_HOME"]}/center-ui/test/resources/configuration-anchor-AAA.xml"
+    return "#{ENV["XROAD_HOME"]}/center-ui/test/resources/configuration-anchor-AAA.xml"
   end
 
   def get_expected_generated_at

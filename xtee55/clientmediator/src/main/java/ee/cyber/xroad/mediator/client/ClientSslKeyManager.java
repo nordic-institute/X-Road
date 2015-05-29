@@ -10,11 +10,11 @@ import javax.net.ssl.X509ExtendedKeyManager;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.sdsb.common.conf.InternalSSLKey;
-import ee.cyber.sdsb.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 
 @Slf4j
-public class ClientSslKeyManager extends X509ExtendedKeyManager {
+class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     private static final String ALIAS = "ClientSslKeyManager";
 
@@ -34,7 +34,7 @@ public class ClientSslKeyManager extends X509ExtendedKeyManager {
 
     @Override
     public X509Certificate[] getCertificateChain(String alias) {
-        return new X509Certificate[] { getSslKey().getCert() };
+        return new X509Certificate[] {getSslKey().getCert()};
     }
 
     @Override

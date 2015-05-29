@@ -2,20 +2,26 @@ require 'active_record'
 
 require 'java'
 
-require 'sdsb/validators'
-require 'sdsb/identifier'
-require 'sdsb/system_parameter'
-require 'sdsb/security_server_client_name'
-require 'sdsb/global_group_member'
-require 'sdsb/global_group'
-require 'sdsb/security_server_client'
-require 'sdsb/sdsb_member'
-require 'sdsb/subsystem'
-require 'sdsb/member_class'
-require 'sdsb/client_id'
-require 'sdsb/distributed_files'
+require 'xroad/validators'
+require 'xroad/identifier'
+require 'xroad/client_id'
+require 'xroad/security_server_id'
+require 'xroad/system_parameter'
+require 'xroad/security_server_client_name'
+require 'xroad/global_group_member'
+require 'xroad/global_group'
+require 'xroad/security_server_client'
+require 'xroad/request'
+require 'xroad/xroad_member'
+require 'xroad/subsystem'
+require 'xroad/member_class'
+require 'xroad/client_id'
+require 'xroad/distributed_files'
 
 require 'xtee55_clients_importer/xlogger'
+
+java_import Java::ee.cyber.xroad.clientsimporter.IdentifierMapping
+java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
 
 include Xtee55ClientsImporter
 
@@ -60,7 +66,7 @@ module Xtee55ClientsImporter
         if (GlobalGroup.add_group_if_not_exists(g.name, g.description))
           @@log.info("Importing global group '#{g.name}'")
         else
-          @@log.info("Global group '#{g.name}' already exists in SDSB, " +
+          @@log.info("Global group '#{g.name}' already exists in X-Road 6.0, " +
               "skipping")
         end
       end
@@ -75,8 +81,7 @@ module Xtee55ClientsImporter
         raise "No identifiermapping.xml file in the database"
       end
 
-      mapping = Java::EeCyberXroadClientsimporter::IdentifierMapping.new(
-          mapping_file.file_data)
+      mapping = IdentifierMapping.new(mapping_file.file_data)
 
       instance_identifier = SystemParameter.instance_identifier
 
@@ -94,8 +99,8 @@ module Xtee55ClientsImporter
           next
         end
 
-        if client_id.getSdsbInstance() != instance_identifier
-          @@log.warn("Invalid SDSB instance '#{client_id.getSdsbInstance()}' " +
+        if client_id.getXRoadInstance() != instance_identifier
+          @@log.warn("Invalid X-Road 6.0 instance '#{client_id.getXRoadInstance()}' " +
               "for client '#{o.name}', skipping")
           @warnings = true
           next
@@ -103,16 +108,15 @@ module Xtee55ClientsImporter
 
         object_type = client_id.getObjectType()
 
-        if object_type != Java::EeCyberSdsbCommonIdentifier::SdsbObjectType::MEMBER &&
-            object_type != Java::EeCyberSdsbCommonIdentifier::SdsbObjectType::SUBSYSTEM
-          @@log.warn("Invalid SDSB object type '#{object_type.name}' " +
+        if object_type != XroadObjectType::MEMBER &&
+            object_type != XroadObjectType::SUBSYSTEM
+          @@log.warn("Invalid X-Road 6.0 object type '#{object_type.name}' " +
               "for client '#{o.name}', skipping")
           @warnings = true
           next
         end
 
-        is_subsystem = object_type ==
-            Java::EeCyberSdsbCommonIdentifier::SdsbObjectType::SUBSYSTEM
+        is_subsystem = object_type == XroadObjectType::SUBSYSTEM
 
         member_class = MemberClass.find_by_code(client_id.getMemberClass())
 
@@ -128,26 +132,26 @@ module Xtee55ClientsImporter
         if member
           if is_subsystem
             if subsystem_exists?(member.id, client_id.getSubsystemCode())
-              @@log.info("Client '#{o.name}' already exists in SDSB, skipping")
+              @@log.info("Client '#{o.name}' already exists in X-Road 6.0, skipping")
             else
               @@log.info("Importing client '#{o.name}'")
               Subsystem.create!(
-                  :sdsb_member => member,
+                  :xroad_member => member,
                   :subsystem_code => client_id.getSubsystemCode())
             end
           else
-            @@log.info("Client '#{o.name}' already exists in SDSB, skipping")
+            @@log.info("Client '#{o.name}' already exists in X-Road 6.0, skipping")
           end
         else
           if is_subsystem
             if is_consumer
               @@log.info("Importing client '#{o.name}'")
-              member = SdsbMember.create!(
+              member = XroadMember.create!(
                   :name => o.full_name,
                   :member_class => member_class,
                   :member_code => client_id.getMemberCode(),
                   :administrative_contact => nil)
-              Subsystem.create!(:sdsb_member => member,
+              Subsystem.create!(:xroad_member => member,
                   :subsystem_code => client_id.getSubsystemCode())
             else
               @@log.warn("Member not found for subsystem client '#{o.name}', skipping")
@@ -156,7 +160,7 @@ module Xtee55ClientsImporter
             end
           else
             @@log.info("Importing client '#{o.name}'")
-            SdsbMember.create!(
+            XroadMember.create!(
                 :name => o.full_name,
                 :member_class => member_class,
                 :member_code => client_id.getMemberCode(),
@@ -186,19 +190,19 @@ module Xtee55ClientsImporter
 
     def get_client_id(java_client_id)
       ClientId.from_parts(
-          java_client_id.getSdsbInstance(),
+          java_client_id.getXRoadInstance(),
           java_client_id.getMemberClass(),
           java_client_id.getMemberCode(),
           java_client_id.getSubsystemCode())
     end
 
     def find_member(member_class_id, member_code)
-      members = SdsbMember.where(:member_code => member_code,
+      members = XroadMember.where(:member_code => member_code,
           :member_class_id => member_class_id).first
     end
 
     def subsystem_exists?(member_id, subsystem_code)
-      Subsystem.exists?(:sdsb_member_id => member_id,
+      Subsystem.exists?(:xroad_member_id => member_id,
           :subsystem_code => subsystem_code)
     end
   end

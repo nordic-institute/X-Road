@@ -6,7 +6,6 @@
     targetNamespace="http://andmed.x-road.ee/producer">
 <wsdl:types>
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://andmed.x-road.ee/producer">
-<xsd:import namespace="http://x-road.ee/xsd/x-road.xsd" schemaLocation="http://x-road.ee/xsd/x-road.xsd"/>
 <FirstMockedSchemaElement />
 <SecondMockedSchemaElement />
 </xsd:schema>

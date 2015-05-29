@@ -22,7 +22,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
-public class WSDLParser {
+final class WSDLParser {
 
     private static final String SOAP_NAMESPACE =
         "http://schemas.xmlsoap.org/wsdl/soap/";
@@ -39,6 +39,9 @@ public class WSDLParser {
             new QName(SOAP12_NAMESPACE, "address");
     private static final QName SOAP12_BINDING =
             new QName(SOAP12_NAMESPACE, "binding");
+
+    private WSDLParser() {
+    }
 
     public static Collection<ServiceInfo> parseWSDL(InputStream wsdl)
             throws Exception {

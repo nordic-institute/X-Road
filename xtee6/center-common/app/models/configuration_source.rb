@@ -1,9 +1,9 @@
 java_import Java::java.util.UUID
 
-java_import Java::ee.cyber.sdsb.common.conf.globalconf.privateparameters.ObjectFactory
-java_import Java::ee.cyber.sdsb.common.util.CryptoUtils
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
-java_import Java::ee.cyber.sdsb.signer.protocol.dto.KeyUsageInfo
+java_import Java::ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
 
 class ConfigurationSource < ActiveRecord::Base
   SOURCE_TYPE_INTERNAL = "internal"
@@ -108,7 +108,7 @@ class ConfigurationSource < ActiveRecord::Base
   private
 
   def dummy_client_id
-    Java::ee.cyber.sdsb.common.identifier.ClientId.create(
+    Java::ee.ria.xroad.common.identifier.ClientId.create(
       SystemParameter.instance_identifier, "selfsigned", UUID.randomUUID.toString)
   end
 

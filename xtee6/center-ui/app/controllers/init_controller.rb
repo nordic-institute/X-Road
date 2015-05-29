@@ -1,4 +1,4 @@
-java_import Java::ee.cyber.sdsb.commonui.SignerProxy
+java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class InitController < ApplicationController
 

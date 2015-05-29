@@ -10,7 +10,7 @@
 		<filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
 		<init-param>
 			<param-name>applicationClassName</param-name>
-			<param-value>ee.cyber.xroad.logreader.LogReaderUIApplication</param-value>
+			<param-value>ee.ria.xroad_legacy.logreader.LogReaderUIApplication</param-value>
 		</init-param>
 	</filter>
 
@@ -21,7 +21,7 @@
 
 	<servlet>
 		<servlet-name>ExtractSvt</servlet-name>
-		<servlet-class>ee.cyber.xroad.logreader.ExtractSvt</servlet-class>
+		<servlet-class>ee.ria.xroad_legacy.logreader.ExtractSvt</servlet-class>
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>ExtractSvt</servlet-name>

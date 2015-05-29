@@ -477,7 +477,7 @@
 
                     return generateTableActions(actions);
                 },
-                sWidth: "130px"
+                sWidth: "150px"
             },
             {
                 mData: 'owner',

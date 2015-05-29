@@ -11,7 +11,7 @@ en:
       distributed_signed_files:
         data_boundary: "data boundary"
         sig_algo_id: "signature algorithm ID"
-      federated_sdsb:
+      federated_xroad:
         code: "code"
         address: "address"
       global_group:
@@ -19,7 +19,7 @@ en:
         description: "group description"
       identifier:
         object_type: "object type"
-        sdsb_instance: "X-Road instance"
+        xroad_instance: "X-Road instance"
         member_class: "member class"
         member_code: "member code"
         subsystem_code: "subsystem code"
@@ -47,7 +47,7 @@ en:
         origin: "origin"
         server_owner_name: "server owner name"
         server_user_name: "server user name"
-      sdsb_member:
+      xroad_member:
         member_code: "member code"
         name: "member name"
       security_category:
@@ -104,8 +104,4 @@ en:
     identifier_mapping:
       malformed: "Upload failed: incorrect file structure.  %{fault_msg}"
       member_class_not_allowed: "Uploading failed: Member class '%{class}' is not defined in the system. Valid values are: '%{allowed_classes}'"
-      wrong_sdsb_instance: "Uploading failed: X-Road instance identifier must be '%{current}', '%{found}' was found"
-    import:
-      invalid_extension: "Uploaded file name '%{file}' has invalid extension, valid ones are '%{extensions}'"
-      invalid_content_type: "Invalid content type for uploaded file: '%{content_type}', allowed ones are '%{allowed_content_types}'"
-      invalid_content: "Content of uploaded file '%{file}' does not correspond to gzip format"
+      wrong_xroad_instance: "Uploading failed: X-Road instance identifier must be '%{current}', '%{found}' was found"

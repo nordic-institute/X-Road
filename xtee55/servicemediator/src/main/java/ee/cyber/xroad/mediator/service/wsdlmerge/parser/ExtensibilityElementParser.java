@@ -5,17 +5,17 @@ import java.util.List;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.xml.namespace.QName;
 
-public abstract class ExtensibilityElementParser {
+abstract class ExtensibilityElementParser {
     private List<?> extensibilityElements;
     private QName searchableElement;
 
-    public ExtensibilityElementParser(List<?> extensibilityElements,
+    ExtensibilityElementParser(List<?> extensibilityElements,
             QName searchableElement) {
         this.extensibilityElements = extensibilityElements;
         this.searchableElement = searchableElement;
     }
 
-    public String parse() {
+    String parse() {
         for (Object eachExt : extensibilityElements) {
             ExtensibilityElement extElement = (ExtensibilityElement) eachExt;
 

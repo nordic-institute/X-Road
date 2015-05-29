@@ -4,12 +4,19 @@
 <% end %>
 
 <% content_for :content do %>
-  <% if can?(:execute_v5_import) %>
-    <fieldset>
-      <table id="import_v5_data_table"></table>
+  <div class="import_actions">
+    <button id="upload_v5_data"><%= t 'common.upload' %></button>
+    <button id="last_result"><%= t 'import_v5.last_result' %></button>
+  </div>
 
-      <%= render :partial => "import_upload_dialog" %>
-      <%= render :partial => "application/console_output_dialog" %>
-    </fieldset>
-  <% end %>
+  <table id="v5_data_files">
+    <thead>
+      <tr>
+        <th><%= t 'import_v5.file_type' %></th>
+        <th><%= t 'import_v5.file_info' %></th>
+      </tr>
+    </thead>
+  </table>
+
+  <%= render :partial => "application/console_output_dialog" %>
 <% end %>

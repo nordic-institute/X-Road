@@ -1,4 +1,4 @@
-var SDSB_CONFIGURATION_SOURCE = function() {
+var XROAD_CONFIGURATION_SOURCE = function() {
     var oSigningKeys, oConfParts;
     var tab = "#source_tab";
 
@@ -11,12 +11,9 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         if (oSigningKeys.getFocus()) {
             var selectedKey = oSigningKeys.getFocusData();
 
-            if (!selectedKey.key_active) {
-                $("#activate_signing_key").enable();
-                $("#delete_signing_key").enable();
-            } else {
-                $("#activate_signing_key, #delete_signing_key").disable();
-            }
+            $("#delete_signing_key").enable(!selectedKey.key_active);
+            $("#activate_signing_key").enable(
+                !selectedKey.key_active && selectedKey.key_available);
         }
 
         if (getSourceType() == "external") {
@@ -51,7 +48,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         var data = response.data;
 
         if (response.success) {
-            $("#upload_conf_part_dialog").dialog("close");
+            closeFileUploadDialog();
             oConfParts.fnReplaceData(data.parts);
         }
 
@@ -91,7 +88,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
             },
             {
                 "mData": function(source, type, val) {
-                    if (!source.hasOwnProperty("token_active")) {
+                    if (!source.token_available) {
                         return "";
                     }
 
@@ -249,7 +246,7 @@ var SDSB_CONFIGURATION_SOURCE = function() {
             confirm(tr_prefix + "activate_signing_key_confirm", confirmParams, function() {
                 $.post(action("activate_signing_key"), params, function(response) {
                     refreshWithData(response.data);
-                    SDSB_PERIODIC_JOBS.refreshAlerts();
+                    XROAD_PERIODIC_JOBS.refreshAlerts();
                 }, "json");
             });
         });
@@ -259,14 +256,22 @@ var SDSB_CONFIGURATION_SOURCE = function() {
             var params = {
                 id: keyData.id
             };
-
             var confirmParams = {
                 key_id: keyData.key_id
             };
+
             confirm(tr_prefix + "delete_signing_key_confirm", confirmParams, function() {
-                $.post(action("delete_signing_key"), params, function(response) {
-                    refreshWithData(response.data);
-                }, "json");
+                var fun = function() {
+                    $.post(action("delete_signing_key"), params, function(response) {
+                        refreshWithData(response.data);
+                    }, "json");
+                };
+
+                if (!keyData.token_active && keyData.token_available) {
+                    activateToken(keyData.token_id, fun);
+                } else {
+                    fun();
+                }
             });
         });
 
@@ -280,47 +285,16 @@ var SDSB_CONFIGURATION_SOURCE = function() {
     }
 
     function initConfPartsActions() {
-        $("#upload_conf_part_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 200,
-            width: 500,
-            open: function() {
-                var confPart = oConfParts.getFocusData();
-
-                $("#source_type", this).val(getSourceType());
-                $("#content_identifier", this).val(confPart.content_identifier);
-                $("#part_file_name", this).val(confPart.file_name);
-            },
-            buttons: [
-            { text: _("common.upload"),
-              id: "upload_conf_part_submit",
-              disabled: "disabled",
-              click: function() {
-                  $("#upload_conf_part_form").submit();
-              }
-            },
-            { text: _("common.cancel"),
-              click: function() {
-                  $(this).dialog("close");
-              }
-            }]
-        });
-
-        $("#conf_part_file").change(function() {
-            var submitButton = $("#upload_conf_part_submit");
-
-            if ($(this).val() != "") {
-                submitButton.enable();
-            } else {
-                submitButton.disable();
-            }
-        });
-
         $("#upload_conf_part").click(function() {
-            $("#upload_conf_part_submit").disable();
-            $("#conf_part_file").val("");
-            $("#upload_conf_part_dialog").dialog("open");
+            var confPart = oConfParts.getFocusData();
+            var hiddenFields = {
+                source_type: getSourceType(),
+                content_identifier: confPart.content_identifier,
+                part_file_name: confPart.file_name
+            };
+
+            openFileUploadDialog(action("upload_conf_part"),
+                __("upload_configuration_part"), hiddenFields);
         });
 
         $("#download_conf_part").click(function() {
@@ -362,11 +336,36 @@ var SDSB_CONFIGURATION_SOURCE = function() {
         enableActions();
     }
 
+    function pollSigningKeys() {
+        setTimeout(function() {
+            if (getSourceType() == null) {
+                pollSigningKeys();
+                return;
+            }
+
+            $.ajax({
+                url: action("source"),
+                data: {
+                    source_type: getSourceType(),
+                    allowTimeout: true
+                },
+                global: false,
+                success: function(response) {
+                    refreshWithData(response.data);
+                },
+                dataType: "json",
+                complete: pollSigningKeys
+            });
+        }, 30000);
+    }
+
     $(document).ready(function() {
         initSourceTables();
         initSourceAnchorActions();
         initSigningKeysActions();
         initConfPartsActions();
+
+        pollSigningKeys();
     });
 
     return {

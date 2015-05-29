@@ -6,11 +6,11 @@ dependencies {
 }
 
 task runLockingTest(type: JavaExec) {
-    main = 'ee.cyber.sdsb.asyncdb.LockingTest'
+    main = 'ee.ria.xroad.asyncdb.LockingTest'
     classpath = sourceSets.test.runtimeClasspath
 }
 
 task runAsyncDBIntegrationTest(type: JavaExec) {
-    main = 'ee.cyber.sdsb.asyncdb.AsyncDBIntegrationTest'
+    main = 'ee.ria.xroad.asyncdb.AsyncDBIntegrationTest'
     classpath = sourceSets.test.runtimeClasspath
 }

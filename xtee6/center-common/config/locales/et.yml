@@ -10,7 +10,7 @@ et:
         original_filename_last_failed: "Üleslaetud faili algne nimi"
       distributed_signed_files:
         sig_algo_id: "Signatuurialgoritmi ID"
-      federated_sdsb:
+      federated_xroad:
         code: "Kood"
         address: "Aadress"
       global_group:
@@ -18,7 +18,7 @@ et:
         description: "Grupi kirjeldus"
       identifier:
         object_type: "Objekti tüüp"
-        sdsb_instance: "SDSB eksemplar"
+        xroad_instance: "XROAD eksemplar"
         member_class: "Liikmeklass"
         member_code: "Liikmekood"
         subsystem_code: "Alamsüsteemi kood"
@@ -46,7 +46,7 @@ et:
         origin: "Algallikas"
         server_owner_name: "Server omaniku nimi"
         server_user_name: "Serveri kasutaja nimi"
-      sdsb_member:
+      xroad_member:
         member_code: "Liikme kood"
         name: "Liikme nimi"
       security_category:
@@ -102,7 +102,7 @@ et:
     identifier_mapping:
       malformed: "Faili laadimine ebaõnnestus: ebakorrektne failistruktuur. %{fault_msg}"
       member_class_not_allowed: "Faili laadimine ebaõnnestus: Liikmeklass '%{class}' pole süsteemis lubatud. Valiidsed väärtused on: '%{allowed_classes}'"
-      wrong_sdsb_instance: "Faili laadimine ebaõnnestus: X-tee eksemplari kood peab olema '%{current}', leiti '%{found}'"
+      wrong_xroad_instance: "Faili laadimine ebaõnnestus: X-tee eksemplari kood peab olema '%{current}', leiti '%{found}'"
     import:
       invalid_extension: "Üleslaetud faili nimel '%{file}' on vale laiend, korrektsed on '%{extensions}'"
       invalid_content_type: "Vale üleslaetud faili sisutüüp: '%{content_type}', lubatud on '%{allowed_content_types}'"

@@ -1,25 +1,30 @@
 package ee.cyber.xroad.mediator.util;
 
-import ee.cyber.sdsb.common.message.SoapMessage;
-import ee.cyber.sdsb.common.message.SoapMessageImpl;
-import ee.cyber.xroad.mediator.message.XRoadSoapMessageImpl;
+import ee.cyber.xroad.mediator.message.V5XRoadSoapMessageImpl;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
+/**
+ * Contains utility methods commonly used by mediators.
+ */
 public final class MediatorUtils {
 
     private MediatorUtils() {
     }
 
     /**
-     * Returns true, if provided message is SDSB SOAP message.
+     * @param m the SOAP message
+     * @return true, if provided message is X-Road 6.0 SOAP message.
      */
-    public static final boolean isSdsbSoapMessage(SoapMessage m) {
+    public static boolean isV6XRoadSoapMessage(SoapMessage m) {
         return m instanceof SoapMessageImpl;
     }
 
     /**
-     * Returns true, if provided message is X-Road 5.0 SOAP message.
+     * @param m the SOAP message
+     * @return true, if provided message is X-Road 5.0 SOAP message.
      */
-    public static final boolean isXroadSoapMessage(SoapMessage m) {
-        return m instanceof XRoadSoapMessageImpl;
+    public static boolean isV5XRoadSoapMessage(SoapMessage m) {
+        return m instanceof V5XRoadSoapMessageImpl;
     }
 }

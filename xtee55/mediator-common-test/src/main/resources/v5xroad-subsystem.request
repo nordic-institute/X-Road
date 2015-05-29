@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xrd="http://x-road.ee/xsd/x-road.xsd">
+    <SOAP-ENV:Header>
+        <xrd:consumer>xts3client</xrd:consumer>
+        <xrd:producer>v55ts2client2.sub</xrd:producer>
+        <xrd:userId>EE30101010007</xrd:userId>
+        <xrd:id>91dd741f-bc28-4b12-a51e-211769dd87eb</xrd:id>
+        <xrd:service>v55ts2client2.sub.xrddlGetRandom.v1</xrd:service>
+        <xrd:issue/>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <ns4:xrddlGetRandom xmlns:ns4="http://v55ts2client2.sub.ee.x-road.ee/producer/">
+            <request>
+                <seed>100</seed>
+            </request>
+        </ns4:xrddlGetRandom>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

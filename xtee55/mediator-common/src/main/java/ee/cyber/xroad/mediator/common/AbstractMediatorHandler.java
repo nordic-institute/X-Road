@@ -12,17 +12,20 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ee.cyber.sdsb.common.CodedException;
-import ee.cyber.sdsb.common.util.AsyncHttpSender;
-import ee.cyber.sdsb.common.util.HandlerBase;
-import ee.cyber.sdsb.common.util.HttpHeaders;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.HandlerBase;
+import ee.ria.xroad.common.util.HttpHeaders;
 
-import static ee.cyber.sdsb.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 
+/**
+ * Base class for mediator HTTP request handlers.
+ */
 public abstract class AbstractMediatorHandler extends HandlerBase {
 
     // We need to exclude headers that we do not want to carry over
-    private static final Set<String> headerBlacklist =
+    private static final Set<String> HEADER_BLACKLIST =
             new TreeSet<>(new Comparator<String>() {
                 @Override
                 public int compare(String a, String b) {
@@ -31,12 +34,12 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
             });
 
     static {
-        headerBlacklist.add(HttpHeaders.CONTENT_LENGTH);
-        headerBlacklist.add(HttpHeaders.CONTENT_TYPE);
+        HEADER_BLACKLIST.add(HttpHeaders.CONTENT_LENGTH);
+        HEADER_BLACKLIST.add(HttpHeaders.CONTENT_TYPE);
 
-        headerBlacklist.add(HttpHeaders.CONTENT_ENCODING);
-        headerBlacklist.add(HttpHeaders.TRANSFER_ENCODING);
-        headerBlacklist.add(HttpHeaders.CONTENT_TRANSFER_ENCODING);
+        HEADER_BLACKLIST.add(HttpHeaders.CONTENT_ENCODING);
+        HEADER_BLACKLIST.add(HttpHeaders.TRANSFER_ENCODING);
+        HEADER_BLACKLIST.add(HttpHeaders.CONTENT_TRANSFER_ENCODING);
     }
 
     protected final HttpClientManager httpClientManager;
@@ -50,7 +53,7 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
         Enumeration<String> headerNames = request.getHeaderNames();
         while (headerNames.hasMoreElements()) {
             String headerName = headerNames.nextElement();
-            if (!headerBlacklist.contains(headerName)) {
+            if (!HEADER_BLACKLIST.contains(headerName)) {
                 sender.addHeader(headerName, request.getHeader(headerName));
             }
         }
@@ -89,7 +92,7 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
     protected static void setResponseHeaders(HttpServletResponse response,
             Map<String, String> headers) {
         for (Entry<String, String> e : headers.entrySet()) {
-            if (!headerBlacklist.contains(e.getKey())) {
+            if (!HEADER_BLACKLIST.contains(e.getKey())) {
                 response.addHeader(e.getKey(), e.getValue());
             }
         }
@@ -103,10 +106,18 @@ public abstract class AbstractMediatorHandler extends HandlerBase {
         }
     }
 
+    /**
+     * @param request the HTTP servlet request
+     * @return true if the given HTTP request is a GET request
+     */
     public static boolean isGetRequest(HttpServletRequest request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
 
+    /**
+     * @param request the HTTP servlet request
+     * @return true if the given HTTP request is a POST request
+     */
     public static boolean isPostRequest(HttpServletRequest request) {
         return request.getMethod().equalsIgnoreCase("POST");
     }

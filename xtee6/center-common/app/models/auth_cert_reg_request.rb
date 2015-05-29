@@ -49,7 +49,7 @@ class AuthCertRegRequest < RequestWithProcessing
   def get_revoking_request_id
     request = AuthCertDeletionRequest.joins(:security_server).where(
       :identifiers => {
-        :sdsb_instance => security_server.sdsb_instance,
+        :xroad_instance => security_server.xroad_instance,
         :member_class => security_server.member_class,
         :member_code => security_server.member_code,
         :server_code => security_server.server_code},

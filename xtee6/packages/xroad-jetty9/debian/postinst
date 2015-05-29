@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-test -d /var/log/sdsb/jetty && test -w /var/log/sdsb/jetty || mkdir -p /var/log/sdsb/jetty  ; chown sdsb:sdsb /var/log/sdsb/jetty
-test -d /usr/share/sdsb/webapps || mkdir -p /usr/share/sdsb/webapps
+test -d /var/log/xroad/jetty && test -w /var/log/xroad/jetty || mkdir -p /var/log/xroad/jetty  ; chown xroad:xroad /var/log/xroad/jetty
+test -d /usr/share/xroad/webapps || mkdir -p /usr/share/xroad/webapps
 
 exit 0

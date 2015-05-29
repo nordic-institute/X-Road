@@ -15,3 +15,11 @@
 override_dh_gencontrol:
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
 
+
+build:
+	wget -O jruby.tgz https://s3.amazonaws.com/jruby.org/downloads/1.7.16.1/jruby-bin-1.7.16.1.tar.gz
+	tar zxf jruby.tgz
+	rm jruby.tgz
+	mv jruby-* jruby
+	rm -rf `find  jruby/lib/jni/* | grep -v x86_64-Linux`
+

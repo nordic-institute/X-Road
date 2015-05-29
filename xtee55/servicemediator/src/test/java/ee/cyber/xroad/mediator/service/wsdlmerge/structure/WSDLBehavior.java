@@ -14,8 +14,16 @@ import ee.cyber.xroad.mediator.service.wsdlmerge.structure.binding.Binding;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests behavior of WSDL domain object.
+ */
 public class WSDLBehavior {
 
+    /**
+     * Tests that WSDL can be turned into XML.
+     *
+     * @throws Exception thrown when turning WSDL into XML fails.
+     */
     @Test
     public void shouldReturnWsdlIntoXml() throws Exception {
         // Given
@@ -26,7 +34,6 @@ public class WSDLBehavior {
                 getPortTypes(),
                 getBindings(),
                 getServices(),
-                true,
                 TestNS.XROAD_NS,
                 TestNS.XRDDL_TNS,
                 "mergedWSDL");

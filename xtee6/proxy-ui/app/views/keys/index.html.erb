@@ -98,17 +98,6 @@
   <%= render :partial => "shared/cert_details_dialog" %>
   <%= render :partial => "application/activate_token_dialog" %>
 
-  <%= dialog "import_cert_dialog", t('.import_certificate') do %>
-    <section class="container">
-      <%= form_tag "#{controller.controller_name}/import_cert", :id => "import_cert_form",
-      :multipart => true, :target => "upload_target" do %>
-      <%= t '.certificate_location' %>:
-      <%= file_field_tag "file" %>
-      <% end %>
-      <iframe id="upload_target" name="upload_target"></iframe>
-    </section>
-  <% end %>
-
   <%= dialog "register_dialog", t('.registration_request') do %>
     <%= form_tag do %>
       <table style="width: 100%;">

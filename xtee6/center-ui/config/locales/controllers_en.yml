@@ -21,7 +21,6 @@ en:
       version: "Version"
 
   common:
-    cert_imported: "Certificate imported successfully"
     db_error: "Cannot connect to database server"
 
   about:
@@ -112,7 +111,7 @@ en:
       global_groups_refresh: "refresh global groups table"
       group_members: "get global group members"
       addable_members: "get addable global group members"
-      sdsb_instance_codes: "get X-Road instance codes"
+      xroad_instance_codes: "get X-Road instance codes"
       types: "get distinct object types"
       get_member_count: "get global group member count"
       find_by_id: "get global group by id"
@@ -258,7 +257,7 @@ en:
       generate_source_anchor: "generate source anchor"
       generate_signing_key: "generate signing key"
       activate_signing_key: "activate signing key"
-      delete_signing_key: "delete signing key"
+      delete_signing_key: "delete key from central server configuration"
       logout_token: "logout signing token"
       upload_conf_part: "upload configuration part"
     sources:
@@ -266,6 +265,10 @@ en:
       internal_anchor_error: "Internal configuration anchor generation failed: %{reason}"
       external_anchor_generated: "External configuration anchor generated successfully"
       external_anchor_error: "External configuration anchor generation failed: %{reason}"
+      token_or_key_not_available: "token or key not available"
+      deleting_key_from_token_failed: "Failed to delete key from token '%{token}': %{reason}"
+      deleting_key_from_token_success: "Key successfully deleted from token '%{token}'"
+      deleting_key_from_conf_success: "Key successfully deleted from central server configuration"
       conf_part_upload:
         successful: "Configuration file for content identifier '%{content_identifier}' uploaded successfully."
         warnings: "Configuration file for content identifier '%{content_identifier}' uploaded with some warnings."

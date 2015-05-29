@@ -1,17 +1,6 @@
 (function(INTERNAL_CERTS, $) {
     var oInternalCerts, oProxyInternalCert;
 
-    window.internalCertAddCallback = function(response) {
-        if (response.success) {
-            oInternalCerts.fnReplaceData(response.data);
-            enableInternalCertsActions();
-
-            $("#internal_cert_add_dialog").dialog('close');
-        }
-
-        showMessages(response.messages);
-    }
-
     function enableInternalCertsActions() {
         if (oInternalCerts.getFocus()) {
             $("#internal_cert_details, #internal_cert_delete").enable();
@@ -37,29 +26,6 @@
     }
 
     function initInternalCertsDialogs() {
-        $("#internal_cert_add_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            height: 250,
-            width: 500,
-            open: function() {
-                $("#client_id").val(CLIENTS.getClientId());
-            },
-            buttons: [
-                { text: _("common.ok"),
-                  click: function() {
-                      
-                      $("form", this).submit();
-                  }
-                },
-                { text: _("common.cancel"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        });
-
         $("#cert_details_dialog").initDialog({
             autoOpen: false,
             modal: true,
@@ -111,11 +77,14 @@
             $("#connection_type").disable();
         }
 
-        $("#internal_cert_add").live('click', function() {
-            $("#internal_cert_add_dialog").dialog('open');
+        $("#internal_cert_add").click(function() {
+            openFileUploadDialog(
+                action("internal_cert_add"),
+                _("clients.client_internal_certs_tab.import_certificate"),
+                { client_id: CLIENTS.getClientId() });
         });
 
-        $("#internal_cert_delete").live('click', function() {
+        $("#internal_cert_delete").click(function() {
             var params = {
                 client_id: CLIENTS.getClientId(),
                 hash: oInternalCerts.getFocusData().hash
@@ -138,43 +107,53 @@
         });
     }
 
+    INTERNAL_CERTS.init = function() {
+        oInternalCerts.fnClearTable();
+
+        enableInternalCertsActions();
+
+        var params = {
+            client_id: CLIENTS.getClientId()
+        };
+
+        $.get(action("internal_connection_type"), params, function(response) {
+            if (response.data.connection_type != null) {
+                $('#connection_type').val(response.data.connection_type);
+            }
+        }, "json");
+
+        $.get(action("client_internal_certs"), params, function(response) {
+            oInternalCerts.fnAddData(response.data);
+        }, "json");
+
+        oProxyInternalCert.fnClearTable();
+
+        $.get(action("proxy_internal_cert"), function(response) {
+            if (response.data.hash) {
+                oProxyInternalCert.fnAddData(response.data);
+                $("#proxy_internal_cert_export").enable();
+            } else {
+                $("#proxy_internal_cert_export").disable();
+            }
+        }, "json");
+    };
+
+    INTERNAL_CERTS.uploadCallback = function(response) {
+        if (response.success) {
+            oInternalCerts.fnReplaceData(response.data);
+            enableInternalCertsActions();
+            closeFileUploadDialog();
+        }
+
+        showMessages(response.messages);
+    };
+
     $(document).ready(function() {
         initInternalCertsTables();
         initInternalCertsDialogs();
         initInternalCertsActions();
 
         enableInternalCertsActions();
-
-        INTERNAL_CERTS.init = function() {
-            oInternalCerts.fnClearTable();
-
-            enableInternalCertsActions();
-
-            var params = {
-                client_id: CLIENTS.getClientId()
-            };
-
-            $.get(action("internal_connection_type"), params, function(response) {
-                if (response.data.connection_type != null) {
-                    $('#connection_type').val(response.data.connection_type);
-                }
-            }, "json");
-
-            $.get(action("client_internal_certs"), params, function(response) {
-                oInternalCerts.fnAddData(response.data);
-            }, "json");
-
-            oProxyInternalCert.fnClearTable();
-
-            $.get(action("proxy_internal_cert"), function(response) {
-                if (response.data.hash) {
-                    oProxyInternalCert.fnAddData(response.data);
-                    $("#proxy_internal_cert_export").enable();
-                } else {
-                    $("#proxy_internal_cert_export").disable();
-                }
-            }, "json");
-        };
     });
 
 })(window.INTERNAL_CERTS = window.INTERNAL_CERTS || {}, jQuery);

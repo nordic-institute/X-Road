@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /etc/sdsb/services/global.conf
+. /etc/xroad/services/global.conf
 
 die () {
     echo >&2 "$@"
@@ -13,9 +13,9 @@ die () {
 CP="../configuration-client/build/libs/configuration-client-1.0.jar"
 
 
-SDSB_LOG_LEVEL="INFO"
+XROAD_LOG_LEVEL="INFO"
 
-CONFCLIENT_PARAMS=" -Xmx50m -Dee.cyber.sdsb.appLog.sdsb.level=$SDSB_LOG_LEVEL "
+CONFCLIENT_PARAMS=" -Xmx50m -Dee.ria.xroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
 
-${JAVA_HOME}/bin/java ${SDSB_PARAMS} ${CONFCLIENT_PARAMS} -cp ${CP} ee.cyber.sdsb.common.conf.globalconf.ConfigurationClientMain $@
+${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${CONFCLIENT_PARAMS} -cp ${CP} ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain $@
 
