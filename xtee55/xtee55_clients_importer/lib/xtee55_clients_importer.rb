@@ -1,5 +1,0 @@
-require 'xtee55_clients_importer/ca_data_parser'
-require 'xtee55_clients_importer/options'
-require 'xtee55_clients_importer/db_manager'
-require 'xtee55_clients_importer/xlogger'
-require 'xtee55_clients_importer/xtee55_clients_importer.jar'
