@@ -1,3 +1,9 @@
+xroad (6.4-1) trusty; urgency=low
+
+   * corrected mime-attachment handling
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 18 Jun 2015 17:08:14 +0300
+
 xroad (6.4-0) trusty; urgency=low
 
    * User session is closed after inactivity

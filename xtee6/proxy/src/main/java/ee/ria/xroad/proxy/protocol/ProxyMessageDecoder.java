@@ -2,6 +2,8 @@ package ee.ria.xroad.proxy.protocol;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
@@ -9,6 +11,7 @@ import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
@@ -30,6 +33,7 @@ import ee.ria.xroad.proxy.signedmessage.Verifier;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeTypes.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
@@ -283,6 +287,20 @@ public class ProxyMessageDecoder {
         final MimeStreamParser attachmentParser = new MimeStreamParser(config);
         attachmentParser.setContentHandler(new AbstractContentHandler() {
             private int attachmentNo = 0;
+            private Map<String, String> headers;
+
+            @Override
+            public void startHeader() throws MimeException {
+                headers = new HashMap<>();
+            }
+
+            @Override
+            public void field(Field field) throws MimeException {
+                if (!field.getName().toLowerCase().equals(
+                        HEADER_CONTENT_TYPE)) {
+                    headers.put(field.getName().toLowerCase(), field.getBody());
+                }
+            }
 
             @Override
             public void startMultipart(BodyDescriptor bd) {
@@ -299,7 +317,7 @@ public class ProxyMessageDecoder {
                     TeeInputStream proxyIs =
                             new TeeInputStream(is, dc.getOutputStream(), true);
 
-                    callback.attachment(bd.getMimeType(), proxyIs, null);
+                    callback.attachment(bd.getMimeType(), proxyIs, headers);
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),

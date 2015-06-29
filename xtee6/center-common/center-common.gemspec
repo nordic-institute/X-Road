@@ -7,8 +7,8 @@ require "center-common/version"
 Gem::Specification.new do |s|
   s.name        = "center-common"
   s.version     = CenterCommon::VERSION
-  s.summary     = "TODO: Summary of CenterCommon."
-  s.description = "TODO: Description of CenterCommon."
+  s.summary     = "Database and domain model layers of central server."
+  s.author      = "Cybernetica AS"
 
   s.files = Dir["{app,config,lib}/**/*"] + ["Rakefile"]
 

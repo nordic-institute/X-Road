@@ -166,8 +166,12 @@ class RequestsController < ApplicationController
     member_class = client_id.member_class
     member_code = client_id.member_code
 
+    server_user_name = XroadMember.get_name(member_class, member_code)
+
+    request.update_server_user_name(server_user_name)
+
     {
-      :member_name => request.server_user_name,
+      :member_name => server_user_name,
       :member_class => member_class,
       :member_code => member_code,
       :subsystem_code => client_id.subsystem_code

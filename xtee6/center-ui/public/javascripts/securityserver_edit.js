@@ -652,9 +652,13 @@ var XROAD_SECURITYSERVER_EDIT = function() {
             var managementRequestColumn = $(nRow).find("td:first");
             var managementRequestLink =
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
+            var updateTablesCallback = function() {
+                refreshManagementRequests();
+                // TODO: Add callback for members if needed!
+            }
 
             managementRequestLink.click(function(){
-                XROAD_REQUEST_EDIT.open(managementRequest);
+                XROAD_REQUEST_EDIT.open(managementRequest, updateTablesCallback);
             });
 
             managementRequestColumn.empty().append(managementRequestLink);
