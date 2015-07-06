@@ -48,6 +48,10 @@ module CommonUi
       hash.upcase.scan(/.{1,2}/).join(':')
     end
 
+    def cert_hash_algorithm
+      CryptoUtils::DEFAULT_CERT_HASH_ALGORITHM_ID
+    end
+
     # Parameters:
     # cert - PEM or DER encoded cert bytes as Ruby String
     #

@@ -19,8 +19,8 @@ public class NullLogManager extends AbstractLogManager {
     }
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature)
-            throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature,
+            boolean clientSide) throws Exception {
         // do nothing
     }
 

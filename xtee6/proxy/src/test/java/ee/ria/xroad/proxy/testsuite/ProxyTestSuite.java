@@ -50,6 +50,9 @@ public final class ProxyTestSuite {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
+        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
+        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+
         setUp();
 
         List<MessageTestCase> testCasesToRun =

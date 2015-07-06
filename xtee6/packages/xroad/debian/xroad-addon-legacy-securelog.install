@@ -1,4 +1,0 @@
-addon/proxy/legacy-securelog.conf usr/share/xroad/jlib/addon/proxy/
-addon/jetty/legacy-securelog.conf usr/share/xroad/jlib/addon/jetty/
-../../legacy/securelog/securelog/build/libs/securelog-1.0.jar usr/share/xroad/jlib/addon/proxy/
-

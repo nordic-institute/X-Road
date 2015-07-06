@@ -2,6 +2,12 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.CertificateType
 
 module Clients::InternalCerts
 
+  def self.included(base)
+    base.upload_callbacks({
+      :internal_cert_add => "INTERNAL_CERTS.uploadCallback"
+    })
+  end
+
   def client_internal_certs
     authorize!(:view_client_internal_certs)
 
@@ -42,6 +48,8 @@ module Clients::InternalCerts
   end
 
   def internal_cert_add
+    audit_log("Add internal SSL certificate", audit_log_data = {})
+
     authorize!(:add_client_internal_cert)
 
     validate_params({
@@ -51,14 +59,17 @@ module Clients::InternalCerts
 
     client = get_client(params[:client_id])
     uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file_upload].read)
+    uploaded_cert_hash = CommonUi::CertUtils.cert_hash(uploaded_cert)
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:certHash] = uploaded_cert_hash
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+    audit_log_data[:uploadFileName] = params[:file_upload].original_filename
 
     client.isCert.each do |cert|
-      next unless CommonUi::CertUtils.cert_hash(cert.data) ==
-        CommonUi::CertUtils.cert_hash(uploaded_cert)
-
-      error(t('clients.cert_exists'))
-      upload_error(nil, "INTERNAL_CERTS.uploadCallback")
-      return
+      if CommonUi::CertUtils.cert_hash(cert.data) == uploaded_cert_hash
+        raise t('clients.cert_exists')
+      end
     end
 
     cert = CertificateType.new
@@ -69,10 +80,12 @@ module Clients::InternalCerts
 
     notice(t("common.cert_imported"))
 
-    upload_success(read_internal_certs(client), "INTERNAL_CERTS.uploadCallback")
+    render_json(read_internal_certs(client))
   end
 
   def internal_cert_delete
+    audit_log("Delete internal SSL certificate", audit_log_data = {})
+
     authorize!(:delete_client_internal_cert)
 
     validate_params({
@@ -82,8 +95,11 @@ module Clients::InternalCerts
 
     client = get_client(params[:client_id])
 
-    deleted_cert = nil
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:certHash] = params[:hash]
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
+    deleted_cert = nil
     client.isCert.each do |cert|
       next unless CommonUi::CertUtils.cert_hash(cert.data) == params[:hash]
       deleted_cert = cert
@@ -128,6 +144,9 @@ module Clients::InternalCerts
   end
 
   def internal_connection_type_edit
+    audit_log("Set connection type for servers in service consumer role",
+      audit_log_data = {})
+
     authorize!(:edit_client_internal_connection_type)
     
     validate_params({
@@ -138,6 +157,9 @@ module Clients::InternalCerts
     client = get_client(params[:client_id])
 
     client.isAuthentication = params[:connection_type]
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:isAuthentication] = client.isAuthentication
 
     serverconf_save
 

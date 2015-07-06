@@ -22,10 +22,7 @@ module BaseHelper
   end
 
   def menu_item_url(item)
-    disabled = @disabled_controllers &&
-      @disabled_controllers.include?(item.controller)
-
-    if item.controller && !disabled
+    if item.controller
       url_for(:controller => item.controller)
     else
       "#"
@@ -33,14 +30,7 @@ module BaseHelper
   end
 
   def menu_item_class(item)
-    disabled = @disabled_controllers &&
-      @disabled_controllers.include?(item.controller)
-
-    if item.is_a?(SubMenu)
-      :submenu
-    else
-      :disabled if disabled
-    end
+    :submenu if item.is_a?(SubMenu)
   end
 
   def heading(text = nil)

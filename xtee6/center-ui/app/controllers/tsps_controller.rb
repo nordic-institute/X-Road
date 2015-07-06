@@ -2,15 +2,21 @@ class TspsController < ApplicationController
   include CertTransformationHelper
 
   before_filter :verify_get, :only => [
-      :tsps_refresh,
-      :view_tsp_cert
+    :tsps_refresh,
+    :view_tsp_cert
   ]
 
   before_filter :verify_post, :only => [
-      :add_tsp, 
-      :edit_tsp,
-      :delete_tsp, 
+    :add_tsp,
+    :edit_tsp,
+    :delete_tsp,
+    :upload_tsp_cert
   ]
+
+  upload_callbacks({
+    :upload_tsp_cert => "XROAD_URL_AND_CERT_DIALOG.certUploadCallback",
+    :upload_tsp_cert_data => { :prefix => "tsp" }
+  })
 
   # -- Common GET methods - start ---
 
@@ -71,6 +77,8 @@ class TspsController < ApplicationController
   # -- Specific POST methods - start ---
 
   def add_tsp
+    audit_log("Add timestamping service", audit_log_data = {})
+
     authorize!(:add_approved_tsa)
 
     tsp = ApprovedTsa.new
@@ -80,27 +88,51 @@ class TspsController < ApplicationController
     logger.info("About to save following TSP: '#{tsp}'")
     tsp.save!
 
+    audit_log_data[:tsaId] = tsp.id
+    audit_log_data[:tsaName] = tsp.name
+    audit_log_data[:tsaUrl] = tsp.url
+    audit_log_data[:tsaCertHash] =
+      CommonUi::CertUtils.cert_hash(tsp.cert)
+    audit_log_data[:tsaCertHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
+
     clear_all_temp_certs_from_session
+
     render_json
   end
 
   def edit_tsp
+    audit_log("Edit timestamping service", audit_log_data = {})
+
     authorize!(:edit_approved_tsa)
 
     tsp = ApprovedTsa.find(params[:tsp_id])
     tsp.url = params[:url]
 
+    audit_log_data[:tsaId] = tsp.id
+    audit_log_data[:tsaName] = tsp.name
+    audit_log_data[:tsaUrl] = tsp.url
+
     tsp.save!
     logger.info("TSP edited, result: '#{tsp}'")
 
     clear_all_temp_certs_from_session
+
     render_json
   end
 
   def delete_tsp
+    audit_log("Delete timestamping service", audit_log_data = {})
+
     authorize!(:delete_approved_tsa)
 
-    ApprovedTsa.find(params[:tsp_id]).destroy
+    tsp = ApprovedTsa.find(params[:tsp_id])
+
+    audit_log_data[:tsaId] = tsp.id
+    audit_log_data[:tsaName] = tsp.name
+    audit_log_data[:tsaUrl] = tsp.url
+
+    tsp.destroy
 
     render_json
   end
@@ -109,16 +141,10 @@ class TspsController < ApplicationController
     authorize!(:add_approved_tsa)
 
     cert_data = upload_cert(params[:tsp_cert], true)
-    cert_data["prefix"] = "tsp"
 
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error({
-      :prefix => "tsp"
-    }, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
+    render_json(cert_data)
   end
 
   # -- Specific POST methods - end ---

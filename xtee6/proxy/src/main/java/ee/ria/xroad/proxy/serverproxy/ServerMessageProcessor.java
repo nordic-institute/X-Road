@@ -313,14 +313,15 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature());
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(),
+                false);
     }
 
     private void logResponseMessage() throws Exception {
         if (responseSoap != null && encoder != null) {
             log.trace("logResponseMessage()");
 
-            MessageLog.log(responseSoap, encoder.getSignature());
+            MessageLog.log(responseSoap, encoder.getSignature(), false);
         }
     }
 

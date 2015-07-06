@@ -28,7 +28,6 @@ public final class TestUtil {
     static final String SUBSYSTEM = "SubSystem";
 
     static final String CLIENT_STATUS = "status";
-    static final String CLIENT_CONTACTS = "contacts";
     static final String CLIENT_CODE = "client";
 
     static final String WSDL_LOCATION = "wsdllocation";
@@ -133,7 +132,6 @@ public final class TestUtil {
                 }
 
                 client.setIdentifier(id);
-                client.setContacts(CLIENT_CONTACTS + i);
                 client.setClientStatus(CLIENT_STATUS + i);
             }
 
@@ -188,22 +186,20 @@ public final class TestUtil {
                 client.getWsdl().add(wsdl);
             }
 
-            AclType aclType = new AclType();
-            aclType.setServiceCode(service(1, 1));
-            aclType.getAuthorizedSubject().add(
-                    createAuthorizedSubject(client.getIdentifier()));
+            String serviceCode = service(1, 1);
+
+            client.getAcl().add(
+                createAccessRight(serviceCode, client.getIdentifier()));
 
             ClientId cl = ClientId.create("XX", "memberClass", "memberCode" + i);
-            aclType.getAuthorizedSubject().add(createAuthorizedSubject(cl));
+            client.getAcl().add(createAccessRight(serviceCode, cl));
 
             ServiceId se = ServiceId.create("XX", "memberClass",
                     "memberCode" + i, null, "serviceCode" + i);
-            aclType.getAuthorizedSubject().add(createAuthorizedSubject(se));
+            client.getAcl().add(createAccessRight(serviceCode, se));
 
             LocalGroupId lg = LocalGroupId.create("testGroup" + i);
-            aclType.getAuthorizedSubject().add(createAuthorizedSubject(lg));
-
-            client.getAcl().add(aclType);
+            client.getAcl().add(createAccessRight(serviceCode, lg));
 
             LocalGroupType localGroup = new LocalGroupType();
             localGroup.setGroupCode("localGroup" + i);
@@ -267,12 +263,14 @@ public final class TestUtil {
         return SERVICE_CODE + "-" + wsdlIdx + "-" + serviceIdx;
     }
 
-    static AuthorizedSubjectType createAuthorizedSubject(XroadId xroadId) {
-        AuthorizedSubjectType subject = new AuthorizedSubjectType();
-        subject.setSubjectId(xroadId);
-        subject.setRightsGiven(new Date());
+    static AccessRightType createAccessRight(String serviceCode,
+            XroadId xroadId) {
+        AccessRightType accessRight = new AccessRightType();
+        accessRight.setServiceCode(serviceCode);
+        accessRight.setSubjectId(xroadId);
+        accessRight.setRightsGiven(new Date());
 
-        return subject;
+        return accessRight;
     }
 
 }

@@ -8,7 +8,6 @@ en:
     filename_empty: "Filename missing"
     cert: "Certificate"
     cert_unreadable: "Certificate from file '%{filename}' could not be read"
-    cert_details_title: "Certificate Details"
     cert_view: "View certificate"
     subject_dn: "Subject Distinguished Name"
     issuer_dn: "Issuer Distinguished Name"
@@ -378,3 +377,9 @@ en:
       member_class_description: "Description"
       member_class_add: "Add Member Class"
       member_class_edit: "Edit Member Class"
+
+  shared:
+    cert_details_dialog:
+      cert_details: "Certificate Details"
+      hash: "Hash (%{alg})"
+

@@ -6,6 +6,6 @@ echo this script must run under xroad user
 exit 1
 fi
 
-. /etc/xroad/services/signer.conf
+. /etc/xroad/services/signer-console.conf
 
-rlwrap ${JAVA_HOME}/bin/java ${SIGNER_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar $@
+rlwrap ${JAVA_HOME}/bin/java ${SIGNER_CONSOLE_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar $@

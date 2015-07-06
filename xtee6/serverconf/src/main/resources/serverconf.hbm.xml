@@ -38,7 +38,6 @@
             class="ee.ria.xroad.common.identifier.ClientId"
             cascade="save-update"/>
 
-        <property name="contacts" access="field"/>
         <property name="clientStatus" access="field"/>
         <property name="isAuthentication" access="field"/>
 
@@ -53,15 +52,14 @@
             <one-to-many class="LocalGroupType"/>
         </bag>
 
-        <bag name="isCert" access="field" cascade="all-delete-orphan"
-                table="client_iscerts">
+        <bag name="isCert" access="field" cascade="all-delete-orphan">
             <key column="client_id"/>
-            <many-to-many column="certificate_id" class="CertificateType"/>
+            <one-to-many class="CertificateType"/>
         </bag>
 
         <bag name="acl" access="field" cascade="all-delete-orphan">
             <key column="client_id"/>
-            <one-to-many class="AclType"/>
+            <one-to-many class="AccessRightType"/>
         </bag>
     </class>
 
@@ -148,23 +146,12 @@
             type="org.hibernate.type.MaterializedBlobType"/>
     </class>
 
-    <class name="AclType" table="ACL">
+    <class name="AccessRightType" table="ACCESSRIGHT">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
 
         <property name="serviceCode" access="field" not-null="true"/>
-
-        <bag name="authorizedSubject" access="field" cascade="all-delete-orphan">
-            <key column="acl_id"/>
-            <one-to-many class="AuthorizedSubjectType"/>
-        </bag>
-    </class>
-
-    <class name="AuthorizedSubjectType" table="AUTHORIZEDSUBJECT">
-        <id name="id" type="long" access="field">
-            <generator class="native"/>
-        </id>
 
         <many-to-one name="subjectId" access="field"
             class="ee.ria.xroad.common.identifier.XroadId"

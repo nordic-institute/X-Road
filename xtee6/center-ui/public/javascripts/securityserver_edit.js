@@ -314,7 +314,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         var params = {certId: authCertId};
 
         $.get("securityservers/get_cert_details_by_id", params, function(response) {
-            XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+            XROAD_CERT_DETAILS_DIALOG.openDialog(response.data);
         }, "json");
     }
 

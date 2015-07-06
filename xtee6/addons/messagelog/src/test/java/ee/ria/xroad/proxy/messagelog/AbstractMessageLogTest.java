@@ -63,7 +63,7 @@ abstract class AbstractMessageLogTest {
 
     protected void log(SoapMessageImpl message, SignatureData signature)
             throws Exception {
-        logManager.log(message, signature);
+        logManager.log(message, signature, true);
     }
 
     protected void startTimestamping() {

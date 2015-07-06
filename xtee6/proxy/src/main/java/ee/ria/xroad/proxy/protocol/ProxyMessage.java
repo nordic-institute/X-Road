@@ -8,8 +8,6 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
@@ -29,9 +27,6 @@ import ee.ria.xroad.common.util.MimeUtils;
  */
 @Slf4j
 public class ProxyMessage implements ProxyMessageConsumer {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ProxyMessage.class);
 
     private final List<OCSPResp> ocspResponses = new ArrayList<>();
 
@@ -111,21 +106,21 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void ocspResponse(OCSPResp ocspResponse) throws Exception {
-        LOG.trace("Read SSL OCSP response");
+        log.trace("Read SSL OCSP response");
 
         this.ocspResponses.add(ocspResponse);
     }
 
     @Override
     public void signature(SignatureData signatureData) throws Exception {
-        LOG.trace("Read signature");
+        log.trace("Read signature");
 
         this.signature = signatureData;
     }
 
     @Override
     public void soap(SoapMessageImpl soap) throws Exception {
-        LOG.trace("Read SOAP message");
+        log.trace("Read SOAP message");
 
         this.soapMessage = soap;
     }
@@ -133,9 +128,9 @@ public class ProxyMessage implements ProxyMessageConsumer {
     @Override
     public void attachment(String contentType, InputStream content,
             Map<String, String> additionalHeaders) throws Exception {
-        LOG.trace("Attachment: {}", contentType);
+        log.trace("Attachment: {}", contentType);
 
-        if (encoder == null) {
+        if (!hasAttachments()) {
             attachmentCache = new CachingStream();
             encoder = new SoapMessageEncoder(attachmentCache);
 
@@ -148,7 +143,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void fault(SoapFault soapFault) throws Exception {
-        LOG.trace("Read fault");
+        log.trace("Read fault");
 
         this.fault = soapFault;
     }

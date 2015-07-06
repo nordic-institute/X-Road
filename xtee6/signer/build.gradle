@@ -80,9 +80,8 @@ task runSignerMain(type: JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=build/tmp/keyconf.xml',
         '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good',
         '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
-        '-Djava.library.path=../legacy/lib',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
-        '-Djava.library.path=../legacy/passwordstore:../libs',
+        '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
     main = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
@@ -100,7 +99,6 @@ task runSignerMain(type: JavaExec) {
 //    description = "Run Signer test suite."
 //    testClassesDir = project.sourceSets.testsuite.output.classesDir
 //    classpath = project.sourceSets.testsuite.runtimeClasspath
-//    jvmArgs '-Djava.library.path=../legacy/lib'
 //}
 
 xjc.dependsOn createDirs

@@ -2,8 +2,13 @@
   <%= javascript_include_tag "cert_details_dialog" %>
 <% end %>
 
-<%= dialog "cert_details_dialog", t("common.cert_details_title") do %>
+<%= dialog "cert_details_dialog", t(".cert_details") do %>
   <section class="container">
     <pre id="cert_details_dump"></pre>
+  </section>
+  <section class="container">
+    <!-- TODO: Is this algorithm always adequate? -->
+    <h2><span><%= t '.hash', :alg => Java::ee.ria.xroad.common.util.CryptoUtils::DEFAULT_CERT_HASH_ALGORITHM_ID %></span></h2>
+    <pre id="cert_details_hash" class="mono"></pre>
   </section>
 <% end %>

@@ -10,7 +10,13 @@
     var params;
 
     function enableActions(prefix) {
-        $("#" + prefix + "_cert_view").enable(hasCert);
+        certViewButton = $("#" + prefix + "_cert_view");
+        certViewButton.hide();
+
+        if (hasCert) {
+            certViewButton.show();
+        }
+
         $("#" + prefix + "_url_and_cert_submit").enable(
             $("#" + prefix + "_url").val() && (hasCert || certOptional));
     }
@@ -66,7 +72,13 @@
 
         $("#" + prefix + "_url").val(_url);
         $("#" + prefix + "_cert_file").text("");
-        $("#" + prefix + "_cert_button").enable(certOptional);
+
+        certUploadButton = $("#" + prefix + "_cert_button");
+        certUploadButton.hide();
+
+        if (certOptional) {
+            certUploadButton.show();
+        }
 
         $("#" + prefix + "_url_and_cert_dialog").dialog(
             "option", "title", title);
@@ -86,7 +98,7 @@
 
         $("#" + prefix + "_url").val("");
         $("#" + prefix + "_cert_file").text("");
-        $("#" + prefix + "_cert_button").enable();
+        $("#" + prefix + "_cert_button").show();
 
         $("#" + prefix + "_url_and_cert_dialog").dialog(
             "option", "title", title);

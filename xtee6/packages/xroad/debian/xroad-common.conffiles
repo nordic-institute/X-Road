@@ -1,8 +1,10 @@
 etc/xroad/devices.ini
 etc/xroad/services/global.conf
 etc/xroad/services/signer.conf
+etc/xroad/services/signer-console.conf
 etc/xroad/nginx/default-xroad.conf
 etc/xroad/nginx/nginx-secure-addons.conf
 etc/xroad/conf.d/common.ini
 etc/xroad/conf.d/signer.ini
 etc/xroad/conf.d/signer-logback.xml
+etc/xroad/conf.d/signer-console-logback.xml

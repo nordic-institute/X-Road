@@ -35,6 +35,8 @@ class SysparamsController < ApplicationController
   end
 
   def anchor_upload
+    audit_log("Upload configuration anchor", audit_log_data = {})
+
     authorize!(:upload_anchor)
 
     validate_params({
@@ -44,10 +46,17 @@ class SysparamsController < ApplicationController
     anchor_details =
       save_temp_anchor_file(params[:file_upload].read)
 
-    upload_success(anchor_details)
+    audit_log_data[:anchorFileName] = params[:file_upload].original_filename
+    audit_log_data[:anchorFileHash] = anchor_details[:hash]
+    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at]
+
+    render_json(anchor_details)
   end
 
   def anchor_apply
+    audit_log("Apply configuration anchor", audit_log_data = {})
+
     authorize!(:upload_anchor)
 
     validate_params
@@ -73,6 +82,8 @@ class SysparamsController < ApplicationController
   end
 
   def tsp_add
+    audit_log("Add timestamping service", audit_log_data = {})
+
     authorize!(:add_tsp)
 
     validate_params({
@@ -86,6 +97,9 @@ class SysparamsController < ApplicationController
       :name => params[:name],
       :url => params[:url]
     }
+
+    audit_log_data[:tspName] = params[:name]
+    audit_log_data[:tspUrl] = params[:url]
 
     existing_tsps = read_tsps
     approved_tsps = read_approved_tsps
@@ -109,6 +123,8 @@ class SysparamsController < ApplicationController
   end
 
   def tsp_delete
+    audit_log("Delete timestamping service", audit_log_data = {})
+
     authorize!(:delete_tsp)
 
     validate_params({
@@ -124,6 +140,9 @@ class SysparamsController < ApplicationController
         deleted_tsp = tsp
       end
     end
+
+    audit_log_data[:tspName] = deleted_tsp.name
+    audit_log_data[:tspUrl] = deleted_tsp.url
 
     serverconf.tsp.remove(deleted_tsp)
     serverconf_save
@@ -169,6 +188,8 @@ class SysparamsController < ApplicationController
   end
 
   def internal_ssl_generate
+    audit_log("Generate new SSL key and certificate", audit_log_data = {})
+
     authorize!(:generate_internal_ssl)
 
     script_path = "/usr/share/xroad/scripts/generate_certificate.sh"
@@ -182,15 +203,18 @@ class SysparamsController < ApplicationController
 
     export_internal_ssl
 
-    reload_nginx
     restart_service("xroad-proxy")
 
     if x55_installed?
       restart_service("xtee55-servicemediator")
     end
 
+    cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
+    audit_log_data[:certHash] = cert_hash
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
     render_json({
-      :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
+      :hash => cert_hash
     })
   end
 
@@ -210,15 +234,6 @@ class SysparamsController < ApplicationController
       :hash => hash.upcase.scan(/.{1,2}/).join(':'),
       :generated_at => format_time(generated_at, true)
     }
-  end
-
-  def reload_nginx
-    output = %x[sudo invoke-rc.d nginx reload 2>&1]
-
-    if $?.exitstatus != 0
-      error(t('application.restart_service_failed',
-              :name => "nginx", :output => output))
-    end
   end
 
   def read_approved_tsps

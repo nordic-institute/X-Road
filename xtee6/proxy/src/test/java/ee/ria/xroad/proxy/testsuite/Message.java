@@ -2,12 +2,18 @@ package ee.ria.xroad.proxy.testsuite;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 
 import ee.ria.xroad.common.message.Soap;
@@ -20,9 +26,14 @@ import ee.ria.xroad.common.message.SoapUtils;
  * Encapsulates a test SOAP message.
  */
 @Slf4j
+@Getter
 public class Message {
 
+    private final List<Map<String, String>> multipartHeaders =
+            new ArrayList<>();
+
     private int numAttachments = 0;
+
     private Soap soap;
 
     /**
@@ -41,20 +52,14 @@ public class Message {
             config.setHeadlessParsing(contentType);
 
             MimeStreamParser parser = new MimeStreamParser(config);
-            parser.setContentHandler(new ContentHandler(parser));
+            parser.setContentHandler(new ContentHandler());
+
             parser.parse(inputStream);
         } catch (Exception ex) {
             // Ignore errors, because we may be dealing with tests with
             // invalid messages.
             log.error("Error when parsing message", ex);
         }
-    }
-
-    /**
-     * @return the SOAP message
-     */
-    public Soap getSoap() {
-        return soap;
     }
 
     /**
@@ -104,16 +109,18 @@ public class Message {
     }
 
     private class ContentHandler extends AbstractContentHandler {
+        private Map<String, String> headers;
         private int nextPart = 0;
-        private MimeStreamParser parser;
 
-        ContentHandler(MimeStreamParser parser) {
-            this.parser = parser;
+        @Override
+        public void startHeader() throws MimeException {
+            headers = new HashMap<>();
+            multipartHeaders.add(headers);
         }
 
         @Override
-        public void startMultipart(BodyDescriptor bd) throws MimeException {
-            parser.setFlat();
+        public void field(Field field) throws MimeException {
+            headers.put(field.getName(), field.getBody());
         }
 
         @Override
@@ -131,8 +138,8 @@ public class Message {
                     nextPart = 1;
                     break;
                 case 1:
-                    numAttachments++;
                 default:
+                    numAttachments++;
                     break;
             }
         }

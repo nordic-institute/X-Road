@@ -13,17 +13,13 @@
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>producer</id:memberCode>
-            <id:serviceCode>testQuery</id:serviceCode>
+            <id:serviceCode>test</id:serviceCode>
         </xroad:service>
         <xroad:userId>EE37702211234</xroad:userId>
-        <xroad:id>1234567890</xroad:id>
+        <xroad:id>6f126a7bf107d5c0bf9a038c3c2bc404</xroad:id>
+        <xroad:issue>issue</xroad:issue>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:testQuery xmlns:ns1="http://cosumer.ee.xroad.net">
-            <request>
-                <name>foo</name>
-                <age>35</age>
-            </request>
-        </ns1:testQuery>
+        <ns1:test xmlns:ns1="http://cosumer.ee.xroad.net">aä</ns1:test>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

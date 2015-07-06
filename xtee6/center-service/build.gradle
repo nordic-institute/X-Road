@@ -39,4 +39,9 @@ task runControllerTests(type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:controllers']
 }
 
+task checkRubySource(type: Exec) {
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
 build.dependsOn copyDeps

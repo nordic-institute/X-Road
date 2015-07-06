@@ -128,7 +128,7 @@ final class Utils {
             IOUtils.write(bytes, out);
             System.out.println(file);
         } catch (Exception e) {
-            System.out.println("ERROR: Cannot save to file" + file + ":" + e);
+            System.out.println("ERROR: Cannot save to file " + file + ":" + e);
         }
     }
 
@@ -137,7 +137,7 @@ final class Utils {
             IOUtils.write(encodeBase64(bytes), out);
             System.out.println("Saved to file " + file);
         } catch (Exception e) {
-            System.out.println("ERROR: Cannot save to file" + file + ":" + e);
+            System.out.println("ERROR: Cannot save to file " + file + ":" + e);
         }
     }
 

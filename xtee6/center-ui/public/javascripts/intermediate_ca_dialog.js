@@ -41,7 +41,7 @@ var XROAD_INTERMEDIATE_CA_DIALOG = function() {
             };
 
             $.get(action("ca_cert"), params, function(response) {
-                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data);
             }, "json");
 
             return false;
@@ -79,7 +79,7 @@ var XROAD_INTERMEDIATE_CA_DIALOG = function() {
             };
 
             $.get(action("ocsp_responder_cert"), params, function(response) {
-                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data);
             }, "json");
         });
     }

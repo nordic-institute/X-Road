@@ -10,7 +10,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
-import ee.ria.xroad.common.conf.serverconf.dao.AclDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
@@ -113,15 +112,13 @@ public class DAOImplTest {
     @Test
     public void getAcl() throws Exception {
         ClientId id = createTestClientId(client(1));
-        List<AclType> acl = new AclDAOImpl().getAcl(session, id);
-        assertEquals(1, acl.size());
-        assertEquals(4, acl.get(0).getAuthorizedSubject().size());
+        List<AccessRightType> acl = getClient(id).getAcl();
+        assertEquals(4, acl.size());
 
-        List<AuthorizedSubjectType> s = acl.get(0).getAuthorizedSubject();
-        assertTrue(s.get(0).getSubjectId() instanceof ClientId);
-        assertTrue(s.get(1).getSubjectId() instanceof ClientId);
-        assertTrue(s.get(2).getSubjectId() instanceof ServiceId);
-        assertTrue(s.get(3).getSubjectId() instanceof LocalGroupId);
+        assertTrue(acl.get(0).getSubjectId() instanceof ClientId);
+        assertTrue(acl.get(1).getSubjectId() instanceof ClientId);
+        assertTrue(acl.get(2).getSubjectId() instanceof ServiceId);
+        assertTrue(acl.get(3).getSubjectId() instanceof LocalGroupId);
     }
 
     /**

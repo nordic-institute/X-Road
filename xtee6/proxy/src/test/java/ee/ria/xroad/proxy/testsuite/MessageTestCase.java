@@ -28,7 +28,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -74,7 +74,8 @@ public class MessageTestCase {
 
     protected String responseServiceContentType;
 
-    protected String url = "http://localhost:" + PortNumbers.CLIENT_HTTP_PORT;
+    protected String url = "http://localhost:"
+            + SystemProperties.getClientProxyHttpPort();
     protected final Map<String, String> requestHeaders = new HashMap<>();
 
     @Getter

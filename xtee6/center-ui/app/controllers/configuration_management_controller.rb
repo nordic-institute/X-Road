@@ -6,6 +6,7 @@ java_import Java::ee.ria.xroad.common.util.HashCalculator
 java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class ConfigurationManagementController < ApplicationController
+  UPLOAD_FILE_HASH_ALGORITHM = CryptoUtils::SHA224_ID
 
   before_filter :verify_get, :only => [
     :index,
@@ -28,6 +29,11 @@ class ConfigurationManagementController < ApplicationController
     :clear_uploaded_trusted_anchor,
     :delete_trusted_anchor
   ]
+
+  upload_callbacks({
+    :upload_conf_part => "XROAD_CONFIGURATION_SOURCE.uploadCallback",
+    :upload_trusted_anchor => "XROAD_TRUSTED_ANCHORS.uploadCallback"
+  })
 
   # -- Common GET methods - start ---
 
@@ -158,6 +164,12 @@ class ConfigurationManagementController < ApplicationController
   # -- Specific POST methods - start ---
 
   def generate_source_anchor
+    if params[:source_type] == ConfigurationSource::SOURCE_TYPE_INTERNAL
+      audit_log("Re-create internal configuration anchor", audit_log_data = {})
+    else
+      audit_log("Re-create external configuration anchor", audit_log_data = {})
+    end
+
     authorize!(:generate_source_anchor)
 
     validate_params({
@@ -172,6 +184,10 @@ class ConfigurationManagementController < ApplicationController
 
     source.generate_anchor
 
+    audit_log_data[:anchorFileHash] = source.anchor_file_hash
+    audit_log_data[:anchorFileHashAlgorithm] =
+      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
+
     notice(t("configuration_management.sources." \
              "#{source.source_type}_anchor_generated"))
 
@@ -179,6 +195,14 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def generate_signing_key
+    if params[:source_type] == ConfigurationSource::SOURCE_TYPE_INTERNAL
+      audit_log("Generate internal configuration signing key",
+        audit_log_data = {})
+    else
+      audit_log("Generate external configuration signing key",
+        audit_log_data = {})
+    end
+
     authorize!(:generate_signing_key)
 
     validate_params({
@@ -186,8 +210,21 @@ class ConfigurationManagementController < ApplicationController
       :token_id => [:required]
     })
 
+    token = SignerProxy::getToken(params[:token_id])
+
+    audit_log_data[:tokenId] = token.id
+    audit_log_data[:tokenSerialNumber] = token.serialNumber
+    audit_log_data[:tokenFriendlyName] = token.friendlyName
+
     source = ConfigurationSource.get_source_by_type(params[:source_type])
-    source.generate_signing_key(params[:token_id])
+
+    signing_key = source.generate_signing_key(params[:token_id])
+
+    audit_log_data[:keyId] = signing_key.key_identifier
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(signing_key.certificate)
+    audit_log_data[:certHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
 
     begin
       source.generate_anchor
@@ -202,9 +239,18 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def activate_signing_key
+    if params[:source_type] == ConfigurationSource::SOURCE_TYPE_INTERNAL
+      audit_log("Activate internal configuration signing key",
+        audit_log_data = {})
+    else
+      audit_log("Activate external configuration signing key",
+        audit_log_data = {})
+    end
+
     authorize!(:activate_signing_key)
 
     validate_params({
+      :source_type => [:required],
       :id => [:required]
     })
 
@@ -212,6 +258,12 @@ class ConfigurationManagementController < ApplicationController
 
     # Only activate available keys
     token = SignerProxy::getToken(key.token_identifier)
+
+    audit_log_data[:tokenId] = token.id
+    audit_log_data[:tokenSerialNumber] = token.serialNumber
+    audit_log_data[:tokenFriendlyName] = token.friendlyName
+    audit_log_data[:keyId] = key.key_identifier
+
     token.keyInfo.each do |key_info|
       if key_info.id == key.key_identifier
         if !token.available || !key_info.available
@@ -230,13 +282,26 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def delete_signing_key
+    if params[:source_type] == ConfigurationSource::SOURCE_TYPE_INTERNAL
+      audit_log("Delete internal configuration signing key",
+        audit_log_data = {})
+    else
+      audit_log("Delete external configuration signing key",
+        audit_log_data = {})
+    end
+
     authorize!(:delete_signing_key)
 
     validate_params({
+      :source_type => [:required],
       :id => [:required]
     })
 
     key = ConfigurationSigningKey.find(params[:id])
+
+    audit_log_data[:tokenId] = key.token_identifier
+    audit_log_data[:keyId] = key.key_identifier
+
     key.destroy
 
     notice(t("configuration_management.sources.deleting_key_from_conf_success"))
@@ -244,6 +309,9 @@ class ConfigurationManagementController < ApplicationController
     begin
       token = SignerProxy::getToken(key.token_identifier)
       token_name = (token && token.friendlyName) || key.token_identifier
+
+      audit_log_data[:tokenSerialNumber] = token.serialNumber
+      audit_log_data[:tokenFriendlyName] = token.friendlyName
 
       translate_coded_exception do
         SignerProxy::deleteKey(key.key_identifier, true)
@@ -274,6 +342,8 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def upload_conf_part
+    audit_log("Upload configuration part", audit_log_data = {})
+
     authorize!(:upload_configuration_part)
 
     validate_params({
@@ -283,8 +353,16 @@ class ConfigurationManagementController < ApplicationController
       :part_file_name => [:required]
     })
 
-    source = ConfigurationSource.get_source_by_type(params[:source_type])
     content_identifier = params[:content_identifier]
+    upload_file_name = params[:file_upload].original_filename
+    file_name = params[:part_file_name]
+
+    audit_log_data[:sourceType] = params[:source_type]
+    audit_log_data[:contentIdentifier] = content_identifier
+    audit_log_data[:partFileName] = file_name
+    audit_log_data[:uploadFileName] = upload_file_name
+
+    source = ConfigurationSource.get_source_by_type(params[:source_type])
 
     source_type = source.source_type
 
@@ -293,14 +371,17 @@ class ConfigurationManagementController < ApplicationController
       raise "Unknown configuration part"
     end
 
-    file_name = params[:part_file_name]
-
     optional_parts_conf = DistributedFiles.get_optional_parts_conf()
 
     validation_program =
         optional_parts_conf.getValidationProgram(file_name)
 
     file_bytes = params[:file_upload].read
+    file_hash = CryptoUtils::hexDigest(UPLOAD_FILE_HASH_ALGORITHM,
+        file_bytes.to_java_bytes)
+
+    audit_log_data[:uploadFileHash] = file_hash
+    audit_log_data[:uploadFileHashAlgorithm] = UPLOAD_FILE_HASH_ALGORITHM
 
     file_validator = OptionalConfParts::Validator.new(
         validation_program, file_bytes, content_identifier)
@@ -316,55 +397,56 @@ class ConfigurationManagementController < ApplicationController
       :stderr => validator_stderr
     }
 
-    upload_success(response, "XROAD_CONFIGURATION_SOURCE.uploadCallback")
-  rescue Exception => e
-    log_stacktrace(e)
-
-    validator_stderr = e.respond_to?(:stderr) ? e.stderr : []
-
-    error(e.message)
-
-    upload_error({
-      :stderr => validator_stderr
-    }, "XROAD_CONFIGURATION_SOURCE.uploadCallback")
+    render_json(response)
   end
 
   def upload_trusted_anchor
+    audit_log("Add trusted anchor (upload anchor)", audit_log_data = {})
+
     authorize!(:upload_trusted_anchor)
 
     @temp_anchor_path = get_temp_anchor_path
     @anchor_xml = params[:file_upload].read
-    @anchor_hash = get_anchor_hash()
+    @anchor_hash = get_anchor_hash
+
+    audit_log_data[:anchorFileName] = params[:file_upload].original_filename
+    audit_log_data[:anchorFileHash] = @anchor_hash
+    audit_log_data[:anchorFileHashAlgorithm] =
+      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
 
     save_temp_anchor
 
     # File must be saved to disk in order to use unmarshaller!
     @anchor_unmarshaller = AnchorUnmarshaller.new(@temp_anchor_path)
 
-    anchor_info = get_anchor_info()
-    upload_success({
-      :anchor_info => anchor_info
-    }, "XROAD_TRUSTED_ANCHORS.uploadCallback")
+    audit_log_data[:instanceIdentifier] =
+      @anchor_unmarshaller.get_instance_identifier
+    audit_log_data[:generatedAt] = @anchor_unmarshaller.get_generated_at
+    audit_log_data[:anchorUrls] =
+      @anchor_unmarshaller.get_anchor_urls.collect do |anchor_url|
+        anchor_url.url
+      end
+
+    render_json(get_anchor_info)
   rescue Java::ee.ria.xroad.common.CodedException => e
     log_stacktrace(e)
 
     logger.error("Schema validation of uploaded anchor failed, message:\n'"\
         "#{e.message}'")
 
-    error(t("configuration_management.trusted_anchors.error.anchor_malformed"))
-
-    upload_error(nil, "XROAD_TRUSTED_ANCHORS.uploadCallback")
-  rescue RuntimeError => e
-    log_stacktrace(e)
-
-    error(e.message)
-    upload_error(nil, "XROAD_TRUSTED_ANCHORS.uploadCallback")
+    raise t("configuration_management.trusted_anchors.error.anchor_malformed")
   end
 
   def save_uploaded_trusted_anchor
+    audit_log("Add trusted anchor (confirm)", audit_log_data = {})
+
     authorize!(:upload_trusted_anchor)
 
     init_temp_anchor
+
+    audit_log_data[:anchorFileHash] = @temp_anchor_hash
+    audit_log_data[:anchorFileHashAlgorithm] =
+      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
 
     CommonUi::ScriptUtils.verify_external_configuration(@temp_anchor_path)
 
@@ -374,25 +456,35 @@ class ConfigurationManagementController < ApplicationController
     render_json
   end
 
+  # TODO Get rid of
   def clear_uploaded_trusted_anchor
     authorize!(:upload_trusted_anchor)
 
     @upload_cancelled = true
 
-    clear_temp_anchor_data()
+    clear_temp_anchor_data
 
-    render_json_without_messages()
+    render_json_without_messages
   end
 
   def delete_trusted_anchor
+    audit_log("Delete trusted anchor", audit_log_data = {})
+
     authorize!(:delete_trusted_anchor)
 
-    TrustedAnchor.destroy(params[:id])
+    trusted_anchor = TrustedAnchor.find(params[:id])
+
+    audit_log_data[:instanceIdentifier] = trusted_anchor.instance_identifier
+    audit_log_data[:anchorFileHash] = trusted_anchor.trusted_anchor_hash
+    audit_log_data[:anchorFileHashAlgorithm] =
+      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
+
+    trusted_anchor.destroy
 
     notice(t("configuration_management.trusted_anchors.delete_successful",
         :instance => params[:instanceIdentifier]))
 
-    render_json()
+    render_json
   end
 
   # -- Specific POST methods - end ---
@@ -480,18 +572,19 @@ class ConfigurationManagementController < ApplicationController
     CommonUi::IOUtils.temp_file("uploaded_anchor_#{request.session_options[:id]}")
   end
 
-  def get_anchor_hash()
+  def get_anchor_hash
     raise "Anchor XML must be present" if @anchor_xml.blank?
 
-    return format_hash(CryptoUtils::hexDigest(
-        CryptoUtils::SHA224_ID, @anchor_xml.to_java_bytes))
+    format_hash(CryptoUtils::hexDigest(
+      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM,
+      @anchor_xml.to_java_bytes))
   end
 
-  def get_anchor_info()
+  def get_anchor_info
     raise "Anchor hash must be present" if @anchor_hash.blank?
     raise "Anchor unmarshaller must be present" if @anchor_unmarshaller.blank?
 
-    instance_identifier = @anchor_unmarshaller.get_instance_identifier()
+    instance_identifier = @anchor_unmarshaller.get_instance_identifier
 
     if instance_identifier.eql?(SystemParameter.instance_identifier)
       raise t("configuration_management.trusted_anchors.error.same_instance")
@@ -501,7 +594,7 @@ class ConfigurationManagementController < ApplicationController
         t("configuration_management.trusted_anchors.upload_info.instance",
             :instance => instance_identifier)
 
-    generated_at = @anchor_unmarshaller.get_generated_at()
+    generated_at = @anchor_unmarshaller.get_generated_at
     formatted_generation_time = generated_at != nil ?
         format_time(generated_at.utc, true) : "N/A"
     generated_info =
@@ -512,10 +605,10 @@ class ConfigurationManagementController < ApplicationController
         t("configuration_management.trusted_anchors.upload_info.hash",
             :hash => @anchor_hash)
 
-    return {
-        :instance => instance_info,
-        :generated => generated_info,
-        :hash => hash_info
+    {
+      :instance => instance_info,
+      :generated => generated_info,
+      :hash => hash_info
     }
   end
 

@@ -495,7 +495,7 @@ function showAlerts(alerts) {
 
     $(".alerts").html("");
 
-    if (typeof alerts == "undefined" || alerts.length == 0) {
+    if (alerts == null || alerts.length == 0) {
         return;
     }
 

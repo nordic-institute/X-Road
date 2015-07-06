@@ -1,0 +1,5 @@
+task checkRubySource(type: Exec) {
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource

@@ -107,43 +107,56 @@ class RequestsController < ApplicationController
   # -- Specific POST methods - start ---
 
   def revoke_client_reg_request
+    audit_log("Revoke client registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     ClientRegRequest.revoke(request_id)
 
     notice(t("requests.client_reg_request_revoked",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def revoke_auth_cert_reg_request
+    audit_log("Revoke authentication certificate registration request",
+      audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     AuthCertRegRequest.revoke(request_id)
 
     notice(t("requests.auth_cert_reg_request_revoked",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def approve_reg_request
+    audit_log("Approve registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     RequestWithProcessing.approve(request_id)
 
     notice(t("requests.request_approved",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def decline_reg_request
+    audit_log("Decline registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     RequestWithProcessing.decline(request_id)
 
     notice(t("requests.request_declined",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   # -- Specific POST methods - end ---

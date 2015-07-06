@@ -2,6 +2,7 @@
 include "common-util"
 include "common-verifier"
 include "common-ui"
+include "center-common"
 include "common-db"
 include "common-messagelog"
 include "signer-protocol"
@@ -31,9 +32,3 @@ include "common-test"
 include "addons:hwtoken"
 include "addons:messagelog"
 include "addons:metaservice"
-
-// Legacy stuff
-include "legacy:securelog:common"
-include "legacy:securelog:securelog"
-include "legacy:securelog:logreader"
-include "legacy:securelog:asicverifier"

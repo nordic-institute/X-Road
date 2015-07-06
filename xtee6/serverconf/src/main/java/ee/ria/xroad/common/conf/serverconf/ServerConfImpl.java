@@ -16,8 +16,7 @@ import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.AclType;
-import ee.ria.xroad.common.conf.serverconf.model.AuthorizedSubjectType;
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -239,13 +238,6 @@ public class ServerConfImpl implements ServerConfProvider {
         return new WsdlDAOImpl().getWsdl(session, service);
     }
 
-    private AclType getAcl(ClientType clientType, ServiceId service) {
-        return clientType.getAcl().stream()
-                .filter(aclType -> StringUtils.equals(service.getServiceCode(),
-                        aclType.getServiceCode()))
-                .findFirst().orElse(null);
-    }
-
     private boolean internalIsQueryAllowed(Session session, ClientId client,
             ServiceId service) {
         if (getService(session, service) == null || client == null) {
@@ -257,14 +249,13 @@ public class ServerConfImpl implements ServerConfProvider {
             return false;
         }
 
-        AclType aclType = getAcl(clientType, service);
-        if (aclType == null) {
-            return false;
-        }
+        for (AccessRightType accessRight : clientType.getAcl()) {
+            if (!StringUtils.equals(service.getServiceCode(),
+                    accessRight.getServiceCode())) {
+                continue;
+            }
 
-        for (AuthorizedSubjectType authorizedSubject
-                : aclType.getAuthorizedSubject()) {
-            XroadId subjectId = authorizedSubject.getSubjectId();
+            XroadId subjectId = accessRight.getSubjectId();
 
             if (subjectId instanceof GlobalGroupId) {
                 if (GlobalConf.isSubjectInGlobalGroup(client,

@@ -9,4 +9,5 @@
   <include file="serverconf/1-indices.xml"/>
   <include file="serverconf/2-wsdlpublish.xml"/>
   <include file="serverconf/3-history.xml" />
+  <include file="serverconf/4-refactoring.xml" />
 </databaseChangeLog>

@@ -1,6 +1,5 @@
 <% require 'json' %>
 
 <script type="text/javascript">
-  window.top.window.<%= callback || "uploadCallback" %>(
-    <%= raw(json_response.to_json) %>);
+  window.top.window.<%= callback %>(<%= raw(json_response.to_json) %>);
 </script>

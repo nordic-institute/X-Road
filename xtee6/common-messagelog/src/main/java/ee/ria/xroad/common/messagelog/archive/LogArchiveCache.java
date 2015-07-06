@@ -2,8 +2,6 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,9 +12,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
+import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
@@ -25,6 +24,7 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
 /**
  * Encapsulates logic of creating log archive from ASiC containers.
  */
+@Slf4j
 @RequiredArgsConstructor
 class LogArchiveCache {
 
@@ -51,7 +51,7 @@ class LogArchiveCache {
         updateState();
     }
 
-    byte [] getArchiveBytes() {
+    byte[] getArchiveBytes() {
         return currentArchive;
     }
 
@@ -101,16 +101,22 @@ class LogArchiveCache {
     private byte[] getAsicContainersArchive(
             List<MessageRecord> asicContainersToArchive)
             throws IOException {
+        log.trace("Getting AsiC containers archive for {} records", asicContainersToArchive.size());
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         try (ZipOutputStream zos = new ZipOutputStream(bos)) {
-            List<String> existingFilenames = new ArrayList<>();
+            AsicContainerNameGenerator nameGen =
+                    new AsicContainerNameGenerator(randomGenerator,
+                            MAX_RANDOM_GEN_ATTEMPTS);
 
             for (MessageRecord each : asicContainersToArchive) {
                 byte[] containerBytes = each.toAsicContainer().getBytes();
 
+                String type = each.isResponse() ? "response" : "request";
+                String queryId = each.getQueryId();
                 String archiveFilename =
-                        getArchiveFilename(each, existingFilenames);
+                        nameGen.getArchiveFilename(queryId, type);
                 linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
 
                 ZipEntry entry = new ZipEntry(archiveFilename);
@@ -134,33 +140,5 @@ class LogArchiveCache {
         }
 
         return bos.toByteArray();
-    }
-
-    private String getArchiveFilename(
-            MessageRecord record, List<String> existingFilenames) {
-        String type = record.isResponse() ? "response" : "request";
-        String queryId = record.getQueryId();
-
-        String result = createFilenameWithRandom(type, queryId);
-
-        int attempts = 0;
-        while (existingFilenames.contains(result)
-                && attempts++ < MAX_RANDOM_GEN_ATTEMPTS) {
-            result = createFilenameWithRandom(type, queryId);
-        }
-
-        existingFilenames.add(result);
-        return result;
-    }
-
-    private String createFilenameWithRandom(String type, String queryId) {
-        return String.format("%s-%s-%s.asice",
-                escapeQueryId(queryId), type, randomGenerator.get());
-    }
-
-    // XXX: Is it certain that % is allowed in file names?
-    @SneakyThrows
-    private static String escapeQueryId(String queryId) {
-        return URLEncoder.encode(queryId, StandardCharsets.UTF_8.name());
     }
 }

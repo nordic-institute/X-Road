@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 . /usr/share/debconf/confmodule
 
 
@@ -107,7 +109,8 @@ case "$1" in
     ;;
 esac
 
-    
+
+service rsyslog restart || service rsyslog start
 invoke-rc.d nginx restart
 service xroad-confclient restart || service xroad-confclient start
 service xroad-proxy restart || service xroad-proxy start

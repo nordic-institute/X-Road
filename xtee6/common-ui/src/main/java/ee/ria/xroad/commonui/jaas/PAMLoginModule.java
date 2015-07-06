@@ -15,6 +15,8 @@ import javax.security.auth.spi.LoginModule;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;
 
+import ee.ria.xroad.common.AuditLogger;
+
 /**
  * The PAM login module implementation.
  */
@@ -57,8 +59,13 @@ public class PAMLoginModule implements LoginModule {
             PAM pam = new PAM(PAM_SERVICE_NAME);
             currentUser = pam.authenticate(webName, webPassword);
 
-            return currentUser != null;
-
+            if (currentUser != null) {
+                AuditLogger.log("Log in user", currentUser.getUserName(), null);
+                return true;
+            } else {
+                AuditLogger.log("Log in user failed", currentUser.getUserName(), null);
+                return false;
+            }
         } catch (IOException e) {
             throw new LoginException(e.toString());
         } catch (UnsupportedCallbackException e) {
@@ -107,6 +114,8 @@ public class PAMLoginModule implements LoginModule {
         for (String group : currentUser.getGroups()) {
             subject.getPrincipals().remove(new JAASRole(group));
         }
+
+        AuditLogger.log("Log out user", currentUser.getUserName(), null);
 
         return true;
     }

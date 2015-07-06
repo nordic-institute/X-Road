@@ -122,6 +122,7 @@ esac
 
 #DEBHELPER#
 
+service rsyslog restart || service rsyslog start
 service xroad-jetty restart || service xroad-jetty start
 service xroad-signer restart || service xroad-signer start
 invoke-rc.d nginx restart

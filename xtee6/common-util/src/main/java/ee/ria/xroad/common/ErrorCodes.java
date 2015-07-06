@@ -28,6 +28,8 @@ public final class ErrorCodes {
     public static final String X_IO_ERROR = "IOError";
     public static final String X_NETWORK_ERROR = "NetworkError";
     public static final String X_INTERNAL_ERROR = "InternalError";
+    public static final String X_BAD_REQUEST = "BadRequest";
+    public static final String X_NOT_FOUND = "NotFound";
     public static final String X_HTTP_ERROR = "HttpError";
     public static final String X_DATABASE_ERROR = "DatabaseError";
     public static final String X_INVALID_RESPONSE = "InvalidResponse";

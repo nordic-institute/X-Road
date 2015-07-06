@@ -39,6 +39,8 @@ override_dh_installinit:
 	dh_installinit --name=xroad-confclient
 	dh_installinit --name=xroad-async
 	dh_installinit --name=xroad-monitor
+	dh_installlogrotate --name=xroad-proxy
+	dh_installlogrotate --name=xroad-center
 
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip -z1

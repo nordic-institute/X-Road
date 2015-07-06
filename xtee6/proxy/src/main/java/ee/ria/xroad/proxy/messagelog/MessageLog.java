@@ -60,13 +60,14 @@ public final class MessageLog {
      * Save the message and signature to message log. Attachments are not logged.
      * @param message the message
      * @param signature the signature
+     * @param clientSide whether this message is logged by the client proxy
      * @throws Exception if an error occurs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature)
-            throws Exception {
+    public static void log(SoapMessageImpl message, SignatureData signature,
+            boolean clientSide) throws Exception {
         log.trace("log()");
         try {
-            ask(new LogMessage(message, signature));
+            ask(new LogMessage(message, signature, clientSide));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
         }

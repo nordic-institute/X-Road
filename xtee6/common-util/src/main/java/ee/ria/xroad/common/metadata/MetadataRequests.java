@@ -14,5 +14,6 @@ public final class MetadataRequests {
     public static final String LIST_METHODS = "listMethods";
     public static final String ALLOWED_METHODS = "allowedMethods";
     public static final String GET_WSDL = "getWsdl";
-
+    public static final String ASIC = "/asic";
+    public static final String VERIFICATIONCONF = "/verificationconf";
 }

@@ -282,7 +282,6 @@
         $("#details_member_code").val(client.member_code);
         $("#details_subsystem_code").val(client.subsystem_code);
         $("#details_member_name").val(client.member_name);
-        $("#details_contact").val(client.contact);
 
         $("#client_details_dialog").dialog("open");
 

@@ -1,3 +1,11 @@
+xroad (6.5-0) trusty; urgency=low
+
+  * Possibility to download signed documents and verification configuration
+  * Auditlog
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 30 Jun 2015 12:52:44 +0300
+
 xroad (6.4-1) trusty; urgency=low
 
    * corrected mime-attachment handling

@@ -20,11 +20,15 @@ class SystemSettingsController < ApplicationController
   end
 
   def central_server_address_edit
+    audit_log("Edit central server address", audit_log_data = {})
+
     authorize!(:view_system_settings)
 
     validate_params({
       :centralServerAddress => [:required, :host]
     })
+
+    audit_log_data[:address] = params[:centralServerAddress]
 
     SystemParameter.find_or_initialize_by_key(
       SystemParameter::CENTRAL_SERVER_ADDRESS
@@ -59,6 +63,8 @@ class SystemSettingsController < ApplicationController
   end
 
   def service_provider_edit
+    audit_log("Edit provider of management services", audit_log_data = {})
+
     authorize!(:view_system_settings)
 
     validate_params({
@@ -85,10 +91,16 @@ class SystemSettingsController < ApplicationController
       :value => params[:providerSubsystem]
     })
 
+    service_provider_name = XroadMember.get_name(
+      params[:providerClass], params[:providerCode])
+
+    audit_log_data[:serviceProviderIdentifier] =
+      SystemParameter.management_service_provider_id
+    audit_log_data[:serviceProviderName] = service_provider_name
+
     render_json({
       :id => SystemParameter.management_service_provider_id.toString,
-      :name => XroadMember.get_name(
-        params[:providerClass], params[:providerCode])
+      :name => service_provider_name
     })
   end
 
@@ -101,12 +113,17 @@ class SystemSettingsController < ApplicationController
   end
 
   def member_class_add
+    audit_log("Add member class", audit_log_data = {})
+
     authorize!(:view_system_settings)
 
     validate_params({
       :code => [:required],
       :description => [:required]
     })
+
+    audit_log_data[:code] = params[:code]
+    audit_log_data[:description] = params[:description]
 
     MemberClass.find_each do |member_class|
       if member_class.code.upcase == params[:code].upcase
@@ -123,12 +140,17 @@ class SystemSettingsController < ApplicationController
   end
 
   def member_class_edit
+    audit_log("Edit member class description", audit_log_data = {})
+
     authorize!(:view_system_settings)
 
     validate_params({
       :code => [:required],
       :description => [:required]
     })
+
+    audit_log_data[:code] = params[:code]
+    audit_log_data[:description] = params[:description]
 
     MemberClass.find_each do |member_class|
       if member_class.code.upcase == params[:code].upcase
@@ -144,11 +166,15 @@ class SystemSettingsController < ApplicationController
   end
 
   def member_class_delete
+    audit_log("Delete member class", audit_log_data = {})
+
     authorize!(:view_system_settings)
 
     validate_params({
       :code => [:required]
     })
+
+    audit_log_data[:code] = params[:code]
 
     MemberClass.find_each do |member_class|
       if member_class.code.upcase == params[:code].upcase

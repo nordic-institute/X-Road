@@ -1,6 +1,5 @@
 dependencies {
-    compile project(':common-util'),
-    'com.google.code.gson:gson:2.2.3'
+    compile project(':common-util')
 
     testCompile project(':common-test')
 }

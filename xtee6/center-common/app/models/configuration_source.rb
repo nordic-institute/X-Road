@@ -9,6 +9,8 @@ class ConfigurationSource < ActiveRecord::Base
   SOURCE_TYPE_INTERNAL = "internal"
   SOURCE_TYPE_EXTERNAL = "external"
 
+  ANCHOR_FILE_HASH_ALGORITHM = CryptoUtils::SHA224_ID
+
   SIGNING_KEY_CERT_CN = "N/A"
   SIGNING_KEY_CERT_NOT_BEFORE = Time.utc(1970)
   SIGNING_KEY_CERT_NOT_AFTER = Time.utc(2038)
@@ -67,7 +69,7 @@ class ConfigurationSource < ActiveRecord::Base
 
     anchor_file = marshaller.write_to_string
     anchor_file_hash = CryptoUtils::hexDigest(
-        CryptoUtils::SHA224_ID, anchor_file.to_java_bytes)
+      ANCHOR_FILE_HASH_ALGORITHM, anchor_file.to_java_bytes)
 
     update_attributes!({
       :anchor_file => anchor_file,
@@ -88,7 +90,12 @@ class ConfigurationSource < ActiveRecord::Base
         SIGNING_KEY_CERT_NOT_BEFORE,
         SIGNING_KEY_CERT_NOT_AFTER)
     rescue
-      SignerProxy::deleteKey(key_info.id)
+      begin
+        SignerProxy::deleteKey(key_info.id, true)
+      rescue
+        logger.error("Error deleting generated signing key: #{$!.message}")
+      end
+
       raise $!
     end
 
@@ -103,6 +110,8 @@ class ConfigurationSource < ActiveRecord::Base
     }) unless active_key
 
     configuration_signing_keys << key_record
+
+    key_record
   end
 
   private

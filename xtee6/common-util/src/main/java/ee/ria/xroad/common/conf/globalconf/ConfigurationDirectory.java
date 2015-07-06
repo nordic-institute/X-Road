@@ -8,6 +8,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +19,6 @@ import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
@@ -63,10 +63,10 @@ public class ConfigurationDirectory {
 
     public static final String PRIVATE_PARAMETERS_XML = "private-params.xml";
     public static final String SHARED_PARAMETERS_XML = "shared-params.xml";
+    public static final String INSTANCE_IDENTIFIER_FILE =
+            "instance-identifier";
 
     private static final String METADATA_SUFFIX = ".metadata";
-    private static final String INSTANCE_IDENTIFIER_FILE =
-            "instance-identifier";
 
     @Getter
     private final Path path;
@@ -304,7 +304,8 @@ public class ConfigurationDirectory {
         log.info("Saving content to file {}", fileName);
 
         // save the content to disk
-        AtomicSave.execute(fileName.toString(), "conf", content);
+        AtomicSave.execute(fileName.toString(), "conf", content,
+                StandardCopyOption.ATOMIC_MOVE);
 
         // save the content metadata date to disk
         saveMetadata(fileName, expirationDate);
@@ -319,7 +320,7 @@ public class ConfigurationDirectory {
     public static final void saveMetadata(Path fileName,
             ConfigurationPartMetadata metadata) throws Exception {
         AtomicSave.execute(fileName.toString() + METADATA_SUFFIX, "expires",
-                metadata.toByteArray());
+                metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**

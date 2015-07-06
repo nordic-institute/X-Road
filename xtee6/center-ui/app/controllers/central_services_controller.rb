@@ -100,10 +100,19 @@ class CentralServicesController < ApplicationController
   # -- Specific POST methods - start ---
 
   def save_service
+    audit_log("Add central service", audit_log_data = {})
+
     authorize!(:add_central_service)
 
     target_service = get_target_service_from_params()
     provider_id = get_provider_id(target_service[:code])
+
+    audit_log_data[:serviceCode] = params[:serviceCode]
+    audit_log_data[:targetServiceCode] = target_service[:code]
+    audit_log_data[:targetServiceVersion] = target_service[:version]
+    audit_log_data[:providerIdentifier] = JavaClientId.create(
+      provider_id.xroad_instance, provider_id.member_class,
+      provider_id.member_code, provider_id.subsystem_code)
 
     CentralService.save(
         params[:serviceCode],
@@ -111,14 +120,23 @@ class CentralServicesController < ApplicationController
         provider_id
     )
 
-    render_json()
+    render_json
   end
 
   def update_service
+    audit_log("Edit central service", audit_log_data = {})
+
     authorize!(:edit_implementing_service)
 
-    target_service = get_target_service_from_params()
+    target_service = get_target_service_from_params
     provider_id = get_provider_id(target_service[:code])
+
+    audit_log_data[:serviceCode] = params[:serviceCode]
+    audit_log_data[:targetServiceCode] = target_service[:code]
+    audit_log_data[:targetServiceVersion] = target_service[:version]
+    audit_log_data[:providerIdentifier] = JavaClientId.create(
+      provider_id.xroad_instance, provider_id.member_class,
+      provider_id.member_code, provider_id.subsystem_code)
 
     CentralService.update(
         params[:serviceCode],
@@ -130,10 +148,15 @@ class CentralServicesController < ApplicationController
   end
 
   def delete_service
+    audit_log("Delete central service", audit_log_data = {})
+
     authorize!(:remove_central_service)
 
+    audit_log_data[:serviceCode] = params[:serviceCode]
+
     CentralService.delete(params[:serviceCode])
-    render_json()
+
+    render_json
   end
 
   def delete_target_service
@@ -174,7 +197,7 @@ class CentralServicesController < ApplicationController
   end
 
   def get_target_service_from_params
-    return {
+    {
       :code => get_target_service_item(params[:targetServiceCode]),
       :version => get_target_service_item(params[:targetServiceVersion])
     }

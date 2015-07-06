@@ -17,6 +17,8 @@ module Clients::Groups
   end
 
   def group_add
+    audit_log("Add group", audit_log_data = {})
+
     authorize!(:edit_local_group_members)
 
     validate_params({
@@ -26,6 +28,8 @@ module Clients::Groups
     })
 
     client = get_client(params[:client_id])
+
+    audit_log_data[:clientIdentifier] = client.identifier
 
     client.localGroup.each do |group|
       if group.groupCode == params[:add_group_code]
@@ -38,6 +42,9 @@ module Clients::Groups
     group.description = params[:add_group_description]
     group.updated = Date.new
 
+    audit_log_data[:groupCode] = group.groupCode
+    audit_log_data[:groupDescription] = group.description
+
     client.localGroup.add(group)
 
     serverconf_save
@@ -46,6 +53,8 @@ module Clients::Groups
   end
 
   def group_delete
+    audit_log("Delete group", audit_log_data = {})
+
     authorize!(:delete_local_group)
 
     validate_params({
@@ -55,6 +64,8 @@ module Clients::Groups
 
     client = get_client(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+
     deleted_group = nil
     client.localGroup.each do |group|
       next unless group.groupCode == params[:group_code]
@@ -63,11 +74,10 @@ module Clients::Groups
 
     client.localGroup.remove(deleted_group)
 
-    group_id = LocalGroupId.create(params[:group_code])
-    
-    client.acl.each do |acl|
-      remove_subject(acl.authorizedSubject, group_id)
-    end
+    remove_access_rights(client.acl, LocalGroupId.create(params[:group_code]), nil)
+
+    audit_log_data[:groupCode] = deleted_group.groupCode
+    audit_log_data[:groupDescription] = deleted_group.description
 
     serverconf_save
 
@@ -92,6 +102,8 @@ module Clients::Groups
   end
 
   def group_members_add
+    audit_log("Add members to group", audit_log_data = {})
+
     authorize!(:edit_local_group_members)
 
     validate_params({
@@ -101,14 +113,18 @@ module Clients::Groups
     })
 
     client = get_client(params[:client_id])
-    group = nil
 
+    group = nil
     client.localGroup.each do |local_group|
       if local_group.groupCode == params[:group_code]
         group = local_group
         break
       end
     end
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:groupCode] = group.groupCode
+    audit_log_data[:memberIdentifiers] = []
 
     now = Date.new
 
@@ -117,6 +133,8 @@ module Clients::Groups
       groupMember.groupMemberId = get_cached_subject_id(member_id)
       groupMember.added = now
       group.groupMember.add(groupMember)
+
+      audit_log_data[:memberIdentifiers] << groupMember.groupMemberId.toString
     end
 
     group.updated = now
@@ -131,6 +149,8 @@ module Clients::Groups
   end
 
   def group_members_remove
+    audit_log("Remove members from group", audit_log_data = {})
+
     authorize!(:edit_local_group_members)
 
     validate_params({
@@ -149,6 +169,10 @@ module Clients::Groups
       end
     end
 
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:groupCode] = group.groupCode
+    audit_log_data[:memberIdentifiers] = []
+
     removed_members = []
 
     if params[:member_ids]
@@ -158,12 +182,17 @@ module Clients::Groups
 
           if member.groupMemberId.equals(cached_id)
             removed_members << member
+            audit_log_data[:memberIdentifiers] << member.groupMemberId.toString
           end
         end
       end
 
       group.groupMember.removeAll(removed_members)
     else
+      group.groupMember.each do |member|
+        audit_log_data[:memberIdentifiers] << member.groupMemberId.toString
+      end
+
       group.groupMember.clear
     end
 
@@ -179,6 +208,8 @@ module Clients::Groups
   end
 
   def group_description_edit
+    audit_log("Edit group description", audit_log_data = {})
+
     authorize!(:edit_local_group_desc)
 
     validate_params({
@@ -189,10 +220,15 @@ module Clients::Groups
 
     client = get_client(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+
     client.localGroup.each do |group|
       next unless group.groupCode == params[:group_code]
 
       group.description = params[:description]
+
+      audit_log_data[:groupCode] = group.groupCode
+      audit_log_data[:groupDescription] = group.description
     end
 
     serverconf_save

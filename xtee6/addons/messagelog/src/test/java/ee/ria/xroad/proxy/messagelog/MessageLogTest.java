@@ -140,6 +140,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         startArchiving();
         TestLogArchiver.waitForArchiveSuccessful();
+
         assertEquals(4, getNumberOfRecords(true));
 
         startCleaning();

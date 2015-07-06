@@ -60,6 +60,22 @@ public abstract class HandlerBase extends AbstractHandler {
     }
 
     /**
+     * Sends plain text fault message to the other party.
+     * @param response HTTP servlet response for sending the plain fault
+     * @param status HTTP status code
+     * @param message fault message
+     * @throws IOException if an I/O error occurred
+     */
+    public static void sendPlainTextErrorResponse(HttpServletResponse response,
+            int status, String message) throws IOException {
+        byte[] messageBytes = message.getBytes("UTF-8");
+        response.setStatus(status);
+        response.setContentType(MimeTypes.TEXT_PLAIN_UTF_8);
+        response.setContentLength(messageBytes.length);
+        response.getOutputStream().write(messageBytes);
+    }
+
+    /**
      * Returns the client certificate from the SSL context.
      */
     protected List<X509Certificate> getClientCertificates(

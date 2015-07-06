@@ -91,7 +91,7 @@ module OptionalConfParts
     end
   end
 
-  class ValidationException < Exception
+  class ValidationException < StandardError
     attr_reader :stderr
 
     def initialize(message, stderr = [])

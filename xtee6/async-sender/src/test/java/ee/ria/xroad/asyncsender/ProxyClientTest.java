@@ -23,7 +23,7 @@ import org.junit.Test;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.StartStop;
 
@@ -47,6 +47,8 @@ public class ProxyClientTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
+
         client.start();
     }
 
@@ -199,7 +201,7 @@ public class ProxyClientTest {
             server = new Server();
 
             Connector connector = new SelectChannelConnector();
-            connector.setPort(PortNumbers.CLIENT_HTTP_PORT);
+            connector.setPort(SystemProperties.getClientProxyHttpPort());
             connector.setHost("127.0.0.1");
             server.addConnector(connector);
 

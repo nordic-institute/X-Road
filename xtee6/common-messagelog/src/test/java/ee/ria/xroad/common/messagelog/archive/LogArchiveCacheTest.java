@@ -234,7 +234,7 @@ public class LogArchiveCacheTest {
     }
 
     private byte[] containerTooLarge() {
-        byte [] container = new byte[TOO_LARGE_CONTAINER_SIZE];
+        byte[] container = new byte[TOO_LARGE_CONTAINER_SIZE];
 
         for (int i = 0; i < TOO_LARGE_CONTAINER_SIZE; i++) {
             container[i] = (byte) (i % Byte.MAX_VALUE);

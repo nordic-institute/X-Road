@@ -1,7 +1,5 @@
 package ee.ria.xroad.common.messagelog.archive;
 
-import java.util.List;
-
 import ee.ria.xroad.common.messagelog.LogRecord;
 
 /**
@@ -9,15 +7,20 @@ import ee.ria.xroad.common.messagelog.LogRecord;
  */
 public interface LogArchiveBase {
     /**
-     * Makes archive-related changes to the base - marks entries as archived and
-     * creates entry for last archived file.
+     * Saves digest entry corresponding to created log archive.
      *
-     * @param toArchive message records to be marked as archived.
      * @param lastArchive metadata of last archived entry.
      * @throws Exception if archiving fails.
      */
-    void archive(final List<LogRecord> toArchive, DigestEntry lastArchive)
+    void markArchiveCreated(DigestEntry lastArchive)
             throws Exception;
+
+    /**
+     * Marks log record (either message or timestamp) as archived.
+     *
+     * @param logRecord the log record to be marked as archived.
+     */
+    void markRecordArchived(final LogRecord logRecord) throws Exception;
 
     /**
      * Returns metadata of last archived entry.

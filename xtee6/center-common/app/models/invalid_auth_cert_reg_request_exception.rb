@@ -1,2 +1,2 @@
-class InvalidAuthCertRegRequestException < Exception
+class InvalidAuthCertRegRequestException < StandardError
 end

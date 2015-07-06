@@ -24,7 +24,7 @@ public class ClientType {
     private final List<WsdlType> wsdl = new ArrayList<>();
     private final List<LocalGroupType> localGroup = new ArrayList<>();
     private final List<CertificateType> isCert = new ArrayList<>();
-    private final List<AclType> acl = new ArrayList<>();
+    private final List<AccessRightType> acl = new ArrayList<>();
 
     private Long id;
 
@@ -32,7 +32,6 @@ public class ClientType {
 
     private ClientId identifier;
 
-    private String contacts;
     private String clientStatus;
     private String isAuthentication;
 

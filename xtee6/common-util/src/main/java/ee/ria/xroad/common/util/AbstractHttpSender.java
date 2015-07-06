@@ -145,9 +145,6 @@ public abstract class AbstractHttpSender implements Closeable {
     public abstract void doPost(URI address, InputStream content,
             long contentLength, String contentType) throws Exception;
 
-//    public abstract void doPost(URI address, InputStream content,
-//            String contentType) throws Exception;
-
     @Override
     public void close() {
         if (request != null) {

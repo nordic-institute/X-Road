@@ -12,6 +12,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -100,8 +101,12 @@ public class LogArchiveTest {
     private LogArchiveBase dummyLogArchiveBase() {
         return new LogArchiveBase() {
             @Override
-            public void archive(
-                    List<LogRecord> toArchive, DigestEntry lastArchive)
+            public void markArchiveCreated(DigestEntry lastArchive) throws Exception {
+                // Do nothing.
+            }
+
+            @Override
+            public void markRecordArchived(LogRecord logRecord)
                     throws Exception {
                 // Do nothing.
             }
@@ -117,7 +122,8 @@ public class LogArchiveTest {
         recordNo++;
 
         MessageRecord record = new MessageRecord("qid" + recordNo,
-                "msg" + recordNo, "sig" + recordNo, false);
+                "msg" + recordNo, "sig" + recordNo, false,
+                ClientId.create("memberClass", "memberCode", "subsystemCode"));
         record.setId(recordNo);
         record.setTime((long) (Math.random() * 100000L));
 

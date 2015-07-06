@@ -24,7 +24,6 @@ public final class TestProxyMain {
     static final String MEMBER_CODE = "BarCode";
 
     static final String CLIENT_STATUS = "status";
-    static final String CLIENT_CONTACTS = "contacts";
     static final String CLIENT_CODE = "client";
 
     static final String WSDL_LOCATION = "wsdllocation";
@@ -89,7 +88,6 @@ public final class TestProxyMain {
             return client;
         } else {
             client.setIdentifier(createTestClientId(client(i)));
-            client.setContacts(CLIENT_CONTACTS + i);
             client.setClientStatus(CLIENT_STATUS + i);
 
             for (int j = 0; j < NUM_WSDLS; j++) {

@@ -3,6 +3,7 @@ package ee.ria.xroad.common;
 import java.io.Serializable;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -21,6 +22,7 @@ public class CodedException extends RuntimeException implements Serializable {
     protected String faultActor = "";
 
     @Getter
+    @Setter
     protected String faultDetail = "";
 
     @Getter

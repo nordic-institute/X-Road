@@ -298,7 +298,7 @@ public class ProxyMessageDecoder {
             public void field(Field field) throws MimeException {
                 if (!field.getName().toLowerCase().equals(
                         HEADER_CONTENT_TYPE)) {
-                    headers.put(field.getName().toLowerCase(), field.getBody());
+                    headers.put(field.getName(), field.getBody());
                 }
             }
 

@@ -78,6 +78,8 @@ class ClientsController < ApplicationController
   end
 
   def client_add
+    audit_log("Add client", audit_log_data = {})
+
     authorize!(:add_client)
 
     validate_params({
@@ -130,6 +132,10 @@ class ClientsController < ApplicationController
     client.isAuthentication = "NOSSL"
     client.conf = serverconf
 
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:isAuthentication] = client.isAuthentication
+    audit_log_data[:clientStatus] = client.clientStatus
+
     serverconf.client.add(client)
     serverconf_save
 
@@ -175,6 +181,8 @@ class ClientsController < ApplicationController
   end
 
   def client_regreq
+    audit_log("Register client", audit_log_data = {})
+
     authorize!(:send_client_reg_req)
 
     validate_params({
@@ -192,6 +200,8 @@ class ClientsController < ApplicationController
       params[:member_class],
       params[:member_code],
       params[:subsystem_code])
+
+    audit_log_data[:clientIdentifier] = client_id
 
     if client_id == owner_identifier
       raise t('clients.cannot_register_owner')
@@ -225,12 +235,16 @@ class ClientsController < ApplicationController
     client = get_client(client_id.toString)
     client.clientStatus = ClientType::STATUS_REGINPROG
 
+    audit_log_data[:clientStatus] = client.clientStatus
+
     serverconf_save
 
     render_json(client_to_json(client))
   end
 
   def client_delreq
+    audit_log("Unregister client", audit_log_data = {})
+
     authorize!(:send_client_del_req)
 
     validate_params({
@@ -249,6 +263,8 @@ class ClientsController < ApplicationController
       params[:member_code],
       params[:subsystem_code])
 
+    audit_log_data[:clientIdentifier] = client_id
+
     if client_id == owner_identifier
       raise t('clients.cannot_delete_owner')
     end
@@ -258,12 +274,16 @@ class ClientsController < ApplicationController
     client = get_client(client_id.toString)
     client.clientStatus = ClientType::STATUS_DELINPROG
 
+    audit_log_data[:clientStatus] = client.clientStatus
+
     serverconf_save
 
     render_json(client_to_json(client))
   end
 
   def client_delete
+    audit_log("Delete client", audit_log_data = {})
+
     authorize!(:delete_client)
 
     validate_params({
@@ -271,6 +291,8 @@ class ClientsController < ApplicationController
     })
 
     client = get_client(params[:client_id])
+
+    audit_log_data[:clientIdentifier] = client.identifier
 
     if client.identifier == owner_identifier
       raise t('clients.cannot_delete_owner')
@@ -333,6 +355,8 @@ class ClientsController < ApplicationController
   end
 
   def client_delete_certs
+    audit_log("Delete client certificates", audit_log_data = {})
+
     authorize!(:delete_client)
 
     validate_params({
@@ -341,16 +365,26 @@ class ClientsController < ApplicationController
 
     client_id = get_cached_client_id(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client_id
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+    audit_log_data[:certHashes] = []
+    audit_log_data[:certRequestIds] = []
+
     SignerProxy::getTokens.each do |token|
       token.keyInfo.each do |key|
         key.certs.each do |cert|
           if client_id.memberEquals(cert.memberId)
+            audit_log_data[:certHashes] <<
+              CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+
             SignerProxy::deleteCert(cert.id)
           end
         end
 
         key.certRequests.each do |cert_request|
           if client_id.memberEquals(cert_request.memberId)
+            audit_log_data[:certRequestIds] << cert_request.id
+
             SignerProxy::deleteCertRequest(cert_request.id)
           end
         end
@@ -384,7 +418,6 @@ class ClientsController < ApplicationController
       :member_code => client.identifier.memberCode,
       :subsystem_code => client.identifier.subsystemCode,
       :state => client.clientStatus,
-      :contact => client.contacts,
       :register_enabled =>
         [ClientType::STATUS_SAVED].include?(client.clientStatus),
       :unregister_enabled =>

@@ -1,6 +1,7 @@
 require 'json'
 require 'common-ui/uploaded_file.rb'
 
+java_import Java::ee.ria.xroad.common.AuditLogger
 java_import Java::ee.ria.xroad.common.SystemProperties
 
 class ApplicationController < BaseController
@@ -42,9 +43,13 @@ class ApplicationController < BaseController
   end
 
   def set_locale
+    audit_log("Set UI language", audit_log_params = {})
+
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
     end
+
+    audit_log_params[:locale] = params[:locale]
 
     ui_user = UiUser.find_by_username(current_user.name)
 
@@ -73,9 +78,15 @@ class ApplicationController < BaseController
 
   def wrap_in_transaction
     ActiveRecord::Base.isolation_level(:repeatable_read) do
-      ActiveRecord::Base.transaction do
-        set_transaction_variables
-        yield
+      begin
+        ActiveRecord::Base.transaction do
+          set_transaction_variables
+          yield
+        end
+        execute_after_commit_actions
+      rescue
+        execute_after_rollback_actions
+        raise $!
       end
     end
   end

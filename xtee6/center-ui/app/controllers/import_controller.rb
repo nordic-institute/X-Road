@@ -9,6 +9,10 @@ class ImportController < ApplicationController
   before_filter :verify_get, :only => [:get_imported, :last_result]
   before_filter :verify_post, :only => [:import_v5_data]
 
+  upload_callbacks({
+    :import_v5_data => "XROAD_IMPORT.uploadCallback"
+  })
+
   def index
     authorize!(:execute_v5_import)
   end
@@ -67,47 +71,23 @@ class ImportController < ApplicationController
 
     V5DataImportStatus.write(data_file, exit_status)
 
-    status = {
-      :status => read_status_from_file()
-    }
-
-    import_log_path = get_last_attempt_log_path()
+    import_log_path = get_last_attempt_log_path
 
     case exit_status
     when 0
       notice(t("import.execute.success"))
-      upload_success(status, "XROAD_IMPORT.uploadCallback")
     when 1
-      notice(t("import.execute.warnings",
-          :log_path => import_log_path))
-      upload_success(status, "XROAD_IMPORT.uploadCallback")
+      notice(t("import.execute.warnings", :log_path => import_log_path))
     when 2
-      error(t("import.execute.failure",
-          :log_path => import_log_path))
-      upload_error(status, "XROAD_IMPORT.uploadCallback")
+      raise t("import.execute.failure", :log_path => import_log_path)
     else
-      error(t("import.execute.other_error"))
-      upload_error(status, "XROAD_IMPORT.uploadCallback")
+      raise t("import.execute.other_error")
     end
-  rescue => e
-    error(e.message)
-    upload_error(nil, "XROAD_IMPORT.uploadCallback")
+
+    render_json
   end
 
   private
-
-  def read_status_from_file
-    import_status = V5DataImportStatus.get()
-
-    if import_status[:no_status_file] == true
-      render_json(import_status)
-      return
-    end
-
-    import_status[:time] = format_time(import_status[:time])
-
-    return import_status
-  end
 
   def write_imported_file(file)
     file_name = get_v5_import_file()

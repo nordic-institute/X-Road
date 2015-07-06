@@ -1,10 +1,10 @@
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import ee.ria.xroad.common.messagelog.LogRecord;
+import org.hibernate.Session;
+
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 
 class TestLogArchiver extends LogArchiver {
@@ -20,10 +20,10 @@ class TestLogArchiver extends LogArchiver {
     }
 
     @Override
-    protected void setLogRecordsArchived(
-            final List<LogRecord> logRecords, final DigestEntry lastArchive)
+    protected void markArchiveCreated(
+            final DigestEntry lastArchive, final Session session)
             throws Exception {
-        super.setLogRecordsArchived(logRecords, lastArchive);
+        super.markArchiveCreated(lastArchive, session);
 
         gate.countDown();
     }

@@ -6,7 +6,6 @@ import java.util.Map;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -24,7 +23,6 @@ import static org.junit.Assert.*;
 /**
  * Tests to verify correct proxy message decoder behavior.
  */
-@Ignore("Messages must be fixed with new signatures etc.")
 public class ProxyMessageDecoderTest {
 
     DummyMessageConsumer callback;
@@ -103,22 +101,6 @@ public class ProxyMessageDecoderTest {
     }
 
     /**
-     * Test to ensure a request with an invalid signature is decoded correctly.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void invalidSignature() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_XML);
-
-        String contentType =
-                MimeUtils.mpMixedContentType("xtop1357783211hcn1yiro");
-        ProxyMessageDecoder decoder = createDecoder(contentType);
-        decoder.parse(getMessage("invalid-signature.request"));
-
-        assertNull(callback.getSignature());
-    }
-
-    /**
      * Test to ensure an invalid message is decoded correctly.
      * @throws Exception in case of any unexpected errors
      */
@@ -153,7 +135,7 @@ public class ProxyMessageDecoderTest {
      */
     @Test
     public void faultNotAllowed() throws Exception {
-        thrown.expectError(ErrorCodes.X_INVALID_CONTENT_TYPE);
+        thrown.expectError(ErrorCodes.X_INTERNAL_ERROR);
 
         ProxyMessageDecoder decoder = createDecoder(MimeTypes.TEXT_XML);
         decoder.parse(null);

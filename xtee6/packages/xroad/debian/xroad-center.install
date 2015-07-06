@@ -2,5 +2,7 @@ center/usr/* usr/
 center/etc/* etc/
 ../default-configuration/center.ini etc/xroad/conf.d
 ../default-configuration/managementservices.wsdl var/lib/xroad/public
+../default-configuration/rsyslog.d/* etc/rsyslog.d/
+../default-configuration/center-ui-jetty-logback-context-name.xml etc/xroad/conf.d
 ../../center-service/build/libs/center-service.war usr/share/xroad/jlib/webapps/
 ../../center-ui/build/libs/center-ui.war usr/share/xroad/jlib/webapps/
