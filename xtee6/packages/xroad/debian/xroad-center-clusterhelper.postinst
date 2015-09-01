@@ -13,6 +13,6 @@ if [ "$1" = configure ]; then
   mkdir -p /etc/xroad/cluster
   mkdir -p /var/log/xroad/
   chown xroad:xroad /etc/xroad/cluster 
-  chown xroad:xroad /var/log/xroad
+  chown xroad:adm /var/log/xroad
 
 fi

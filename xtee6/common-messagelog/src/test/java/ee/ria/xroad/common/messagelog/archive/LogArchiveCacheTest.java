@@ -18,10 +18,12 @@ import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -57,6 +59,14 @@ public class LogArchiveCacheTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+
+    /**
+     * Preparations for testing log archive cache.
+     */
+    @Before
+    public void beforeTest() {
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp/");
+    }
 
     /**
      * Test to ensure one entry of normal size can be added successfully.

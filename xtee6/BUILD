@@ -1,11 +1,13 @@
 
-Simple depenency and building instructions on Ubuntu 14.04:
+Simple depenency installing and building instructions on Ubuntu 14.04:
 
-0. Once for installing system depenencies on clean building host:
+0. Execute following command once for installing system depenencies on clean 
+   building host. Script is ment to be run as user who will build the source.
+   Script will ask for user password (using sudo) for installing some new 
+   packages as well.
 
    ./prepare_buildhost.sh
 
-   Requires sudo execution permissions.
 
 1. Update/install software depenencies:
 

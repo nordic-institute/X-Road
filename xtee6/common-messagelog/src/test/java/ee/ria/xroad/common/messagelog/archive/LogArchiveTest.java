@@ -11,6 +11,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -48,6 +49,8 @@ public class LogArchiveTest {
         recordNo = 0;
 
         rotated = false;
+
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp/");
     }
 
     // ------------------------------------------------------------------------
