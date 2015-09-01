@@ -21,7 +21,7 @@ module Base
     def execute_after_commit_actions
       @after_rollback = []
 
-      if @after_commit
+      if @after_commit && !@after_commit.empty?
         begin
           logger.debug("executing after_commit actions")
           @after_commit.each do |proc|
@@ -39,7 +39,7 @@ module Base
     def execute_after_rollback_actions
       @after_commit = []
 
-      if @after_rollback
+      if @after_rollback && !@after_rollback.empty?
         logger.debug("executing after_rollback actions")
 
         @after_rollback.each do |proc|

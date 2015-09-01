@@ -11,13 +11,15 @@ class GroupsController < ApplicationController
       :group_edit_description,
       :delete_group,
       :remove_selected_members,
-      :add_members_to_group]
+      :add_members_to_group,
+      :add_all_clients_to_group]
 
   before_filter :init_owners_group_code, :only => [
       :global_groups_refresh,
       :delete_group,
       :remove_selected_members,
-      :add_members_to_group]
+      :add_members_to_group,
+      :add_all_clients_to_group]
 
   # -- Common GET methods - start ---
 
@@ -167,7 +169,7 @@ class GroupsController < ApplicationController
   # -- Specific POST methods - start ---
 
   def group_add
-    audit_log("Add group", audit_log_data = {})
+    audit_log("Add global group", audit_log_data = {})
 
     authorize!(:add_global_group)
 
@@ -184,7 +186,7 @@ class GroupsController < ApplicationController
   end
 
   def group_edit_description
-    audit_log("Edit group description", audit_log_data = {})
+    audit_log("Edit global group description", audit_log_data = {})
 
     authorize!(:edit_group_description)
 
@@ -202,7 +204,7 @@ class GroupsController < ApplicationController
   end
 
   def delete_group
-    audit_log("Delete group", audit_log_data = {})
+    audit_log("Delete global group", audit_log_data = {})
 
     authorize!(:delete_group)
 
@@ -221,7 +223,7 @@ class GroupsController < ApplicationController
   end
 
   def remove_selected_members
-    audit_log("Remove members from group", audit_log_data = {})
+    audit_log("Remove members from global group", audit_log_data = {})
 
     authorize!(:add_and_remove_group_members)
 
@@ -257,7 +259,7 @@ class GroupsController < ApplicationController
   end
 
   def add_members_to_group
-    audit_log("Add members to group", audit_log_data = {})
+    audit_log("Add members to global group", audit_log_data = {})
 
     authorize!(:add_and_remove_group_members)
 
@@ -284,6 +286,44 @@ class GroupsController < ApplicationController
         each[:subsystem].blank? ? nil : each[:subsystemCode])
 
       group.add_member(new_member_id)
+    end
+
+    render_json
+  end
+
+  # TODO Add test for it!
+  def add_all_clients_to_group
+    audit_log("Add members to global group", audit_log_data = {})
+
+    authorize!(:add_and_remove_group_members)
+
+    group = GlobalGroup.find(params[:groupId])
+    advanced_search_params =
+        get_advanced_search_params(params[:advancedSearchParams])
+    query_params = ListQueryParams.new(
+      get_addable_members_column(0), # Does not matter which column
+      "asc",
+      0,
+      SecurityServerClient.count,
+      params[:searchable]
+    )
+
+    audit_log_data[:code] = group.group_code
+    audit_log_data[:description] = group.description
+    audit_log_data[:memberIdentifiers] = []
+
+    member_infos = SecurityServerClient.get_remaining_clients_for_group(
+        group.id, query_params, advanced_search_params)
+
+    member_infos.each do |each|
+      member_id = each[:identifier]
+      group.add_member(member_id)
+
+      audit_log_data[:memberIdentifiers] << JavaClientId.create(
+        member_id.xroad_instance,
+        member_id.member_class,
+        member_id.member_code,
+        member_id.subsystem_code.blank? ? nil : member_id.subsystem_code)
     end
 
     render_json

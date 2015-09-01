@@ -16,9 +16,17 @@ task copyCommon(type: Copy) {
     exclude '**/build/**'
 }
 
-task copyCenterCommon(type: Copy) {
-    into "vendor/engines/center-common"
-    from "../center-common"
+task copyCenterCommon << {
+
+    copy {
+        into "vendor/engines/center-common"
+        from "../center-common"
+    }
+
+    copy {
+        into "db/migrate"
+        from "../center-common/db/migrate"
+    }
 }
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
@@ -26,16 +34,26 @@ task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     from configurations.compile
 }
 
+// Runs the migration steps on the database.
+task updateSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test']
+}
+
+task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
+}
+
 // TODO - We might want to get rid of warning at .war file generation
 task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
 
-task runModelTests(type: Exec) {
+// FIXME: It somehow thinks that migrations are pending!
+task runModelTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:units']
 }
 
-task runControllerTests(type: Exec) {
+task runControllerTests(dependsOn: [':center-service:updateSQLiteDbSchema'], type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:controllers']
 }
 

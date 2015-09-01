@@ -5,7 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Paths;
-import java.util.List;
 
 import org.junit.Before;
 import org.junit.Rule;

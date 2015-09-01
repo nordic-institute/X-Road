@@ -27,11 +27,11 @@ class DirectorySigner
 
     signature = SignerHelper.sign(@sign_key_id, @sign_algo_id, data)
 
-    DistributedSignedFiles.delete_all()
-    DistributedSignedFiles.create(
-        :data => data,
-        :data_boundary => data_boundary,
-        :signature => signature,
-        :sig_algo_id => @sign_algo_id)
+    {
+      :data => data,
+      :data_boundary => data_boundary,
+      :signature => signature,
+      :sig_algo_id => @sign_algo_id
+    }
   end
 end

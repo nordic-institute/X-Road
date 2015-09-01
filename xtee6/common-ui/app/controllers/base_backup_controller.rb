@@ -17,6 +17,16 @@ class BaseBackupController < ApplicationController
 
   skip_around_filter :wrap_in_transaction, :only => [:restore]
 
+  class ExceptionWithOutput < StandardError
+    attr_reader :stderr
+
+    def initialize(message, stderr = [])
+      super(message)
+
+      @stderr = stderr
+    end
+  end
+
   def index
     authorize!(:backup_configuration)
   end
@@ -51,11 +61,11 @@ class BaseBackupController < ApplicationController
     if exitcode == 0
       notice(t("backup.index.done"))
     else
-      error(t("backup.index.error", {:code => exitcode}))
+      raise ExceptionWithOutput.new(t("backup.index.error", {:code => exitcode}), output)
     end
 
     render_json({
-      :console_output => output
+      :stderr => output
     })
   end
 
@@ -78,11 +88,12 @@ class BaseBackupController < ApplicationController
       notice(t("restore.success", {:conf_file => params[:fileName]}))
       after_restore_success
     else
-      error(t("restore.error.script_failed", {:conf_file => params[:fileName]}))
+      raise ExceptionWithOutput.new(
+        t("restore.error.script_failed", {:conf_file => params[:fileName]}), output)
     end
 
     render_json({
-      :console_output => output
+      :stderr => output
     }.merge!(@extra_data || {}))
   end
 

@@ -350,7 +350,9 @@
         oAclSubjects.fnClearTable();
 
         $.get(action("client_acl_subjects"), params, function(response) {
-            oAclSubjects.fnAddData(response.data);
+            $("#acl_subjects_add").enable(response.data.has_services);
+
+            oAclSubjects.fnAddData(response.data.acl_subjects);
             oAclSubjects.fnFilter('');
             enableActions();
         }, "json");

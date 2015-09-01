@@ -9,7 +9,7 @@ class ConfigurationSource < ActiveRecord::Base
   SOURCE_TYPE_INTERNAL = "internal"
   SOURCE_TYPE_EXTERNAL = "external"
 
-  ANCHOR_FILE_HASH_ALGORITHM = CryptoUtils::SHA224_ID
+  ANCHOR_FILE_HASH_ALGORITHM = CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID
 
   SIGNING_KEY_CERT_CN = "N/A"
   SIGNING_KEY_CERT_NOT_BEFORE = Time.utc(1970)
@@ -23,15 +23,30 @@ class ConfigurationSource < ActiveRecord::Base
       :class_name => "ConfigurationSigningKey",
       :foreign_key => "active_key_id"
 
-  validates :source_type, :uniqueness => true, :presence => true
+  validates :source_type, :presence => true
 
+  # Return an existing or new record with the given source type, local to the
+  # database node this instance is running on.
+  # For new records, the node name will be set by a trigger function.
   def self.get_source_by_type(source_type)
     unless [SOURCE_TYPE_INTERNAL, SOURCE_TYPE_EXTERNAL].include?(source_type)
       raise "Invalid configuration source type"
     end
 
-    ConfigurationSource.where(:source_type => source_type).first ||
-      ConfigurationSource.create!({ :source_type => source_type })
+    if CommonSql.ha_configured?
+      ha_node_name = CommonSql.ha_node_name
+      return ConfigurationSource.where(
+          :source_type => source_type, :ha_node_name => ha_node_name).first ||
+        ConfigurationSource.create!({ :source_type => source_type })
+    end
+    return ConfigurationSource.where(:source_type => source_type).first ||
+        ConfigurationSource.create!({ :source_type => source_type })
+  end
+
+  # Return all the records with the given source type, regardless of the
+  # originating database node.
+  def self.get_all_sources_by_type(source_type)
+    return ConfigurationSource.where(:source_type=> source_type).all
   end
 
   def self.get_internal_signing_key
@@ -64,7 +79,7 @@ class ConfigurationSource < ActiveRecord::Base
         end)
 
     marshaller.root.instanceIdentifier = SystemParameter.instance_identifier
-    marshaller.root.source.add(generate_source(marshaller))
+    add_sources(marshaller)
     marshaller.root.generatedAt = ConfMarshaller::xml_time(now)
 
     anchor_file = marshaller.write_to_string
@@ -103,7 +118,7 @@ class ConfigurationSource < ActiveRecord::Base
     key_record.token_identifier = token_id
     key_record.key_identifier = key_info.id
     key_record.key_generated_at = Time.now
-    key_record.certificate = String.from_java_bytes(cert)
+    key_record.cert = String.from_java_bytes(cert)
 
     update_attributes!({
       :active_key => key_record
@@ -121,19 +136,32 @@ class ConfigurationSource < ActiveRecord::Base
       SystemParameter.instance_identifier, "selfsigned", UUID.randomUUID.toString)
   end
 
-  def generate_source(marshaller)
+  # Add all the configuration sources of the current type, representing
+  # each available database node, to the XML of the anchor.
+  def add_sources(marshaller)
     source_dir = (source_type == SOURCE_TYPE_INTERNAL) \
       ? SystemProperties::getCenterInternalDirectory \
       : SystemProperties::getCenterExternalDirectory
 
-    source_xml = marshaller.factory.createConfigurationSourceType
-    source_xml.downloadURL =
-      "http://" + SystemParameter.central_server_address + "/" + source_dir
+    ha_configured = CommonSql.ha_configured?
 
-    configuration_signing_keys.find_each do |key|
-      source_xml.getVerificationCert.add(key.certificate.to_java_bytes)
+    ConfigurationSource.get_all_sources_by_type(source_type).each do |source|
+      source_xml = marshaller.factory.createConfigurationSourceType
+      central_server_address = nil
+      if ha_configured
+        central_server_address = SystemParameter.where(
+          :key => SystemParameter::CENTRAL_SERVER_ADDRESS,
+          :ha_node_name => source.ha_node_name).first.value
+      else
+        central_server_address = SystemParameter.where(
+          :key => SystemParameter::CENTRAL_SERVER_ADDRESS).first.value
+      end
+      source_xml.downloadURL =
+        "http://" + central_server_address + "/" + source_dir
+      source.configuration_signing_keys.find_each do |key|
+        source_xml.getVerificationCert.add(key.cert.to_java_bytes)
+      end
+      marshaller.root.source.add(source_xml)
     end
-
-    source_xml
   end
 end

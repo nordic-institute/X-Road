@@ -54,7 +54,7 @@ en:
     'yes': "Yes"
     'no': "No"
     id: "ID"
-    hash: "Hash"
+    hash: "Hash (%{alg})"
     url: "URL"
 
   layouts:

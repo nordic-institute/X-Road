@@ -83,8 +83,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
         try {
-            preprocess();
-
             readMessage();
 
             handleRequest();
@@ -228,7 +226,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         if (requestMessage.getOcspResponses().isEmpty()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Cannot verify SSL certificate, corresponding "
+                    "Cannot verify TLS certificate, corresponding "
                             + "OCSP response is missing");
         }
 
@@ -350,6 +348,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void parseResponse(ServiceHandler handler) throws Exception {
         log.trace("parseResponse()");
 
+        preprocess();
         try {
             SoapMessageDecoder soapMessageDecoder =
                     new SoapMessageDecoder(handler.getResponseContentType(),
@@ -395,10 +394,14 @@ class ServerMessageProcessor extends MessageProcessorBase {
             exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
         }
 
-        monitorAgentNotifyFailure(exception);
+        if (encoder != null) {
+            monitorAgentNotifyFailure(exception);
 
-        encoder.fault(SoapFault.createFaultXml(exception));
-        encoder.close();
+            encoder.fault(SoapFault.createFaultXml(exception));
+            encoder.close();
+        } else {
+            throw ex;
+        }
     }
 
     private void monitorAgentNotifyFailure(CodedException ex) {

@@ -22,7 +22,7 @@ then
  die "${filename} is broken. Aborting restore!"
 fi
 
-tar --test-label --file ${filename} "XROAD_6.3" 
+tar --test-label --file ${filename} "XROAD_6.6" 
 
 if [ "x$?" != "x0" ]
 then

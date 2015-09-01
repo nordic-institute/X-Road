@@ -48,7 +48,7 @@ module Clients::InternalCerts
   end
 
   def internal_cert_add
-    audit_log("Add internal SSL certificate", audit_log_data = {})
+    audit_log("Add internal TLS certificate", audit_log_data = {})
 
     authorize!(:add_client_internal_cert)
 
@@ -84,7 +84,7 @@ module Clients::InternalCerts
   end
 
   def internal_cert_delete
-    audit_log("Delete internal SSL certificate", audit_log_data = {})
+    audit_log("Delete internal TLS certificate", audit_log_data = {})
 
     authorize!(:delete_client_internal_cert)
 

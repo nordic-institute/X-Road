@@ -38,7 +38,7 @@ public class SoapHeader {
     private CentralServiceId centralService;
 
     @CheckConsistency
-    @XmlElement(name = "userId", required = true, namespace = NS_XROAD)
+    @XmlElement(name = "userId", required = false, namespace = NS_XROAD)
     private String userId;
 
     @CheckConsistency

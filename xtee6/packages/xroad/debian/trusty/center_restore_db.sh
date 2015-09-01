@@ -1,22 +1,18 @@
 #!/bin/sh
 
-cat << EOC | su - postgres -c "psql postgres"
-DROP DATABASE IF EXISTS centerui_restore;
-DROP DATABASE IF EXISTS centerui_backup;
-CREATE DATABASE centerui_restore ENCODING 'UTF-8';
-EOC
-su - postgres -c "psql -d centerui_restore -c \"CREATE EXTENSION hstore;\""
+TMP=`mktemp -d`
 
+cd $TMP
+sed   '/-- Data/q' /var/lib/xroad/dbdump.dat > head
+sed -e '1,/-- Data/d' /var/lib/xroad/dbdump.dat  > body
+sed -i -e "{s/\(^COPY \(.*\) (.*$\)/truncate table \2 cascade;\n\1/}" body
+grep "DISABLE TRIGGER ALL" body > head2
+grep "truncate table" body > head3
+grep "ENABLE TRIGGER ALL" body > tail
+sed -i -e "{s/^\(.* TRIGGER ALL;\|truncate table .*\)$/-- \1/}" body
+cat head head2 head3 body tail > restore
+sudo -i -u postgres -- psql -e -1 centerui_production < restore
+cd /tmp
+rm -rf $TMP
 
-PGPASSWORD=centerui pg_restore -h 127.0.0.1 -U centerui -O -x -1 -n public -d centerui_restore /var/lib/xroad/dbdump.dat
-
-
-cat << EOC | su - postgres -c "psql postgres"
-revoke connect on database centerui_production from centerui;
-select pg_terminate_backend(pid) from pg_stat_activity where datname='centerui_production';
-ALTER DATABASE centerui_production RENAME TO centerui_backup;
-ALTER DATABASE centerui_restore RENAME TO centerui_production;
-grant connect on database centerui_production to centerui;
-DROP DATABASE IF EXISTS centerui_backup;
-EOC
 

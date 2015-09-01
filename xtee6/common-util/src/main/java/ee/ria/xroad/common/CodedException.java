@@ -152,11 +152,15 @@ public class CodedException extends RuntimeException implements Serializable {
     /**
      * Returns the current exception with prefix appended in front of
      * the fault code.
-     * @param prefix optional prefixes
+     * @param prefixes optional prefixes
      * @return CodedException
      */
-    public CodedException withPrefix(String... prefix) {
-        faultCode = StringUtils.join(prefix, ".") + "." + faultCode;
+    public CodedException withPrefix(String... prefixes) {
+        String prefix = StringUtils.join(prefixes, ".");
+
+        if (!faultCode.startsWith(prefix)) {
+            faultCode = prefix + "." + faultCode;
+        }
 
         return this;
     }

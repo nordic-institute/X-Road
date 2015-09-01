@@ -75,7 +75,8 @@ class ConfGeneratorController < ApplicationController
   end
 
   def restrict_access
-    unless(ALLOWED_IPS.include? request.env['REMOTE_ADDR'])
+    unless(Rails.env.start_with?("devel") ||
+        ALLOWED_IPS.include?(request.env['REMOTE_ADDR']))
       render :text => ""
     end
   end
@@ -115,7 +116,7 @@ class ConfGeneratorController < ApplicationController
   rescue Exception => e
     log "#{e.message}"
     GlobalConfGenerationStatus.write_failure(
-        DistributedSignedFiles.get_exception_ctx(e))
+        GlobalConfSigningLog.get_exception_ctx(e))
     raise e
   end
 
@@ -144,11 +145,7 @@ class ConfGeneratorController < ApplicationController
     serve_configuration()
 
     clean_up_old_configuration()
-
-    DistributedSignedFiles.write_signed_files_log(
-        "Distributed files signed successfully.\n")
   rescue Exception => e
-    DistributedSignedFiles.write_signed_files_log(e)
     log "#{e.message}"
     raise e
   end
@@ -173,13 +170,21 @@ class ConfGeneratorController < ApplicationController
 
     log "Generating internal conf to: #{target_file}"
 
-    sign(
+    signed_file = sign(
         signing_key.key_identifier,
         DistributedFiles.get_internal_source_content_identifiers())
 
-    distribute(target_file, signing_key.certificate)
+    distribute(signed_file, target_file, signing_key.cert)
+
+    GlobalConfSigningLog.write(
+        "Internal configuration distributed successfully.\n",
+        get_internal_directory)
 
     logger.debug("process_internal_configuration() - finished")
+  rescue Exception
+    GlobalConfSigningLog.write(
+        GlobalConfSigningLog.get_exception_ctx($!),
+        get_internal_directory)
   end
 
   def process_external_configuration
@@ -196,10 +201,18 @@ class ConfGeneratorController < ApplicationController
     target_file = get_temp_external_directory()
     log "Generating external conf to: #{target_file}"
 
-    sign(signing_key.key_identifier, allowed_content_identifiers)
-    distribute(target_file, signing_key.certificate)
+    signed_file = sign(signing_key.key_identifier, allowed_content_identifiers)
+    distribute(signed_file, target_file, signing_key.cert)
+
+    GlobalConfSigningLog.write(
+        "External configuration distributed successfully.\n",
+        get_external_directory)
 
     logger.debug("process_external_configuration() - finished")
+  rescue Exception
+    GlobalConfSigningLog.write(
+        GlobalConfSigningLog.get_exception_ctx($!),
+        get_external_directory)
   end
 
   def sign(signing_key_id, allowed_content_identifiers = nil)
@@ -215,7 +228,7 @@ class ConfGeneratorController < ApplicationController
     end
   end
 
-  def distribute(target_file, verification_cert)
+  def distribute(signed_file, target_file, verification_cert)
     log "Distributing files to #{target_file}"
     if target_file.blank?
       raise "Distribution target file must not be blank!"
@@ -226,7 +239,7 @@ class ConfGeneratorController < ApplicationController
     end
 
     begin
-      get_distributor(target_file, verification_cert).distribute()
+      get_distributor(target_file, verification_cert).distribute(signed_file)
     rescue Exception => e
       raise "Failed to distribute files: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
     end
@@ -291,12 +304,11 @@ class ConfGeneratorController < ApplicationController
     hash_calculator =
         HashCalculator.new(SystemParameter.conf_sign_cert_hash_algo_uri)
 
-    signed_directory_builder = SignedDirectoryBuilder.new(
+    SignedDirectoryDistributor.new(
         get_generated_conf_dir(),
         target_file,
         hash_calculator,
         verification_cert)
-    return DistributedDirectoryBuilder.new(signed_directory_builder)
   end
 
   def get_generated_conf_dir
@@ -328,7 +340,7 @@ class ConfGeneratorController < ApplicationController
   end
 
   def save_distributed_files_to_disk
-    DistributedFiles.find_each do |file|
+    DistributedFiles.get_all.each do |file|
       write_public_copy(file)
       write_local_copy(file)
     end
@@ -346,7 +358,7 @@ class ConfGeneratorController < ApplicationController
   def write_local_copy(file)
     instance_identifier = SystemParameter.instance_identifier
     target_directory = "#{get_local_conf_directory()}/#{instance_identifier}"
-    
+
     # Create the target directory, if it does not exist
     # TODO might need to delete old files first
     FileUtils.mkdir_p(target_directory, :mode => 0755)

@@ -109,7 +109,7 @@ public final class ManagementRequestClient implements StartStop {
                     String authType) throws CertificateException {
                 if (chain.length == 0) {
                     throw new CertificateException(
-                            "Central server did not send SSL certificate");
+                            "Central server did not send TLS certificate");
                 }
 
                 X509Certificate centralServerSslCert = null;
@@ -118,18 +118,18 @@ public final class ManagementRequestClient implements StartStop {
                             GlobalConf.getCentralServerSslCertificate();
                 } catch (Exception e) {
                     throw new CertificateException("Could not get central "
-                            + "server SSL certificate from global conf", e);
+                            + "server TLS certificate from global conf", e);
                 }
 
                 if (centralServerSslCert == null) {
                     throw new CertificateException(
-                            "Central server SSL certificate "
+                            "Central server TLS certificate "
                                     + "is not in global conf");
                 }
 
                 if (!centralServerSslCert.equals(chain[0])) {
                     throw new CertificateException(
-                            "Central server SSL certificate "
+                            "Central server TLS certificate "
                                     + "does not match in global conf");
                 }
             }
@@ -184,7 +184,7 @@ public final class ManagementRequestClient implements StartStop {
                     return new X509Certificate[] {
                             InternalSSLKey.load().getCert() };
                 } catch (Exception e) {
-                    log.error("Failed to load internal SSL key", e);
+                    log.error("Failed to load internal TLS key", e);
                     return new X509Certificate[] {};
                 }
             }
@@ -200,7 +200,7 @@ public final class ManagementRequestClient implements StartStop {
                 try {
                     return InternalSSLKey.load().getKey();
                 } catch (Exception e) {
-                    log.error("Failed to load internal SSL key", e);
+                    log.error("Failed to load internal TLS key", e);
                     return null;
                 }
             }

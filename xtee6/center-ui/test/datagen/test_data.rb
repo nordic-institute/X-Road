@@ -5,7 +5,6 @@ def create_all_test_data
   create_approved_cas()
   create_tsps()
   create_global_groups()
-  create_signed_files()
   create_configuration_sources()
   create_configuration_anchors()
   create_identifier_mapping()
@@ -227,17 +226,17 @@ def create_security_servers(first_member, second_member)
   owned1 = SecurityServer.create!(
       :server_code => "owned1",
       :address => "iks2-test2.cyber.ee",
-      :xroad_member_id => first_member.id)
+      :owner_id => first_member.id)
 
   used1 = SecurityServer.create!(
       :server_code => "used1",
       :address => "iks2-test1.cyber.ee",
-      :xroad_member_id => second_member.id)
+      :owner_id => second_member.id)
 
   used2 = SecurityServer.create!(
       :server_code => "used2",
       :address => "www.used2.com",
-      :xroad_member_id => second_member.id)
+      :owner_id => second_member.id)
 
   AuthCert.create!(
       :certificate => get_first_auth_cert,
@@ -248,14 +247,6 @@ def create_security_servers(first_member, second_member)
       :security_server_id => used1.id)
 
   [owned1, used1, used2]
-end
-
-def create_signed_files
-    DistributedSignedFiles.create(
-        :data => "Data to sign",
-        :data_boundary => "aasdasfasdfasdfasdfdsaf",
-        :signature => "Signaturo",
-        :sig_algo_id => "sha-5")
 end
 
 def create_configuration_sources

@@ -32,7 +32,7 @@ module CommonUi
             end
           end
         end
-      elsif Rails.env.development? || Rails.env.test?
+      elsif Rails.env.start_with?("devel") || Rails.env.test?
         user.name = "development"
         UserUtils.privilege_roles.each do |privilege, roles|
           user.privileges << privilege.to_sym

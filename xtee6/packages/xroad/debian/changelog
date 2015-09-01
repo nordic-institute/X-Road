@@ -1,3 +1,15 @@
+xroad (6.6-0) trusty; urgency=low
+
+  * 
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 30 Jul 2015 14:57:06 +0300
+
+xroad (6.5-1) trusty; urgency=low
+
+  * WSDL reload bugfix
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 23 Jul 2015 13:08:16 +0300
+
 xroad (6.5-0) trusty; urgency=low
 
   * Possibility to download signed documents and verification configuration

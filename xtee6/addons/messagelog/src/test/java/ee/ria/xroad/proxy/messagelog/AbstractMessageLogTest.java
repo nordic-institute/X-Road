@@ -4,13 +4,13 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.TestActorRef;
-
 import com.typesafe.config.ConfigFactory;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
@@ -64,6 +64,10 @@ abstract class AbstractMessageLogTest {
     protected void log(SoapMessageImpl message, SignatureData signature)
             throws Exception {
         logManager.log(message, signature, true);
+    }
+
+    protected TimestampRecord timestamp(MessageRecord record) throws Exception {
+        return logManager.timestamp(record.getId());
     }
 
     protected void startTimestamping() {

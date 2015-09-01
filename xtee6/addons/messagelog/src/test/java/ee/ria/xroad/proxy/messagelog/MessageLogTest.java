@@ -9,6 +9,7 @@ import java.util.Date;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
@@ -53,6 +54,56 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
+
+    /**
+     * Logs a message and timestamps it explicitly.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void timestampingForced() throws Exception {
+        initLogManager();
+
+        log("02-04-2014 12:34:56.100", createMessage("forced"));
+        assertTaskQueueSize(1);
+
+        MessageRecord record = (MessageRecord) findByQueryId("forced",
+                "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        assertMessageRecord(record, "forced");
+
+        TimestampRecord timestamp = timestamp(record);
+        assertNotNull(timestamp);
+
+        record = (MessageRecord) findByQueryId("forced",
+                "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+
+        assertEquals(timestamp, record.getTimestampRecord());
+        assertTaskQueueSize(0);
+    }
+
+    /**
+     * Logs a message and calls explicit timestamping on it twice.
+     * The returned timestamps must match.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void timestampingDouble() throws Exception {
+        initLogManager();
+
+        log("02-04-2014 12:34:56.100", createMessage("forced"));
+        assertTaskQueueSize(1);
+
+        MessageRecord record = (MessageRecord) findByQueryId("forced",
+                "02-04-2014 12:34:50.100", "02-04-2014 12:34:59.100");
+        assertMessageRecord(record, "forced");
+
+        TimestampRecord timestamp1 = timestamp(record);
+        assertNotNull(timestamp1);
+
+        TimestampRecord timestamp2 = timestamp(record);
+        assertNotNull(timestamp2);
+
+        assertEquals(timestamp1, timestamp2);
+    }
 
     /**
      * Logs 3 messages (message and signature is same) and time-stamps them.
@@ -375,7 +426,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         String lastHashStepInArchive = commandOutput.getStandardOutput().trim();
         String lastStepInDatabase = getLastHashStepInDatabase();
 
-        if (!lastStepInDatabase.equals(lastHashStepInArchive)) {
+        if (!StringUtils.equals(lastStepInDatabase, lastHashStepInArchive)) {
             String message = String.format(
                     "Last hash step file must start with last hash step result, "
                     + "but does not. Result:\n\t%s", lastHashStepInArchive);

@@ -16,7 +16,9 @@
     </div>
 
     <p>
-      <label><%= t 'common.hash' %>:</label>
+      <label>
+        <%= t 'common.hash', :alg => CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID %>:
+      </label>
       <span class="anchor-hash"></span>
     </p>
     <p>
@@ -84,7 +86,7 @@
     </div>
 
     <p>
-      <label><%= t '.internal_ssl_cert_hash' %>:</label>
+      <label><%= t '.internal_ssl_cert_hash', :alg => CommonUi::CertUtils.cert_hash_algorithm %>:</label>
       <span id="internal_ssl_cert_hash"></span>
     </p>
   </div>

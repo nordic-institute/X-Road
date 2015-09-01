@@ -16,8 +16,20 @@ module Clients::AclSubjects
     })
 
     client = get_client(params[:client_id])
-    
-    render_json(read_acl_subjects(client))
+
+    has_services = false
+
+    client.wsdl.each do |wsdl|
+      unless wsdl.service.isEmpty
+        has_services = true
+        break
+      end
+    end
+
+    render_json({
+      :acl_subjects => read_acl_subjects(client),
+      :has_services => has_services
+    })
   end
 
   def acl_subjects_search

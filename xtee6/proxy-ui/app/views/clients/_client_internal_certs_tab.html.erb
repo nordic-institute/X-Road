@@ -22,7 +22,7 @@
   <table id="internal_certs">
     <thead>
       <tr>
-        <th><%= t '.certificate_hash', :alg => "SHA-1" %></th>
+        <th><%= t '.certificate_hash', :alg => CommonUi::CertUtils.cert_hash_algorithm %></th>
       </tr>
     </thead>
   </table>
@@ -49,7 +49,7 @@
   <table id="proxy_internal_cert">
     <thead>
       <tr>
-        <th><%= t '.certificate_hash', :alg => "SHA-1" %></th>
+        <th><%= t '.certificate_hash', :alg => CommonUi::CertUtils.cert_hash_algorithm %></th>
       </tr>
     </thead>
   </table>

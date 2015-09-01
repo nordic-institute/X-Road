@@ -31,6 +31,10 @@ public abstract class AbstractLogManager extends UntypedActor {
                 LogRecord result = findByQueryId(f.getQueryId(),
                         f.getStartTime(), f.getEndTime());
                 getSender().tell(result, getSelf());
+            } else if (message instanceof TimestampMessage) {
+                TimestampMessage m = (TimestampMessage) message;
+                TimestampRecord result = timestamp(m.getMessageRecordId());
+                getSender().tell(result, getSelf());
             } else {
                 unhandled(message);
             }
@@ -44,4 +48,7 @@ public abstract class AbstractLogManager extends UntypedActor {
 
     protected abstract LogRecord findByQueryId(String queryId, Date startTime,
             Date endTime) throws Exception;
+
+    protected abstract TimestampRecord timestamp(Long messageRecordId)
+            throws Exception;
 }

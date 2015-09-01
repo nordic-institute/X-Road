@@ -17,6 +17,9 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.FindByQueryId;
 import ee.ria.xroad.common.messagelog.LogMessage;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampMessage;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
@@ -91,6 +94,20 @@ public final class MessageLog {
                     new FindByQueryId(queryId, startTime, endTime));
         } catch (Exception e) {
             throw translateException(e);
+        }
+    }
+
+    /**
+     * Returns a time-stamp record for a given message record.
+     * @param record the message record
+     * @return the time-stamp record or null, if time-stamping failed.
+     */
+    public static TimestampRecord timestamp(MessageRecord record) {
+        log.trace("timestamp()");
+        try {
+            return (TimestampRecord) ask(new TimestampMessage(record.getId()));
+        } catch (Exception e) {
+            throw translateWithPrefix(X_TIMESTAMPING_FAILED_X, e);
         }
     }
 

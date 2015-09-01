@@ -12,6 +12,7 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -28,9 +29,11 @@ import ee.ria.xroad.common.conf.globalconf.SharedParameters;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
@@ -51,6 +54,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     static final String PARAM_REQUEST_ONLY = "requestOnly";
     static final String PARAM_RESPONSE_ONLY = "responseOnly";
     static final String PARAM_UNIQUE = "unique";
+    static final String PARAM_FORCE = "force";
 
     private static final String INVALID_PARAM_COMBINATION_FAULT_MESSAGE =
             "Parameters \"" + PARAM_REQUEST_ONLY + "\" and \""
@@ -71,6 +75,9 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private static final String MISSING_TIMESTAMP_FAULT_MESSAGE =
             "Message signature has not been timestamped yet!";
+
+    private static final String TIMESTAMPING_FAILED_FAULT_MESSAGE =
+            "Could not create missing timestamp!";
 
     private final String target;
 
@@ -155,19 +162,16 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
-    private void handleAsicRequest(ClientId clientId) throws Exception, IOException {
+    private void handleAsicRequest(ClientId clientId) throws Exception {
         String queryId = getParameter(PARAM_QUERY_ID, false);
 
         AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator(
                 AsicContainerClientRequestProcessor::getRandomAlphanumeric,
                 MAX_RANDOM_GEN_ATTEMPTS);
 
-        boolean requestOnly =
-                servletRequest.getParameterMap().containsKey(PARAM_REQUEST_ONLY);
-        boolean responseOnly =
-                servletRequest.getParameterMap().containsKey(PARAM_RESPONSE_ONLY);
-        boolean unique =
-                servletRequest.getParameterMap().containsKey(PARAM_UNIQUE);
+        boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
+        boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
+        boolean unique = hasParameter(PARAM_UNIQUE);
 
         if (!requestOnly && !responseOnly) {
             if (!unique) {
@@ -198,8 +202,12 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         }
     }
 
+    private boolean hasParameter(String param) {
+        return servletRequest.getParameterMap().containsKey(param);
+    }
+
     private void writeAllContainers(ClientId clientId, String queryId,
-            AsicContainerNameGenerator nameGen) throws IOException, Exception {
+            AsicContainerNameGenerator nameGen) throws Exception {
         String filename = AsicUtils.escapeString(queryId);
         List<MessageRecord> requests =
                 timestampedRecords(clientId, queryId, false);
@@ -219,7 +227,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeRequestContainers(ClientId clientId, String queryId,
-            AsicContainerNameGenerator nameGen) throws IOException, Exception {
+            AsicContainerNameGenerator nameGen) throws Exception {
         String filename = AsicUtils.escapeString(queryId) + "-request";
         List<MessageRecord> records =
                 timestampedRecords(clientId, queryId, false);
@@ -235,7 +243,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeResponseContainers(ClientId clientId, String queryId,
-            AsicContainerNameGenerator nameGen) throws IOException, Exception {
+            AsicContainerNameGenerator nameGen) throws Exception {
         String filename = AsicUtils.escapeString(queryId) + "-response";
         List<MessageRecord> records =
                 timestampedRecords(clientId, queryId, true);
@@ -254,8 +262,22 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
             String queryId, boolean response) throws Exception {
         List<MessageRecord> allRecords =
                 logRecordManager.getByQueryId(queryId, clientId, response);
-        int allCount = allRecords.size();
 
+        List<MessageRecord> timestampedRecords;
+        if (hasParameter(PARAM_FORCE)) {
+            timestampedRecords = allRecords.stream()
+                    .map(this::ensureRecordTimestamped)
+                    .collect(Collectors.toList());
+        } else {
+            verifyAllRecordsTimestamped(allRecords);
+            timestampedRecords = allRecords;
+        }
+        return timestampedRecords;
+    }
+
+    private void verifyAllRecordsTimestamped(List<MessageRecord> allRecords)
+            throws Exception {
+        int allCount = allRecords.size();
         List<MessageRecord> timestampedRecords = allRecords.stream()
                 .filter(r -> r.getTimestampRecord() != null)
                 .collect(Collectors.toList());
@@ -264,12 +286,11 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         if (allCount != timestampedCount) {
             throw new Exception(MISSING_TIMESTAMPS_FAULT_MESSAGE);
         }
-        return timestampedRecords;
     }
 
     private void writeContainers(List<MessageRecord> requests, String queryId,
             AsicContainerNameGenerator nameGen, ZipOutputStream zos,
-            String type) throws Exception, IOException {
+            String type) throws Exception {
 
         for (MessageRecord record : requests) {
             String filename = nameGen.getArchiveFilename(queryId, type);
@@ -281,27 +302,47 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void writeAsicContainer(ClientId clientId, String queryId,
             AsicContainerNameGenerator nameGen, boolean response)
-                    throws Exception, IOException {
-        MessageRecord request =
-                logRecordManager.getByQueryIdUnique(queryId, clientId, response);
-        if (request != null) {
-            if (request.getTimestampRecord() == null) {
-                throw new Exception(MISSING_TIMESTAMP_FAULT_MESSAGE);
-            }
-            String filename = nameGen.getArchiveFilename(queryId,
-                    response ? "response" : "request");
+                    throws Exception {
+        MessageRecord request = getTimestampedRecord(clientId, queryId, response);
+        String filename = nameGen.getArchiveFilename(queryId,
+                response ? "response" : "request");
 
-            servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-            servletResponse.setHeader("Content-Disposition", "filename=\""
-                    + filename + "\"");
+        servletResponse.setContentType(MimeTypes.ASIC_ZIP);
+        servletResponse.setHeader("Content-Disposition", "filename=\""
+                + filename + "\"");
 
-            servletResponse.getOutputStream().write(
-                    request.toAsicContainer().getBytes());
+        servletResponse.getOutputStream().write(
+                request.toAsicContainer().getBytes());
+    }
+
+    @SneakyThrows
+    private MessageRecord getTimestampedRecord(ClientId clientId,
+            String queryId, boolean response) {
+        MessageRecord record = logRecordManager
+                .getByQueryIdUnique(queryId, clientId, response);
+        if (record != null) {
+            return ensureRecordTimestamped(record);
         } else {
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_NOT_FOUND, ErrorCodes.X_NOT_FOUND,
                     DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
         }
+    }
+
+    @SneakyThrows
+    private MessageRecord ensureRecordTimestamped(MessageRecord record) {
+        if (record.getTimestampRecord() == null) {
+            if (hasParameter(PARAM_FORCE)) {
+                TimestampRecord timestamp = MessageLog.timestamp(record);
+                if (timestamp == null) {
+                    throw new Exception(TIMESTAMPING_FAILED_FAULT_MESSAGE);
+                }
+                return (MessageRecord) logRecordManager.get(record.getId());
+            } else {
+                throw new Exception(MISSING_TIMESTAMP_FAULT_MESSAGE);
+            }
+        }
+        return record;
     }
 
     private ZipOutputStream startZipResponse(String filename) throws IOException {

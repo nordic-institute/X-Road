@@ -43,7 +43,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Slf4j
 public class LogArchiver extends UntypedActor {
 
-    private static final int MAX_RECORDS_IN_ARCHIVE = 100;
+    private static final int MAX_RECORDS_IN_ARCHIVE = 10;
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -70,16 +70,30 @@ public class LogArchiver extends UntypedActor {
                 return null;
             }
 
+            log.info("Archiving log records - start");
+
+            long start = System.currentTimeMillis();
+            int recordsArchived = 0;
+
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 while (!records.isEmpty()) {
                     doArchive(archiveWriter, records);
                     runTransferCommand(getArchiveTransferCommand());
+                    recordsArchived += records.size();
+
+                    //flush changes (records marked as archived) and free memory
+                    //used up by cached records retrieved previously in the session
+                    session.flush();
+                    session.clear();
 
                     records = getRecordsToBeArchived(session);
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
             }
+
+            log.info("Archived {} log records in {} ms", recordsArchived,
+                    System.currentTimeMillis() - start);
 
             return null;
         });
@@ -88,16 +102,9 @@ public class LogArchiver extends UntypedActor {
     private void doArchive(
             LogArchiveWriter archiveWriter, List<LogRecord> records)
             throws Exception {
-        log.info("Archiving {} log records", records.size());
-
-        long start = System.currentTimeMillis();
-
         for (LogRecord record : records) {
             archiveWriter.write(record);
         }
-
-        log.info("Archived {} log records in {} ms", records.size(),
-                System.currentTimeMillis() - start);
     }
 
 
@@ -200,8 +207,9 @@ public class LogArchiver extends UntypedActor {
                 transferCommand);
 
         try {
-            Process process =
-                    new ProcessBuilder(transferCommand.split("\\s+")).start();
+            String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+
+            Process process = new ProcessBuilder(command).start();
 
             StandardErrorCollector standardErrorCollector =
                     new StandardErrorCollector(process);

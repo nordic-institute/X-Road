@@ -1,4 +1,4 @@
-# Rake task for running database-related tests against Postgres.
+# Rake task for running Postgres-specific tests.
 namespace :test_pg do
   task :database do
     xroad_home = ENV["XROAD_HOME"]
@@ -13,7 +13,7 @@ namespace :test_pg do
         test_file_path = "#{prod_db_tests_home}/#{file}"
         system("jruby -I test_pg #{test_file_path}")
         if $?.exitstatus != 0
-          raise "Some database tests failed. See the log above."
+          raise "Some Postgres-specific tests failed. See the log above."
         end
       end
     end

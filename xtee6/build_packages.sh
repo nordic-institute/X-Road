@@ -12,7 +12,7 @@ XROAD=`pwd`
 export GRADLE_HOME PATH JAVA_HOME
 
 source $HOME/.rvm/scripts/rvm
-rvm use jruby
+rvm use 
 
 gradle --daemon --stacktrace buildAll
 cd $XROAD/packages/xroad/

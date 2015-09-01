@@ -17,7 +17,7 @@ class AuthCertDeletionRequest < DeletionRequest
     server = SecurityServer.find_server_by_id(security_server)
     if server != nil && server.auth_certs != nil
       for cert in Array.new(server.auth_certs)
-        if cert.certificate == auth_cert
+        if cert.cert == auth_cert
           server.auth_certs.delete(cert)
           cert.destroy()
         end

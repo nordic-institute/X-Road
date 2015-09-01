@@ -30,11 +30,8 @@ class SystemSettingsController < ApplicationController
 
     audit_log_data[:address] = params[:centralServerAddress]
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::CENTRAL_SERVER_ADDRESS
-    ).update_attributes!({
-      :value => params[:centralServerAddress]
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::CENTRAL_SERVER_ADDRESS, params[:centralServerAddress])
 
     begin
       ConfigurationSource.get_source_by_type(
@@ -73,23 +70,15 @@ class SystemSettingsController < ApplicationController
       :providerSubsystem => []
     })
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CLASS
-    ).update_attributes!({
-      :value => params[:providerClass]
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CLASS, params[:providerClass])
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CODE
-    ).update_attributes!({
-      :value => params[:providerCode]
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_CODE, params[:providerCode])
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM
-    ).update_attributes!({
-      :value => params[:providerSubsystem]
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM,
+      params[:providerSubsystem])
 
     service_provider_name = XroadMember.get_name(
       params[:providerClass], params[:providerCode])

@@ -30,18 +30,19 @@ class InitController < ApplicationController
   def init
     authorize!(:init_config)
 
-    required = [:required]
+    required_validators = [:required]
 
     unless SystemParameter.instance_identifier
-      init_instance_identifier = required
+      init_instance_identifier = required_validators.clone
     end
 
     unless SystemParameter.central_server_address
-      init_central_server_address = required << :host
+      init_central_server_address = required_validators.clone
+      init_central_server_address << :host
     end
 
     unless software_token_initialized?
-      init_software_token = required
+      init_software_token = required_validators.clone
     end
 
     unless init_instance_identifier ||
@@ -90,40 +91,32 @@ class InitController < ApplicationController
   private
 
   def init_other_system_parameters
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::AUTH_CERT_REG_URL
-    ).update_attributes!({
-      :value => SystemParameter::DEFAULT_AUTH_CERT_REG_URL
-    })
-
     GlobalGroup.find_or_initialize_by_group_code(
       SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
     ).update_attributes!({
       :description => SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC
     })
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::CONF_SIGN_ALGO_ID
-    ).update_attributes!({
-      :value => SystemParameter::DEFAULT_CONF_SIGN_ALGO_ID
-    })
+    # System parameters must be looked up using the HA-aware functions, in order
+    # for the database node name to be taken into account, if applicable.
+    SystemParameter.find_or_initialize(
+      SystemParameter::AUTH_CERT_REG_URL,
+      SystemParameter::DEFAULT_AUTH_CERT_REG_URL)
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::CONF_HASH_ALGO_URI
-    ).update_attributes!({
-      :value => SystemParameter::DEFAULT_CONF_HASH_ALGO_URI
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::CONF_SIGN_ALGO_ID,
+      SystemParameter::DEFAULT_CONF_SIGN_ALGO_ID)
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::CONF_SIGN_CERT_HASH_ALGO_URI
-    ).update_attributes!({
-      :value => SystemParameter::DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::CONF_HASH_ALGO_URI,
+      SystemParameter::DEFAULT_CONF_HASH_ALGO_URI)
 
-    SystemParameter.find_or_initialize_by_key(
-      SystemParameter::SECURITY_SERVER_OWNERS_GROUP
-    ).update_attributes!({
-      :value => SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
-    })
+    SystemParameter.find_or_initialize(
+      SystemParameter::CONF_SIGN_CERT_HASH_ALGO_URI,
+      SystemParameter::DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI)
+
+    SystemParameter.find_or_initialize(
+      SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
+      SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP)
   end
 end

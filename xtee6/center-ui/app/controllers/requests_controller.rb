@@ -61,7 +61,11 @@ class RequestsController < ApplicationController
     server_owner_name = XroadMember.get_name(
         request.server_owner_class, request.server_owner_code)
 
-    request.update_server_owner_name(server_owner_name)
+    unless server_owner_name.blank?
+      request.update_server_owner_name(server_owner_name)
+    else
+      server_owner_name = request.server_owner_name
+    end
 
     additional_data = {
       :complementary_id => request.get_complementary_id(),
@@ -181,7 +185,11 @@ class RequestsController < ApplicationController
 
     server_user_name = XroadMember.get_name(member_class, member_code)
 
-    request.update_server_user_name(server_user_name)
+    unless server_user_name.blank?
+      request.update_server_user_name(server_user_name)
+    else
+      server_user_name = request.server_user_name
+    end
 
     {
       :member_name => server_user_name,

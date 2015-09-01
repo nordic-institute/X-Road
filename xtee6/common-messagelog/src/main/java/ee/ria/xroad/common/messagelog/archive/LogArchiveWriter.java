@@ -3,7 +3,9 @@ package ee.ria.xroad.common.messagelog.archive;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
@@ -104,6 +107,8 @@ public class LogArchiveWriter implements Closeable {
                 closeOutputs();
 
                 saveArchive();
+
+                logArchiveCache.close();
             }
         } finally {
             clearTempArchive();
@@ -154,14 +159,14 @@ public class LogArchiveWriter implements Closeable {
         lastHashStepTmp = null;
     }
 
-    private boolean archiveAsicContainers() throws IOException {
-        byte[] archiveBytes = logArchiveCache.getArchiveBytes();
-
-        if (archiveBytes == null) {
+    private boolean archiveAsicContainers() {
+        try (InputStream input = logArchiveCache.getArchiveFile();
+                OutputStream output = Channels.newOutputStream(archiveOut)) {
+            IOUtils.copy(input, output);
+        } catch (IOException e) {
+            log.error("Failed to archive ASiC containers due to IO error", e);
             return false;
         }
-
-        archiveOut.write(ByteBuffer.wrap(archiveBytes));
 
         return true;
     }

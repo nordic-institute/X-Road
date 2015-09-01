@@ -1,3 +1,9 @@
+xroad-jetty9 (6.6-0) trusty; urgency=low
+
+  * jetty 9.3.1
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 30 Jul 2015 14:57:06 +0300
+
 xroad-jetty9 (6.3-0) trusty; urgency=low
 
   * renaming paths

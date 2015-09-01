@@ -248,7 +248,7 @@ module Clients::Services
       deleted[get_wsdl_id(wsdl)] = services_old - services_new
 
       logged_wsdl_data = {
-        :wsdlUrl => old_wsdl_url,
+        :wsdlUrl => old_wsdl_url || get_wsdl_id(wsdl),
         :servicesAdded => added[get_wsdl_id(wsdl)],
         :servicesDeleted => deleted[get_wsdl_id(wsdl)]
       }
@@ -274,6 +274,8 @@ module Clients::Services
       warn("changed_services", "#{add_text}#{delete_text}")
     end
 
+    deleted_codes = Set.new
+
     # write changes to conf
     client.wsdl.each do |wsdl|
       services_deleted = []
@@ -282,6 +284,7 @@ module Clients::Services
         wsdl.service.each do |service|
           if get_service_id(service) == service_id
             services_deleted << service
+            deleted_codes << service.serviceCode
           end
         end
       end if deleted.has_key?(get_wsdl_id(wsdl))
@@ -310,7 +313,9 @@ module Clients::Services
       end
     end
 
-    clean_acls(client)
+    if deleted_codes.any?
+      remove_access_rights(client.acl, nil, deleted_codes)
+    end
 
     if check_new_url
       check_internal_server_certs(client, params[:new_url])

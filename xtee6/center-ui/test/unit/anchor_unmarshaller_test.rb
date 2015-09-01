@@ -19,10 +19,10 @@ class AnchorUnmarshallerTest < ActiveSupport::TestCase
     certs = anchor_url.anchor_url_certs
     assert_equal(4, certs.size())
 
-    assert_not_nil(certs[0].certificate)
-    assert_not_nil(certs[1].certificate)
-    assert_not_nil(certs[2].certificate)
-    assert_not_nil(certs[3].certificate)
+    assert_not_nil(certs[0].cert)
+    assert_not_nil(certs[1].cert)
+    assert_not_nil(certs[2].cert)
+    assert_not_nil(certs[3].cert)
   end
 
   test "Should unmarshal anchor" do

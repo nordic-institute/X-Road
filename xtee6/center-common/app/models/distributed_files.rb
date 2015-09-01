@@ -1,4 +1,4 @@
-# This table will hold files to be distributed by the Central. It contains
+# This table will hold files to be distributed by the Central Server. It contains
 # file name and file data (as blob) pairs.
 
 java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
@@ -6,7 +6,6 @@ java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParameters
 
 class DistributedFiles < ActiveRecord::Base
   validates_with Validators::MaxlengthValidator
-  validates :file_name, :uniqueness => true
 
   EXTERNAL_SOURCE_CONTENT_IDENTIFIERS = [
     SharedParameters::CONTENT_ID_SHARED_PARAMETERS
@@ -17,10 +16,59 @@ class DistributedFiles < ActiveRecord::Base
     SharedParameters::CONTENT_ID_SHARED_PARAMETERS
   ]
 
+  # These file types are handled independently by each instance of the central
+  # server even though the records are replicated to each database node.
+  NODE_LOCAL_CONTENT_IDS = [
+    PrivateParameters::CONTENT_ID_PRIVATE_PARAMETERS,
+    SharedParameters::CONTENT_ID_SHARED_PARAMETERS
+  ]
+
+  # Return true if the name of the local database node must be taken into
+  # account when working with the file.
+  def self.node_local_content_id?(content_id)
+    return NODE_LOCAL_CONTENT_IDS.include?(content_id)
+  end
+
+  # Return all the records on non-HA systems;
+  # on HA systems return all records except for the ones that must be treated
+  # separately on each node and were created on other nodes.
+  def self.get_all
+    if !CommonSql.ha_configured?
+      return DistributedFiles.all
+    end
+    return DistributedFiles.where(
+      ["NOT (content_identifier IN (?) AND ha_node_name!=(?))",
+       NODE_LOCAL_CONTENT_IDS, CommonSql.ha_node_name])
+  end
+
+  # Return the first record with the given content identifier on non-HA systems;
+  # on HA systems return the first record with the given content identifier that
+  # has been created on the current node.
+  def self.get_by_content_id(content_identifier)
+    if CommonSql.ha_configured? &&
+        DistributedFiles.node_local_content_id?(content_identifier)
+      ha_node_name = CommonSql.ha_node_name
+      return DistributedFiles.where(
+        :ha_node_name => ha_node_name,
+        :content_identifier => content_identifier).first
+    end
+    return DistributedFiles.where(:content_identifier =>content_identifier).first
+  end
+
+  # Clear the distributed files of this database node and create new ones
+  # depending on the content ID and HA support.
+  # The node name will be set by a trigger function.
   def self.save_configuration_part(file_name, file_data)
     content_identifier = get_content_identifier(file_name)
 
-    DistributedFiles.where(:file_name => file_name).destroy_all
+    if CommonSql.ha_configured? &&
+        DistributedFiles.node_local_content_id?(content_identifier)
+      ha_node_name = CommonSql.ha_node_name
+      DistributedFiles.where(
+        :file_name => file_name, :ha_node_name => ha_node_name).destroy_all
+    else
+      DistributedFiles.where(:file_name => file_name).destroy_all
+    end
     DistributedFiles.create!(
         :file_name => file_name,
         :content_identifier => content_identifier,
@@ -91,20 +139,27 @@ class DistributedFiles < ActiveRecord::Base
   def self.get_required_configuration_parts_as_json(content_identifiers)
     result = []
 
-    content_identifiers.each do |each_identifier|
-      files_relation = DistributedFiles.where(
-          :content_identifier => each_identifier)
+    content_identifiers.each do |content_identifier|
+      files_relation = nil
+      if CommonSql.ha_configured? &&
+          DistributedFiles.node_local_content_id?(content_identifier)
+        ha_node_name = CommonSql.ha_node_name
+        files_relation = DistributedFiles.where(
+          :content_identifier => content_identifier,
+          :ha_node_name => ha_node_name)
+      else
+        files_relation = DistributedFiles.where(
+          :content_identifier => content_identifier)
+      end
 
       if files_relation.empty?
         result << get_configuration_part_as_json(
-            each_identifier, get_file_name(each_identifier), nil)
+            content_identifier, get_file_name(content_identifier), nil)
       else
-        files_relation.each do |each_file|
-          updated = CenterUtils::format_time(
-                each_file.file_updated_at.localtime)
-
+        files_relation.each do |file|
+          updated = CenterUtils::format_time(file.file_updated_at.localtime)
           result << get_configuration_part_as_json(
-              each_identifier, each_file.file_name, updated)
+              content_identifier, file.file_name, updated)
         end
       end
     end
@@ -115,14 +170,24 @@ class DistributedFiles < ActiveRecord::Base
   def self.get_optional_configuration_parts_as_json()
     result = []
 
-    get_optional_parts_conf().getAllParts().each do |each|
-      file_name = each.fileName
-      file_in_db = DistributedFiles.where(:file_name => file_name).first()
+    get_optional_parts_conf().getAllParts().each do |conf_part|
+      file_name = conf_part.fileName
+      content_identifier = conf_part.contentIdentifier
+
+      file_in_db = nil
+      if CommonSql.ha_configured? &&
+          DistributedFiles.node_local_content_id?(content_identifier)
+        ha_node_name = CommonSql.ha_node_name
+        file_in_db = DistributedFiles.where(
+          :file_name => file_name, :ha_node_name => ha_node_name).first()
+      else
+        file_in_db = DistributedFiles.where(:file_name => file_name).first()
+      end
       update_time = file_in_db ?
           CenterUtils::format_time(file_in_db.file_updated_at.localtime) : nil
 
       result << get_configuration_part_as_json(
-          each.contentIdentifier, file_name, update_time, true)
+          content_identifier, file_name, update_time, true)
     end
 
     return result

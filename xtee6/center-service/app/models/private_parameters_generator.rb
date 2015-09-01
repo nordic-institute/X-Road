@@ -52,7 +52,7 @@ class PrivateParametersGenerator
 
       each_location.anchor_url_certs.find_each do |each_cert|
         source_type.getVerificationCert().add(
-            each_cert.certificate.to_java_bytes())
+            each_cert.cert.to_java_bytes())
       end
 
       anchor_type.getSource().add(source_type)
@@ -66,9 +66,16 @@ class PrivateParametersGenerator
 
     add_central_server_ssl_cert(management_service_type)
 
+    management_service_provider_class =
+        SystemParameter.management_service_provider_class
+
+    if management_service_provider_class.blank?
+      raise "Management services provider is not configured"
+    end
+
     provider_id_type = Java::ee.ria.xroad.common.identifier.ClientId.create(
         @marshaller.root.instanceIdentifier,
-        SystemParameter.management_service_provider_class,
+        management_service_provider_class,
         SystemParameter.management_service_provider_code,
         SystemParameter.management_service_provider_subsystem)
 

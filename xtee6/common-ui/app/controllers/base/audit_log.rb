@@ -9,11 +9,11 @@ module Base
 
     def audit_log(event, data)
       after_commit do
-        message = {
+        message = unescape({
           :event => event,
           :user => current_user.name,
           :data => data
-        }.to_json
+        }.to_json)
 
         logger.debug("AUDIT SUCCESS: #{message}")
 
@@ -21,17 +21,23 @@ module Base
       end
 
       after_rollback do |exception|
-        message = {
+        message = unescape({
           :event => "#{event} failed",
           :user => current_user.name,
           :reason => exception.message,
           :data => data,
-        }.to_json
+        }.to_json)
 
         logger.debug("AUDIT FAIL: #{message}")
 
         AuditLogger::log(message)
       end
+    end
+
+    ##
+    # Undo escaping of non-ASCII characters in json strings
+    def unescape(json_string)
+      json_string.gsub(/\\u([0-9a-z]{4})/) {|s| [$1.to_i(16)].pack("U")}
     end
   end
 end

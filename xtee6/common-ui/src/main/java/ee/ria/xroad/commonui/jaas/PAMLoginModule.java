@@ -27,6 +27,7 @@ public class PAMLoginModule implements LoginModule {
     private Subject subject;
     private CallbackHandler callbackHandler;
 
+    private String webName;
     private UnixUser currentUser;
 
     @Override
@@ -48,7 +49,7 @@ public class PAMLoginModule implements LoginModule {
             Callback[] callbacks = getCallbacks();
             callbackHandler.handle(callbacks);
 
-            String webName = ((NameCallback) callbacks[0]).getName();
+            webName = ((NameCallback) callbacks[0]).getName();
             String webPassword = new String(
                 ((PasswordCallback) callbacks[1]).getPassword());
 
@@ -59,13 +60,7 @@ public class PAMLoginModule implements LoginModule {
             PAM pam = new PAM(PAM_SERVICE_NAME);
             currentUser = pam.authenticate(webName, webPassword);
 
-            if (currentUser != null) {
-                AuditLogger.log("Log in user", currentUser.getUserName(), null);
-                return true;
-            } else {
-                AuditLogger.log("Log in user failed", currentUser.getUserName(), null);
-                return false;
-            }
+            return currentUser != null;
         } catch (IOException e) {
             throw new LoginException(e.toString());
         } catch (UnsupportedCallbackException e) {
@@ -78,6 +73,9 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
+        AuditLogger.log("Log in user", webName, null);
+        webName = null;
+
         if (currentUser == null) {
             return false;
         }
@@ -94,6 +92,9 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean abort() throws LoginException {
+        AuditLogger.log("Log in user failed", webName, null);
+        webName = null;
+
         if (currentUser == null) {
             return false;
         }

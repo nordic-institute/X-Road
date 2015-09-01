@@ -97,8 +97,6 @@ class ApprovedCasController < ApplicationController
   end
 
   def upload_top_ca_cert
-    audit_log("Add certification service (upload cert)", audit_log_data = {})
-
     authorize!(:add_approved_ca)
 
     validate_params({
@@ -106,13 +104,6 @@ class ApprovedCasController < ApplicationController
     })
 
     cert_data = upload_cert(params[:ca_cert])
-
-    audit_log_data[:caCertFileName] = params[:ca_cert].original_filename
-    audit_log_data[:caCertHash] =
-      CommonUi::CertUtils.cert_hash(
-        get_temp_cert_from_session(cert_data[:temp_cert_id]))
-    audit_log_data[:caCertHashAlgorithm] =
-      CommonUi::CertUtils.cert_hash_algorithm
 
     notice(t("common.cert_imported"))
 
@@ -122,7 +113,7 @@ class ApprovedCasController < ApplicationController
   end
 
   def add_top_ca
-    audit_log("Add certification service (confirm)", audit_log_data = {})
+    audit_log("Add certification service", audit_log_data = {})
 
     authorize!(:add_approved_ca)
 
@@ -252,8 +243,6 @@ class ApprovedCasController < ApplicationController
   end
 
   def upload_ocsp_responder_cert
-    audit_log("Upload OCSP responder cert", audit_log_data = {})
-
     authorize!(:add_approved_ca)
 
     validate_params({
@@ -261,11 +250,6 @@ class ApprovedCasController < ApplicationController
     })
 
     cert_data = upload_cert(params[:ocsp_responder_cert], true)
-
-    audit_log_data[:ocspCertFileName] = params[:ocsp_responder_cert].original_filename
-    audit_log_data[:ocspCertHash] = CommonUi::CertUtils.cert_hash(
-      get_temp_cert_from_session(cert_data[:temp_cert_id]))
-    audit_log_data[:ocspCertHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     notice(t("common.cert_imported"))
 

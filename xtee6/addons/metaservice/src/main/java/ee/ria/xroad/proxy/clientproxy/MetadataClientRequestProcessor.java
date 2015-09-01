@@ -26,7 +26,7 @@ import static ee.ria.xroad.common.metadata.MetadataRequests.*;
 @Slf4j
 class MetadataClientRequestProcessor extends MessageProcessorBase {
 
-    static final String PARAM_INSTANCE_IDENTIFIER = "instance";
+    static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
 
     static final JAXBContext JAXB_CTX = initJaxbCtx();
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();

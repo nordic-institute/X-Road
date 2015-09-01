@@ -54,7 +54,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     /**
-     * @return SSL OCSP responses
+     * @return TLS OCSP responses
      */
     public List<OCSPResp> getOcspResponses() {
         return ocspResponses;
@@ -106,7 +106,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
     @Override
     public void ocspResponse(OCSPResp ocspResponse) throws Exception {
-        log.trace("Read SSL OCSP response");
+        log.trace("Read TLS OCSP response");
 
         this.ocspResponses.add(ocspResponse);
     }

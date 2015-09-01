@@ -462,6 +462,14 @@ class KeysController < ApplicationController
   end
 
   def friendly_name
+    if params[:token_id]
+      audit_log("Set friendly name to token", audit_log_data = {})
+      audit_log_data[:tokenId] = params[:token_id]
+    else
+      audit_log("Set friendly name to key", audit_log_data = {})
+      audit_log_data[:keyId] = params[:key_id]
+    end
+
     validate_params({
       :friendly_name => [:required],
       :token_id => [],
@@ -469,15 +477,13 @@ class KeysController < ApplicationController
     })
 
     if params[:token_id]
-      audit_log("Set friendly name to token", audit_log_data = {})
-      audit_log_data[:tokenId] = params[:token_id]
+      token = SignerProxy::getToken(params[:token_id])
       audit_log_data[:tokenFriendlyName] = params[:friendly_name]
+      audit_log_data[:tokenSerialNumber] = token.serialNumber
 
       SignerProxy::setTokenFriendlyName(
         params[:token_id], params[:friendly_name])
     elsif params[:key_id]
-      audit_log("Set friendly name to key", audit_log_data = {})
-      audit_log_data[:keyId] = params[:key_id]
       audit_log_data[:keyFriendlyName] = params[:friendly_name]
 
       SignerProxy::setKeyFriendlyName(

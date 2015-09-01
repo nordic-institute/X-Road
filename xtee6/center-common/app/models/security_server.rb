@@ -4,7 +4,7 @@ class SecurityServer < ActiveRecord::Base
 
   class DuplicateSecurityServerValidator < ActiveModel::Validator
     def validate(new_record)
-      xroad_member = XroadMember.find(new_record.xroad_member_id)
+      xroad_member = XroadMember.find(new_record.owner_id)
 
       server_code = new_record.server_code
       member_code = xroad_member.member_code
@@ -35,7 +35,8 @@ class SecurityServer < ActiveRecord::Base
 
   # Finds server by given ServerId.
   def self.find_server_by_id(server_id)
-    puts "find_server_by_id(#{server_id})"
+    Rails.logger.info("find_server_by_id(#{server_id})")
+
     find_server(
         server_id.server_code,
         server_id.member_code,
@@ -54,10 +55,10 @@ class SecurityServer < ActiveRecord::Base
   end
 
   validates_with Validators::MaxlengthValidator
-  validates_presence_of :xroad_member_id
+  validates_presence_of :owner_id
   validates_with DuplicateSecurityServerValidator, :on => :create
 
-  belongs_to :owner, :class_name => "XroadMember", :foreign_key => "xroad_member_id"
+  belongs_to :owner, :class_name => "XroadMember", :foreign_key => "owner_id"
 
   has_and_belongs_to_many :security_categories,
       :join_table => "security_servers_security_categories"
@@ -186,7 +187,7 @@ class SecurityServer < ActiveRecord::Base
     security_server.auth_certs.each do |each|
       request = AuthCertDeletionRequest.new(
         :security_server => server_id,
-        :auth_cert => each.certificate,
+        :auth_cert => each.cert,
         :comments => comment,
         :origin => Request::CENTER).register()
     end

@@ -2,7 +2,8 @@
 # security server.
 class AuthCertRegProcessing < RequestProcessing
   def self.find_by_server_and_cert(server_id, cert)
-    puts "find_by_server_and_cert(#{server_id})"
+    Rails.logger.info("find_by_server_and_cert(#{server_id})")
+
     requests = AuthCertRegRequest
         .joins(:security_server, :request_processing)
         .where(
@@ -28,7 +29,7 @@ class AuthCertRegProcessing < RequestProcessing
 
     if server == nil
       # We must create new security server object.
-      puts "Creating new security server #{server}"
+      Rails.logger.info("Creating new security server #{server}")
 
       # Find the owner.
       owner_id = request.security_server.owner_id
@@ -50,7 +51,7 @@ class AuthCertRegProcessing < RequestProcessing
     end
 
     # Server exists, we'll just have to add an auth cert
-    puts "Adding auth cert to server #{server}"
-    server.auth_certs.create!(:certificate => request.auth_cert)
+    Rails.logger.info("Adding auth cert to server #{server}")
+    server.auth_certs.create!(:cert => request.auth_cert)
   end
 end

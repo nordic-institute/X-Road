@@ -282,7 +282,7 @@ en:
       upload_info:
         instance: "Instance identifier: %{instance}"
         generated: "Anchor generated: %{generated}"
-        hash: "Anchor hash: %{hash}"
+        hash: "Anchor hash (%{alg}): %{hash}"
       error:
         same_instance: "Failed to upload trusted anchor: anchors originating from this instance are not supported as trusted anchors."
         anchor_malformed: "Failed to upload trusted anchor: incorrect file structure."

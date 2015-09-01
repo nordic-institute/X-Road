@@ -77,6 +77,6 @@ Please fix this and reinstall this package." >&2
 
 fi    
 
-service xroad-signer restart || service xroad-signer start
+invoke-rc.d xroad-signer restart
 
 exit 0

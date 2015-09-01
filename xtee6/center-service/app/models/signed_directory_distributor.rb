@@ -1,7 +1,7 @@
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 # Constructs signed directory into the target file.
-class SignedDirectoryBuilder
+class SignedDirectoryDistributor
   def initialize(conf_dir, target_file, hash_calculator, verification_cert)
     raise "Target file must not be blank" if target_file.blank?
     raise "Hash calculator must be present" if hash_calculator == nil
@@ -17,9 +17,9 @@ class SignedDirectoryBuilder
         "and hash algorithm URI: '#{hash_calculator.getAlgoURI()}'")
   end
 
-  def build(last_signed_file_record)
+  def distribute(last_signed_file)
     CommonUi::IOUtils.write_public(
-        @target_file_path, get_writing_process(last_signed_file_record))
+        @target_file_path, get_writing_process(last_signed_file))
   rescue => e
     Rails.logger.error(
         "Building signed directory into "\
@@ -39,10 +39,10 @@ class SignedDirectoryBuilder
       file.write "--#{main_boundary}\n"
 
       file.write "Content-Type: multipart/mixed; charset=UTF-8; "\
-          "boundary=#{last_signed_file_record.data_boundary}\n"
+          "boundary=#{last_signed_file_record[:data_boundary]}\n"
       file.write "\n"
 
-      file.write last_signed_file_record.data.force_encoding(
+      file.write last_signed_file_record[:data].force_encoding(
           Rails.configuration.encoding)
 
       file.write "\n"
@@ -52,7 +52,7 @@ class SignedDirectoryBuilder
       file.write "Content-Transfer-Encoding: base64\n"
       file.write "Signature-Algorithm-Id: "\
           "#{CryptoUtils.getSignatureAlgorithmURI(
-              last_signed_file_record.sig_algo_id)}\n"
+              last_signed_file_record[:sig_algo_id])}\n"
 
       verification_cert_hash =
           @hash_calculator.calculateFromBytes(@verification_cert.to_java_bytes())
@@ -61,7 +61,7 @@ class SignedDirectoryBuilder
           "hash-algorithm-id=\"#{@hash_calculator.getAlgoURI()}\"\n"
       file.write "\n"
 
-      file.write last_signed_file_record.signature
+      file.write last_signed_file_record[:signature]
       file.write "\n"
 
       file.write "--#{main_boundary}--\n"

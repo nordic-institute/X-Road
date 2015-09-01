@@ -4,7 +4,7 @@
   </div>
   <div>
     <p>
-      <label><%= t 'configuration_management.trusted_anchors.hash' %></label>
+      <label><%= t 'common.hash', :alg => ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM %></label>
       <span class="anchor-hash"></span>
     </p>
     <p>

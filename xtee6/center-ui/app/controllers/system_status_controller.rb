@@ -93,4 +93,5 @@ class SystemStatusController < ApplicationController
   def conf_expired?(generation_time)
     generation_time < Time.now() - SystemParameter.conf_expire_interval_seconds
   end
+
 end

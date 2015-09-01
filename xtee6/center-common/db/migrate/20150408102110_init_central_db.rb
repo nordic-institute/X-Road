@@ -1,18 +1,9 @@
 # encoding: UTF-8
-# This file is auto-generated from the current state of the database. Instead
-# of editing this file, please use the migrations feature of Active Record to
-# incrementally modify your database, and then regenerate this schema definition.
-#
-# Note that this schema.rb definition is the authoritative source for your
-# database schema. If you need to create the application database on another
-# system, you should be using db:schema:load, not running all the migrations
-# from scratch. The latter is a flawed and unsustainable approach (the more migrations
-# you'll amass, the slower it'll run and the greater likelihood for issues).
-#
-# It's strongly recommended to check this file into your version control system.
+# Initial migration of the database of the Central server.
 
 class InitCentralDb < ActiveRecord::Migration
   def up
+
   create_table "anchor_url_certs", :force => true do |t|
     t.integer "anchor_url_id"
     t.binary  "certificate"
@@ -203,12 +194,12 @@ class InitCentralDb < ActiveRecord::Migration
     t.datetime "updated_at",     :null => false
   end
 
-  create_table "security_servers_security_categories", :id => false, :force => true do |t|
+  create_table "security_servers_security_categories", :force => true do |t|
     t.integer "security_server_id",   :null => false
     t.integer "security_category_id", :null => false
   end
 
-  create_table "server_clients", :id => false, :force => true do |t|
+  create_table "server_clients", :force => true do |t|
     t.integer "security_server_id",        :null => false
     t.integer "security_server_client_id", :null => false
   end

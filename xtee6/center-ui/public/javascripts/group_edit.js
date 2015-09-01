@@ -380,19 +380,9 @@ var XROAD_GROUP_EDIT = function() {
                 { text: _("groups.add.all"),
                   click: function() {
                       var self = this;
-                      var params = {
-                          groupId: groupId,
-                          selectedMembers:
-                              oAddableMembers._("tr:not(.unselectable)")
-                      };
 
-                      if (params.selectedMembers.length == 0) {
-                          $(self).dialog("close");
-                          return;
-                      }
-
-                      $.post("groups/add_members_to_group", params,
-                             function(response) {
+                      $.post("groups/add_all_clients_to_group",
+                              getRemainingMembersParams(), function(response) {
                           refreshGroupMembersTable();
                           refreshGlobalGroupsList();
                           $(self).dialog("close");
@@ -419,6 +409,16 @@ var XROAD_GROUP_EDIT = function() {
                 }
             ]
         });
+    }
+
+    function getRemainingMembersParams() {
+        return {
+            groupId: groupId,
+            advancedSearchParams:
+                    getAdvancedSearchParams(oAddableMembers)["value"],
+            searchable:
+                    $("#group_addable_members_simple_search_tab input").val()
+        };
     }
 
     function initGroupMembersSearch() {

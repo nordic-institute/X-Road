@@ -1,0 +1,2 @@
+cluster/xroad_create_cluster.sh /usr/share/xroad/scripts
+cluster/check_ha_cluster_status.py /usr/share/xroad/scripts

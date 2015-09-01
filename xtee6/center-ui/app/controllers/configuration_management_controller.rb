@@ -106,9 +106,7 @@ class ConfigurationManagementController < ApplicationController
       :content_identifier => [:required]
     })
 
-    conf_part = DistributedFiles.where(
-      :content_identifier => params[:content_identifier]).first
-
+    conf_part = DistributedFiles.get_by_content_id(params[:content_identifier])
     file_name = conf_part.file_name
     ext = File.extname(file_name)
     file_name[ext] = "_" +
@@ -222,7 +220,7 @@ class ConfigurationManagementController < ApplicationController
 
     audit_log_data[:keyId] = signing_key.key_identifier
     audit_log_data[:certHash] =
-      CommonUi::CertUtils.cert_hash(signing_key.certificate)
+      CommonUi::CertUtils.cert_hash(signing_key.cert)
     audit_log_data[:certHashAlgorithm] =
       CommonUi::CertUtils.cert_hash_algorithm
 
@@ -401,31 +399,16 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def upload_trusted_anchor
-    audit_log("Add trusted anchor (upload anchor)", audit_log_data = {})
-
     authorize!(:upload_trusted_anchor)
 
     @temp_anchor_path = get_temp_anchor_path
     @anchor_xml = params[:file_upload].read
     @anchor_hash = get_anchor_hash
 
-    audit_log_data[:anchorFileName] = params[:file_upload].original_filename
-    audit_log_data[:anchorFileHash] = @anchor_hash
-    audit_log_data[:anchorFileHashAlgorithm] =
-      ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
-
     save_temp_anchor
 
     # File must be saved to disk in order to use unmarshaller!
     @anchor_unmarshaller = AnchorUnmarshaller.new(@temp_anchor_path)
-
-    audit_log_data[:instanceIdentifier] =
-      @anchor_unmarshaller.get_instance_identifier
-    audit_log_data[:generatedAt] = @anchor_unmarshaller.get_generated_at
-    audit_log_data[:anchorUrls] =
-      @anchor_unmarshaller.get_anchor_urls.collect do |anchor_url|
-        anchor_url.url
-      end
 
     render_json(get_anchor_info)
   rescue Java::ee.ria.xroad.common.CodedException => e
@@ -438,7 +421,7 @@ class ConfigurationManagementController < ApplicationController
   end
 
   def save_uploaded_trusted_anchor
-    audit_log("Add trusted anchor (confirm)", audit_log_data = {})
+    audit_log("Add trusted anchor", audit_log_data = {})
 
     authorize!(:upload_trusted_anchor)
 
@@ -447,6 +430,16 @@ class ConfigurationManagementController < ApplicationController
     audit_log_data[:anchorFileHash] = @temp_anchor_hash
     audit_log_data[:anchorFileHashAlgorithm] =
       ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM
+
+    @anchor_unmarshaller = AnchorUnmarshaller.new(@temp_anchor_path)
+
+    audit_log_data[:instanceIdentifier] =
+      @anchor_unmarshaller.get_instance_identifier
+    audit_log_data[:generatedAt] = @anchor_unmarshaller.get_generated_at
+    audit_log_data[:anchorUrls] =
+      @anchor_unmarshaller.get_anchor_urls.collect do |anchor_url|
+        anchor_url.url
+      end
 
     CommonUi::ScriptUtils.verify_external_configuration(@temp_anchor_path)
 
@@ -602,8 +595,9 @@ class ConfigurationManagementController < ApplicationController
             :generated => formatted_generation_time)
 
     hash_info =
-        t("configuration_management.trusted_anchors.upload_info.hash",
-            :hash => @anchor_hash)
+      t("configuration_management.trusted_anchors.upload_info.hash",
+        :alg => ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM,
+        :hash => @anchor_hash)
 
     {
       :instance => instance_info,

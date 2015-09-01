@@ -62,7 +62,7 @@ class AuthCertRegRequest < RequestWithProcessing
   private
 
   def verify_against_waiting_requests
-    waiting_requests_with_same_auth_cert = 
+    waiting_requests_with_same_auth_cert =
         AuthCertRegRequest.joins(:request_processing).where(
       :request_processings => {
           :status => RequestProcessing::WAITING},
@@ -76,7 +76,7 @@ class AuthCertRegRequest < RequestWithProcessing
   end
 
   def verify_against_submitted_requests
-    submitted_request = 
+    submitted_request =
         AuthCertRegRequest.joins(:request_processing).where(
       :request_processings => {
         :status => RequestProcessing::SUBMITTED_FOR_APPROVAL},
@@ -88,7 +88,7 @@ class AuthCertRegRequest < RequestWithProcessing
   end
 
   def verify_against_existing_server_certs
-    existing_cert = AuthCert.where(:certificate => self.auth_cert).first
+    existing_cert = AuthCert.where(:cert => self.auth_cert).first
 
     if existing_cert != nil
       registering_request = AuthCertRegRequest.where(

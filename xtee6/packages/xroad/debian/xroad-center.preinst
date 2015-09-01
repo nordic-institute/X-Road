@@ -16,27 +16,10 @@ function handle_error {
 
 if [ "$1" = "upgrade" ];
 then
-    if dpkg --compare-versions "$2" lt-nl "6.3"
+    if dpkg --compare-versions "$2" lt-nl "6.5"
     then
-
-      groupmod -n xroad-security-officer sdsb-security-officer || true
-      groupmod -n xroad-registration-officer sdsb-registration-officer || true
-      groupmod -n xroad-system-administrator sdsb-system-administrator || true
-
-      mv /etc/sdsb /etc/xroad || true
-      mv /usr/share/sdsb /usr/share/xroad || true 
-      mv /var/lib/sdsb /var/lib/xroad || true
-      #mv /var/lib/sudo/sdsb /var/lib/sudo/xroad
-      mv /var/log/sdsb /var/log/xroad || true
-      mv /var/tmp/sdsb /var/tmp/xroad || true
-      mv /var/cache/sdsb /var/cache/xroad || true
-
-      rename 's/sdsb/xroad/' /etc/xroad/nginx/* || true
-      rename 's/sdsb/xroad/' /etc/nginx/sites-enabled/* || true
-      rename 's/sdsb/xroad/' /etc/nginx/conf.d/sdsb-securing.conf || true
-
-      su - postgres -c "psql -d centerui_production -c \"CREATE EXTENSION IF NOT EXISTS hstore;\""
-
+       echo "direct upgrade from version <6.5 is not supported"
+       exit 1
     fi
 fi
 
@@ -85,8 +68,8 @@ fi
        altn="$RET"
        db_go
        rm -f /etc/xroad/ssl/nginx.crt /etc/xroad/ssl/nginx.key
-       echo "generating new webUI SSL key/certificate with $subj and $altn"
-       /bin/bash /usr/share/xroad/scripts/generate_certificate.sh  -n nginx  -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
+       echo "generating new webUI TLS key/certificate with $subj and $altn"
+       /usr/share/xroad/scripts/generate_certificate.sh  -n nginx  -s "${subj}" -a "${altn}" 2>/tmp/cert.err || handle_error
     else
       break
     fi
@@ -121,7 +104,7 @@ fi
        altn="$RET"
        db_go
        rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
-       echo "generating new service SSL key/certificate with $subj and $altn"
+       echo "generating new service TLS key/certificate with $subj and $altn"
        /usr/share/xroad/scripts/generate_certificate.sh  -n internal -s "${subj}" -a "${altn}" -p 2> /tmp/cert.err || handle_error
     else
       break

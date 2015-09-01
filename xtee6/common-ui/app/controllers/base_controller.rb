@@ -94,9 +94,12 @@ class BaseController < ActionController::Base
         SignerProxy::activateToken(params[:token_id], pin.to_java(:char))
       end
     rescue
-      if SignerProxy::getToken(params[:token_id]).status ==
-          TokenStatusInfo::USER_PIN_FINAL_TRY
+      token = SignerProxy::getToken(params[:token_id])
+
+      if token.status == TokenStatusInfo::USER_PIN_FINAL_TRY
         raise "#{$!.message}, #{t('activate_token.final_try')}"
+      elsif token.status == TokenStatusInfo::USER_PIN_LOCKED
+        raise "#{$!.message}. #{t('activate_token.pin_locked')}."
       end
 
       raise $!
@@ -255,6 +258,8 @@ class BaseController < ActionController::Base
   end
 
   def render_error_response(exception_message, exception = nil)
+    execute_after_rollback_actions
+
     error(get_full_error_message(exception_message))
 
     # in case of error, only notices from :notice! are rendered
@@ -272,7 +277,9 @@ class BaseController < ActionController::Base
       # status => 500 invokes .ajaxError() callback in jQuery
       render :json => {
         :messages => flash.discard,
-        :stderr => (exception.stderr if exception.respond_to?(:stderr))
+        :data => {
+          :stderr => (exception.stderr if exception.respond_to?(:stderr))
+        }
       }, :status => 500
     else
       # regular request gets the whole layout with messages

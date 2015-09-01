@@ -116,6 +116,17 @@ public class LogManager extends AbstractLogManager {
     }
 
     @Override
+    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
+        MessageRecord messageRecord =
+                (MessageRecord) logRecordManager.get(messageRecordId);
+        if (messageRecord.getTimestampRecord() != null) {
+            return messageRecord.getTimestampRecord();
+        } else {
+            return timestampImmediately(messageRecord);
+        }
+    }
+
+    @Override
     protected LogRecord findByQueryId(String queryId, Date startTime,
             Date endTime) throws Exception {
         return logRecordManager.getByQueryId(queryId, startTime, endTime);
@@ -139,7 +150,7 @@ public class LogManager extends AbstractLogManager {
         return LogCleaner.class;
     }
 
-    protected void timestampImmediately(MessageRecord logRecord)
+    protected TimestampRecord timestampImmediately(MessageRecord logRecord)
             throws Exception {
         log.trace("timestampImmediately({})", logRecord);
 
@@ -148,7 +159,7 @@ public class LogManager extends AbstractLogManager {
                 TIMESTAMP_TIMEOUT.duration());
 
         if (result instanceof Timestamper.TimestampSucceeded) {
-            saveTimestampRecord((Timestamper.TimestampSucceeded) result);
+            return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
         } else if (result instanceof Timestamper.TimestampFailed) {
             throw ((Timestamper.TimestampFailed) result).getCause();
         } else {

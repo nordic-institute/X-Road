@@ -35,8 +35,6 @@ class SysparamsController < ApplicationController
   end
 
   def anchor_upload
-    audit_log("Upload configuration anchor", audit_log_data = {})
-
     authorize!(:upload_anchor)
 
     validate_params({
@@ -46,20 +44,21 @@ class SysparamsController < ApplicationController
     anchor_details =
       save_temp_anchor_file(params[:file_upload].read)
 
-    audit_log_data[:anchorFileName] = params[:file_upload].original_filename
-    audit_log_data[:anchorFileHash] = anchor_details[:hash]
-    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
-    audit_log_data[:generatedAt] = anchor_details[:generated_at]
-
     render_json(anchor_details)
   end
 
   def anchor_apply
-    audit_log("Apply configuration anchor", audit_log_data = {})
+    audit_log("Upload configuration anchor", audit_log_data = {})
 
     authorize!(:upload_anchor)
 
     validate_params
+
+    anchor_details = get_temp_anchor_details
+
+    audit_log_data[:anchorFileHash] = anchor_details[:hash]
+    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at]
 
     apply_temp_anchor_file
 
@@ -188,7 +187,7 @@ class SysparamsController < ApplicationController
   end
 
   def internal_ssl_generate
-    audit_log("Generate new SSL key and certificate", audit_log_data = {})
+    audit_log("Generate new internal TLS key and certificate", audit_log_data = {})
 
     authorize!(:generate_internal_ssl)
 
@@ -225,7 +224,7 @@ class SysparamsController < ApplicationController
     content = IO.read(file)
 
     hash = CryptoUtils::hexDigest(
-      CryptoUtils::SHA224_ID, content.to_java_bytes)
+      CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID, content.to_java_bytes)
 
     anchor = ConfigurationAnchor.new(file)
     generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc

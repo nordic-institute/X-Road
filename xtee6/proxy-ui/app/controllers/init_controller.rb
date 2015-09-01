@@ -55,8 +55,6 @@ class InitController < ApplicationController
   end
 
   def anchor_upload
-    audit_log("Initialize anchor (upload)", audit_log_data = {})
-
     authorize!(:init_config)
 
     validate_params({
@@ -66,20 +64,21 @@ class InitController < ApplicationController
     anchor_details =
       save_temp_anchor_file(params[:anchor_upload_file].read)
 
-    audit_log_data[:anchorFileName] = params[:anchor_upload_file].original_filename
-    audit_log_data[:anchorFileHash] = anchor_details[:hash]
-    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
-    audit_log_data[:generatedAt] = anchor_details[:generated_at]
-
     render_json(anchor_details)
   end
 
   def anchor_init
-    audit_log("Initialize anchor (apply)", audit_log_data = {})
+    audit_log("Initialize anchor", audit_log_data = {})
 
     authorize!(:init_config)
 
     validate_params
+
+    anchor_details = get_temp_anchor_details
+
+    audit_log_data[:anchorFileHash] = anchor_details[:hash]
+    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at]
 
     apply_temp_anchor_file
 

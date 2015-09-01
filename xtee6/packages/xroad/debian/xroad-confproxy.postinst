@@ -34,7 +34,7 @@ esac
 
 #DEBHELPER#
 
-service nginx restart
+invoke-rc.d nginx restart
 
 db_stop
 

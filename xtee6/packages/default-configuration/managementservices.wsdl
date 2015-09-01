@@ -173,8 +173,7 @@
                     </xsd:element>
                     <xsd:element name="authCert" type="base64Binary">
                         <xsd:annotation>
-                            <xsd:documentation>Hash of the
-                                authentication
+                            <xsd:documentation>Authentication
                                 certificate that needs to
                                 be deleted
                                 from the list

@@ -107,9 +107,14 @@ public class TestSuiteMonitorAgent implements MonitorAgentProvider {
      * @param faultCode the fault code
      */
     public void expectFailure(MessageInfo messageInfo, String faultCode) {
-        expectedApiCalls.add(new ApiCall(FAILURE, new Object[] {
-                messageInfo.getOrigin(), messageInfo.getClient(),
-                messageInfo.getService(), faultCode }));
+        if (messageInfo == null) {
+            expectedApiCalls.add(new ApiCall(FAILURE,
+                    new Object[] {faultCode}));
+        } else {
+            expectedApiCalls.add(new ApiCall(FAILURE, new Object[] {
+                    messageInfo.getOrigin(), messageInfo.getClient(),
+                    messageInfo.getService(), faultCode}));
+        }
     }
 
     /**

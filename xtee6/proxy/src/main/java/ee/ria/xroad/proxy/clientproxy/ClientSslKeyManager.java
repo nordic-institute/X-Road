@@ -73,7 +73,7 @@ class ClientSslKeyManager extends X509ExtendedKeyManager {
         try {
             return ServerConf.getSSLKey();
         } catch (Exception e) {
-            log.error("Failed to load SSL key", e);
+            log.error("Failed to load TLS key", e);
             throw new RuntimeException(e);
         }
     }

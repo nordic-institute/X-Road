@@ -36,8 +36,8 @@ public class AsicContainerNameGenerator {
     }
 
     private String createFilenameWithRandom(String... staticParts) {
-        return AsicUtils.escapeString(String.join("-", staticParts) +
-                String.format("-%s.asice", randomGenerator.get()));
+        return AsicUtils.escapeString(String.join("-", staticParts)
+                + String.format("-%s.asice", randomGenerator.get()));
     }
 
 }

@@ -37,7 +37,7 @@ class SecurityserversController < ApplicationController
     authorize!(:view_security_server_details)
 
     raw_cert = AuthCert.find(params[:certId])
-    render_cert_dump_and_hash(raw_cert.certificate)
+    render_cert_dump_and_hash(raw_cert.cert)
   end
 
   def get_records_count
@@ -142,7 +142,7 @@ class SecurityserversController < ApplicationController
     auth_certs = []
 
     server.auth_certs.each do |cert|
-      cert_obj = CommonUi::CertUtils.cert_object(cert.certificate)
+      cert_obj = CommonUi::CertUtils.cert_object(cert.cert)
 
       auth_certs << {
         :id => cert.id,
@@ -240,20 +240,11 @@ class SecurityserversController < ApplicationController
   end
 
   def import_auth_cert
-    audit_log("Upload authentication certificate for security server",
-      audit_log_data = {})
-
     authorize!(:add_security_server_auth_cert_reg_request)
 
     cert_param = get_uploaded_file_param
     validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
-
-    audit_log_data[:certFileName] = cert_param.original_filename
-    audit_log_data[:certHash] =
-      CommonUi::CertUtils.cert_hash(
-        get_temp_cert_from_session(auth_cert_data[:temp_cert_id])) # TODO: something nicer
-    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     notice(t("common.cert_imported"))
 
@@ -261,8 +252,8 @@ class SecurityserversController < ApplicationController
   end
 
   def auth_cert_adding_request
-    audit_log("Confirm uploaded authentication " \
-              "certificate for security server", audit_log_data = {})
+    audit_log("Add authentication certificate for security server",
+      audit_log_data = {})
 
     authorize!(:add_security_server_auth_cert_reg_request)
 
@@ -302,7 +293,7 @@ class SecurityserversController < ApplicationController
     auth_cert = AuthCert.find(params[:certId])
 
     audit_log_data[:certHash] =
-      CommonUi::CertUtils.cert_hash(auth_cert.certificate)
+      CommonUi::CertUtils.cert_hash(auth_cert.cert)
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     security_server_id = SecurityServerId.from_parts(
@@ -315,7 +306,7 @@ class SecurityserversController < ApplicationController
 
     auth_cert_deletion_request = AuthCertDeletionRequest.new(
         :security_server => security_server_id,
-        :auth_cert => auth_cert.certificate,
+        :auth_cert => auth_cert.cert,
         :comments => comment,
         :origin => Request::CENTER)
 

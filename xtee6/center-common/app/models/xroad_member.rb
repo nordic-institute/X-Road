@@ -27,7 +27,7 @@ class XroadMember < SecurityServerClient
 
   belongs_to :member_class, :inverse_of => :xroad_members
   has_many :owned_servers, :class_name => "SecurityServer",\
-    :dependent => :destroy
+    :dependent => :destroy, :foreign_key => "owner_id"
   has_many :subsystems, :dependent => :destroy
 
   # Returns subsystem codes of member in alphabetical order.

@@ -6,6 +6,10 @@ class Subsystem < SecurityServerClient
       :class_name => "XroadMember",
       :foreign_key => "xroad_member_id"
 
+  def name
+    self.xroad_member.name
+  end
+
   # Finds a subsystem by member class, member code and subsystem code.
   # Returns nil, if not found.
   def self.find_by_code(member_class, member_code, subsystem_code)

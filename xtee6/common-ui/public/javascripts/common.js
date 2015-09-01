@@ -704,7 +704,7 @@ function confirm(text, params, success) {
                   $(this).dialog("close");
               }}
         ]
-    });
+    }).siblings(".ui-dialog-titlebar").css("min-width", 500);
 }
 
 function yesno(text, params, success) {

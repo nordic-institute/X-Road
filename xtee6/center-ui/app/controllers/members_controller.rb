@@ -268,19 +268,11 @@ class MembersController < ApplicationController
   end
 
   def import_auth_cert
-    audit_log("Upload authentication certificate for new security server", audit_log_data = {})
-
     authorize!(:add_security_server_reg_request)
 
     cert_param = get_uploaded_file_param
     validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
-
-    audit_log_data[:certFileName] = cert_param.original_filename
-    audit_log_data[:certHash] =
-      CommonUi::CertUtils.cert_hash(
-        get_temp_cert_from_session(auth_cert_data[:temp_cert_id])) # TODO: something nicer
-    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     notice(t("common.cert_imported"))
 
@@ -309,7 +301,7 @@ class MembersController < ApplicationController
     end
 
     potentially_existing_server = SecurityServer.where(
-        :xroad_member_id => owner.id,
+        :owner_id => owner.id,
         :server_code => server_code).first
 
     if potentially_existing_server

@@ -100,7 +100,7 @@ class ApplicationController < BaseController
     audit_log_data[:locale] = params[:locale]
 
     ui_user = UiUserDAOImpl.getUiUser(current_user.name)
-    
+
     unless ui_user
       ui_user = UiUserType.new
       ui_user.username = current_user.name
@@ -126,12 +126,6 @@ class ApplicationController < BaseController
     # Everything that can fail has been done,
     # now let's do the actual rendering.
     super
-  end
-
-  def render_error_response(exception_message, exception)
-    execute_after_rollback_actions
-
-    super(exception_message, exception)
   end
 
   def transaction
@@ -193,9 +187,6 @@ class ApplicationController < BaseController
       # when updating the history table.
       # The value of user_name will go out of scope when the transaction
       # ends.
-      # FIXME: the correct usage of setString?
-      #query = @session.createSQLQuery("SET LOCAL xroad.user_name=:user_name")
-      #query.setString("user_name", current_user.name)
       query = @session.createSQLQuery(
         "SET LOCAL xroad.user_name='#{current_user.name}'")
       query.executeUpdate()
@@ -271,7 +262,7 @@ class ApplicationController < BaseController
   def import_services
     if xroad_promoted?
       logger.info("XROAD promoted, skipping services import")
-      return 
+      return
     end
 
     if importer = SystemProperties::getServiceImporterCommand
@@ -291,7 +282,7 @@ class ApplicationController < BaseController
   def export_services(delete_client_id = nil)
     unless xroad_promoted?
       logger.info("XROAD not promoted, skipping services export")
-      return 
+      return
     end
 
     if exporter = SystemProperties::getServiceExporterCommand
@@ -420,6 +411,10 @@ class ApplicationController < BaseController
       file.write(content)
     end
 
+    get_temp_anchor_details
+  end
+
+  def get_temp_anchor_details
     # TODO: add constructor for byte[]
     begin
       anchor = ConfigurationAnchor.new(temp_anchor_file)
@@ -429,7 +424,9 @@ class ApplicationController < BaseController
       raise t("application.invalid_anchor_file")
     end
 
-    hash_algorithm = CryptoUtils::SHA224_ID
+    content = IO.binread(temp_anchor_file)
+
+    hash_algorithm = CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID
     hash = CryptoUtils::hexDigest(hash_algorithm, content.to_java_bytes)
 
     return {

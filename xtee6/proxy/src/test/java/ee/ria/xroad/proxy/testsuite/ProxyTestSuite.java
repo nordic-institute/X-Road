@@ -177,7 +177,7 @@ public final class ProxyTestSuite {
         for (MessageTestCase t : tc) {
             currentTestCase = t;
 
-            LOG.info("TESTCASE START {}: Sending query: {}", t.getId(), t);
+            LOG.info("TESTCASE START: {}", t.getId());
             try {
                 t.execute();
                 LOG.info("TESTCASE PASSED: {}", t.getId());

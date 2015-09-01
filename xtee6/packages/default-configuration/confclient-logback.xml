@@ -17,9 +17,18 @@
         </encoder>
     </appender>
 
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%msg%n</pattern>
+        </encoder>
+    </appender>
+
     <logger name="ee.ria.xroad" level="INFO" />
+    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
 
     <root level="INFO">
+        <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>
 </configuration>

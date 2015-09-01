@@ -5,11 +5,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -32,6 +28,9 @@ class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
     protected final String[] instanceIdentifiers;
+
+    private Map<ConfigurationSource, ConfigurationLocation>
+            lastSuccessfulLocation = new HashMap<>();
 
     @Getter
     protected final Map<String, Set<ConfigurationSource>> additionalSources =
@@ -62,17 +61,46 @@ class ConfigurationDownloader {
             String... contentIdentifiers) {
         DownloadResult result = new DownloadResult();
 
-        for (ConfigurationLocation location : source.getLocations()) {
+        for (ConfigurationLocation location : getLocations(source)) {
             try {
-                return result.success(download(location, contentIdentifiers));
+                Configuration config = download(location, contentIdentifiers);
+
+                rememberLastSuccessfulLocation(location);
+                return result.success(config);
             } catch (Exception e) {
                 result.addFailure(location, e);
-                continue;
             }
         }
 
         // did not get a valid configuration from any location
         return result.failure();
+    }
+
+    private void rememberLastSuccessfulLocation(ConfigurationLocation location) {
+        lastSuccessfulLocation.put(location.getSource(), location);
+    }
+
+    private List<ConfigurationLocation> getLocations(
+            ConfigurationSource source) {
+        List<ConfigurationLocation> result = new ArrayList<>();
+        List<ConfigurationLocation> randomized = new ArrayList<>();
+
+        preferLastSuccessLocation(source, result);
+
+        randomized.addAll(source.getLocations());
+        Collections.shuffle(randomized);
+        result.addAll(randomized);
+
+        result.removeIf(Objects::isNull);
+
+        return result;
+    }
+
+    private void preferLastSuccessLocation(
+            ConfigurationSource source, List<ConfigurationLocation> result) {
+        if (lastSuccessfulLocation != null) {
+            result.add(lastSuccessfulLocation.get(source));
+        }
     }
 
     Configuration download(ConfigurationLocation location,
@@ -195,7 +223,7 @@ class ConfigurationDownloader {
         // If there are any additional configuration sources,
         // we need to download the shared parameters from these
         // configuration sources.
-        Set<ConfigurationSource> sources = new HashSet<ConfigurationSource>();
+        Set<ConfigurationSource> sources = new HashSet<>();
 
         if (!privateParameters.getConfigurationSource().isEmpty()) {
             log.trace("Received private parameters with additional "

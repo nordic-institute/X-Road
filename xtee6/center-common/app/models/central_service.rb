@@ -117,12 +117,12 @@ class CentralService < ActiveRecord::Base
   end
 
   def self.get_target_service_code(target_service)
-    puts target_service.inspect
+    Rails.logger.info(target_service.inspect)
     return target_service.is_a?(Hash) ? target_service[:code] : nil
   end
 
   def self.get_target_service_version(target_service)
-    puts target_service.inspect
+    Rails.logger.info(target_service.inspect)
     return target_service.is_a?(Hash) ? target_service[:version] : nil
   end
 

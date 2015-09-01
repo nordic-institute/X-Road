@@ -19,6 +19,7 @@ public interface LogArchiveBase {
      * Marks log record (either message or timestamp) as archived.
      *
      * @param logRecord the log record to be marked as archived.
+     * @throws Exception if marking records as archived fails.
      */
     void markRecordArchived(final LogRecord logRecord) throws Exception;
 

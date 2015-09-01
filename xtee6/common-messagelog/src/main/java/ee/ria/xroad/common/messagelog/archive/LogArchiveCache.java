@@ -1,7 +1,15 @@
 package ee.ria.xroad.common.messagelog.archive;
 
-import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,13 +19,17 @@ import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import static ee.ria.xroad.common.SystemProperties.getTempFilesPath;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
 import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
@@ -25,8 +37,7 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
  * Encapsulates logic of creating log archive from ASiC containers.
  */
 @Slf4j
-@RequiredArgsConstructor
-class LogArchiveCache {
+class LogArchiveCache implements Closeable {
 
     private enum State {
         NEW, ADDING, ROTATING
@@ -35,24 +46,83 @@ class LogArchiveCache {
     private final Supplier<String> randomGenerator;
     private final LinkingInfoBuilder linkingInfoBuilder;
 
+    private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
-    private List<MessageRecord> cachedRecords = new ArrayList<>();
-    private byte[] currentArchive;
 
-    private Set<Date> creationTimes = new TreeSet<>();
+    private File archiveContentDir;
+    private File tempArchive;
 
-    void add(MessageRecord messageRecord) throws IOException {
-        validateMessageRecord(messageRecord);
+    private List<String> archiveFileNames;
+    private Set<Date> creationTimes;
+    private long archivesTotalSize;
 
-        handleRotation();
+    LogArchiveCache(
+            Supplier<String> randomGenerator,
+            LinkingInfoBuilder linkingInfoBuilder) {
+        this.randomGenerator = randomGenerator;
+        this.linkingInfoBuilder = linkingInfoBuilder;
 
-        cacheRecord(messageRecord);
-
-        updateState();
+        reset();
     }
 
-    byte[] getArchiveBytes() {
-        return currentArchive;
+    void add(MessageRecord messageRecord) throws Exception {
+        try {
+
+            validateMessageRecord(messageRecord);
+            handleRotation();
+            cacheRecord(messageRecord);
+            updateState();
+
+        } catch (Exception e) {
+            handleCacheError(e);
+        }
+    }
+
+    InputStream getArchiveFile() throws IOException {
+        tempArchive = File.createTempFile(
+                "xroad-log-archive-zip", ".tmp", new File(getTempFilesPath()));
+
+        try (FileOutputStream fileOut = new FileOutputStream(tempArchive);
+                ZipOutputStream zipOut = new ZipOutputStream(fileOut)) {
+            addAsicContainersToArchive(zipOut);
+            addLinkingInfoToArchive(zipOut);
+        } catch (Exception e) {
+            handleCacheError(e);
+        }
+
+        return new FileInputStream(tempArchive);
+    }
+
+    @SneakyThrows
+    private void handleCacheError(Exception e) {
+        deleteArchiveArtifacts();
+
+        throw e;
+    }
+
+    private void addAsicContainersToArchive(ZipOutputStream zipOut) throws IOException {
+        for (String eachName : archiveFileNames) {
+            ZipEntry entry = new ZipEntry(eachName);
+
+            zipOut.putNextEntry(entry);
+
+            try (InputStream archiveInput =
+                         new FileInputStream(getTempAsicPath(eachName))) {
+                IOUtils.copy(archiveInput, zipOut);
+            }
+
+            zipOut.closeEntry();
+        }
+    }
+
+    private void addLinkingInfoToArchive(ZipOutputStream zipOut) throws IOException {
+        ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
+
+        zipOut.putNextEntry(linkingInfoEntry);
+        zipOut.write(linkingInfoBuilder.build());
+        zipOut.closeEntry();
+
+        linkingInfoBuilder.afterArchiveCreated();
     }
 
     boolean isRotating() {
@@ -67,6 +137,11 @@ class LogArchiveCache {
         return (Date) creationTimes.toArray()[creationTimes.size() - 1];
     }
 
+    @Override
+    public void close() throws IOException {
+        deleteArchiveArtifacts();
+    }
+
     private void validateMessageRecord(MessageRecord record)
             throws IOException {
         if (record == null) {
@@ -75,70 +150,84 @@ class LogArchiveCache {
         }
     }
 
-    private void handleRotation() {
+    private void handleRotation() throws IOException {
         if (state != State.ROTATING) {
             return;
         }
 
-        cachedRecords = new ArrayList<>();
-        creationTimes = new TreeSet<>();
+        reset();
     }
 
-    private void cacheRecord(MessageRecord messageRecord) throws IOException {
+    private void cacheRecord(MessageRecord messageRecord) throws Exception {
         creationTimes.add(new Date(messageRecord.getTime()));
-        cachedRecords.add(messageRecord);
-        currentArchive = getAsicContainersArchive(cachedRecords);
+
+        addContainerToArchive(messageRecord);
     }
 
     private void updateState() {
-        if (currentArchive.length > getArchiveMaxFilesize()) {
+        if (archiveExceedsRotationSize()) {
             state = State.ROTATING;
         } else {
             state = State.ADDING;
         }
     }
 
-    private byte[] getAsicContainersArchive(
-            List<MessageRecord> asicContainersToArchive)
-            throws IOException {
-        log.trace("Getting AsiC containers archive for {} records", asicContainersToArchive.size());
+    private boolean archiveExceedsRotationSize() {
+        return archivesTotalSize > getArchiveMaxFilesize();
+    }
 
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    private void addContainerToArchive(MessageRecord record) throws Exception {
+        byte[] containerBytes = record.toAsicContainer().getBytes();
 
-        try (ZipOutputStream zos = new ZipOutputStream(bos)) {
-            AsicContainerNameGenerator nameGen =
-                    new AsicContainerNameGenerator(randomGenerator,
-                            MAX_RANDOM_GEN_ATTEMPTS);
+        String type = record.isResponse() ? "response" : "request";
+        String queryId = record.getQueryId();
+        String archiveFilename =
+                nameGenerator.getArchiveFilename(queryId, type);
+        linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
+        archiveFileNames.add(archiveFilename);
+        archivesTotalSize += containerBytes.length;
 
-            for (MessageRecord each : asicContainersToArchive) {
-                byte[] containerBytes = each.toAsicContainer().getBytes();
-
-                String type = each.isResponse() ? "response" : "request";
-                String queryId = each.getQueryId();
-                String archiveFilename =
-                        nameGen.getArchiveFilename(queryId, type);
-                linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
-
-                ZipEntry entry = new ZipEntry(archiveFilename);
-
-                zos.putNextEntry(entry);
-                zos.write(containerBytes);
-                zos.closeEntry();
-            }
-
-            ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
-
-            zos.putNextEntry(linkingInfoEntry);
-            zos.write(linkingInfoBuilder.build());
-            zos.closeEntry();
-
-            linkingInfoBuilder.afterArchiveCreated();
-        } catch (Exception e) {
-            throw new IOException(e);
-        } finally {
-            IOUtils.closeQuietly(bos);
+        try (OutputStream os = new FileOutputStream(
+                new File(getTempAsicPath(archiveFilename)))) {
+            os.write(containerBytes);
         }
+    }
 
-        return bos.toByteArray();
+    private String getTempAsicPath(String archiveFilename) {
+        return archiveContentDir.getAbsolutePath()
+                + File.separator + archiveFilename;
+    }
+
+    private void reset() {
+        try {
+            resetArchive();
+            resetCacheState();
+        } catch (IOException e) {
+            log.error("Resetting log archive cache failed, cause:", e);
+            throw new CodedException(
+                    ErrorCodes.X_IO_ERROR, "Failed to reset log archive cache");
+        }
+    }
+
+    private void resetArchive() throws IOException {
+        deleteArchiveArtifacts();
+
+        Path tempDirPath = Paths.get(getTempFilesPath());
+        archiveContentDir = Files.createTempDirectory(
+                tempDirPath, "xroad-log-archive").toFile();
+    }
+
+    private void deleteArchiveArtifacts() {
+        FileUtils.deleteQuietly(archiveContentDir);
+        FileUtils.deleteQuietly(tempArchive);
+    }
+
+    private void resetCacheState() {
+        archiveFileNames = new ArrayList<>();
+        creationTimes = new TreeSet<>();
+        archivesTotalSize = 0;
+
+        nameGenerator = new AsicContainerNameGenerator(randomGenerator,
+                        MAX_RANDOM_GEN_ATTEMPTS);
     }
 }

@@ -5,7 +5,9 @@ function uploadCallback(response) {
     }
 
     var row1 = $("<tr>")
-        .append($("<td>").text(_("common.hash")).addClass("semibold"))
+        .append($("<td>")
+            .text(_("common.hash", { alg: response.data.hash_algorithm }))
+            .addClass("semibold"))
         .append($("<td>").text(response.data.hash));
 
     var row2 = $("<tr>")

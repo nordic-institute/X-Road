@@ -1,6 +1,0 @@
-/etc/xroad/jetty/jetty-admin.xml
-/etc/xroad/jetty/start.ini
-/etc/xroad/jetty/xroad.mod
-/etc/xroad/jetty/jetty-login.conf
-/etc/xroad/jetty/jetty-public.xml
-/etc/xroad/conf.d/jetty-logback.xml
