@@ -61,7 +61,11 @@ class RequestsController < ApplicationController
     server_owner_name = XroadMember.get_name(
         request.server_owner_class, request.server_owner_code)
 
-    request.update_server_owner_name(server_owner_name)
+    unless server_owner_name.blank?
+      request.update_server_owner_name(server_owner_name)
+    else
+      server_owner_name = request.server_owner_name
+    end
 
     additional_data = {
       :complementary_id => request.get_complementary_id(),
@@ -107,43 +111,56 @@ class RequestsController < ApplicationController
   # -- Specific POST methods - start ---
 
   def revoke_client_reg_request
+    audit_log("Revoke client registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     ClientRegRequest.revoke(request_id)
 
     notice(t("requests.client_reg_request_revoked",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def revoke_auth_cert_reg_request
+    audit_log("Revoke authentication certificate registration request",
+      audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     AuthCertRegRequest.revoke(request_id)
 
     notice(t("requests.auth_cert_reg_request_revoked",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def approve_reg_request
+    audit_log("Approve registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     RequestWithProcessing.approve(request_id)
 
     notice(t("requests.request_approved",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   def decline_reg_request
+    audit_log("Decline registration request", audit_log_data = {})
+    audit_log_data[:requestId] = params[:requestId]
+
     request_id = params[:requestId]
     RequestWithProcessing.decline(request_id)
 
     notice(t("requests.request_declined",
         {:id => request_id}))
 
-    render_json()
+    render_json
   end
 
   # -- Specific POST methods - end ---
@@ -166,8 +183,16 @@ class RequestsController < ApplicationController
     member_class = client_id.member_class
     member_code = client_id.member_code
 
+    server_user_name = XroadMember.get_name(member_class, member_code)
+
+    unless server_user_name.blank?
+      request.update_server_user_name(server_user_name)
+    else
+      server_user_name = request.server_user_name
+    end
+
     {
-      :member_name => request.server_user_name,
+      :member_name => server_user_name,
       :member_class => member_class,
       :member_code => member_code,
       :subsystem_code => client_id.subsystem_code

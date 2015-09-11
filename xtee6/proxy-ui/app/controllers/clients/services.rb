@@ -1,6 +1,5 @@
 java_import Java::ee.ria.xroad.common.SystemProperties
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.AclType
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.AuthorizedSubjectType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.WsdlType
 java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
@@ -76,6 +75,8 @@ module Clients::Services
   end
 
   def wsdl_add
+    audit_log("Add WSDL", audit_log_data = {})
+
     authorize!(:add_wsdl)
 
     validate_params({
@@ -93,6 +94,11 @@ module Clients::Services
     wsdl.client = client
     wsdl.backend = BACKEND_TYPE_XROAD
 
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:wsdlUrl] = wsdl.url
+    audit_log_data[:disabled] = wsdl.disabled
+    audit_log_data[:refreshedDate] = format_time(wsdl.refreshedDate)
+
     parse_and_check_services(wsdl.url, wsdl)
 
     client.wsdl.add(wsdl)
@@ -108,6 +114,12 @@ module Clients::Services
   end
 
   def wsdl_disable
+    if params[:enable].nil?
+      audit_log("Disable WSDL", audit_log_data = {})
+    else
+      audit_log("Enable WSDL", audit_log_data = {})
+    end
+
     authorize!(:enable_disable_wsdl)
 
     validate_params({
@@ -119,12 +131,23 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+
+    if params[:enable].nil?
+      audit_log_data[:disabledNotice] = params[:wsdl_disabled_notice]
+    end
+
+    audit_log_data[:wsdlUrls] = []
+
     client.wsdl.each do |wsdl|
       next unless params[:wsdl_ids].include?(get_wsdl_id(wsdl))
 
       wsdl.disabled = params[:enable].nil?
       wsdl.disabledNotice = params[:wsdl_disabled_notice] if params[:enable].nil?
+
+      audit_log_data[:wsdlUrls] << get_wsdl_id(wsdl)
     end
+
 
     serverconf_save
 
@@ -132,6 +155,12 @@ module Clients::Services
   end
 
   def wsdl_refresh
+    if params[:new_url]
+      audit_log("Edit WSDL", audit_log_data = {})
+    else
+      audit_log("Refresh WSDL", audit_log_data = {})
+    end
+
     authorize!(:refresh_wsdl)
 
     validate_params({
@@ -144,6 +173,8 @@ module Clients::Services
     raise ArgumentError if params[:new_url] && params[:wsdl_ids].size > 1
 
     client = get_client(params[:client_id])
+
+    audit_log_data[:clientIdentifier] = client.identifier
 
     added = {}
     added_objs = {}
@@ -159,11 +190,15 @@ module Clients::Services
 
     check_new_url = false
 
+    audit_log_data[:wsdls] = []
+
     # parse each wsdl
     client.wsdl.each do |wsdl|
       next unless params[:wsdl_ids].include?(get_wsdl_id(wsdl))
 
       if params[:new_url]
+        old_wsdl_url = get_wsdl_id(wsdl)
+
         if wsdl.backend != BACKEND_TYPE_XROADV5
           wsdl.url = params[:new_url]
         else
@@ -211,6 +246,18 @@ module Clients::Services
 
       added[get_wsdl_id(wsdl)] = services_new - services_old
       deleted[get_wsdl_id(wsdl)] = services_old - services_new
+
+      logged_wsdl_data = {
+        :wsdlUrl => old_wsdl_url || get_wsdl_id(wsdl),
+        :servicesAdded => added[get_wsdl_id(wsdl)],
+        :servicesDeleted => deleted[get_wsdl_id(wsdl)]
+      }
+
+      if params[:new_url]
+        logged_wsdl_data[:wsdlUrlNew] = get_wsdl_id(wsdl)
+      end
+
+      audit_log_data[:wsdls] << logged_wsdl_data
     end
 
     unless added.values.flatten.empty?
@@ -227,6 +274,8 @@ module Clients::Services
       warn("changed_services", "#{add_text}#{delete_text}")
     end
 
+    deleted_codes = Set.new
+
     # write changes to conf
     client.wsdl.each do |wsdl|
       services_deleted = []
@@ -235,6 +284,7 @@ module Clients::Services
         wsdl.service.each do |service|
           if get_service_id(service) == service_id
             services_deleted << service
+            deleted_codes << service.serviceCode
           end
         end
       end if deleted.has_key?(get_wsdl_id(wsdl))
@@ -263,7 +313,9 @@ module Clients::Services
       end
     end
 
-    clean_acls(client)
+    if deleted_codes.any?
+      remove_access_rights(client.acl, nil, deleted_codes)
+    end
 
     if check_new_url
       check_internal_server_certs(client, params[:new_url])
@@ -280,6 +332,8 @@ module Clients::Services
   end
 
   def wsdl_delete
+    audit_log("Delete WSDL", audit_log_data = {})
+
     authorize!(:delete_wsdl)
 
     validate_params({
@@ -289,8 +343,13 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:wsdlUrls] = []
+
     deleted = []
     client.wsdl.each do |wsdl|
+      audit_log_data[:wsdlUrls] << get_wsdl_id(wsdl)
+
       deleted << wsdl if params[:wsdl_ids].include?(get_wsdl_id(wsdl))
     end
 
@@ -312,6 +371,8 @@ module Clients::Services
   end
 
   def service_params
+    audit_log("Edit service parameters", audit_log_data = {})
+
     authorize!(:edit_service_params)
 
     validate_params({
@@ -330,8 +391,13 @@ module Clients::Services
 
     client = get_client(params[:client_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+
     client.wsdl.each do |wsdl|
       next unless get_wsdl_id(wsdl) == params[:params_wsdl_id]
+
+      audit_log_data[:wsdlUrl] = get_wsdl_id(wsdl)
+      audit_log_data[:services] = []
 
       # cannot modify a service with backend xroadv5
       raise ArgumentError if wsdl.backend == BACKEND_TYPE_XROADV5
@@ -358,6 +424,16 @@ module Clients::Services
 
         if params[:params_sslauth_all] || service_match
           service.sslAuthentication = !params[:params_sslauth].nil?
+        end
+
+        if params[:params_url_all] || params[:params_timeout_all] ||
+            params[:params_sslauth_all] || service_match
+          audit_log_data[:services] << {
+            :id => get_service_id(service),
+            :url => service.url,
+            :timeout => service.timeout,
+            :sslauth => service.sslAuthentication
+          }
         end
       end
     end
@@ -460,6 +536,8 @@ module Clients::Services
   end
 
   def service_acl_subjects_add
+    audit_log("Add access rights to service", audit_log_data = {})
+
     authorize!(:edit_service_acl)
 
     validate_params({
@@ -469,22 +547,22 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
-    acl = get_acl(client, params[:service_code])
 
-    unless acl
-      acl = AclType.new
-      acl.serviceCode = params[:service_code]
-      client.acl.add(acl)
-    end
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:serviceCode] = params[:service_code]
+    audit_log_data[:subjectIds] = []
 
     now = Date.new
 
     params[:subject_ids].each do |subject_id|
-      authorized_subject = AuthorizedSubjectType.new
-      authorized_subject.subjectId = get_cached_subject_id(subject_id)
-      authorized_subject.rightsGiven = now
+      access_right = AccessRightType.new
+      access_right.subjectId = get_cached_subject_id(subject_id)
+      access_right.serviceCode = params[:service_code]
+      access_right.rightsGiven = now
 
-      acl.authorizedSubject.add(authorized_subject)
+      audit_log_data[:subjectIds] << access_right.subject_id.toString
+
+      client.acl.add(access_right)
     end
 
     serverconf_save
@@ -497,6 +575,8 @@ module Clients::Services
   end
 
   def service_acl_subjects_remove
+    audit_log("Remove access rights from service", audit_log_data = {})
+
     authorize!(:edit_service_acl)
 
     validate_params({
@@ -506,15 +586,21 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
-    acl = get_acl(client, params[:service_code])
 
-    if params[:subject_ids]
-      params[:subject_ids].each do |subject_id|
-        remove_subject(acl.authorizedSubject,
-          get_cached_subject_id(subject_id))
-      end
-    else
-      acl.authorizedSubject.clear
+    subject_ids = []
+
+    params[:subject_ids].each do |subject_id|
+      subject_id = get_cached_subject_id(subject_id)
+      subject_ids << subject_id
+    end if params[:subject_ids]
+
+    removed_access_rights =
+      remove_access_rights(client.acl, subject_ids, params[:service_code])
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:serviceCode] = params[:service_code]
+    audit_log_data[:subjectIds] = removed_access_rights.map do |access_right|
+      access_right.subjectId.toString
     end
 
     serverconf_save
@@ -637,20 +723,14 @@ module Clients::Services
     wsdl.backend == BACKEND_TYPE_XROADV5 ? wsdl.backendURL : wsdl.url
   end
 
-  def get_acl(client, service_code)
-    client.acl.each do |acl|
-      return acl if acl.serviceCode == service_code
-    end
-
-    nil
-  end
-
   def subjects_count(client, service_code)
-    client.acl.each do |acl|
-      return acl.authorizedSubject.size if acl.serviceCode == service_code
+    i = 0
+
+    client.acl.each do |access_right|
+      i = i + 1 if access_right.serviceCode == service_code
     end
 
-    return 0
+    return i
   end
 
   def parse_and_check_services(wsdl_parse_url, wsdl)
@@ -752,24 +832,17 @@ module Clients::Services
   end
 
   def clean_acls(client)
-    services = Set.new
+    service_codes = Set.new
 
     client.wsdl.each do |wsdl|
       wsdl.service.each do |service|
-        services << service.serviceCode
+        service_codes << service.serviceCode
       end
     end
 
-    deleted_acls = []
+    service_codes << XROADV5_METASERVICES if x55_installed?
 
-    client.acl.each do |acl|
-      unless services.include?(acl.serviceCode) ||
-          (x55_installed? && XROADV5_METASERVICES.include?(acl.serviceCode))
-        deleted_acls << acl
-      end
-    end
-
-    client.acl.removeAll(deleted_acls)
+    remove_access_rights(client.acl, nil, service_codes)
   end
 
   def adapter_ssl_auth?(wsdl)

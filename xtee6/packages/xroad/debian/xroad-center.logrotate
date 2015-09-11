@@ -1,0 +1,10 @@
+/var/log/xroad/audit.log {
+        monthly
+        rotate 5218
+        dateext
+        missingok
+        notifempty
+        nocreate
+        size 100M
+        nocompress
+}

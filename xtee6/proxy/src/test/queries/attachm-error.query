@@ -10,12 +10,12 @@ Content-Type: text/xml
         <xroad:client id:objectType="MEMBER">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>10239452</id:memberCode>
+            <id:memberCode>consumer</id:memberCode>
         </xroad:client>
         <xroad:service id:objectType="SERVICE">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>land-cadastre</id:memberCode>
+            <id:memberCode>producer</id:memberCode>
             <id:serviceCode>getState</id:serviceCode>
         </xroad:service>
         <xroad:userId>EE:PIN:abc4567</xroad:userId>

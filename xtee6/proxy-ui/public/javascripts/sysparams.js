@@ -7,7 +7,9 @@ function uploadCallback(response) {
     }
 
     var row1 = $("<tr>")
-        .append($("<td>").text(_("common.hash")).addClass("semibold"))
+        .append($("<td>")
+                .text(_("common.hash", { alg: response.data.hash_algorithm }))
+            .addClass("semibold"))
         .append($("<td>").text(response.data.hash));
 
     var row2 = $("<tr>")
@@ -24,10 +26,15 @@ function uploadCallback(response) {
         details: $("<p>").append(details).html()
     };
 
-    closeFileUploadDialog();
-
     confirm("anchor.upload_confirm", confirmParams, function() {
         $.post(action("anchor_apply"), null, function() {
+            if (!response.success) {
+                // Let just the dialog remain open.
+                return;
+            }
+
+            closeFileUploadDialog();
+
             $(".anchor-hash").text(response.data.hash);
             $(".anchor-generated_at").text(response.data.generated_at);
         }, "json");

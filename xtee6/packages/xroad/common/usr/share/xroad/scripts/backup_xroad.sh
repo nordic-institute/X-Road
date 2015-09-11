@@ -33,7 +33,7 @@ fi
 
 echo "Backing up following files:\n"
 
-tar --create -v --label "XROAD_6.3" --file ${filename} ${list}
+tar --create -v --label "XROAD_6.6" --file ${filename} ${list}
 
 if [ "x$?" != "x0" ]
 then

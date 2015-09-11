@@ -42,6 +42,12 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 @Slf4j
 @RequiredArgsConstructor
 class WsdlRequestProcessor {
+    static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
+    static final String PARAM_MEMBER_CLASS = "memberClass";
+    static final String PARAM_MEMBER_CODE = "memberCode";
+    static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
+    static final String PARAM_SERVICE_CODE = "serviceCode";
+    static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
     private static final String USER_ID = "wsdl-request";
@@ -104,22 +110,22 @@ class WsdlRequestProcessor {
     }
 
     ServiceId getServiceId() {
-        String instance = request.getParameter("instance");
+        String instance = request.getParameter(PARAM_INSTANCE_IDENTIFIER);
         if (isBlank(instance)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Must specify instance identifier");
         }
 
-        String serviceCode = request.getParameter("serviceCode");
+        String serviceCode = request.getParameter(PARAM_SERVICE_CODE);
         if (isBlank(serviceCode)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Must specify service code");
         }
 
-        String memberClass = request.getParameter("memberClass");
-        String memberCode = request.getParameter("memberCode");
-        String subsystemCode = request.getParameter("subsystemCode");
-        String version = request.getParameter("version");
+        String memberClass = request.getParameter(PARAM_MEMBER_CLASS);
+        String memberCode = request.getParameter(PARAM_MEMBER_CODE);
+        String subsystemCode = request.getParameter(PARAM_SUBSYSTEM_CODE);
+        String version = request.getParameter(PARAM_VERSION);
 
         try {
             // Central Service?

@@ -19,7 +19,7 @@ var XROAD_TRUSTED_ANCHORS = function() {
     function uploadCallback(response) {
         if (response.success) {
             closeFileUploadDialog();
-            openAnchorSaveDialog(response.data.anchor_info);
+            openAnchorSaveDialog(response.data);
         }
 
         showMessages(response.messages);

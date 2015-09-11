@@ -17,6 +17,16 @@ class BaseBackupController < ApplicationController
 
   skip_around_filter :wrap_in_transaction, :only => [:restore]
 
+  class ExceptionWithOutput < StandardError
+    attr_reader :stderr
+
+    def initialize(message, stderr = [])
+      super(message)
+
+      @stderr = stderr
+    end
+  end
+
   def index
     authorize!(:backup_configuration)
   end
@@ -40,46 +50,61 @@ class BaseBackupController < ApplicationController
   end
 
   def backup
+    audit_log("Back up configuration", audit_log_data = {})
+
     authorize!(:backup_configuration)
 
-    exitcode, output = CommonUi::BackupUtils.backup
+    exitcode, output, filename = CommonUi::BackupUtils.backup
+
+    audit_log_data[:backupFileName] = filename
 
     if exitcode == 0
       notice(t("backup.index.done"))
     else
-      error(t("backup.index.error", {:code => exitcode}))
+      raise ExceptionWithOutput.new(t("backup.index.error", {:code => exitcode}), output)
     end
 
     render_json({
-      :console_output => output
+      :stderr => output
     })
   end
 
   def restore
+    audit_log("Restore configuration", audit_log_data = {})
+
     authorize!(:restore_configuration)
 
     before_restore
 
-    exitcode, output = CommonUi::BackupUtils.restore(params[:fileName]) do
+    audit_log_data[:backupFileName] = params[:fileName]
+
+    exitcode, output, filename = CommonUi::BackupUtils.restore(params[:fileName]) do
       after_restore
     end
+
+    audit_log_data[:backupFileName] = filename if filename
 
     if exitcode == 0
       notice(t("restore.success", {:conf_file => params[:fileName]}))
       after_restore_success
     else
-      error(t("restore.error.script_failed", {:conf_file => params[:fileName]}))
+      raise ExceptionWithOutput.new(
+        t("restore.error.script_failed", {:conf_file => params[:fileName]}), output)
     end
 
     render_json({
-      :console_output => output
+      :stderr => output
     }.merge!(@extra_data || {}))
   end
 
   def delete_file
+    audit_log("Delete backup file", audit_log_data = {})
+
     authorize!(:backup_configuration)
 
-    CommonUi::BackupUtils.delete_file(params[:fileName])
+    filename = CommonUi::BackupUtils.delete_file(params[:fileName])
+
+    audit_log_data[:backupFileName] = filename
 
     notice(t("backup.success.delete"))
   rescue Exception => e
@@ -90,14 +115,16 @@ class BaseBackupController < ApplicationController
   end
 
   def upload_new
+    audit_log("Upload backup file", audit_log_data = {})
+
     authorize!(:backup_configuration)
 
-    CommonUi::BackupUtils.upload_new_file(params[:file_upload])
+    filename = CommonUi::BackupUtils.upload_new_file(params[:file_upload])
+
+    audit_log_data[:backupFileName] = filename
 
     notice(t("backup.success.upload"))
-    upload_success(nil, "XROAD_BACKUP.uploadCallback")
-  rescue Exception => e
-    error(e.message)
-    upload_error(nil, "XROAD_BACKUP.uploadCallback")
+
+    render_json
   end
 end

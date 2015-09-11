@@ -1,6 +1,10 @@
 package ee.ria.xroad.common.asic;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
+
+import lombok.SneakyThrows;
 
 import ee.ria.xroad.common.CodedException;
 
@@ -10,6 +14,18 @@ import ee.ria.xroad.common.CodedException;
 public final class AsicUtils {
 
     private AsicUtils() {
+    }
+
+    /**
+     * Prepares the provided string for use in filenames.
+     * @param str the string
+     * @return resulting string with unsuitable characters escaped
+     */
+    @SneakyThrows
+    public static String escapeString(String str) {
+        String urlEncoded =
+                URLEncoder.encode(str, StandardCharsets.UTF_8.name());
+        return urlEncoded.replace("/", "%2F");
     }
 
     /**

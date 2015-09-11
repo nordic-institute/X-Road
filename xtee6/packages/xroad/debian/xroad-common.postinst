@@ -35,7 +35,7 @@ Please fix this and reinstall this package." >&2
     # nicer log directory permissions
     mkdir -p -m1770 /var/log/xroad
     chmod 1770 /var/log/xroad
-    chown xroad:xroad /var/log/xroad
+    chown xroad:adm /var/log/xroad
 
     # test and fix config folder
     su - xroad -c "test -O /etc/xroad &&
@@ -77,6 +77,6 @@ Please fix this and reinstall this package." >&2
 
 fi    
 
-service xroad-signer restart || service xroad-signer start
+invoke-rc.d xroad-signer restart
 
 exit 0

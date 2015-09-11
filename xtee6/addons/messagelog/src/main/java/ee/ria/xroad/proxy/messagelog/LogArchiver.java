@@ -12,13 +12,17 @@ import java.util.List;
 import akka.actor.UntypedActor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -39,6 +43,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Slf4j
 public class LogArchiver extends UntypedActor {
 
+    private static final int MAX_RECORDS_IN_ARCHIVE = 10;
+
     public static final String START_ARCHIVING = "doArchive";
 
     @Override
@@ -48,8 +54,8 @@ public class LogArchiver extends UntypedActor {
         if (message.equals(START_ARCHIVING)) {
             try {
                 handleArchive();
-            } catch (Exception e) {
-                log.error("Failed to archive log records", e);
+            } catch (Throwable t) {
+                log.error("Failed to archive log records", t);
             }
         } else {
             unhandled(message);
@@ -57,30 +63,52 @@ public class LogArchiver extends UntypedActor {
     }
 
     private void handleArchive() throws Exception {
-        List<LogRecord> records = getRecordsToBeArchived();
-        if (records == null || records.isEmpty()) {
-            log.info("No records to be archived at this time");
-        } else {
-            doArchive(records);
-            runTransferCommand(getArchiveTransferCommand());
-        }
-    }
-
-    private void doArchive(List<LogRecord> records) throws Exception {
-        try (LogArchiveWriter archiveWriter = createLogArchiveWriter()) {
-            log.info("Archiving {} log records", records.size());
-
-            long start = System.currentTimeMillis();
-            for (LogRecord record : records) {
-                archiveWriter.write(record);
+        doInTransaction(session -> {
+            List<LogRecord> records = getRecordsToBeArchived(session);
+            if (records == null || records.isEmpty()) {
+                log.info("No records to be archived at this time");
+                return null;
             }
 
-            log.info("Archived {} log records in {} ms", records.size(),
+            log.info("Archiving log records - start");
+
+            long start = System.currentTimeMillis();
+            int recordsArchived = 0;
+
+            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
+                while (!records.isEmpty()) {
+                    doArchive(archiveWriter, records);
+                    runTransferCommand(getArchiveTransferCommand());
+                    recordsArchived += records.size();
+
+                    //flush changes (records marked as archived) and free memory
+                    //used up by cached records retrieved previously in the session
+                    session.flush();
+                    session.clear();
+
+                    records = getRecordsToBeArchived(session);
+                }
+            } catch (Exception e) {
+                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+            }
+
+            log.info("Archived {} log records in {} ms", recordsArchived,
                     System.currentTimeMillis() - start);
+
+            return null;
+        });
+    }
+
+    private void doArchive(
+            LogArchiveWriter archiveWriter, List<LogRecord> records)
+            throws Exception {
+        for (LogRecord record : records) {
+            archiveWriter.write(record);
         }
     }
 
-    private LogArchiveWriter createLogArchiveWriter() {
+
+    private LogArchiveWriter createLogArchiveWriter(Session session) {
         Path path = Paths.get(MessageLogProperties.getArchivePath());
         if (!Files.isDirectory(path)) {
             throw new RuntimeException(
@@ -92,31 +120,35 @@ public class LogArchiver extends UntypedActor {
                     "Log output path (" + path + ") must be writable");
         }
 
-        return new LogArchiveWriter(path, this.new HibernateLogArchiveBase());
+        return new LogArchiveWriter(
+                path, this.new HibernateLogArchiveBase(session));
     }
 
-    private List<LogRecord> getRecordsToBeArchived() throws Exception  {
-        return doInTransaction(this::getRecordsToBeArchived);
-    }
-
-    /*
-     * Returns the log records to be archived. Firstly, it gets all non
-     * archived time-stamp records. Then, for each time-stamp record, it gets
-     * all message records time-stamped by that record. This creates grouping
-     * by time-stamp so that all message records and their time-stamp end up
-     * in the same archive file.
-     */
     protected List<LogRecord> getRecordsToBeArchived(Session session) {
-        List<LogRecord> allMessages = new ArrayList<>();
+        List<LogRecord> recordsToArchive = new ArrayList<>();
 
+        int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
         for (TimestampRecord ts : getNonArchivedTimestampRecords(session)) {
             List<MessageRecord> messages =
-                    getNonArchivedMessageRecords(session, ts.getId());
-            allMessages.addAll(messages);
-            allMessages.add(ts);
-        }
+                    getNonArchivedMessageRecords(session, ts.getId(),
+                            allowedInArchiveCount);
+            if (allTimestampMessagesArchived(session, ts.getId())) {
+                log.trace("Timestamp record #{} will be archived",
+                        ts.getId());
+                recordsToArchive.add(ts);
+            } else {
+                log.trace("Timestamp record #{} still related to"
+                                + " non-archived message records",
+                        ts.getId());
+            }
 
-        return allMessages;
+            recordsToArchive.addAll(messages);
+            allowedInArchiveCount -= messages.size();
+            if (allowedInArchiveCount <= 0) {
+                break;
+            }
+        }
+        return recordsToArchive;
     }
 
     @SuppressWarnings("unchecked")
@@ -129,33 +161,37 @@ public class LogArchiver extends UntypedActor {
 
     @SuppressWarnings("unchecked")
     protected List<MessageRecord> getNonArchivedMessageRecords(Session session,
-            Long timestampRecordNumber) {
+            Long timestampRecordNumber, int maxRecordsToGet) {
         Criteria criteria = session.createCriteria(MessageRecord.class);
         criteria.add(Restrictions.eq("archived", false));
         criteria.add(Restrictions.eq("timestampRecord.id", timestampRecordNumber));
+        criteria.setMaxResults(maxRecordsToGet);
         return criteria.list();
     }
 
-    protected void setLogRecordsArchived(
-            final List<LogRecord> logRecords, final DigestEntry lastArchive)
+    protected boolean allTimestampMessagesArchived(Session session,
+                                                   Long timestampRecordNumber) {
+        Criteria criteria = session.createCriteria(MessageRecord.class);
+        criteria.add(Restrictions.eq("archived", false));
+        criteria.add(Restrictions.eq("timestampRecord.id", timestampRecordNumber));
+        criteria.setProjection(Projections.rowCount()).uniqueResult();
+        return (Long) criteria.uniqueResult() == 0;
+    }
+
+
+    // TODO The method is in this class as protected to facilitate testing.
+    // TODO Is there any better way to recognize invocation of this method?
+    protected void markArchiveCreated(
+            final DigestEntry lastArchive, final Session session)
             throws Exception {
-        doInTransaction(session -> {
-            for (LogRecord logRecord : logRecords) {
-                log.trace("Setting log record #{} archived",
-                        logRecord.getId());
-                logRecord.setArchived(true);
-                session.saveOrUpdate(logRecord);
-            }
+        if (lastArchive == null) {
+            return;
+        }
 
-            if (lastArchive != null) {
-                log.debug("Digest entry will be saved here...");
+        log.debug("Digest entry will be saved here...");
 
-                session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-                session.save(lastArchive);
-            }
-
-            return null;
-        });
+        session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
+        session.save(lastArchive);
     }
 
     private String getLastEntryDeleteQuery() {
@@ -171,8 +207,9 @@ public class LogArchiver extends UntypedActor {
                 transferCommand);
 
         try {
-            Process process =
-                    new ProcessBuilder(transferCommand.split("\\s+")).start();
+            String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+
+            Process process = new ProcessBuilder(command).start();
 
             StandardErrorCollector standardErrorCollector =
                     new StandardErrorCollector(process);
@@ -205,25 +242,35 @@ public class LogArchiver extends UntypedActor {
         }
     }
 
+    @Value
     private class HibernateLogArchiveBase implements LogArchiveBase {
 
+        private Session session;
+
         @Override
-        public void archive(List<LogRecord> toArchive, DigestEntry lastArchive)
+        public void markArchiveCreated(DigestEntry lastArchive)
                 throws Exception {
-            LogArchiver.this.setLogRecordsArchived(toArchive, lastArchive);
+            LogArchiver.this.markArchiveCreated(lastArchive, session);
+        }
+
+        @Override
+        public void markRecordArchived(LogRecord logRecord) throws Exception {
+            log.trace("Setting {} #{} archived",
+                    logRecord.getClass().getName(), logRecord.getId());
+
+            logRecord.setArchived(true);
+            session.saveOrUpdate(logRecord);
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public DigestEntry loadLastArchive() throws Exception {
-            return doInTransaction(session -> {
-                List<DigestEntry> lastArchiveEntries = session
-                        .createQuery(getLastArchiveDigestQuery())
-                        .setMaxResults(1).list();
+            List<DigestEntry> lastArchiveEntries = session
+                    .createQuery(getLastArchiveDigestQuery())
+                    .setMaxResults(1).list();
 
-                return lastArchiveEntries.isEmpty()
-                        ? DigestEntry.empty() : lastArchiveEntries.get(0);
-            });
+            return lastArchiveEntries.isEmpty()
+                    ? DigestEntry.empty() : lastArchiveEntries.get(0);
         }
 
         private String getLastArchiveDigestQuery() {

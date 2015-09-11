@@ -1,87 +1,95 @@
 #!/bin/bash
 
+set -e
+
 . /usr/share/debconf/confmodule
+
+
+#add groups
+groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-system-auditor xroad-users-administrator"
+
+db_name=serverconf
+db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
+db_user=serverconf
+db_passwd=serverconf
+db_properties=/etc/xroad/db.properties
+
+
+die () {
+    echo >&2 "$@"
+    exit 1
+}
 
 
 chmod 0440 /etc/sudoers.d/xroad-proxy
 
 case "$1" in
-    configure)
-    test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
-    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
-    test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
+ configure)
 
-    test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+  test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
+  test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
+  test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
 
-    test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
-    test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
-  
-    
-    #add groups
-    groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-system-auditor xroad-users-administrator"
-    #dbs
-    dbs="serverconf"
+  test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
+
+  test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
+  test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
+
+
+   
+  #is database connection configured?
+  if  [[ -f ${db_properties}  && `crudini --get ${db_properties} '' serverconf.hibernate.connection.url` != "" ]]
+    then
+      db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
+      db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
+      db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
+   else
+ 
+    echo "no db settings detected, creating local db"
 
     if ! netstat -na | grep -q :5432
-      then echo  "Is postgres running on port 5432 ?"
-       echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+      then echo -e  "\n\nIs postgres running on port 5432 ?"
+       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install \n\n"
       exit 100
     fi
 
      if  ! su - postgres -c "psql --list -tAF ' '" | grep template1 | awk '{print $3}' | grep -q "UTF8"
-      then echo "postgreSQL is not UTF8 compatible."
-       echo "Aborting installation! please fix issues and rerun with apt-get -f install"
+      then echo -e "\n\npostgreSQL is not UTF8 compatible."
+       echo -e "Aborting installation! please fix issues and rerun with apt-get -f install\n\n"
        exit 101
     fi
 
-    for db in $dbs
-    do 
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db'\" "` == "1" ]]
+    if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
       then
-        echo  "$db user exists, skipping schema creation"
+        echo  "$db_user user exists, skipping schema creation"
       else 
-    	echo "CREATE ROLE $db LOGIN PASSWORD '$db';" | su - postgres -c psql postgres
+    	echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
       fi
 
-      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='$db'\""`  == "1" ]] 
+      if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_database WHERE datname='${db_name}'\""`  == "1" ]] 
       then
-  	echo "database $db exists"
+  	echo "database ${db_name} exists"
       else 
-  	su - postgres -c "createdb $db -O $db -E UTF-8"
+  	su - postgres -c "createdb ${db_name} -O ${db_user} -E UTF-8"
       fi
-
-    #version upgrade block
-    if dpkg --compare-versions "$2" lt-nl "6.3"
-     then
-
-      update_needed=`su - postgres -c "psql serverconf -tAc \"SELECT count(1) FROM databasechangelog\"" 2>/dev/null`
-      if [[ $? == 0 ]] 
-       then
-       case $update_needed in
-         4)
-	  echo "reset db changelog 1"
-	  su - postgres -c "psql serverconf -tAc \"alter table identifier rename sdsbinstance to XROADINSTANCE\""
-          su - postgres -c "psql serverconf -tAc \"truncate table databasechangelog\""
-	  su - postgres -c "psql serverconf -tAc \"INSERT INTO databasechangelog (id, author, filename, dateexecuted, orderexecuted, exectype, md5sum, description, comments, tag, liquibase) VALUES ('0-initial', 'toja', 'serverconf/0-initial.xml', '2015-04-06 15:42:06.52597', 1, 'EXECUTED', '7:ca14efca02ab14532acef7618f68e490', 'createTable (x14), addPrimaryKey (x12), addForeignKeyConstraint (x16), createSequence', '', NULL, '3.3.2')\""
-        ;;
-        5)
-	  echo "reset db changelog 2"
-          su - postgres -c "psql serverconf -tAc \"truncate table databasechangelog\""
-	  su - postgres -c "psql serverconf -tAc \"INSERT INTO databasechangelog (id, author, filename, dateexecuted, orderexecuted, exectype, md5sum, description, comments, tag, liquibase) VALUES ('0-initial', 'toja', 'serverconf/0-initial.xml', '2015-04-06 15:42:06.52597', 1, 'EXECUTED', '7:ca14efca02ab14532acef7618f68e490', 'createTable (x14), addPrimaryKey (x12), addForeignKeyConstraint (x16), createSequence', '', NULL, '3.3.2')\""
-        ;;
-        *)
-        ;;
-        esac
-      fi
-     fi #end of version dependent block
 
       su - postgres -c "psql serverconf -tAc \"CREATE EXTENSION IF NOT EXISTS hstore;\""
+      
+      touch ${db_properties}
+      crudini --set ${db_properties} '' serverconf.hibernate.jdbc.use_streams_for_binary true
+      crudini --set ${db_properties} '' serverconf.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.driver_class org.postgresql.Driver
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.url ${db_url}
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.username  ${db_user}
+      crudini --set ${db_properties} '' serverconf.hibernate.connection.password ${db_passwd}
 
-      echo "running ${db} migrations"
-	cd /usr/share/xroad/db/
-	/usr/share/xroad/db/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="jdbc:postgresql://localhost/${db}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db}-changelog.xml --password=${db} --username=${db}  update
+  fi
+  chown xroad:xroad ${db_properties}
+  chmod 640 ${db_properties}
 
-    done
+  echo "running ${db_name} database migrations"
+  cd /usr/share/xroad/db/
+  /usr/share/xroad/db/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
 
     RET=""
     db_get xroad-common/username
@@ -96,24 +104,25 @@ case "$1" in
         adduser $AUSER $groupname
     done
 
-    ;;
+ ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+ abort-upgrade|abort-remove|abort-deconfigure)
+ ;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+ *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+ ;;
 esac
 
-    
+
+invoke-rc.d rsyslog restart
 invoke-rc.d nginx restart
-service xroad-confclient restart || service xroad-confclient start
-service xroad-proxy restart || service xroad-proxy start
-service xroad-async restart || service xroad-async start
-service xroad-jetty restart || service xroad-jetty start
-service xroad-signer restart || service xroad-signer start
+invoke-rc.d xroad-confclient restart
+invoke-rc.d xroad-proxy restart
+invoke-rc.d xroad-async restart
+invoke-rc.d xroad-jetty restart
+invoke-rc.d xroad-signer restart
 
 db_stop
 

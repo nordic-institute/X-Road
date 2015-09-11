@@ -14,13 +14,16 @@ import java.util.zip.ZipInputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -58,6 +61,14 @@ public class LogArchiveCacheTest {
     public ExpectedException thrown = ExpectedException.none();
 
     /**
+     * Preparations for testing log archive cache.
+     */
+    @Before
+    public void beforeTest() {
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp/");
+    }
+
+    /**
      * Test to ensure one entry of normal size can be added successfully.
      * @throws Exception in case of any unexpected errors
      */
@@ -70,7 +81,8 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        assertZip(expectedNormalSizeRequestEntryName(), cache.getArchiveBytes());
+        // TODO Get bytes from temp file from now on!
+        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse(
                 "Should not rotate, as entry is small enough to fit in.",
                 cache.isRotating());
@@ -93,7 +105,7 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordTooLarge());
 
         // Then
-        assertZip(expectedLargeSizeRequestEntryName(), cache.getArchiveBytes());
+        assertZip(expectedLargeSizeRequestEntryName(), getArchiveBytes());
         assertTrue(
                 "Entry is so large that rotation must take place",
                 cache.isRotating());
@@ -123,14 +135,13 @@ public class LogArchiveCacheTest {
         // First record
         cache.add(createRequestRecordNormal());
 
-        assertZip(expectedNormalSizeRequestEntryName(), cache.getArchiveBytes());
+        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse("Step 1: no need to rotate yet.", cache.isRotating());
 
         // Second record
         cache.add(createRequestRecordTooLarge());
 
-        assertZip(expectedNormalAndLargeRequestEntryNames(),
-                cache.getArchiveBytes());
+        assertZip(expectedNormalAndLargeRequestEntryNames(), getArchiveBytes());
         assertTrue("Step 2: should be rotated.", cache.isRotating());
         assertEquals(largeRequestCreationTime(), cache.getStartTime());
         assertEquals(normalRequestCreationTime(), cache.getEndTime());
@@ -138,7 +149,7 @@ public class LogArchiveCacheTest {
         // Third record
         cache.add(createResponseRecordNormal());
 
-        assertZip(expectedNormalSizeResponseEntryName(), cache.getArchiveBytes());
+        assertZip(expectedNormalSizeResponseEntryName(), getArchiveBytes());
         assertFalse("Step 3: new rotation.", cache.isRotating());
         assertEquals(normalResponseCreationTime(), cache.getStartTime());
         assertEquals(normalResponseCreationTime(), cache.getEndTime());
@@ -156,11 +167,15 @@ public class LogArchiveCacheTest {
 
         // First record
         cache.add(createRequestRecordNormal());
-        assertZip(expectedNormalSizeRequestEntryName(), cache.getArchiveBytes());
+        assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
 
         // Record with conflicting name
         cache.add(createRequestRecordNormal());
-        assertZip(expectedConflictingEntryNames(), cache.getArchiveBytes());
+        assertZip(expectedConflictingEntryNames(), getArchiveBytes());
+    }
+
+    private byte[] getArchiveBytes() throws IOException {
+        return IOUtils.toByteArray(cache.getArchiveFile());
     }
 
     private void createCacheWithMoreRealisticRandom() {
@@ -234,7 +249,7 @@ public class LogArchiveCacheTest {
     }
 
     private byte[] containerTooLarge() {
-        byte [] container = new byte[TOO_LARGE_CONTAINER_SIZE];
+        byte[] container = new byte[TOO_LARGE_CONTAINER_SIZE];
 
         for (int i = 0; i < TOO_LARGE_CONTAINER_SIZE; i++) {
             container[i] = (byte) (i % Byte.MAX_VALUE);
@@ -273,6 +288,12 @@ public class LogArchiveCacheTest {
             }
 
             ZipEntry linkingInfoEntry = zip.getNextEntry();
+
+            if (linkingInfoEntry == null) {
+                throw new RuntimeException(
+                        "There is no linking info present in the archive!");
+            }
+
             assertEquals("linkinginfo", linkingInfoEntry.getName());
 
             assertNull(

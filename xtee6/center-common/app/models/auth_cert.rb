@@ -1,11 +1,11 @@
 class AuthCert < ActiveRecord::Base
   validates_presence_of :security_server_id
-  validates_uniqueness_of :certificate
+  validates_uniqueness_of :cert
 
   belongs_to :security_server
 
   before_validation do |record|
-    existing_certs = AuthCert.where(:certificate => record.certificate)
+    existing_certs = AuthCert.where(:cert => record.cert)
 
     unless existing_certs.empty?
       existing_cert = existing_certs[0]

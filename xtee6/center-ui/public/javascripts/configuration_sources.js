@@ -52,7 +52,9 @@ var XROAD_CONFIGURATION_SOURCE = function() {
             oConfParts.fnReplaceData(data.parts);
         }
 
-        renderStandardError(data.stderr);
+        if (data.stderr) {
+            renderStandardError(data.stderr);
+        }
 
         showMessages(response.messages);
     }
@@ -236,6 +238,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         $("#activate_signing_key").click(function() {
             var keyData = oSigningKeys.getFocusData();
             var params = {
+                source_type: getSourceType(),
                 id: keyData.id
             };
 
@@ -254,6 +257,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         $("#delete_signing_key").click(function() {
             var keyData = oSigningKeys.getFocusData();
             var params = {
+                source_type: getSourceType(),
                 id: keyData.id
             };
             var confirmParams = {

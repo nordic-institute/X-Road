@@ -6,7 +6,7 @@ then
     then
      for service in `initctl list | grep xroad | awk '{print $1}'`
       do
-        service $service stop || true
+        invoke-rc.d $service stop || true
       done
 
       ipcrm -m `ipcs -m | grep sdsb | awk '{print $2}'` 2>/dev/null || true

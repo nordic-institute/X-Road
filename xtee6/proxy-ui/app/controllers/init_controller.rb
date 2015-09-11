@@ -64,13 +64,21 @@ class InitController < ApplicationController
     anchor_details =
       save_temp_anchor_file(params[:anchor_upload_file].read)
 
-    upload_success(anchor_details)
+    render_json(anchor_details)
   end
 
   def anchor_init
+    audit_log("Initialize anchor", audit_log_data = {})
+
     authorize!(:init_config)
 
     validate_params
+
+    anchor_details = get_temp_anchor_details
+
+    audit_log_data[:anchorFileHash] = anchor_details[:hash]
+    audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at]
 
     apply_temp_anchor_file
 
@@ -80,6 +88,8 @@ class InitController < ApplicationController
   end
 
   def serverconf_init
+    audit_log("Initialize server configuration", audit_log_data = {})
+
     authorize!(:init_config)
 
     required = [:required]
@@ -107,6 +117,8 @@ class InitController < ApplicationController
         xroad_instance,
         params[:owner_class],
         params[:owner_code], nil)
+
+      audit_log_data[:ownerIdentifier] = owner_id
 
       unless get_member_name(params[:owner_class], params[:owner_code])
         warn_message = t('init.unregistered_member', {
@@ -141,6 +153,7 @@ class InitController < ApplicationController
 
     if init_server_code
       new_serverconf.serverCode = params[:server_code]
+      audit_log_data[:serverCode] = new_serverconf.serverCode
     end
 
     if init_software_token

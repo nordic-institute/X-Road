@@ -314,7 +314,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         var params = {certId: authCertId};
 
         $.get("securityservers/get_cert_details_by_id", params, function(response) {
-            XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+            XROAD_CERT_DETAILS_DIALOG.openDialog(response.data);
         }, "json");
     }
 
@@ -652,9 +652,13 @@ var XROAD_SECURITYSERVER_EDIT = function() {
             var managementRequestColumn = $(nRow).find("td:first");
             var managementRequestLink =
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
+            var updateTablesCallback = function() {
+                refreshManagementRequests();
+                // TODO: Add callback for members if needed!
+            }
 
             managementRequestLink.click(function(){
-                XROAD_REQUEST_EDIT.open(managementRequest);
+                XROAD_REQUEST_EDIT.open(managementRequest, updateTablesCallback);
             });
 
             managementRequestColumn.empty().append(managementRequestLink);

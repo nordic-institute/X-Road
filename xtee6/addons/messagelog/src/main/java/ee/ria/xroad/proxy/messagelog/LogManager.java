@@ -83,10 +83,7 @@ public class LogManager extends AbstractLogManager {
         timestamper = getContext().actorOf(
                 Props.create(getTimestamperImpl()), TIMESTAMPER_NAME);
 
-        // If we are not time-stamping immediately, we start a periodic job
-        if (!shouldTimestampImmediately()) {
-            getContext().actorOf(Props.create(TimestamperJob.class));
-        }
+        getContext().actorOf(Props.create(TimestamperJob.class));
     }
 
     private void createArchiver(JobManager jobManager) {
@@ -106,14 +103,26 @@ public class LogManager extends AbstractLogManager {
     // ------------------------------------------------------------------------
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature)
-            throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature,
+            boolean clientSide) throws Exception {
         verifyCanLogMessage();
 
-        MessageRecord logRecord = saveMessageRecord(message, signature);
+        MessageRecord logRecord = saveMessageRecord(message, signature,
+                clientSide);
 
         if (shouldTimestampImmediately()) {
             timestampImmediately(logRecord);
+        }
+    }
+
+    @Override
+    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
+        MessageRecord messageRecord =
+                (MessageRecord) logRecordManager.get(messageRecordId);
+        if (messageRecord.getTimestampRecord() != null) {
+            return messageRecord.getTimestampRecord();
+        } else {
+            return timestampImmediately(messageRecord);
         }
     }
 
@@ -141,7 +150,7 @@ public class LogManager extends AbstractLogManager {
         return LogCleaner.class;
     }
 
-    protected void timestampImmediately(MessageRecord logRecord)
+    protected TimestampRecord timestampImmediately(MessageRecord logRecord)
             throws Exception {
         log.trace("timestampImmediately({})", logRecord);
 
@@ -150,7 +159,7 @@ public class LogManager extends AbstractLogManager {
                 TIMESTAMP_TIMEOUT.duration());
 
         if (result instanceof Timestamper.TimestampSucceeded) {
-            saveTimestampRecord((Timestamper.TimestampSucceeded) result);
+            return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
         } else if (result instanceof Timestamper.TimestampFailed) {
             throw ((Timestamper.TimestampFailed) result).getCause();
         } else {
@@ -160,14 +169,13 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected MessageRecord saveMessageRecord(SoapMessageImpl message,
-            SignatureData signature) throws Exception {
+            SignatureData signature, boolean clientSide) throws Exception {
         log.trace("saveMessageRecord()");
 
-        MessageRecord messageRecord = new MessageRecord(
-                message.getQueryId(),
-                message.getXml(),
-                signature.getSignatureXml(),
-                message.isResponse());
+        MessageRecord messageRecord =
+                new MessageRecord(message, signature.getSignatureXml(),
+                        clientSide ? message.getClient()
+                                : message.getService().getClientId());
 
         messageRecord.setTime(new Date().getTime());
 
@@ -232,7 +240,7 @@ public class LogManager extends AbstractLogManager {
                             + "no timestamping services configured");
         }
 
-        if (timestampFailed != null) {
+        if (isTimestampFailed()) {
             if (new DateTime().minusSeconds(period).isAfter(timestampFailed)) {
                 throw new CodedException(X_SLOG_TIMESTAMPER_FAILED,
                         "Cannot time-stamp messages");

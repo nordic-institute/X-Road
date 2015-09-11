@@ -495,7 +495,7 @@ function showAlerts(alerts) {
 
     $(".alerts").html("");
 
-    if (typeof alerts == "undefined" || alerts.length == 0) {
+    if (alerts == null || alerts.length == 0) {
         return;
     }
 
@@ -704,7 +704,7 @@ function confirm(text, params, success) {
                   $(this).dialog("close");
               }}
         ]
-    });
+    }).siblings(".ui-dialog-titlebar").css("min-width", 500);
 }
 
 function yesno(text, params, success) {

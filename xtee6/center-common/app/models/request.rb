@@ -114,6 +114,12 @@ class Request < ActiveRecord::Base
     update_attributes!(:server_owner_name => current_server_owner_name)
   end
 
+  def update_server_user_name(current_server_user_name)
+    return if self.server_user_name == current_server_user_name
+
+    update_attributes!(:server_user_name => current_server_user_name)
+  end
+
   # Static database-related methods
 
   def self.get_requests(query_params, converted_search_params = [])

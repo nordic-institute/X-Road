@@ -8,7 +8,6 @@ en:
     filename_empty: "Filename missing"
     cert: "Certificate"
     cert_unreadable: "Certificate from file '%{filename}' could not be read"
-    cert_details_title: "Certificate Details"
     cert_view: "View certificate"
     subject_dn: "Subject Distinguished Name"
     issuer_dn: "Issuer Distinguished Name"
@@ -280,7 +279,7 @@ en:
     edit_ocsp_responder: "Edit OCSP Responder"
     add_ocsp_responder: "Add OCSP Responder"
     ca_settings: "CA Settings"
-    name_extractor_disabled: "This CA can only be used for SSL authentication"
+    name_extractor_disabled: "This CA can only be used for TLS authentication"
     name_extractor_disabled_hint: "(mark if true)"
     name_extractor_member_class: "This CA is issuing certificates for member class"
     name_extractor_member_class_hint: "(leave empty if this CA is used for more than one member class)"
@@ -353,7 +352,6 @@ en:
       download: "Download"
       delete: "Delete"
       delete_confirm: "Are you sure you want to remove configuration anchor for instance '{{instanceIdentifier}}'?"
-      hash: "Hash:"
       generated: "Generated:"
       upload:
         button_title: "Upload Anchor"
@@ -378,3 +376,8 @@ en:
       member_class_description: "Description"
       member_class_add: "Add Member Class"
       member_class_edit: "Edit Member Class"
+
+  shared:
+    cert_details_dialog:
+      cert_details: "Certificate Details"
+

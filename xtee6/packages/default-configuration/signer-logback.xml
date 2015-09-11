@@ -17,6 +17,20 @@
         </encoder>
     </appender>
 
+    <appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+                <marker>AUDIT</marker>
+            </evaluator>
+            <onMismatch>DENY</onMismatch>
+            <onMatch>NEUTRAL</onMatch>
+        </filter>
+        <syslogHost>localhost</syslogHost>
+        <port>514</port>
+        <facility>LOCAL0</facility>
+        <suffixPattern>%-5level [%logger{36}] %d{yyyy-MM-dd HH:mm:ssZ} - %msg</suffixPattern>
+    </appender>
+
     <logger name="ee.ria.xroad" level="INFO" />
     
     <!--TokenManager is very verbose /-->
@@ -24,5 +38,6 @@
 
     <root level="INFO">
         <appender-ref ref="FILE" />
+        <appender-ref ref="SYSLOG" />
     </root>
 </configuration>

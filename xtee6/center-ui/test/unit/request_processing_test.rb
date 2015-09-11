@@ -237,7 +237,7 @@ class RequestProcessingTest < ActiveSupport::TestCase
     server = SecurityServer.where(:server_code => "securityServer").first
     AuthCert.create!(
         :security_server => server,
-        :certificate => read_testorg_cert())
+        :cert => read_testorg_cert())
 
     existing_request = AuthCertRegRequest.new(
         :security_server => SecurityServerId.from_parts(

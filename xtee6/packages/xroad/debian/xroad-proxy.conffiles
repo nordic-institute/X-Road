@@ -1,9 +1,0 @@
-etc/xroad/db.properties
-etc/xroad/services/confclient.conf
-etc/xroad/services/proxy.conf
-etc/xroad/services/async-sender.conf
-etc/xroad/conf.d/proxy.ini
-etc/xroad/conf.d/proxy-ui.ini
-etc/xroad/conf.d/proxy-logback.xml
-etc/xroad/conf.d/proxy-ui-logback.xml
-etc/xroad/conf.d/async-sender-logback.xml

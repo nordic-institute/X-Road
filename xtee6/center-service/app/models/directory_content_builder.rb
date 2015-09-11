@@ -24,16 +24,16 @@ class DirectoryContentBuilder
         "#{@expire_date.utc().strftime "%Y-%m-%dT%H:%M:%SZ"}"
     content_lines << ""
 
-    DistributedFiles.find_each do |each|
-      next if !can_add_file?(each)
+    DistributedFiles.get_all.each do |distributed_file|
+      next if !can_add_file?(distributed_file)
 
-      file_data = each.file_data
-      content_identifier = each.content_identifier
+      file_data = distributed_file.file_data
+      content_identifier = distributed_file.content_identifier
 
       Rails.logger.debug("Writing distributed file into directory:\n"\
           "\tContent identifier: #{content_identifier}\n"\
           "\tFile size: #{file_data.size()} bytes\n"\
-          "\tFile generated at: #{each.file_updated_at}\n")
+          "\tFile generated at: #{distributed_file.file_updated_at}\n")
 
       content_lines << "--#{data_boundary}"
       content_lines << "Content-type: application/octet-stream"
@@ -41,7 +41,7 @@ class DirectoryContentBuilder
       content_lines << "Content-identifier: #{content_identifier}; "\
           "instance='#{SystemParameter.instance_identifier}'"
       content_lines <<
-          "Content-location: /#@generation_timestamp/#{each.file_name}"
+          "Content-location: /#@generation_timestamp/#{distributed_file.file_name}"
       content_lines << "Hash-algorithm-id: #{@hash_calculator.getAlgoURI()}"
       content_lines << ""
       content_lines << @hash_calculator.calculateFromBytes(

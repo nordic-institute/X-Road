@@ -18,7 +18,7 @@ public class ConfigurationAnchorTest {
                 "src/test/resources/configuration-anchor1.xml");
 
         assertEquals("EE", a.getInstanceIdentifier());
-        assertEquals(1, a.getLocations().size());
+        assertEquals(3, a.getLocations().size());
 
         ConfigurationLocation l = a.getLocations().get(0);
         assertEquals("http://www.bar.com/conf", l.getDownloadURL());

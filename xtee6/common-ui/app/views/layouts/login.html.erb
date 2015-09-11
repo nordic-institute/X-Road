@@ -10,7 +10,9 @@
       <div class="container" id="login-form-titles">
         <h1 class="section-title up center"><%= t 'layouts.application.title' %></h1>
       </div>
+
       <h2 class="section-title center"><%= @server_id.toShortString if @server_id %></h2>
+
       <form method="POST" action="j_security_check">
         <p>
           <label class="section-title up">

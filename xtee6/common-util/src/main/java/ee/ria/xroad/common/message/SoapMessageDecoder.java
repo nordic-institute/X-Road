@@ -165,7 +165,7 @@ public class SoapMessageDecoder {
             if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
                 partContentType = field.getBody();
             } else {
-                headers.put(field.getName().toLowerCase(), field.getBody());
+                headers.put(field.getName(), field.getBody());
             }
         }
 

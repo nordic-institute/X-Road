@@ -39,7 +39,7 @@ build.dependsOn fatJar
 buildall.dependsOn fatJar
 
 task runSignerConsole(type: JavaExec) {
-    jvmArgs '-Djava.library.path=../legacy/passwordstore'
+    jvmArgs '-Djava.library.path=../passwordstore'
     main = 'ee.ria.xroad.signer.console.SignerCLI'
     classpath = sourceSets.test.runtimeClasspath
     standardInput = System.in;

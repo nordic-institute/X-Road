@@ -13,7 +13,9 @@ class GzipFileValidatorTest < ActiveSupport::TestCase
           original_filename)
     end
 
-    assert(error.message.include?("gzip"))
+    assert(error.message.include?("gzip"),
+        "Error message should include word 'gzip', but actual is:\n"\
+        "#{error.message}")
   end
 
   test "Should pass validation with real tgz" do

@@ -25,6 +25,13 @@ class ApprovedCasController < ApplicationController
     :delete_ocsp_responder
   ]
 
+  upload_callbacks({
+    :upload_top_ca_cert => "XROAD_APPROVED_CA_DIALOG.certUploadCallback",
+    :upload_intermediate_ca_cert => "XROAD_INTERMEDIATE_CA_DIALOG.certUploadCallback",
+    :upload_ocsp_responder_cert => "XROAD_URL_AND_CERT_DIALOG.certUploadCallback",
+    :upload_ocsp_responder_cert_data => { :prefix => "ocsp_responder" }
+  })
+
   def index
     authorize!(:view_approved_cas)
 
@@ -100,15 +107,14 @@ class ApprovedCasController < ApplicationController
 
     notice(t("common.cert_imported"))
 
-    upload_success({
+    render_json({
       :temp_cert_id => cert_data[:temp_cert_id]
-    }, "XROAD_APPROVED_CA_DIALOG.certUploadCallback")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error(nil, "XROAD_APPROVED_CA_DIALOG.certUploadCallback")
+    })
   end
 
   def add_top_ca
+    audit_log("Add certification service", audit_log_data = {})
+
     authorize!(:add_approved_ca)
 
     validate_params({
@@ -127,17 +133,31 @@ class ApprovedCasController < ApplicationController
 
     ca.save!
 
+    audit_log_data[:caId] = ca.id
+    audit_log_data[:caCertHash] =
+      CommonUi::CertUtils.cert_hash(
+        get_temp_cert_from_session(params[:temp_cert_id]))
+    audit_log_data[:caCertHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
+    audit_log_data[:authenticationOnly] = ca.authentication_only != nil
+    audit_log_data[:nameExtractorMemberClass] = ca.identifier_decoder_member_class
+    audit_log_data[:nameExtractorMethod] = ca.identifier_decoder_method_name
+
     notice(t("approved_cas.approved_ca_added"))
 
     render_json(top_ca_to_json(ca))
   end
 
   def delete_top_ca
+    audit_log("Delete certification service", audit_log_data = {})
+
     authorize!(:delete_approved_ca)
 
     validate_params({
       :ca_id => [:required]
     })
+
+    audit_log_data[:caId] = params[:ca_id]
 
     ApprovedCa.find(params[:ca_id]).destroy
 
@@ -145,6 +165,8 @@ class ApprovedCasController < ApplicationController
   end
 
   def upload_intermediate_ca_cert
+    audit_log("Add intermediate CA", audit_log_data = {})
+
     authorize!(:add_approved_ca)
 
     validate_params({
@@ -161,22 +183,28 @@ class ApprovedCasController < ApplicationController
 
     ca.intermediate_cas << intermediate_ca
 
+    audit_log_data[:caId] = params[:ca_id]
+    audit_log_data[:intermediateCaId] = intermediate_ca.id
+    audit_log_data[:intermediateCaCertHash] =
+      CommonUi::CertUtils.cert_hash(intermediate_ca.cert)
+    audit_log_data[:intermediateCaCertHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
+
     notice(t("approved_cas.intermediate_ca_added"))
 
-    upload_success(
-      intermediate_ca_to_json(intermediate_ca),
-      "XROAD_INTERMEDIATE_CA_DIALOG.certUploadCallback")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error(nil, "XROAD_INTERMEDIATE_CA_DIALOG.certUploadCallback")
+    render_json(intermediate_ca_to_json(intermediate_ca))
   end
 
   def delete_intermediate_ca
+    audit_log("Delete intermediate CA", audit_log_data = {})
+
     authorize!(:add_approved_ca)
 
     validate_params({
       :intermediate_ca_id => [:required]
     })
+
+    audit_log_data[:intermediateCaId] = params[:intermediate_ca_id]
 
     CaInfo.destroy(params[:intermediate_ca_id])
 
@@ -184,6 +212,8 @@ class ApprovedCasController < ApplicationController
   end
 
   def edit_ca_settings
+    audit_log("Edit certification service settings", audit_log_data = {})
+
     authorize!(:edit_approved_ca)
 
     validate_params({
@@ -198,6 +228,11 @@ class ApprovedCasController < ApplicationController
     ca.authentication_only = params[:name_extractor_disabled]
     ca.identifier_decoder_member_class = params[:name_extractor_member_class]
     ca.identifier_decoder_method_name = params[:name_extractor_method]
+
+    audit_log_data[:caId] = params[:ca_id]
+    audit_log_data[:authenticationOnly] = ca.authentication_only != nil
+    audit_log_data[:nameExtractorMemberClass] = ca.identifier_decoder_member_class
+    audit_log_data[:nameExtractorMethod] = ca.identifier_decoder_method_name
 
     ca.save!
 
@@ -215,20 +250,19 @@ class ApprovedCasController < ApplicationController
     })
 
     cert_data = upload_cert(params[:ocsp_responder_cert], true)
-    cert_data["prefix"] = "ocsp_responder"
 
     notice(t("common.cert_imported"))
 
-    upload_success(cert_data,
-        "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error({
-      :prefix => "ocsp_responder"
-    }, "XROAD_URL_AND_CERT_DIALOG.certUploadCallback")
+    render_json(cert_data)
   end
 
   def add_ocsp_responder
+    if params[:ca_id]
+      audit_log("Add OCSP responder of certification service", audit_log_data = {})
+    else
+      audit_log("Add OCSP responder of intermediate CA", audit_log_data = {})
+    end
+
     authorize!(:add_approved_ca)
 
     validate_params({
@@ -246,10 +280,24 @@ class ApprovedCasController < ApplicationController
 
     ca.ocsp_infos << ocsp_responder
 
+    if params[:ca_id]
+      audit_log_data[:caId] = params[:ca_id]
+    else
+      audit_log_data[:intermediateCaId] = params[:intermediate_ca_id]
+    end
+    audit_log_data[:ocspId] = ocsp_responder.id
+    audit_log_data[:ocspUrl] = ocsp_responder.url
+    audit_log_data[:ocspCertHash] =
+      CommonUi::CertUtils.cert_hash(ocsp_responder.cert)
+    audit_log_data[:ocspCertHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
+
     render_json
   end
 
   def edit_ocsp_responder
+    audit_log("Edit OCSP responder", audit_log_data = {})
+
     authorize!(:edit_approved_ca)
 
     validate_params({
@@ -261,9 +309,14 @@ class ApprovedCasController < ApplicationController
     ocsp_responder = OcspInfo.find(params[:ocsp_responder_id])
     ocsp_responder.url = params[:url]
 
-    unless params[:temp_cert_id].blank?
-      ocsp_responder.cert = get_temp_cert_from_session(params[:temp_cert_id])
-    end
+    ocsp_responder.cert = get_temp_cert_from_session(params[:temp_cert_id])
+
+    audit_log_data[:ocspId] = params[:ocsp_responder_id]
+    audit_log_data[:ocspUrl] = params[:url]
+    audit_log_data[:ocspCertHash] =
+      CommonUi::CertUtils.cert_hash(ocsp_responder.cert)
+    audit_log_data[:ocspCertHashAlgorithm] =
+      CommonUi::CertUtils.cert_hash_algorithm
 
     ocsp_responder.save!
 
@@ -271,11 +324,15 @@ class ApprovedCasController < ApplicationController
   end
 
   def delete_ocsp_responder
+    audit_log("Delete OCSP responder", audit_log_data = {})
+
     authorize!(:edit_approved_ca)
 
     validate_params({
       :ocsp_responder_id => [:required]
     })
+
+    audit_log_data[:ocspId] = params[:ocsp_responder_id]
 
     OcspInfo.destroy(params[:ocsp_responder_id])
 
@@ -344,7 +401,7 @@ class ApprovedCasController < ApplicationController
       :issuer => cert_obj.issuer.to_s,
       :valid_from => format_time(cert_obj.not_before.localtime),
       :valid_to => format_time(cert_obj.not_after.localtime),
-    }    
+    }
   end
 
   def get_top_or_intermediate_ca(approved_ca_id, intermediate_ca_id)

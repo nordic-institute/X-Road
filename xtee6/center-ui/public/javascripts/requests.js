@@ -149,6 +149,15 @@ var XROAD_REQUESTS = function() {
         enableActions();
     }
 
+    function openRequestDetails() {
+        var request = oManagementRequests.getFocusData();
+        var updateTablesCallback = function() {
+            updateTable();
+        }
+
+        XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
+    }
+
     $(document).ready(function() {
         initRequestsTable();
 
@@ -165,11 +174,11 @@ var XROAD_REQUESTS = function() {
 
         $("#management_requests_all tbody tr[class!=dataTables_empty]")
                 .live("dblclick", function() {
-            XROAD_REQUEST_EDIT.open(oManagementRequests.getFocusData());
+            openRequestDetails();
         });
 
         $("#request_details").click(function() {
-            XROAD_REQUEST_EDIT.open(oManagementRequests.getFocusData());
+            openRequestDetails();
         });
     });
 

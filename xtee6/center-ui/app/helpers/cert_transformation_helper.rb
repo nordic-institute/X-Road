@@ -69,6 +69,13 @@ module CertTransformationHelper
 
     id = cert_id.is_a?(Integer) ? cert_id :cert_id.to_i
 
-    session[:temp_certs][id]
+    result = session[:temp_certs][id]
+
+    unless result
+      raise("Cached certificate has been lost from session, "\
+          "please retry Your last action!")
+    end
+
+    return result
   end
 end

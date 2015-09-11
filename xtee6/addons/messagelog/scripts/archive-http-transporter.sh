@@ -27,11 +27,11 @@ usage () {
   echo " -d, --dir DIR    Archive directory. Defaults to '$DEFAULT_ARCHIVE_DIR'"
   echo " -r, --remove     Remove successfully transported files form the"
   echo "                  archive directory."
-  echo " -k, --key KEY    Private key file name in PEM format (SSL)."
+  echo " -k, --key KEY    Private key file name in PEM format (TLS)."
   echo "                  Defaults to '$DEFAULT_KEY'"
-  echo " -c, --cert CERT  Client certificate file in PEM format (SSL)."
+  echo " -c, --cert CERT  Client certificate file in PEM format (TLS)."
   echo "                  Defaults to '$DEFAULT_CERT'"
-  echo " --cacert FILE    CA certificate file to verify the peer (SSL)."
+  echo " --cacert FILE    CA certificate file to verify the peer (TLS)."
   echo "                  The file may contain multiple CA certificates."
   echo "                  The certificate(s) must be in PEM format."
   echo " -h, --help       This help text."
@@ -85,11 +85,11 @@ fi
 shopt -s nocasematch
 if [[ "$URL" == https://* ]]; then
   if [[ ! -f "$KEY" ]]; then
-    die "Client SSL key file '$KEY' not found"
+    die "Client TLS key file '$KEY' not found"
   fi
 
   if [[ ! -f "$CERT" ]]; then
-    die "Client SSL certificate file '$CERT' not found"
+    die "Client TLS certificate file '$CERT' not found"
   fi
 
   HTTPS_OPTIONS="--key $KEY --cert $CERT"

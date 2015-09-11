@@ -28,6 +28,8 @@ public final class ErrorCodes {
     public static final String X_IO_ERROR = "IOError";
     public static final String X_NETWORK_ERROR = "NetworkError";
     public static final String X_INTERNAL_ERROR = "InternalError";
+    public static final String X_BAD_REQUEST = "BadRequest";
+    public static final String X_NOT_FOUND = "NotFound";
     public static final String X_HTTP_ERROR = "HttpError";
     public static final String X_DATABASE_ERROR = "DatabaseError";
     public static final String X_INVALID_RESPONSE = "InvalidResponse";
@@ -67,6 +69,7 @@ public final class ErrorCodes {
 
     public static final String X_SSL_AUTH_FAILED = "SslAuthenticationFailed";
     public static final String X_LOGGING_FAILED_X = "LoggingFailed";
+    public static final String X_TIMESTAMPING_FAILED_X = "TimestampingFailed";
     public static final String X_INVALID_CONTENT_TYPE = "InvalidContentType";
     public static final String X_INVALID_HTTP_METHOD = "InvalidHttpMethod";
     public static final String X_INVALID_MESSAGE = "InvalidMessage";

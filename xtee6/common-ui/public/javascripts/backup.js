@@ -34,6 +34,7 @@ var XROAD_BACKUP = function() {
         opts.fnDrawCallback = function() {
             $(this).closest(".dataTables_wrapper")
                 .find(".dataTables_scrollHead").hide();
+            this.fnAdjustColumnSizing(false);
         };
 
         opts.aaSorting = [[0, "desc"]];
@@ -68,10 +69,14 @@ var XROAD_BACKUP = function() {
                 });
             };
 
-            initConsoleOutput(response.data.console_output,
+            initConsoleOutput(response.data.stderr,
                 _("restore.index.console_output"), null, onClose);
         }, "json").always(function() {
             restoreInProgress = false;
+        }).fail(function(xhr) {
+            var response = $.parseJSON(xhr.responseText);
+            initConsoleOutput(response.data.stderr,
+                _("restore.index.console_output"));
         });
     }
 
@@ -119,9 +124,12 @@ var XROAD_BACKUP = function() {
             $.post(action("backup"), null, function(response) {
                 refreshBackupFiles();
                 initConsoleOutput(
-                    response.data.console_output,
-                    _("backup.index.console_output"));
-            }, "json");
+                    response.data.stderr, _("backup.index.console_output"));
+            }, "json").fail(function(xhr) {
+                var response = $.parseJSON(xhr.responseText);
+                initConsoleOutput(
+                    response.data.stderr, _("backup.index.console_output"));
+            });
         });
     });
 

@@ -308,14 +308,14 @@ class ClientMessageProcessor extends MessageProcessorBase {
         if (request != null) {
             log.trace("logRequestMessage()");
 
-            MessageLog.log(requestSoap, request.getSignature());
+            MessageLog.log(requestSoap, request.getSignature(), true);
         }
     }
 
     private void logResponseMessage() throws Exception {
         log.trace("logResponseMessage()");
 
-        MessageLog.log(response.getSoap(), response.getSignature());
+        MessageLog.log(response.getSoap(), response.getSignature(), true);
     }
 
     private void sendResponse() throws Exception {

@@ -14,7 +14,6 @@ import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -71,8 +70,6 @@ public class SignatureVerifierTest {
      * Tests that verifying a valid signature succeeds.
      * @throws Exception if error occurs
      */
-    // TODO RM task #6773 - generate proper test data here!
-    @Ignore("Test data must be generated anew!")
     @Test
     public void verifyValidSignature() throws Exception {
         List<MessagePart> hashes = new ArrayList<>();
@@ -89,23 +86,23 @@ public class SignatureVerifierTest {
      * Tests that verifying a valid signature succeeds.
      * @throws Exception if error occurs
      */
-    // TODO RM task #6773 - generate proper test data here!
-    @Ignore("Test data must be generated anew!")
     @Test
     public void verifyValidSignatureHashChain() throws Exception {
         Resolver resolver = null;
 
-        resolver = new Resolver()
+        resolver = new Resolver() {
+            @Override
+            public InputStream resolve(String uri) throws IOException {
+                if ("/attachment1".equals(uri)) {
+                    // Returns the attachment content
+                    return IOUtils.toInputStream("blaah");
+                } else {
+                    return super.resolve(uri);
+                }
+            }
+        }
             .withHashChain("hash-chain-1.xml")
             .withMessage("message-1.xml");
-
-        createSignatureVerifier("batch-sig.xml",
-                "hash-chain-result.xml", resolver)
-            .verify(createClientId("consumer"), CORRECT_VALIDATION_DATE);
-
-        resolver = new Resolver()
-            .withHashChain("hash-chain-2.xml")
-            .withMessage("message-2.xml");
 
         createSignatureVerifier("batch-sig.xml",
                 "hash-chain-result.xml", resolver)

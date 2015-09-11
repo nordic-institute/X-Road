@@ -3,7 +3,9 @@ package ee.ria.xroad.common.messagelog.archive;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -11,11 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
@@ -54,8 +55,6 @@ public class LogArchiveWriter implements Closeable {
     private Path archiveTmp;
     private Path lastHashStepTmp;
 
-    private List<LogRecord> toArchive = new ArrayList<>();
-
     /**
      * Creates new LogArchiveWriter
      * @param outputPath - directory where the log archive is created.
@@ -92,7 +91,7 @@ public class LogArchiveWriter implements Closeable {
             logArchiveCache.add((MessageRecord) logRecord);
         }
 
-        toArchive.add(logRecord);
+        archiveBase.markRecordArchived(logRecord);
 
         if (logArchiveCache.isRotating()) {
             rotate();
@@ -101,12 +100,15 @@ public class LogArchiveWriter implements Closeable {
 
     @Override
     public void close() throws IOException {
-        try {
-            archiveAsicContainers();
-            closeOutputs();
+        log.trace("Closing log archive writer ...");
 
-            if (archiveTmp != null) {
+        try {
+            if (archiveAsicContainers()) {
+                closeOutputs();
+
                 saveArchive();
+
+                logArchiveCache.close();
             }
         } finally {
             clearTempArchive();
@@ -155,11 +157,18 @@ public class LogArchiveWriter implements Closeable {
 
         archiveTmp = null;
         lastHashStepTmp = null;
-        toArchive = new ArrayList<>();
     }
 
-    private void archiveAsicContainers() throws IOException {
-        archiveOut.write(ByteBuffer.wrap(logArchiveCache.getArchiveBytes()));
+    private boolean archiveAsicContainers() {
+        try (InputStream input = logArchiveCache.getArchiveFile();
+                OutputStream output = Channels.newOutputStream(archiveOut)) {
+            IOUtils.copy(input, output);
+        } catch (IOException e) {
+            log.error("Failed to archive ASiC containers due to IO error", e);
+            return false;
+        }
+
+        return true;
     }
 
     private void closeOutputs() throws IOException {
@@ -181,6 +190,10 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private void saveArchive() throws IOException {
+        if (archiveTmp == null) {
+            return;
+        }
+
         String random = generateRandom();
 
         String archiveFilename = getArchiveFilename(random);
@@ -203,11 +216,12 @@ public class LogArchiveWriter implements Closeable {
                 archiveFilename);
 
         try {
-            archiveBase.archive(toArchive, lastArchive);
+            archiveBase.markArchiveCreated(lastArchive);
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
+
 
     private static String generateRandom() {
         String random = getRandomAlphanumeric();
@@ -229,7 +243,7 @@ public class LogArchiveWriter implements Closeable {
     private static boolean filenameRandomUnique(String random) {
         String filenameEnd = String.format("-%s.zip", random);
 
-        String [] fileNamesWithSameRandom = new File(
+        String[] fileNamesWithSameRandom = new File(
                 getArchivePath()).list((file, name) ->
                         name.startsWith("mlog-") && name.endsWith(filenameEnd));
 

@@ -14,4 +14,9 @@ task copyDeps(type: Copy) {
     from configurations.compile
 }
 
+task checkRubySource(type: Exec) {
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
 build.dependsOn copyDeps

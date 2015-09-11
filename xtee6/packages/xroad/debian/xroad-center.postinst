@@ -45,40 +45,13 @@ case "$1" in
       echo  "user exists, skipping postgres schema creation"
     fi
 
-      update_needed=`su - postgres -c "psql centerui_production -tAc \"SELECT count(1) FROM schema_migrations\"" 2>/dev/null`
-      if [[ $? == 0 ]]
-       then
-       case $update_needed in
-         [1-9])
-          echo "no upgrade needed"
-        ;;
-        25)
-          echo "reset db changelog"
-          #DO NOT CHANGE ident
-          su - postgres -c "psql centerui_production -tA" << EOF
-alter table identifiers rename sdsb_instance to xroad_instance;
-alter table security_server_clients rename sdsb_member_id to xroad_member_id;
-alter table security_servers rename sdsb_member_id to xroad_member_id;
-alter table security_server_clients rename constraint security_server_clients_sdsb_member_id_fk to security_server_clients_xroad_member_id_fk;
-alter table security_servers rename constraint security_servers_sdsb_member_id_fk to security_servers_xroad_member_id_fk;
-truncate table schema_migrations;
-INSERT INTO schema_migrations VALUES ('20150408102110');
-update approved_cas set identifier_decoder_method_name = replace( identifier_decoder_method_name, 'ee.cyber.sdsb.common','ee.ria.xroad.common');
-update security_server_clients set type = 'XroadMember' where type = 'SdsbMember';
-update distributed_files set file_data = decode(replace(encode(file_data,'escape'), 'sdsbInstance','xRoadInstance'),'escape'), file_updated_at = current_timestamp where content_identifier='IDENTIFIERMAPPING';
-update distributed_files set file_data = decode(replace(encode(file_data,'escape'), 'sdsb.xsd','xroad.xsd'),'escape'), file_updated_at = current_timestamp where content_identifier='CENTRALMONITORAGENTS';
-EOF
-        ;;
-        *)
-	echo "not-compatible version of DB. quiting"
-	exit 2
-        ;;
-        esac
-      fi
-
-
     echo "running db migrations"
     /usr/share/xroad/db/migrate.sh db:migrate
+    if [[ $? -ne 0 ]]
+    then 
+      echo "database migrate failed.ABORTING"
+      exit 2
+    fi
 
     RET=""
     db_get xroad-common/username
@@ -122,8 +95,9 @@ esac
 
 #DEBHELPER#
 
-service xroad-jetty restart || service xroad-jetty start
-service xroad-signer restart || service xroad-signer start
+invoke-rc.d rsyslog restart 
+invoke-rc.d xroad-jetty restart
+invoke-rc.d xroad-signer restart
 invoke-rc.d nginx restart
 
 db_stop

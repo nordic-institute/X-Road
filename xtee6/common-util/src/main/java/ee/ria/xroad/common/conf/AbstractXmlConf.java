@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.StandardCopyOption;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -121,7 +122,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     @Override
     public void save() throws Exception {
         AtomicSave.execute(confFileName, "tmpconf",
-                out -> AbstractXmlConf.this.save(out));
+                out -> AbstractXmlConf.this.save(out),
+                StandardCopyOption.ATOMIC_MOVE);
     }
 
     @Override

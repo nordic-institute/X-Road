@@ -1,6 +1,6 @@
 java_import Java::java.util.Date
 
-java_import Java::ee.ria.xroad.common.conf.serverconf.model.AuthorizedSubjectType
+java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.identifier.ClientId
 java_import Java::ee.ria.xroad.common.identifier.GlobalGroupId
 java_import Java::ee.ria.xroad.common.identifier.LocalGroupId
@@ -16,8 +16,20 @@ module Clients::AclSubjects
     })
 
     client = get_client(params[:client_id])
-    
-    render_json(read_acl_subjects(client))
+
+    has_services = false
+
+    client.wsdl.each do |wsdl|
+      unless wsdl.service.isEmpty
+        has_services = true
+        break
+      end
+    end
+
+    render_json({
+      :acl_subjects => read_acl_subjects(client),
+      :has_services => has_services
+    })
   end
 
   def acl_subjects_search
@@ -138,6 +150,8 @@ module Clients::AclSubjects
   end
 
   def acl_subject_open_services_add
+    audit_log("Add access rights to subject", audit_log_data = {})
+
     authorize!(:edit_acl_subject_open_services)
 
     validate_params({
@@ -149,34 +163,23 @@ module Clients::AclSubjects
     client = get_client(params[:client_id])
     subject_id = get_cached_subject_id(params[:subject_id])
 
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:subjectId] = subject_id.toString
+    audit_log_data[:serviceCodes] = []
+
     now = Date.new
 
-    client.acl.each do |acl|
-      if params[:service_codes].include?(acl.serviceCode)
-
-        if !contains_subject(acl.authorizedSubject, subject_id)
-          authorized_subject = AuthorizedSubjectType.new
-          authorized_subject.subjectId = subject_id
-          authorized_subject.rightsGiven = now
-
-          acl.authorizedSubject.add(authorized_subject)
-        end
-
-        params[:service_codes].delete(acl.serviceCode)
-      end
-    end
-
-    # create new acl for services which did not have one
     params[:service_codes].each do |service_code|
-      acl = AclType.new
-      acl.serviceCode = service_code
+      if !contains_subject(client.acl, subject_id, service_code)
+        access_right = AccessRightType.new
+        access_right.subjectId = subject_id
+        access_right.serviceCode = service_code
+        access_right.rightsGiven = now
 
-      authorized_subject = AuthorizedSubjectType.new
-      authorized_subject.subjectId = subject_id
-      authorized_subject.rightsGiven = now
+        audit_log_data[:serviceCodes] << access_right.serviceCode
 
-      acl.authorizedSubject.add(authorized_subject)
-      client.acl.add(acl)
+        client.acl.add(access_right)
+      end
     end
 
     serverconf_save
@@ -189,6 +192,8 @@ module Clients::AclSubjects
   end
 
   def acl_subject_open_services_remove
+    audit_log("Remove access rights from subject", audit_log_data = {})
+
     authorize!(:edit_acl_subject_open_services)
 
     validate_params({
@@ -200,14 +205,13 @@ module Clients::AclSubjects
     client = get_client(params[:client_id])
     subject_id = get_cached_subject_id(params[:subject_id])
 
-    client.acl.each do |acl|
-      if params[:service_codes]
-        if params[:service_codes].include?(acl.serviceCode)
-          remove_subject(acl.authorizedSubject, subject_id)
-        end
-      else
-        remove_subject(acl.authorizedSubject, subject_id)
-      end
+    removed_access_rights =
+      remove_access_rights(client.acl, subject_id, params[:service_codes])
+
+    audit_log_data[:clientIdentifier] = client.identifier
+    audit_log_data[:subjectId] = subject_id.toString
+    audit_log_data[:serviceCodes] = removed_access_rights.map do |access_right|
+      access_right.serviceCode
     end
 
     serverconf_save
@@ -231,52 +235,50 @@ module Clients::AclSubjects
 
     clear_cached_subject_ids
 
-    client.acl.each do |acl|
-      next if service_code && acl.serviceCode != service_code
+    client.acl.each do |access_right|
+      next if service_code && access_right.serviceCode != service_code
 
-      acl.authorizedSubject.each do |authorized_subject|
-        subject_id = authorized_subject.subjectId
+      subject_id = access_right.subjectId
 
-        cache_subject_id(subject_id)
+      cache_subject_id(subject_id)
 
-        subject = {
-          :subject_id => subject_id.toString,
-          :type => subject_id.objectType.toString,
-          :instance => subject_id.xRoadInstance,
-          :rights_given => format_time(authorized_subject.rightsGiven)
-        }
+      subject = {
+        :subject_id => subject_id.toString,
+        :type => subject_id.objectType.toString,
+        :instance => subject_id.xRoadInstance,
+        :rights_given => format_time(access_right.rightsGiven)
+      }
 
-        if subject_id.objectType == XroadObjectType::MEMBER
-          subject[:name_description] = GlobalConf::getMemberName(subject_id)
-          subject[:member_group_code] = subject_id.memberCode
-          subject[:member_class] = subject_id.memberClass
-          subject[:subsystem_code] = nil
-        end
-
-        if subject_id.objectType == XroadObjectType::SUBSYSTEM
-          subject[:name_description] = GlobalConf::getMemberName(subject_id)
-          subject[:member_group_code] = subject_id.memberCode
-          subject[:member_class] = subject_id.memberClass
-          subject[:subsystem_code] = subject_id.subsystemCode
-        end
-
-        if subject_id.objectType == XroadObjectType::GLOBALGROUP
-          subject[:name_description] =
-            GlobalConf::getGlobalGroupDescription(subject_id)
-          subject[:member_group_code] = subject_id.groupCode
-          subject[:member_class] = nil
-          subject[:subsystem_code] = nil
-        end
-
-        if subject_id.objectType == XroadObjectType::LOCALGROUP
-          subject[:name_description] = localgroup_descs[subject_id.groupCode]
-          subject[:member_group_code] = subject_id.groupCode
-          subject[:member_class] = nil
-          subject[:subsystem_code] = nil
-        end
-
-        subjects[subject_id.toString] = subject
+      if subject_id.objectType == XroadObjectType::MEMBER
+        subject[:name_description] = GlobalConf::getMemberName(subject_id)
+        subject[:member_group_code] = subject_id.memberCode
+        subject[:member_class] = subject_id.memberClass
+        subject[:subsystem_code] = nil
       end
+
+      if subject_id.objectType == XroadObjectType::SUBSYSTEM
+        subject[:name_description] = GlobalConf::getMemberName(subject_id)
+        subject[:member_group_code] = subject_id.memberCode
+        subject[:member_class] = subject_id.memberClass
+        subject[:subsystem_code] = subject_id.subsystemCode
+      end
+
+      if subject_id.objectType == XroadObjectType::GLOBALGROUP
+        subject[:name_description] =
+          GlobalConf::getGlobalGroupDescription(subject_id)
+        subject[:member_group_code] = subject_id.groupCode
+        subject[:member_class] = nil
+        subject[:subsystem_code] = nil
+      end
+
+      if subject_id.objectType == XroadObjectType::LOCALGROUP
+        subject[:name_description] = localgroup_descs[subject_id.groupCode]
+        subject[:member_group_code] = subject_id.groupCode
+        subject[:member_class] = nil
+        subject[:subsystem_code] = nil
+      end
+
+      subjects[subject_id.toString] = subject
     end
 
     subjects.values
@@ -285,13 +287,13 @@ module Clients::AclSubjects
   def read_subject_services(client, subject_id)
     services = []
 
-    client.acl.each do |acl|
-      next unless subject = contains_subject(acl.authorizedSubject, subject_id)
+    client.acl.each do |access_right|
+      next unless access_right.subjectId == subject_id
 
       services << {
-        :service_code => acl.serviceCode,
-        :title => get_service_title(client, acl.serviceCode),
-        :rights_given => format_time(subject.rightsGiven)
+        :service_code => access_right.serviceCode,
+        :title => get_service_title(client, access_right.serviceCode),
+        :rights_given => format_time(access_right.rightsGiven)
       }
     end
 
@@ -340,23 +342,32 @@ module Clients::AclSubjects
     Time.at(time.getTime / 1000).strftime("%F")
   end
 
-  def contains_subject(authorized_subjects, subject_id)
-    authorized_subjects.each do |authorized_subject|
-      return authorized_subject if authorized_subject.subjectId == subject_id
+  def contains_subject(access_right, subject_id, service_code)
+    access_right.each do |access_right|
+      if access_right.subjectId == subject_id &&
+         access_right.serviceCode == service_code
+        return access_right
+      end
     end
 
     nil
   end
 
-  def remove_subject(authorized_subjects, subject_id)
-    subject_to_remove = nil
+  def remove_access_rights(access_rights, subject_ids, service_codes)
+    removed_access_rights = []
 
-    authorized_subjects.each do |authorized_subject|
-      if authorized_subject.subjectId == subject_id
-        subject_to_remove = authorized_subject
+    subject_ids = Array(subject_ids)
+    service_codes = Array(service_codes)
+
+    access_rights.each do |access_right|
+      if (subject_ids.empty? || subject_ids.include?(access_right.subjectId)) &&
+         (service_codes.empty? || service_codes.include?(access_right.serviceCode))
+
+        removed_access_rights << access_right
       end
     end
 
-    authorized_subjects.remove(subject_to_remove) if subject_to_remove
+    access_rights.removeAll(removed_access_rights)
+    removed_access_rights
   end
 end

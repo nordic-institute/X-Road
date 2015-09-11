@@ -1,9 +1,14 @@
 var XROAD_REQUEST_EDIT = function(){
+    var updateTables = function() {
+        // By default do nothing.
+    }
+
     /* -- PUBLIC - START -- */
 
-    function open(requestData) {
+    function open(requestData, updateTablesCallback) {
         XROAD_CENTERUI_COMMON.openDetailsIfAllowed("requests/can_see_details",
                 function(){
+            updateTables = updateTablesCallback;
             fillRequestDetails(requestData);
         });
     }
@@ -172,21 +177,6 @@ var XROAD_REQUEST_EDIT = function(){
         return memberName && memberName.trim().length > 0;
     }
 
-    function updateManagementRequestsTable() {
-        if (typeof XROAD_REQUESTS != 'undefined') {
-            XROAD_REQUESTS.updateTable();
-        }
-
-        if (typeof XROAD_MEMBER_EDIT != 'undefined') {
-            // TODO: need to refresh requests for topmost member_edit dialog
-            // XROAD_MEMBER_EDIT.refreshManagementRequests();
-        }
-
-        if (typeof XROAD_SECURITYSERVER_EDIT != 'undefined') {
-            XROAD_SECURITYSERVER_EDIT.refreshManagementRequests();
-        }
-    }
-
     /* -- REFRESH DATA - END -- */
 
     /* -- GET DATA - START -- */
@@ -231,7 +221,7 @@ var XROAD_REQUEST_EDIT = function(){
 
         confirm(confirmTranslationKey, null, function() {
             $.post("requests/" + action, params, function(){
-                updateManagementRequestsTable();
+                updateTables();
                 dialog.dialog("close");
             }, "json");
         });

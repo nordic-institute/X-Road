@@ -1,4 +1,5 @@
 class SecurityserversController < ApplicationController
+
   include RequestsHelper
   include SecurityserversHelper
   include AuthCertHelper
@@ -22,6 +23,10 @@ class SecurityserversController < ApplicationController
       :auth_cert_adding_request,
       :auth_cert_deletion_request]
 
+  upload_callbacks({
+    :import_auth_cert => "XROAD_SECURITYSERVER_EDIT.uploadCallbackAuthCert",
+  })
+
   # -- Common GET methods - start ---
 
   def index
@@ -32,7 +37,7 @@ class SecurityserversController < ApplicationController
     authorize!(:view_security_server_details)
 
     raw_cert = AuthCert.find(params[:certId])
-    render_cert_dump_and_hash(raw_cert.certificate)
+    render_cert_dump_and_hash(raw_cert.cert)
   end
 
   def get_records_count
@@ -137,7 +142,7 @@ class SecurityserversController < ApplicationController
     auth_certs = []
 
     server.auth_certs.each do |cert|
-      cert_obj = CommonUi::CertUtils.cert_object(cert.certificate)
+      cert_obj = CommonUi::CertUtils.cert_object(cert.cert)
 
       auth_certs << {
         :id => cert.id,
@@ -184,22 +189,29 @@ class SecurityserversController < ApplicationController
   # -- Specific POST methods - start ---
 
   def address_edit
+    audit_log("Edit security server address", audit_log_data = {})
+
     authorize!(:edit_security_server_address)
+
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:address] = params[:address]
 
     server_to_update = find_server(params[:serverCode],
         params[:ownerCode], params[:ownerClass])
 
     server_to_update.update_attributes!(:address => params[:address])
 
-    render_json({})
+    render_json
   end
 
   def edit_security_categories
     authorize!(:edit_security_server_security_category)
 
     server_data = params[:serverData]
-    server  = find_server(server_data[:serverCode],
-        server_data[:ownerCode], server_data[:ownerClass])
+    server = find_server(server_data[:serverCode],
+      server_data[:ownerCode], server_data[:ownerClass])
 
     category_codes = params[:categories]
 
@@ -211,14 +223,20 @@ class SecurityserversController < ApplicationController
   end
 
   def delete
+    audit_log("Delete security server", audit_log_data = {})
+
     authorize!(:delete_security_server)
 
-    server  = find_server(params[:serverCode],
-            params[:ownerCode], params[:ownerClass])
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+
+    server = find_server(params[:serverCode],
+      params[:ownerCode], params[:ownerClass])
 
     SecurityServer.destroy(server)
 
-    render_json({})
+    render_json
   end
 
   def import_auth_cert
@@ -230,15 +248,23 @@ class SecurityserversController < ApplicationController
 
     notice(t("common.cert_imported"))
 
-    upload_success(auth_cert_data,
-        "XROAD_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error(nil, "XROAD_SECURITYSERVER_EDIT.uploadCallbackAuthCert")
+    render_json(auth_cert_data)
   end
 
   def auth_cert_adding_request
+    audit_log("Add authentication certificate for security server",
+      audit_log_data = {})
+
     authorize!(:add_security_server_auth_cert_reg_request)
+
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:serverCode] = params[:serverCode]
+
+    auth_cert_bytes = get_temp_cert_from_session(params[:tempCertId])
+
+    audit_log_data[:certHash] = CommonUi::CertUtils.cert_hash(auth_cert_bytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     server_data = {
         :owner_class => params[:ownerClass],
@@ -246,17 +272,29 @@ class SecurityserversController < ApplicationController
         :server_code => params[:serverCode]
     }
 
-    request = add_auth_cert_reg_request(server_data, params[:tempCertId])
+    request = add_auth_cert_reg_request(server_data, auth_cert_bytes)
 
     notice(t("securityservers.add_auth_cert_adding_request",
         {:security_server => request.security_server}))
+
     render_json()
   end
 
   def auth_cert_deletion_request
+    audit_log("Delete authentication certificate of security server",
+      audit_log_data = {})
+
     authorize!(:delete_security_server_auth_cert)
 
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:serverCode] = params[:serverCode]
+
     auth_cert = AuthCert.find(params[:certId])
+
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(auth_cert.cert)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     security_server_id = SecurityServerId.from_parts(
       SystemParameter.instance_identifier,
@@ -268,7 +306,7 @@ class SecurityserversController < ApplicationController
 
     auth_cert_deletion_request = AuthCertDeletionRequest.new(
         :security_server => security_server_id,
-        :auth_cert => auth_cert.certificate,
+        :auth_cert => auth_cert.cert,
         :comments => comment,
         :origin => Request::CENTER)
 
@@ -279,7 +317,8 @@ class SecurityserversController < ApplicationController
 
     notice(t("securityservers.add_auth_cert_deletion_request",
         {:security_server_id => security_server_id}))
-    render_json()
+
+    render_json
   end
 
   # -- Specific POST methods - end ---

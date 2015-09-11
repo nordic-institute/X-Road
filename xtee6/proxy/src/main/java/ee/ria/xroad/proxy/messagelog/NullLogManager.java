@@ -5,6 +5,7 @@ import java.util.Date;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 
@@ -19,14 +20,19 @@ public class NullLogManager extends AbstractLogManager {
     }
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature)
-            throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature,
+            boolean clientSide) throws Exception {
         // do nothing
     }
 
     @Override
     protected LogRecord findByQueryId(String queryId, Date startTime,
             Date endTime) throws Exception {
+        return null;
+    }
+
+    @Override
+    protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
         return null;
     }
 

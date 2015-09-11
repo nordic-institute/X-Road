@@ -88,7 +88,7 @@ class SecurityServerTest < ActiveSupport::TestCase
       :server_code => "serverWithAuthCert")
 
     AuthCert.create!(
-      :certificate => "--bytes",
+      :cert => "--bytes",
       :security_server => server_to_destroy)
 
     # When

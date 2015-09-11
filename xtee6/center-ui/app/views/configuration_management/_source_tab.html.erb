@@ -13,11 +13,11 @@
     <% end %>
   </div>
   <p>
-    <label><%= t 'common.hash' %></label>
+    <label><%= t 'common.hash', :alg => ConfigurationSource::ANCHOR_FILE_HASH_ALGORITHM %>:</label>
     <span class="anchor-hash"></span>
   </p>
   <p>
-    <label><%= t 'common.generated' %></label>
+    <label><%= t 'common.generated' %>:</label>
     <span class="anchor-generated_at"></span>
   </p>
 </div>

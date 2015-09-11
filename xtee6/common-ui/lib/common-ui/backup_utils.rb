@@ -48,7 +48,10 @@ module CommonUi
         raise "File name must not be empty by this point!"
       end
 
-      File.delete(backup_file(filename))
+      deleted_file = backup_file(filename)
+      File.delete(deleted_file)
+
+      deleted_file
     end
 
     def upload_new_file(uploaded_file_param)
@@ -61,6 +64,8 @@ module CommonUi
 
       uploaded_backup_file = backup_file(filename)
       IOUtils.write_binary(uploaded_backup_file, uploaded_file_param.read())
+
+      uploaded_backup_file
     end
 
     def backup
@@ -82,7 +87,7 @@ module CommonUi
       Rails.logger.info("\n#{console_output_lines.join('\n')}")
       Rails.logger.info(" --- Backup script console output - END --- ")
 
-      return $?.exitstatus, console_output_lines
+      return $?.exitstatus, console_output_lines, tarfile
     end
 
     def restore(conf_file, &success_handler)
@@ -113,7 +118,7 @@ module CommonUi
       Rails.logger.info("\n#{console_output_lines.join('\n')}")
       Rails.logger.info(" --- Restore script console output - END --- ")
 
-      return $?.exitstatus, console_output_lines
+      return $?.exitstatus, console_output_lines, backup_file(conf_file)
     ensure
       begin
         yield if success_handler

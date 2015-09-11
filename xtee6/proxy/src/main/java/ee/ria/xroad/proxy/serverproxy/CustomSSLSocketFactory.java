@@ -63,7 +63,7 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
             return;
         }
 
-        log.trace("Verifying service SSL certificate...");
+        log.trace("Verifying service TLS certificate...");
 
         ClientId client = service.getClientId();
         List<X509Certificate> isCerts = ServerConf.getIsCerts(client);

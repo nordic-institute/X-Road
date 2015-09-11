@@ -49,7 +49,7 @@ public final class ConfProxyHelper {
                 sourceAnchor, path);
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.debug("Running '{} {} {}' ...", new String [] {
+        log.debug("Running '{} {} {}' ...", new String[] {
                 ConfProxyProperties.getDownloadScriptPath(),
                 sourceAnchor, path });
 
@@ -70,7 +70,7 @@ public final class ConfProxyHelper {
                 sourceAnchor);
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {}' ...", new String [] {
+        log.info("Running '{} {}' ...", new String[] {
                 ConfProxyProperties.getDownloadScriptPath(),
                 sourceAnchor});
         runConfClient(pb);

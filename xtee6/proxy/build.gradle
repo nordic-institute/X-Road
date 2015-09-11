@@ -76,9 +76,3 @@ task runBatchSigner(type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
-task runSecureLogPerformanceTest(type: JavaExec) {
-    jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-securelog-performancetest.xml'
-
-    main = 'ee.ria.xroad.proxy.newsecurelog.SecureLogPerformanceTest'
-    classpath = sourceSets.test.runtimeClasspath
-}

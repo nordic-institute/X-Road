@@ -20,7 +20,8 @@ class SecurityServerClient < ActiveRecord::Base
   # Finds a XROAD member or subsystem by ClientId
   # Returns nil, if not found.
   def self.find_by_id(client_id)
-    puts "SecurityServerClient.find_by_id(#{client_id})"
+    Rails.logger.info("SecurityServerClient.find_by_id(#{client_id})")
+
     if client_id.subsystem_code == nil
       # Find XROAD member
       return XroadMember.find_by_code(client_id.member_class, client_id.member_code)
@@ -263,6 +264,7 @@ class SecurityServerClient < ActiveRecord::Base
           :security_server => each.get_server_id(),
           :sec_serv_user => server_client_id.clean_copy(),
           :comments => comment,
+          :server_user_name => client.name,
           :origin => Request::CENTER)
       request.register()
 

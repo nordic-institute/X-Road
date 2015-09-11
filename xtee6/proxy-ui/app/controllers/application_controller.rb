@@ -2,17 +2,17 @@ require "management_request_helper"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.globalconf.GlobalConf
+java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
 java_import Java::ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl
 java_import Java::ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl
 java_import Java::ee.ria.xroad.common.conf.serverconf.dao.UiUserDAOImpl
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.UiUserType
-java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
+java_import Java::ee.ria.xroad.common.db.CustomPostgreSQLDialect
+java_import Java::ee.ria.xroad.common.db.HibernateUtil
 java_import Java::ee.ria.xroad.common.identifier.ClientId
 java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
-java_import Java::ee.ria.xroad.common.db.HibernateUtil
-java_import Java::ee.ria.xroad.common.db.CustomPostgreSQLDialect
 
 class ApplicationController < BaseController
 
@@ -91,12 +91,16 @@ class ApplicationController < BaseController
   end
 
   def set_locale
+    audit_log("Set UI language", audit_log_data = {})
+
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
     end
 
+    audit_log_data[:locale] = params[:locale]
+
     ui_user = UiUserDAOImpl.getUiUser(current_user.name)
-    
+
     unless ui_user
       ui_user = UiUserType.new
       ui_user.username = current_user.name
@@ -117,17 +121,7 @@ class ApplicationController < BaseController
       @tx.commit
     end
 
-    if @after_commit && @tx && @tx.wasCommitted
-      begin
-        logger.debug("executing after_commit actions")
-        @after_commit.each do |proc|
-          proc.call
-        end
-      rescue
-        @after_commit = []
-        raise $!
-      end
-    end
+    execute_after_commit_actions
 
     # Everything that can fail has been done,
     # now let's do the actual rendering.
@@ -140,7 +134,7 @@ class ApplicationController < BaseController
       return
     end
 
-    @after_commit = []
+    reset_transaction_callbacks
 
     begin
       begin
@@ -193,9 +187,6 @@ class ApplicationController < BaseController
       # when updating the history table.
       # The value of user_name will go out of scope when the transaction
       # ends.
-      # FIXME: the correct usage of setString?
-      #query = @session.createSQLQuery("SET LOCAL xroad.user_name=:user_name")
-      #query.setString("user_name", current_user.name)
       query = @session.createSQLQuery(
         "SET LOCAL xroad.user_name='#{current_user.name}'")
       query.executeUpdate()
@@ -226,10 +217,6 @@ class ApplicationController < BaseController
       serverconf.serverCode
   end
 
-  def after_commit(&block)
-    @after_commit << block
-  end
-
   def serverconf
     serverconf_dao = ServerConfDAOImpl.new
 
@@ -237,7 +224,6 @@ class ApplicationController < BaseController
       @serverconf = serverconf_dao.getConf
     end
 
-    logger.debug("Serverconf is nil? #{@serverconf == nil}")
     @serverconf
   end
 
@@ -276,7 +262,7 @@ class ApplicationController < BaseController
   def import_services
     if xroad_promoted?
       logger.info("XROAD promoted, skipping services import")
-      return 
+      return
     end
 
     if importer = SystemProperties::getServiceImporterCommand
@@ -296,7 +282,7 @@ class ApplicationController < BaseController
   def export_services(delete_client_id = nil)
     unless xroad_promoted?
       logger.info("XROAD not promoted, skipping services export")
-      return 
+      return
     end
 
     if exporter = SystemProperties::getServiceExporterCommand
@@ -425,6 +411,10 @@ class ApplicationController < BaseController
       file.write(content)
     end
 
+    get_temp_anchor_details
+  end
+
+  def get_temp_anchor_details
     # TODO: add constructor for byte[]
     begin
       anchor = ConfigurationAnchor.new(temp_anchor_file)
@@ -434,11 +424,14 @@ class ApplicationController < BaseController
       raise t("application.invalid_anchor_file")
     end
 
-    hash = CryptoUtils::hexDigest(
-      CryptoUtils::SHA224_ID, content.to_java_bytes)
+    content = IO.binread(temp_anchor_file)
+
+    hash_algorithm = CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID
+    hash = CryptoUtils::hexDigest(hash_algorithm, content.to_java_bytes)
 
     return {
       :hash => hash.upcase.scan(/.{1,2}/).join(':'),
+      :hash_algorithm => hash_algorithm,
       :generated_at => format_time(generated_at, true)
     }
   end

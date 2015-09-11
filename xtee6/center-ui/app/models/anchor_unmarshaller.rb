@@ -42,7 +42,7 @@ class AnchorUnmarshaller
 
     location.getVerificationCerts().each do |each|
       result << AnchorUrlCert.new(
-          :certificate => String.from_java_bytes(each))
+          :cert => String.from_java_bytes(each))
     end
 
     return result

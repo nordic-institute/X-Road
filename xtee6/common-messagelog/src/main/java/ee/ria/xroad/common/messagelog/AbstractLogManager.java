@@ -24,12 +24,16 @@ public abstract class AbstractLogManager extends UntypedActor {
         try {
             if (message instanceof LogMessage) {
                 LogMessage m = (LogMessage) message;
-                log(m.getMessage(), m.getSignature());
+                log(m.getMessage(), m.getSignature(), m.isClientSide());
                 getSender().tell(new Object(), getSelf());
             } else if (message instanceof FindByQueryId) {
                 FindByQueryId f = (FindByQueryId) message;
                 LogRecord result = findByQueryId(f.getQueryId(),
                         f.getStartTime(), f.getEndTime());
+                getSender().tell(result, getSelf());
+            } else if (message instanceof TimestampMessage) {
+                TimestampMessage m = (TimestampMessage) message;
+                TimestampRecord result = timestamp(m.getMessageRecordId());
                 getSender().tell(result, getSelf());
             } else {
                 unhandled(message);
@@ -40,8 +44,11 @@ public abstract class AbstractLogManager extends UntypedActor {
     }
 
     protected abstract void log(SoapMessageImpl message,
-            SignatureData signature) throws Exception;
+            SignatureData signature, boolean clientSide) throws Exception;
 
     protected abstract LogRecord findByQueryId(String queryId, Date startTime,
             Date endTime) throws Exception;
+
+    protected abstract TimestampRecord timestamp(Long messageRecordId)
+            throws Exception;
 }

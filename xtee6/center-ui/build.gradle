@@ -14,7 +14,6 @@ task copyCommon(type: Copy) {
 }
 
 task copyCenterCommon << {
-
     copy {
         into "vendor/engines/center-common"
         from "../center-common"
@@ -42,19 +41,19 @@ task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], t
 }
 
 // Runs the migration steps on the database.
-task updateSQLiteDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+task updateSQLiteDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
     commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test']
 }
 
-task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+task rollbackSQLiteDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
     commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
 }
 
-task updatePostgresDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+task updatePostgresDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
     commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test_pg']
 }
 
-task rollbackPostgresDbSchema(dependsOn: [copyDeps, ':center-ui:build'], type: Exec) {
+task rollbackPostgresDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
     commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test_pg']
 }
 
@@ -66,8 +65,14 @@ task runControllerTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:controllers', 'RAILS_ENV=test']
 }
 
-task runPgDatabaseTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
+// These tests assume the database has been configured using BDR and is part of a cluster.
+task runPgHaTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test_pg:database', 'RAILS_ENV=test_pg']
 }
 
+task checkRubySource(type: Exec) {
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
 build.dependsOn copyDeps

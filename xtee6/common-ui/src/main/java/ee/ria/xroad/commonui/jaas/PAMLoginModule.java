@@ -15,6 +15,8 @@ import javax.security.auth.spi.LoginModule;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;
 
+import ee.ria.xroad.common.AuditLogger;
+
 /**
  * The PAM login module implementation.
  */
@@ -25,6 +27,7 @@ public class PAMLoginModule implements LoginModule {
     private Subject subject;
     private CallbackHandler callbackHandler;
 
+    private String webName;
     private UnixUser currentUser;
 
     @Override
@@ -46,7 +49,7 @@ public class PAMLoginModule implements LoginModule {
             Callback[] callbacks = getCallbacks();
             callbackHandler.handle(callbacks);
 
-            String webName = ((NameCallback) callbacks[0]).getName();
+            webName = ((NameCallback) callbacks[0]).getName();
             String webPassword = new String(
                 ((PasswordCallback) callbacks[1]).getPassword());
 
@@ -58,7 +61,6 @@ public class PAMLoginModule implements LoginModule {
             currentUser = pam.authenticate(webName, webPassword);
 
             return currentUser != null;
-
         } catch (IOException e) {
             throw new LoginException(e.toString());
         } catch (UnsupportedCallbackException e) {
@@ -71,6 +73,9 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
+        AuditLogger.log("Log in user", webName, null);
+        webName = null;
+
         if (currentUser == null) {
             return false;
         }
@@ -87,6 +92,9 @@ public class PAMLoginModule implements LoginModule {
 
     @Override
     public boolean abort() throws LoginException {
+        AuditLogger.log("Log in user failed", webName, null);
+        webName = null;
+
         if (currentUser == null) {
             return false;
         }
@@ -107,6 +115,8 @@ public class PAMLoginModule implements LoginModule {
         for (String group : currentUser.getGroups()) {
             subject.getPrincipals().remove(new JAASRole(group));
         }
+
+        AuditLogger.log("Log out user", currentUser.getUserName(), null);
 
         return true;
     }

@@ -59,7 +59,8 @@ class RequestProcessing < ActiveRecord::Base
 
   # Adds given request to this processing.
   def add_request(request)
-    puts("add_request(#{request}), status = #{status}")
+    Rails.logger.info("add_request(#{request}), status = #{status}")
+
     if status == NEW # Newly created processing
       # Attach request to processing
       connect_to(request)

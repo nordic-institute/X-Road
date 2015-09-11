@@ -52,7 +52,7 @@ en:
     cert_with_id_not_found: "Certificate with id '%{0}' not found"
     login_failed: "Login failed: %{0}"
     logout_failed: "Logout failed: %{0}"
-    cert_import_failed: "Certificate import failed: %{0}"
+    cert_import_failed: "%{0}"
 
   validation:
     missing_param: "Missing parameter: %{param}"

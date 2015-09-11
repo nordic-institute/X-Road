@@ -13,13 +13,13 @@ sudo apt-get remove -y openjdk-7-jre-headless
 
 cd ~
 
-wget https://services.gradle.org/distributions/gradle-2.1-bin.zip -O gradle-2.1-bin.zip
-unzip gradle-2.1-bin.zip
+wget https://services.gradle.org/distributions/gradle-2.4-bin.zip -O gradle-2.4-bin.zip
+unzip gradle-2.4-bin.zip
 
-gpg --keyserver hkp://keys.gnupg.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
-curl -L https://get.rvm.io | bash -s stable --ruby
+gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
+curl -L https://get.rvm.io | bash -s stable 
 source ~/.rvm/scripts/rvm
-rvm install jruby
-rvm use jruby
-jgem install bundle warbler
+rvm install jruby-1.7.22 --binary
+rvm use 
+jgem install bundle warbler:1.4.9
 

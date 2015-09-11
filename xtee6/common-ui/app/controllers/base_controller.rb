@@ -19,6 +19,9 @@ class BaseController < ActionController::Base
   include CommonUi::UserUtils
   include CommonUi::ValidationUtils
 
+  include Base::TransactionCallbacks
+  include Base::AuditLog
+
   protect_from_forgery
 
   class Warning < StandardError
@@ -55,6 +58,8 @@ class BaseController < ActionController::Base
   end
 
   def activate_token
+    audit_log("Log in to token", audit_log_data = {})
+
     authorize!(:activate_token)
 
     validate_params({
@@ -69,8 +74,12 @@ class BaseController < ActionController::Base
 
     token = SignerProxy::getToken(params[:token_id])
 
+    audit_log_data[:tokenId] = token.id
+    audit_log_data[:tokenSerialNumber] = token.serialNumber
+    audit_log_data[:tokenFriendlyName] = token.friendlyName
+
     if token.status == TokenStatusInfo::USER_PIN_LOCKED
-      raise t("activate.pin_locked")
+      raise t("activate_token.pin_locked")
     end
 
     token.tokenInfo.each do |key, val|
@@ -85,9 +94,12 @@ class BaseController < ActionController::Base
         SignerProxy::activateToken(params[:token_id], pin.to_java(:char))
       end
     rescue
-      if SignerProxy::getToken(params[:token_id]).status ==
-          TokenStatusInfo::USER_PIN_FINAL_TRY
+      token = SignerProxy::getToken(params[:token_id])
+
+      if token.status == TokenStatusInfo::USER_PIN_FINAL_TRY
         raise "#{$!.message}, #{t('activate_token.final_try')}"
+      elsif token.status == TokenStatusInfo::USER_PIN_LOCKED
+        raise "#{$!.message}. #{t('activate_token.pin_locked')}."
       end
 
       raise $!
@@ -97,11 +109,19 @@ class BaseController < ActionController::Base
   end
 
   def deactivate_token
+    audit_log("Log out from token", audit_log_data = {})
+
     authorize!(:deactivate_token)
 
     validate_params({
       :token_id => [:required]
     })
+
+    token = SignerProxy::getToken(params[:token_id])
+
+    audit_log_data[:tokenId] = token.id
+    audit_log_data[:tokenSerialNumber] = token.serialNumber
+    audit_log_data[:tokenFriendlyName] = token.friendlyName
 
     SignerProxy::deactivateToken(params[:token_id])
 
@@ -167,7 +187,7 @@ class BaseController < ActionController::Base
     unless e.translationCode
       # no translationCode, let's try to translate the first faultCode
       begin
-        translation = 
+        translation =
           t("coded_exception.fault_code.#{e.faultCode.split('.')[0]}",
             :reason => e.faultString, :raise => true)
       rescue
@@ -196,24 +216,9 @@ class BaseController < ActionController::Base
     raise ActionController::InvalidAuthenticityToken
   end
 
-  def dependencies
-    []
-  end
-
-  def check_dependencies
-    @disabled_controllers = []
-
-    dependencies.each do |controller, checks|
-      logger.debug("Checking dependencies for #{controller}")
-
-      checks.each do |check|
-        @disabled_controllers << controller unless send(check)
-      end
-    end
-  end
-
   def warn(code, text)
     unless params[:ignore] && params[:ignore].include?(code)
+      reset_transaction_callbacks
       raise Warning.new(code, text)
     end
   end
@@ -227,13 +232,13 @@ class BaseController < ActionController::Base
       :default => exception.message
     })
 
-    render_error_response(message)
+    render_error_response(message, exception)
   end
 
   def render_error(exception)
     log_stacktrace(exception)
 
-    render_error_response(exception.message)
+    render_error_response(exception.message, exception)
   end
 
   def log_stacktrace(exception)
@@ -249,24 +254,33 @@ class BaseController < ActionController::Base
       exception_message = ExceptionUtils.getRootCauseMessage(exception)
     end
 
-    render_error_response(exception_message)
+    render_error_response(exception_message, exception)
   end
 
-  def render_error_response(exception_message)
+  def render_error_response(exception_message, exception = nil)
+    execute_after_rollback_actions
+
     error(get_full_error_message(exception_message))
 
     # in case of error, only notices from :notice! are rendered
     flash.delete(:notice)
 
     if request.content_type == "multipart/form-data"
-      upload_error
+      render_upload_callback(false, {
+        :stderr => (exception.stderr if exception.respond_to?(:stderr))
+      })
       return
     end
 
     if request.xhr?
       # ajax request only gets the messages
       # status => 500 invokes .ajaxError() callback in jQuery
-      render :json => { :messages => flash.discard }, :status => 500
+      render :json => {
+        :messages => flash.discard,
+        :data => {
+          :stderr => (exception.stderr if exception.respond_to?(:stderr))
+        }
+      }, :status => 500
     else
       # regular request gets the whole layout with messages
       render :template => "application/index"
@@ -311,10 +325,14 @@ class BaseController < ActionController::Base
   end
 
   def render_json(data = nil)
-    render :json => {
-      :messages => flash.discard,
-      :data => data
-    }
+    if request.content_type == "multipart/form-data"
+      render_upload_callback(true, data)
+    else
+      render :json => {
+        :messages => flash.discard,
+        :data => data
+      }
+    end
   end
 
   def render_json_without_messages(data = nil)
@@ -356,24 +374,45 @@ class BaseController < ActionController::Base
     }
   end
 
-  def upload_success(data = nil, callback = nil)
-    upload_callback(true, data, callback)
-  end
+  def render_upload_callback(success, data = {})
+    upload_callback_data = current_upload_callback_data
 
-  def upload_error(data = nil, callback = nil)
-    upload_callback(false, data, callback)
-  end
+    unless upload_callback_data.empty?
+      data.merge!(upload_callback_data)
+    end
 
-  def upload_callback(success, data = nil, callback = nil)
     json_response = {
       :success => success,
       :messages => flash.discard,
       :data => data
     }
+
     render :partial => "application/upload_callback", :locals => {
-      :callback => callback,
+      :callback => current_upload_callback,
       :json_response => json_response
     }
+  end
+
+  class << self
+    def upload_callbacks(callbacks)
+      @upload_callbacks = callbacks
+    end
+
+    def get_upload_callback(action_name)
+      @upload_callbacks[action_name.to_sym] if @upload_callbacks
+    end
+
+    def get_upload_callback_data(action_name)
+      @upload_callbacks["#{action_name}_data".to_sym] if @upload_callbacks
+    end
+  end
+
+  def current_upload_callback
+    self.class.get_upload_callback(action_name) || "uploadCallback"
+  end
+
+  def current_upload_callback_data
+    self.class.get_upload_callback_data(action_name) || {}
   end
 
   def format_time(time, with_timezone = false)

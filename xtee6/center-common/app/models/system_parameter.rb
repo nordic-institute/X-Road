@@ -38,14 +38,54 @@ class SystemParameter < ActiveRecord::Base
   CONF_EXPIRE_INTERVAL_SECONDS = "confExpireIntervalSeconds"
   DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS = 600
 
+  # These parameters are set independently on each instance of the central server
+  # even though the records are replicated to each database node.
+  NODE_LOCAL_PARAMETERS = [
+    SystemParameter::CENTRAL_SERVER_ADDRESS
+  ]
+
   validates_with Validators::MaxlengthValidator
 
-  def self.get(keyId, default_value = nil)
-    value_in_db = SystemParameter.where(:key => keyId)
+  # Return true if the name of the local database node must be taken into
+  # account when working with the parameter.
+  def self.node_local_parameter?(key)
+    return NODE_LOCAL_PARAMETERS.include?(key)
+  end
+
+  # Return the value corresponding to the given key.
+  # In HA systems, the correct record must be found using the name of the
+  # database node for some parameters.
+  # In other cases, the default node name is used and each parameter should
+  # have a single value.
+  def self.get(key_id, default_value = nil)
+    value_in_db = nil
+    if CommonSql.ha_configured? && SystemParameter.node_local_parameter?(key_id)
+      ha_node_name = CommonSql.ha_node_name
+      value_in_db =
+        SystemParameter.where(:key => key_id, :ha_node_name => CommonSql.ha_node_name)
+    else
+      value_in_db = SystemParameter.where(:key => key_id)
+    end
     if value_in_db.first
       return value_in_db.first.value
     end
     return default_value
+  end
+
+  # Return an object representing a system parameter record with the given key
+  # on the local database node.
+  # For new records, the node name will be set by a trigger function when the
+  # object is written to the database.
+  def self.find_or_initialize(lookup_key, update_value)
+    rec = nil
+    if CommonSql.ha_configured? && SystemParameter.node_local_parameter?(lookup_key)
+      ha_node_name = CommonSql.ha_node_name
+      rec = SystemParameter.find_or_initialize_by_key_and_ha_node_name(
+          lookup_key, ha_node_name)
+    else
+      rec = SystemParameter.find_or_initialize_by_key(lookup_key)
+    end
+    rec.update_attributes!(:value => update_value)
   end
 
   def self.instance_identifier

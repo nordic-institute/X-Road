@@ -97,7 +97,7 @@ var XROAD_TSPS = function() {
 
         }, function(params) { // onCertView
             $.get(action("view_tsp_cert"), params, function(response) {
-                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data.cert_dump);
+                XROAD_CERT_DETAILS_DIALOG.openDialog(response.data);
             }, "json");
         });
     }

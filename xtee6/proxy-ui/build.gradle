@@ -37,4 +37,9 @@ task benchmarkServerconfReadWrite(dependsOn: [copyDeps], type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'test:benchmark']
 }
 
+task checkRubySource(type: Exec) {
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
 build.dependsOn copyDeps

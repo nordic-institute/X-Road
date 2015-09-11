@@ -1,6 +1,7 @@
 require 'json'
 require 'common-ui/uploaded_file.rb'
 
+java_import Java::ee.ria.xroad.common.AuditLogger
 java_import Java::ee.ria.xroad.common.SystemProperties
 
 class ApplicationController < BaseController
@@ -26,7 +27,7 @@ class ApplicationController < BaseController
   before_filter :disable_federation
   before_filter :read_locale
   before_filter :check_conf, :except => [:menu]
-  before_filter :read_server_id, :except => [:menu]
+  before_filter :read_server_id, :read_ha_node_name, :except => [:menu]
   before_filter :verify_get, :only => [
       :index,
       :get_records_count,
@@ -42,9 +43,13 @@ class ApplicationController < BaseController
   end
 
   def set_locale
+    audit_log("Set UI language", audit_log_params = {})
+
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
     end
+
+    audit_log_params[:locale] = params[:locale]
 
     ui_user = UiUser.find_by_username(current_user.name)
 
@@ -71,6 +76,18 @@ class ApplicationController < BaseController
       software_token_initialized?
   end
 
+  def render(*args)
+    unless ActiveRecord::Base.connection.outside_transaction?
+      ActiveRecord::Base.connection.commit_db_transaction
+    end
+
+    execute_after_commit_actions
+
+    # Everything that can fail has been done,
+    # now let's do the actual rendering.
+    super
+  end
+
   def wrap_in_transaction
     ActiveRecord::Base.isolation_level(:repeatable_read) do
       ActiveRecord::Base.transaction do
@@ -82,6 +99,7 @@ class ApplicationController < BaseController
 
   # Passes the required variables to the database engine if supported.
   def set_transaction_variables
+    # FIXME: perhaps use CommonSql.is_postgres?
     adapter_name = ActiveRecord::Base.connection.adapter_name
     if adapter_name == "PostgreSQL"
       # If we are running on top of Postgres, the name of the logged-in
@@ -89,9 +107,6 @@ class ApplicationController < BaseController
       # when updating the history table.
       # The value of user_name will go out of scope when the transaction
       # ends.
-      # FIXME: sanitize/escape input although this value cannot be supplied
-      # via the request.
-      # FIXME: do we need a default value in the conf of postgres?
       statement = "SET LOCAL xroad.user_name='#{current_user.name}'"
       conn = ActiveRecord::Base.connection
       conn.execute(statement)
@@ -164,8 +179,12 @@ class ApplicationController < BaseController
 
   def read_server_id
     return @server_id if @server_id
-
     @server_id = CentralServerId.new(SystemParameter.instance_identifier)
+  end
+
+  def read_ha_node_name
+    return @ha_node_name if @ha_node_name
+    @ha_node_name = CommonSql.ha_node_name
   end
 
   def validate_auth_cert(uploaded_file)

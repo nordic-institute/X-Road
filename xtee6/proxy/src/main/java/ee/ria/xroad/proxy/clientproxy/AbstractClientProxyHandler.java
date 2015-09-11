@@ -11,11 +11,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.conf.serverconf.ClientCert;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -77,6 +77,15 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // error code prefixes to them.
 
             failure(processor, response, ex);
+        } catch (CodedExceptionWithHttpStatus ex) {
+            handled = true;
+
+            log.error("Request processing error", ex);
+
+            // Respond with HTTP status code and plain text error message
+            // instead of SOAP fault message.
+
+            failure(response, ex);
         } catch (Throwable ex) {
             handled = true;
 
@@ -120,6 +129,18 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         sendErrorResponse(response, ex);
     }
 
+    protected void failure(HttpServletResponse response,
+            CodedExceptionWithHttpStatus ex) throws IOException {
+        MessageInfo info = null;
+
+        MonitorAgent.failure(info,
+                ex.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
+                ex.getFaultString());
+
+        sendPlainTextErrorResponse(
+                response, ex.getStatus(), ex.getFaultString());
+    }
+
     protected static boolean isGetRequest(HttpServletRequest request) {
         return request.getMethod().equalsIgnoreCase("GET");
     }
@@ -133,7 +154,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 ? str.substring(1) : str; // Strip '/'
     }
 
-    protected static ClientCert getClientCert(HttpServletRequest request) {
+    static ClientCert getClientCert(HttpServletRequest request) {
         Object attribute = request.getAttribute(
                 "javax.servlet.request.X509Certificate");
 

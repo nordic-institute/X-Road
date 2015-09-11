@@ -16,6 +16,9 @@ public class MimeTypes extends org.eclipse.jetty.http.MimeTypes {
 
     public static final String BINARY = "application/octet-stream";
 
+    public static final String ZIP = "application/zip";
+    public static final String ASIC_ZIP = "application/vnd.etsi.asic-e+zip";
+
     public static final String HASH_CHAIN_RESULT =
             "application/hash-chain-result";
 

@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -61,23 +63,53 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private boolean response;
 
+    @Getter
+    @Setter
+    private String memberClass;
+
+    @Getter
+    @Setter
+    private String memberCode;
+
+    @Getter
+    @Setter
+    private String subsystemCode;
+
+    /**
+     * Constructs a message record.
+     * @param msg the message
+     * @param sig the signature
+     * @param clientId message sender client identifier
+     * @throws Exception in case of any errors
+     */
+    public MessageRecord(SoapMessageImpl msg, String sig, ClientId clientId)
+            throws Exception {
+        this(msg.getQueryId(), msg.getXml(), sig, msg.isResponse(), clientId);
+    }
+
     /**
      * Constructs a message record.
      * @param qid the query ID
      * @param msg the message
      * @param sig the signature
      * @param response whether this record is for a response
+     * @param clientId message sender client identifier
      */
-    public MessageRecord(String qid, String msg, String sig, boolean response) {
+    public MessageRecord(String qid, String msg, String sig, boolean response,
+            ClientId clientId) {
         this.queryId = qid;
         this.message = msg;
         this.signature = sig;
         this.response = response;
+        this.memberClass = clientId.getMemberClass();
+        this.memberCode = clientId.getMemberCode();
+        this.subsystemCode = clientId.getSubsystemCode();
     }
 
     @Override
     public Object[] getLinkingInfoFields() {
-        return new Object[] {getId(), getTime(), queryId, message, signature};
+        return new Object[] {getId(), getTime(), queryId, message, signature,
+                memberClass, memberCode, subsystemCode};
     }
 
     /**
@@ -85,14 +117,11 @@ public class MessageRecord extends AbstractLogRecord {
      * @throws Exception in case of any errors
      */
     public AsicContainer toAsicContainer() throws Exception {
-        log.trace("toAsicContainer()", queryId);
+        log.trace("toAsicContainer({})", queryId);
 
-        traceHashChainData();
+        SignatureData signatureData =
+                new SignatureData(signature, hashChainResult, hashChain);
 
-        SignatureData signatureData = new SignatureData(
-                this.signature,
-                hashChainResult,
-                hashChain);
         TimestampData timestamp = null;
 
         if (timestampRecord != null) {
@@ -103,18 +132,6 @@ public class MessageRecord extends AbstractLogRecord {
         }
 
         return new AsicContainer(message, signatureData, timestamp);
-    }
-
-    /**
-     * @return a hex digest of the given query ID
-     * @throws Exception if any errors occur
-     */
-    private void traceHashChainData() {
-        log.trace("Hash chain:\n{}", hashChain);
-        log.trace("Hash chain result:\n{}", hashChainResult);
-        log.trace("Timestamp hash chain:\n{}", timestampHashChain);
-        log.trace("Timestamp hash chain result:\n{}",
-                timestampRecord.getHashChainResult());
     }
 
     /**

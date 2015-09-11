@@ -25,7 +25,7 @@ class MockAnchorUnmarshaller
 
     result << AnchorUrl.new(
         :url => "http://anchorurl.example.com",
-        :anchor_url_certs => [AnchorUrlCert.new(:certificate =>"mockCert")])
+        :anchor_url_certs => [AnchorUrlCert.new(:cert =>"mockCert")])
 
     return result
   end
@@ -43,7 +43,7 @@ class TrustedAnchorTest < ActiveSupport::TestCase
     anchor_url = anchor_urls[0]
     assert_equal("http://anchorurl.example.com", anchor_url.url)
 
-    assert_equal("mockCert", anchor_url.anchor_url_certs[0].certificate)
+    assert_equal("mockCert", anchor_url.anchor_url_certs[0].cert)
   end
 
   test "Should add new anchor" do

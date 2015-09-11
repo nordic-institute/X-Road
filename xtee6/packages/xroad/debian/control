@@ -16,14 +16,14 @@ Description: X-Road central server
 Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-jetty9 (>=6.3), curl, unzip, libmhash2
-Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.3)
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=6.6), curl, unzip, libmhash2
+Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=6.6)
 Description: X-Road central server
  X-Road central server programs and utilities
 
 Package: xroad-common
 Architecture: amd64
-Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java
+Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java, ntp, crudini, adduser
 Description: X-Road shared components
  X-Road shared components and utilities
 
@@ -38,8 +38,8 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-jetty9  (>=6.3), curl, authbind
-Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.3)
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=6.6), curl, authbind
+Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.6)
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -47,33 +47,31 @@ Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
 Depends: ${misc:Depends}
-Pre-depends: xroad-common  (>=6.3)
+Pre-depends: xroad-common  (>=6.6)
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
 Package: xroad-addon-hwtokens
 Architecture: all
-Depends: ${misc:Depends}, xroad-common (>=6.3)
+Depends: ${misc:Depends}, xroad-common (>=6.6)
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
 
-Package: xroad-addon-legacy-securelog
-Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.3)
-Conflicts: xroad-addon-messagelog
-Description: X-Road AddOn: Legacy securelog
- Legacy securelog
-
 Package: xroad-addon-messagelog
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.3)
+Depends: ${misc:Depends}, xroad-proxy (>=6.6)
 Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
 Package: xroad-addon-metaservices
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.3)
+Depends: ${misc:Depends}, xroad-proxy (>=6.6)
 Description: X-Road AddOn: metaservices
  AddOn for metaservice reponders
 
+Package: xroad-center-clusterhelper
+Architecture: all
+Depends: ${misc:Depends}, openssh-client, openssl, crudini, python3-requests
+Description: X-Road central cluster scripts
+ Scripts for maintaining X-Road cluster

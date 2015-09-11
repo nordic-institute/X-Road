@@ -29,6 +29,10 @@ class MembersController < ApplicationController
 
   before_filter :init_owners_group_code, :only => [:global_groups]
 
+  upload_callbacks({
+    :import_auth_cert => "XROAD_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert"
+  })
+
   # -- Common GET methods - start ---
 
   def index
@@ -190,10 +194,16 @@ class MembersController < ApplicationController
   # -- Specific POST methods - start ---
 
   def member_add
+    audit_log("Add member", audit_log_data = {})
+
     authorize!(:add_new_member)
 
     member_class = params[:memberClass]
     member_code = params[:memberCode]
+
+    audit_log_data[:memberName] = params[:memberName]
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
 
     XroadMember.create!(
         :name => params[:memberName],
@@ -208,7 +218,13 @@ class MembersController < ApplicationController
   end
 
   def member_edit
+    audit_log("Edit member name", audit_log_data = {})
+
     authorize!(:edit_member_name_and_admin_contact)
+
+    audit_log_data[:memberName] = params[:memberName]
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
 
     member_to_update = find_member(params[:memberClass], params[:memberCode])
 
@@ -216,11 +232,16 @@ class MembersController < ApplicationController
         :name => params[:memberName],
         :administrative_contact => params[:adminContact])
 
-    render_json({})
+    render_json
   end
 
   def delete
+    audit_log("Delete member", audit_log_data = {})
+
     authorize!(:delete_member)
+
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
 
     member_to_delete = find_member(params[:memberClass], params[:memberCode])
 
@@ -230,11 +251,17 @@ class MembersController < ApplicationController
   end
 
   def delete_subsystem
+    audit_log("Delete subsystem", audit_log_data = {})
+
     authorize!(:remove_member_subsystem)
 
     member = find_member(params[:memberClass], params[:memberCode])
     subsystem = Subsystem.where(:xroad_member_id => member.id,
         :subsystem_code => params[:subsystemCode]).first
+
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
+    audit_log_data[:memberSubsystemCode] = params[:subsystemCode]
 
     Subsystem.destroy(subsystem)
     render_json(get_subsystems(member))
@@ -249,25 +276,32 @@ class MembersController < ApplicationController
 
     notice(t("common.cert_imported"))
 
-    upload_success(auth_cert_data,
-        "XROAD_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
-  rescue RuntimeError => e
-    error(e.message)
-    upload_error(nil, "XROAD_MEMBER_EDIT.uploadCallbackOwnedServerAuthCert")
+    render_json(auth_cert_data)
   end
 
   def add_new_owned_server_request
+    audit_log("Add security server", audit_log_data = {})
+
     authorize!(:add_security_server_reg_request)
 
     owner = find_member(params[:ownerClass], params[:ownerCode])
     server_code = params[:serverCode]
+
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(
+        get_temp_cert_from_session(params[:tempCertId]))
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     if !server_code || server_code.empty?
       raise t("members.server_code_blank")
     end
 
     potentially_existing_server = SecurityServer.where(
-        :xroad_member_id => owner.id,
+        :owner_id => owner.id,
         :server_code => server_code).first
 
     if potentially_existing_server
@@ -283,7 +317,8 @@ class MembersController < ApplicationController
         :server_code => server_code
     }
 
-    request = add_auth_cert_reg_request(server_data, params[:tempCertId])
+    auth_cert_bytes = get_temp_cert_from_session(params[:tempCertId])
+    request = add_auth_cert_reg_request(server_data, auth_cert_bytes)
 
     notice(t("members.auth_cert_request_added",
         {:security_server => request.security_server}))
@@ -291,6 +326,8 @@ class MembersController < ApplicationController
   end
 
   def add_new_server_client_request
+    audit_log("Register member as security server client", audit_log_data = {})
+
     authorize!(:add_security_server_client_reg_request)
 
     member_class = params[:memberClass]
@@ -316,6 +353,13 @@ class MembersController < ApplicationController
 
     client_id = get_client_id(member_class, member_code, subsystem_code)
 
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:clientIdentifier] =
+      JavaClientId.create(SystemParameter.instance_identifier,
+        member_class, member_code, subsystem_code)
+
     client_reg_request = ClientRegRequest.new(
          :security_server => server_id,
          :sec_serv_user => client_id,
@@ -329,11 +373,16 @@ class MembersController < ApplicationController
     notice(t("members.client_add_request_added",
       {:client_id => client_id, :server_id => server_id}))
 
-    render_json()
+    render_json
   end
 
   def delete_server_client_request
+    audit_log("Unregister member as security server client", audit_log_data = {})
+
     authorize!(:add_security_server_client_reg_request)
+
+    member_class = params[:memberClass]
+    member_code = params[:memberCode]
 
     subsystem_code_param = params[:subsystemCode]
     subsystem_code = get_subsystem_code(subsystem_code_param)
@@ -344,10 +393,14 @@ class MembersController < ApplicationController
         params[:ownerCode],
         params[:serverCode])
 
-    client_id = get_client_id(
-        params[:memberClass],
-        params[:memberCode],
-        subsystem_code)
+    client_id = get_client_id(member_class, member_code, subsystem_code)
+
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:clientIdentifier] =
+      JavaClientId.create(SystemParameter.instance_identifier,
+        member_class, member_code, subsystem_code)
 
     client_deletion_request =  ClientDeletionRequest.new(
         :security_server => server_id,
@@ -367,11 +420,18 @@ class MembersController < ApplicationController
   end
 
   def add_member_to_global_group
+    audit_log("Add member to global group", audit_log_data = {})
+
     authorize!(:add_and_remove_group_members)
 
     group_code = params[:groupCode]
     member_class = params[:memberClass]
     member_code = params[:memberCode]
+
+    audit_log_data[:groupCode] = params[:groupCode]
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
+    audit_log_data[:memberSubsystemCode] = params[:subsystemCode]
 
     global_group = find_global_group(group_code)
 
@@ -386,6 +446,8 @@ class MembersController < ApplicationController
   end
 
   def delete_member_from_global_group
+    audit_log("Remove member from global group", audit_log_data = {})
+
     authorize!(:add_and_remove_group_members)
 
     group_code = params[:groupCode]
@@ -394,6 +456,11 @@ class MembersController < ApplicationController
 
     global_group = find_global_group(group_code)
     client_id = get_client_id(member_class, member_code, params[:subsystemCode])
+
+    audit_log_data[:groupCode] = params[:groupCode]
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
+    audit_log_data[:memberSubsystemCode] = params[:subsystemCode]
 
     global_group.remove_member(client_id)
 
@@ -513,10 +580,10 @@ class MembersController < ApplicationController
 
   def get_client_id(member_class, member_code, subsystem_code)
     ClientId.from_parts(
-        SystemParameter.instance_identifier,
-        member_class,
-        member_code,
-        subsystem_code
+      SystemParameter.instance_identifier,
+      member_class,
+      member_code,
+      subsystem_code
     )
   end
 

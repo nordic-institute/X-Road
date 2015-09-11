@@ -168,7 +168,7 @@ public final class AuthTrustVerifier {
 
     private static X509Certificate[] getPeerCertificates(SSLSession session) {
         if (session == null) {
-            throw new CodedException(X_SSL_AUTH_FAILED, "No SSL session");
+            throw new CodedException(X_SSL_AUTH_FAILED, "No TLS session");
         }
 
         try {

@@ -5,6 +5,10 @@ class BackupController < BaseBackupController
   skip_around_filter :transaction, :only => [:restore]
   skip_before_filter :check_conf, :read_server_id, :read_owner_name, :only => [:restore]
 
+  upload_callbacks({
+    :upload_new => "XROAD_BACKUP.uploadCallback"
+  })
+
   private
 
   def before_restore

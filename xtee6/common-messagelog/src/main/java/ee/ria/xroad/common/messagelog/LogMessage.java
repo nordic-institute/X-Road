@@ -15,5 +15,6 @@ public class LogMessage implements Serializable {
 
     private final SoapMessageImpl message;
     private final SignatureData signature;
+    private final boolean clientSide;
 
 }

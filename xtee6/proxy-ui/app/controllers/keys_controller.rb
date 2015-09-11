@@ -29,11 +29,20 @@ class KeysController < ApplicationController
   end
 
   def generate_key
+    audit_log("Generate key", audit_log_data = {})
+
     authorize!(:generate_key)
+
+    token = SignerProxy::getToken(params[:token_id])
+
+    audit_log_data[:tokenId] = token.id
+    audit_log_data[:tokenSerialNumber] = token.serialNumber
+    audit_log_data[:tokenFriendlyName] = token.friendlyName
 
     key = SignerProxy::generateKey(params[:token_id])
 
-    token = get_token(params[:token_id])
+    audit_log_data[:keyId] = key.id
+    audit_log_data[:keyFriendlyName] = key.friendlyName
 
     # lets make a clone with just the generated key inside
     clone = TokenInfo.new(
@@ -57,6 +66,8 @@ class KeysController < ApplicationController
   end
 
   def generate_csr
+    audit_log("Generate certificate request", audit_log_data = {})
+
     if params[:key_usage] == "auth"
       authorize!(:generate_auth_cert_req)
     else
@@ -67,6 +78,17 @@ class KeysController < ApplicationController
 
     key_usage = params[:key_usage] == "auth" ?
       KeyUsageInfo::AUTHENTICATION : KeyUsageInfo::SIGNING
+
+    key = get_key(params[:token_id], params[:key_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = key.id
+    audit_log_data[:keyFriendlyName] = key.friendlyName
+    audit_log_data[:keyUsage] = (key_usage.toString if key_usage)
+    audit_log_data[:clientIdentifier] = client_id if client_id
+    audit_log_data[:subjectName] = params[:subject_name]
 
     csr = SignerProxy::generateCertRequest(
       params[:key_id], client_id, key_usage, params[:subject_name])
@@ -100,6 +122,8 @@ class KeysController < ApplicationController
   end
 
   def import_cert
+    audit_log("Import certificate from file", audit_log_data = {})
+
     validate_params({
       :file_upload => [:required]
     })
@@ -107,6 +131,10 @@ class KeysController < ApplicationController
     GlobalConf::verifyValidity
 
     uploaded_cert = CommonUi::CertUtils.pem_to_der(params[:file_upload].read)
+
+    audit_log_data[:certFileName] = params[:file_upload].original_filename
+    audit_log_data[:certHash] = CommonUi::CertUtils.cert_hash(uploaded_cert)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
     java_cert_obj = CryptoUtils::readCertificate(uploaded_cert.to_java_bytes)
 
@@ -116,12 +144,17 @@ class KeysController < ApplicationController
     if CertUtils::isAuthCert(java_cert_obj)
       authorize!(:import_auth_cert)
 
+      audit_log_data[:keyUsage] = KeyUsageInfo::AUTHENTICATION.toString
+
       cert_state = CertificateInfo::STATUS_SAVED
     else
       authorize!(:import_sign_cert)
 
       client_id = ImportCertUtil::getClientIdForSigningCert(
         xroad_instance, java_cert_obj)
+
+      audit_log_data[:clientIdentifier] = client_id if client_id
+      audit_log_data[:keyUsage] = KeyUsageInfo::SIGNING.toString
 
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
@@ -131,10 +164,12 @@ class KeysController < ApplicationController
 
     notice(t('keys.cert_loaded'))
 
-    upload_success
+    render_json
   end
 
   def import
+    audit_log("Import certificate from token", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required],
@@ -146,6 +181,17 @@ class KeysController < ApplicationController
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
     java_cert_obj = CryptoUtils::readCertificate(cert.certificateBytes)
 
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:keyFriendlyName] = @key.friendlyName
+    audit_log_data[:keyUsage] = (@key.usage.toString if @key.usage)
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
     client_id = nil
     cert_state = nil
 
@@ -158,6 +204,8 @@ class KeysController < ApplicationController
       client_id = ImportCertUtil::getClientIdForSigningCert(
         xroad_instance, java_cert_obj)
 
+      audit_log_data[:clientIdentifier] = (client_id.toString if client_id)
+
       ImportCertUtil::verifyClientExists(client_id)
       cert_state = CertificateInfo::STATUS_REGISTERED
     end
@@ -168,15 +216,28 @@ class KeysController < ApplicationController
   end
 
   def activate_cert
+    audit_log("Enable certificate", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required],
       :cert_id => [:required]
     })
 
-    key = get_key(params[:token_id], params[:key_id])
+    cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
 
-    if key.usage == KeyUsageInfo::AUTHENTICATION
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:keyFriendlyName] = @key.friendlyName
+    audit_log_data[:keyUsage] = (@key.usage.toString if @key.usage)
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    if @key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:activate_disable_auth_cert)
     else
       authorize!(:activate_disable_sign_cert)
@@ -188,15 +249,28 @@ class KeysController < ApplicationController
   end
 
   def deactivate_cert
+    audit_log("Disable certificate", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required],
       :cert_id => [:required]
     })
 
-    key = get_key(params[:token_id], params[:key_id])
+    cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
 
-    if key.usage == KeyUsageInfo::AUTHENTICATION
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:keyFriendlyName] = @key.friendlyName
+    audit_log_data[:keyUsage] = (@key.usage.toString if @key.usage)
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    if @key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:activate_disable_auth_cert)
     else
       authorize!(:activate_disable_sign_cert)
@@ -208,6 +282,8 @@ class KeysController < ApplicationController
   end
 
   def register
+    audit_log("Register authentication certificate", audit_log_data = {})
+
     authorize!(:send_auth_cert_reg_req)
 
     validate_params({
@@ -218,16 +294,31 @@ class KeysController < ApplicationController
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+    audit_log_data[:address] = params[:address]
+
     register_cert(params[:address], cert.certificateBytes)
 
     notice(t('keys.request_sent'))
 
     SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_REGINPROG)
 
+    audit_log_data[:certStatus] = CertificateInfo::STATUS_REGINPROG
+
     render_tokens
   end
 
   def unregister
+    audit_log("Unregister authentication certificate", audit_log_data = {})
+
     authorize!(:send_auth_cert_del_req)
 
     validate_params({
@@ -239,6 +330,16 @@ class KeysController < ApplicationController
     GlobalConf::verifyValidity
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
     begin
       unregister_cert(cert.certificateBytes)
       notice(t('keys.request_sent'))
@@ -248,16 +349,27 @@ class KeysController < ApplicationController
 
     SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
 
+    audit_log_data[:certStatus] = CertificateInfo::STATUS_DELINPROG
+
     render_tokens
   end
 
   def delete_key
+    audit_log("Delete key", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required]
     })
 
     key = get_key(params[:token_id], params[:key_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = key.id
+    audit_log_data[:keyFriendlyName] = key.friendlyName
+    audit_log_data[:keyUsage] = (key.usage.toString if key.usage)
 
     if key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:delete_auth_key)
@@ -287,6 +399,8 @@ class KeysController < ApplicationController
   end
 
   def delete_cert_request
+    audit_log("Delete certificate request", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required],
@@ -294,6 +408,14 @@ class KeysController < ApplicationController
     })
 
     key = get_key(params[:token_id], params[:key_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = key.id
+    audit_log_data[:keyFriendlyName] = key.friendlyName
+    audit_log_data[:keyUsage] = (key.usage.toString if key.usage)
+    audit_log_data[:certId] = params[:cert_id]
 
     if key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:delete_auth_cert)
@@ -307,15 +429,28 @@ class KeysController < ApplicationController
   end
 
   def delete_cert
+    audit_log("Delete certificate", audit_log_data = {})
+
     validate_params({
       :token_id => [:required],
       :key_id => [:required],
       :cert_id => [:required]
     })
 
-    key = get_key(params[:token_id], params[:key_id])
+    cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
 
-    if key.usage == KeyUsageInfo::AUTHENTICATION
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:keyFriendlyName] = @key.friendlyName
+    audit_log_data[:keyUsage] = (@key.usage.toString if @key.usage)
+    audit_log_data[:certId] = params[:cert_id]
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    if @key.usage == KeyUsageInfo::AUTHENTICATION
       authorize!(:delete_auth_cert)
     else
       authorize!(:delete_sign_cert)
@@ -327,6 +462,14 @@ class KeysController < ApplicationController
   end
 
   def friendly_name
+    if params[:token_id]
+      audit_log("Set friendly name to token", audit_log_data = {})
+      audit_log_data[:tokenId] = params[:token_id]
+    else
+      audit_log("Set friendly name to key", audit_log_data = {})
+      audit_log_data[:keyId] = params[:key_id]
+    end
+
     validate_params({
       :friendly_name => [:required],
       :token_id => [],
@@ -334,9 +477,15 @@ class KeysController < ApplicationController
     })
 
     if params[:token_id]
+      token = SignerProxy::getToken(params[:token_id])
+      audit_log_data[:tokenFriendlyName] = params[:friendly_name]
+      audit_log_data[:tokenSerialNumber] = token.serialNumber
+
       SignerProxy::setTokenFriendlyName(
         params[:token_id], params[:friendly_name])
     elsif params[:key_id]
+      audit_log_data[:keyFriendlyName] = params[:friendly_name]
+
       SignerProxy::setKeyFriendlyName(
         params[:key_id], params[:friendly_name])
     end
@@ -345,7 +494,7 @@ class KeysController < ApplicationController
   end
 
   def token_details
-    @token = get_token(params[:token_id])
+    @token = SignerProxy::getToken(params[:token_id])
 
     render :partial => "token_details"
   end
@@ -373,16 +522,8 @@ class KeysController < ApplicationController
     render :partial => "refresh"
   end
 
-  def get_token(token_id)
-    SignerProxy::getTokens.each do |token|
-      return token if token.id == token_id
-    end
-
-    raise "token not found"
-  end
-
   def get_key(token_id, key_id)
-    @token = get_token(token_id)
+    @token = SignerProxy::getToken(token_id)
     @token.keyInfo.each do |key|
       return key if key.id == key_id
     end
@@ -391,7 +532,8 @@ class KeysController < ApplicationController
   end
 
   def get_cert(token_id, key_id, cert_id)
-    get_key(token_id, key_id).certs.each do |cert|
+    @key = get_key(token_id, key_id)
+    @key.certs.each do |cert|
       return cert if cert.id == cert_id
     end
 

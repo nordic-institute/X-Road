@@ -20,7 +20,7 @@ class RequestWithProcessing < Request
     end
 
     processing.add_request(self)
-    puts "Processing: #{processing.status}"
+    Rails.logger.info("Processing: #{processing.status}")
     save!
   end
 

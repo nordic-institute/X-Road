@@ -124,7 +124,7 @@ class SharedParametersGenerator
       server_type.address = each_server.address
 
       each_server.auth_certs.find_each do |each_cert|
-        hash = CryptoUtils::certHash(each_cert.certificate.to_java_bytes())
+        hash = CryptoUtils::certHash(each_cert.cert.to_java_bytes())
         server_type.getAuthCertHash.add(hash)
       end
 

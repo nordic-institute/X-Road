@@ -7,7 +7,9 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
@@ -23,6 +25,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringUtils;
 
+import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -37,8 +40,10 @@ import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.*;
 
+import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.*;
 import static ee.ria.xroad.signer.console.Utils.*;
 
 /**
@@ -142,7 +147,22 @@ public class SignerCLI {
                 String tokenId,
             @Param(name = "friendlyName", description = "Friendly name")
                 String friendlyName) throws Exception {
-        SignerClient.execute(new SetTokenFriendlyName(tokenId, friendlyName));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, tokenId);
+        logData.put(TOKEN_FRIENDLY_NAME_PARAM, friendlyName);
+
+        try {
+            SignerClient.execute(
+                    new SetTokenFriendlyName(tokenId, friendlyName));
+
+            AuditLogger.log(
+                    SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -157,7 +177,20 @@ public class SignerCLI {
                 String keyId,
             @Param(name = "friendlyName", description = "Friendly name")
                 String friendlyName) throws Exception {
-        SignerClient.execute(new SetKeyFriendlyName(keyId, friendlyName));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(KEY_ID_PARAM, keyId);
+        logData.put(KEY_FRIENDLY_NAME_PARAM, friendlyName);
+
+        try {
+            SignerClient.execute(new SetKeyFriendlyName(keyId, friendlyName));
+
+            AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -202,7 +235,19 @@ public class SignerCLI {
     public void activateCertificate(
             @Param(name = "certId", description = "Certificate ID")
                 String certId) throws Exception {
-        SignerClient.execute(new ActivateCert(certId, true));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(CERT_ID_PARAM, certId);
+
+        try {
+            SignerClient.execute(new ActivateCert(certId, true));
+
+            AuditLogger.log(ACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(ACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -214,7 +259,19 @@ public class SignerCLI {
     public void deactivateCertificate(
             @Param(name = "certId", description = "Certificate ID")
                 String certId) throws Exception {
-        SignerClient.execute(new ActivateCert(certId, false));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(CERT_ID_PARAM, certId);
+
+        try {
+            SignerClient.execute(new ActivateCert(certId, false));
+
+            AuditLogger.log(DEACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(DEACTIVATE_THE_CERTIFICATE_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -226,7 +283,19 @@ public class SignerCLI {
     public void deleteKey(
             @Param(name = "keyId", description = "Key ID")
                 String keyId) throws Exception {
-        SignerClient.execute(new DeleteKey(keyId, true));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(KEY_ID_PARAM, keyId);
+
+        try {
+            SignerClient.execute(new DeleteKey(keyId, true));
+
+            AuditLogger.log(DELETE_THE_KEY_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(DELETE_THE_KEY_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -238,7 +307,19 @@ public class SignerCLI {
     public void deleteCertificate(
             @Param(name = "certId", description = "Certificate ID")
                 String certId) throws Exception {
-        SignerClient.execute(new DeleteCert(certId));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(CERT_ID_PARAM, certId);
+
+        try {
+            SignerClient.execute(new DeleteCert(certId));
+
+            AuditLogger.log(DELETE_THE_CERT_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(DELETE_THE_CERT_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -250,7 +331,19 @@ public class SignerCLI {
     public void deleteCertificateRequest(
             @Param(name = "certReqId", description = "Certificate request ID")
                 String certReqId) throws Exception {
-        SignerClient.execute(new DeleteCertRequest(certReqId));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(CERT_REQUEST_ID_PARAM, certReqId);
+
+        try {
+            SignerClient.execute(new DeleteCertRequest(certReqId));
+
+            AuditLogger.log(DELETE_THE_CERT_REQUEST_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(DELETE_THE_CERT_REQUEST_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -303,13 +396,27 @@ public class SignerCLI {
                 String file,
             @Param(name = "clientId", description = "Member identifier")
                 ClientId clientId) throws Exception {
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(CERT_FILE_NAME_PARAM, file);
+        logData.put(CLIENT_IDENTIFIER_PARAM, clientId);
+
         try {
             byte[] certBytes = fileToBytes(file);
             ImportCertResponse response =
                     SignerClient.execute(
-                            new ImportCert(certBytes, "SAVED", clientId));
+                            new ImportCert(certBytes,
+                                    CertificateInfo.STATUS_REGISTERED,
+                                    clientId));
+
+            logData.put(KEY_ID_PARAM, response.getKeyId());
+            AuditLogger.log(
+                    IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER, logData);
+
             System.out.println(response.getKeyId());
         } catch (Exception e) {
+            AuditLogger.log(IMPORT_A_CERTIFICATE_FROM_THE_FILE, XROAD_USER,
+                    e.getMessage(), logData);
+
             System.out.println("ERROR: " + e);
         }
     }
@@ -325,8 +432,20 @@ public class SignerCLI {
                 String tokenId) throws Exception {
         char[] pin = System.console().readPassword("PIN: ");
 
-        PasswordStore.storePassword(tokenId, pin);
-        SignerClient.execute(new ActivateToken(tokenId, true));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, tokenId);
+
+        try {
+            PasswordStore.storePassword(tokenId, pin);
+            SignerClient.execute(new ActivateToken(tokenId, true));
+
+            AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(LOG_INTO_THE_TOKEN, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -338,8 +457,20 @@ public class SignerCLI {
     public void logoutToken(
             @Param(name = "tokenId", description = "Token ID")
                 String tokenId) throws Exception {
-        PasswordStore.storePassword(tokenId, null);
-        SignerClient.execute(new ActivateToken(tokenId, false));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, tokenId);
+
+        try {
+            PasswordStore.storePassword(tokenId, null);
+            SignerClient.execute(new ActivateToken(tokenId, false));
+
+            AuditLogger.log(LOGOUT_FROM_THE_TOKEN_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(LOGOUT_FROM_THE_TOKEN_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
     }
 
     /**
@@ -356,7 +487,17 @@ public class SignerCLI {
             return;
         }
 
-        SignerClient.execute(new InitSoftwareToken(pin));
+        try {
+            SignerClient.execute(new InitSoftwareToken(pin));
+
+            AuditLogger.log(
+                    INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, null);
+        } catch (Exception e) {
+            AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER,
+                    e.getMessage(), null);
+
+            throw e;
+        }
     }
 
     /**
@@ -438,7 +579,22 @@ public class SignerCLI {
     public void generateKey(
             @Param(name = "tokenId", description = "Token ID")
                 String tokenId) throws Exception {
-        KeyInfo response = SignerClient.execute(new GenerateKey(tokenId));
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, tokenId);
+
+        KeyInfo response;
+
+        try {
+            response = SignerClient.execute(new GenerateKey(tokenId));
+
+            logData.put(KEY_ID_PARAM, response.getId());
+            AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
 
         System.out.println(response.getId());
     }
@@ -463,9 +619,27 @@ public class SignerCLI {
                 String subjectName) throws Exception {
         KeyUsageInfo keyUsage = "a".equals(usage)
                 ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
-        GenerateCertRequest request =
-                new GenerateCertRequest(keyId, memberId, keyUsage, subjectName);
-        GenerateCertRequestResponse response = SignerClient.execute(request);
+
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(KEY_ID_PARAM, keyId);
+        logData.put(CLIENT_IDENTIFIER_PARAM, memberId);
+        logData.put(KEY_USAGE_PARAM, keyUsage.name());
+        logData.put(SUBJECT_NAME_PARAM, subjectName);
+
+        GenerateCertRequestResponse response;
+
+        try {
+            GenerateCertRequest request = new GenerateCertRequest(
+                    keyId, memberId, keyUsage, subjectName);
+            response = SignerClient.execute(request);
+
+            AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER,
+                    e.getMessage(), logData);
+
+            throw e;
+        }
 
         bytesToFile(keyId + ".csr", response.getCertRequest());
     }

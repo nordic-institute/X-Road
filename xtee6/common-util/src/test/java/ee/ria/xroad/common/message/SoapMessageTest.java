@@ -166,6 +166,15 @@ public class SoapMessageTest {
     }
 
     /**
+     * Tests that userId header field is optional.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void optionalUserIdField() throws Exception {
+        createSoapMessage("missing-userId.query");
+    }
+
+    /**
      * Tests that duplicate header fields are detected.
      * @throws Exception in case of any unexpected errors
      */

@@ -32,10 +32,16 @@ public class AuthFilter implements Filter {
 
         String ctx = httpRequest.getContextPath();
 
-        // skip authentication for /stylesheets/* and skin and favicon.ico
-        if (!httpRequest.getRequestURI().startsWith(ctx + "/stylesheets/")
+        if (
+                // The /public_system_status/ path is available without
+                // authentication.
+                !httpRequest.getRequestURI().startsWith(
+                    ctx + "/public_system_status")
+                // Skip authentication for CSS and other UI-related elements.
+                && !httpRequest.getRequestURI().startsWith(ctx + "/stylesheets/")
                 && !httpRequest.getRequestURI().equals(ctx + "/application/skin")
                 && !httpRequest.getRequestURI().equals(ctx + "/favicon.ico")
+                // Finally check authentication.
                 && httpRequest.getUserPrincipal() == null
                 && !httpRequest.authenticate(httpResponse)) {
             // response has been committed

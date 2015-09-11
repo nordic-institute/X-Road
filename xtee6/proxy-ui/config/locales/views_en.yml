@@ -120,11 +120,11 @@ en:
       internal_servers: "Internal Servers"
       connection_type: "Connection type for servers in service consumer role"
       connection_type_hint: "Connection type for servers in service provider role is set in the Services tab (<i class='fa fa-wrench'></i>) by service URL (http/https)."
-      internal_ssl_certs: "Internal SSL Certificates"
+      internal_ssl_certs: "Internal TLS Certificates"
       security_server_cert: "Security Server Certificate"
       import_certificate: "Import Certificate"
       certificate_hash: "Certificate Hash (%{alg})"
-      delete_internal_cert_confirm: "Are you sure you want to delete internal SSL certificate {{hash}}?"
+      delete_internal_cert_confirm: "Are you sure you want to delete internal TLS certificate {{hash}}?"
 
     client_services_tab:
       member_title: "{{member}} Services"
@@ -138,7 +138,7 @@ en:
       title: "Title"
       url: "URL"
       adapter_url: "Adapter URL"
-      adapter_sslauth: "Verify Adapter SSL certificate"
+      adapter_sslauth: "Verify Adapter TLS certificate"
       wsdl_uri: "WSDL URI"
       timeout: "Timeout (s)"
       security_category: "Security Category"
@@ -154,7 +154,7 @@ en:
       apply_to_all: "Apply to All in WSDL"
       service_url: "Service URL"
       required_sec_cat: "Required Security Category"
-      sslauth: "Verify SSL certificate"
+      sslauth: "Verify TLS certificate"
       no_timeout: "A timeout value of zero is interpreted as an infinite timeout."
 
     service_acl_dialog:
@@ -259,7 +259,6 @@ en:
   shared:
     cert_details_dialog:
       cert_details: "Certificate Details"
-      hash: "Hash (%{alg})"
 
   sysparams:
     index:
@@ -270,10 +269,10 @@ en:
       async_period: "Period between first and second attempt to send request (sec)"
       async_max_period: "Maximum period between attempts to send a request (sec)"
       async_parallel: "Maximum number of parallel requests"
-      internal_ssl_cert: "Internal SSL Certificate"
-      internal_ssl_cert_hash: "Certificate hash"
-      internal_ssl_generate_key: "Generate New SSL Key"
-      generate_internal_ssl_confirm: "Generate new internal SSL key and certificate?"
+      internal_ssl_cert: "Internal TLS Certificate"
+      internal_ssl_cert_hash: "Certificate hash (%{alg})"
+      internal_ssl_generate_key: "Generate New TLS Key"
+      generate_internal_ssl_confirm: "Generate new internal TLS key and certificate?"
     tsp_add_dialog:
       add_tsp: "Add Timestamping Service"
       approved_tsp: "Trusted Timestamping Services"

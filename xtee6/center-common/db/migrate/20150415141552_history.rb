@@ -3,6 +3,7 @@
 # be carried out by a Postgres trigger function.
 # The up and down methods of this migration are no-ops when unit tests are run
 # on top of SQLite.
+# XXX Ensure the hstore extension has been installed to the database!
 class History < ActiveRecord::Migration
 
   # Based on this list, the triggers related to the history table are created and
@@ -42,8 +43,7 @@ class History < ActiveRecord::Migration
   ]
 
   def up
-    adapter_name = ActiveRecord::Base.connection.adapter_name
-    if adapter_name == "PostgreSQL"
+    if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
 
       create_table "history", :force => true do |t|
         t.integer  "id"
@@ -51,8 +51,8 @@ class History < ActiveRecord::Migration
         t.string   "table_name", :null => false
         t.integer  "record_id",  :null => false
         t.string   "field_name", :null => false
-        t.string   "old_value"
-        t.string   "new_value"
+        t.text   "old_value"
+        t.text   "new_value"
         t.string   "user_name",  :null => false
         t.datetime "timestamp",  :null => false
       end

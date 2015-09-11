@@ -1,3 +1,7 @@
+def getRubySourceCheckCommand(def projectPath) {
+    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
+}
+
 subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'

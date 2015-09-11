@@ -82,6 +82,11 @@ public final class CryptoUtils {
     public static final String DEFAULT_CERT_HASH_ALGORITHM_ID =
             CryptoUtils.SHA1_ID;
 
+    /** Default digest algorithm id used for calculating configuration
+        anchor hashes. */
+    public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID =
+            CryptoUtils.SHA224_ID;
+
     /** Global default digital signature algorithm. */
     public static final String DEFAULT_SIGNATURE_ALGORITHM =
             CryptoUtils.SHA1WITHRSA_ID;
@@ -574,7 +579,7 @@ public final class CryptoUtils {
      */
     public static String calculateCertHexHash(X509Certificate cert)
             throws Exception {
-        return hexDigest(SHA1_ID, cert.getEncoded());
+        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, cert.getEncoded());
     }
 
     /**
@@ -586,7 +591,7 @@ public final class CryptoUtils {
      */
     public static String calculateCertHexHash(byte[] bytes)
             throws Exception {
-        return hexDigest(SHA1_ID, bytes);
+        return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, bytes);
     }
 
     /**

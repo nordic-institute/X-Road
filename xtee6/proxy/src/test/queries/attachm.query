@@ -32,6 +32,7 @@ Content-Type: multipart/mixed; charset=UTF-8; boundary=jetty1627004719h3h10du0
 
 --jetty1627004719h3h10du0
 Content-Type: text/plain
+Client-Header: FooBar
 
 blaah
 --jetty1627004719h3h10du0--

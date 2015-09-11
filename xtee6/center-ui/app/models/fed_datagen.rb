@@ -27,7 +27,7 @@ class FedDatagen
 
     internal_signing_key = ConfigurationSigningKey.new(
         :key_identifier => FED0_INTERNAL_KEY_ID,
-        :certificate => read_fed0_internal_source_cert()
+        :cert => read_fed0_internal_source_cert()
     )
 
     internal_source = ConfigurationSource.new(
@@ -41,7 +41,7 @@ class FedDatagen
     # ---
     external_signing_key = ConfigurationSigningKey.new(
         :key_identifier => FED0_EXTERNAL_KEY_ID,
-        :certificate => read_fed0_external_source_cert()
+        :cert => read_fed0_external_source_cert()
     )
 
     external_source = ConfigurationSource.new(
@@ -58,7 +58,7 @@ class FedDatagen
 
     internal_signing_key = ConfigurationSigningKey.new(
         :key_identifier => FED2_INTERNAL_KEY_ID,
-        :certificate => read_fed2_internal_source_cert()
+        :cert => read_fed2_internal_source_cert()
     )
 
     internal_source = ConfigurationSource.new(
@@ -72,7 +72,7 @@ class FedDatagen
     # ---
     external_signing_key = ConfigurationSigningKey.new(
         :key_identifier => FED2_EXTERNAL_KEY_ID,
-        :certificate => read_fed2_external_source_cert()
+        :cert => read_fed2_external_source_cert()
     )
 
     external_source = ConfigurationSource.new(
@@ -89,7 +89,7 @@ class FedDatagen
     TrustedAnchor.destroy_all()
 
     url_cert = AnchorUrlCert.new(
-        :certificate => read_fed2_external_source_cert())
+        :cert => read_fed2_external_source_cert())
 
     anchor_url = AnchorUrl.new(
         :url => "http://iks2-fed2.cyber.ee/externalconf",
@@ -108,7 +108,7 @@ class FedDatagen
     TrustedAnchor.destroy_all()
 
     url_cert = AnchorUrlCert.new(
-        :certificate => read_fed0_external_source_cert())
+        :cert => read_fed0_external_source_cert())
 
     anchor_url = AnchorUrl.new(
         :url => "http://iks2-fed0.cyber.ee/externalconf",

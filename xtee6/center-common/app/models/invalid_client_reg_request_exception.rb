@@ -1,2 +1,2 @@
-class InvalidClientRegRequestException < Exception
+class InvalidClientRegRequestException < StandardError
 end

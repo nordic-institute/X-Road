@@ -47,14 +47,14 @@ public enum IsAuthentication {
         if (isAuthentication == IsAuthentication.SSLNOAUTH) {
             if (cert.getVerificationResult() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies SSLNOAUTH but client made "
+                        "Client (%s) specifies HTTPS NO AUTH but client made "
                                 + " plaintext connection", client);
             }
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
             if (cert.getCert() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies SSLAUTH but did not supply"
-                                + " SSL certificate", client);
+                        "Client (%s) specifies HTTPS but did not supply"
+                                + " TLS certificate", client);
             }
 
             if (cert.getCert().equals(InternalSSLKey.load().getCert())) {
@@ -70,7 +70,7 @@ public enum IsAuthentication {
 
             if (!isCerts.contains(cert.getCert())) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) SSL certificate does not match any"
+                        "Client (%s) TLS certificate does not match any"
                                 + " IS certificates", client);
             }
         }

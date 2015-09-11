@@ -1,12 +1,30 @@
-all: legacy main 
+XROADTOP = $(shell pwd)
 
-main:
-	gradle build
+SUBDIRS = passwordstore
 
-legacy:
-	( cd legacy && $(MAKE) all ) || exit 1
+all:
+	for i in $(SUBDIRS) ;\
+	do \
+		( echo $$i && cd $$i && $(MAKE) && $(MAKE) install ) || exit 1 ;\
+	done
 
 clean:
-	( gradle clean && cd legacy && $(MAKE) clean ) || exit 1
+	for i in $(SUBDIRS) ;\
+	do \
+		( echo $$i && cd $$i && $(MAKE) clean ) || exit 1 ;\
+		rm -f lib/* || exit 1 ;\
+	done
+
+tests:
+	for i in $(SUBDIRS) ;\
+	do \
+		( echo $$i && cd $$i && $(MAKE) tests ) || exit 1 ;\
+	done
+
+check:
+	for i in $(SUBDIRS) ;\
+	do \
+		( echo $$i && cd $$i && $(MAKE) check && echo ) || exit 1 ;\
+	done
 
 .PHONY: legacy

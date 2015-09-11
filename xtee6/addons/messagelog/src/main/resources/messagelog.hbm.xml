@@ -19,6 +19,10 @@
             <property name="message" access="field" type="text"/>
             <property name="signature" access="field" type="text"/>
 
+            <property name="memberClass" access="field" type="string"/>
+            <property name="memberCode" access="field" type="string"/>
+            <property name="subsystemCode" access="field" type="string"/>
+
             <property name="hashChain" access="field" type="text"/>
             <property name="hashChainResult" access="field" type="text"/>
 

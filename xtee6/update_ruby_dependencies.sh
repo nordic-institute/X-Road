@@ -8,7 +8,7 @@ then
 fi
 
 source ~/.rvm/scripts/rvm
-rvm use jruby
+rvm use 
 
 RUBY_PROJECTS="center-service common-ui center-common proxy-ui center-ui"
 

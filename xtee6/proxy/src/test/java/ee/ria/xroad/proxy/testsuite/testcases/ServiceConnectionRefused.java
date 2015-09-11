@@ -26,11 +26,7 @@ public class ServiceConnectionRefused extends MonitorAgentMessageTestCase {
     public ServiceConnectionRefused() {
         requestFileName = "getstate.query";
 
-        monitorAgent.expectFailure(
-                new MessageInfo(Origin.SERVER_PROXY,
-                        ClientId.create("EE", "BUSINESS", "consumer"),
-                        ServiceId.create("EE", "BUSINESS", "producer", null,
-                                "getState"), null, null), expectedErrorCode);
+        monitorAgent.expectFailure(null, expectedErrorCode);
         monitorAgent.expectFailure(
                 new MessageInfo(Origin.CLIENT_PROXY,
                         ClientId.create("EE", "BUSINESS", "consumer"),
