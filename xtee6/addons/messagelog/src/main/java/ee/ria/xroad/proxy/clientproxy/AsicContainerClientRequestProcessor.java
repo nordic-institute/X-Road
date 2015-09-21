@@ -38,7 +38,7 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
 import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
-import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getClientCert;
+import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 
 @Slf4j
 class AsicContainerClientRequestProcessor extends MessageProcessorBase {
@@ -155,7 +155,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         log.trace("verifyClientAuthentication({})", clientId);
         try {
             IsAuthentication.verifyClientAuthentication(clientId,
-                    getClientCert(servletRequest));
+                    getIsAuthenticationData(servletRequest));
         } catch (CodedException ex) {
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_UNAUTHORIZED, ex);

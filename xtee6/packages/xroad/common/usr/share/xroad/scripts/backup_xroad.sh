@@ -6,7 +6,7 @@ die () {
 }
 
 
-if [ "$(id -nu )" != "xroad" ] 
+if [ "$(id -nu )" != "xroad" ]
 then
  die "This script must run under xroad user "
 fi

@@ -862,12 +862,6 @@ p.notfound {
     margin-left: 10px;
     vertical-align: middle;
     font-size: 9pt; }
-    #server-info #server-status.inactive {
-      color: #ff412c; }
-    #server-info #server-status.dependent {
-      color: #efe30c; }
-    #server-info #server-status.promoted {
-      color: #30e55f; }
   #server-info #server-names {
     display: inline-block;
     vertical-align: middle;
@@ -1009,7 +1003,7 @@ p.notfound {
   .messages .message {
     position: relative;
     clear: both;
-    padding: 5px 20px 5px 10px;
+    padding: 5px 30px 5px 10px;
     font-family: "Open Sans";
     font-weight: 700;
     font-size: 10pt; }

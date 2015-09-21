@@ -17,26 +17,6 @@ java_import Java::ee.ria.xroad.commonui.SignerProxy
 class ApplicationController < BaseController
 
   XROAD_INSTALLED_FILE = "/usr/xtee/etc/v6_xroad_installed"
-  XROAD_ACTIVATED_FILE = "/usr/xtee/etc/v6_xroad_activated"
-  XROAD_PROMOTED_FILE = "/usr/xtee/etc/v6_xroad_promoted"
-
-  XROAD_PROMOTED_PRIVILEGES = [
-    :add_wsdl,
-    :enable_disable_wsdl,
-    :refresh_wsdl,
-    :delete_wsdl_missing_services,
-    :delete_wsdl,
-    :edit_service_params,
-    :edit_service_acl,
-    :import_export_service_acl,
-    :edit_subject_open_services,
-    :import_export_subject_acl,
-    :generate_internal_ssl,
-    :add_client_internal_cert,
-    :delete_client_internal_cert,
-    :edit_client_internal_connection_type,
-    :edit_acl_subject_open_services
-  ]
 
   INTERNAL_SSL_CERT_PATH = "/etc/xroad/ssl/internal.crt"
 
@@ -44,13 +24,12 @@ class ApplicationController < BaseController
 
   around_filter :transaction
 
-  before_filter :demote_xroad
   before_filter :check_conf, :except => [:menu, :alerts]
   before_filter :read_locale
   before_filter :read_server_id, :except => [:menu, :alerts]
   before_filter :read_owner_name, :except => [:menu, :alerts]
 
-  helper_method :x55_installed?, :xroad_activated?, :xroad_dependent?, :xroad_promoted?
+  helper_method :x55_installed?
 
   def index
     if can?(:view_clients)
@@ -239,6 +218,16 @@ class ApplicationController < BaseController
     GlobalConf::getInstanceIdentifier
   end
 
+  def isAuthenticationToUIStr(isAuthentication)
+    if "SSLAUTH".casecmp(isAuthentication) == 0
+      return "HTTPS"
+    elsif "SSLNOAUTH".casecmp(isAuthentication) == 0
+      return "HTTPS NO AUTH"
+    else
+      return "HTTP"
+    end
+  end
+
   def read_server_id
     return @server_id if @server_id
     return unless serverconf && serverconf.owner
@@ -259,80 +248,6 @@ class ApplicationController < BaseController
     @owner_name = get_member_name(id.memberClass, id.memberCode)
   end
 
-  def import_services
-    if xroad_promoted?
-      logger.info("XROAD promoted, skipping services import")
-      return
-    end
-
-    if importer = SystemProperties::getServiceImporterCommand
-      logger.info("Importing services from 5.0 to XROAD")
-
-      output = %x["#{importer}" 2>&1]
-
-      if $?.exitstatus != 0
-        logger.error(output)
-        error(t('application.services_import_failed'))
-      end
-    else
-      logger.warn("Service importer unspecified, skipping import")
-    end
-  end
-
-  def export_services(delete_client_id = nil)
-    unless xroad_promoted?
-      logger.info("XROAD not promoted, skipping services export")
-      return
-    end
-
-    if exporter = SystemProperties::getServiceExporterCommand
-      logger.info("Exporting services from XROAD to 5.0")
-
-      if delete_client_id
-        if delete_client_id.subsystemCode
-          subsystemCode = CryptoUtils.encodeBase64(
-              delete_client_id.subsystemCode)
-        else
-          subsystemCode = ""
-        end
-
-        delete = "-delete " + [
-          CryptoUtils.encodeBase64(delete_client_id.xRoadInstance),
-          CryptoUtils.encodeBase64(delete_client_id.memberClass),
-          CryptoUtils.encodeBase64(delete_client_id.memberCode),
-          subsystemCode
-        ].join(',')
-      end
-
-      output = %x["#{exporter}" "#{delete}" 2>&1]
-
-      if $?.exitstatus != 0
-        logger.error(output)
-        error(t('application.services_export_failed'))
-      end
-    else
-      logger.warn("Service exporter unspecified, skipping")
-    end
-  end
-
-  def export_internal_ssl
-    unless xroad_promoted?
-      logger.info("XROAD not promoted, skipping SSL key export")
-      return
-    end
-
-    if exporter = SystemProperties::getInternalSslExporterCommand
-      output = %x["#{exporter}" 2>&1]
-
-      if $?.exitstatus != 0
-        logger.error(output)
-        error(t('application.internal_ssl_export_failed'))
-      end
-    else
-      logger.warn("Internal SSL exporter unspecified, skipping")
-    end
-  end
-
   def restart_service(name)
     output = %x[sudo restart #{name} 2>&1]
 
@@ -342,32 +257,8 @@ class ApplicationController < BaseController
     end
   end
 
-  def demote_xroad
-    if xroad_dependent?
-      current_user.privileges -= XROAD_PROMOTED_PRIVILEGES
-    end
-  end
-
   def x55_installed?
     @x55_installed ||= File.exists?(XROAD_INSTALLED_FILE)
-  end
-
-  def xroad_activated?
-    activated = File.exists?(XROAD_ACTIVATED_FILE)
-    logger.debug("XROAD activated = #{activated}")
-    activated
-  end
-
-  def xroad_dependent?
-    dependent = x55_installed? && !xroad_promoted?
-    logger.debug("XROAD dependent = #{dependent}")
-    dependent
-  end
-
-  def xroad_promoted?
-    promoted = File.exists?(XROAD_PROMOTED_FILE)
-    logger.debug("XROAD promoted = #{promoted}")
-    promoted
   end
 
   def export_cert(cert)

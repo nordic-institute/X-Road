@@ -1,6 +1,18 @@
+xroad (6.6-2) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 15 Sep 2015 13:04:42 +0300
+
+xroad (6.6-1) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 10 Sep 2015 15:15:07 +0300
+
 xroad (6.6-0) trusty; urgency=low
 
-  * 
+  * The "userId" field of the X-Road SOAP message header was made optional
 
  -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 30 Jul 2015 14:57:06 +0300
 
@@ -72,16 +84,16 @@ xroad (6.1-0) trusty; urgency=low
    * JRuby 1.7.16.1 security fix
 
    [Central]
-    Many user interface fixes and improvements. 
-    Added user interface for managing member classes. 
+    Many user interface fixes and improvements.
+    Added user interface for managing member classes.
     Added user interface for configuring management service.
     Added user interface for configuring system parameters.
-    Added user interface for initializing central server. 
-    Changed names of some system parameters. 
-    Some system parameters are now automatically filled during installation. 
-    Added new configuration file for configuring installation-specific configuration parts (such as identifiermapping.xml). 
-    The server-owners group can no longer managed manually. 
-    Added foreign keys to databases. 
+    Added user interface for initializing central server.
+    Changed names of some system parameters.
+    Some system parameters are now automatically filled during installation.
+    Added new configuration file for configuring installation-specific configuration parts (such as identifiermapping.xml).
+    The server-owners group can no longer managed manually.
+    Added foreign keys to databases.
 
    [Security server]
    * Many user interface fixes and improvements.

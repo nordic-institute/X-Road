@@ -16,6 +16,7 @@
             <id:serviceCode>testQuery</id:serviceCode>
         </xroad:service>
         <xroad:id>1234567890</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:testQueryResponse xmlns:ns1="http://cosumer.ee.xroad.net">

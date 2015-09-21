@@ -25,11 +25,11 @@ public enum IsAuthentication {
     /**
      * Verifies the authentication for the client certificate.
      * @param client the client identifier
-     * @param cert the client certificate
+     * @param auth the authentication data of the information system
      * @throws Exception if verification fails
      */
     public static void verifyClientAuthentication(ClientId client,
-            ClientCert cert) throws Exception {
+            IsAuthenticationData auth) throws Exception {
         IsAuthentication isAuthentication =
                 ServerConf.getIsAuthentication(client);
         if (isAuthentication == null) {
@@ -44,20 +44,19 @@ public enum IsAuthentication {
         log.trace("IS authentication for client '{}' is: {}", client,
                 isAuthentication);
 
-        if (isAuthentication == IsAuthentication.SSLNOAUTH) {
-            if (cert.getVerificationResult() == null) {
-                throw new CodedException(X_SSL_AUTH_FAILED,
-                        "Client (%s) specifies HTTPS NO AUTH but client made "
-                                + " plaintext connection", client);
-            }
+        if (isAuthentication == IsAuthentication.SSLNOAUTH
+                && auth.isPlaintextConnection()) {
+            throw new CodedException(X_SSL_AUTH_FAILED,
+                    "Client (%s) specifies HTTPS NO AUTH but client made "
+                            + " plaintext connection", client);
         } else if (isAuthentication == IsAuthentication.SSLAUTH) {
-            if (cert.getCert() == null) {
+            if (auth.getCert() == null) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) specifies HTTPS but did not supply"
                                 + " TLS certificate", client);
             }
 
-            if (cert.getCert().equals(InternalSSLKey.load().getCert())) {
+            if (auth.getCert().equals(InternalSSLKey.load().getCert())) {
                 // do not check certificates for local TLS connections
                 return;
             }
@@ -68,7 +67,7 @@ public enum IsAuthentication {
                         "Client (%s) has no IS certificates", client);
             }
 
-            if (!isCerts.contains(cert.getCert())) {
+            if (!isCerts.contains(auth.getCert())) {
                 throw new CodedException(X_SSL_AUTH_FAILED,
                         "Client (%s) TLS certificate does not match any"
                                 + " IS certificates", client);

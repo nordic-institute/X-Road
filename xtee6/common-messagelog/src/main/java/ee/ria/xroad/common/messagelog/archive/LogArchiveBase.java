@@ -12,8 +12,7 @@ public interface LogArchiveBase {
      * @param lastArchive metadata of last archived entry.
      * @throws Exception if archiving fails.
      */
-    void markArchiveCreated(DigestEntry lastArchive)
-            throws Exception;
+    void markArchiveCreated(DigestEntry lastArchive) throws Exception;
 
     /**
      * Marks log record (either message or timestamp) as archived.

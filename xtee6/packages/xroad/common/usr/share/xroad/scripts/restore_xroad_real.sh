@@ -6,7 +6,7 @@ die () {
 }
 
 
-if [ "$(id -nu )" != "root" ] 
+if [ "$(id -nu )" != "root" ]
 then
  die "ABORTED. This script must run under root user "
 fi
@@ -18,11 +18,11 @@ filename=$1
 tar tf ${filename} > /dev/null
 
 if [ "x$?" != "x0" ]
-then 
+then
  die "${filename} is broken. Aborting restore!"
 fi
 
-tar --test-label --file ${filename} "XROAD_6.6" 
+tar --test-label --file ${filename} "XROAD_6.6"
 
 if [ "x$?" != "x0" ]
 then
@@ -46,6 +46,10 @@ if [ -x /usr/share/xroad/scripts/backup_db.sh ]
 then
   echo "Creating database dump to /var/lib/xroad/dbdump.dat"
   /usr/share/xroad/scripts/backup_db.sh
+  if [ "x$?" != "x0" ]
+   then
+    die "Error occured while creating database backup"
+  fi
   listf="${listf} /var/lib/xroad/dbdump.dat"
 fi
 
@@ -61,6 +65,11 @@ if [ -x /usr/share/xroad/scripts/restore_db.sh ] &&  [ -e /var/lib/xroad/dbdump.
 then
   echo -e "\nRESTORING DATABASE FROM /var/lib/xroad/dbdump.dat\n"
   /usr/share/xroad/scripts/restore_db.sh 1>/dev/null
+  if [ "x$?" != "x0" ]
+   then
+    die "Failed to restore database!"
+  fi
+
 fi
 
 echo -e "\nRESTARING SERVICES\n"

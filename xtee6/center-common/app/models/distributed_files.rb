@@ -55,25 +55,24 @@ class DistributedFiles < ActiveRecord::Base
     return DistributedFiles.where(:content_identifier =>content_identifier).first
   end
 
-  # Clear the distributed files of this database node and create new ones
-  # depending on the content ID and HA support.
-  # The node name will be set by a trigger function.
+  # Update the database record corresponding to the given configuration part or
+  # create a new one if necessary.
   def self.save_configuration_part(file_name, file_data)
     content_identifier = get_content_identifier(file_name)
-
-    if CommonSql.ha_configured? &&
-        DistributedFiles.node_local_content_id?(content_identifier)
-      ha_node_name = CommonSql.ha_node_name
-      DistributedFiles.where(
-        :file_name => file_name, :ha_node_name => ha_node_name).destroy_all
+    file_rec = DistributedFiles.get_by_content_id(content_identifier)
+    if file_rec != nil
+      file_rec.update_attributes!(
+          :file_name => file_name,
+          :content_identifier => content_identifier,
+          :file_data => file_data,
+          :file_updated_at => Time.now())
     else
-      DistributedFiles.where(:file_name => file_name).destroy_all
+      DistributedFiles.create!(
+          :file_name => file_name,
+          :content_identifier => content_identifier,
+          :file_data => file_data,
+          :file_updated_at => Time.now())
     end
-    DistributedFiles.create!(
-        :file_name => file_name,
-        :content_identifier => content_identifier,
-        :file_data => file_data,
-        :file_updated_at => Time.now())
   end
 
   # Gets configuration parts as hash including:

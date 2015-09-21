@@ -21,6 +21,7 @@ Content-Type: text/xml
         <xroad:userId>EE37702211234</xroad:userId>
         <xroad:id>1234567890</xroad:id>
         <xroad:issue>issue</xroad:issue>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:testResponse xmlns:ns1="http://cosumer.ee.xroad.net">

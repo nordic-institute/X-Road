@@ -18,6 +18,8 @@ class ManagementRequestsControllerTest < ActionController::TestCase
     client_reg_request.register()
   end
 
+  # TODO Test that registration request is received and names are updated.
+
   # Case related to RM issue #4408
   test "Should refuse to accept management request of different instance" do
     # Given

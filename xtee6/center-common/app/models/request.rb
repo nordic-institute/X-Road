@@ -271,18 +271,20 @@ class Request < ActiveRecord::Base
   end
 
   def self.set_server_owner_name(rec)
-    server = SecurityServer.find_server_by_id(rec.security_server.clean_copy())
+    server = rec.security_server
     return 1 if server == nil # To keep following callbacks running
 
-    rec.server_owner_name = server.owner.name
+    rec.server_owner_name = get_name(server)
   end
 
   def self.set_server_user_name(rec)
-    client = SecurityServerClient.find_by_id(rec.sec_serv_user.clean_copy())
+    client = rec.sec_serv_user
     return 1 if client == nil # To keep following callbacks running
 
-    server_user_name = client.is_a?(Subsystem) ?
-    client.xroad_member.name : client.name
-    rec.server_user_name = server_user_name
+    rec.server_user_name = get_name(client)
+  end
+
+  def self.get_name(id)
+    XroadMember.get_name(id.member_class, id.member_code)
   end
 end

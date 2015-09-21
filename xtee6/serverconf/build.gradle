@@ -23,14 +23,14 @@ dependencies {
     schema project(':common-util')
     schema 'org.hibernate:hibernate-c3p0:4.3.4.Final'
     schema 'org.hibernate:hibernate-tools:4.3.1.CR1'
-    schema 'ch.qos.logback:logback-classic:1.0.6'
+    schema 'ch.qos.logback:logback-classic:1.0.7'
     schema 'org.hsqldb:hsqldb:2.3.2'
 }
 
 task schemaExport () {
     doLast {
         ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
-        
+
         ant.schemaExport(destdir: 'build') {
             annotationconfiguration(
                 configurationfile: 'src/main/resources/hibernate.cfg.xml')

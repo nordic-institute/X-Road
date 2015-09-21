@@ -14,8 +14,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 /**
- * This class represents XROAD SOAP message header.
- *
+ * This class represents X-Road SOAP message header.
  */
 @Getter
 @Setter
@@ -50,6 +49,9 @@ public class SoapHeader {
 
     @XmlElement(name = "async", required = false, namespace = NS_XROAD)
     private boolean async;
+
+    @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
+    private ProtocolVersion protocolVersion = new ProtocolVersion();
 
     @Override
     public String toString() {

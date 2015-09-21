@@ -82,9 +82,6 @@
             <key column="wsdl_id"/>
             <one-to-many class="ServiceType"/>
         </bag>
-
-        <property name="backend" access="field"/>
-        <property name="backendURL" access="field"/>
     </class>
 
     <class name="ServiceType" table="SERVICE">

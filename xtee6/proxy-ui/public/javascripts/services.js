@@ -16,7 +16,7 @@
     );
 
     function enableActions() {
-        if ($(".wsdl:not(.meta).row_selected").length > 0) {
+        if ($(".wsdl.row_selected").length > 0) {
             $("#wsdl_delete, #wsdl_refresh, " +
               "#wsdl_disable, #wsdl_enable").enable();
         } else {
@@ -24,8 +24,8 @@
               " #wsdl_disable, #wsdl_enable").disable();
         }
 
-        if ($(".service:not(.adapter_service, .meta_service).row_selected:visible, " +
-              ".wsdl:not(.meta).row_selected").length == 1) {
+        if ($(".service.row_selected:visible, " +
+              ".wsdl.row_selected").length == 1) {
             $("#service_params").enable();
         } else {
             $("#service_params").disable();
@@ -37,7 +37,7 @@
             $("#service_acl").disable();
         }
 
-        if ($(".wsdl:not(.disabled, .meta).row_selected").length > 0) {
+        if ($(".wsdl:not(.disabled).row_selected").length > 0) {
             $("#wsdl_enable").hide();
             $("#wsdl_disable").show();
         } else {
@@ -110,47 +110,6 @@
             $("#wsdl_add_dialog").dialog("option", "title", $(this).html());
             $("#wsdl_add_dialog").dialog("open");
         });
-    }
-
-    function initAdapterAddDialog() {
-        var dialog = $("#adapter_add_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            width: 500,
-            buttons: [
-                { text: _("common.ok"),
-                  click: function() {
-                      var dialog = this;
-                      var params = $("form", this).serializeObject();
-
-                      params.client_id = $("#details_client_id").val();
-                      params.adapter_add_sslauth =
-                          $("#adapter_add_sslauth").attr("checked");
-
-                      $.post(action("adapter_add"), params, function(response) {
-                          oServices.fnReplaceData(response.data);
-                          enableActions();
-
-                          $(dialog).dialog("close");
-                      }, "json");
-                  }
-                },
-                { text: _("common.cancel"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        });
-
-        $("#adapter_add").live('click', function() {
-            $("#adapter_add_url", dialog).val("");
-            $("#adapter_add_wsdl_uri", dialog).val("");
-            $("#adapter_add_dialog").dialog("option", "title", $(this).html());
-            $("#adapter_add_dialog").dialog("open");
-        });
-
-        handleWSDLUrls('#adapter_add_url', '#adapter_add_sslauth', dialog);
     }
 
     function initWSDLDisableDialog() {
@@ -235,49 +194,6 @@
         handleWSDLUrls('#params_url', '#params_sslauth', serviceParamsDialog);
     }
 
-    function initAdapterParamsDialog() {
-        var adapterParamsDialog = $("#adapter_params_dialog").initDialog({
-            autoOpen: false,
-            modal: true,
-            width: 600,
-            buttons: [
-                { text: _("common.ok"),
-                  click: function() {
-                      var dialog = this;
-                      var params = $("form", this).serializeObject();
-                      params.client_id = $("#details_client_id").val();
-
-                      var postParams = function() {
-                          $.post(action("adapter_params"), params, function(response) {
-                              oServices.fnReplaceData(response.data);
-                              enableActions();
-                              $(dialog).dialog("close");
-                          }, "json");
-                      };
-
-                      if (params.params_adapter_url != params.params_adapter_id) {
-                          refreshWSDL(params.params_adapter_url, function() {
-                              params.params_adapter_id = params.params_adapter_url;
-                              delete params.params_adapter_url;
-                              postParams();
-                          });
-                      } else {
-                          delete params.params_adapter_url;
-                          postParams();
-                      }
-                  }
-                },
-                { text: _("common.cancel"),
-                  click: function() {
-                      $(this).dialog("close");
-                  }
-                }
-            ]
-        });
-
-        handleWSDLUrls('#params_adapter_url', '#params_adapter_sslauth', adapterParamsDialog);
-    }
-
     function initWSDLParamsDialog() {
         $("#wsdl_params_dialog").initDialog({
             autoOpen: false,
@@ -320,7 +236,7 @@
             { "mData": "wsdl", "bVisible": false,
               "mRender": function(data, type, full) {
                   if (type == 'filter' && data) {
-                      // if it is WSDL/ADAPTER row, return current filter
+                      // if it is WSDL row, return current filter
                       // value to always keep the row visible
                       var filterValue = $("#services_filter input").val();
                       return filterValue ? filterValue : data;
@@ -339,16 +255,6 @@
               } },
             { "mData": "name",
               "mRender": function(data, type, full) {
-                  if (full.wsdl && full.meta) {
-                      return data;
-                  }
-
-                  if (full.wsdl && full.adapter) {
-                      return data + " (<i class='fa "
-                          + getConnectionTypeIcon(full.wsdl_id, full.sslauth)
-                          + "'></i>" + full.wsdl_id + ")";
-                  }
-
                   if (full.wsdl) {
                       return data + " (" + full.wsdl_id + ")";
                   }
@@ -375,7 +281,7 @@
                   if (type == 'filter') {
                       return data;
                   }
-                  return (!full.wsdl && full.adapter) ? "" : data;
+                  return data;
               },
             },
             { "mData": "last_refreshed", "sClass": "center", "sWidth": "7em" }
@@ -387,22 +293,8 @@
                 $("td:nth-child(3), td:nth-child(4)", nRow).hide();
 
                 $(nRow).addClass("wsdl");
-
-                if (oData.adapter) {
-                    $(nRow).addClass("adapter");
-                }
-                if (oData.meta) {
-                    $(nRow).addClass("meta");
-                }
             } else {
                 $(nRow).addClass("service");
-
-                if (oData.adapter) {
-                    $(nRow).addClass("adapter_service");
-                }
-                if (oData.meta) {
-                    $(nRow).addClass("meta_service");
-                }
             }
 
             if (oData.disabled) {
@@ -444,11 +336,6 @@
 
         $("#services tbody td:not(.open, .closed)").live("click", function() {
             var row = $(this).parent();
-
-            if (row.hasClass("wsdl") && row.hasClass("meta")) {
-                return;
-            }
-
             var multiselect = row.hasClass("wsdl")
                 && $(".service.row_selected").length == 0;
 
@@ -498,25 +385,11 @@
         $("#service_params").live('click', function() {
             var service = oServices.getFocusData();
 
-            if (service.wsdl && !service.adapter) {
+            if (service.wsdl) {
                 $("#params_wsdl_id").val(service.wsdl_id);
                 $("#params_wsdl_url").val(service.wsdl_id);
 
                 $("#wsdl_params_dialog").dialog("open");
-
-            } else if (service.adapter) {
-                $("#params_adapter_id").val(service.wsdl_id);
-                $("#params_adapter_url").val(service.wsdl_id);
-                $("#params_adapter_wsdl_uri").val(service.adapter_wsdl_uri);
-                $("#params_adapter_timeout").val(service.timeout);
-
-                if (service.sslauth) {
-                    $("#params_adapter_sslauth").attr("checked", true);
-                } else {
-                    $("#params_adapter_sslauth").removeAttr("checked");
-                }
-
-                $("#adapter_params_dialog").dialog("open");
             } else {
                 $("#params_url_all, #params_timeout_all, #params_sslauth_all, " +
                   "#params_security_category_all").removeAttr("checked");
@@ -552,8 +425,6 @@
         initWSDLAddDialog();
         initWSDLDisableDialog();
         initWSDLParamsDialog();
-        initAdapterAddDialog();
-        initAdapterParamsDialog();
         initServiceParamsDialog();
 
         initServicesTable();

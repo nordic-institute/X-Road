@@ -86,11 +86,18 @@ class ConfigurationSource < ActiveRecord::Base
     anchor_file_hash = CryptoUtils::hexDigest(
       ANCHOR_FILE_HASH_ALGORITHM, anchor_file.to_java_bytes)
 
-    update_attributes!({
-      :anchor_file => anchor_file,
-      :anchor_file_hash => anchor_file_hash.upcase.scan(/.{1,2}/).join(':'),
-      :anchor_generated_at => now
-    })
+    # Although a single record is used as the base for generating the anchor,
+    # all the records with the same type and an active key will be updated.
+    # This is to propagate the new anchor to all the available nodes in HA
+    # systems.
+    # Assuming the clocks are kept in sync with NTP so the timestamp is valid
+    # on each node.
+    ConfigurationSource.where(:source_type => source_type).where(
+      "configuration_sources.active_key_id IS NOT NULL").update_all(
+        :anchor_file => anchor_file,
+        :anchor_file_hash => anchor_file_hash.upcase.scan(/.{1,2}/).join(':'),
+        :anchor_generated_at => now
+      )
   end
 
   def generate_signing_key(token_id)

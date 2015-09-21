@@ -46,10 +46,8 @@ public final class ProxyUIServices {
 
         if (jobManager == null) {
             jobManager = new JobManager();
-            jobManager.registerRepeatingJob(GlobalConfChecker.class,
-                    JOB_REPEAT_INTERVAL);
-            jobManager.registerRepeatingJob(IdentifierMappingChecker.class,
-                    JOB_REPEAT_INTERVAL);
+            jobManager.registerRepeatingJob(
+                    GlobalConfChecker.class, JOB_REPEAT_INTERVAL);
         }
 
         jobManager.start();

@@ -142,19 +142,17 @@
 
                           $(dialog).dialog("close");
 
-                          if (!$("#server-status").is(".inactive, .dependent, .promoted")) {
-                              var regParams = {
-                                  member_class: params.add_member_class,
-                                  member_code: params.add_member_code,
-                                  subsystem_code: params.add_subsystem_code
-                              };
+                          var regParams = {
+                              member_class: params.add_member_class,
+                              member_code: params.add_member_code,
+                              subsystem_code: params.add_subsystem_code
+                          };
 
-                              confirm("clients.client_add_dialog.send_regreq", null, function() {
-                                  $.post(action("client_regreq"), regParams, function() {
-                                      refreshClients();
-                                  });
+                          confirm("clients.client_add_dialog.send_regreq", null, function() {
+                              $.post(action("client_regreq"), regParams, function() {
+                                  refreshClients();
                               });
-                          }
+                          });
                       }, "json");
                   }
                 },

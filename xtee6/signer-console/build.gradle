@@ -4,19 +4,10 @@ plugins {
 }
 
 dependencies {
-    compile 'org.apache.commons:commons-lang3:3.1'
-    
-    compile 'ch.qos.logback:logback-access:1.0.7'
-    compile 'ch.qos.logback:logback-classic:1.0.6'
-
-    compile 'com.typesafe.akka:akka-actor_2.10:2.2.1'
-    compile 'com.typesafe.akka:akka-remote_2.10:2.2.1'
-    
     compile 'commons-cli:commons-cli:1.2'
-    
-    compile project(':common-util')
+
     compile project(':signer-protocol')
-    
+
     compile files('libs/asg.cliche-110413.jar')
 }
 

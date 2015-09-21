@@ -1,7 +1,7 @@
 --MIMEBoundaryurn_uuid_0FE43E4D025F0BF3DC11582467646812
 content-type: application/xop+xml; charset=UTF-8; type="text/xml";
 content-transfer-encoding: binary
-content-id: 
+content-id:
    <0.urn:uuid:0FE43E4D025F0BF3DC11582467646813@apache.org>
 
 <?xml version="1.0" encoding="utf-8"?>
@@ -23,6 +23,7 @@ content-id:
         </xroad:service>
         <xroad:userId>EE37702211234</xroad:userId>
         <xroad:id>1234567890</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:testResponse xmlns:ns1="http://cosumer.ee.xroad.net" />
@@ -32,7 +33,7 @@ content-id:
 --MIMEBoundaryurn_uuid_0FE43E4D025F0BF3DC11582467646812
 content-type: text/plain
 content-transfer-encoding: binary
-content-id: 
+content-id:
          <1.urn:uuid:0FE43E4D025F0BF3DC11582467646811@apache.org>
 
 77+9UE5HDQoaCgAAAA1JSERSAAAAIAAAACAIAgAAAO+/vRjvv70AAAAJcEhZcwAACxMAAAsTAQDv

@@ -1,5 +1,5 @@
 common/etc/*  etc/
-common/usr/*  usr/ 
+common/usr/*  usr/
 ../default-configuration/common.ini etc/xroad/conf.d/
 ../default-configuration/signer.ini etc/xroad/conf.d/
 ../default-configuration/signer-logback.xml etc/xroad/conf.d/

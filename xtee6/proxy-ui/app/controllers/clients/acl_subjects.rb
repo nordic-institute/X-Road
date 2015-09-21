@@ -184,10 +184,6 @@ module Clients::AclSubjects
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_subject_services(client, subject_id))
   end
 
@@ -215,10 +211,6 @@ module Clients::AclSubjects
     end
 
     serverconf_save
-
-    after_commit do
-      export_services
-    end
 
     render_json(read_subject_services(client, subject_id))
   end

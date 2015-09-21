@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -44,6 +45,34 @@ public class HashChainBuilderTest {
         }
         builder.finishBuilding();
         printChains(builder);
+    }
+
+    /**
+     * Test to ensure that hash chains with large amount of children
+     * are built correctly.
+     * @throws Exception in case of unexpected errors.
+     */
+    @Test
+    public void largeTreeBuilding() throws Exception {
+        for (int treeSize = 2; treeSize < 353; ++treeSize) {
+            LOG.debug("Running largeTreeBuilding test, n = {}", treeSize);
+
+            HashChainBuilder builder = new HashChainBuilder(SHA256_ID);
+            for (int i = 0; i < treeSize; ++i) {
+                builder.addInputHash(String.valueOf(i).getBytes());
+            }
+            builder.finishBuilding();
+
+            String[] hashChains = builder.getHashChains("/foo");
+            // Verify that all the hash chains are different.
+            for (int i = 0; i < hashChains.length - 1; ++i) {
+                for (int j = i + 1; j < hashChains.length; ++j) {
+                    assertNotEquals("i = " + i + ", j = " + j + ", size = "
+                                    + treeSize,
+                            hashChains[i], hashChains[j]);
+                }
+            }
+        }
     }
 
     /**

@@ -1,9 +1,11 @@
 pki_first:
   name: "Name of experimental CA"
+  top_ca_id: <%= ActiveRecord::Fixtures.identify(:caInfo_firstApprovedCaTopCa) %>
   authentication_only: false
   identifier_decoder_member_class: "ee.ria.xroad.NameExtractorMemberClass"
   identifier_decoder_method_name: "extractName"
 
 pki_auth_only:
   name: "Name of auth only CA"
+  top_ca_id: <%= ActiveRecord::Fixtures.identify(:caInfo_authOnlyTopCa) %>
   authentication_only: true

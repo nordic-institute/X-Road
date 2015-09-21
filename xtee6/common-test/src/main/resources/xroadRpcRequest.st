@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope 
+<SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"
-        xmlns:xroad="$xroadNamespace$" 
+        xmlns:xroad="$xroadNamespace$"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
         <xroad:client id:objectType="MEMBER">
@@ -29,6 +29,7 @@
         <xroad:id>$header.id$</xroad:id>
         $if(header.async)$
         <xroad:async>true</xroad:async>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
         $endif$
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>

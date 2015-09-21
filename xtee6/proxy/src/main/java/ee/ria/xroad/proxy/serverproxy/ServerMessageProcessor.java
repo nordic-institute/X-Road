@@ -543,6 +543,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         public void onError(Exception t) throws Exception {
             throw t;
         }
+
+        @Override
+        public void close() {
+            // Do nothing.
+        }
     }
 
     /**

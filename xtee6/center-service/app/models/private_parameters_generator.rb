@@ -61,8 +61,15 @@ class PrivateParametersGenerator
 
   def add_management_service
     management_service_type = @marshaller.factory.createManagementServiceType()
-    management_service_type.authCertRegServiceAddress =
-        SystemParameter.auth_cert_reg_url
+
+    auth_cert_reg_url = SystemParameter.auth_cert_reg_url
+
+    if auth_cert_reg_url.blank?
+      raise "No authentication service registration URL present. "\
+          "Central server may have not been initialized."
+    end
+
+    management_service_type.authCertRegServiceAddress = auth_cert_reg_url
 
     add_central_server_ssl_cert(management_service_type)
 

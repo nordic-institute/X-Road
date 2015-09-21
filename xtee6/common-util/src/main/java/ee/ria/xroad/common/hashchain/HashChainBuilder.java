@@ -311,6 +311,11 @@ public final class HashChainBuilder {
     private byte[] fixTree(int nodeIdx) throws Exception {
         LOG.trace("fixTree({})", nodeIdx);
 
+        if (nodeIdx >= maxIndex) {
+            // Let's not go infinitely deep.
+            return null;
+        }
+
         if (get(nodeIdx) != null) {
             // There's nothing to fix, just return the node.
             return get(nodeIdx);
@@ -320,10 +325,9 @@ public final class HashChainBuilder {
         byte[] leftValue = get(leftIdx(nodeIdx));
 
         if (leftValue == null) {
-            // No left child. In this case, we'll just go down to the tree
-            // until we found a value.
-            LOG.trace("{} -> getDeep({})", nodeIdx, leftIdx(nodeIdx));
-            return getDeep(leftIdx(nodeIdx));
+            // No left child. In this case, we'll just go down to the
+            // left subtree until we find something.
+            return fixTree(leftIdx(nodeIdx));
         }
 
         // To get value of the right subtree, we call fixTree recursively.

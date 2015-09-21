@@ -18,5 +18,6 @@
         <xroad:userId>EE:PIN:abc4567</xroad:userId>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
         <xroad:issue/>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
 </SOAP-ENV:Envelope>

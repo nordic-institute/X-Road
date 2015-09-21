@@ -1,13 +1,12 @@
 <div id="server-info">
   <div id="server-info-inner">
-    <div id="server-status" class="<%= server_status_class %>"
-         data-status="<%= server_status_class %>">
+    <div id="server-status">
       <i class="fa fa-info-circle"></i>
     </div>
     <div id="server-names">
       <h1 data-owner-name="<%= @owner_name if @owner_name %>">
-	      <%= @server_id.toShortString if @server_id %>
-	      <%= " (" + @ha_node_name + ")" if @ha_node_name %>
+        <%= @server_id.toShortString if @server_id %>
+        <%= " (" + @ha_node_name + ")" if @ha_node_name %>
       </h1>
       <h2><%= t 'layouts.application.title' %></h2>
     </div>
@@ -27,7 +26,7 @@
             <i class="fa fa-cog"></i>
           </h2>
           <ul id="user-menu">
-            <li>  
+            <li>
               <a id="locale_select" href="#">
                 <i class="fa fa-flag"></i>
                 <%= t 'common.language', :current => I18n.locale %>

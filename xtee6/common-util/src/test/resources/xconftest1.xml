@@ -171,7 +171,7 @@ testgrupp uus-andmekogu.getProducerACL
                         MIIE6jAcBgoqhkiG9w0BDAEDMA4ECKn9AaCdjJVRAgIIAASCBMi4/YYJowzyWu2Svn3BfIKoKvG0Y0jHHt2TdItxRdcnsZIHIBCMTsuH1UC8biZ3mun7cr6sR0UQlR4B0JyVPO7Yfg5dRDqH6zy/3wPJPozNS9f+JPu46zctvh6JbeyehxfTc8i74Sg8kLSCsnN9ild7Ny6SqzeUkjagTQrhqqJq2HPDOUy6wjMolteHHXPEObtGPApbNWg2owwUynl1dtYng8zcaWSeYVvsczB+MMFrOrLowKihDmsNaAqn1zX1fBmTFGE8f4xYG7W5j0RJZiytiLKkUcJyDCgfiF5KWaBzvtIFXKHbVVupeMmLT7L3y+wzqNGilgTmD1ufxlJllV2Q+wtFpjz2iH4dx+fZr/x4Hx4OC5rkQULkC/OKFzSVRxT6SudZfLeO3duhfbH2Ekc+7A7rqOtUgtL9gtK0JLARKIXvwMBl5JgZYLZQjWYx8xn4UkcO74xsqd+VaDGz5GfylF2Ord3vD+PIon2haYLx/i4ytAnYOoIgbqTcsvO068WDq4AsxJot6p5Wi9j18XRa5kgXXXNAK5fj8fCtpStVteN47/2QPMLlrjIUGhh67rrbQ26nR8frbzEK2Z2i2czcOBykda+S21efoHxxhG0nwO+K5RsDHosuAiJi3qYJTO6VBSn3r5pHPUSNvCJfarLNV0erRIyAm5NWsdI6zr1tthU86aBDc4JfkuEAl+kxuO2WinQhzeWBhIh26z05USK9OvPWv1icdY3B54c6Sfhixt0NHp8cUB5lRmIPfturecpYFFwYLf7ZDo4Oy8oeEek5aiX+5s52pCVNG0STgbwoVDtTa0LrhCnAotowCIkODxVw/ME36NV8HyuRrREswfKFgob71twwfsyFkBWBx9XzFQEYruAqDJbkNSfMZffIebyYj0grJlCHvgBQOJysQKGZqnvFd/u3aGyk5iv9Y4WehH6VH0ggiTSAvW9MkIoioTnOA8vMJs1eV37uYoM1TKHUJRbe9J37nCJJBBzpSIxYGnBxkQaW66IKydbQ+JGX7vU1cVnLxhmYw07z/7DQNd+puiNZHwjeuK+PzMwMN8lA0Udx2SBx3DSuZr+jtUHaFpx9WnD4oH6NpOZICD+7qS8ymgYOJuOrbzdgot8tDruQOxcny0RMLwN8U1YoN9/n6CGFHTf6TkWX7+W8K/E19axa4S62fmIWcqW5uSIVqkYPs6tvSlFwbcBQCnrakDgxsywLPD7R8keLfqDIFeKNJaRH9w1H/VDINZ9lwLKWfy61qauYqAofWCtPy8+Y9kKnTiRKgR75c479VdbeiEc3A3YzOaWs5eo5NTNm5K3DKv9KGkb/OgWyiLBemovEx09yuh3gnGZW1cgtuaBn6GtL5iiWF/+uop5jL5Di/msqg2ugYVNwqWcdAl5zvj79JOznt40b0u7PS3AcdjqcpFvm/fm66fwlvfdBwm8o0Ki+ZMrL1RDM5x1Mqu5BdwbuZrmdIV+JvdCehGGTsOWV5FDlqegGpAOOavagOBxRla/mjTxabvgzG42UGUh2xj1ETUyPj5TG6UEH9D4FAkQWZhTrNL/RPEVn9mnS2jevmradNW+DpYNyH2IGzfDUJLYv9LJkfNe7URSSfEhPMc9GI+lhPoqdBBveUa2pQp0=
                     </current_key>
                     <consumer_list>
-                        
+
                     </consumer_list>
                     <adapter_state>
                         2
@@ -201,7 +201,7 @@ testgrupp uus-andmekogu.nopQuery
 
                     </sacl>
                     <acl>
-                        
+
                     </acl>
                     <adapter_uri>
                         /cgi-bin/test_swa_uus

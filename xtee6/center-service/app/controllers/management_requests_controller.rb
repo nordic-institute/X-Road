@@ -29,7 +29,7 @@ class ManagementRequestsController < ApplicationController
       handle_error(ErrorCodes.translateException(e))
     rescue Exception => e
       handle_error(CodedException.new(ErrorCodes::X_INTERNAL_ERROR, e.message))
-      puts "Internal error: #{e.message}\n#{e.backtrace.join("\n\t")}"
+      logger.error("Internal error: #{e.message}\n#{e.backtrace.join("\n\t")}")
     end
   end
 

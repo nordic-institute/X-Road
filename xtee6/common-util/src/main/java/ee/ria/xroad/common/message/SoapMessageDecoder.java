@@ -1,5 +1,6 @@
 package ee.ria.xroad.common.message;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class SoapMessageDecoder {
     /**
      * Callback interface for handling the outcome of the decoding process.
      */
-    public interface Callback extends SoapMessageConsumer {
+    public interface Callback extends SoapMessageConsumer, Closeable {
 
         /**
          * Called when SoapFault has been completely read.
@@ -55,6 +56,9 @@ public class SoapMessageDecoder {
          * @throws Exception if any errors occur
          */
         void onError(Exception t) throws Exception;
+
+        @Override
+        default void close() { };
     }
 
     /**

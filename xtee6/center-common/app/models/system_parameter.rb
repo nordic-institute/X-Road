@@ -109,7 +109,11 @@ class SystemParameter < ActiveRecord::Base
   end
 
   def self.auth_cert_reg_url
-    get(AUTH_CERT_REG_URL) % {
+    url = get(AUTH_CERT_REG_URL)
+
+    return "" if url.blank?
+
+    url % {
       :centralServerAddress => get(CENTRAL_SERVER_ADDRESS)
     }
   end

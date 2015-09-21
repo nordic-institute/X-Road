@@ -21,7 +21,15 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
- * Downloaded configuration directory.
+ * Downloads configuration directory from a configuration location defined
+ * in the configuration anchor.
+ *
+ * When there is only one configuration location in the configuration anchor, it
+ * is used. If there is more than one configuration location, then, for
+ * high-availability concerns, list of configuration locations is shuffled and
+ * then traversed to find the first location where configuration * can be
+ * downloaded. The successful location is remembered and used first next time
+ * the configuration is downloaded.
  */
 @Slf4j
 class ConfigurationDownloader {

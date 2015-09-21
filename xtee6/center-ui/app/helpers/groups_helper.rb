@@ -10,7 +10,7 @@ module GroupsHelper
   end
 
   def group_orgs_data_array(orgs)
-    data = orgs.map { |o| puts o; group_org_data(o) }
+    data = orgs.map { |o| group_org_data(o) }
     "[" + data.join(",") + "]"
   end
 

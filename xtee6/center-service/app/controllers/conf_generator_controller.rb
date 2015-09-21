@@ -48,13 +48,13 @@ class ConfGeneratorController < ApplicationController
     end
 
     render :text => ""
-  rescue Exception => e
+  rescue
     remove_new_conf_dir()
 
-    logger.error(e.message)
-    logger.error(e.backtrace.join("\n"))
+    logger.error($!.message)
+    logger.error($!.backtrace.join("\n"))
 
-    render :text => "#{e.message}\n"
+    render :text => "#{$!.message}\n"
 # ensure
 #   GlobalConfGeneratorState.clear_generating()
   end
@@ -69,7 +69,7 @@ class ConfGeneratorController < ApplicationController
     return unless @new_conf_dir
 
     FileUtils.remove_entry_secure(@new_conf_dir, :force => true)
-  rescue Exception
+  rescue
     logger.error(
         "Failed to remove new conf directory, message:\n#{$!.message}")
   end
@@ -81,53 +81,45 @@ class ConfGeneratorController < ApplicationController
     end
   end
 
-  def log(msg)
-    puts msg
-    %x[logger #{msg}]
-  end
-
   # -- Conf generation logic - start ---
 
   def create_distributable_configuration
     private_parameters_xml = generate(PrivateParametersGenerator.new())
     shared_parameters_xml = generate(SharedParametersGenerator.new())
 
-    log "Validating private parameters"
+    logger.info("Validating private parameters")
     PrivateParametersSchemaValidator.validate(private_parameters_xml)
-    log "Validating shared parameters"
+    logger.info("Validating shared parameters")
     SharedParametersSchemaValidator.validate(shared_parameters_xml)
 
-    log "Saving private parameters"
+    logger.info("Saving private parameters")
     DistributedFiles.save_configuration_part(
       PrivateParameters::FILE_NAME_PRIVATE_PARAMETERS,
       private_parameters_xml)
 
-    log "Saving shared parameters"
+    logger.info("Saving shared parameters")
     DistributedFiles.save_configuration_part(
       SharedParameters::FILE_NAME_SHARED_PARAMETERS,
       shared_parameters_xml)
 
-    log "Saving success message"
+    logger.info("Saving success message")
 
     success_msg = "Global configuration generated successfully.\n"
     GlobalConfGenerationStatus.write_success(success_msg)
 
-    log "Configuration generation: success"
-  rescue Exception => e
-    log "#{e.message}"
+    logger.info("Configuration generation: success")
+  rescue
+    logger.info("#{$!.message}")
     GlobalConfGenerationStatus.write_failure(
-        GlobalConfSigningLog.get_exception_ctx(e))
-    raise e
+        GlobalConfSigningLog.get_exception_ctx($!))
+    raise "Failed to generate valid global configuration: #{$!.message}"
   end
 
   def generate(generator)
-    log "Generating GlobalConf part with generator #{generator.class} "\
-        "from database state..."
-    begin
-      return generator.generate()
-    rescue Exception => e
-      raise "Failed to generate GlobalConf: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
-    end
+    logger.info("Generating global configuration part with generator "\
+        "#{generator.class} from database state...")
+
+    generator.generate
   end
 
   # -- Conf generation logic - end ---
@@ -145,9 +137,9 @@ class ConfGeneratorController < ApplicationController
     serve_configuration()
 
     clean_up_old_configuration()
-  rescue Exception => e
-    log "#{e.message}"
-    raise e
+  rescue
+    logger.error("#{$!.message}")
+    raise $!
   end
 
   def init_generated_conf_location
@@ -155,6 +147,9 @@ class ConfGeneratorController < ApplicationController
     @new_conf_dir = "#{get_generated_conf_dir()}/#@generation_timestamp"
 
     FileUtils.mkdir_p(@new_conf_dir, :mode => 0755)
+  rescue
+    raise "Failed to initialize generated configuration location: "\
+        "'#{$!.message}'"
   end
 
   def process_internal_configuration
@@ -168,7 +163,7 @@ class ConfGeneratorController < ApplicationController
 
     target_file = get_temp_internal_directory()
 
-    log "Generating internal conf to: #{target_file}"
+    logger.info("Generating internal conf to: #{target_file}")
 
     signed_file = sign(
         signing_key.key_identifier,
@@ -181,10 +176,12 @@ class ConfGeneratorController < ApplicationController
         get_internal_directory)
 
     logger.debug("process_internal_configuration() - finished")
-  rescue Exception
+  rescue
     GlobalConfSigningLog.write(
         GlobalConfSigningLog.get_exception_ctx($!),
         get_internal_directory)
+
+    raise "Processing internal configuration failed: #{$!.message}"
   end
 
   def process_external_configuration
@@ -192,14 +189,13 @@ class ConfGeneratorController < ApplicationController
 
     signing_key = ConfigurationSource.get_external_signing_key
 
-    # TODO: To be clarified if it stays so.
     return if signing_key == nil
 
     allowed_content_identifiers =
       [SharedParameters::CONTENT_ID_SHARED_PARAMETERS]
 
     target_file = get_temp_external_directory()
-    log "Generating external conf to: #{target_file}"
+    logger.info("Generating external conf to: #{target_file}")
 
     signed_file = sign(signing_key.key_identifier, allowed_content_identifiers)
     distribute(signed_file, target_file, signing_key.cert)
@@ -209,39 +205,41 @@ class ConfGeneratorController < ApplicationController
         get_external_directory)
 
     logger.debug("process_external_configuration() - finished")
-  rescue Exception
+  rescue
     GlobalConfSigningLog.write(
         GlobalConfSigningLog.get_exception_ctx($!),
         get_external_directory)
+
+    raise "Processing external configuration failed: #{$!.message}"
   end
 
   def sign(signing_key_id, allowed_content_identifiers = nil)
-    log "Generating signed distributed files"
+    logger.info("Generating signed distributed files")
     if signing_key_id.blank?
       raise "Cannot sign without signing key!"
     end
 
     begin
       get_signer(signing_key_id, allowed_content_identifiers).sign()
-    rescue Exception => e
-      raise "Failed to sign files: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
+    rescue
+      raise "Failed to sign files: #{$!.message}"
     end
   end
 
-  def distribute(signed_file, target_file, verification_cert)
-    log "Distributing files to #{target_file}"
+  def distribute(signed_file, target_file, signing_cert)
+    logger.info("Distributing files to #{target_file}")
     if target_file.blank?
       raise "Distribution target file must not be blank!"
     end
 
-    if verification_cert.blank?
+    if signing_cert.blank?
       raise "Cannot distribute configuration without verification cert!"
     end
 
     begin
-      get_distributor(target_file, verification_cert).distribute(signed_file)
-    rescue Exception => e
-      raise "Failed to distribute files: #{e.message}\n\t#{e.backtrace.join("\n\t")}"
+      get_distributor(target_file, signing_cert).distribute(signed_file)
+    rescue
+      raise "Failed to distribute files: #{$!.message}"
     end
   end
 
@@ -251,18 +249,26 @@ class ConfGeneratorController < ApplicationController
     internal_directory_path = "#{generated_conf_dir}/#{get_internal_directory}"
     logger.debug("Serving internal conf on path '#{internal_directory_path}'")
 
-    FileUtils.mv(
-        "#{generated_conf_dir}/#{get_temp_internal_directory}",
-        internal_directory_path)
+    begin
+      FileUtils.mv(
+          "#{generated_conf_dir}/#{get_temp_internal_directory}",
+          internal_directory_path)
+    rescue
+      raise "Failed to serve internal configuration: #{$!.message}"
+    end
 
     return unless can_serve_external_directory?
 
     external_directory_path = "#{generated_conf_dir}/#{get_external_directory}"
     logger.debug("Serving external conf on path '#{external_directory_path}'")
 
-    FileUtils.mv(
-        "#{generated_conf_dir}/#{get_temp_external_directory}",
-        external_directory_path)
+    begin
+      FileUtils.mv(
+          "#{generated_conf_dir}/#{get_temp_external_directory}",
+          external_directory_path)
+    rescue
+      raise "Failed to serve external configuration: #{$!.message}"
+    end
   end
 
   def can_serve_external_directory?
@@ -280,7 +286,7 @@ class ConfGeneratorController < ApplicationController
 
       FileUtils.remove_entry_secure(each, :force => true)
     end
-  rescue Exception
+  rescue
     logger.error(
         "Failed to clean up old configuration, message:\n#{$!.message}")
   end
@@ -300,7 +306,7 @@ class ConfGeneratorController < ApplicationController
     return DirectorySigner.new(sign_key_id, sign_algo_id, content_builder)
   end
 
-  def get_distributor(target_file, verification_cert)
+  def get_distributor(target_file, signing_cert)
     hash_calculator =
         HashCalculator.new(SystemParameter.conf_sign_cert_hash_algo_uri)
 
@@ -308,7 +314,7 @@ class ConfGeneratorController < ApplicationController
         get_generated_conf_dir(),
         target_file,
         hash_calculator,
-        verification_cert)
+        signing_cert)
   end
 
   def get_generated_conf_dir
@@ -345,6 +351,8 @@ class ConfGeneratorController < ApplicationController
       write_local_copy(file)
     end
     write_local_instance
+  rescue
+    raise "Failed to save configuration to disk: #{$!.message}"
   end
 
   def write_public_copy(file)
@@ -382,16 +390,16 @@ class ConfGeneratorController < ApplicationController
   end
 
   def write_to_disk(target_file, file_data)
-    log "Writing data to '#{target_file}'"
+    logger.info("Writing data to '#{target_file}'")
 
     encoded_output = file_data.force_encoding(Rails.configuration.encoding)
 
     writing_process = Proc.new {|f| f.write(encoded_output)}
     CommonUi::IOUtils.write_public(target_file, writing_process)
-  rescue Exception => e
-    log "Failed to save distributed file '#{target_file}' "\
-        "to disk: #{e.message}"
-    raise e
+  rescue
+    logger.error("Failed to save distributed file #{target_file} "\
+        "to disk: #{$!.message}")
+    raise $!
   end
 
   # -- Conf distribution logic - end ---

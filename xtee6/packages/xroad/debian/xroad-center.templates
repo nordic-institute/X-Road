@@ -47,7 +47,7 @@ Description: Error during certificate generation, please fix issues
 
 Template: xroad-common/username
 Type: string
-Default: 
+Default:
 Description: Enter X-Road Superuser username
  Username for X-Road admin rights
  .

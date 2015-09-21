@@ -5,7 +5,7 @@ module CommonUi
     def self.restrictions
       return UploadedFile::Restrictions.new(
           ["tar"],
-          ["application/x-tar"])
+          ["application/x-tar", "application/octet-stream"])
     end
 
     class Validator

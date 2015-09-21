@@ -17,14 +17,7 @@ import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 
-import static ee.ria.xroad.confproxy.ConfProxyProperties
-        .ACTIVE_SIGNING_KEY_ID;
-import static ee.ria.xroad.confproxy.ConfProxyProperties
-        .CONF_INI;
-import static ee.ria.xroad.confproxy.ConfProxyProperties
-        .SIGNING_KEY_ID_PREFIX;
-import static ee.ria.xroad.confproxy.ConfProxyProperties
-        .VALIDITY_INTERVAL_SECONDS;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.*;
 
 /**
  * Utility tool for viewing the configuration proxy configuration settings.
@@ -116,15 +109,18 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         System.out.println();
 
         System.out.println("Configuration URL");
-        System.out
-                .println(delimiter);
-        System.out.println(conf.getConfigurationProxyURL() + "/"
-                + OutputBuilder.SIGNED_DIRECTORY_NAME);
+        System.out.println(delimiter);
+        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
+            System.out.println("configuration-proxy.address has not been"
+                    + " configured in 'local.ini'!");
+        } else {
+            System.out.println(conf.getConfigurationProxyURL() + "/"
+                    + OutputBuilder.SIGNED_DIRECTORY_NAME);
+        }
         System.out.println();
 
         System.out.println("Signing keys and certificates");
-        System.out
-                .println(delimiter);
+        System.out.println(delimiter);
 
         System.out.println(ACTIVE_SIGNING_KEY_ID + ":");
         String activeKey = conf.getActiveSigningKey();

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script creates a signed multipart file, that contains the GlobalConf,
-# signing time and the signature. The GlobalConf and signing time are both 
+# signing time and the signature. The GlobalConf and signing time are both
 # signed. Because of this, they are contained in a separate multipart.
 
 ## Configuration options
@@ -64,7 +64,7 @@ mainboundary=`openssl rand -base64 20`
 # The value of the boundary used for the signed data multipart
 databoundary=`openssl rand -base64 20`
 
-# Current date, used to indicate signing time 
+# Current date, used to indicate signing time
 curdate=`date -u '+%Y-%m-%dT%H:%M:%S%z'`
 
 # Start writing data to be signed (globalconf and date)

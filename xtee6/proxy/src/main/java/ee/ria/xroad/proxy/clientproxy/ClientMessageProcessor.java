@@ -33,7 +33,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ClientCert;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -78,9 +78,17 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private final CountDownLatch requestHandlerGate = new CountDownLatch(1);
 
     /**
+     * By using a count down latch we can make the main thread wait for the
+     * HTTP sender to finish sending the entire request to the piped output
+     * stream, so we can check for errors in the handler thread before
+     * receiving the response.
+     */
+    private final CountDownLatch httpSenderGate = new CountDownLatch(1);
+
+    /**
      * Holds the client side SSL certificate.
      */
-    private final ClientCert clientCert;
+    private final IsAuthenticationData clientCert;
 
     /** Holds the incoming request SOAP message. */
     private volatile SoapMessageImpl requestSoap;
@@ -108,7 +116,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     ClientMessageProcessor(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, HttpClient httpClient,
-            ClientCert clientCert) throws Exception {
+            IsAuthenticationData clientCert) throws Exception {
         super(servletRequest, servletResponse, httpClient);
         this.clientCert = clientCert;
         this.reqIns = new PipedInputStream();
@@ -172,6 +180,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         try (HttpSender httpSender = createHttpSender()) {
             sendRequest(httpSender);
+
+            // Check for any errors from the handler thread once more.
+            waitForRequestSent();
+            checkError();
+
             parseResponse(httpSender);
         }
 
@@ -212,9 +225,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 // Rethrow
                 throw e;
             }
-
-            // Check for any errors from the handler thread once more.
-            checkError();
         } finally {
             if (reqIns != null) {
                 reqIns.close();
@@ -345,10 +355,26 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    private void waitForRequestSent() {
+        log.trace("waitForRequestSent()");
+        try {
+            httpSenderGate.await();
+        } catch (InterruptedException e) {
+            log.error("waitForRequestSent interrupted", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
     private void continueProcessing() {
         log.trace("continueProcessing()");
 
         requestHandlerGate.countDown();
+    }
+
+    private void continueReadingResponse() {
+        log.trace("continueReadingResponse()");
+
+        httpSenderGate.countDown();
     }
 
     private void checkError() throws Exception {
@@ -447,11 +473,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private class HandlerThread extends Thread {
         @Override
         public void run() {
-            try {
+            try (SoapMessageHandler handler = new SoapMessageHandler()) {
                 SoapMessageDecoder soapMessageDecoder =
                         new SoapMessageDecoder(servletRequest.getContentType(),
-                                new SoapMessageHandler(),
-                                new RequestSoapParserImpl());
+                                handler, new RequestSoapParserImpl());
                 try {
                     soapMessageDecoder.parse(servletRequest.getInputStream());
                 } catch (Exception ex) {
@@ -461,6 +486,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 setError(ex);
             } finally {
                 continueProcessing();
+                continueReadingResponse();
             }
         }
     }
@@ -548,6 +574,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 throw e;
             }
         }
+
+        @Override
+        public void close() {
+            handler.close();
+        }
     }
 
     private class DefaultSoapMessageHandler
@@ -590,22 +621,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
             } catch (Exception ex) {
                 setError(ex);
             }
-
-            if (request != null) {
-                try {
-                    request.close();
-                } catch (Exception e) {
-                    setError(e);
-                }
-            }
         }
 
         @Override
         public void onError(Exception e) throws Exception {
-            if (request != null) {
-                request.close();
-            }
-
             // Simply re-throw
             throw e;
         }
@@ -616,6 +635,17 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     chain.getAllCertsWithoutTrustedRoot()); // exclude TopCA
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);
+            }
+        }
+
+        @Override
+        public void close() {
+            if (request != null) {
+                try {
+                    request.close();
+                } catch (Exception e) {
+                    setError(e);
+                }
             }
         }
     }

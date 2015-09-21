@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-lucid = 
+lucid =
 
 ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
 	lucid = true
@@ -25,8 +25,8 @@ override_dh_installinit:
 
 override_dh_gencontrol:
 ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0 
-else 
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0
+else
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
 endif
 
@@ -41,8 +41,8 @@ else
 endif
 
 
-	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.3.1.v20150714/dist/jetty-distribution-9.3.1.v20150714.tar.gz"
-	tar zxf jetty.tgz 
+	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.3.3.v20150827/dist/jetty-distribution-9.3.3.v20150827.tar.gz"
+	tar zxf jetty.tgz
 	mv jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod

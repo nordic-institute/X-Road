@@ -9,7 +9,7 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-lucid = 
+lucid =
 
 ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
 	lucid = true
@@ -21,17 +21,17 @@ endif
 
 build:
 ifdef lucid
-	  echo "PREPARE LUCID" 
-	  cp debian/lucid/*upstart debian/ 
-	  cp debian/lucid/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh 
-	  cp debian/lucid/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh 
+	echo "PREPARE LUCID"
+	cp debian/lucid/*upstart debian/
+	cp debian/lucid/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh
+	cp debian/lucid/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh
 else
-	  echo "PREPARE TRUSTY" 
-	  cp debian/trusty/*upstart debian/ 
-	  cp debian/trusty/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh 
-	  cp debian/trusty/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh 
+	echo "PREPARE TRUSTY"
+	cp debian/trusty/*upstart debian/
+	cp debian/trusty/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh
+	cp debian/trusty/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh
 endif
-	
+
 
 override_dh_installinit:
 	dh_installinit --name=xroad-signer
@@ -45,7 +45,7 @@ override_dh_builddeb:
 
 override_dh_gencontrol:
 ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0 
-else 
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0
+else
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
 endif

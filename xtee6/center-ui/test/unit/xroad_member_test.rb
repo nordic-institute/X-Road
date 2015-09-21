@@ -64,4 +64,52 @@ class XroadMemberTest < ActiveSupport::TestCase
 
     assert_equal(new_name, updated_request.server_owner_name)
   end
+
+  test "Should update request server user name when member name changed" do
+    # Given
+    member = XroadMember.where(:member_code => "member_out_of_vallavalitsused").first
+    new_name = "New name"
+
+    # When
+    member.update_attributes!(:name => new_name)
+
+    # Then
+    updated_request = Request.where(
+        :server_owner_class => "riigiasutus",
+        :server_owner_code => "member_in_vallavalitsused").first
+
+    assert_equal(new_name, updated_request.server_user_name)
+  end
+
+  test "Should preserve server owner name when owner deleted" do
+    # Given
+    member = XroadMember.where(:member_code => "member_in_vallavalitsused").first
+
+    # When
+    member.destroy
+
+    # Then
+    last_name = "This member should belong to group 'vallavalitsused'"
+    updated_request = Request.where(
+        :server_owner_class => "riigiasutus",
+        :server_owner_code => "member_in_vallavalitsused").first
+
+    assert_equal(last_name, updated_request.server_owner_name)
+  end
+
+  test "Should preserve server user name when user deleted" do
+    # Given
+    member = XroadMember.where(:member_code => "member_out_of_vallavalitsused").first
+
+    # When
+    member.destroy
+
+    # Then
+    last_name = "This member should NOT belong to group 'vallavalitsused'"
+    updated_request = Request.where(
+        :server_owner_class => "riigiasutus",
+        :server_owner_code => "member_in_vallavalitsused").first
+
+    assert_equal(last_name, updated_request.server_user_name)
+  end
 end

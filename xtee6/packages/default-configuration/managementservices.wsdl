@@ -166,18 +166,17 @@
                     <xsd:element name="server"
                         type="id:XroadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of this security
-                                server.
+                            <xsd:documentation>Identifier of the security
+                                server the deletable authentication certificate
+                                is associated with.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="authCert" type="base64Binary">
                         <xsd:annotation>
-                            <xsd:documentation>Authentication
-                                certificate that needs to
-                                be deleted
-                                from the list
-                                of certificates
+                          <xsd:documentation>Contents (in DER encoding) of
+                                the authentication certificate that will
+                                be deleted from the list of certificates
                                 authenticating this security server.
                             </xsd:documentation>
                         </xsd:annotation>
@@ -189,23 +188,21 @@
                     <xsd:element name="server"
                         type="id:XroadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of this security
-                                server.
+                            <xsd:documentation>Identifier of the security
+                                server where the client is added or removed
+                                (depending on the request type)
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="client"
                         type="id:XroadClientIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identity of the XROAD
-                                member
-                                or subsystem requesting to be a
-                                client
-                                of this security server
-                                or who
-                                needs to be deleted from the list of
-                                clients of this server
-                                server.
+                            <xsd:documentation>Identifier of the client
+                                associated with the security server. When the
+                                request is for registering client, the client is
+                                added to the security server. When the request
+                                is for deleting client, the client is removed
+                                from the clients' list of the security server.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

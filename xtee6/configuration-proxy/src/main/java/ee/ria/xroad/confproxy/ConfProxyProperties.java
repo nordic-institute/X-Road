@@ -202,7 +202,9 @@ public class ConfProxyProperties {
      */
     public final List<byte[]> getVerificationCerts() throws IOException {
         List<X509Certificate> certs = new ArrayList<>();
-        certs.add(readCert(getActiveSigningKey()));
+        if (getActiveSigningKey() != null) {
+            certs.add(readCert(getActiveSigningKey()));
+        }
         getKeyList().forEach(k -> certs.add(readCert(k)));
         return certs.stream().distinct().map(ConfProxyProperties::certBytes)
                 .collect(Collectors.toList());

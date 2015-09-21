@@ -151,7 +151,7 @@ class SysparamsController < ApplicationController
 
   def async_params_edit
     authorize!(:edit_async_params)
-    
+
     validate_params({
       :base_delay => [:required, :int],
       :max_delay => [:required, :int],
@@ -200,12 +200,11 @@ class SysparamsController < ApplicationController
       raise t('sysparams.key_generation_failed', :msg => output.split('\n')[-1])
     end
 
-    export_internal_ssl
-
     restart_service("xroad-proxy")
 
     if x55_installed?
-      restart_service("xtee55-servicemediator")
+      export_v6_internal_tls_key
+      restart_service("xtee55-clientemediator")
     end
 
     cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
@@ -218,6 +217,19 @@ class SysparamsController < ApplicationController
   end
 
   private
+
+  def export_v6_internal_tls_key
+    if exporter = SystemProperties::getInternalTlsKeyExporterCommand
+      output = %x["#{exporter}" 2>&1]
+
+      if $?.exitstatus != 0
+        logger.error(output)
+        error(t('sysparams.internal_tls_key_export_failed'))
+      end
+    else
+      logger.warn("Internal TLS key exporter unspecified, skipping")
+    end
+  end
 
   def read_anchor
     file = SystemProperties::getConfigurationAnchorFile

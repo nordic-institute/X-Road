@@ -109,7 +109,7 @@ p.notfound {
         font-size: 10pt;
         margin-bottom: 40px;
 
-        &:last-of-type { 
+        &:last-of-type {
             margin-bottom: 20px;
         }
 
@@ -147,18 +147,6 @@ p.notfound {
         margin-left: 10px;
         vertical-align: middle;
         font-size: 9pt;
-
-        &.inactive {
-            color: $base-color-red;
-        }
-
-        &.dependent {
-            color: $base-color-yellow;
-        }
-
-        &.promoted {
-            color: $base-color-green;
-        }
     }
 
     #server-names {
@@ -354,7 +342,7 @@ p.notfound {
     .message {
         position: relative;
         clear: both;
-        padding: 5px 20px 5px 10px;
+        padding: 5px 30px 5px 10px;
         font-family: "Open Sans";
         font-weight: 700;
         font-size: 10pt;
@@ -479,3 +467,4 @@ iframe {
 body.wait *, body.wait {
     cursor: wait !important;
 }
+

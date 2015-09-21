@@ -25,10 +25,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.SystemProperties.getTempFilesPath;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
 import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
@@ -40,7 +40,9 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
 class LogArchiveCache implements Closeable {
 
     private enum State {
-        NEW, ADDING, ROTATING
+        NEW,
+        ADDING,
+        ROTATING
     }
 
     private final Supplier<String> randomGenerator;
@@ -56,8 +58,7 @@ class LogArchiveCache implements Closeable {
     private Set<Date> creationTimes;
     private long archivesTotalSize;
 
-    LogArchiveCache(
-            Supplier<String> randomGenerator,
+    LogArchiveCache(Supplier<String> randomGenerator,
             LinkingInfoBuilder linkingInfoBuilder) {
         this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
@@ -67,12 +68,10 @@ class LogArchiveCache implements Closeable {
 
     void add(MessageRecord messageRecord) throws Exception {
         try {
-
             validateMessageRecord(messageRecord);
             handleRotation();
             cacheRecord(messageRecord);
             updateState();
-
         } catch (Exception e) {
             handleCacheError(e);
         }
@@ -100,14 +99,15 @@ class LogArchiveCache implements Closeable {
         throw e;
     }
 
-    private void addAsicContainersToArchive(ZipOutputStream zipOut) throws IOException {
+    private void addAsicContainersToArchive(ZipOutputStream zipOut)
+            throws IOException {
         for (String eachName : archiveFileNames) {
             ZipEntry entry = new ZipEntry(eachName);
 
             zipOut.putNextEntry(entry);
 
             try (InputStream archiveInput =
-                         new FileInputStream(getTempAsicPath(eachName))) {
+                    Files.newInputStream(createTempAsicPath(eachName))) {
                 IOUtils.copy(archiveInput, zipOut);
             }
 
@@ -115,7 +115,8 @@ class LogArchiveCache implements Closeable {
         }
     }
 
-    private void addLinkingInfoToArchive(ZipOutputStream zipOut) throws IOException {
+    private void addLinkingInfoToArchive(ZipOutputStream zipOut)
+            throws IOException {
         ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
 
         zipOut.putNextEntry(linkingInfoEntry);
@@ -165,11 +166,7 @@ class LogArchiveCache implements Closeable {
     }
 
     private void updateState() {
-        if (archiveExceedsRotationSize()) {
-            state = State.ROTATING;
-        } else {
-            state = State.ADDING;
-        }
+        state = archiveExceedsRotationSize() ? State.ROTATING : State.ADDING;
     }
 
     private boolean archiveExceedsRotationSize() {
@@ -179,23 +176,23 @@ class LogArchiveCache implements Closeable {
     private void addContainerToArchive(MessageRecord record) throws Exception {
         byte[] containerBytes = record.toAsicContainer().getBytes();
 
-        String type = record.isResponse() ? "response" : "request";
-        String queryId = record.getQueryId();
         String archiveFilename =
-                nameGenerator.getArchiveFilename(queryId, type);
+                nameGenerator.getArchiveFilename(
+                        record.getQueryId(),
+                        record.isResponse() ? "response" : "request");
+
         linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
         archiveFileNames.add(archiveFilename);
         archivesTotalSize += containerBytes.length;
 
-        try (OutputStream os = new FileOutputStream(
-                new File(getTempAsicPath(archiveFilename)))) {
+        try (OutputStream os =
+                Files.newOutputStream(createTempAsicPath(archiveFilename))) {
             os.write(containerBytes);
         }
     }
 
-    private String getTempAsicPath(String archiveFilename) {
-        return archiveContentDir.getAbsolutePath()
-                + File.separator + archiveFilename;
+    private Path createTempAsicPath(String archiveFilename) {
+        return Paths.get(archiveContentDir.getAbsolutePath(), archiveFilename);
     }
 
     private void reset() {
@@ -204,17 +201,18 @@ class LogArchiveCache implements Closeable {
             resetCacheState();
         } catch (IOException e) {
             log.error("Resetting log archive cache failed, cause:", e);
-            throw new CodedException(
-                    ErrorCodes.X_IO_ERROR, "Failed to reset log archive cache");
+            throw new CodedException(X_IO_ERROR,
+                    "Failed to reset log archive cache");
         }
     }
 
     private void resetArchive() throws IOException {
         deleteArchiveArtifacts();
 
-        Path tempDirPath = Paths.get(getTempFilesPath());
         archiveContentDir = Files.createTempDirectory(
-                tempDirPath, "xroad-log-archive").toFile();
+                    Paths.get(getTempFilesPath()),
+                    "xroad-log-archive"
+                ).toFile();
     }
 
     private void deleteArchiveArtifacts() {

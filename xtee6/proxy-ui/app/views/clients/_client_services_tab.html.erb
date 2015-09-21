@@ -4,12 +4,7 @@
 
 <div class="services_actions">
   <% if can?(:add_wsdl) %>
-    <% if x55_installed? %>
-    <button id="wsdl_add"><%= t '.add_v6_wsdl' %></button>
-    <button id="adapter_add"><%= t '.add_adapter' %></button>
-    <% else %>
     <button id="wsdl_add"><%= t '.add_wsdl' %></button>
-    <% end %>
   <% end %>
   <% if can?(:enable_disable_wsdl) %>
   <button id="wsdl_enable"><%= t 'common.enable' %></button>
@@ -74,49 +69,6 @@
       <tr>
         <td><%= t '.url' %></td>
         <td><%= text_field_tag "params_wsdl_url", nil %></td>
-      </tr>
-    </table>
-  <% end %>
-<% end %>
-
-<%= dialog "adapter_add_dialog" do %>
-  <%= form_tag do %>
-    <table class="details">
-      <tr>
-        <td><%= t '.adapter_url' %>:</td>
-        <td><%= text_field_tag "adapter_add_url", nil, :style => "width: 90%;" %></td>
-      </tr>
-      <tr>
-        <td><%= t '.adapter_sslauth' %></td>
-        <td><%= check_box_tag "adapter_add_sslauth", true, :style => "width: 100%;" %></td>
-      </tr>
-      <tr>
-        <td><%= t '.wsdl_uri' %>:</td>
-        <td><%= text_field_tag "adapter_add_wsdl_uri", nil, :style => "width: 90%;" %></td>
-      </tr>
-    </table>
-  <% end %>
-<% end %>
-
-<%= dialog "adapter_params_dialog", t('.edit_adapter_parameters') do %>
-  <%= form_tag do %>
-    <%= hidden_field_tag "params_adapter_id", nil %>
-    <table class="details">
-      <tr>
-        <td style="width: 25%;"><%= t '.adapter_url' %></td>
-        <td><%= text_field_tag "params_adapter_url", nil %></td>
-      </tr>
-      <tr>
-        <td><%= t '.adapter_sslauth' %></td>
-        <td><%= check_box_tag "params_adapter_sslauth", true %></td>
-      </tr>
-      <tr>
-        <td><%= t '.wsdl_uri' %></td>
-        <td><%= text_field_tag "params_adapter_wsdl_uri", nil %></td>
-      </tr>
-      <tr>
-        <td><%= t '.timeout' %></td>
-        <td><%= text_field_tag "params_adapter_timeout", nil %></td>
       </tr>
     </table>
   <% end %>

@@ -20,3 +20,4 @@ class DeletionRequest < Request
     raise "This method must be overridden by subclass"
   end
 end
+

@@ -1,15 +1,11 @@
 en:
   coded_exception:
-    listing_adapter_methods_failed: "Could not get valid response to listMethods request. Adapter specified by the Adapter URL must provide a valid response to listMethods request."
     fault_code:
       MalformedGlobalConf: "Global configuration is malformed: %{reason}"
 
   application:
     globalconf_invalid: "Global configuration is expired"
     softtoken_pin_not_entered: "Please enter softtoken PIN"
-    services_import_failed: "Failed to import services"
-    services_export_failed: "Failed to export services"
-    internal_ssl_export_failed: "Failed to export internal TLS conf"
     restart_service_failed: "Failed to restart service '%{name}': %{output}"
     database_connection_error: "Cannot connect to database server"
     invalid_anchor_file: "Configuration anchor import failed: invalid anchor file"
@@ -21,6 +17,8 @@ en:
     mismatching_pins: "Software token pins do not match"
     unregistered_member: "The person/organisation '%{member_class} : %{member_code}' is not registered as X-Road member"
     configuration_downloaded: "Successfully downloaded configuration"
+    services_import_failed: "Failed to import X-Road 5.0 services"
+    internal_tls_key_import_failed: "Failed to import X-Road 5.0 internal TLS key"
 
   menu:
     configuration:
@@ -53,18 +51,14 @@ en:
       client_regreq: "send registration request"
       client_delreq: "send deletion request"
       wsdl_add: "add WSDL"
-      adapter_add: "add adapter"
     client_exists: "Client already exists"
     unregistered_member: "The person/organisation '%{member}' is not registered as X-Road member."
     new_subsystem: "New subsystem '%{subsystem}' will be registered for member '%{member}'."
     cert_in_use: "in use"
     cert_disabled: "disabled"
-    cannot_register_without_sign_cert: "Client does not have a signing certificate"
     cannot_delete_owner: "Security server owner cannot be deleted"
     cannot_register_owner: "Security server owner cannot be registered"
     cert_exists: "Certificate already exists"
-    invalid_backend_type: "Invalid backend type"
-    adapter_exists: "Adapter already exists"
     wsdl_exists: "WSDL address already exists."
     invalid_wsdl: "Incorrect file structure. WSDL URL must point to a WSDL file."
     malformed_wsdl_url: "Malformed URL. WSDL URL must point to a WSDL file."
@@ -74,15 +68,8 @@ en:
     service_exists_refresh: "New service '%{service}' at %{wsdl1} also exists at %{wsdl2}"
     adding_services: "Adding services:<p class='bold'>%{added}</p>"
     deleting_services: "Deleting services:<p class='bold'>%{deleted}</p>"
-    adapter: "Adapter"
-    adapter_meta: "5.0 metaservices"
     wsdl: "WSDL"
     wsdl_disabled: "DISABLED"
-    combinedwsdl:
-      invalid_combination: "Cannot merge WSDLs. %{reason}"
-      invalid_single_wsdl: "WSDL loaded for client '%{client_id}' is malformed. Inspect WSDL file."
-      network_error: "Cannot merge WSDLs: system error. Cannot connect to service mediator."
-      other_error: "Attempting to merge WSDLs failed for unknown reason: '%{message}'"
     internal_server_ssl_error: "TLS handshake with server %{url} failed, server certificate missing from configuration"
     group_exists: "A group with code '%{code}' already exists"
 
@@ -91,6 +78,7 @@ en:
       tsp_add: "add timestamping service"
       tsp_delete: "delete timestamping service"
     distributor_exists: "Distributor already exists"
-    tsp_exists: "TSP already exists"
-    tsp_not_approved: "TSP not approved"
+    tsp_exists: "timestamping service already exists"
+    tsp_not_approved: "timestamping service not approved"
     key_generation_failed: "Failed to generate new key: %{msg}"
+    internal_tls_key_export_failed: "Failed to export internal TLS key/certificate"

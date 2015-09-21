@@ -30,6 +30,9 @@ final class IdentifierDecoderHelper {
         } catch (ClassNotFoundException e) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not find identifier decoder: '%s'", methodName);
+        } catch (NoSuchMethodException e) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not find identifier decoder method: '%s'", methodName);
         } catch (Exception e) {
             log.error("Could not get identifier decoder method '"
                     + methodName + "'", e);

@@ -148,7 +148,7 @@ module Clients::InternalCerts
       audit_log_data = {})
 
     authorize!(:edit_client_internal_connection_type)
-    
+
     validate_params({
       :client_id => [:required],
       :connection_type => [:required]
@@ -159,7 +159,7 @@ module Clients::InternalCerts
     client.isAuthentication = params[:connection_type]
 
     audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:isAuthentication] = client.isAuthentication
+    audit_log_data[:isAuthentication] = isAuthenticationToUIStr(client.isAuthentication)
 
     serverconf_save
 

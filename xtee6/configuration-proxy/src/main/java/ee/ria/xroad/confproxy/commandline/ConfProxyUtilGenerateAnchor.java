@@ -39,23 +39,36 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
     }
 
     @Override
-    final void execute(final CommandLine commandLine)
-            throws Exception {
+    final void execute(final CommandLine commandLine) throws Exception {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);
-        ConfigurationAnchor sourceAnchor =
-                new ConfigurationAnchor(conf.getProxyAnchorPath());
+
+        ConfigurationAnchor sourceAnchor = null;
+        try {
+            sourceAnchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
+        } catch (Exception ex) {
+            fail("Could not load source anchor: " + ex.getMessage());
+        }
+        String instance = sourceAnchor.getInstanceIdentifier();
+
+        if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
+            fail("configuration-proxy.address has not been"
+                    + " configured in 'local.ini'!");
+        }
+
+        if (conf.getKeyList().isEmpty()) {
+            fail("No signing keys configured!");
+        }
 
         if (commandLine.hasOption("filename")) {
             String filename = commandLine.getOptionValue("f");
 
             try {
                 AtomicSave.execute(filename, "tmpanchor",
-                        out -> generateAnchorXml(conf,
-                                sourceAnchor.getInstanceIdentifier(), out));
+                        out -> generateAnchorXml(conf, instance, out));
             } catch (AccessDeniedException ex) {
-                throw new Exception("Cannot write anchor to '"
-                        + filename + "', permission denied.");
+                fail("Cannot write anchor to '" + filename
+                        + "', permission denied.");
             }
             System.out.println("Generated anchor xml to '" + filename + "'");
         } else {
