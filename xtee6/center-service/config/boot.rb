@@ -13,6 +13,7 @@ module Rails
     alias :default_options_alias :default_options
     def default_options
       default_options_alias.merge!(:Port => 3333)
-    end    
+    end
   end
 end
+

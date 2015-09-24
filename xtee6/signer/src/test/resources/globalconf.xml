@@ -356,7 +356,7 @@
             1GydL+BgDMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9
             SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=</cert>
     </approvedTsp>
-    
+
     <globalSettings>
         <managementRequestServiceAddress>http://mgmt.com:1234</managementRequestServiceAddress>
         <managementRequestServiceId id:objectType="MEMBER">

@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
     <changeSet author="toja" id="4.pre1-refactoring">
-	<preConditions onFail="MARK_RAN">
-		<indexExists indexName="AUTHORIZEDSUBPK" schemaName="public"/>
-	</preConditions>
-	<dropUniqueConstraint constraintName="AUTHORIZEDSUBPK" tableName="AUTHORIZEDSUBJECT"/>
+    <preConditions onFail="MARK_RAN">
+        <indexExists indexName="AUTHORIZEDSUBPK" schemaName="public"/>
+    </preConditions>
+    <dropUniqueConstraint constraintName="AUTHORIZEDSUBPK" tableName="AUTHORIZEDSUBJECT"/>
     </changeSet>
- 
+
     <changeSet author="toja" id="4.pre2-refactoring">
-	<preConditions onFail="MARK_RAN">
-		<indexExists indexName="AUTHORIZEDSUBJECTPK" schemaName="public"/>
-	</preConditions>
-	<dropUniqueConstraint constraintName="AUTHORIZEDSUBJECTPK" tableName="AUTHORIZEDSUBJECT"/>
+    <preConditions onFail="MARK_RAN">
+        <indexExists indexName="AUTHORIZEDSUBJECTPK" schemaName="public"/>
+    </preConditions>
+    <dropUniqueConstraint constraintName="AUTHORIZEDSUBJECTPK" tableName="AUTHORIZEDSUBJECT"/>
     </changeSet>
- 
+
     <changeSet author="toja" id="4-refactoring">
 
-	<renameTable newTableName="ACCESSRIGHT" oldTableName="AUTHORIZEDSUBJECT"/>
-	<addColumn tableName="ACCESSRIGHT">
-	    <column name="SERVICECODE" type="VARCHAR(255)"/>
-	    <column name="CLIENT_ID" type="BIGINT"/>
-	</addColumn>
+    <renameTable newTableName="ACCESSRIGHT" oldTableName="AUTHORIZEDSUBJECT"/>
+    <addColumn tableName="ACCESSRIGHT">
+        <column name="SERVICECODE" type="VARCHAR(255)"/>
+        <column name="CLIENT_ID" type="BIGINT"/>
+    </addColumn>
         <addPrimaryKey columnNames="ID" constraintName="ACCESSRIGHTPK" tableName="ACCESSRIGHT"/>
         <addForeignKeyConstraint baseColumnNames="CLIENT_ID" baseTableName="ACCESSRIGHT" constraintName="FK_CS3RKN8ILBYF6HNOETO8XHU68" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="ID" referencedTableName="CLIENT"/>
         <dropForeignKeyConstraint baseTableName="ACCESSRIGHT" constraintName="FK_TNUBREVSMMHLG21W1RIB0WQ58"/>
@@ -32,7 +32,7 @@ update ACCESSRIGHT set
   servicecode = (select servicecode from acl where acl.id = ACCESSRIGHT.acl_id);
 ]]>
         </sql>
-	<addNotNullConstraint tableName="ACCESSRIGHT" columnName="SERVICECODE"/>
+    <addNotNullConstraint tableName="ACCESSRIGHT" columnName="SERVICECODE"/>
 
         <addColumn tableName="CERTIFICATE">
             <column name="CLIENT_ID" type="int8"/>

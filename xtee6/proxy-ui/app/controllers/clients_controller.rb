@@ -18,7 +18,7 @@ class ClientsController < ApplicationController
 
     @member_classes = GlobalConf::getMemberClasses
     @member_classes_instance = GlobalConf::getMemberClasses(xroad_instance)
-    
+
     @subject_types = [
       XroadObjectType::MEMBER.toString(),
       XroadObjectType::SUBSYSTEM.toString(),
@@ -133,15 +133,11 @@ class ClientsController < ApplicationController
     client.conf = serverconf
 
     audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:isAuthentication] = client.isAuthentication
+    audit_log_data[:isAuthentication] = isAuthenticationToUIStr(client.isAuthentication)
     audit_log_data[:clientStatus] = client.clientStatus
 
     serverconf.client.add(client)
     serverconf_save
-
-    after_commit do
-      export_services
-    end
 
     render_json(read_clients)
   end
@@ -205,29 +201,6 @@ class ClientsController < ApplicationController
 
     if client_id == owner_identifier
       raise t('clients.cannot_register_owner')
-    end
-
-    if x55_installed?
-      sign_cert_exists = false
-
-      catch :cert_checked do
-        SignerProxy::getTokens.each do |token|
-          token.keyInfo.each do |key|
-            next unless key.usage == KeyUsageInfo::SIGNING
-
-            key.certs.each do |cert|
-              if client_id.memberEquals(cert.memberId)
-                sign_cert_exists = true
-                throw :cert_checked
-              end
-            end
-          end
-        end
-      end
-
-      unless sign_cert_exists
-        raise t('clients.cannot_register_without_sign_cert')
-      end
     end
 
     register_client(client_id)
@@ -343,10 +316,6 @@ class ClientsController < ApplicationController
       # no certs or requests found for deleted client
       ask_delete_certs = false
     end if ask_delete_certs
-
-    after_commit do
-      export_services(client.identifier)
-    end
 
     render_json({
       :clients => clients,

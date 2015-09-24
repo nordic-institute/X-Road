@@ -77,8 +77,10 @@ class ApplicationController < BaseController
   end
 
   def render(*args)
-    unless ActiveRecord::Base.connection.outside_transaction?
-      ActiveRecord::Base.connection.commit_db_transaction
+    if is_postgres?
+      unless ActiveRecord::Base.connection.outside_transaction?
+        ActiveRecord::Base.connection.commit_db_transaction
+      end
     end
 
     execute_after_commit_actions
@@ -97,19 +99,20 @@ class ApplicationController < BaseController
     end
   end
 
+  def is_postgres?
+    ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
+  end
+
   # Passes the required variables to the database engine if supported.
   def set_transaction_variables
-    # FIXME: perhaps use CommonSql.is_postgres?
-    adapter_name = ActiveRecord::Base.connection.adapter_name
-    if adapter_name == "PostgreSQL"
+    if is_postgres?
       # If we are running on top of Postgres, the name of the logged-in
       # user must be made available within the transaction, for use
       # when updating the history table.
       # The value of user_name will go out of scope when the transaction
       # ends.
       statement = "SET LOCAL xroad.user_name='#{current_user.name}'"
-      conn = ActiveRecord::Base.connection
-      conn.execute(statement)
+      ActiveRecord::Base.connection.execute(statement)
     end
   end
 

@@ -5,6 +5,7 @@ dependencies {
 clean << {
     project.delete "vendor/engines/common-ui"
     project.delete "vendor/engines/center-common"
+    project.delete "db/migrate"
 }
 
 task copyCommon(type: Copy) {

@@ -2,9 +2,9 @@
 
 if [ "$JAVA_HOME" = "" ]
 then
-	javabin="java"
+    javabin="java"
 else
-	javabin="$JAVA_HOME/bin/java"
+    javabin="$JAVA_HOME/bin/java"
 fi
 
 classes=build/classes/test
@@ -12,9 +12,9 @@ classname=ee.ria.xroad.proxy.testsuite.ProxyTestSuite
 
 if [ "$1" = "-proxy" ]
 then
-	shift
-	classes=build/libs/proxy-1.0.jar
-	classname=ee.ria.xroad.proxy.ProxyMain
+    shift
+    classes=build/libs/proxy-1.0.jar
+    classname=ee.ria.xroad.proxy.ProxyMain
 fi
 
 $javabin -Dxroad.proxy.ocspCachePath=build/ocsp-cache\

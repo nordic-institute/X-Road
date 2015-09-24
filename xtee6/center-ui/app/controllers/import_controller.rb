@@ -108,12 +108,13 @@ class ImportController < ApplicationController
   def execute_clients_importer(data_file, original_filename)
     db_config = Rails.configuration.database_configuration[Rails.env]
 
+    adapter = db_config["adapter"]
     database = db_config["database"]
     user = db_config["username"]
     pass = db_config["password"]
 
     commandline = ["/usr/share/xroad/bin/xtee55_clients_importer",
-        "-d", data_file, "-b", database, "-u", user, "-p", pass]
+        "-d", data_file, "-t", adapter, "-b", database, "-u", user, "-p", pass]
     logger.debug("Executing V5 clients import")
 
     console_output_lines = CommonUi::ScriptUtils.run_script(commandline)

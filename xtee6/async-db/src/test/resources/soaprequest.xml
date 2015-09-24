@@ -18,6 +18,7 @@
         <xroad:userId>EE37702211234</xroad:userId>
         <xroad:id>1234567890</xroad:id>
         <xroad:async>true</xroad:async>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:sendSomeAsyncStuff xmlns:ns1="http://cosumer.ee.xroad.net">

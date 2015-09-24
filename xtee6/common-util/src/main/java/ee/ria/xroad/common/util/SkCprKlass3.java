@@ -8,11 +8,13 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
 /**
- * Name extractor test class.
+ * Name extractor for SK certificates.
  */
-public final class TestKlass3Sk2010 {
+public final class SkCprKlass3 {
 
-    private TestKlass3Sk2010() {
+    private static final int SN_LENGTH = 8;
+
+    private SkCprKlass3() {
     }
 
     /**
@@ -28,18 +30,13 @@ public final class TestKlass3Sk2010 {
     }
 
     static String[] getSubjectIdentifier(X500Name x500name) throws Exception {
-        String c = CertUtils.getRDNValue(x500name, BCStyle.C);
-        if (c == null) {
-            throw new Exception("Subject name does not contain country code");
-        }
-
-        if (!"EE".equalsIgnoreCase(c)) {
-            throw new Exception("Unsupported country code: " + c);
-        }
-
         String sn = CertUtils.getRDNValue(x500name, BCStyle.SERIALNUMBER);
         if (sn == null) {
-            throw new Exception("Subject name does not contain registry code");
+            throw new Exception("Subject name does not contain serial number");
+        }
+
+        if (sn.length() != SN_LENGTH) {
+            throw new Exception("Serial number length must be " + SN_LENGTH);
         }
 
         return new String[] {getMemberClass(sn), sn};
@@ -49,12 +46,18 @@ public final class TestKlass3Sk2010 {
     // the serial number.
     private static String getMemberClass(String sn) throws Exception {
         switch (sn.charAt(0)) {
+            case '1': // Fall through
+            case '2': // Fall through
+            case '3': // Fall through
+            case '4': // Fall through
+            case '5': // Fall through
+            case '6':
+                return "COM";
             case '7':
                 return "GOV";
-            case '1': // Fall through
             case '8': // Fall through
-            case '9': // Fall through
-                return "COM";
+            case '9':
+                return "NGO";
             default:
                 throw new Exception("Certificate does not match policy: "
                         + "registry code must start with 1, 7, 8 or 9");

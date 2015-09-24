@@ -6,16 +6,9 @@ java_import Java::ee.ria.xroad.common.identifier.SecurityCategoryId
 java_import Java::ee.ria.xroad.proxyui.InternalServerTestUtil
 java_import Java::ee.ria.xroad.proxyui.WSDLParser
 
-java_import Java::ee.ria.xroad.proxyui.combinedwsdl.WSDLCombinationChecker
-java_import Java::ee.ria.xroad.proxyui.combinedwsdl.InvalidWSDLCombinationException
-
 module Clients::Services
 
-  BACKEND_TYPE_XROAD = "xroad"
-  BACKEND_TYPE_XROADV5 = "xroadv5"
-  BACKEND_TYPE_XROADV5_META = "xroadv5_meta"
-
-  XROADV5_METASERVICES = ["getProducerACL", "getServiceACL"]
+  DEFAULT_SERVICE_TIMEOUT = 60
 
   def client_services
     authorize!(:view_client_services)
@@ -25,51 +18,6 @@ module Clients::Services
     })
 
     client = get_client(params[:client_id])
-
-    render_json(read_services(client))
-  end
-
-  def adapter_add
-    authorize!(:add_wsdl)
-
-    validate_params({
-      :client_id => [:required],
-      :adapter_add_url => [:required],
-      :adapter_add_wsdl_uri => [:required],
-      :adapter_add_sslauth => []
-    })
-
-    client = get_client(params[:client_id])
-
-    wsdl = WsdlType.new
-    wsdl.url = params[:adapter_add_wsdl_uri]
-    wsdl.disabled = true
-    wsdl.disabledNotice = t('clients.default_disabled_service_notice')
-    wsdl.refreshedDate = Date.new
-    wsdl.client = client
-    wsdl.backend = BACKEND_TYPE_XROADV5
-    wsdl.backendURL = params[:adapter_add_url]
-
-    parse_and_check_services(adapter_wsdl_url(params[:adapter_add_url]), wsdl)
-
-    service_url = adapter_service_url(client.identifier)
-    wsdl.service.each do |service|
-      service.url = service_url
-      service.sslAuthentication = !params[:adapter_add_sslauth].nil?
-    end
-
-    client.wsdl.add(wsdl)
-
-    if params[:adapter_add_sslauth]
-      check_internal_server_certs(client, params[:adapter_add_url])
-    end
-
-    serverconf_save
-
-    after_commit do
-      export_services
-      check_wsdls_mergeability(client)
-    end
 
     render_json(read_services(client))
   end
@@ -92,7 +40,6 @@ module Clients::Services
     wsdl.disabledNotice = t('clients.default_disabled_service_notice')
     wsdl.refreshedDate = Date.new
     wsdl.client = client
-    wsdl.backend = BACKEND_TYPE_XROAD
 
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = wsdl.url
@@ -104,11 +51,6 @@ module Clients::Services
     client.wsdl.add(wsdl)
 
     serverconf_save
-
-    after_commit do
-      export_services
-      check_wsdls_mergeability(client)
-    end
 
     render_json(read_services(client))
   end
@@ -169,7 +111,7 @@ module Clients::Services
       :new_url => []
     })
 
-    # cannot change more than 1 adapter/WSDL URL at a time
+    # cannot change more than 1 WSDL URL at a time
     raise ArgumentError if params[:new_url] && params[:wsdl_ids].size > 1
 
     client = get_client(params[:client_id])
@@ -198,19 +140,12 @@ module Clients::Services
 
       if params[:new_url]
         old_wsdl_url = get_wsdl_id(wsdl)
-
-        if wsdl.backend != BACKEND_TYPE_XROADV5
-          wsdl.url = params[:new_url]
-        else
-          check_new_url = adapter_ssl_auth?(wsdl)
-          wsdl.backendURL = params[:new_url]
-        end
+        wsdl.url = params[:new_url]
       end
 
       params[:wsdl_ids] << get_wsdl_id(wsdl)
 
-      wsdl_parse_url = wsdl.backend != BACKEND_TYPE_XROADV5 ? wsdl.url :
-        adapter_wsdl_url(wsdl.backendURL)
+      wsdl_parse_url = wsdl.url
 
       services_parsed = parse_wsdl(wsdl_parse_url)
 
@@ -224,9 +159,6 @@ module Clients::Services
       added_objs[get_wsdl_id(wsdl)] = []
 
       services_parsed.each do |service_parsed|
-        next if x55_installed? &&
-          XROADV5_METASERVICES.include?(service_parsed.name)
-
         service_parsed_id =
           format_service_id(service_parsed.name, service_parsed.version)
 
@@ -300,9 +232,8 @@ module Clients::Services
         service.serviceCode = service_parsed.name
         service.serviceVersion = service_parsed.version
         service.title = service_parsed.title
-        service.url = (wsdl.backend == BACKEND_TYPE_XROAD) ? service_parsed.url :
-          adapter_service_url(client.identifier)
-        service.timeout = 60
+        service.url = service_parsed.url
+        service.timeout = DEFAULT_SERVICE_TIMEOUT
         service.wsdl = wsdl
 
         wsdl.service.add(service)
@@ -322,11 +253,6 @@ module Clients::Services
     end
 
     serverconf_save
-
-    after_commit do
-      export_services
-      check_wsdls_mergeability(client)
-    end
 
     render_json(read_services(client))
   end
@@ -363,10 +289,6 @@ module Clients::Services
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_services(client))
   end
 
@@ -399,9 +321,6 @@ module Clients::Services
       audit_log_data[:wsdlUrl] = get_wsdl_id(wsdl)
       audit_log_data[:services] = []
 
-      # cannot modify a service with backend xroadv5
-      raise ArgumentError if wsdl.backend == BACKEND_TYPE_XROADV5
-
       wsdl.service.each do |service|
         service_match = params[:params_service_id] == get_service_id(service)
 
@@ -432,7 +351,7 @@ module Clients::Services
             :id => get_service_id(service),
             :url => service.url,
             :timeout => service.timeout,
-            :sslauth => service.sslAuthentication
+            :tlsAuth => service.sslAuthentication
           }
         end
       end
@@ -443,45 +362,6 @@ module Clients::Services
     end
 
     serverconf_save
-
-    after_commit do
-      export_services
-    end
-
-    render_json(read_services(client))
-  end
-
-  def adapter_params
-    authorize!(:edit_service_params)
-
-    validate_params({
-      :client_id => [:required],
-      :params_adapter_id => [:required],
-      :params_adapter_timeout => [:required, :timeout],
-      :params_adapter_sslauth => [],
-      :params_adapter_wsdl_uri => [:required]
-    })
-
-    client = get_client(params[:client_id])
-
-    client.wsdl.each do |wsdl|
-      next unless get_wsdl_id(wsdl) == params[:params_adapter_id]
-
-      wsdl.url = params[:params_adapter_wsdl_uri]
-
-      wsdl.service.each do |service|
-        service.timeout = params[:params_adapter_timeout].to_i
-        service.sslAuthentication = !params[:params_adapter_sslauth].nil?
-      end
-
-      break
-    end
-
-    serverconf_save
-
-    after_commit do
-      export_services
-    end
 
     render_json(read_services(client))
   end
@@ -520,13 +400,6 @@ module Clients::Services
         }
       end
     end
-
-    XROADV5_METASERVICES.each do |service_code|
-      services[service_code] = {
-        :service_code => service_code,
-        :title => nil
-      }
-    end if x55_installed?
 
     services_sorted = services.values.sort do |x, y|
       x[:service_code] <=> y[:service_code]
@@ -567,10 +440,6 @@ module Clients::Services
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_acl_subjects(client, params[:service_code]))
   end
 
@@ -605,10 +474,6 @@ module Clients::Services
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_acl_subjects(client, params[:service_code]))
   end
 
@@ -618,30 +483,19 @@ module Clients::Services
     services = []
 
     client.wsdl.each do |wsdl|
-      adapter = wsdl.backend == BACKEND_TYPE_XROADV5
-      name = adapter ? t('clients.adapter') : t('clients.wsdl')
+      name = t('clients.wsdl')
       name += " " + t('clients.wsdl_disabled') if wsdl.disabled
-
-      adapter_timeout = nil
-      adapter_sslauth = true
-
-      unless wsdl.service.isEmpty || (first = wsdl.service.get(0)).nil?
-        adapter_timeout = first.timeout
-        adapter_sslauth = first.sslAuthentication.nil? || first.sslAuthentication
-      end
 
       services << {
         :wsdl => true,
         :wsdl_id => get_wsdl_id(wsdl),
-        :adapter => adapter,
-        :adapter_wsdl_uri => wsdl.url,
         :service_id => nil,
         :name => name,
         :title => nil,
         :url => nil,
-        :timeout => (adapter_timeout if adapter),
+        :timeout => nil,
         :security_category => nil,
-        :sslauth => (adapter_sslauth if adapter),
+        :sslauth => nil,
         :last_refreshed => format_time(wsdl.refreshedDate),
         :disabled => wsdl.disabled,
         :disabled_notice => wsdl.disabledNotice
@@ -656,71 +510,26 @@ module Clients::Services
         services << {
           :wsdl => false,
           :wsdl_id => get_wsdl_id(wsdl),
-          :adapter => adapter,
           :service_id => get_service_id(service),
           :name => get_service_id(service),
           :service_code => service.serviceCode,
           :title => service.title,
-          :url => (service.url unless adapter),
+          :url => service.url,
           :timeout => service.timeout,
           :security_category => categories,
           :sslauth => service.sslAuthentication.nil? || service.sslAuthentication,
           :last_refreshed => format_time(wsdl.refreshedDate),
           :disabled => wsdl.disabled,
           :subjects_count => subjects_count(client, service.serviceCode)
-        } unless x55_installed? && XROADV5_METASERVICES.include?(service.serviceCode)
+        }
       end
-    end
-
-    if x55_installed? && !services.empty?
-      services += read_xroadv5_metaservices(client)
-    end
-
-    services
-  end
-
-  def read_xroadv5_metaservices(client)
-    services = []
-
-    services << {
-      :wsdl => true,
-      :wsdl_id => BACKEND_TYPE_XROADV5_META,
-      :meta => true,
-      :name => t('clients.adapter_meta'),
-      :title => nil,
-      :url => nil,
-      :timeout => nil,
-      :security_category => nil,
-      :sslauth => nil,
-      :last_refreshed => nil,
-      :disabled => false,
-      :disabled_notice => nil
-    }
-
-    XROADV5_METASERVICES.each do |service_code|
-      services << {
-        :wsdl => false,
-        :wsdl_id => BACKEND_TYPE_XROADV5_META,
-        :meta => true,
-        :service_id => service_code,
-        :name => service_code,
-        :service_code => service_code,
-        :title => nil,
-        :url => nil,
-        :timeout => nil,
-        :security_category => nil,
-        :sslauth => nil,
-        :last_refreshed => nil,
-        :disabled => false,
-        :subjects_count => subjects_count(client, service_code)
-      }
     end
 
     services
   end
 
   def get_wsdl_id(wsdl)
-    wsdl.backend == BACKEND_TYPE_XROADV5 ? wsdl.backendURL : wsdl.url
+    wsdl.url
   end
 
   def subjects_count(client, service_code)
@@ -738,17 +547,10 @@ module Clients::Services
 
     wsdl.client.wsdl.each do |other_wsdl|
       if get_wsdl_id(other_wsdl) == get_wsdl_id(wsdl)
-        if wsdl.backend == BACKEND_TYPE_XROADV5
-          raise t('clients.adapter_exists')
-        else
-          raise t('clients.wsdl_exists')
-        end
+        raise t('clients.wsdl_exists')
       end
 
       other_wsdl.service.each do |service|
-        next if x55_installed? &&
-          XROADV5_METASERVICES.include?(service.serviceCode)
-
         existing_services[get_service_id(service)] = get_wsdl_id(other_wsdl)
       end
     end
@@ -756,9 +558,6 @@ module Clients::Services
     parsed_services = parse_wsdl(wsdl_parse_url)
 
     parsed_services.each do |parsed_service|
-      next if x55_installed? &&
-        XROADV5_METASERVICES.include?(parsed_service.name)
-
       service_id =
         format_service_id(parsed_service.name, parsed_service.version)
 
@@ -772,7 +571,7 @@ module Clients::Services
       service.serviceVersion = parsed_service.version
       service.title = parsed_service.title
       service.url = parsed_service.url
-      service.timeout = 60
+      service.timeout = DEFAULT_SERVICE_TIMEOUT
       service.wsdl = wsdl
 
       wsdl.service.add(service)
@@ -802,27 +601,6 @@ module Clients::Services
     raise $!
   end
 
-  def adapter_wsdl_url(backend)
-    service_mediator = SystemProperties::getServiceMediatorAddress
-    service_mediator_params = {
-      :backend => backend
-    }.to_param
-
-    "#{service_mediator}/?#{service_mediator_params}"
-  end
-
-  def adapter_service_url(client_id)
-    service_mediator = SystemProperties::getServiceMediatorAddress
-    service_mediator_params = {
-      :xRoadInstance => client_id.xRoadInstance,
-      :memberClass => client_id.memberClass,
-      :memberCode => client_id.memberCode,
-      :subsystemCode => client_id.subsystemCode
-    }.to_param
-
-    "#{service_mediator}/?#{service_mediator_params}"
-  end
-
   def format_service_id(name, version)
     version ? "#{name}.#{version}" : name
   end
@@ -840,14 +618,7 @@ module Clients::Services
       end
     end
 
-    service_codes << XROADV5_METASERVICES if x55_installed?
-
     remove_access_rights(client.acl, nil, service_codes)
-  end
-
-  def adapter_ssl_auth?(wsdl)
-    wsdl.service.isEmpty || (first = wsdl.service.get(0)).nil? ||
-      first.sslAuthentication.nil? || first.sslAuthentication
   end
 
   def check_internal_server_certs(client, url)
@@ -860,24 +631,5 @@ module Clients::Services
     rescue
       logger.error("Checking internal server certs failed: #{$!.message}")
     end
-  end
-
-  def check_wsdls_mergeability(client)
-    return unless x55_installed?
-
-    client_id = client.getIdentifier()
-    WSDLCombinationChecker::check(client_id)
-  rescue InvalidWSDLCombinationException => e
-    error(t(
-        "clients.combinedwsdl.invalid_combination",
-        :reason => e.getMessage()))
-  rescue Java::javax.wsdl.WSDLException
-    error(t(
-        "clients.combinedwsdl.invalid_single_wsdl",
-        :client_id => client_id))
-  rescue Java::java.net.ConnectException
-    error(t("clients.combinedwsdl.network_error"))
-  rescue Exception => e
-    error(t("clients.combinedwsdl.other_error", :message => e.getMessage()))
   end
 end

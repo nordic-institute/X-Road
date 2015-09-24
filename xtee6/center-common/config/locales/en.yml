@@ -102,7 +102,7 @@ en:
       auth_cert_not_unique: "Security server '%{server_id}' already has authentication certificate You are trying to add"
       cert_not_auth: "This certificate cannot be used for authentication."
     identifier_mapping:
-      malformed: "Upload failed: incorrect file structure.  %{fault_msg}"
+      malformed: "Incorrect file structure.  %{fault_msg}"
       member_class_not_allowed: "Uploading failed: Member class '%{class}' is not defined in the system. Valid values are: '%{allowed_classes}'"
       wrong_xroad_instance: "Uploading failed: X-Road instance identifier must be '%{current}', '%{found}' was found"
     import:

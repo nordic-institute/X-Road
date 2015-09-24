@@ -36,7 +36,7 @@ public class SchemaValidator {
     protected static void validate(Schema schema, Source source,
             String errorCode) throws Exception {
         if (schema == null) {
-            throw new IllegalStateException("Schema is not intialized");
+            throw new IllegalStateException("Schema is not initialized");
         }
 
         try {

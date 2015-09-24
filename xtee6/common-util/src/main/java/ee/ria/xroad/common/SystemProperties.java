@@ -199,14 +199,11 @@ public final class SystemProperties {
     public static final String SERVICE_IMPORTER_COMMAND =
             PREFIX + "proxy-ui.service-importer-command";
 
-    public static final String SERVICE_EXPORTER_COMMAND =
-            PREFIX + "proxy-ui.service-exporter-command";
+    public static final String TLS_KEY_IMPORTER_COMMAND =
+            PREFIX + "proxy-ui.tls-key-importer-command";
 
-    public static final String SERVICE_MEDIATOR_ADDRESS =
-            PREFIX + "proxy-ui.service-mediator-address";
-
-    public static final String INTERNAL_SSL_EXPORTER_COMMAND =
-            PREFIX + "proxy-ui.internal-ssl-exporter-command";
+    public static final String TLS_KEY_EXPORTER_COMMAND =
+            PREFIX + "proxy-ui.tls-key-exporter-command";
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -586,10 +583,17 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the shell command used when exporting services to V5
+     * @return the shell command used when importing V5 internal TLS key to V6
      */
-    public static String getServiceExporterCommand() {
-        return System.getProperty(SERVICE_EXPORTER_COMMAND);
+    public static String getInternalTlsKeyImporterCommand() {
+        return System.getProperty(TLS_KEY_IMPORTER_COMMAND);
+    }
+
+    /**
+     * @return the shell command used when exporting V6 internal TLS key to V5
+     */
+    public static String getInternalTlsKeyExporterCommand() {
+        return System.getProperty(TLS_KEY_EXPORTER_COMMAND);
     }
 
     /**
@@ -645,22 +649,6 @@ public final class SystemProperties {
     public static String getCenterGeneratedConfDir() {
         return System.getProperty(CENTER_GENERATED_CONF_DIR,
                 DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
-    }
-
-    /**
-     * @return the address on which the service mediator listens to messages,
-     * 'http://127.0.0.1:6669' by default
-     */
-    public static String getServiceMediatorAddress() {
-        return System.getProperty(SERVICE_MEDIATOR_ADDRESS,
-                "http://127.0.0.1:6669");
-    }
-
-    /**
-     * @return the internal SSL exporter command
-     */
-    public static String getInternalSslExporterCommand() {
-        return System.getProperty(INTERNAL_SSL_EXPORTER_COMMAND);
     }
 
     /**
@@ -834,7 +822,7 @@ public final class SystemProperties {
 
     /**
      * @return the HTTPS port at which the central monitor agent listens for
-     * incoming monitoring data, '8443' by default
+     * incoming monitoring data, '443' by default
      */
     public static int getCentralMonitorAgentPort() {
         return Integer.parseInt(

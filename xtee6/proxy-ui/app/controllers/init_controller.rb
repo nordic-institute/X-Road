@@ -1,5 +1,6 @@
 require 'net/http'
 
+java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServerConfType
@@ -172,7 +173,10 @@ class InitController < ApplicationController
     serverconf_save(new_serverconf)
 
     after_commit do
-      import_services if x55_installed?
+      if x55_installed?
+        import_v5_services
+        import_v5_internal_tls_key
+      end
     end
 
     render_json
@@ -225,4 +229,36 @@ class InitController < ApplicationController
 
     render_json(:name => name)
   end
+
+  private
+
+  def import_v5_services
+    if importer = SystemProperties::getServiceImporterCommand
+      logger.info("Importing services from 5.0 to X-Road")
+
+      output = %x["#{importer}" 2>&1]
+
+      if $?.exitstatus != 0
+        logger.error(output)
+        error(t('init.services_import_failed'))
+      end
+    else
+      logger.warn("Service importer unspecified, skipping import")
+    end
+  end
+
+  def import_v5_internal_tls_key
+      if importer = SystemProperties::getInternalTlsKeyImporterCommand
+        logger.info("Importing internal TLS key from 5.0 to X-Road")
+
+        output = %x["#{importer}" 2>&1]
+
+        if $?.exitstatus != 0
+          logger.error(output)
+          error(t('init.internal_tls_key_import_failed'))
+        end
+      else
+        logger.warn("Internal TSL key importer unspecified, skipping import")
+      end
+    end
 end

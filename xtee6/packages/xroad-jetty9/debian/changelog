@@ -1,3 +1,9 @@
+xroad-jetty9 (6.6-1) trusty; urgency=low
+
+  * jetty 9.3.3
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 10 Sep 2015 15:15:07 +0300
+
 xroad-jetty9 (6.6-0) trusty; urgency=low
 
   * jetty 9.3.1

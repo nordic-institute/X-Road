@@ -29,8 +29,4 @@ public class WsdlType {
     private String disabledNotice;
 
     private Date refreshedDate;
-
-    private String backend;
-
-    private String backendURL;
 }

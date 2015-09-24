@@ -33,7 +33,7 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(request, response, client,
-                getClientCert(request));
+                getIsAuthenticationData(request));
     }
 
     private void verifyCanProcess(HttpServletRequest request) {

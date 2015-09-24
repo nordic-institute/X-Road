@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
@@ -48,10 +47,9 @@ class KeyConfImpl implements KeyConfProvider {
             MemberSigningInfo signingInfo = SignerClient.execute(
                     new GetMemberSigningInfo(clientId));
 
-            SigningCtx ctx = createSigningCtx(clientId,
+            return createSigningCtx(clientId,
                     signingInfo.getKeyId(),
                     signingInfo.getCert().getCertificateBytes());
-            return ctx;
         } catch (Exception e) {
             throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
                     "Failed to get signing info for member '%s': %s",
@@ -85,8 +83,7 @@ class KeyConfImpl implements KeyConfProvider {
             log.error("Failed to get authentication key", e);
         }
 
-        AuthKey authKey = new AuthKey(certChain, pkey);
-        return authKey;
+        return new AuthKey(certChain, pkey);
     }
 
     @Override
@@ -143,8 +140,8 @@ class KeyConfImpl implements KeyConfProvider {
 
     static SigningCtx createSigningCtx(ClientId subject, String keyId,
             byte[] certBytes) throws Exception {
-        X509Certificate cert = readCertificate(certBytes);
-        return new SigningCtxImpl(subject, new SignerSigningKey(keyId), cert);
+        return new SigningCtxImpl(subject, new SignerSigningKey(keyId),
+                readCertificate(certBytes));
     }
 
     static CertChain getAuthCertChain(String instanceIdentifier,
@@ -161,16 +158,14 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     static PrivateKey loadAuthPrivateKey(AuthKeyInfo keyInfo) throws Exception {
-        String alias = keyInfo.getAlias();
         File keyStoreFile = new File(keyInfo.getKeyStoreFileName());
-        char[] password = keyInfo.getPassword();
-
         log.trace("Loading authentication key from key store '{}'",
                 keyStoreFile);
 
-        KeyStore ks = loadPkcs12KeyStore(keyStoreFile, password);
+        KeyStore ks = loadPkcs12KeyStore(keyStoreFile, keyInfo.getPassword());
 
-        PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
+        PrivateKey privateKey = (PrivateKey) ks.getKey(keyInfo.getAlias(),
+                keyInfo.getPassword());
         if (privateKey == null) {
             log.warn("Failed to read authentication key");
         }

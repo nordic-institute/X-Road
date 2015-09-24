@@ -18,24 +18,28 @@ test:
   database: build/centerui_test.sqlite3
 
 # Use the following environment for running automated tests against a
-# single HA node.
+# single HA node that has been created with the clusterhelper script.
 test_pg:
   adapter: postgresql
+  database: centerui_production
   encoding: utf8
-  username: iks2
-  database: centerui_test_pg
-  port: 5599
+  username: centerui
+  password: centerui
+  host: localhost
+  port: 5432
 
 # Use the following environment for running two or more central server instances on
-# a BDR cluster.
-# Note that the name of the environment must start with 'devel_ha' for testing
+# a BDR cluster that has been created with the clusterhelper script.
+# Note that the name of the environment must start with 'devel' for testing
 # the UI without authentication.
 # If the servers share the host, edit the port numbers accordingly.
 # Start rails with a command similar to:
 # jruby -S rails s -p 3344 -P tmp/server_3344.pid -e devel_ha
 devel_ha:
   adapter: postgresql
+  database: centerui_production
   encoding: utf8
-  username: iks2
-  database: centerui_test_pg
-  port: 5599 # Make sure a clustered database is running on this port.
+  username: centerui
+  password: centerui
+  host: localhost
+  port: 5432

@@ -48,13 +48,12 @@ task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }
 
-// FIXME: It somehow thinks that migrations are pending!
 task runModelTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
-    commandLine = ['jruby', '-S', 'rake', 'test:units']
+    commandLine = ['jruby', '-S', 'rake', 'test:units', 'RAILS_ENV=test']
 }
 
-task runControllerTests(dependsOn: [':center-service:updateSQLiteDbSchema'], type: Exec) {
-    commandLine = ['jruby', '-S', 'rake', 'test:controllers']
+task runControllerTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:controllers', 'RAILS_ENV=test']
 }
 
 task checkRubySource(type: Exec) {

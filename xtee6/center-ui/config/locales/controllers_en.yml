@@ -225,9 +225,9 @@ en:
 
   status:
     global_conf_gen:
-      no_status_file: "No global conf generation status file present, make sure that center-service is up and running"
-      out_of_date: "Global conf is out of date, last generation attempt: '%{time}', make sure if center-service is up and running"
-      failure: "Global conf generation failing since '%{time}'"
+      no_status_file: "No global configuration generation status file present, make sure that center-service is up and running"
+      out_of_date: "Global configuration is out of date, last generation attempt: '%{time}', make sure if center-service is up and running"
+      failure: "Global configuration generation failing since '%{time}'"
     signing_key:
       signer_error: "Invocation of signer client failed: %{message}"
       internal:
@@ -284,8 +284,8 @@ en:
         generated: "Anchor generated: %{generated}"
         hash: "Anchor hash (%{alg}): %{hash}"
       error:
-        same_instance: "Failed to upload trusted anchor: anchors originating from this instance are not supported as trusted anchors."
-        anchor_malformed: "Failed to upload trusted anchor: incorrect file structure."
+        same_instance: "Anchors originating from this instance are not supported as trusted anchors."
+        anchor_malformed: "Incorrect file structure."
 
   tsps:
     action:

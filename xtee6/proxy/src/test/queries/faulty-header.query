@@ -9,6 +9,7 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </xroad:client>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:test xmlns:ns1="http://cosumer.ee.xroad.net" />

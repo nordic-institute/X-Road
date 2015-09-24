@@ -271,7 +271,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void deactivateToken() {
-        privateKeys.forEach(SoftwareTokenWorker::destroyPrivateKey);
         privateKeys.clear();
 
         setTokenActive(tokenId, false);
@@ -336,14 +335,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
             keyStore.store(fos, password);
-        }
-    }
-
-    private static void destroyPrivateKey(String keyId, PrivateKey key) {
-        try {
-            key.destroy();
-        } catch (Exception e) {
-            log.error("Failed to destroy private key " + keyId, e);
         }
     }
 }

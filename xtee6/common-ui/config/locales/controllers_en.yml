@@ -16,7 +16,7 @@ en:
     time_format_with_timezone: "%Z %Y-%m-%d %H:%M:%S"
     locale_en: "English (%{short})"
     locale_et: "Eesti (%{short})"
-    filename_error: "Upload failed: filename '%{file}' contains invalid characters. Valid characters include: (A-Z), (a-z), (0-9), (_), (.), (-)."
+    filename_error: "Filename '%{file}' contains invalid characters. Valid characters include: (A-Z), (a-z), (0-9), (_), (.), (-)."
     user_action_error: "Failed to %{translated_action_name}: %{error_message}"
     session_timed_out: "<div class='align-center'>Session timed out. Redirecting.</div>"
     restore_in_progress: "<div class='align-center'>Restore in progress. Redirecting.</div>"
@@ -63,7 +63,7 @@ en:
     invalid_timeout: "Timeout value must be a positive integer."
     invalid_url: "Invalid URL format, must begin with 'http' or 'https'"
     invalid_host_address: "Invalid host address"
-    invalid_cert: "Upload failed: incorrect file format. Only PEM and DER files allowed."
+    invalid_cert: "Incorrect file format. Only PEM and DER files allowed."
 
   menu:
     management:

@@ -26,9 +26,9 @@ then
 fi
 
 if [[ $LC_ALL =~ "UTF-8"$ ]]
- then 
+ then
    echo "system locale set to UTF-8 compatible."
- else 
+ else
    echo "setting system locale to LC_ALL=en_US.UTF-8 in /etc/environment"
    echo "LC_ALL=en_US.UTF-8" >> /etc/environment
 fi

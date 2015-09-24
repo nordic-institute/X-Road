@@ -81,10 +81,6 @@ module Clients::Groups
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_groups(client))
   end
 
@@ -141,10 +137,6 @@ module Clients::Groups
 
     serverconf_save
 
-    after_commit do
-      export_services
-    end
-
     render_json(read_group_members(client, params[:group_code]))
   end
 
@@ -199,10 +191,6 @@ module Clients::Groups
     group.updated = Date.new
 
     serverconf_save
-
-    after_commit do
-      export_services
-    end
 
     render_json(read_group_members(client, params[:group_code]))
   end

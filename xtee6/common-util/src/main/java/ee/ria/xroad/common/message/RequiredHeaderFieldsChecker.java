@@ -35,17 +35,25 @@ class RequiredHeaderFieldsChecker extends Listener {
     static void checkRequiredFields(Object obj) throws Exception {
         for (Field field : getDeclaredFields(obj.getClass())) {
             XmlElement annotation = SoapUtils.getXmlElementAnnotation(field);
-            if (annotation != null && annotation.required()
-                    && !hasValue(field, obj)) {
-                throw new CodedException(X_MISSING_HEADER_FIELD,
-                        "Required field '%s' is missing", annotation.name());
+            if (annotation != null) {
+                Object value = getValue(field, obj);
+
+                if (annotation.required() && value == null) {
+                    throw new CodedException(X_MISSING_HEADER_FIELD,
+                            "Required field '%s' is missing",
+                            annotation.name());
+                }
+
+                if (value != null && value instanceof ValidatableField) {
+                    ((ValidatableField) value).validate();
+                }
             }
         }
     }
 
-    static boolean hasValue(Field field, Object obj) throws Exception {
+    static Object getValue(Field field, Object obj) throws Exception {
         field.setAccessible(true); // the field might be private
-        return field.get(obj) != null;
+        return field.get(obj);
     }
 
     private static List<Field> getDeclaredFields(Class<?> type) {

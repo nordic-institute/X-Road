@@ -89,7 +89,8 @@ public final class ErrorCodes {
     public static final String X_MISSING_SIGNATURE = "MissingSignature";
     public static final String X_UNKNOWN_SERVICE = "UnknownService";
     public static final String X_SECURITY_CATEGORY = "SecurityCategory";
-
+    public static final String X_INVALID_PROTOCOL_VERSION =
+            "InvalidProtocolVersion";
 
     // ASiC container related errors
 

@@ -6,7 +6,7 @@ class ApprovedCa < ActiveRecord::Base
   validates_with MaxlengthValidator
   validates :top_ca, :presence => true
 
-  has_one :top_ca,
+  belongs_to :top_ca,
       :class_name => "CaInfo",
       :foreign_key => "top_ca_id",
       :dependent => :destroy,

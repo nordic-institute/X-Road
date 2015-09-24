@@ -3,7 +3,6 @@ package ee.ria.xroad.proxy.clientproxy;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-import java.util.Enumeration;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +15,7 @@ import org.eclipse.jetty.server.Request;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
-import ee.ria.xroad.common.conf.serverconf.ClientCert;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.util.HandlerBase;
@@ -104,15 +103,19 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void success(MessageProcessorBase processor, long start) {
-        MessageInfo messageInfo = processor.createRequestMessageInfo();
-        MonitorAgent.success(messageInfo, new Date(start), new Date());
+        MonitorAgent.success(
+            processor.createRequestMessageInfo(),
+            new Date(start),
+            new Date()
+        );
     }
 
     protected void failure(MessageProcessorBase processor,
             HttpServletResponse response, CodedException ex)
             throws IOException {
         MessageInfo info = processor != null
-                ? processor.createRequestMessageInfo() : null;
+                ? processor.createRequestMessageInfo()
+                : null;
 
         MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
 
@@ -122,23 +125,19 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     @Override
     protected void failure(HttpServletResponse response, CodedException ex)
             throws IOException {
-        MessageInfo info = null;
-
-        MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
+        MonitorAgent.failure(null, ex.getFaultCode(), ex.getFaultString());
 
         sendErrorResponse(response, ex);
     }
 
     protected void failure(HttpServletResponse response,
-            CodedExceptionWithHttpStatus ex) throws IOException {
-        MessageInfo info = null;
+            CodedExceptionWithHttpStatus e) throws IOException {
+        MonitorAgent.failure(null,
+            e.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
+            e.getFaultString()
+        );
 
-        MonitorAgent.failure(info,
-                ex.withPrefix(SERVER_CLIENTPROXY_X).getFaultCode(),
-                ex.getFaultString());
-
-        sendPlainTextErrorResponse(
-                response, ex.getStatus(), ex.getFaultString());
+        sendPlainTextErrorResponse(response, e.getStatus(), e.getFaultString());
     }
 
     protected static boolean isGetRequest(HttpServletRequest request) {
@@ -154,24 +153,15 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 ? str.substring(1) : str; // Strip '/'
     }
 
-    static ClientCert getClientCert(HttpServletRequest request) {
-        Object attribute = request.getAttribute(
-                "javax.servlet.request.X509Certificate");
-
-        log.trace("Request attributes:");
-        Enumeration<String> attr = request.getAttributeNames();
-        while (attr.hasMoreElements()) {
-            log.trace("\t{}", attr.nextElement());
-        }
-
-        if (attribute != null) {
-            X509Certificate[] certs = (X509Certificate[]) attribute;
-            log.trace("Got client cert {}", certs[0]);
-            return new ClientCert(certs[0], "cert");
-        } else {
-            log.trace("Did not get client cert");
-            return new ClientCert(null, null);
-        }
+    protected static IsAuthenticationData getIsAuthenticationData(
+            HttpServletRequest request) {
+        X509Certificate[] certs =
+                (X509Certificate[]) request.getAttribute(
+                        "javax.servlet.request.X509Certificate");
+        return new IsAuthenticationData(
+            certs != null && certs.length != 0 ? certs[0] : null,
+            !"https".equals(request.getScheme()) // if not HTTPS, it's plaintext
+        );
     }
 
     private static long logPerformanceBegin(HttpServletRequest request) {

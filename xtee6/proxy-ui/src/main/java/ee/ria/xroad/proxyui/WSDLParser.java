@@ -2,7 +2,6 @@ package ee.ria.xroad.proxyui;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +43,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapParser;
@@ -276,11 +274,6 @@ public final class WSDLParser {
                     configureHttps((HttpsURLConnection) conn);
                 }
 
-                if (conn instanceof HttpURLConnection && wsdlUrl.startsWith(
-                        SystemProperties.getServiceMediatorAddress())) {
-                    checkForHttpError((HttpURLConnection) conn);
-                }
-
                 // cache the response
                 byte[] response;
                 try (InputStream in = conn.getInputStream()) {
@@ -295,17 +288,6 @@ public final class WSDLParser {
                 throw e;
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
-            }
-        }
-
-        private void checkForHttpError(HttpURLConnection conn)
-                throws Exception {
-            if (conn.getResponseCode() == ERROR_RESPONSE_CODE) {
-                try (InputStream in = conn.getErrorStream()) {
-                    throw CodedException.tr(X_INTERNAL_ERROR,
-                        "listing_adapter_methods_failed",
-                        IOUtils.toString(in, StandardCharsets.UTF_8.name()));
-                }
             }
         }
 

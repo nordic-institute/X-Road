@@ -413,6 +413,14 @@ public class SoapMessageTest {
         assertEquals("1234567890", message.getQueryId());
     }
 
-    // Helper methods ---------------------------------------------------------
+    /**
+     * Test that central service query is parsed correctly.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void wrongProtocolVersion() throws Exception {
+        thrown.expectError(X_INVALID_PROTOCOL_VERSION);
+        createRequest("wrong-version.query");
+    }
 
 }

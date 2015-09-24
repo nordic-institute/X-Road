@@ -110,9 +110,12 @@ class CentralServicesController < ApplicationController
     audit_log_data[:serviceCode] = params[:serviceCode]
     audit_log_data[:targetServiceCode] = target_service[:code]
     audit_log_data[:targetServiceVersion] = target_service[:version]
-    audit_log_data[:providerIdentifier] = JavaClientId.create(
-      provider_id.xroad_instance, provider_id.member_class,
-      provider_id.member_code, provider_id.subsystem_code)
+
+    if provider_id
+      audit_log_data[:providerIdentifier] = JavaClientId.create(
+        provider_id.xroad_instance, provider_id.member_class,
+        provider_id.member_code, provider_id.subsystem_code)
+    end
 
     CentralService.save(
         params[:serviceCode],

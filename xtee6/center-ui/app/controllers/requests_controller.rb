@@ -58,21 +58,12 @@ class RequestsController < ApplicationController
 
     request = Request.find(params[:id])
 
-    server_owner_name = XroadMember.get_name(
-        request.server_owner_class, request.server_owner_code)
-
-    unless server_owner_name.blank?
-      request.update_server_owner_name(server_owner_name)
-    else
-      server_owner_name = request.server_owner_name
-    end
-
     additional_data = {
       :complementary_id => request.get_complementary_id(),
       :revoking_id => request.get_revoking_request_id(),
       :comments => request.comments,
       :server_address => request.address,
-      :server_owner_name => server_owner_name
+      :server_owner_name => request.server_owner_name
     }
 
     render_json(additional_data)
@@ -180,21 +171,11 @@ class RequestsController < ApplicationController
 
   def get_client_data(request)
     client_id = request.sec_serv_user
-    member_class = client_id.member_class
-    member_code = client_id.member_code
-
-    server_user_name = XroadMember.get_name(member_class, member_code)
-
-    unless server_user_name.blank?
-      request.update_server_user_name(server_user_name)
-    else
-      server_user_name = request.server_user_name
-    end
 
     {
-      :member_name => server_user_name,
-      :member_class => member_class,
-      :member_code => member_code,
+      :member_name => request.server_user_name,
+      :member_class => client_id.member_class,
+      :member_code => client_id.member_code,
       :subsystem_code => client_id.subsystem_code
     }
   end

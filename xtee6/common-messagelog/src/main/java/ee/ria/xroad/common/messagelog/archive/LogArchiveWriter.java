@@ -13,11 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -29,13 +27,17 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.nio.file.StandardOpenOption.*;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 /**
  * Class for writing log records to zip file containing ASiC containers
- *  (archive).
+ * (archive).
  */
 @Slf4j
 public class LogArchiveWriter implements Closeable {
+
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT =
+            new SimpleDateFormat("yyyyMMddHHmmss");
 
     public static final int MAX_RANDOM_GEN_ATTEMPTS = 1000;
 
@@ -137,13 +139,9 @@ public class LogArchiveWriter implements Closeable {
 
     protected String getArchiveFilename(String random) {
         return String.format("mlog-%s-%s-%s.zip",
-                formatFilenameDate(logArchiveCache.getStartTime()),
-                formatFilenameDate(logArchiveCache.getEndTime()),
+                SIMPLE_DATE_FORMAT.format(logArchiveCache.getStartTime()),
+                SIMPLE_DATE_FORMAT.format(logArchiveCache.getEndTime()),
                 random);
-    }
-
-    private static String formatFilenameDate(Date date) {
-        return new SimpleDateFormat("yyyyMMddHHmmss").format(date);
     }
 
     protected void rotate() throws Exception {
@@ -197,8 +195,7 @@ public class LogArchiveWriter implements Closeable {
         String random = generateRandom();
 
         String archiveFilename = getArchiveFilename(random);
-        Path archiveFile = Paths.get(outputPath.toString(),
-                archiveFilename);
+        Path archiveFile = Paths.get(outputPath.toString(), archiveFilename);
 
         atomicMove(archiveTmp, archiveFile);
 
@@ -224,7 +221,7 @@ public class LogArchiveWriter implements Closeable {
 
 
     private static String generateRandom() {
-        String random = getRandomAlphanumeric();
+        String random = randomAlphanumeric(RANDOM_LENGTH);
 
         int attempts = 0;
         while (!filenameRandomUnique(random)) {
@@ -234,7 +231,7 @@ public class LogArchiveWriter implements Closeable {
                         + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
             }
 
-            random = getRandomAlphanumeric();
+            random = randomAlphanumeric(RANDOM_LENGTH);
         }
 
         return random;
@@ -249,10 +246,6 @@ public class LogArchiveWriter implements Closeable {
 
         return fileNamesWithSameRandom == null
                 || fileNamesWithSameRandom.length == 0;
-    }
-
-    private static String getRandomAlphanumeric() {
-        return RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH);
     }
 
     private static WritableByteChannel createOutputToTempFile(Path tmp)

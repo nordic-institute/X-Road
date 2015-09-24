@@ -1,4 +1,4 @@
 securityServer_first:
   server_code: "serverCode"
   address: "http://www.securityserver.example.com"
-  xroad_member_id: <%= ActiveRecord::Fixtures.identify(:xroadMember_first) %>
+  owner_id: <%= ActiveRecord::Fixtures.identify(:xroadMember_first) %>

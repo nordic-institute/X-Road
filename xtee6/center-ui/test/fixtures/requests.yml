@@ -6,6 +6,8 @@ request_for_owned_server:
   sec_serv_user_id: <%= ActiveRecord::Fixtures.identify(:identifier_owned_server_request_user) %>
   server_owner_class: "riigiasutus"
   server_owner_code: "member_in_vallavalitsused"
+  server_owner_name: "This member should belong to group 'vallavalitsused'"
+  server_user_name: "This member should NOT belong to group 'vallavalitsused'"
   origin: "CENTER"
   created_at: <%= 5.day.ago.to_s(:db) %>
   updated_at: <%= 5.day.ago.to_s(:db) %>
