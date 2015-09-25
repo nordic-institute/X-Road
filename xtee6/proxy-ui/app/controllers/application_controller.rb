@@ -17,6 +17,11 @@ java_import Java::ee.ria.xroad.commonui.SignerProxy
 class ApplicationController < BaseController
 
   XROAD_INSTALLED_FILE = "/usr/xtee/etc/v6_xroad_installed"
+  XROAD_ACTIVATED_FILE = "/usr/xtee/etc/v6_xroad_activated"
+
+  XROAD_ACTIVATED_PRIVILEGES = [
+    :generate_internal_ssl
+  ]
 
   INTERNAL_SSL_CERT_PATH = "/etc/xroad/ssl/internal.crt"
 
@@ -24,6 +29,7 @@ class ApplicationController < BaseController
 
   around_filter :transaction
 
+  before_filter :demote_xroad
   before_filter :check_conf, :except => [:menu, :alerts]
   before_filter :read_locale
   before_filter :read_server_id, :except => [:menu, :alerts]
@@ -257,8 +263,21 @@ class ApplicationController < BaseController
     end
   end
 
+  def demote_xroad
+    if x55_installed? && !x55_activated?
+      current_user.privileges -= XROAD_ACTIVATED_PRIVILEGES
+      logger.debug("Demote X-Road")
+    end
+  end
+
   def x55_installed?
     @x55_installed ||= File.exists?(XROAD_INSTALLED_FILE)
+  end
+
+  def x55_activated?
+    activated = File.exists?(XROAD_ACTIVATED_FILE)
+    logger.debug("X-Road activated = #{activated}")
+    activated
   end
 
   def export_cert(cert)

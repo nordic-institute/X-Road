@@ -61,18 +61,28 @@ rm ${listf}
 echo -e "\n-----\n RESTORING CONFIGURATION FROM ${filename}\nRestoring files:\n"
 tar xfv ${filename} -C /
 
-if [ -x /usr/share/xroad/scripts/restore_db.sh ] &&  [ -e /var/lib/xroad/dbdump.dat ]
+if [ -x /usr/share/xroad/scripts/restore_db.sh ] && [ -e /var/lib/xroad/dbdump.dat ]
 then
   echo -e "\nRESTORING DATABASE FROM /var/lib/xroad/dbdump.dat\n"
   /usr/share/xroad/scripts/restore_db.sh 1>/dev/null
   if [ "x$?" != "x0" ]
-   then
+  then
     die "Failed to restore database!"
   fi
-
 fi
 
-echo -e "\nRESTARING SERVICES\n"
+echo -e "\nRESTARTING SERVICES\n"
 
-for xrdservice in $SERVICES; do  initctl start $xrdservice ;done
+for xrdservice in $SERVICES; do initctl start $xrdservice ;done
+
+
+# v5.5 specific stuff
+if [ -f /usr/xtee/etc/v6_xroad_installed ] && [ -f /usr/xtee/etc/v6_xroad_activated ]; then
+  echo -e "\nEXPORTING INTERNAL TLS KEY AND CERTIFICATE TO 5.0 X-ROAD PROXY.."
+  su - ui -c /usr/share/xroad/scripts/export_v6_internal_tls_key.sh
+
+  if [ "x$?" != "x0" ]; then
+	die "Failed to export internal TLS key and certificate to 5.0 X-Road proxy!"
+  fi
+fi
 

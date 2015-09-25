@@ -4,7 +4,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
@@ -38,6 +37,9 @@ public class GetAuthKeyRequestHandler
 
     @Override
     protected Object handle(GetAuthKey message) throws Exception {
+        log.trace("Selecting authentication key for security server {}",
+                message.getSecurityServer());
+
         if (!SoftwareTokenUtil.isTokenInitialized()) {
             throw tokenNotInitialized(SoftwareTokenType.ID);
         }
@@ -48,20 +50,26 @@ public class GetAuthKeyRequestHandler
 
         for (TokenInfo tokenInfo : TokenManager.listTokens()) {
             if (!SoftwareModuleType.TYPE.equals(tokenInfo.getType())) {
+                log.trace("Ignoring {} module", tokenInfo.getType());
                 continue;
             }
 
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getUsage() != KeyUsageInfo.AUTHENTICATION) {
+                    log.trace("Ignoring {} key {}", keyInfo.getUsage(),
+                            keyInfo.getId());
                     continue;
                 }
 
                 if (!keyInfo.isAvailable()) {
+                    log.trace("Ignoring unavailable key {}", keyInfo.getId());
                     continue;
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     if (authCertValid(certInfo, message.getSecurityServer())) {
+                        log.trace("Found suitable authentication key {}",
+                                keyInfo.getId());
                         return authKeyResponse(keyInfo, certInfo);
                     }
                 }
@@ -85,15 +93,21 @@ public class GetAuthKeyRequestHandler
 
     private boolean authCertValid(CertificateInfo certInfo,
             SecurityServerId securityServer) throws Exception {
+        X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
+
         if (!certInfo.isActive()) {
+            log.trace("Ignoring inactive authentication certificate {}",
+                    cert.getSubjectX500Principal().getName());
             return false;
         }
 
         if (!isRegistered(certInfo.getStatus())) {
+            log.trace("Ignoring non-registered ({}) authentication certificate"
+                    + " {}", certInfo.getStatus(),
+                    cert.getSubjectX500Principal().getName());
             return false;
         }
 
-        X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
         try {
             cert.checkValidity();
 
@@ -108,6 +122,10 @@ public class GetAuthKeyRequestHandler
                     e.getMessage());
         }
 
+        log.trace("Ignoring authentication certificate {} because it does "
+                + "not belong to security server {}",
+                cert.getSubjectX500Principal().getName(),
+                securityServer);
         return false;
     }
 

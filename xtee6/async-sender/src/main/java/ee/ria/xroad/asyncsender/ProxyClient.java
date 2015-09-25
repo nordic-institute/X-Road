@@ -101,7 +101,8 @@ final class ProxyClient implements StartStop {
         return (SoapMessageImpl) responseSoap;
     }
 
-    private static void checkForFaultResponse(Soap responseSoap) {
+    private static void checkForFaultResponse(Soap responseSoap)
+            throws Exception {
         if (responseSoap != null && responseSoap instanceof SoapFault) {
             SoapFault soapFault = (SoapFault) responseSoap;
             LOG.error("checkForFaultResponse() - got fault message: {}",

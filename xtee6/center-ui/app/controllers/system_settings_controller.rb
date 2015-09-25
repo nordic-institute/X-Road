@@ -111,7 +111,7 @@ class SystemSettingsController < ApplicationController
       :description => [:required]
     })
 
-    audit_log_data[:code] = params[:code]
+    audit_log_data[:code] = params[:code].upcase
     audit_log_data[:description] = params[:description]
 
     MemberClass.find_each do |member_class|

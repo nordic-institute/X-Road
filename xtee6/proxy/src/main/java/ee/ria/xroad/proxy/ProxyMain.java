@@ -17,7 +17,6 @@ import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.common.util.SystemMonitor;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
@@ -140,8 +139,6 @@ public final class ProxyMain {
         SERVICES.add(new ServerProxy());
 
         SERVICES.add(new CertHashBasedOcspResponder());
-
-        SERVICES.add(new SystemMonitor());
 
         SERVICES.add(createAdminPort());
     }

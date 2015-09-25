@@ -1,5 +1,6 @@
 package ee.ria.xroad.proxy.messagelog;
 
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -19,6 +20,7 @@ import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -75,26 +77,27 @@ public class LogManager extends AbstractLogManager {
     }
 
     private void createTaskQueue() {
-        getContext().actorOf(Props.create(getTaskQueueImpl(), this),
-                TASK_QUEUE_NAME);
+        getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
     }
 
     private void createTimestamper() {
         timestamper = getContext().actorOf(
-                Props.create(getTimestamperImpl()), TIMESTAMPER_NAME);
+                getTimestamperImpl(),
+                TIMESTAMPER_NAME
+            );
 
         getContext().actorOf(Props.create(TimestamperJob.class));
     }
 
     private void createArchiver(JobManager jobManager) {
-        getContext().actorOf(Props.create(getArchiverImpl()), ARCHIVER_NAME);
+        getContext().actorOf(getArchiverImpl(), ARCHIVER_NAME);
 
         registerCronJob(jobManager, ARCHIVER_NAME, START_ARCHIVING,
                 getArchiveInterval());
     }
 
     private void createCleaner(JobManager jobManager) {
-        getContext().actorOf(Props.create(getCleanerImpl()), CLEANER_NAME);
+        getContext().actorOf(getCleanerImpl(), CLEANER_NAME);
 
         registerCronJob(jobManager, CLEANER_NAME, START_CLEANING,
                 getCleanInterval());
@@ -134,20 +137,24 @@ public class LogManager extends AbstractLogManager {
 
     // ------------------------------------------------------------------------
 
-    protected Class<? extends TaskQueue> getTaskQueueImpl() {
-        return TaskQueue.class;
+    protected Props getTaskQueueImpl() {
+        return Props.create(TaskQueue.class, this);
     }
 
-    protected Class<? extends Timestamper> getTimestamperImpl() {
-        return Timestamper.class;
+    protected Props getTimestamperImpl() {
+        return Props.create(Timestamper.class);
     }
 
-    protected Class<? extends LogArchiver> getArchiverImpl() {
-        return LogArchiver.class;
+    protected Props getArchiverImpl() {
+        return Props.create(
+            LogArchiver.class,
+            Paths.get(MessageLogProperties.getArchivePath()),
+            Paths.get(SystemProperties.getTempFilesPath())
+        );
     }
 
-    protected Class<? extends LogCleaner> getCleanerImpl() {
-        return LogCleaner.class;
+    protected Props getCleanerImpl() {
+        return Props.create(LogCleaner.class);
     }
 
     protected TimestampRecord timestampImmediately(MessageRecord logRecord)
@@ -266,8 +273,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     private static byte[] getInputHash(String str) throws Exception {
-        String hashAlgoId = MessageLogProperties.getHashAlg();
-        return calculateDigest(hashAlgoId, str.getBytes(UTF_8));
+        return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
     }
 
     /**

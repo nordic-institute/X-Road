@@ -58,7 +58,8 @@ public class SoapMessageDecoder {
         void onError(Exception t) throws Exception;
 
         @Override
-        default void close() { };
+        default void close() {
+        }
     }
 
     /**

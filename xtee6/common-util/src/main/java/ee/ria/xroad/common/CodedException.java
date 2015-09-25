@@ -89,14 +89,17 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param faultString the fault string (e.g. the message)
      * @param faultActor the fault actor
      * @param faultDetail the details
+     * @param faultXml the XML document representing the fault
      * @return new proxy exception
      */
     public static CodedException fromFault(String faultCode, String faultString,
-            String faultActor, String faultDetail) {
-        CodedException ret = new Fault(faultCode, faultString);
+            String faultActor, String faultDetail, String faultXml) {
+        Fault ret = new Fault(faultCode, faultString);
 
         ret.faultActor = faultActor;
         ret.faultDetail = faultDetail;
+
+        ret.faultXml = faultXml;
 
         return ret;
     }
@@ -182,6 +185,9 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     @SuppressWarnings("serial") // does not need to have serial
     public static class Fault extends CodedException implements Serializable {
+
+        @Getter
+        private String faultXml;
 
         /**
          * Creates new fault.

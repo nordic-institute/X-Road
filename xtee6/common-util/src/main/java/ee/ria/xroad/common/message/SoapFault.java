@@ -2,6 +2,7 @@ package ee.ria.xroad.common.message;
 
 import javax.xml.soap.SOAPFault;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import ee.ria.xroad.common.CodedException;
@@ -19,15 +20,30 @@ public class SoapFault implements Soap {
     private final String faultActor;
     private final String faultDetail;
 
+    private final byte[] rawXml;
+    private final String charset;
+
     /**
      * Creates a new SOAP fault from a SOAPFault DOM element.
      * @param soapFault the DOM element used in created of the fault
      */
     public SoapFault(SOAPFault soapFault) {
+        this(soapFault, null, null);
+    }
+
+    /**
+     * Creates a new SOAP fault from a SOAPFault DOM element.
+     * @param soapFault the DOM element used in created of the fault
+     * @param rawXml the raw XML data
+     * @param charset the charset of the XML
+     */
+    public SoapFault(SOAPFault soapFault, byte[] rawXml, String charset) {
         this.faultCode = soapFault.getFaultCode();
         this.faultString = soapFault.getFaultString();
         this.faultActor = soapFault.getFaultActor();
         this.faultDetail = getFaultDetail(soapFault);
+        this.rawXml = rawXml;
+        this.charset = charset;
     }
 
     /**
@@ -66,14 +82,20 @@ public class SoapFault implements Soap {
      * Converts this SOAP fault into a coded exception.
      * @return CodedException
      */
+    @SneakyThrows
     public CodedException toCodedException() {
         return CodedException.fromFault(faultCode, faultString, faultActor,
-                faultDetail);
+                faultDetail, new String(rawXml, charset));
     }
 
     @Override
-    public String getXml() {
-        return createFaultXml(faultCode, faultString, faultActor, faultDetail);
+    public String getXml() throws Exception {
+        if (rawXml != null) {
+            return new String(rawXml, charset);
+        } else {
+            return createFaultXml(faultCode, faultString, faultActor,
+                    faultDetail);
+        }
     }
 
     /**
@@ -82,8 +104,12 @@ public class SoapFault implements Soap {
      * @return a String containing XML of the SOAP fault represented by the given coded exception
      */
     public static String createFaultXml(CodedException ex) {
-        return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
-                ex.getFaultActor(), ex.getFaultDetail());
+        if (ex instanceof CodedException.Fault) {
+            return ((CodedException.Fault) ex).getFaultXml();
+        } else {
+            return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
+                    ex.getFaultActor(), ex.getFaultDetail());
+        }
     }
 
     /**

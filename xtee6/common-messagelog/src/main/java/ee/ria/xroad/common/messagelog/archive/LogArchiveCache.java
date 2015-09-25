@@ -29,7 +29,6 @@ import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.SystemProperties.getTempFilesPath;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
 import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
@@ -47,6 +46,7 @@ class LogArchiveCache implements Closeable {
 
     private final Supplier<String> randomGenerator;
     private final LinkingInfoBuilder linkingInfoBuilder;
+    private final Path workingDir;
 
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
@@ -59,9 +59,11 @@ class LogArchiveCache implements Closeable {
     private long archivesTotalSize;
 
     LogArchiveCache(Supplier<String> randomGenerator,
-            LinkingInfoBuilder linkingInfoBuilder) {
+            LinkingInfoBuilder linkingInfoBuilder,
+            Path workingDir) {
         this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
+        this.workingDir = workingDir;
 
         reset();
     }
@@ -79,12 +81,14 @@ class LogArchiveCache implements Closeable {
 
     InputStream getArchiveFile() throws IOException {
         tempArchive = File.createTempFile(
-                "xroad-log-archive-zip", ".tmp", new File(getTempFilesPath()));
+            "xroad-log-archive-zip", ".tmp", workingDir.toFile()
+        );
 
-        try (FileOutputStream fileOut = new FileOutputStream(tempArchive);
-                ZipOutputStream zipOut = new ZipOutputStream(fileOut)) {
-            addAsicContainersToArchive(zipOut);
-            addLinkingInfoToArchive(zipOut);
+        try (ZipOutputStream out =
+                new ZipOutputStream(
+                        new FileOutputStream(tempArchive))) {
+            addAsicContainersToArchive(out);
+            addLinkingInfoToArchive(out);
         } catch (Exception e) {
             handleCacheError(e);
         }
@@ -210,7 +214,7 @@ class LogArchiveCache implements Closeable {
         deleteArchiveArtifacts();
 
         archiveContentDir = Files.createTempDirectory(
-                    Paths.get(getTempFilesPath()),
+                    workingDir,
                     "xroad-log-archive"
                 ).toFile();
     }

@@ -204,7 +204,7 @@ class SysparamsController < ApplicationController
 
     if x55_installed?
       export_v6_internal_tls_key
-      restart_service("xtee55-clientemediator")
+      restart_service("xtee55-clientmediator")
     end
 
     cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)

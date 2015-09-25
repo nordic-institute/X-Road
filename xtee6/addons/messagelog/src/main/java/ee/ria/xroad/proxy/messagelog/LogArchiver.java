@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +15,6 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
-import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
@@ -24,7 +22,6 @@ import org.hibernate.criterion.Restrictions;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
@@ -41,11 +38,15 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * to archive file and marks the records as archived.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
 
     public static final String START_ARCHIVING = "doArchive";
+
+    private final Path archivePath;
+    private final Path workingPath;
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -107,21 +108,40 @@ public class LogArchiver extends UntypedActor {
         }
     }
 
-
     private LogArchiveWriter createLogArchiveWriter(Session session) {
-        Path path = Paths.get(MessageLogProperties.getArchivePath());
-        if (!Files.isDirectory(path)) {
-            throw new RuntimeException(
-                    "Log output path (" + path + ") must be directory");
-        }
-
-        if (!Files.isWritable(path)) {
-            throw new RuntimeException(
-                    "Log output path (" + path + ") must be writable");
-        }
-
         return new LogArchiveWriter(
-                path, this.new HibernateLogArchiveBase(session));
+            getArchivePath(),
+            getWorkingPath(),
+            this.new HibernateLogArchiveBase(session)
+        );
+    }
+
+    private Path getArchivePath() {
+        if (!Files.isDirectory(archivePath)) {
+            throw new RuntimeException(
+                    "Log output path (" + archivePath + ") must be directory");
+        }
+
+        if (!Files.isWritable(archivePath)) {
+            throw new RuntimeException(
+                    "Log output path (" + archivePath + ") must be writable");
+        }
+
+        return archivePath;
+    }
+
+    private Path getWorkingPath() {
+        if (!Files.isDirectory(workingPath)) {
+            throw new RuntimeException(
+                    "Log working path (" + workingPath + ") must be directory");
+        }
+
+        if (!Files.isWritable(workingPath)) {
+            throw new RuntimeException(
+                    "Log working path (" + workingPath + ") must be writable");
+        }
+
+        return workingPath;
     }
 
     protected List<LogRecord> getRecordsToBeArchived(Session session) {
@@ -154,28 +174,34 @@ public class LogArchiver extends UntypedActor {
     @SuppressWarnings("unchecked")
     protected List<TimestampRecord> getNonArchivedTimestampRecords(
             Session session) {
-        Criteria criteria = session.createCriteria(TimestampRecord.class);
-        criteria.add(Restrictions.eq("archived", false));
-        return criteria.list();
+        return session
+                .createCriteria(TimestampRecord.class)
+                .add(Restrictions.eq("archived", false))
+                .list();
     }
 
     @SuppressWarnings("unchecked")
     protected List<MessageRecord> getNonArchivedMessageRecords(Session session,
             Long timestampRecordNumber, int maxRecordsToGet) {
-        Criteria criteria = session.createCriteria(MessageRecord.class);
-        criteria.add(Restrictions.eq("archived", false));
-        criteria.add(Restrictions.eq("timestampRecord.id", timestampRecordNumber));
-        criteria.setMaxResults(maxRecordsToGet);
-        return criteria.list();
+        return session
+                .createCriteria(MessageRecord.class)
+                .add(Restrictions.eq("archived", false))
+                .add(Restrictions.eq("timestampRecord.id",
+                        timestampRecordNumber))
+                .setMaxResults(maxRecordsToGet)
+                .list();
     }
 
     protected boolean allTimestampMessagesArchived(Session session,
-                                                   Long timestampRecordNumber) {
-        Criteria criteria = session.createCriteria(MessageRecord.class);
-        criteria.add(Restrictions.eq("archived", false));
-        criteria.add(Restrictions.eq("timestampRecord.id", timestampRecordNumber));
-        criteria.setProjection(Projections.rowCount()).uniqueResult();
-        return (Long) criteria.uniqueResult() == 0;
+            Long timestampRecordNumber) {
+        Long result = (Long) session
+                .createCriteria(MessageRecord.class)
+                .add(Restrictions.eq("archived", false))
+                .add(Restrictions.eq("timestampRecord.id",
+                        timestampRecordNumber))
+                .setProjection(Projections.rowCount())
+                .uniqueResult();
+        return result == 0;
     }
 
 

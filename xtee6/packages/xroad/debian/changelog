@@ -1,3 +1,9 @@
+xroad (6.6-3) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Fri, 25 Sep 2015 12:38:24 +0300
+
 xroad (6.6-2) trusty; urgency=low
 
   * Bugfixes

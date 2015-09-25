@@ -28,28 +28,15 @@ public abstract class HandlerBase extends AbstractHandler {
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
-        sendErrorResponse(response, ex.getFaultCode(), ex.getFaultString(),
-                ex.getFaultActor(), ex.getFaultDetail());
-    }
-
-    /**
-    * Sends SOAP fault message to the other party.
-    * @param response HTTP servlet response for sending the SOAP fault
-    * @param faultCode code of the SOAP fault
-    * @param faultString string of the SOAP fault
-    * @param faultActor actor of the SOAP fault
-    * @param faultDetail detail of the SOAP fault
-    * @throws IOException if an I/O error occurred
-    */
-    public static void sendErrorResponse(HttpServletResponse response,
-            String faultCode, String faultString, String faultActor,
-            String faultDetail) throws IOException {
-        String soapMessageXml = SoapFault.createFaultXml(
-                faultCode, faultString, faultActor,
-                faultDetail);
+        String faultXml;
+        if (ex instanceof CodedException.Fault) {
+            faultXml = ((CodedException.Fault) ex).getFaultXml();
+        } else {
+            faultXml = SoapFault.createFaultXml(ex);
+        }
 
         String encoding = MimeUtils.UTF8;
-        byte[] messageBytes = soapMessageXml.getBytes(encoding);
+        byte[] messageBytes = faultXml.getBytes(encoding);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MimeTypes.TEXT_XML);

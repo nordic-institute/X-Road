@@ -2,16 +2,15 @@ package ee.ria.xroad.proxy.messagelog;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.text.DateFormat;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import akka.actor.Props;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
 import org.joda.time.DateTime;
 import org.junit.After;
@@ -438,8 +437,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @SneakyThrows
     private static String getLastHashStepInDatabase() {
         return doInTransaction(session -> {
-            Query query = session.createQuery(getLastDigestQuery());
-            return (String) query.setMaxResults(1).list().get(0);
+            return (String) session
+                    .createQuery(getLastDigestQuery())
+                    .setMaxResults(1)
+                    .list()
+                    .get(0);
         });
     }
 
@@ -494,16 +496,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static Date getDate(String dateStr) throws Exception {
-        DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS");
-        return df.parse(dateStr);
+        return new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS").parse(dateStr);
     }
 
     private static int getNumberOfRecords(final boolean archived)
             throws Exception {
         return doInTransaction(session -> {
-            Criteria criteria = session.createCriteria(AbstractLogRecord.class);
-            criteria.add(Restrictions.eq("archived", archived));
-            return criteria.list().size();
+            return session
+                    .createCriteria(AbstractLogRecord.class)
+                    .add(Restrictions.eq("archived", archived))
+                    .list()
+                    .size();
         });
     }
 
@@ -514,23 +517,27 @@ public class MessageLogTest extends AbstractMessageLogTest {
         }
 
         @Override
-        protected Class<? extends TaskQueue> getTaskQueueImpl() {
-            return TestTaskQueue.class;
+        protected Props getTaskQueueImpl() {
+            return Props.create(TestTaskQueue.class, this);
         }
 
         @Override
-        protected Class<? extends Timestamper> getTimestamperImpl() {
-            return TestTimestamper.class;
+        protected Props getTimestamperImpl() {
+            return Props.create(TestTimestamper.class);
         }
 
         @Override
-        protected Class<? extends LogArchiver> getArchiverImpl() {
-            return TestLogArchiver.class;
+        protected Props getArchiverImpl() {
+            return Props.create(
+                TestLogArchiver.class,
+                Paths.get("build"),
+                Paths.get("build/tmp")
+            );
         }
 
         @Override
-        protected Class<? extends LogCleaner> getCleanerImpl() {
-            return TestLogCleaner.class;
+        protected Props getCleanerImpl() {
+            return Props.create(TestLogCleaner.class);
         }
 
         @Override

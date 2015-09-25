@@ -41,6 +41,7 @@ abstract class AbstractMessageLogTest {
                     "false");
         }
 
+        System.out.println("### " + getLogManagerImpl());
         TestActorRef<LogManager> testActor = TestActorRef.create(actorSystem,
                 Props.create(getLogManagerImpl(), jobManager),
                 MessageLog.LOG_MANAGER);

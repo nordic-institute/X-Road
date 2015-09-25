@@ -389,7 +389,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void handleException(Exception ex) throws Exception {
         CodedException exception;
         if (ex instanceof CodedException.Fault) {
-            exception = (CodedException) ex;
+            exception = (CodedException.Fault) ex;
         } else {
             exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
         }

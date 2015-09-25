@@ -59,18 +59,25 @@ public class LogArchiveWriter implements Closeable {
 
     /**
      * Creates new LogArchiveWriter
-     * @param outputPath - directory where the log archive is created.
-     * @param archiveBase - interface to archive database.
+     * @param outputPath directory where the log archive is created.
+     * @param workingPath directory where the temporary files are stored
+     * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) {
+    public LogArchiveWriter(Path outputPath, Path workingPath,
+            LogArchiveBase archiveBase) {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
         this.linkingInfoBuilder = new LinkingInfoBuilder(
-                MessageLogProperties.getHashAlg(), archiveBase);
-        this.logArchiveCache = new LogArchiveCache(
-                LogArchiveWriter::generateRandom, linkingInfoBuilder);
+            MessageLogProperties.getHashAlg(),
+            archiveBase
+        );
 
+        this.logArchiveCache = new LogArchiveCache(
+            LogArchiveWriter::generateRandom,
+            linkingInfoBuilder,
+            workingPath
+        );
     }
 
     /**

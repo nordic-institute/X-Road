@@ -52,6 +52,12 @@ public final class ProxyTestSuite {
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+        System.setProperty(
+                SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE,
+                "src/test/clientproxy.xml");
+        System.setProperty(
+                SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE,
+                "src/test/serverproxy.xml");
 
         setUp();
 

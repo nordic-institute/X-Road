@@ -100,10 +100,10 @@ public class SoapParserImpl implements SoapParser {
 
         SOAPFault fault = soap.getSOAPBody().getFault();
         if (fault != null) {
-            return new SoapFault(fault);
+            return new SoapFault(fault, rawXml, charset);
+        } else {
+            return createMessage(rawXml, soap, charset);
         }
-
-        return createMessage(rawXml, soap, charset);
     }
 
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
