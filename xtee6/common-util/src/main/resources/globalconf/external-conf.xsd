@@ -9,7 +9,7 @@
     <element name="conf" type="tns:SharedParametersType">
         <annotation>
             <documentation>
-                Set of configuration parameters that are used by members of this X-Road instance and other federated
+                Set of configuration parameters that are used by members of this X-Road instance and other federated 
                 instances.
             </documentation>
         </annotation>
@@ -20,7 +20,7 @@
             <element name="instanceIdentifier" type="string">
                 <annotation>
                     <documentation>
-                        Code that uniquely identifies this instance of the X-Road system within a federation of
+                        Code that uniquely identifies this instance of the X-Road system within a federation of 
                         systems.
                     </documentation>
                 </annotation>
@@ -190,7 +190,7 @@
             <element name="identifierDecoder" type="tns:IdentifierDecoderType" minOccurs="0">
                 <annotation>
                     <documentation>
-                        Name of the (fully qualified) static method used for extracting the X-Road member identifier
+                        Name of the (fully qualified) static method used for extracting the X-Road member identifier 
                         from the subject field of the certificate.
                     </documentation>
                 </annotation>
@@ -277,7 +277,7 @@
     <complexType name="CaInfoType">
         <annotation>
             <documentation>
-                This type encapsulates information about a certification authority.
+                This type encapsulates information about a certification authority. 
             </documentation>
         </annotation>
         <sequence>
@@ -345,7 +345,7 @@
                 <annotation>
                     <documentation>
                         Name of the public static method (formatted as ClassName.methodName) that takes a certificate
-                        as input and returns either a String (member class), a String array of length 2 containing
+                        as input and returns either a String (member class), a String array of length 2 containing 
                         the member class and member code, or full ClientId object.
                     </documentation>
                 </annotation>

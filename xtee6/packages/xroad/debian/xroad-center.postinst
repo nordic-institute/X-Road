@@ -41,14 +41,14 @@ case "$1" in
     if [ $? = 1 ]
     then
       su - postgres -c /usr/share/xroad/db/create_schema.sh
-    else
+    else 
       echo  "user exists, skipping postgres schema creation"
     fi
 
     echo "running db migrations"
     /usr/share/xroad/db/migrate.sh db:migrate
     if [[ $? -ne 0 ]]
-    then
+    then 
       echo "database migrate failed.ABORTING"
       exit 2
     fi
@@ -56,7 +56,7 @@ case "$1" in
     RET=""
     db_get xroad-common/username
     AUSER="$RET"
-
+    
     #add groups
     groups="xroad-security-officer xroad-system-administrator xroad-registration-officer"
     for groupname in $groups
@@ -68,7 +68,7 @@ case "$1" in
     done
 
     #mkdir -p  /var/lib/xroad/public
-    chmod 755 /var/lib/xroad/public
+    chmod 755 /var/lib/xroad/public 
     chown xroad:xroad /var/lib/xroad/public
 
     test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
@@ -84,7 +84,7 @@ case "$1" in
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
     *)
-
+   
         echo "postinst called with unknown argument \`$1'" >&2
         exit 1
     ;;
@@ -95,7 +95,7 @@ esac
 
 #DEBHELPER#
 
-invoke-rc.d rsyslog restart
+invoke-rc.d rsyslog restart 
 invoke-rc.d xroad-jetty restart
 invoke-rc.d xroad-signer restart
 invoke-rc.d nginx restart

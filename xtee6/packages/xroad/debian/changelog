@@ -1,3 +1,19 @@
+xroad (6.7-0) trusty; urgency=low
+
+  * Member Code/Identifier Extractor for Finnish instance 
+    o Signing certificate subject DN format supported by the decoder: C=FI,O=<instanceIdentifier>, OU=<memberClass>, CN=<memberCode> (e.g. C=FI, O=FI-DEV, OU=PUB, CN=1234567-8)
+  * Configurable key size for signing and authentication RSA keys 
+    o New configuration parameter signer.key-length (default 2048)
+  * Configurable certificate signing request signing algorithm 
+    o New configuration parameter signer.csr-signature-algorithm (default: SHA1withRSA)
+  * New security server metapackage with default configuration for Finnish instance
+    o xroad-securityserver-fi
+    o uses SHA256withRSA as signer.csr-signature-algorithm
+  * Fixed atomic save to work between separate file systems
+    o OS temp directory and X-Road software can now reside on different file systems
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 29 Sep 2015 09:36:56 +0300
+
 xroad (6.6-2) trusty; urgency=low
 
   * Bugfixes

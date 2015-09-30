@@ -56,7 +56,7 @@
             &:hover { background: $hover; }
             &:active { background: $active; }
 
-            &.ui-tabs-active {
+            &.ui-tabs-active { 
                 box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
                 background: #f1f1f1;
                 padding-bottom: 0;
@@ -115,4 +115,3 @@
     box-shadow: 0 0px 7px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(0, 0, 0, 0.4);
 }
-

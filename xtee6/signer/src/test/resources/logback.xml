@@ -7,7 +7,7 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-
+    
     <logger name="ee.ria.xroad" level="TRACE" />
 
     <root level="TRACE">

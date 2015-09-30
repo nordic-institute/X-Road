@@ -33,7 +33,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
-
+    
     <root level="INFO">
         <appender-ref ref="FILE" />
         <appender-ref ref="SYSLOG" />

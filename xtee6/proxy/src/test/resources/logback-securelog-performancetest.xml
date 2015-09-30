@@ -9,7 +9,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
-
+    
     <logger name="org.apache.http.impl.conn.PoolingHttpClientConnectionManager" level="OFF" />
     <logger name="org.hibernate" level="OFF" />
 

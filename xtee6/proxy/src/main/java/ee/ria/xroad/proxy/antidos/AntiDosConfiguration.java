@@ -26,7 +26,7 @@ class AntiDosConfiguration {
     double getMaxCpuLoad() {
         return SystemProperties.getAntiDosMaxCpuLoad();
     }
-
+    
     /**
      * @return the maximum allowed heap usage. If the heap usage is more than
      * this value, incoming connection is not processed.

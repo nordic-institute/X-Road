@@ -95,6 +95,21 @@ public final class DefaultFilepaths {
         return Files.createTempFile(tempDirPath, prefix, suffix, permissions);
     }
 
+    /**
+     * Convenience method which creates a temporary file on disk
+     * and returns its path. The new file is created in the same directory
+     * as the file whose path is given as parameter
+     * @return path to the created temporary file
+     * @throws IOException if an error occurs
+     */
+    public static Path createTempFileInSameDir(String fileName)
+            throws IOException {
+        Path target = Paths.get(fileName);
+        Path parentPath = target.getParent();
+
+        return DefaultFilepaths.createTempFile(parentPath, null, null);
+    }
+
     private DefaultFilepaths() {
     }
 }

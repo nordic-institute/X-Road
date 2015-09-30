@@ -138,7 +138,6 @@ iframe {
   display: none;
 }
 
-button[disabled] {
+button[disabled] { 
   pointer-events: none;
 }
-

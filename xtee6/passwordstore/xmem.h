@@ -14,12 +14,12 @@ extern "C"{
 
     yldist: koik funktsioonid tagastava 0, kui operatsioon onnestus ning
     -1 kui mitte. xm->error seatakse sel juhul. funktsioonid ei blokeeru,
-    juhul kui pole teisti oeldud. kui protsess lopetab too enneaegselt
+    juhul kui pole teisti oeldud. kui protsess lopetab too enneaegselt 
     vabastatakse koik temaga seotud lukud automaatselt.
 */
 
 /**
-    kasutaja ei vaja siit seest yhtki valja.
+    kasutaja ei vaja siit seest yhtki valja. 
 */
 struct xmem{
     int semid;    /* semafoori id */
@@ -37,14 +37,14 @@ struct xmem{
     initsialiseerib objekti. kui semafoor ning jagatud malu segment puudusid, siis
     loob ka need ning initsialiseerib. kui viga ei olnud annab tagasi 0, muidu -1 ja
     seab errori. see funktsioon voib blokeeruda kui kaks protsessi yritavad tapselt
-    samal ajal semafoori ja segmenti luua.
+    samal ajal semafoori ja segmenti luua. 
     Parameeter perms sisaldab permissioone.
 */
 int xmem_open(struct xmem* xm, key_t key_sem, key_t key_mem, int perms);
 
 /**
-    havitab objekti. kui tegu oli viimase viitega antud semaforile siis havitab
-    ka semafori ja jagatud malu segmendi.
+    havitab objekti. kui tegu oli viimase viitega antud semaforile siis havitab 
+    ka semafori ja jagatud malu segmendi. 
 */
 int xmem_close(struct xmem* xm);
 
@@ -61,8 +61,8 @@ int xmem_detach(struct xmem* xm);
 int xmem_resize(struct xmem* xm, size_t size);
 
 /**
-    muudab jagatud malu segmendi suurust ja kopeerib vana segmendi sisu uude.
-    algul on suurus 0. enne funktsiooni taitmist tuleb saada write lock.
+    muudab jagatud malu segmendi suurust ja kopeerib vana segmendi sisu uude. 
+    algul on suurus 0. enne funktsiooni taitmist tuleb saada write lock. 
 */
 int xmem_resize_and_copy(struct xmem* xm, size_t size);
 
@@ -79,13 +79,13 @@ int xmem_readlock(struct xmem* xm);
 int xmem_tryreadlock(struct xmem* xm);
 
 /**
-    lukustab segmendi kirjutamiseks. funktsioon voib blokeeruda. juhul kui samal
+    lukustab segmendi kirjutamiseks. funktsioon voib blokeeruda. juhul kui samal 
     protsessil on juba lugemislukk annab tagasi -1 ja error on EWOULDBLOCK.
 */
 int xmem_writelock(struct xmem* xm);
 
 /**
-    yritab segmenti lukustada kirjutamiseks. juhul kui samal
+    yritab segmenti lukustada kirjutamiseks. juhul kui samal 
     protsessil on juba lugemislukk annab tagasi -1 ja error on EWOULDBLOCK.
 */
 int xmem_trywritelock(struct xmem* xm);
@@ -97,7 +97,7 @@ int xmem_trywritelock(struct xmem* xm);
 int xmem_unlock(struct xmem* xm);
 
 /**
-    tagastab jagatud malu segmendi pikkuse. enne selle funktsiooni kasutamist
+    tagastab jagatud malu segmendi pikkuse. enne selle funktsiooni kasutamist 
     tuleb votta mingi lukk. vea korral tagastab 0.
 */
 size_t xmem_len(struct xmem* xm);

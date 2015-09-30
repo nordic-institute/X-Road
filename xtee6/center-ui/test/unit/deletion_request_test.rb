@@ -60,9 +60,9 @@ class RequestProcessingTest < ActiveSupport::TestCase
     request_deletion.register()
 
     # Then
-    member_in_vallavalitsused_name =
+    member_in_vallavalitsused_name = 
         "This member should belong to group 'vallavalitsused'"
-
+    
     saved_processing = RequestProcessing.all.first
     saved_auth_cert_reg_request = AuthCertRegRequest.first
 
@@ -74,7 +74,7 @@ class RequestProcessingTest < ActiveSupport::TestCase
     assert_equal(1, AuthCertDeletionRequest.all.size)
 
     deletion_request = AuthCertDeletionRequest.first
-    assert_equal(deletion_request.id,
+    assert_equal(deletion_request.id, 
         saved_auth_cert_reg_request.get_revoking_request_id())
     assert_equal(member_in_vallavalitsused_name,
         deletion_request.server_owner_name)
@@ -136,7 +136,7 @@ class RequestProcessingTest < ActiveSupport::TestCase
     assert_equal(1, ClientDeletionRequest.all.size)
 
     deletion_request = ClientDeletionRequest.first
-    assert_equal(deletion_request.id,
+    assert_equal(deletion_request.id, 
         saved_client_reg_request.get_revoking_request_id())
   end
 

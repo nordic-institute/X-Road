@@ -52,7 +52,7 @@
             </element>
             <element name="client" type="id:XroadClientIdentifierType">
                 <annotation>
-                    <documentation>Identity of the XROAD member or subsystem requesting to be a client of this security server
+                    <documentation>Identity of the XROAD member or subsystem requesting to be a client of this security server 
                     or who needs to be deleted from the list of clients of this server server.</documentation>
                 </annotation>
             </element>

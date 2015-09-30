@@ -1,5 +1,5 @@
 
-description "X-Road proxy backend"
+description	"X-Road proxy backend"
 
 start on runlevel [2345]
 stop on runlevel [!2345]

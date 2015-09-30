@@ -27,7 +27,7 @@
                 nR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHUStbyrKaCl+UDu+vBzCwes8oO
                 rIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N5nQaeAs8ASXA
                 SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
-            </cert>
+            </cert>        
         </key>
         <key usage="SIGNING">
             <friendlyName>Consumer active signing key friendly name</friendlyName>
