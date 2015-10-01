@@ -1,150 +1,292 @@
 package ee.cyber.xroad.mediator.client;
 
-import java.net.HttpURLConnection;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
-import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.servlet.http.HttpServletResponse;
-
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 
-import ee.cyber.xroad.mediator.MediatorServerConf;
+import ee.cyber.xroad.mediator.IdentifierMapping;
+import ee.cyber.xroad.mediator.IdentifierMappingProvider;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
-import ee.cyber.xroad.mediator.common.AbstractMediatorMessageProcessor;
-import ee.cyber.xroad.mediator.common.HttpClientManager;
-import ee.cyber.xroad.mediator.message.V5XRoadMetaServiceImpl;
+import ee.cyber.xroad.mediator.message.MessageEncoder;
+import ee.cyber.xroad.mediator.message.MessageVersion;
+import ee.cyber.xroad.mediator.message.MultipartMessageEncoder;
+import ee.cyber.xroad.mediator.message.SoapMessageEncoder;
+import ee.cyber.xroad.mediator.message.SoapParserImpl;
 import ee.cyber.xroad.mediator.message.V5XRoadSoapMessageImpl;
+import ee.cyber.xroad.mediator.util.IOPipe;
 import ee.cyber.xroad.mediator.util.MediatorUtils;
-import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ClientCert;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.message.AbstractSoapMessage;
+import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.CachingStream;
 
-import static ee.cyber.xroad.mediator.message.MessageVersion.XROAD50;
-import static ee.cyber.xroad.mediator.message.MessageVersion.XROAD60;
 import static ee.cyber.xroad.mediator.util.MediatorUtils.isV6XRoadSoapMessage;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
+import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.apache.commons.io.IOUtils.closeQuietly;
 
 @Slf4j
-class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
+class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
 
-    private static final Map<String, ActivationInfo> ACTIVATION_INFO =
-            new ConcurrentHashMap<>();
+    // TODO Make configurable
+    private static final int SEND_TIMEOUT_SECONDS = 120;
 
-    private final ClientCert clientCert;
+    protected final IOPipe requestPipe = new IOPipe();
 
-    ClientMediatorMessageProcessor(String target,
-            HttpClientManager httpClientManager, ClientCert clientCert)
+    protected final String target;
+    protected final HttpClientManager httpClientManager;
+
+    protected AsyncHttpSender sender;
+    private InputStream cachedRequest;
+
+    protected MessageVersion inboundRequestVersion;
+    protected MessageVersion inboundResponseVersion;
+    protected MessageVersion outboundRequestVersion;
+
+    protected Class<?> inboundRequestHeaderClass;
+
+    private final IsAuthenticationData isAuthData;
+
+    protected ClientMediatorMessageProcessor(String target,
+            HttpClientManager httpClientManager,
+            @NonNull IsAuthenticationData isAuthData)
                     throws Exception {
-        super(target, httpClientManager);
+        this.target = stripSlash(target);
+        this.httpClientManager = httpClientManager;
 
-        if (clientCert == null) {
-            throw new IllegalArgumentException("clientCert must not be null");
-        }
+        GlobalConf.verifyValidity();
+        GlobalConf.initForCurrentThread();
 
-        this.clientCert = clientCert;
+        this.isAuthData = isAuthData;
+    }
+
+    protected AsyncHttpSender createSender() {
+        return new AsyncHttpSender(getHttpClient());
     }
 
     @Override
-    protected SoapMessage getOutboundRequestMessage(
-            SoapMessage inboundRequestMessage) throws Exception {
-        log.trace("getOutboundRequestMessage()");
+    public void process(final MediatorRequest request,
+            final MediatorResponse response) throws Exception {
+        try {
+            processRequest(request);
 
-        // Get the client from the message and determine, if this message
-        // can be relayed through X-Road 6.0.
+            verifyRequest();
 
-        // If this message can be relayed through X-Road 6.0, send it to
-        // X-Road 6.0 proxy (convert the SOAP message to X-Road 6.0 format,
-        // if it is X-Road 5.0 SOAP), otherwise send it to X-Road 5.0 proxy
-        // (convert the message to  X-Road 5.0 SOAP, if it is X-Road 6.0 SOAP).
+            waitForResponse();
 
-        boolean canSendToXroad = canSendToXroad(inboundRequestMessage);
-        log.trace("canSendToXroad = {}", canSendToXroad);
-
-        if (inboundRequestVersion == XROAD60 && !canSendToXroad) {
-            log.trace("Cannot send message to X-Road 6.0, "
-                    + "sending to X-Road 5.0");
-
-            return getMessageConverter().v5XroadSoapMessage(
-                    (SoapMessageImpl) inboundRequestMessage);
-        } else if (inboundRequestVersion == XROAD50 && canSendToXroad) {
-            log.trace("Can send message to X-Road 6.0");
-
-            return getMessageConverter().xroadSoapMessage(
-                    (V5XRoadSoapMessageImpl) inboundRequestMessage, true);
+            processResponse(response);
+        } finally {
+            closeQuietly(sender);
+            closeQuietly(cachedRequest);
         }
-
-        // No conversion necessary
-        return inboundRequestMessage;
     }
 
-    @Override
-    protected SoapMessage getOutboundResponseMessage(
-            SoapMessage inboundResponseMessage) throws Exception {
-        log.trace("getOutboundResponseMessage()");
+    private void processRequest(final MediatorRequest request) throws Exception {
+        log.trace("processRequest({})", request.getContentType());
 
-        // Do not convert meta messages
-        if (inboundResponseMessage instanceof V5XRoadMetaServiceImpl) {
-            return inboundResponseMessage;
+        RequestDecoderCallback cb = new RequestDecoderCallback(request);
+
+        parseMessage(request.getContentType(), request.getInputStream(), cb);
+
+        if (cb.sendWithHttp10) {
+            cb.encoder.close();
+            log.trace("Sending cached message with length {}",
+                    cb.counter.getByteCount());
+            // Start the sending operation. Cache will be closed when the
+            // response is received.
+            cachedRequest = cb.cache.getCachedContents();
+            cb.startSending(cachedRequest,
+                    cb.counter.getByteCount());
+        }
+    }
+
+    private class RequestDecoderCallback extends MessageDecoderCallback {
+        MediatorRequest request;
+        boolean sendWithHttp10 = false;
+        SoapMessage outboundRequestMessage;
+        CachingStream cache;
+        CountingOutputStream counter;
+
+        RequestDecoderCallback(MediatorRequest request) {
+            this.request = request;
         }
 
-        verifyRequestResponseMessageVersions();
+        @Override
+        public void soap(SoapMessage message) throws Exception {
+            log.trace("soap({})", message.getXml());
 
-        if (inboundRequestVersion == XROAD60) {
-            if (outboundRequestVersion == XROAD50) {
-                log.trace("Converting X-Road 5.0 SOAP to X-Road 6.0 SOAP");
+            inboundRequestVersion = MessageVersion.fromMessage(message);
+            inboundRequestHeaderClass = getHeaderClass(message);
 
-                return getMessageConverter().xroadSoapMessage(
-                        (V5XRoadSoapMessageImpl) inboundResponseMessage, false);
-            } else if (outboundRequestVersion == XROAD60) {
-                // Remove XRoad headers
-                return getMessageConverter().removeXRoadHeaders(
-                        (SoapMessageImpl) inboundResponseMessage);
+            outboundRequestMessage = message;
+
+            outboundRequestVersion =
+                    MessageVersion.fromMessage(outboundRequestMessage);
+
+            sendWithHttp10 = shouldSendWithHttp10(outboundRequestMessage);
+            if (sendWithHttp10) {
+                log.trace("Sending request with HTTP 1.0");
+                cache = new CachingStream();
+                counter = new CountingOutputStream(cache);
+                encoder = getEncoder(counter);
+            } else {
+                log.trace("Sending request with HTTP 1.1 chunked encoding");
+                encoder = getEncoder(requestPipe.out);
+                startSending(requestPipe.in, CHUNKED_LENGTH);
             }
-        } else if (inboundRequestVersion == XROAD50
-                && outboundRequestVersion == XROAD60) {
-            log.trace("Converting X-Road 6.0 SOAP to X-Road 5.0 SOAP");
 
-            return getMessageConverter().v5XroadSoapMessage(
-                    (SoapMessageImpl) inboundResponseMessage,
-                    inboundRequestHeaderClass);
+            encoder.soap(outboundRequestMessage);
         }
 
-        // No conversion necessary
-        return inboundResponseMessage;
+        private MessageEncoder getEncoder(OutputStream output) {
+            return isMultipart(request.getContentType())
+                    ? new MultipartMessageEncoder(output)
+                            : new SoapMessageEncoder(output);
+        }
+
+        void startSending(InputStream content, long contentLength)
+                throws Exception {
+            ClientMediatorMessageProcessor.this.startSending(
+                    getTargetAddress(outboundRequestMessage),
+                    encoder.getContentType(), content, contentLength);
+        }
     }
 
-    @Override
-    protected URI getTargetAddress(SoapMessage message) throws Exception {
+    /**
+     * Returns true, if given message should be sent using HTTP 1.0
+     * protocol without the use of chunked encoding.
+     */
+    private boolean shouldSendWithHttp10(SoapMessage message) {
+        return false;
+    }
+
+    private void processResponse(final MediatorResponse response)
+            throws Exception {
+        log.trace("processResponse()");
+
+        final OutputStream out = response.getOutputStream();
+        SoapMessageDecoder.Callback cb = new MessageDecoderCallback() {
+            @Override
+            public void soap(SoapMessage message) throws Exception {
+                log.trace("soap({})", message.getXml());
+
+                inboundResponseVersion = MessageVersion.fromMessage(message);
+
+                String responseContentType = sender.getResponseContentType();
+                if (isMultipart(sender.getResponseContentType())) {
+                    encoder = new MultipartMessageEncoder(out);
+                    responseContentType = encoder.getContentType();
+                } else {
+                    encoder = new SoapMessageEncoder(out);
+                }
+
+                response.setContentType(responseContentType,
+                        sender.getResponseHeaders());
+
+                encoder.soap(message);
+            }
+        };
+
+        parseMessage(sender.getResponseContentType(),
+                sender.getResponseContent(), cb);
+    }
+
+    private void startSending(URI address, String contentType,
+            InputStream content, long contentLength) throws Exception {
+        log.debug("startSending({}, {})", address, contentType);
+
+        sender = createSender();
+
+        sender.doPost(address, content, contentLength, contentType);
+    }
+
+    private void parseMessage(String contentType, InputStream content,
+            SoapMessageDecoder.Callback decoderCallback) throws Exception {
+        log.debug("parseMessage({})", contentType);
+
+        SoapMessageDecoder soapMessageDecoder =
+                new SoapMessageDecoder(contentType, decoderCallback,
+                        new SoapParserImpl());
+        try {
+            soapMessageDecoder.parse(content);
+        } catch (Exception ex) {
+            throw translateException(ex);
+        }
+    }
+
+    private IdentifierMappingProvider getIdentifierMapping() {
+        return IdentifierMapping.getInstance();
+    }
+
+    private void verifyRequest() {
+        if (inboundRequestVersion == null) {
+            throw new CodedException(X_MISSING_SOAP,
+                    "Request does not contain SOAP message");
+        }
+    }
+
+    private void waitForResponse() throws Exception {
+        try {
+            sender.waitForResponse(getSendTimeoutSeconds());
+        } catch (CodedException e) {
+            throw findActualCause(e);
+        }
+    }
+
+    private int getSendTimeoutSeconds() {
+        return SEND_TIMEOUT_SECONDS;
+    }
+
+    private CloseableHttpAsyncClient getHttpClient() {
+        return httpClientManager.getDefaultHttpClient();
+    }
+
+    private URI getTargetAddress(SoapMessage message) throws Exception {
         verifyClientAuthentication(message);
 
         String xroadProxy = MediatorSystemProperties.getXroadProxyAddress();
         String v5XroadProxy = MediatorSystemProperties.getV5XroadProxyAddress();
-        return new URI(isV6XRoadSoapMessage(message) ? xroadProxy : v5XroadProxy);
+        return new URI(
+                isV6XRoadSoapMessage(message) ? xroadProxy : v5XroadProxy);
     }
 
-    @Override
-    protected CloseableHttpAsyncClient getHttpClient() {
-        return httpClientManager.getDefaultHttpClient();
-    }
-
-    protected void verifyClientAuthentication(SoapMessage message)
+    private void verifyClientAuthentication(SoapMessage message)
             throws Exception {
-        ClientId sender = getSender(message);
-        if (sender == null) {
-            return;
-        }
+        if (MediatorUtils.isV5XRoadSoapMessage(message)) {
+            String consumer = ((V5XRoadSoapMessageImpl) message).getConsumer();
 
-        IsAuthentication.verifyClientAuthentication(sender, clientCert);
+            if (consumer == null) {
+                return;
+            }
+
+            V5IsAuthentication.verifyConsumerAuthentication(
+                    consumer, isAuthData);
+        } else {
+            ClientId messageSender = getSender(message);
+
+            if (messageSender == null) {
+                return;
+            }
+
+            IsAuthentication.verifyClientAuthentication
+                    (messageSender, isAuthData);
+        }
     }
 
     private ClientId getSender(SoapMessage message) throws Exception {
@@ -156,112 +298,80 @@ class ClientMediatorMessageProcessor extends AbstractMediatorMessageProcessor {
         return ((SoapMessageImpl) message).getClient();
     }
 
-    private ClientId getReceiver(SoapMessage message) throws Exception {
-        if (MediatorUtils.isV5XRoadSoapMessage(message)) {
-            V5XRoadSoapMessageImpl xroadSoap = (V5XRoadSoapMessageImpl) message;
-            return getIdentifierMapping().getClientId(xroadSoap.getProducer());
-        }
-
-        return ((SoapMessageImpl) message).getService().getClientId();
+    private static boolean isMultipart(String contentType) {
+        return MULTIPART_RELATED.equals(getBaseContentType(contentType));
     }
 
-    private boolean canSendToXroad(SoapMessage message) throws Exception {
-        if (message instanceof V5XRoadMetaServiceImpl) {
-            log.trace("X-Road 5.0 meta service messages cannot be sent "
-                    + "to X-Road 6.0");
-            return false;
-        }
-
-        if (MediatorUtils.isV6XRoadSoapMessage(message)) {
-            SoapMessageImpl xroadSoap = (SoapMessageImpl) message;
-            if (xroadSoap.getService() instanceof CentralServiceId) {
-                log.trace("X-Road 6.0 central service message is sent "
-                        + "to X-Road 6.0");
-                return true;
+    private CodedException findActualCause(CodedException e) {
+        Throwable current = e;
+        while (current.getCause() != null) {
+            if (current.getCause() instanceof CodedException) {
+                return (CodedException) current.getCause();
             }
 
-            // X-Road 6.0 meta requests go to X-Road 6.0
-            String serviceCode = xroadSoap.getService().getServiceCode();
-            if (LIST_METHODS.equals(serviceCode)
-                    || ALLOWED_METHODS.equals(serviceCode)) {
-                log.trace("X-Road 6.0 meta request ({}) is sent to X-Road 6.0",
-                        serviceCode);
-                return true;
-            }
+            current = current.getCause();
         }
 
-        ClientId sender = getSender(message);
-        if (sender == null) {
-            log.error("Could not get sender identifier from message");
-            return false;
-        }
-
-        SecurityServerId thisServer = MediatorServerConf.getIdentifier();
-        if (!GlobalConf.isSecurityServerClient(sender, thisServer)) {
-            log.trace("'{}' is not client of '{}'", sender, thisServer);
-            return false;
-        }
-
-        ClientId receiver = getReceiver(message);
-        if (receiver == null) {
-            log.error("Could not get receiver identifier from message");
-            return false;
-        }
-
-        Collection<String> addresses = GlobalConf.getProviderAddress(receiver);
-        if (addresses == null || addresses.isEmpty()) {
-            log.trace("'{}' is not registered in GlobalConf", receiver);
-
-            // If the message is for a federated environment, always send it
-            // to X-Road 6.0.
-            return !receiver.getXRoadInstance().equals(
-                    GlobalConf.getInstanceIdentifier());
-        }
-
-        // We assume that all security servers of a service provider are
-        // activated simultaneously thus we check with the first known address.
-        return isServerProxyActivated(addresses.iterator().next());
+        return e;
     }
 
-    boolean isServerProxyActivated(String address) {
-        return checkIfServerProxyIsActivated(address);
-    }
-
-    private static boolean checkIfServerProxyIsActivated(String address) {
-        ActivationInfo i = ACTIVATION_INFO.get(address);
-        if (i != null && !i.isExpired()) {
-            log.trace("Server proxy activated (from cache): {}",
-                    i.isActivated());
-            return i.isActivated();
+    private static Class<?> getHeaderClass(SoapMessage message) {
+        if (message instanceof AbstractSoapMessage) {
+            return ((AbstractSoapMessage<?>) message).getHeader().getClass();
         }
 
-        boolean activated = false;
-        try {
-            URI uri = new URI("http", null, address,
-                    SystemProperties.getOcspResponderPort(),
-                    "/", null, null);
+        return null;
+    }
 
-            log.trace("Checking if {} is activated (URL = {})", address, uri);
+    private abstract class MessageDecoderCallback
+            implements SoapMessageDecoder.Callback {
 
-            HttpURLConnection conn =
-                    (HttpURLConnection) uri.toURL().openConnection();
-            conn.setRequestMethod("HEAD");
-            int responseCode = conn.getResponseCode();
-            log.trace("Got HTTP response code {} from {}", responseCode, uri);
+        protected MessageEncoder encoder;
 
-            activated = responseCode == HttpServletResponse.SC_OK;
+        @Override
+        public void onCompleted() {
+            log.trace("onCompleted()");
             try {
-                conn.getInputStream().close();
-            } catch (Exception ignored) {
-                log.warn("Error when closing connection input stream");
+                if (encoder != null) {
+                    encoder.close();
+                }
+            } catch (Exception e) {
+                throw translateException(e);
             }
-        } catch (Exception e) {
-            log.warn("Error when checking if " + address + " is activated", e);
         }
 
-        log.trace("{} is {}activated", address, !activated ? "not " : "");
+        @Override
+        public void onError(Exception e) throws Exception {
+            log.error("onError()", e);
+            if (encoder != null) {
+                encoder.close();
+            }
 
-        ACTIVATION_INFO.put(address, new ActivationInfo(activated));
-        return activated;
+            throw translateException(e);
+        }
+
+        @Override
+        public void attachment(String contentType, InputStream content,
+                Map<String, String> additionalHeaders) throws Exception {
+            log.trace("attachment({})", contentType);
+
+            if (encoder != null && encoder instanceof MultipartMessageEncoder) {
+                ((MultipartMessageEncoder) encoder).attachment(contentType,
+                        content, additionalHeaders);
+            } else {
+                throw new CodedException(X_INTERNAL_ERROR,
+                        "Expected SOAP message, but received multipart");
+            }
+        }
+
+        @Override
+        public void fault(SoapFault fault) throws Exception {
+            onError(fault.toCodedException());
+        }
+    }
+
+    private static String stripSlash(String str) {
+        return str != null && str.startsWith("/")
+                ? str.substring(1) : str; // Strip '/'
     }
 }

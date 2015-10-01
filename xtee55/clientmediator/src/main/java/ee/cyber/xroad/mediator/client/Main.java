@@ -6,7 +6,6 @@ import ee.cyber.xroad.mediator.MediatorSystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 
 import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_CLIENT_MEDIATOR;
-import static ee.cyber.xroad.mediator.MediatorSystemProperties.CONF_FILE_MEDIATOR_COMMON;
 
 /**
  * ClientMediator main program.
@@ -18,7 +17,6 @@ public final class Main {
         SystemPropertiesLoader.create().withCommon().load();
         SystemPropertiesLoader.create(MediatorSystemProperties.PREFIX)
             .withLocal()
-            .with(CONF_FILE_MEDIATOR_COMMON)
             .with(CONF_FILE_CLIENT_MEDIATOR)
             .load();
     }

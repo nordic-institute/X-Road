@@ -46,5 +46,25 @@ task xjc () {
     )
 }
 
+task cMake(type: Exec) {
+    workingDir 'src/main/c'
+    commandLine 'make', 'install'
+}
+
+task cMakeClean(type: Exec) {
+    workingDir 'src/main/c'
+    commandLine 'make', 'clean'
+}
+
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
+
+classes.dependsOn cMake
+clean.dependsOn cMakeClean
+
+task runXLockTest(type: JavaExec) {
+    main = "ee.cyber.xroad.serviceimporter.XLockTest"
+    classpath = sourceSets.test.runtimeClasspath
+    environment += ["LD_LIBRARY_PATH":"src/main/c"]
+}
+

@@ -7,7 +7,7 @@ Standards-Version: 3.8.3
 
 Package: xtee55-proxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-securityserver, xtee55-common, xtee-proxy (>=5.43), authbind, python-iniparse, python-argparse
+Depends: ${misc:Depends}, xroad-securityserver, xtee55-common, xtee-proxy (>=5.45), authbind, python-iniparse, python-argparse
 Description: X-Road 5.5 security server
  Adapter programs and utilities for co-operating 5.0 and 6.0
 

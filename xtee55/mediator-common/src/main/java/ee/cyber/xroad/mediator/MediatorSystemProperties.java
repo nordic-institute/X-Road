@@ -7,10 +7,6 @@ import ee.ria.xroad.common.SystemProperties;
  */
 public final class MediatorSystemProperties {
 
-    private static final int DEFAULT_SERVICE_MEDIATOR_HTTPS_PORT = 8444;
-
-    private static final int DEFAULT_SERVICE_MEDIATOR_HTTP_PORT = 6669;
-
     private static final int DEFAULT_CLIENT_MEDIATOR_HTTPS_PORT = 8443;
 
     private static final int DEFAULT_CLIENT_MEDIATOR_HTTP_PORT = 8080;
@@ -33,12 +29,6 @@ public final class MediatorSystemProperties {
     public static final String CLIENT_MEDIATOR_HTTPS_PORT =
             PREFIX + "client-mediator.https-port";
 
-    public static final String SERVICE_MEDIATOR_HTTP_PORT =
-            PREFIX + "service-mediator.http-port";
-
-    public static final String SERVICE_MEDIATOR_HTTPS_PORT =
-            PREFIX + "service-mediator.https-port";
-
     public static final String IDENTIFIER_MAPPING_FILE =
             PREFIX + "common.identifier-mapping-file";
 
@@ -47,14 +37,8 @@ public final class MediatorSystemProperties {
 
     // --------------------------------------------------------------------- //
 
-    public static final String CONF_FILE_MEDIATOR_COMMON =
-            SystemProperties.getConfPath() + "conf.d/mediator-common.ini";
-
     public static final String CONF_FILE_CLIENT_MEDIATOR =
             SystemProperties.getConfPath() + "conf.d/client-mediator.ini";
-
-    public static final String CONF_FILE_SERVICE_MEDIATOR =
-            SystemProperties.getConfPath() + "conf.d/service-mediator.ini";
 
     public static final String CONF_FILE_SERVICE_IMPORTER =
             SystemProperties.getConfPath() + "conf.d/service-importer.ini";
@@ -108,29 +92,6 @@ public final class MediatorSystemProperties {
     public static int getClientMediatorHttpsPort() {
         return getIntProperty(CLIENT_MEDIATOR_HTTPS_PORT,
                 DEFAULT_CLIENT_MEDIATOR_HTTPS_PORT);
-    }
-
-    /**
-     * @return the service mediator address
-     */
-    public static String getServiceMediatorConnectorHost() {
-        return "localhost";
-    }
-
-    /**
-     * @return the service mediator HTTP port
-     */
-    public static int getServiceMediatorHttpPort() {
-        return getIntProperty(SERVICE_MEDIATOR_HTTP_PORT,
-                DEFAULT_SERVICE_MEDIATOR_HTTP_PORT);
-    }
-
-    /**
-     * @return the service mediator HTTPS port
-     */
-    public static int getServiceMediatorHttpsPort() {
-        return getIntProperty(SERVICE_MEDIATOR_HTTPS_PORT,
-                DEFAULT_SERVICE_MEDIATOR_HTTPS_PORT);
     }
 
     /**

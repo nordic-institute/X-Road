@@ -20,7 +20,8 @@ class Xtee55ClientsImporterMain
       parser = Parser.new(opts.data_file)
       parser.parse()
 
-      res = DBManager.new(opts.host, opts.database, opts.username, opts.password).
+      res = DBManager.new(
+          opts.host, opts.adapter, opts.database, opts.username, opts.password).
           import(parser.groups, parser.consumers, parser.producers)
     rescue Exception
       @@log.error($!.message)

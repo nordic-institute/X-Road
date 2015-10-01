@@ -1,1 +1,0 @@
-<wsdl:part $if(elem)$xmlns:elemns="$elem.namespaceURI$" $endif$$if(type_)$xmlns:typens="$type_.namespaceURI$" $endif$name="$name$" $if(elem)$element="elemns:$elem.localPart$"$endif$$if(type_)$type="typens:$type_.localPart$"$endif$/>

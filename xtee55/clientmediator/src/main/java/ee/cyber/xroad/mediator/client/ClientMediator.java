@@ -17,10 +17,7 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-import ee.cyber.xroad.mediator.MediatorServerConf;
-import ee.cyber.xroad.mediator.MediatorServerConfImpl;
 import ee.cyber.xroad.mediator.MediatorSystemProperties;
-import ee.cyber.xroad.mediator.common.HttpClientManager;
 import ee.ria.xroad.common.db.HibernateUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
@@ -51,7 +48,13 @@ public class ClientMediator implements StartStop {
      * @throws Exception in case of any errors
      */
     public ClientMediator() throws Exception {
-        MediatorServerConf.reload(new MediatorServerConfImpl());
+        try {
+            V5IsAuthentication.loadConf();
+        } catch (Exception e) {
+            log.error("Cannot load authentication methods and certificates "
+                    + "of information systems of 5.0 X-Road: {}",
+                    e.getMessage());
+        }
 
         configureServer();
 

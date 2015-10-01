@@ -35,10 +35,11 @@ build.dependsOn fatJar
 
 task runClientMediator(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.globalConfDistributor.enabled=false',
-        '-Dxroad.proxy.globalConfFile=../servicemediator/src/test/resources/globalconf.xml',
-        '-Dxtee55.common.identifier-mapping-file=../servicemediator/src/test/resources/identifiermapping.xml',
-    '-Dxroad.appLog.path=build/log'
+        '-Dxroad.proxy.globalConfFile=src/test/resources/globalconf.xml',
+        '-Dxtee55.common.identifier-mapping-file=src/test/resources/identifiermapping.xml',
+        '-Dxroad.appLog.path=build/log'
 
    main = 'ee.cyber.xroad.mediator.client.Main'
    classpath = sourceSets.main.runtimeClasspath
+   environment += ["LD_LIBRARY_PATH":"../mediator-common/src/main/c"]
 }

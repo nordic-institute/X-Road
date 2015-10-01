@@ -1,19 +1,10 @@
 
-User_Alias	IMPORTERS = xroad,ui
+# Need to (re)start client mediator
+xroad   ALL=(root) NOPASSWD: /sbin/restart xtee55-clientmediator
 
-Cmnd_Alias	SSLKEY = /usr/share/xroad/scripts/import_internal_sslkey.sh -export
+# Enable internal TLS key importer run as root
+xroad   ALL=(root) NOPASSWD: /usr/share/xroad/scripts/import_v5_internal_tls_key.sh
 
-# enable exporter run as ui user
-IMPORTERS  ALL=(ui) NOPASSWD: /usr/share/xroad/scripts/serviceimporter.sh
+# Enable internal TSL key exporter run as ui user
+xroad   ALL=(ui) NOPASSWD: /usr/share/xroad/scripts/export_v6_internal_tls_key.sh
 
-#exporter should trigger reload of producer_proxy conf
-IMPORTERS  ALL=(ui) NOPASSWD: /usr/share/xroad/scripts/reload_producer_proxy.sh
-
-#need to restart nginx
-IMPORTERS ALL=(root) NOPASSWD: /etc/init.d/nginx reload
-
-#export sslkey to 5.0
-xroad	ALL=(ui) NOPASSWD: SSLKEY
-
-# Reload servicemediator
-xroad	ALL=(root) NOPASSWD: /sbin/restart xtee55-servicemediator

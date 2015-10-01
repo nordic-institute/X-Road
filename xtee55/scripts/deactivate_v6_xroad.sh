@@ -2,49 +2,28 @@
 #
 # Dectivates X-Road 6.0 proxy.
 #
+# Reconfigures client mediator back from listening on ports 80 and 433.
 # Reconfigures apache back from listening on localhost.
-# Disables nginx site for client mediator.
+
+if [ "$(id -nu )" != "root" ]
+then
+  echo "ABORTED. This script must run under root user" >&2
+  exit 1
+fi
+
 
 . /etc/xroad/services/global.conf
 
 XTEE_ETC_DIR=/usr/xtee/etc
-XROAD_SSL_DIR=/etc/xroad/ssl
 
 XTEE_PROXY_MAKEFILE=Makefile.proxy
-
-if [ -f $XTEE_ETC_DIR/v6_xroad_promoted ]; then
-  echo ERROR: Cannot deactivate promoted X-Road 6.0 proxy!
-  exit 1
-fi
 
 if [ -f $XTEE_ETC_DIR/v6_xroad_activated ]; then
   rm -f $XTEE_ETC_DIR/v6_xroad_activated || exit 1
 
-echo Modifying local.ini 
-
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-port -v 5501
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5578
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-address -v 127.0.0.1
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 127.0.0.1
-
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k http-port -v 6668
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k https-port -v 6443
-
-cat > /etc/nginx/sites-enabled/xroad_proxy_disabled << EOF
-# direct connection to proxy is disabled when v5.5 is not activated
-server { listen 5577;
-if (\$request_method = HEAD ) {
-return 510;
-} 
-location / {
- proxy_pass http://localhost:5578;
-}
-}
-server {listen 5500;
-return 510;
-}
-EOF
-
+  echo Modifying local.ini
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k http-port -v 6668
+  /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k https-port -v 6443
 else
   echo X-Road 6.0 proxy is not activated!
   exit 0
@@ -52,9 +31,6 @@ fi
 
 echo Restart services..
 restart xtee55-clientmediator
-restart xroad-proxy
-restart nginx
-
 
 echo Reconfigure X-Road v5 apache web server..
 if [ -f $XTEE_ETC_DIR/$XTEE_PROXY_MAKEFILE ]; then

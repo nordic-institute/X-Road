@@ -21,7 +21,6 @@ endif
 
 override_dh_installinit:
 	dh_installinit --name=xtee55-clientmediator
-	dh_installinit --name=xtee55-servicemediator
 	dh_installinit --name=xtee55-monitor
 
 override_dh_gencontrol:

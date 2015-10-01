@@ -10,7 +10,6 @@ import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import org.apache.http.nio.reactor.ConnectingIOReactor;
 
-import ee.cyber.xroad.mediator.common.HttpClientManager;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;

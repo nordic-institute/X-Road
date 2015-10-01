@@ -2,6 +2,7 @@ require 'active_record'
 
 require 'java'
 
+require 'xroad/common_sql'
 require 'xroad/validators'
 require 'xroad/identifier'
 require 'xroad/client_id'
@@ -29,10 +30,17 @@ module Xtee55ClientsImporter
   class DBManager
     @@log = xlogger(DBManager)
 
-    def initialize(host, database, username, password)
+    def initialize(host, adapter, database, username, password)
       @warnings = false
+      @@adapter = adapter.start_with?("jdbc") ? adapter : "jdbc" + adapter
+
+      # Redefine method is_postgres? to avoid Rails dependency
+      def CommonSql.is_postgres?
+        return "postgresql".eql?(@@adapter)
+      end
+
       start = Time.now
-      establish_connection(host, database, username, password)
+      establish_connection(host, @@adapter, database, username, password)
       @@log.info("PERFORMANCE: Establishing DB connection: " +
           "#{Time.now - start} seconds")
     end
@@ -51,9 +59,9 @@ module Xtee55ClientsImporter
     end
 
   private
-    def establish_connection(host, database, username, password)
+    def establish_connection(host, adapter, database, username, password)
       ActiveRecord::Base.establish_connection(
-          :adapter => 'jdbcpostgresql',
+          :adapter => adapter, # 'jdbcpostgresql'
           :host => host,
           :database => database,
           :username => username,

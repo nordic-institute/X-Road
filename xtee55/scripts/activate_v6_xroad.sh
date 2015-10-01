@@ -3,10 +3,16 @@
 # Activates X-Road 6.0 proxy.
 #
 # Reconfigures apache (X-Road v5 proxy) to listening on localhost.
-# Imports clients, services, iternal SSL key and certificate
-# from X-Road v5 proxy to SDBS proxy.
-# Enables nginx sites for X-Road 6.0 client mediator.
-# (Re)Starts X-Road 6.0 client and service mediators and X-Road 6.0 proxy, etc..
+# Reconfigures client mediator to listening ports 80 and 433.
+# Imports internal TLS key and certificate from X-Road 5.0.
+# (Re)Starts X-Road 6.0 client mediator, proxy, etc..
+
+if [ "$(id -nu )" != "root" ]
+then
+  echo "ABORTED. This script must run under root user" >&2
+  exit 1
+fi
+
 
 XTEE_ETC_DIR=/usr/xtee/etc
 XROAD_ETC_DIR=/etc/xroad
@@ -15,43 +21,31 @@ XROAD_SCRIPTS_DIR=/usr/share/xroad/scripts
 . $XROAD_ETC_DIR/services/global.conf
 
 XTEE_PROXY_MAKEFILE=Makefile.proxy
-SERVICE_IMPORTER=$XROAD_SCRIPTS_DIR/serviceimporter.sh
-IMPORT_INTERNAL_SSLKEY=$XROAD_SCRIPTS_DIR/import_internal_sslkey.sh
-XROAD_CHECKER=$XROAD_SCRIPTS_DIR/check_v6_xroad.sh
 
 XROAD_PROXY_UPSTART_CONF=/etc/init/xroad-proxy.conf
 XROAD_SIGNER_UPSTART_CONF=/etc/init/xroad-signer.conf
-XROAD_ASYNC_SENDER_UPSTART_CONF=/etc/init/xroad-async.conf
-XROAD_DISTRIBUTED_FILES_CLIENT_UPSTART_CONF=/etc/init/xroad-confclient.conf
+XROAD_CONFIGURATION_FILES_CLIENT_UPSTART_CONF=/etc/init/xroad-confclient.conf
 XROAD_JETTY_UPSTART_CONF=/etc/init/xroad-jetty.conf
 XTEE55_CLIENT_MEDIATOR_UPSTART_CONF=/etc/init/xtee55-clientmediator.conf
-XTEE55_SERVICE_MEDIATOR_UPSTART_CONF=/etc/init/xtee55-servicemediator.conf
 XTEE55_MONITOR_AGENT_UPSTART_CONF=/etc/init/xtee55-monitor.conf
+IMPORT_INTERNAL_TLS_KEY=$XROAD_SCRIPTS_DIR/import_v5_internal_tls_key.sh
 
 
 for REQUIRED_FILE in \
     $XTEE_ETC_DIR/$XTEE_PROXY_MAKEFILE \
-    $SERVICE_IMPORTER \
-    $IMPORT_INTERNAL_SSLKEY \
-    $XROAD_CHECKER \
-    $CLIENT_MEDIATOR_SITE \
-    $CLIENT_MEDIATOR_SSL_SITE \
     $XROAD_PROXY_UPSTART_CONF \
     $XROAD_SIGNER_UPSTART_CONF \
-    $XROAD_DISTRIBUTED_FILES_CLIENT_UPSTART_CONF \
+    $XROAD_CONFIGURATION_FILES_CLIENT_UPSTART_CONF \
     $XROAD_JETTY_UPSTART_CONF \
     $XTEE55_CLIENT_MEDIATOR_UPSTART_CONF \
-    $XTEE55_SERVICE_MEDIATOR_UPSTART_CONF \
-    $XTEE55_MONITOR_AGENT_UPSTART_CONF
+    $XTEE55_MONITOR_AGENT_UPSTART_CONF \
+    $IMPORT_INTERNAL_TLS_KEY
 do
   if [ ! -f $REQUIRED_FILE ]; then
       echo ERROR: Required file $REQUIRED_FILE is missing
     exit 1
   fi
 done
-
-echo Checking X-Road 6.0 for minimal configuration..
-su xroad -c "$XROAD_CHECKER -checkxroad" || exit 1
 
 if [ -d "$XTEE_ETC_DIR" ]; then
   if [ -f $XTEE_ETC_DIR/v6_xroad_activated ]; then
@@ -65,52 +59,34 @@ else
   exit 1
 fi
 
+
 echo Reconfigure apache web server..
 make -f $XTEE_PROXY_MAKEFILE -C $XTEE_ETC_DIR force-net || exit 1
 
+
 echo Modify local.ini for CM activation
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-port -v 5500
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-port -v 5577
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k server-listen-address -v 0.0.0.0
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k ocsp-responder-listen-address -v 0.0.0.0
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k http-port -v 80 || exit 1
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k https-port -v 443 || exit 1
 
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k http-port -v 80
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s client-mediator -k https-port -v 443
-
-echo Import clients and services from X-Road proxy..
-su xroad -c "$SERVICE_IMPORTER" || exit 1
-
-echo Import internal SSL key and certificate from X-Road proxy..
-$IMPORT_INTERNAL_SSLKEY -no-reload || exit 1
+echo Import internal TLS key and certificate from 5.0 X-Road proxy..
+$IMPORT_INTERNAL_TLS_KEY -no-reload || exit 1
 
 echo \(Re\)Start X-Road 6.0 signer..
 restart xroad-signer || start xroad-signer
 
-if [ -f $XROAD_ASYNC_SENDER_UPSTART_CONF ]; then
-  echo \(Re\)Start X-Road 6.0 async sender..
-  restart xroad-async || start xroad-async
-fi
-
-echo \(Re\)Start X-Road 6.0 distributed files client..
+echo \(Re\)Start X-Road 6.0 configuration files client..
 restart xroad-confclient || start xroad-confclient
 
-echo \(Re\)Start jetty server..
+echo \(Re\)Start X-Road 6.0 jetty server..
 restart xroad-jetty || start xroad-jetty
 
-echo \(Re\)Start client mediator..
+echo \(Re\)Start X-Road 5.5 client mediator..
 restart xtee55-clientmediator || start xtee55-clientmediator
 
-echo \(Re\)Start service mediator..
-restart xtee55-servicemediator || start xtee55-servicemediator
-
-echo \(Re\)Start monitor agent..
+echo \(Re\)Start X-Road 5.5 monitor agent..
 restart xtee55-monitor || start xtee55-monitor
-
-echo Disable v6 activate checking responder
-rm /etc/nginx/sites-enabled/xroad_proxy_disabled
-service nginx restart
 
 echo \(Re\)Start X-Road 6.0 proxy..
 restart xroad-proxy || start xroad-proxy
 
-echo "X-Road 6.0 proxy activated"
+echo "X-Road 6.0 activated"

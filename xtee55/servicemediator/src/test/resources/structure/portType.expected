@@ -1,9 +1,0 @@
-<wsdl:portType name="testPort">
-<wsdl:operation name="portOp">
-<wsdl:documentation>
-<xrd:title>Mock op title</xrd:title>
-</wsdl:documentation>
-<wsdl:input xmlns:inputns="http://andmed.x-road.ee/producer" message="inputns:theRequest"/>
-<wsdl:output xmlns:outputns="http://andmed.x-road.ee/producer" message="outputns:theRequestResponse"/>
-</wsdl:operation>
-</wsdl:portType>

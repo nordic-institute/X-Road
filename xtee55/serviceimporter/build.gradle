@@ -31,46 +31,6 @@ fatJar {
 jar.enabled = false
 build.dependsOn fatJar
 
-task cMake(type: Exec) {
-    workingDir 'src/main/c'
-    commandLine 'make', 'install'
-}
-
-task cMakeClean(type: Exec) {
-    workingDir 'src/main/c'
-    commandLine 'make', 'clean'
-}
-
-classes.dependsOn cMake
-clean.dependsOn cMakeClean
-
-task runServiceImporter(type: JavaExec) {
-    main = 'ee.cyber.xroad.serviceimporter.Main'
-    classpath = sourceSets.main.runtimeClasspath
-    environment += ["LD_LIBRARY_PATH":"src/main/c"]
-    args '-import'
-}
-
-task runServiceExporter(type: JavaExec) {
-    main = 'ee.cyber.xroad.serviceimporter.Main'
-    classpath = sourceSets.main.runtimeClasspath
-    environment += ["LD_LIBRARY_PATH":"src/main/c"]
-    args '-export'
-}
-
-task runXROADChecker(type: JavaExec) {
-    main = 'ee.cyber.xroad.serviceimporter.Main'
-    classpath = sourceSets.main.runtimeClasspath
-    environment += ["LD_LIBRARY_PATH":"src/main/c"]
-    args '-checkxroad'
-}
-
-task runXLockTest(type: JavaExec) {
-    main = "ee.cyber.xroad.serviceimporter.XLockTest"
-    classpath = sourceSets.test.runtimeClasspath
-    environment += ["LD_LIBRARY_PATH":"src/main/c"]
-}
-
 task runServiceImporterTest(type: JavaExec) {
     main = 'ee.cyber.xroad.serviceimporter.ServiceImporterTest'
     classpath = sourceSets.test.runtimeClasspath

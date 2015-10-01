@@ -162,45 +162,12 @@ public class SoapParserImplTest {
     }
 
     /**
-     * Test to ensure a testSystem meta request is read correctly.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readMetaRequests() throws Exception {
-        SoapMessage request = parseSoapMessage("testSystem.request");
-        assertTrue(MediatorUtils.isV5XRoadSoapMessage(request));
-        assertTrue(request.isRequest());
-    }
-
-    /**
-     * Test to ensure a listMethods meta response is read correctly.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readListMethodsResponse() throws Exception {
-        SoapMessage response = parseSoapMessage("listMethods.response");
-        assertTrue(MediatorUtils.isV5XRoadSoapMessage(response));
-        assertTrue(response.isResponse());
-    }
-
-    /**
      * Test to ensure a X-Road 6.0 allowedMethods meta request is read correctly.
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readXroadAllowedMethodsRequest() throws Exception {
         SoapMessage response = parseSoapMessage("xroad-allowedMethods.request");
-        assertTrue(MediatorUtils.isV6XRoadSoapMessage(response));
-        assertTrue(response.isRequest());
-    }
-
-    /**
-     * Test to ensure a X-Road 6.0 listMethods meta request is read correctly.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void readXroadListMethodsRequest() throws Exception {
-        SoapMessage response = parseSoapMessage("xroad-listMethods.request");
         assertTrue(MediatorUtils.isV6XRoadSoapMessage(response));
         assertTrue(response.isRequest());
     }

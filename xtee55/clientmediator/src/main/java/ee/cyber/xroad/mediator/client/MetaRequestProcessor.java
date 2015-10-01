@@ -7,18 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 
+import ee.cyber.xroad.mediator.MediatorSystemProperties;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.MimeTypes;
-import ee.cyber.xroad.mediator.MediatorSystemProperties;
-import ee.cyber.xroad.mediator.common.AbstractMediatorHandler;
-import ee.cyber.xroad.mediator.common.HttpClientManager;
-import ee.cyber.xroad.mediator.common.MediatorMessageProcessor;
-import ee.cyber.xroad.mediator.common.MediatorRequest;
-import ee.cyber.xroad.mediator.common.MediatorResponse;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.metadata.MetadataRequests.*;
@@ -82,7 +76,7 @@ class MetaRequestProcessor implements MediatorMessageProcessor {
 
     static MetaRequest getMetaRequest(String target,
             HttpServletRequest request) {
-        if (!AbstractMediatorHandler.isGetRequest(request)) {
+        if (!ClientMediatorHandler.isGetRequest(request)) {
             return null;
         }
 
@@ -104,7 +98,9 @@ class MetaRequestProcessor implements MediatorMessageProcessor {
     private static boolean isV6MetaRequest(String target) {
         return LIST_CLIENTS.equals(target)
                 || LIST_CENTRAL_SERVICES.equals(target)
-                || WSDL.equals(target);
+                || WSDL.equals(target)
+                || ASIC.equals(target)
+                || VERIFICATIONCONF.equals(target);
     }
 
     private static String getResponseContentType(AsyncHttpSender sender) {

@@ -9,8 +9,7 @@ import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.Soap;
@@ -21,17 +20,14 @@ import static ee.cyber.xroad.mediator.message.V5XRoadNamespaces.getSoapHeaderCla
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
 import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
-import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
 
 /**
  * An implementation of Soap parser that supports X-Road 6.0 SOAP message and legacy
  * X-Road 5.0 SOAP message.
  */
+@Slf4j
 public class SoapParserImpl
         extends ee.ria.xroad.common.message.SoapParserImpl {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SoapParserImpl.class);
 
     @Override
     protected void validateAgainstSoapSchema(SOAPMessage soap)
@@ -43,8 +39,8 @@ public class SoapParserImpl
     @Override
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
             String charset) throws Exception {
-        if (LOG.isTraceEnabled()) {
-            LOG.trace("Parsing SOAP: {}", new String(rawXml, charset));
+        if (log.isTraceEnabled()) {
+            log.trace("Parsing SOAP: {}", new String(rawXml, charset));
         }
 
         Class<?> soapHeaderClass = getSoapHeaderClass(soap);
@@ -54,19 +50,8 @@ public class SoapParserImpl
         // Special cases -- meta services
         String serviceName = serviceElement.getLocalName();
         if (!isXroadMessage(soapHeaderClass)) {
-            if (serviceName.startsWith(V5XRoadMetaServiceImpl.LIST_METHODS)) {
-                LOG.debug("Reading X-Road 5.0 ListMethods");
-
-                // TODO In the future, ServiceMediator should respond to ListMethods
-                return new V5XRoadListMethods(rawXml, charset, soap, serviceName,
-                        isRpcMessage(soap));
-            } else if (serviceName.startsWith(V5XRoadMetaServiceImpl.TEST_SYSTEM)) {
-                LOG.debug("Reading X-Road 5.0 TestSystem");
-
-                return new V5XRoadTestSystem(rawXml, charset, soap,
-                        isRpcMessage(soap));
-            } else if (V5XRoadMetaServiceImpl.isMetaService(serviceName)) {
-                LOG.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
+            if (V5XRoadMetaServiceImpl.isMetaService(serviceName)) {
+                log.debug("Reading X-Road 5.0 meta service '{}'", serviceName);
 
                 return createXRoadMetaServiceMessage(rawXml, soap, charset,
                         getMetaServiceSoapHeaderClass(soap, serviceElement),
@@ -75,7 +60,7 @@ public class SoapParserImpl
         }
 
         if (soapHeaderClass == null) {
-            LOG.error("Unknown SOAP:\n{}", new String(rawXml, charset));
+            log.error("Unknown SOAP:\n{}", new String(rawXml, charset));
 
             throw new CodedException(X_INVALID_MESSAGE,
                     "Unable to determine SOAP version");
@@ -87,7 +72,7 @@ public class SoapParserImpl
             return createXRoadMessage(rawXml, soap, charset, soapHeaderClass);
         }
 
-        LOG.error("Received unknown SOAP message: {}",
+        log.error("Received unknown SOAP message: {}",
                 new String(rawXml, charset));
         throw new CodedException(X_INVALID_MESSAGE, "Unknown SOAP version");
     }
@@ -102,7 +87,7 @@ public class SoapParserImpl
             h = unmarshalHeader(XroadSoapHeader.class, soap.getSOAPHeader());
         }
 
-        LOG.debug("Reading X-Road 6.0 SOAP message");
+        log.debug("Reading X-Road 6.0 SOAP message");
 
         return createMessage(rawXml, h, soap, charset);
     }
@@ -119,7 +104,7 @@ public class SoapParserImpl
         AbstractV5XRoadSoapHeader xroadHeader =
                 unmarshalHeader(xroadHeaderClass, soapHeader);
 
-        LOG.debug("Reading X-Road 5.0 SOAP {} message",
+        log.debug("Reading X-Road 5.0 SOAP {} message",
                 xroadHeader instanceof V5XRoadRpcSoapHeader
                         ? "(RPC encoded)" : "(D/L wrapped)");
 

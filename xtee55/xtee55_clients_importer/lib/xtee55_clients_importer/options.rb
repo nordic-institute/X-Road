@@ -5,6 +5,7 @@ module Xtee55ClientsImporter
   class Options
     attr_reader :data_file
     attr_reader :host
+    attr_reader :adapter
     attr_reader :database
     attr_reader :username
     attr_reader :password
@@ -12,6 +13,7 @@ module Xtee55ClientsImporter
     def initialize(argv)
       @data_file = nil
       @host = "localhost"
+      @adapter = "postgresql"
       @database = "centerui_production"
       @username = nil
       @password = nil
@@ -36,6 +38,11 @@ module Xtee55ClientsImporter
         opts.on("-a", "--address HOST", String,
             "database server host (defaults to localhost)") do |a|
           @host = a
+        end
+
+        opts.on("-t", "--adapter ADAPTER", String,
+            "database adapter (defaults to postgresql)") do |t|
+          @adapter = t
         end
 
         opts.on("-b", "--database DBNAME", String,

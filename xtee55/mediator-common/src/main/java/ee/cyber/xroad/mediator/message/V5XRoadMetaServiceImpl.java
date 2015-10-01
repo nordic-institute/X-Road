@@ -9,9 +9,7 @@ import ee.ria.xroad.common.message.SoapUtils;
  */
 public class V5XRoadMetaServiceImpl extends V5XRoadSoapMessageImpl {
 
-    public static final String LIST_METHODS = "listMethods";
     public static final String ALLOWED_METHODS = "allowedMethods";
-    public static final String TEST_SYSTEM = "testSystem";
     public static final String GET_CHARGE = "getCharge";
     public static final String LOAD_CLASSIFICATOR = "loadClassificator";
     public static final String LIST_PRODUCERS = "listProducers";
@@ -45,9 +43,7 @@ public class V5XRoadMetaServiceImpl extends V5XRoadSoapMessageImpl {
         }
 
         switch (getActualServiceName(serviceName)) {
-            case LIST_METHODS:
             case ALLOWED_METHODS:
-            case TEST_SYSTEM:
             case GET_CHARGE:
             case LOAD_CLASSIFICATOR:
             case LIST_PRODUCERS:

@@ -40,7 +40,8 @@ task copyCenterCommon(type: Copy) {
 
     into "$projectDir/lib/xroad"
     from project.XROAD_HOME + "/center-common/app/models/"
-    include 'client_id.rb',
+    include 'common_sql.rb',
+        'client_id.rb',
         'distributed_files.rb',
         'identifier.rb',
         'client_id.rb',
