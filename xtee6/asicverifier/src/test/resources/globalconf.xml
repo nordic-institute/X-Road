@@ -9,15 +9,15 @@
         <memberCode>producer</memberCode>
         <name>Experimental producer</name>
     </member>
-
+    
     <member id="consumerId">
         <memberClass>BUSINESS</memberClass>
         <memberCode>consumer</memberCode>
         <name>Experimental consumer</name>
     </member>
 
-    <!-- <group> <shortName>shortName</shortName> <fullName>fullName</fullName>
-        <org>org</org> </group> <tsp> <name>name</name> <url>url</url> <cert>TODO
+    <!-- <group> <shortName>shortName</shortName> <fullName>fullName</fullName> 
+        <org>org</org> </group> <tsp> <name>name</name> <url>url</url> <cert>TODO 
         - WHICH CERT?</cert> </tsp> -->
 
 
@@ -47,7 +47,7 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>
-    http://127.0.0.1:8082/ocsp</url>
+	http://127.0.0.1:8082/ocsp</url>
                 <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
@@ -126,7 +126,7 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>
-    http://127.0.0.1:8082/ocsp</url>
+	http://127.0.0.1:8082/ocsp</url>
                 <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
@@ -205,7 +205,7 @@
             <ocsp>
                 <!-- Local OCSP responder simulator used currently -->
                 <url>
-    http://127.0.0.1:8082/ocsp</url>
+	http://127.0.0.1:8082/ocsp</url>
                 <!-- Extracted from: proxy/src/test/certs/ocspsigner.p12 -->
                 <cert>MIIDizCCAnOgAwIBAgIIOmOWEyqjUj0wDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
                     AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
@@ -276,7 +276,7 @@
             1GydL+BgDMfryZzhl+h1WtTwv0Bi5Gs81v8UlNUTnCCfLu9fatHx85/ttFcXEyt9
             SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=</cert>
     </approvedTsp>
-
+    
     <globalSettings>
         <managementRequestServiceAddress>http://mgmt.com:1234</managementRequestServiceAddress>
         <managementRequestServiceId id:objectType="MEMBER">

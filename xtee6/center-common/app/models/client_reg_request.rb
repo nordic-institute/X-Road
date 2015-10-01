@@ -10,7 +10,7 @@ class ClientRegRequest < RequestWithProcessing
     Request.set_server_owner_name(rec)
     Request.set_server_user_name(rec)
   end
-
+  
   def self.find_by_server_and_client(server_id, client_id,
       processing_status = nil)
     Request.find_by_server_and_client(ClientRegRequest, server_id, client_id,

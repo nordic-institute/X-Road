@@ -9,13 +9,15 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-lucid =
+lucid = 
 
 ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
 	lucid = true
 endif
 
-
+jetty_url=$(shell cat jetty.url)
+jetty_md5=$(shell md5sum jetty.tgz | cut -f1 -d ' ')
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
 
 %:
 	dh  $@
@@ -25,13 +27,12 @@ override_dh_installinit:
 
 override_dh_gencontrol:
 ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0
-else
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-$(rel)~lucid0 
+else 
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-$(rel)
 endif
 
-
-build:
+build: 
 ifdef lucid
 	echo "PREPARE LUCID"
 	cp debian/xroad-jetty9.xroad-jetty.upstart.lucid debian/xroad-jetty9.xroad-jetty.upstart
@@ -39,10 +40,9 @@ else
 	echo "PREPARE TRUSTY"
 	cp debian/xroad-jetty9.xroad-jetty.upstart.trusty debian/xroad-jetty9.xroad-jetty.upstart
 endif
-
-
-	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.3.3.v20150827/dist/jetty-distribution-9.3.3.v20150827.tar.gz"
-	tar zxf jetty.tgz
+	wget -O jetty.tgz $(jetty_url)
+	tar zxf jetty.tgz 
+	rm -rf jetty9
 	mv jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod

@@ -24,12 +24,12 @@ union semun {
 /*
     koigile semafooridele antakse algvaartuseks mingi suur arv (100) naiteks.
     semafoorid ise on jargmised:
-
-    lockcount - lukkude arv. iga lugeja votab yhe luku ning iga kirjutaja
-    100 lukku.
+    
+    lockcount - lukkude arv. iga lugeja votab yhe luku ning iga kirjutaja 
+    100 lukku. 
 
     attached - mitu protsessi on antud objekti kylge liitunud.
-
+    
 */
 
 #define MAXLOCKS 100
@@ -67,7 +67,7 @@ int xmem_open(struct xmem* xm, key_t key_sem, key_t key_mem, int perms)
         /* loome jagatud malu segmendi pointeri ja suuruse jaoks. siin on
         lood nii, et juhul kui loomine ei onnestu proovime lihtsalt ligi
         votta... */
-        if((xm->pshmid= shmget(key_mem, sizeof(int)+ sizeof(size_t),
+        if((xm->pshmid= shmget(key_mem, sizeof(int)+ sizeof(size_t), 
                 IPC_CREAT | IPC_EXCL | SHM_R | SHM_W | perms)) >= 0 ||
                 (xm->pshmid= shmget(key_mem, 0, 0)) >= 0){
             /* proovime mitteswapitavaks teha */
@@ -83,7 +83,7 @@ int xmem_open(struct xmem* xm, key_t key_sem, key_t key_mem, int perms)
                 *((int *)xm->pshmptr)= -1;
                 *((size_t *)((char *)xm->pshmptr+ sizeof(int)))= 0;
 
-                /* nyyd initsialiseerime semafoori nii et
+                /* nyyd initsialiseerime semafoori nii et 
                 yhtki lukku ega yhendust pole */
                 arg.array= val;
                 if(semctl(xm->semid, 0, SETALL, arg) >= 0){
@@ -111,7 +111,7 @@ int xmem_open(struct xmem* xm, key_t key_sem, key_t key_mem, int perms)
             xm->error= errno;
         }
         if(retval == -1){
-            /* kuskil laks miski vussi. kuna tegu on uue jagatud objekti
+            /* kuskil laks miski vussi. kuna tegu on uue jagatud objekti 
             loomisega peame havitama ka semafoori ning jagatud malu segmendi */
             if(xm->pshmptr != 0){
                 shmdt(xm->pshmptr);
@@ -210,9 +210,9 @@ int xmem_close(struct xmem* xm)
     xm->error= 0;
 
     if(xm->semid != -1){
-        /* nyyd votame write locki ja vaatame kas me oleme viimased minejad...
+        /* nyyd votame write locki ja vaatame kas me oleme viimased minejad... 
         kuna keegi hull voib kutsuda selle funktsiooni valja ka siis kui tal on
-        lock, siis: read locki korral votame veel MAXLOCKS- 1 lukku juurde. ja
+        lock, siis: read locki korral votame veel MAXLOCKS- 1 lukku juurde. ja 
         kirjutamisluku korral laseme kohe vabalt edasi. */
         struct sembuf ops[2];
         union semun arg;
@@ -259,7 +259,7 @@ int xmem_close(struct xmem* xm)
                 }
             }
         }else{
-            /* kui me kirjutamislocki ei saanud, siis loodetavasti
+            /* kui me kirjutamislocki ei saanud, siis loodetavasti 
             oli see viga EIDRM. kes iganes havitas semafoori, pidi
             havitama ka jagatud malu segmendid */
             xm->error= errno;
@@ -298,7 +298,7 @@ int xmem_detach(struct xmem* xm)
         ops[0].sem_op= 1;
         ops[0].sem_flg= SEM_UNDO;
         ops[1].sem_num= 0;
-        ops[1].sem_op= (xm->wl_count > 0) ? MAXLOCKS :
+        ops[1].sem_op= (xm->wl_count > 0) ? MAXLOCKS : 
                 ((xm->rl_count > 0) ? 1 : 0);
         ops[1].sem_flg= SEM_UNDO;
 
@@ -358,7 +358,7 @@ int xmem_resize(struct xmem* xm, size_t size)
 
             if(size > 0){
                 /* loome uue jagatud malu segmendi soovitud suurusega */
-                current_dshmid= shmget(IPC_PRIVATE, size,
+                current_dshmid= shmget(IPC_PRIVATE, size, 
                         IPC_CREAT | IPC_EXCL | SHM_R | SHM_W |
                         xm->perms);
                 if(current_dshmid >= 0){
@@ -410,7 +410,7 @@ int xmem_resize_and_copy(struct xmem* xm, size_t size)
 
             if(size > 0){
                 /* loome uue jagatud malu segmendi soovitud suurusega */
-                int new_dshmid= shmget(IPC_PRIVATE, size,
+                int new_dshmid= shmget(IPC_PRIVATE, size, 
                         IPC_CREAT | IPC_EXCL | SHM_R | SHM_W |
                         xm->perms);
                 if(new_dshmid >= 0){
@@ -431,7 +431,7 @@ int xmem_resize_and_copy(struct xmem* xm, size_t size)
             /* vota viit uue segmendi algusele */
             newptr= xmem_ptr(xm);
             /* vota viit vana segmendi algusele */
-            if(current_dshmid == -1 || (oldptr= shmat(current_dshmid, 0, 0))
+            if(current_dshmid == -1 || (oldptr= shmat(current_dshmid, 0, 0)) 
                     == (void *)-1){
                 oldptr= 0;
             }

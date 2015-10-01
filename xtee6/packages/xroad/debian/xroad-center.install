@@ -1,4 +1,4 @@
-center/usr/* usr/
+center/usr/* usr/ 
 center/etc/* etc/
 ../default-configuration/center.ini etc/xroad/conf.d
 ../default-configuration/managementservices.wsdl var/lib/xroad/public

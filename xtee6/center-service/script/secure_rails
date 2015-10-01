@@ -5,7 +5,7 @@ require 'rails/commands/server'
   require 'rack'
   require 'webrick'
   require 'webrick/https'
-
+ 
   module Rails
     class Server < ::Rack::Server
         def default_options
@@ -30,4 +30,3 @@ end
 APP_PATH = File.expand_path('../../config/application',  __FILE__)
 require File.expand_path('../../config/boot',  __FILE__)
 require 'rails/commands'
-

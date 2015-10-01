@@ -32,7 +32,7 @@
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO" />
-
+    
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />
 

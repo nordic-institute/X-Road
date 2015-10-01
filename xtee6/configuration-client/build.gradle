@@ -6,9 +6,9 @@ def mainClass = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
 
 dependencies {
     compile project(':common-verifier')
-
+    
     compile 'commons-cli:commons-cli:1.2'
-
+    
     testCompile project(':common-test')
 }
 
@@ -33,7 +33,7 @@ buildall.dependsOn fatJar
 task runConfigurationClient(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
             '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
-
+    
     main = mainClass
     classpath = sourceSets.main.runtimeClasspath
 }

@@ -13,6 +13,7 @@ java_import Java::ee.ria.xroad.common.identifier.ClientId
 java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.util.AtomicSave
 
 class ApplicationController < BaseController
 
@@ -333,7 +334,7 @@ class ApplicationController < BaseController
     end
 
     CommonUi::ScriptUtils.verify_internal_configuration(temp_anchor_file)
-    File.rename(temp_anchor_file, SystemProperties::getConfigurationAnchorFile)
+    AtomicSave::moveBetweenFilesystems(temp_anchor_file, SystemProperties::getConfigurationAnchorFile)
 
     download_configuration
   end

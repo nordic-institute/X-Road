@@ -126,7 +126,7 @@ module KeysHelper
     if cert_info.status
       # TODO: no need to split anymore
       cert_info.status.split(CertificateInfo::OCSP_RESPONSE_DELIMITER)[0]
-    end
+    end 
   end
 
   def cert_ocsp_response(cert_info, cert)

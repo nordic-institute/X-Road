@@ -16,9 +16,9 @@
             <charset>UTF-8</charset>
         </encoder>
     </appender>
-
+    
     <logger name="ee.ria.xroad" level="TRACE" />
-
+    
     <!-- Temporarily disable logger for proxy UI -->
     <logger name="ee.ria.xroad.proxyui" level="OFF" />
 

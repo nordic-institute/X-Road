@@ -1,7 +1,7 @@
 # Xroad async-sender
 #
 
-description "X-Road async message daemon"
+description	"X-Road async message daemon"
 
 start on runlevel [2345]
 stop on runlevel [!2345]
@@ -22,6 +22,6 @@ exec >>/tmp/ddd4.log 2>&1
 set -x
 
   . /etc/xroad/services/async-sender.conf
-   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name xroad-async --exec ${JAVA_HOME}/bin/java -- ${ASYNC_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/async-sender.jar
+   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name xroad-async --exec ${JAVA_HOME}/bin/java -- ${ASYNC_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/async-sender.jar 
 end script
 

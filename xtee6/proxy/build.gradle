@@ -63,7 +63,7 @@ task runProxyTest(type: JavaExec) {
         '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
         '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml'
-//      '-Djava.security.properties==src/main/resources/java.security'
+//	'-Djava.security.properties==src/main/resources/java.security'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath

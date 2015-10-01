@@ -9,7 +9,7 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'pmd'
-
+    apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
 
@@ -104,6 +104,29 @@ subprojects {
     pmd {
         ignoreFailures = true
     }
+
+    jacocoTestReport {
+        reports {
+            xml.enabled true
+        }
+    }
 }
 
 apply plugin: 'idea'
+apply plugin: 'sonar-runner'
+apply plugin: 'jacoco'
+
+sonarRunner {
+    sonarProperties {
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.jdbc.url", "jdbc:h2:tcp://localhost:9092/sonar"
+        property "sonar.jdbc.driverClassName", "org.h2.Driver"
+        property "sonar.jdbc.username", "sonar"
+        property "sonar.jdbc.password", "sonar"
+    }
+}
+
+repositories {
+    jcenter()
+}
+

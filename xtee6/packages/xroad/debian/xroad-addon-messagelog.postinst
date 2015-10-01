@@ -63,7 +63,7 @@ else
       crudini --set ${db_properties} '' messagelog.hibernate.connection.password ${db_passwd}
 
 
-fi
+fi 
 
 
 chown xroad:xroad ${db_properties}

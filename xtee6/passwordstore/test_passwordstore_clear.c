@@ -6,8 +6,8 @@
 int main(int argc, char **argv)
 {
     int err;
-    (void) argc;
-    (void) argv;
+	(void) argc;
+	(void) argv;
 
     err = LEGACY_passwordClear("/", 0600);
     if (err != 0) {

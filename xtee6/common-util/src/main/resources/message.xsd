@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
+<!-- 
     Describes a SOAP message sent to the system.
-
+    
     An example of a simple SOAP message:
-
+    
         <?xml version="1.0" encoding="utf-8"?>
         <SOAP-ENV:Envelope
                 xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
@@ -28,7 +28,7 @@
                 <xroad:getState/>
             </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>
-
+    
  -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns="http://x-road.eu/xsd/xroad.xsd"

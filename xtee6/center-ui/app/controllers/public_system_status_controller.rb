@@ -15,7 +15,7 @@ class PublicSystemStatusController < BaseController
     "b" => "bootstrapping",
     "i" => "initial slot creation or dump",
     "c" => "catching up",
-    "o" => "caught up, waiting for slot creation",
+    "o" => "caught up, waiting for slot creation", 
     "k" => "killed or removed"
   }
   HA_STATUS_UNKNOWN = :unknown
@@ -34,7 +34,7 @@ class PublicSystemStatusController < BaseController
     if !CommonSql.ha_configured?
       return { :ha_configured => false }
     end
-
+ 
     status_info = {
       :ha_configured => true, :nodes =>Hash.new,
     }

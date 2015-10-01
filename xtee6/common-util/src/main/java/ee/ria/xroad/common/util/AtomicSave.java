@@ -1,5 +1,6 @@
 package ee.ria.xroad.common.util;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
@@ -10,12 +11,14 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 import ee.ria.xroad.common.DefaultFilepaths;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Holds atomic save utility methods.
  */
+@Slf4j
 public final class AtomicSave {
 
     private AtomicSave() {
@@ -45,7 +48,11 @@ public final class AtomicSave {
      */
     public static void execute(String fileName, String tmpPrefix,
             Callback callback, CopyOption... options) throws Exception {
-        Path tempFile = DefaultFilepaths.createTempFile(tmpPrefix, null);
+
+        Path target = Paths.get(fileName);
+        Path parentPath = target.getParent();
+
+        Path tempFile = DefaultFilepaths.createTempFile(parentPath, tmpPrefix, null);
 
         SeekableByteChannel channel = Files.newByteChannel(tempFile, CREATE,
                 WRITE, TRUNCATE_EXISTING, DSYNC);
@@ -53,8 +60,6 @@ public final class AtomicSave {
         try (OutputStream out = Channels.newOutputStream(channel)) {
             callback.save(out);
         }
-
-        Path target = Paths.get(fileName);
 
         if (options.length == 0) {
             Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING);
@@ -75,5 +80,31 @@ public final class AtomicSave {
     public static void execute(String fileName, String tmpPrefix,
             final byte[] data, CopyOption... options) throws Exception {
         execute(fileName, tmpPrefix, out -> out.write(data), options);
+    }
+
+    /**
+     * Atomically moves one file from source path to target. Works between filesystems.
+     * 1. copies file from source to target directory, with temp filename
+     * 2. removes file from source
+     * 3. renames file in target directory to target name
+     * The last step is the part which is done atomically, it is still possible for example that
+     * step 1 succeeds but step 2 fails
+     * @param sourceFileName
+     * @param targetFileName
+     */
+    public static void moveBetweenFilesystems(String sourceFileName, String targetFileName) throws IOException {
+        Path source = Paths.get(sourceFileName);
+        Path target = Paths.get(targetFileName);
+        Path tempFile = DefaultFilepaths.createTempFileInSameDir(targetFileName);
+        try {
+            Files.copy(source, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            Files.delete(source);
+            Files.move(tempFile, target, StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
+        } finally {
+            if (Files.exists(tempFile)) {
+                Files.delete(tempFile);
+            }
+        }
     }
 }
