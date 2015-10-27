@@ -1,4 +1,4 @@
-# Xroad2 clientmediator
+# XRoad2 clientmediator
 #
 
 description	"xtee55 clientmediator"
@@ -27,6 +27,6 @@ script
    . /etc/xroad/services/xtee55-clientmediator.conf
    set -x
 
-   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name x55-cmediator --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${X55_CM_PARAMS} ${XROAD_PARAMS} -Djava.net.preferIPv4Stack=true -jar /usr/share/xroad/jlib/clientmediator.jar 
+   exec start-stop-daemon --start --background --chuid xroad:xroad -k 0007 --name x55-cmediator --exec /usr/bin/authbind -- ${JAVA_HOME}/bin/java ${X55_CM_PARAMS} ${XROAD_PARAMS} -Djava.net.preferIPv4Stack=true -jar /usr/share/xroad/jlib/clientmediator.jar
 end script
 

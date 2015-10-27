@@ -10,7 +10,7 @@
                 <complexType>
                     <sequence>
                         <element name="oldId" type="string"/>
-                        <element name="newId" type="id:XroadClientIdentifierType"/>
+                        <element name="newId" type="id:XRoadClientIdentifierType"/>
                     </sequence>
                 </complexType>
             </element>

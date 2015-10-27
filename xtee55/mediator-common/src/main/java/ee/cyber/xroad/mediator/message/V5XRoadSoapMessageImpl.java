@@ -15,9 +15,10 @@ public class V5XRoadSoapMessageImpl extends AbstractSoapMessage<V5XRoadSoapHeade
     private String serviceVersion;
 
     V5XRoadSoapMessageImpl(byte[] xml, String charset, V5XRoadSoapHeader header,
-            SOAPMessage soap, String serviceName) throws Exception {
+            SOAPMessage soap, String serviceName, String originalContentType)
+                    throws Exception {
         super(xml, charset, header, soap, isResponseMessage(serviceName),
-                header instanceof V5XRoadRpcSoapHeader);
+                header instanceof V5XRoadRpcSoapHeader, originalContentType);
 
         parseServiceNameAndVersion(header.getService());
     }

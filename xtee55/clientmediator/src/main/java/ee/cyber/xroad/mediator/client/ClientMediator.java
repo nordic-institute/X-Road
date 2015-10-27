@@ -135,16 +135,16 @@ public class ClientMediator implements StartStop {
     public void start() throws Exception {
         server.start();
 
-        String xroadProxy = MediatorSystemProperties.getXroadProxyAddress();
-        String v5XroadProxy = MediatorSystemProperties.getV5XroadProxyAddress();
+        String xroadProxy = MediatorSystemProperties.getXRoadProxyAddress();
+        String v5XRoadProxy = MediatorSystemProperties.getV5XRoadProxyAddress();
         String xroadUriProxy =
-                MediatorSystemProperties.getV5XroadUriProxyAddress();
+                MediatorSystemProperties.getV5XRoadUriProxyAddress();
 
         log.info("ClientMediator started!\n\t"
                 + "X-Road 6.0 proxy address: {}\n\t"
                 + "X-Road 5.0 proxy address: {}\n\t"
                 + "X-Road 5.0 uriproxy address: {}",
-                new Object[] {xroadProxy, v5XroadProxy, xroadUriProxy});
+                new Object[] {xroadProxy, v5XRoadProxy, xroadUriProxy});
     }
 
     @Override

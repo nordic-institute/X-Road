@@ -11,7 +11,7 @@ public class LogLevelPropertyDefiner extends PropertyDefinerBase {
 
     @Override
     public String getPropertyValue() {
-        return MediatorSystemProperties.getXroadLogLevel();
+        return MediatorSystemProperties.getXRoadLogLevel();
     }
 
 }

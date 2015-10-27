@@ -21,7 +21,7 @@ public final class Main {
     public static void main(String[] args) {
         log.info("Monitor agent starting up.");
 
-        ActorSystem actorSystem = ActorSystem.create("XroadMonitoringAgent",
+        ActorSystem actorSystem = ActorSystem.create("XRoadMonitoringAgent",
                 ConfigFactory.load().getConfig("monitoringagent"));
 
         actorSystem.actorOf(Props.create(DataReceiver.class), "DataReceiver");

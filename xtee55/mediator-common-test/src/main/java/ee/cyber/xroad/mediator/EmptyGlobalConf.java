@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo.Parameters;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
@@ -87,18 +90,7 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public String getProviderAddress(X509Certificate arg0) throws Exception {
-        return null;
-    }
-
-    @Override
     public Collection<String> getProviderAddress(ClientId arg0) {
-        return null;
-    }
-
-    @Override
-    public ClientId getSubjectName(String arg0, X509Certificate arg1)
-            throws Exception {
         return null;
     }
 
@@ -227,6 +219,19 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     @Override
     public List<SecurityServerId> getSecurityServers(
             String... instanceIdentifiers) {
+        return null;
+    }
+
+    @Override
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            Parameters arg0, X509Certificate arg1) throws Exception {
+        return null;
+    }
+
+    @Override
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(
+            ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo.Parameters arg0,
+            X509Certificate arg1) throws Exception {
         return null;
     }
 

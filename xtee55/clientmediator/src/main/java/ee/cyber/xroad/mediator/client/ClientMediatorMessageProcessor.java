@@ -260,10 +260,10 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
     private URI getTargetAddress(SoapMessage message) throws Exception {
         verifyClientAuthentication(message);
 
-        String xroadProxy = MediatorSystemProperties.getXroadProxyAddress();
-        String v5XroadProxy = MediatorSystemProperties.getV5XroadProxyAddress();
+        String xRoadProxy = MediatorSystemProperties.getXRoadProxyAddress();
+        String v5XRoadProxy = MediatorSystemProperties.getV5XRoadProxyAddress();
         return new URI(
-                isV6XRoadSoapMessage(message) ? xroadProxy : v5XroadProxy);
+                isV6XRoadSoapMessage(message) ? xRoadProxy : v5XRoadProxy);
     }
 
     private void verifyClientAuthentication(SoapMessage message)
@@ -284,8 +284,8 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
                 return;
             }
 
-            IsAuthentication.verifyClientAuthentication
-                    (messageSender, isAuthData);
+            IsAuthentication.verifyClientAuthentication(
+                    messageSender, isAuthData);
         }
     }
 

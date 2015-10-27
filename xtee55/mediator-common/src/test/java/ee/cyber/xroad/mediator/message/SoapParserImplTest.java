@@ -1,7 +1,6 @@
 package ee.cyber.xroad.mediator.message;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
 import org.eclipse.jetty.http.MimeTypes;
 import org.junit.Rule;
@@ -13,7 +12,6 @@ import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParser;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static org.junit.Assert.*;
@@ -31,12 +29,12 @@ public class SoapParserImplTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readXroadRequestMessage() throws Exception {
+    public void readXRoadRequestMessage() throws Exception {
         SoapMessage message = parseSoapMessage("xroad-simple.request");
         assertTrue(MediatorUtils.isV6XRoadSoapMessage(message));
         assertTrue(message.isRequest());
         SoapMessageImpl xroadMessage = (SoapMessageImpl) message;
-        assertTrue(xroadMessage.getHeader() instanceof XroadSoapHeader);
+        assertTrue(xroadMessage.getHeader() instanceof XRoadSoapHeader);
     }
 
     /**
@@ -44,7 +42,7 @@ public class SoapParserImplTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readXroadResponseMessage() throws Exception {
+    public void readXRoadResponseMessage() throws Exception {
         SoapMessage message = parseSoapMessage("xroad-simple.response");
         assertTrue(MediatorUtils.isV6XRoadSoapMessage(message));
         assertTrue(message.isResponse());
@@ -166,7 +164,7 @@ public class SoapParserImplTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readXroadAllowedMethodsRequest() throws Exception {
+    public void readXRoadAllowedMethodsRequest() throws Exception {
         SoapMessage response = parseSoapMessage("xroad-allowedMethods.request");
         assertTrue(MediatorUtils.isV6XRoadSoapMessage(response));
         assertTrue(response.isRequest());
@@ -197,7 +195,7 @@ public class SoapParserImplTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void readXroadMissingFields() throws Exception {
+    public void readXRoadMissingFields() throws Exception {
         thrown.expectError(X_MISSING_HEADER_FIELD);
         SoapMessage message = parseSoapMessage("xroad-missing-fields.request");
         assertTrue(MediatorUtils.isV6XRoadSoapMessage(message));
@@ -234,9 +232,7 @@ public class SoapParserImplTest {
     private static Soap parseMessage(InputStream is) throws Exception {
         assertNotNull("InputStream must not be null", is);
 
-        SoapParser parser = new SoapParserImpl();
-        return parser.parse(MimeTypes.TEXT_XML, StandardCharsets.UTF_8.name(),
-                is);
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
     }
 
 }

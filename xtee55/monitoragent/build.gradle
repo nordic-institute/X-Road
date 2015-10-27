@@ -37,6 +37,6 @@ task runMonitorAgent(type: JavaExec) {
 task runAgentTest(type: JavaExec) {
     main = 'ee.cyber.xroad.monitoragent.TestMonitorAgent'
     classpath = sourceSets.test.runtimeClasspath
-    jvmArgs '-Dxroad.monitoringagent.uri=akka.tcp://XroadMonitoringAgent@127.0.0.1:2552/user/DataReceiver',
+    jvmArgs '-Dxroad.monitoringagent.uri=akka.tcp://XRoadMonitoringAgent@127.0.0.1:2552/user/DataReceiver',
         '-Dxroad.appLog.path=log'
 }

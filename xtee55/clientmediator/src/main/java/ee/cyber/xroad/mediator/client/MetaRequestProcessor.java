@@ -59,7 +59,7 @@ class MetaRequestProcessor implements MediatorMessageProcessor {
         if (PARAM_V6_META.equals(metaReq.getParam())) {
             String parameters = request.getParameters() != null
                     ? "?" + request.getParameters() : "";
-            return MediatorSystemProperties.getXroadProxyAddress()
+            return MediatorSystemProperties.getXRoadProxyAddress()
                     + metaReq.getValue() + parameters;
         }
 
@@ -68,7 +68,7 @@ class MetaRequestProcessor implements MediatorMessageProcessor {
 
     static String getUriProxyAddress(MetaRequest request) {
         String uriProxyAddress =
-                MediatorSystemProperties.getV5XroadUriProxyAddress();
+                MediatorSystemProperties.getV5XRoadUriProxyAddress();
         uriProxyAddress += "?" + request.getParam() + "=" + request.getValue();
 
         return uriProxyAddress;

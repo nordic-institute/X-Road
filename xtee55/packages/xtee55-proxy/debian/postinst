@@ -12,7 +12,7 @@ test -w /usr/xtee/etc/ && touch /usr/xtee/etc/v6_xroad_installed && chmod 644 /u
 /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k client-https-port -v 8443
 /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k verify-client-cert -v false
 /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy -k log-both-messages -v false
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s monitoringagent -k uri -v akka.tcp://XroadMonitoringAgent@127.0.0.1:2553/user/DataReceiver
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s monitoringagent -k uri -v akka.tcp://XRoadMonitoringAgent@127.0.0.1:2553/user/DataReceiver
 
 # Remove legacy sites
 rm -f /etc/nginx/sites-enabled/xtee55-clientmediator*

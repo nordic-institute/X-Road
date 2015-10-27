@@ -51,14 +51,14 @@ public final class MediatorSystemProperties {
     /**
      * @return the X-Road 6.0 proxy address
      */
-    public static String getXroadProxyAddress() {
+    public static String getXRoadProxyAddress() {
         return System.getProperty(XROAD_PROXY_ADDRESS, "http://localhost:8060");
     }
 
     /**
      * @return the X-Road 5.0 proxy address
      */
-    public static String getV5XroadProxyAddress() {
+    public static String getV5XRoadProxyAddress() {
         return System.getProperty(V5_XROAD_PROXY_ADDRESS,
                 "http://localhost:80/cgi-bin/consumer_proxy");
     }
@@ -66,7 +66,7 @@ public final class MediatorSystemProperties {
     /**
      * @return the X-Road 5.0 uriproxy address
      */
-    public static String getV5XroadUriProxyAddress() {
+    public static String getV5XRoadUriProxyAddress() {
         return System.getProperty(V5_XROAD_URIPROXY_ADDRESS,
                 "http://localhost:80/cgi-bin/uriproxy");
     }
@@ -104,7 +104,7 @@ public final class MediatorSystemProperties {
     /**
      * @return the logging level
      */
-    public static String getXroadLogLevel() {
+    public static String getXRoadLogLevel() {
         return System.getProperty(XROAD_LOG_LEVEL, "DEBUG");
     }
 

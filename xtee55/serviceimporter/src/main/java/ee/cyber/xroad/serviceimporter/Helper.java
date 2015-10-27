@@ -3,7 +3,7 @@ package ee.cyber.xroad.serviceimporter;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.identifier.XroadId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 final class Helper {
 
@@ -14,7 +14,7 @@ final class Helper {
         return new ServerConfDAOImpl().getConf();
     }
 
-    static <T extends XroadId> T getIdentifier(T example) throws Exception {
+    static <T extends XRoadId> T getIdentifier(T example) throws Exception {
         T xroadId = IdentifierDAOImpl.getIdentifier(example);
         return xroadId != null ? xroadId : example;
     }

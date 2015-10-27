@@ -20,13 +20,13 @@ import ee.ria.xroad.common.message.SoapUtils;
 @ToString(callSuper = true)
 @XmlRootElement(name = "Header", namespace = SoapUtils.NS_SOAPENV)
 @XmlAccessorType(XmlAccessType.FIELD)
-public class XroadSoapHeader extends SoapHeader {
+public class XRoadSoapHeader extends SoapHeader {
 
     /**
      * This field contains the legacy X-Road headers when converting X-Road 5.0
      * SOAP message to X-Road 6.0 SOAP message.
      */
-    @XmlElement(name = "xroadHeader", required = false, namespace = NS_XROAD)
-    private V5XRoadHeaderFields xroadHeader;
+    @XmlElement(name = "xRoadHeader", required = false, namespace = NS_XROAD)
+    private V5XRoadHeaderFields xRoadHeader;
 
 }

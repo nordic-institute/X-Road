@@ -28,9 +28,10 @@ public class V5XRoadMetaServiceImpl extends V5XRoadSoapMessageImpl {
     public static final String LEGACY_XYZ = "legacy";
 
     V5XRoadMetaServiceImpl(byte[] xml, String charset, V5XRoadSoapHeader header,
-            SOAPMessage soap) throws Exception {
+            SOAPMessage soap, String originalContentType) throws Exception {
         super(xml, charset, header, soap,
-                SoapUtils.getServiceName(soap.getSOAPBody()));
+                SoapUtils.getServiceName(soap.getSOAPBody()),
+                originalContentType);
     }
 
     /**

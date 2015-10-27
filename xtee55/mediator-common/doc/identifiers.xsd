@@ -2,7 +2,7 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers"
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="2.1">
-    <xs:complexType name="XroadIdentifierType">
+    <xs:complexType name="XRoadIdentifierType">
         <xs:annotation>
             <xs:documentation>Globally unique identifier in the X-Road 6.0 system. Identifier consists of object type specifier and list of hierarchical codes (startin with code that identifiers the X-Road 6.0 instance).</xs:documentation>
         </xs:annotation>
@@ -19,11 +19,11 @@
         </xs:sequence>
         <xs:attribute ref="objectType" use="required"/>
     </xs:complexType>
-    <xs:simpleType name="XroadObjectType">
+    <xs:simpleType name="XRoadObjectType">
         <xs:annotation>
             <xs:documentation>Enumeration for X-Road 6.0 identifier types.</xs:documentation>
             <xs:appinfo>
-                <jxb:javaType name="ee.ria.xroad.common.identifier.XroadObjectType" parseMethod="valueOf" printMethod="name"/>
+                <jxb:javaType name="ee.ria.xroad.common.identifier.XRoadObjectType" parseMethod="valueOf" printMethod="name"/>
              </xs:appinfo>
         </xs:annotation>
         <xs:restriction base="xs:string">
@@ -82,10 +82,10 @@
             <xs:documentation>Code that uniquely identifies security server offered by a given X-Road 6.0 member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:attribute name="objectType" type="XroadObjectType"/>
-    <xs:complexType name="XroadClientIdentifierType">
+    <xs:attribute name="objectType" type="XRoadObjectType"/>
+    <xs:complexType name="XRoadClientIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
@@ -95,9 +95,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadServiceIdentifierType">
+    <xs:complexType name="XRoadServiceIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
@@ -109,9 +109,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadSecurityCategoryIdentifierType">
+    <xs:complexType name="XRoadSecurityCategoryIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="securityCategoryCode"/>
@@ -119,9 +119,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadCentralServiceIdentifierType">
+    <xs:complexType name="XRoadCentralServiceIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="serviceCode"/>
@@ -129,9 +129,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadSecurityServerIdentifierType">
+    <xs:complexType name="XRoadSecurityServerIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="memberClass"/>
@@ -141,9 +141,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadGlobalGroupIdentifierType">
+    <xs:complexType name="XRoadGlobalGroupIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="xRoadInstance"/>
                     <xs:element ref="groupCode"/>
@@ -151,9 +151,9 @@
             </xs:restriction>
         </xs:complexContent>
     </xs:complexType>
-    <xs:complexType name="XroadLocalGroupIdentifierType">
+    <xs:complexType name="XRoadLocalGroupIdentifierType">
         <xs:complexContent>
-            <xs:restriction base="XroadIdentifierType">
+            <xs:restriction base="XRoadIdentifierType">
                 <xs:sequence>
                     <xs:element ref="groupCode"/>
                 </xs:sequence>

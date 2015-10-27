@@ -22,7 +22,7 @@ require 'xroad/distributed_files'
 require 'xtee55_clients_importer/xlogger'
 
 java_import Java::ee.cyber.xroad.clientsimporter.IdentifierMapping
-java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
+java_import Java::ee.ria.xroad.common.identifier.XRoadObjectType
 
 include Xtee55ClientsImporter
 
@@ -116,15 +116,15 @@ module Xtee55ClientsImporter
 
         object_type = client_id.getObjectType()
 
-        if object_type != XroadObjectType::MEMBER &&
-            object_type != XroadObjectType::SUBSYSTEM
+        if object_type != XRoadObjectType::MEMBER &&
+            object_type != XRoadObjectType::SUBSYSTEM
           @@log.warn("Invalid X-Road 6.0 object type '#{object_type.name}' " +
               "for client '#{o.name}', skipping")
           @warnings = true
           next
         end
 
-        is_subsystem = object_type == XroadObjectType::SUBSYSTEM
+        is_subsystem = object_type == XRoadObjectType::SUBSYSTEM
 
         member_class = MemberClass.find_by_code(client_id.getMemberClass())
 
@@ -151,28 +151,17 @@ module Xtee55ClientsImporter
             @@log.info("Client '#{o.name}' already exists in X-Road 6.0, skipping")
           end
         else
+          @@log.info("Importing client '#{o.name}'")
+
+          member = XroadMember.create!(
+              :name => o.full_name,
+              :member_class => member_class,
+              :member_code => client_id.getMemberCode(),
+              :administrative_contact => nil)
+
           if is_subsystem
-            if is_consumer
-              @@log.info("Importing client '#{o.name}'")
-              member = XroadMember.create!(
-                  :name => o.full_name,
-                  :member_class => member_class,
-                  :member_code => client_id.getMemberCode(),
-                  :administrative_contact => nil)
-              Subsystem.create!(:xroad_member => member,
-                  :subsystem_code => client_id.getSubsystemCode())
-            else
-              @@log.warn("Member not found for subsystem client '#{o.name}', skipping")
-              @warnings = true
-              next
-            end
-          else
-            @@log.info("Importing client '#{o.name}'")
-            XroadMember.create!(
-                :name => o.full_name,
-                :member_class => member_class,
-                :member_code => client_id.getMemberCode(),
-                :administrative_contact => nil)
+            Subsystem.create!(:xroad_member => member,
+                :subsystem_code => client_id.getSubsystemCode())
           end
         end
 
