@@ -36,7 +36,6 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -237,9 +236,7 @@ public class MessageTestCase {
                     sender.getResponseContentType());
 
             if (sentRequest != null && sentRequest.getSoap() != null
-                    && sentRequest.getSoap() instanceof SoapMessageImpl
-                    && ((SoapMessageImpl) sentRequest.getSoap()).isAsync()
-                    && !requestHeaders.containsKey(SoapUtils.X_IGNORE_ASYNC)) {
+                    && sentRequest.getSoap() instanceof SoapMessageImpl) {
                 sentResponse = receivedResponse;
             }
         } finally {

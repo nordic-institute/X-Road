@@ -4,8 +4,6 @@ java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
 # This controller contains actions for public requests for the status of
 # the system. No authentication is required for making the requests.
 # XXX The actions in BaseController are accessible via this controller, too.
-# FIXME: konfida routes.rb sees t2psemad piirangud või t6sta lahku veahalduse
-# abivahendid ja tokeniga seotud tegevused baaskontrolleris!
 class PublicSystemStatusController < BaseController
 
   # The meaning of HA node status labels as of BDR 0.9

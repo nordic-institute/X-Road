@@ -38,7 +38,6 @@ public abstract class MessageProcessorBase {
      * against configuration reloads during message processing.
      */
     private void cacheConfigurationForCurrentThread() {
-        GlobalConf.verifyValidity();
         GlobalConf.initForCurrentThread();
 
         KeyConf.initForCurrentThread();

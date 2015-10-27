@@ -11,11 +11,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -199,10 +199,9 @@ public class LogArchiveWriter implements Closeable {
             return;
         }
 
-        String random = generateRandom();
+        String archiveFilename = getArchiveFilename(generateRandom());
 
-        String archiveFilename = getArchiveFilename(random);
-        Path archiveFile = Paths.get(outputPath.toString(), archiveFilename);
+        Path archiveFile = outputPath.resolve(archiveFilename);
 
         atomicMove(archiveTmp, archiveFile);
 
@@ -215,17 +214,17 @@ public class LogArchiveWriter implements Closeable {
 
     private void setArchivedInDatabase(String archiveFilename)
             throws IOException {
-        DigestEntry lastArchive = new DigestEntry(
-                linkingInfoBuilder.getCreatedArchiveLastDigest(),
-                archiveFilename);
-
         try {
-            archiveBase.markArchiveCreated(lastArchive);
+            archiveBase.markArchiveCreated(
+                new DigestEntry(
+                    linkingInfoBuilder.getCreatedArchiveLastDigest(),
+                    archiveFilename
+                )
+            );
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
-
 
     private static String generateRandom() {
         String random = randomAlphanumeric(RANDOM_LENGTH);
@@ -247,12 +246,11 @@ public class LogArchiveWriter implements Closeable {
     private static boolean filenameRandomUnique(String random) {
         String filenameEnd = String.format("-%s.zip", random);
 
-        String[] fileNamesWithSameRandom = new File(
-                getArchivePath()).list((file, name) ->
+        String[] fileNamesWithSameRandom = new File(getArchivePath())
+                .list((file, name) ->
                         name.startsWith("mlog-") && name.endsWith(filenameEnd));
 
-        return fileNamesWithSameRandom == null
-                || fileNamesWithSameRandom.length == 0;
+        return ArrayUtils.isEmpty(fileNamesWithSameRandom);
     }
 
     private static WritableByteChannel createOutputToTempFile(Path tmp)

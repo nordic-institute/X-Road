@@ -143,6 +143,10 @@ class ConfigurationManagementController < ApplicationController
   def download_trusted_anchor
     authorize!(:download_trusted_anchor)
 
+    validate_params({
+      :id => [:required]
+    })
+
     anchor = TrustedAnchor.find(params[:id])
     raise "Anchor not found" unless anchor
 
@@ -205,7 +209,8 @@ class ConfigurationManagementController < ApplicationController
 
     validate_params({
       :source_type => [:required],
-      :token_id => [:required]
+      :token_id => [:required],
+      :label => []
     })
 
     token = SignerProxy::getToken(params[:token_id])
@@ -216,9 +221,10 @@ class ConfigurationManagementController < ApplicationController
 
     source = ConfigurationSource.get_source_by_type(params[:source_type])
 
-    signing_key = source.generate_signing_key(params[:token_id])
+    signing_key = source.generate_signing_key(params[:token_id], params[:label])
 
     audit_log_data[:keyId] = signing_key.key_identifier
+    audit_log_data[:keyLabel] = params[:label]
     audit_log_data[:certHash] =
       CommonUi::CertUtils.cert_hash(signing_key.cert)
     audit_log_data[:certHashAlgorithm] =
@@ -391,7 +397,8 @@ class ConfigurationManagementController < ApplicationController
     notice(get_uploaded_message(validator_stderr, content_identifier))
 
     response = {
-      :parts => DistributedFiles.get_configuration_parts_as_json(source_type),
+      :parts => DistributedFiles.get_configuration_parts_as_json(
+          source_type, get_error_callback),
       :stderr => validator_stderr
     }
 
@@ -400,6 +407,10 @@ class ConfigurationManagementController < ApplicationController
 
   def upload_trusted_anchor
     authorize!(:upload_trusted_anchor)
+
+    validate_params({
+      :file_upload => [:required]
+    })
 
     @temp_anchor_path = get_temp_anchor_path
     @anchor_xml = params[:file_upload].read
@@ -424,6 +435,8 @@ class ConfigurationManagementController < ApplicationController
     audit_log("Add trusted anchor", audit_log_data = {})
 
     authorize!(:upload_trusted_anchor)
+
+    validate_params
 
     init_temp_anchor
 
@@ -465,6 +478,10 @@ class ConfigurationManagementController < ApplicationController
 
     authorize!(:delete_trusted_anchor)
 
+    validate_params({
+      :id => [:required]
+    })
+
     trusted_anchor = TrustedAnchor.find(params[:id])
 
     audit_log_data[:instanceIdentifier] = trusted_anchor.instance_identifier
@@ -475,7 +492,7 @@ class ConfigurationManagementController < ApplicationController
     trusted_anchor.destroy
 
     notice(t("configuration_management.trusted_anchors.delete_successful",
-        :instance => params[:instanceIdentifier]))
+        :instance => trusted_anchor.instance_identifier))
 
     render_json
   end
@@ -536,7 +553,7 @@ class ConfigurationManagementController < ApplicationController
       :download_url => download_url,
       :keys => keys.values,
       :parts => DistributedFiles.get_configuration_parts_as_json(
-          source.source_type)
+          source.source_type, get_error_callback)
     })
   end
 
@@ -546,6 +563,19 @@ class ConfigurationManagementController < ApplicationController
         "configuration_management.sources.conf_part_upload.warnings"
 
     return t(translation_key, :content_identifier => content_identifier)
+  end
+
+  def get_error_callback
+    if params[:source_type] == ConfigurationSource::SOURCE_TYPE_INTERNAL
+      ->(error_messages) do
+        error_messages.each do |each|
+          error(t("configuration_management.sources.optional_part_conf_error",
+              :message => each))
+        end
+      end
+    else
+      nil
+    end
   end
 
   # -- Methods related to anchor upload - start ---

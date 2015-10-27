@@ -192,7 +192,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
 
                   var params = {
                       source_type: getSourceType(),
-                      token_id: $("#token_id", this).val()
+                      token_id: $("#token_id", this).val(),
+                      label: $("#label", this).val()
                   };
 
                   var generate = function() {
@@ -217,6 +218,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         });
 
         $("#generate_signing_key").click(function() {
+            $("#generate_signing_key_dialog #label").val("");
+
             $.get(action("available_tokens"), null, function(response) {
                 $("#generate_signing_key_dialog #token_id").html("");
 

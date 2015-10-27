@@ -20,7 +20,6 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -28,6 +27,7 @@ import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -52,7 +52,7 @@ public class LogArchiver extends UntypedActor {
     public void onReceive(Object message) throws Exception {
         log.trace("onReceive({})", message);
 
-        if (message.equals(START_ARCHIVING)) {
+        if (START_ARCHIVING.equals(message)) {
             try {
                 handleArchive();
             } catch (Throwable t) {
@@ -71,14 +71,15 @@ public class LogArchiver extends UntypedActor {
                 return null;
             }
 
-            log.info("Archiving log records - start");
+            log.info("Archiving log records...");
 
             long start = System.currentTimeMillis();
             int recordsArchived = 0;
 
-            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
+            try (LogArchiveWriter archiveWriter =
+                    createLogArchiveWriter(session)) {
                 while (!records.isEmpty()) {
-                    doArchive(archiveWriter, records);
+                    archive(archiveWriter, records);
                     runTransferCommand(getArchiveTransferCommand());
                     recordsArchived += records.size();
 
@@ -90,7 +91,7 @@ public class LogArchiver extends UntypedActor {
                     records = getRecordsToBeArchived(session);
                 }
             } catch (Exception e) {
-                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                throw new CodedException(X_INTERNAL_ERROR, e);
             }
 
             log.info("Archived {} log records in {} ms", recordsArchived,
@@ -100,9 +101,8 @@ public class LogArchiver extends UntypedActor {
         });
     }
 
-    private void doArchive(
-            LogArchiveWriter archiveWriter, List<LogRecord> records)
-            throws Exception {
+    private void archive(LogArchiveWriter archiveWriter,
+            List<LogRecord> records) throws Exception {
         for (LogRecord record : records) {
             archiveWriter.write(record);
         }
@@ -204,24 +204,20 @@ public class LogArchiver extends UntypedActor {
         return result == 0;
     }
 
-
     // TODO The method is in this class as protected to facilitate testing.
     // TODO Is there any better way to recognize invocation of this method?
-    protected void markArchiveCreated(
-            final DigestEntry lastArchive, final Session session)
-            throws Exception {
-        if (lastArchive == null) {
-            return;
+    protected void markArchiveCreated(final DigestEntry lastArchive,
+            final Session session) throws Exception {
+        if (lastArchive != null) {
+            log.debug("Digest entry will be saved here...");
+
+            session.createQuery(
+                    "delete from " + DigestEntry.class.getName()
+                )
+                .executeUpdate();
+
+            session.save(lastArchive);
         }
-
-        log.debug("Digest entry will be saved here...");
-
-        session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-        session.save(lastArchive);
-    }
-
-    private String getLastEntryDeleteQuery() {
-        return "delete from " + DigestEntry.class.getName();
     }
 
     private static void runTransferCommand(String transferCommand) {
@@ -232,38 +228,39 @@ public class LogArchiver extends UntypedActor {
         log.info("Transferring archives with shell command: \t{}",
                 transferCommand);
 
-        try {
-            String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+        String[] command = new String[] {
+                "/bin/bash",
+                "-c",
+                transferCommand
+            };
 
+        try {
             Process process = new ProcessBuilder(command).start();
 
             StandardErrorCollector standardErrorCollector =
                     new StandardErrorCollector(process);
 
             new StandardOutputReader(process).start();
-            standardErrorCollector.start();
 
+            standardErrorCollector.start();
             standardErrorCollector.join();
+
             process.waitFor();
 
             int exitCode = process.exitValue();
-
             if (exitCode != 0) {
                 String errorMsg = String.format(
                         "Running archive transfer command '%s' "
                         + "exited with status '%d'",
                         transferCommand,
                         exitCode);
-
-                log.error(
-                        "{}\n -- STANDARD ERROR START\n{}\n"
+                log.error("{}\n -- STANDARD ERROR START\n{}\n"
                         + " -- STANDARD ERROR END",
                         errorMsg,
                         standardErrorCollector.getStandardError());
             }
         } catch (Exception e) {
-            log.error(
-                    "Failed to execute archive transfer command '{}'",
+            log.error("Failed to execute archive transfer command '{}'",
                     transferCommand);
         }
     }
@@ -291,17 +288,17 @@ public class LogArchiver extends UntypedActor {
         @Override
         @SuppressWarnings("unchecked")
         public DigestEntry loadLastArchive() throws Exception {
-            List<DigestEntry> lastArchiveEntries = session
-                    .createQuery(getLastArchiveDigestQuery())
-                    .setMaxResults(1).list();
+            List<DigestEntry> lastArchiveEntries =
+                    session
+                        .createQuery(
+                                "select new " + DigestEntry.class.getName()
+                                + "(d.digest, d.fileName) from DigestEntry d"
+                        )
+                        .setMaxResults(1)
+                        .list();
 
             return lastArchiveEntries.isEmpty()
                     ? DigestEntry.empty() : lastArchiveEntries.get(0);
-        }
-
-        private String getLastArchiveDigestQuery() {
-            return "select new " + DigestEntry.class.getName()
-                    + "(d.digest, d.fileName) from DigestEntry d";
         }
     }
 

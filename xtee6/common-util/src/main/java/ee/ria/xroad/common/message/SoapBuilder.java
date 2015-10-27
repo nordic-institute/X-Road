@@ -9,6 +9,7 @@ import javax.xml.soap.SOAPMessage;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -74,7 +75,7 @@ public class SoapBuilder {
         validateServiceName(header.getService().getServiceCode(), serviceName);
 
         return new SoapMessageImpl(SoapUtils.getBytes(soap), charset, header,
-                soap, serviceName);
+                soap, serviceName, MimeTypes.TEXT_XML_UTF_8);
     }
 
     protected void addNamespaces(SOAPMessage soapMessage, boolean rpcEncoded)

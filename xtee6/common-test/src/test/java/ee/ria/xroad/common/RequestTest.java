@@ -51,7 +51,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();
@@ -94,7 +94,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();
@@ -137,7 +137,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();

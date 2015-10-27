@@ -53,7 +53,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
     // Cached items, filled at conf reload
     private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
             new HashMap<>();
-    private final Map<X509Certificate, IdentifierDecoderType> caCertsAndIdentifierDecoders =
+    private final Map<X509Certificate, String> caCertsAndCertProfiles =
             new HashMap<>();
     private final Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData =
             new HashMap<>();
@@ -140,12 +140,6 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
         return subjectsAndCaCerts.get(certHolder.getIssuer());
     }
 
-    ClientId getSubjectName(X509Certificate cert,
-            IdentifierDecoderType decoder) throws Exception {
-        return IdentifierDecoderHelper.getSubjectName(cert, decoder,
-                getInstanceIdentifier());
-    }
-
     @Override
     public void load(String fileName) throws Exception {
         super.load(fileName);
@@ -176,7 +170,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
 
     private void clearCache() {
         subjectsAndCaCerts.clear();
-        caCertsAndIdentifierDecoders.clear();
+        caCertsAndCertProfiles.clear();
         caCertsAndOcspData.clear();
         memberAddresses.clear();
         memberAuthCerts.clear();
@@ -206,11 +200,9 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
                 verificationCaCerts.addAll(pkiCaCerts);
             }
 
-            IdentifierDecoderType identifierDecoder =
-                    caType.getIdentifierDecoder();
-
             for (X509Certificate pkiCaCert : pkiCaCerts) {
-                caCertsAndIdentifierDecoders.put(pkiCaCert, identifierDecoder);
+                caCertsAndCertProfiles.put(pkiCaCert,
+                        caType.getCertificateProfileInfo());
             }
             allCaCerts.addAll(pkiCaCerts);
         }

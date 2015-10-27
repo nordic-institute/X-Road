@@ -27,10 +27,7 @@
         </xroad:service>
         <xroad:userId>EE37702211234</xroad:userId>
         <xroad:id>$header.id$</xroad:id>
-        $if(header.async)$
-        <xroad:async>true</xroad:async>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>
-        $endif$
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:$header.service.serviceCode$ xmlns:ns1="http://consumer.ee.x-rd.net">

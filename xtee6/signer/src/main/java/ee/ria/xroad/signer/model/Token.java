@@ -53,7 +53,7 @@ public final class Token {
     private int slotIndex;
 
     /** Whether batch signing should be enabled for this token. */
-    private boolean batchSigningEnabled = false;
+    private boolean batchSigningEnabled = true;
 
     /** Holds the currect status of the token. */
     private TokenStatusInfo status = TokenStatusInfo.OK;

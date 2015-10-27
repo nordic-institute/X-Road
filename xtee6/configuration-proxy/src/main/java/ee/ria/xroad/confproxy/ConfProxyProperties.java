@@ -215,7 +215,7 @@ public class ConfProxyProperties {
      * @return a list containing configured key ids
      */
     public final List<String> getKeyList() {
-        List<String> keys = new ArrayList<String>();
+        List<String> keys = new ArrayList<>();
         Iterator<String> signingKeys = config.getKeys();
         while (signingKeys.hasNext()) {
             String k = signingKeys.next();

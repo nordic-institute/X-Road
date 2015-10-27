@@ -84,8 +84,12 @@
 <%= dialog "generate_signing_key_dialog", t('.new_key') do %>
   <table class="details">
     <tr>
-      <td><%= t '.token' %>:</td>
+      <td class="label"><%= t '.token' %>:</td>
       <td><%= select_tag "token_id", nil, :style => "text-transform: none;" %></td>
+    </tr>
+    <tr>
+      <td class="label"><%= t '.label' %>:</td>
+      <td><%= text_field_tag "label" %></td>
     </tr>
   </table>
 <% end %>

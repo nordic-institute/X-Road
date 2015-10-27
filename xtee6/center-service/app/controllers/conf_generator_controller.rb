@@ -47,12 +47,18 @@ class ConfGeneratorController < ApplicationController
           "for thread #{get_current_thread_name()}")
     end
 
+    success_msg = "Global configuration generated successfully.\n"
+    GlobalConfGenerationStatus.write_success(success_msg)
+
     render :text => ""
   rescue
     remove_new_conf_dir()
 
     logger.error($!.message)
     logger.error($!.backtrace.join("\n"))
+
+    GlobalConfGenerationStatus.write_failure(
+        GlobalConfSigningLog.get_exception_ctx($!))
 
     render :text => "#{$!.message}\n"
 # ensure
@@ -104,14 +110,10 @@ class ConfGeneratorController < ApplicationController
 
     logger.info("Saving success message")
 
-    success_msg = "Global configuration generated successfully.\n"
-    GlobalConfGenerationStatus.write_success(success_msg)
-
     logger.info("Configuration generation: success")
   rescue
-    logger.info("#{$!.message}")
-    GlobalConfGenerationStatus.write_failure(
-        GlobalConfSigningLog.get_exception_ctx($!))
+    logger.info("Failed to generate global configuration: #{$!.message}")
+
     raise "Failed to generate valid global configuration: #{$!.message}"
   end
 
@@ -161,6 +163,8 @@ class ConfGeneratorController < ApplicationController
       raise "Internal source must have an active key, but there is none."
     end
 
+    ConfigurationSigningKey.validate(signing_key)
+
     target_file = get_temp_internal_directory()
 
     logger.info("Generating internal conf to: #{target_file}")
@@ -189,7 +193,16 @@ class ConfGeneratorController < ApplicationController
 
     signing_key = ConfigurationSource.get_external_signing_key
 
-    return if signing_key == nil
+    unless signing_key
+      if federation_switched_on?
+        raise "Active external signing key must exist if federation is "\
+            "switched on, but there is none."
+      else
+        return
+      end
+    end
+
+    ConfigurationSigningKey.validate(signing_key)
 
     allowed_content_identifiers =
       [SharedParameters::CONTENT_ID_SHARED_PARAMETERS]
@@ -400,6 +413,10 @@ class ConfGeneratorController < ApplicationController
     logger.error("Failed to save distributed file #{target_file} "\
         "to disk: #{$!.message}")
     raise $!
+  end
+
+  def federation_switched_on?
+    Java::ee.ria.xroad.common.SystemProperties::getCenterTrustedAnchorsAllowed
   end
 
   # -- Conf distribution logic - end ---

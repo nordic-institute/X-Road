@@ -8,10 +8,10 @@ import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
-import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXroadIdAdapter;
+import ee.ria.xroad.common.identifier.IdentifierTypeConverter.GenericXRoadIdAdapter;
 
 import static ee.ria.xroad.common.identifier.IdentifierTypeConverter.*;
-import static ee.ria.xroad.common.identifier.XroadObjectType.*;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.*;
 import static org.junit.Assert.*;
 
 /**
@@ -27,7 +27,7 @@ public class IdentifierTypeConverterTest {
     public void readClientIdentifier() throws Exception {
         ClientId id = parseClientId(
                 fileToType("clientid.xml", MEMBER,
-                        XroadClientIdentifierType.class));
+                        XRoadClientIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("COMPANY", id.getMemberClass());
@@ -43,7 +43,7 @@ public class IdentifierTypeConverterTest {
     public void readServiceIdentifier() throws Exception {
         ServiceId id = parseServiceId(
                 fileToType("serviceid.xml", SERVICE,
-                        XroadServiceIdentifierType.class));
+                        XRoadServiceIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("BUSINESS", id.getMemberClass());
@@ -61,7 +61,7 @@ public class IdentifierTypeConverterTest {
     public void readServiceIdentifierWithVersion() throws Exception {
         ServiceId id = parseServiceId(
                 fileToType("serviceid-version.xml", SERVICE,
-                        XroadServiceIdentifierType.class));
+                        XRoadServiceIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("BUSINESS", id.getMemberClass());
@@ -79,7 +79,7 @@ public class IdentifierTypeConverterTest {
     public void readSecurityCategoryIdentifier() throws Exception {
         SecurityCategoryId id = parseSecurityCategoryId(
                 fileToType("securitycategoryid.xml", SECURITYCATEGORY,
-                        XroadSecurityCategoryIdentifierType.class));
+                        XRoadSecurityCategoryIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("ISKE_H", id.getCategoryCode());
@@ -94,7 +94,7 @@ public class IdentifierTypeConverterTest {
     public void readCentralServiceIdentifier() throws Exception {
         CentralServiceId id = parseCentralServiceId(
                 fileToType("centralserviceid.xml", CENTRALSERVICE,
-                        XroadCentralServiceIdentifierType.class));
+                        XRoadCentralServiceIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("rahvastikuregister_isikuandmed", id.getServiceCode());
@@ -110,7 +110,7 @@ public class IdentifierTypeConverterTest {
     public void readSecurityServerIdentifier() throws Exception {
         SecurityServerId id = parseSecurityServerId(
                 fileToType("securityserverid.xml", SERVER,
-                        XroadSecurityServerIdentifierType.class));
+                        XRoadSecurityServerIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("BUSINESS", id.getMemberClass());
@@ -127,7 +127,7 @@ public class IdentifierTypeConverterTest {
     public void readGlobalGroupIdentifier() throws Exception {
         GlobalGroupId id = parseGlobalGroupId(
                 fileToType("globalgroupid.xml", GLOBALGROUP,
-                        XroadGlobalGroupIdentifierType.class));
+                        XRoadGlobalGroupIdentifierType.class));
 
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("perearstid", id.getGroupCode());
@@ -142,7 +142,7 @@ public class IdentifierTypeConverterTest {
     public void readLocalGroupIdentifier() throws Exception {
         LocalGroupId id = parseLocalGroupId(
                 fileToType("localgroupid.xml", LOCALGROUP,
-                        XroadLocalGroupIdentifierType.class));
+                        XRoadLocalGroupIdentifierType.class));
 
         assertNull(id.getXRoadInstance());
         assertEquals("lokaalgrupp", id.getGroupCode());
@@ -157,17 +157,17 @@ public class IdentifierTypeConverterTest {
     public void genericIdentifierAdapter() throws Exception {
         ClientId id = parseClientId(
                 fileToType("clientid.xml", MEMBER,
-                        XroadClientIdentifierType.class));
+                        XRoadClientIdentifierType.class));
 
-        GenericXroadIdAdapter adapter = new GenericXroadIdAdapter();
-        XroadIdentifierType type = adapter.marshal(id);
-        assertTrue(type instanceof XroadClientIdentifierType);
+        GenericXRoadIdAdapter adapter = new GenericXRoadIdAdapter();
+        XRoadIdentifierType type = adapter.marshal(id);
+        assertTrue(type instanceof XRoadClientIdentifierType);
 
-        XroadId backToId = adapter.unmarshal(type);
+        XRoadId backToId = adapter.unmarshal(type);
         assertEquals(id, backToId);
     }
 
-    private static <T> T fileToType(String file, XroadObjectType expectedType,
+    private static <T> T fileToType(String file, XRoadObjectType expectedType,
             Class<T> type) throws Exception {
         return IdentifierXmlNodeParser.parseType(expectedType,
                 fileToNode(file), type);

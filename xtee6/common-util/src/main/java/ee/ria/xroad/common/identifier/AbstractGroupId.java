@@ -3,7 +3,7 @@ package ee.ria.xroad.common.identifier;
 /**
  * Base class for group IDs.
  */
-public abstract class AbstractGroupId extends XroadId {
+public abstract class AbstractGroupId extends XRoadId {
 
     private final String groupCode;
 
@@ -11,7 +11,7 @@ public abstract class AbstractGroupId extends XroadId {
         this(null, null, null);
     }
 
-    protected AbstractGroupId(XroadObjectType type, String xRoadInstance,
+    protected AbstractGroupId(XRoadObjectType type, String xRoadInstance,
             String groupCode) {
         super(type, xRoadInstance);
 

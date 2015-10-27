@@ -25,6 +25,7 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.eclipse.jetty.http.MimeTypes;
 import org.w3c.dom.Attr;
 
 import ee.ria.xroad.common.CodedException;
@@ -211,6 +212,7 @@ public class AsicContainerVerifier {
 
     private static ClientId getSigner(String messageXml) {
         Soap soap = new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
         if (!(soap instanceof SoapMessageImpl)) {
             throw new RuntimeException("Unexpected SOAP: " + soap.getClass());

@@ -115,11 +115,12 @@ public final class SignerProxy {
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */
-    public static KeyInfo generateKey(String tokenId) throws Exception {
+    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
         LOG.trace("Generating key for token '{}'", tokenId);
-        KeyInfo keyInfo = execute(new GenerateKey(tokenId));
 
-        LOG.trace("Received response with keyId '{}' and public key '{}'",
+        KeyInfo keyInfo = execute(new GenerateKey(tokenId, keyLabel));
+
+        LOG.trace("Received key with keyId '{}' and public key '{}'",
                 keyInfo.getId(), keyInfo.getPublicKey());
 
         return keyInfo;
@@ -216,14 +217,16 @@ public final class SignerProxy {
      * @param memberId client ID of the certificate owner
      * @param keyUsage specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
+     * @param format the format of the request
      * @return byte content of the certificate request
      * @throws Exception if any errors occur
      */
     public static byte[] generateCertRequest(String keyId, ClientId memberId,
-            KeyUsageInfo keyUsage, String subjectName) throws Exception {
+            KeyUsageInfo keyUsage, String subjectName,
+            GenerateCertRequest.RequestFormat format) throws Exception {
         GenerateCertRequestResponse response =
                 execute(new GenerateCertRequest(keyId, memberId, keyUsage,
-                        subjectName));
+                        subjectName, format));
 
         byte[] certRequestBytes = response.getCertRequest();
 

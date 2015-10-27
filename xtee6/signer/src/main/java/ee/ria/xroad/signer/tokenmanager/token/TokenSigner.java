@@ -16,7 +16,6 @@ import ee.ria.xroad.signer.util.SignerUtil;
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
-// TODO #2577 resource management -- make sure every key gets to sign on this token.
 /**
  * Token signer actor. Handles signing requests and calculated signatures.
  */

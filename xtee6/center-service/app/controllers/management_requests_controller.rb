@@ -21,9 +21,11 @@ class ManagementRequestsController < ApplicationController
         StringIO.new(request.raw_post).to_inputstream)
 
       id = handle_request
+      logger.debug("Created request id: #{id}")
 
       # Simply convert request message to response message
       response_soap = ManagementRequestUtil.toResponse(@request_soap, id)
+
       render :text => response_soap.getXml()
     rescue Java::java.lang.Exception => e
       handle_error(ErrorCodes.translateException(e))

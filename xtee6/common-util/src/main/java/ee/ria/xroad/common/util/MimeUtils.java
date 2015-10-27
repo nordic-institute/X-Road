@@ -3,6 +3,7 @@ package ee.ria.xroad.common.util;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.eclipse.jetty.http.HttpFields;
@@ -16,6 +17,8 @@ public final class MimeUtils {
     private static final int RANDOM_BOUNDARY_LENGTH = 30;
 
     public static final String HEADER_CONTENT_TYPE = "content-type";
+    public static final String HEADER_ORIGINAL_CONTENT_TYPE =
+            "x-original-content-type";
     public static final String HEADER_CONTENT_DATE = "content-date";
     public static final String HEADER_SIG_ALGO_ID = "signature-algorithm-id";
     public static final String HEADER_HASH_ALGO_ID = "x-hash-algorithm";
@@ -101,13 +104,11 @@ public final class MimeUtils {
 
     /**
      * Returns the charset from the given mime type.
-     * @param mimeType mime type from which to extract the charset
+     * @param contentType content type from which to extract the charset
      * @return String
      */
-    public static String getCharset(String mimeType) {
-        Map<String, String> params = new HashMap<>();
-        HttpFields.valueParameters(mimeType, params);
-        return params.get("charset");
+    public static String getCharset(String contentType) {
+        return getParameterValue(contentType, "charset");
     }
 
     /**
@@ -116,9 +117,17 @@ public final class MimeUtils {
      * @return boolean
      */
     public static boolean hasBoundary(String contentType) {
-        Map<String, String> map = new HashMap<>();
-        HttpFields.valueParameters(contentType.toLowerCase(), map);
-        return map.containsKey("boundary");
+        return getBoundary(contentType) != null;
+    }
+
+    /**
+     * Returns boundary from the content type.
+     * @param contentType the content type to check
+     * @return boundary from the content type or null if the content type
+     * does not contain boundary
+     */
+    public static String getBoundary(String contentType) {
+        return getParameterValue(contentType, "boundary");
     }
 
     /**
@@ -128,16 +137,14 @@ public final class MimeUtils {
      * @return array of color-separated Strings
      */
     public static String[] toHeaders(Map<String, String> headers) {
-        String[] result = null;
         if (headers != null && !headers.isEmpty()) {
-            result = new String[headers.size()];
-            int i = 0;
-            for (Map.Entry<String, String> h: headers.entrySet()) {
-                result[i++] = h.getKey() + ": " + h.getValue();
-            }
+            return headers.entrySet().stream()
+                    .map(e -> e.getKey() + ": " + e.getValue())
+                    .collect(Collectors.toList())
+                    .toArray(new String[] {});
+        } else {
+            return null;
         }
-
-        return result;
     }
 
     /**
@@ -145,6 +152,17 @@ public final class MimeUtils {
      */
     public static String randomBoundary() {
         return RandomStringUtils.randomAlphabetic(RANDOM_BOUNDARY_LENGTH);
+    }
+
+    private static String getParameterValue(String contentType,
+            String parameterName) {
+        Map<String, String> params = new HashMap<>();
+        HttpFields.valueParameters(contentType, params);
+        return params.entrySet().stream()
+                .filter(e -> e.getKey().equalsIgnoreCase(parameterName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }
 

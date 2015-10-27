@@ -45,11 +45,6 @@ public final class DefaultFilepaths {
 
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
 
-    static final String ASYNC_DB_PATH = "/var/spool/xroad/";
-
-    static final String ASYNC_SENDER_CONFIGURATION_FILE =
-            "async-sender.properties";
-
     static final String MONITOR_AGENT_CONFIGURATION_FILE =
             "monitor-agent.ini";
 

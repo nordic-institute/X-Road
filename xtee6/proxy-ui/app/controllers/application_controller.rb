@@ -78,6 +78,10 @@ class ApplicationController < BaseController
   def set_locale
     audit_log("Set UI language", audit_log_data = {})
 
+    validate_params({
+      :locale => [:required]
+    })
+
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
     end

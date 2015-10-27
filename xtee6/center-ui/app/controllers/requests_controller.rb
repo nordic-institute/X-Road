@@ -56,6 +56,10 @@ class RequestsController < ApplicationController
   def get_additional_request_data
     authorize!(:view_management_request_details)
 
+    validate_params({
+      :id => [:required]
+    })
+
     request = Request.find(params[:id])
 
     additional_data = {
@@ -72,12 +76,20 @@ class RequestsController < ApplicationController
   def get_auth_cert_reg_request_data
     authorize!(:view_management_request_details)
 
+    validate_params({
+      :id => [:required]
+    })
+
     request = AuthCertRegRequest.find(params[:id])
     render_json(get_auth_cert_data(request))
   end
 
   def get_client_reg_request_data
     authorize!(:view_management_request_details)
+
+    validate_params({
+      :id => [:required]
+    })
 
     request = ClientRegRequest.find(params[:id])
     render_json(get_client_data(request))
@@ -86,12 +98,20 @@ class RequestsController < ApplicationController
   def get_auth_cert_deletion_request_data
     authorize!(:view_management_request_details)
 
+    validate_params({
+      :id => [:required]
+    })
+
     request = AuthCertDeletionRequest.find(params[:id])
     render_json(get_auth_cert_data(request))
   end
 
   def get_client_deletion_request_data
     authorize!(:view_management_request_details)
+
+    validate_params({
+      :id => [:required]
+    })
 
     request = ClientDeletionRequest.find(params[:id])
     render_json(get_client_data(request))
@@ -103,6 +123,13 @@ class RequestsController < ApplicationController
 
   def revoke_client_reg_request
     audit_log("Revoke client registration request", audit_log_data = {})
+
+    authorize!(:view_management_request_details)
+
+    validate_params({
+      :requestId => [:required]
+    })
+
     audit_log_data[:requestId] = params[:requestId]
 
     request_id = params[:requestId]
@@ -117,6 +144,13 @@ class RequestsController < ApplicationController
   def revoke_auth_cert_reg_request
     audit_log("Revoke authentication certificate registration request",
       audit_log_data = {})
+
+    authorize!(:view_management_request_details)
+
+    validate_params({
+      :requestId => [:required]
+    })
+
     audit_log_data[:requestId] = params[:requestId]
 
     request_id = params[:requestId]
@@ -130,6 +164,13 @@ class RequestsController < ApplicationController
 
   def approve_reg_request
     audit_log("Approve registration request", audit_log_data = {})
+
+    authorize!(:view_management_request_details)
+
+    validate_params({
+      :requestId => [:required]
+    })
+
     audit_log_data[:requestId] = params[:requestId]
 
     request_id = params[:requestId]
@@ -143,6 +184,13 @@ class RequestsController < ApplicationController
 
   def decline_reg_request
     audit_log("Decline registration request", audit_log_data = {})
+
+    authorize!(:view_management_request_details)
+
+    validate_params({
+      :requestId => [:required]
+    })
+
     audit_log_data[:requestId] = params[:requestId]
 
     request_id = params[:requestId]

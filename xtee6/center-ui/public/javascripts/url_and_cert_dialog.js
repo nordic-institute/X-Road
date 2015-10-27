@@ -16,9 +16,30 @@
         if (hasCert) {
             certViewButton.show();
         }
+    }
 
-        $("#" + prefix + "_url_and_cert_submit").enable(
-            $("#" + prefix + "_url").val() && (hasCert || certOptional));
+    function notifyInputChanged(prefix) {
+        // We trigger URL change, as it does not cause side-effects.
+        $("#" + prefix + "_url").change();
+    }
+
+    function updateSubmitButton(prefix, ev) {
+        var submitButton = $("#" + prefix + "_url_and_cert_submit");
+        var urlField = $("#" + prefix + "_url");
+        var certField = $("#" + prefix + "_cert");
+
+        if (!isInputFilled(urlField)) {
+            submitButton.disable();
+            return;
+        }
+
+        if (hasCert || certOptional) {
+            submitButton.enable();
+            return;
+        }
+
+        isInputFilled(certField) ?
+                submitButton.enable() : submitButton.disable();
     }
 
     XROAD_URL_AND_CERT_DIALOG.initForPrefix =
@@ -45,15 +66,19 @@
                       $(this).dialog("close");
                   }
                 }
-            ]
+            ],
+            open: function() {
+                $("#" + prefix + "_url_and_cert_submit").disable();
+            },
         });
 
         $(document).on("change", "#" + prefix + "_cert", function() {
             $(this).closest("form").submit();
         });
 
-        $(document).on("keyup", "#" + prefix + "_url", function() {
+        $(document).on("change keyup paste", "#" + prefix + "_url", function(ev) {
             enableActions(prefix);
+            updateSubmitButton(prefix, ev);
         });
 
         $("#" + prefix + "_cert_view").click(function() {
@@ -121,6 +146,8 @@
 
             $("#" + prefix + "_cert_file").text(
                 $("#" + prefix + "_cert").val());
+
+            notifyInputChanged(prefix);
         } else {
             tempCertId = null;
             hasCert = false;

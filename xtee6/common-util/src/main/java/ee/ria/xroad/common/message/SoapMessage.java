@@ -2,44 +2,47 @@ package ee.ria.xroad.common.message;
 
 import javax.xml.soap.SOAPMessage;
 
+import org.eclipse.jetty.http.MimeTypes;
+
 /**
  * Describes a Soap message that is received from the client or service.
  */
 public interface SoapMessage extends Soap {
 
     /**
-     * Returns the underlying SOAPMessage object.
-     * @return SOAPMessage
+     * @return the underlying SOAPMessage object.
      */
     SOAPMessage getSoap();
 
     /**
-     * Returns the raw byte content of the message.
-     * @return byte[]
+     * @return the raw byte content of the message.
      */
     byte[] getBytes();
 
     /**
-     * Returns the original charset of the message.
-     * @return String
+     * @return the original charset of the message.
      */
     String getCharset();
 
     /**
-     * Returns true, if the message is RPC-encoded.
-     * @return boolean
+     * @return true, if the message is RPC-encoded.
      */
     boolean isRpcEncoded();
 
     /**
-     * Returns true, if the message is a request message.
-     * @return boolean
+     * @return true, if the message is a request message.
      */
     boolean isRequest();
 
     /**
-     * Returns true, if the message is a response message.
-     * @return boolean
+     * @return true, if the message is a response message.
      */
     boolean isResponse();
+
+    /**
+     * @return the content type of the SOAP message
+     */
+    default String getContentType() {
+        return MimeTypes.TEXT_XML;
+    }
 }

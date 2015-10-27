@@ -43,7 +43,9 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             addSigningKey(conf, keyId);
         } else if (commandLine.hasOption("token-id")) {
             String tokenId = commandLine.getOptionValue("t");
-            KeyInfo keyInfo = SignerClient.execute(new GenerateKey(tokenId));
+            KeyInfo keyInfo = SignerClient.execute(
+                new GenerateKey(tokenId, "key-" + System.currentTimeMillis())
+            );
             System.out.println("Generated key with ID " + keyInfo.getId());
             addSigningKey(conf, keyInfo.getId());
         } else {

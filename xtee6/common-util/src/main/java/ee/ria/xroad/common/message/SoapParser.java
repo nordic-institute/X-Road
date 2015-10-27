@@ -8,13 +8,12 @@ import java.io.InputStream;
 public interface SoapParser {
 
     /**
-     * Parses the given input stream using the provided mime type and
-     * charset. Returns a Soap object.
-     * @param mimeType expected mime type of the input stream
-     * @param charset expected charset of the input stream
+     * Parses the given input stream using the provided content type.
+     * Returns a Soap message.
+     * @param contentType the content type of the soap message
      * @param is the input stream from which to parse the SOAP message
      * @return a Soap message parsed from the input stream
      */
-    Soap parse(String mimeType, String charset, InputStream is);
+    Soap parse(String contentType, InputStream is);
 
 }

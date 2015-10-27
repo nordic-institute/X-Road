@@ -2,12 +2,12 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
 import akka.actor.ActorRef;
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.duration.Duration;
 
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
@@ -23,10 +23,9 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
-        return new OneForOneStrategy(-1, Duration.create("1 minute"),
-                (t) -> {
-                    return SupervisorStrategy.resume();
-                });
+        return new OneForOneStrategy(-1, Duration.Inf(),
+            t -> SupervisorStrategy.resume()
+        );
     }
 
     @Override
@@ -50,12 +49,18 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     @Override
     protected void onUpdate() throws Exception {
-        List<TokenType> tokens = listTokens();
+        try {
+            List<TokenType> tokens = listTokens();
 
-        log.trace("Got {} tokens from module '{}'", tokens.size(),
-                getSelf().path().name());
+            log.trace("Got {} tokens from module '{}'", tokens.size(),
+                    getSelf().path().name());
 
-        updateTokens(tokens);
+            updateTokens(tokens);
+        } catch (Exception e) {
+            log.error("Error during update of module "
+                    + getSelf().path().name(), e);
+            throw e;
+        }
     }
 
     @Override
@@ -89,9 +94,10 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
     }
 
     private boolean hasToken(List<TokenType> tokens, ActorRef token) {
-        String tokenId = token.path().name();
-        return tokens.stream().filter(t -> t.getId().equals(tokenId))
-                .findFirst().isPresent();
+        return tokens.stream()
+                .filter(t -> t.getId().equals(token.path().name()))
+                .findFirst()
+                .isPresent();
     }
 
     private boolean hasToken(TokenType tokenType) {
@@ -106,10 +112,9 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
         log.debug("Adding new token '{}#{}'", tokenType.getModuleType(),
                 tokenInfo.getId());
 
-        ActorRef token = getContext().actorOf(props(tokenInfo, tokenType),
-                tokenType.getId());
-        getContext().watch(token);
-        return token;
+        return getContext().watch(
+            getContext().actorOf(props(tokenInfo, tokenType), tokenType.getId())
+        );
     }
 
     private void destroyToken(ActorRef token) {

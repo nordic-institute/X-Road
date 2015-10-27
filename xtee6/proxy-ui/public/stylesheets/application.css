@@ -1,6 +1,9 @@
 .ui-dialog-titlebar .xroad-id {
   font-weight: 300; }
 
+table tbody tr td ul.tableitem-actions {
+  line-height: 1px; }
+
 #services .fa {
   padding-right: 0.5em; }
 #services .gray {
@@ -51,3 +54,5 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: normal; }
+
+/*# sourceMappingURL=application.css.map */

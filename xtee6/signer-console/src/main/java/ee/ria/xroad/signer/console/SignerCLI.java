@@ -573,19 +573,22 @@ public class SignerCLI {
     /**
      * Generate key on token.
      * @param tokenId token id
+     * @param label label
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
     public void generateKey(
             @Param(name = "tokenId", description = "Token ID")
-                String tokenId) throws Exception {
+                String tokenId,
+            @Param(name = "label", description = "Key label")
+            String label) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
+        logData.put(KEY_LABEL_PARAM, label);
 
         KeyInfo response;
-
         try {
-            response = SignerClient.execute(new GenerateKey(tokenId));
+            response = SignerClient.execute(new GenerateKey(tokenId, label));
 
             logData.put(KEY_ID_PARAM, response.getId());
             AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, logData);
@@ -605,6 +608,7 @@ public class SignerCLI {
      * @param memberId member id
      * @param usage usage
      * @param subjectName subject name
+     * @param format request format
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate certificate request")
@@ -616,21 +620,29 @@ public class SignerCLI {
             @Param(name = "usage", description = "Key usage (a - auth, s - sign)")
                 String usage,
             @Param(name = "subjectName", description = "Subject name")
-                String subjectName) throws Exception {
+                String subjectName,
+            @Param(name = "format", description = "Format of request (der/pem)")
+                String format) throws Exception {
         KeyUsageInfo keyUsage = "a".equals(usage)
                 ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
+
+        GenerateCertRequest.RequestFormat requestFormat =
+                format.equalsIgnoreCase("der")
+                    ? GenerateCertRequest.RequestFormat.DER
+                    : GenerateCertRequest.RequestFormat.PEM;
 
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
         logData.put(CLIENT_IDENTIFIER_PARAM, memberId);
         logData.put(KEY_USAGE_PARAM, keyUsage.name());
         logData.put(SUBJECT_NAME_PARAM, subjectName);
+        logData.put(CSR_FORMAT_PARAM, requestFormat.name());
 
         GenerateCertRequestResponse response;
 
         try {
             GenerateCertRequest request = new GenerateCertRequest(
-                    keyId, memberId, keyUsage, subjectName);
+                    keyId, memberId, keyUsage, subjectName, requestFormat);
             response = SignerClient.execute(request);
 
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, logData);

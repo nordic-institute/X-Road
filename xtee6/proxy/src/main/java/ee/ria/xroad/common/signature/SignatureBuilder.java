@@ -31,24 +31,6 @@ public class SignatureBuilder {
     }
 
     /**
-     * Adds hashes to be signed.
-     * @param partList list of input parts to be added to the signature
-     */
-    public void addParts(List<MessagePart> partList) {
-        this.parts.addAll(partList);
-    }
-
-    /**
-     * Sets the signing certificate and its corresponding OCSP response.
-     * @param cert the signing certificate
-     * @param ocsp OCSP response of the certificate
-     */
-    public void setSigningCert(X509Certificate cert, OCSPResp ocsp) {
-        this.signingCert = cert;
-        this.ocspResponses.add(ocsp);
-    }
-
-    /**
      * Sets the signing certificate.
      * @param cert the signing certificate
      */

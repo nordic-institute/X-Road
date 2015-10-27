@@ -37,7 +37,6 @@ override_dh_installinit:
 	dh_installinit --name=xroad-signer
 	dh_installinit --name=xroad-proxy
 	dh_installinit --name=xroad-confclient
-	dh_installinit --name=xroad-async
 	dh_installinit --name=xroad-monitor
 
 override_dh_builddeb:

@@ -120,21 +120,21 @@ public class IdentifierDAOImplTest {
             SecurityServerId.create("XX", "class", "code", "srv2"));
     }
 
-    private <T extends XroadId> T get(T example) throws Exception {
+    private <T extends XRoadId> T get(T example) throws Exception {
         return IdentifierDAOImpl.getIdentifier(example);
     }
 
     private <T> void assertCreateRead(
-            IdentifierCallback<? extends XroadId> callback) throws Exception {
-        XroadId in = callback.create();
+            IdentifierCallback<? extends XRoadId> callback) throws Exception {
+        XRoadId in = callback.create();
         session.save(in);
 
-        XroadId out = get(callback.create());
+        XRoadId out = get(callback.create());
         assertEquals(in, out);
     }
 
     @FunctionalInterface
-    private interface IdentifierCallback<T extends XroadId> {
+    private interface IdentifierCallback<T extends XRoadId> {
         T create();
     }
 }

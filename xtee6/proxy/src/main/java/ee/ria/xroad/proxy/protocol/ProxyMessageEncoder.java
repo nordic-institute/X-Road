@@ -114,7 +114,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
 
         byte[] data = message.getBytes();
         try {
-            // TODO #2604 handle xml+xop!
+            // FUTURE #2604 handle xml+xop!
             mpEncoder.startPart(TEXT_XML_UTF8);
             mpEncoder.write(data);
 

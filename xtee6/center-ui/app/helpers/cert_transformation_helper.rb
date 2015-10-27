@@ -21,8 +21,6 @@ module CertTransformationHelper
     end
 
     cert_data
-  rescue OpenSSL::OpenSSLError
-    raise t("validation.invalid_cert")
   end
 
   def read_temp_cert(id)

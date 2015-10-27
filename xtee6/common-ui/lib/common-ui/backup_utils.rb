@@ -1,4 +1,5 @@
 require "fileutils"
+require "base64"
 require "common-ui/io_utils"
 require "common-ui/script_utils"
 require "common-ui/tar_file"
@@ -7,8 +8,6 @@ require "common-ui/uploaded_file"
 java_import Java::java.io.RandomAccessFile
 java_import Java::ee.ria.xroad.common.SystemProperties
 
-# TODO: whitelist known backup files and do not allow random filenames
-# from client!
 module CommonUi
   module BackupUtils
 
@@ -68,13 +67,19 @@ module CommonUi
       uploaded_backup_file
     end
 
-    def backup
+    # Execute the given backup command with the given options that depend on
+    # the type of server.
+    def backup(backup_script_name, backup_command_options)
       ensure_backup_directory_exists
 
       tarfile =
         backup_file("conf_backup_#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar")
 
-      commandline = [ScriptUtils.get_script_file("backup_xroad.sh"), tarfile]
+      commandline = [
+        ScriptUtils.get_script_file(backup_script_name), backup_command_options,
+        # Encode the file name because we pass all the data in base64.
+        "-f #{Base64.strict_encode64(tarfile)}"
+      ]
 
       Rails.logger.info("Running configuration backup with command "\
                   "'#{commandline}'")
@@ -90,13 +95,21 @@ module CommonUi
       return $?.exitstatus, console_output_lines, tarfile
     end
 
-    def restore(conf_file, &success_handler)
+    # Execute the given restore command with the given options that depend on
+    # the type of server.
+    def restore(
+      restore_script_name, restore_command_options, conf_file, &success_handler)
       if backup_files[conf_file].nil?
         raise "Backup file does not exist"
       end
 
+      tarfile = backup_file(conf_file)
       commandline = [
-        ScriptUtils.get_script_file("restore_xroad.sh"), backup_file(conf_file) ]
+        ScriptUtils.get_script_file(restore_script_name),
+        restore_command_options,
+        # Encode the file name because we pass all the data in base64.
+        "-f #{Base64.strict_encode64(tarfile)}"
+      ]
 
       lockfile = try_restore_lock
 

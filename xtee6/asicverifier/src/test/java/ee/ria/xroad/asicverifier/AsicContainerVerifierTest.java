@@ -27,7 +27,7 @@ import static ee.ria.xroad.common.ErrorCodes.*;
  */
 @RunWith(Parameterized.class)
 @RequiredArgsConstructor
-@Ignore(value = "Test data must be updated -- protocolVersion header field is required")
+@Ignore(value = "Test data must be updated to conform to the latest changes in X-Road message headers")
 public class AsicContainerVerifierTest {
 
     private final String containerFile;
@@ -60,18 +60,18 @@ public class AsicContainerVerifierTest {
     @Parameters(name = "{index}: verify(\"{0}\") should throw \"{1}\"")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                // TODO {"valid-signed-message.asice", null},
-                // TODO {"valid-signed-hashchain.asice", null},
-                // TODO {"valid-batch-ts.asice", null},
+                {"valid-signed-message.asice", null},
+                {"valid-signed-hashchain.asice", null},
+                {"valid-batch-ts.asice", null},
                 {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
                 {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
                 {"invalid-signed-hashchain.asice",
                     X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                /* TODO {"invalid-hashchain-modified-message.asice",
-                    X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},*/
+                {"invalid-hashchain-modified-message.asice",
+                    X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
                 // This verification actually passes, since the hash chain
                 // is not verified and the signature is correct otherwise
-                // TODO {"invalid-not-signed-hashchain.asice", null},
+                {"invalid-not-signed-hashchain.asice", null},
                 {"invalid-incorrect-references.asice", X_MALFORMED_SIGNATURE},
                 {"invalid-ts-hashchainresult.asice", X_MALFORMED_SIGNATURE}
         });
@@ -83,7 +83,6 @@ public class AsicContainerVerifierTest {
      */
     @Test
     public void test() throws Exception {
-        // TODO fix test data -- generate new messages with updated certificates
         thrown.expectError(errorCode);
         verify(containerFile);
     }

@@ -5,6 +5,8 @@ development:
   username: centerui
   password: centerui
   database: centerui_development
+  host: localhost
+  port: 5432
 
   # XXX: Comment following lines in and use proper port for quick
   # access to iks2-central or some other machine other than Your own

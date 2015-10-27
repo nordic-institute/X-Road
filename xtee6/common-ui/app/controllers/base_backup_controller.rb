@@ -40,6 +40,10 @@ class BaseBackupController < ApplicationController
   def download
     authorize!(:backup_configuration)
 
+    validate_params({
+      :tarfile => [:required]
+    })
+
     unless CommonUi::BackupUtils.backup_files[params[:tarfile]]
       raise "Backup file does not exist"
     end
@@ -54,7 +58,8 @@ class BaseBackupController < ApplicationController
 
     authorize!(:backup_configuration)
 
-    exitcode, output, filename = CommonUi::BackupUtils.backup
+    exitcode, output, filename = CommonUi::BackupUtils.backup(
+      backup_script_name(), backup_script_options())
 
     audit_log_data[:backupFileName] = filename
 
@@ -74,11 +79,17 @@ class BaseBackupController < ApplicationController
 
     authorize!(:restore_configuration)
 
+    validate_params({
+      :fileName => [:required]
+    })
+
+    script_options = restore_script_options()
     before_restore
 
     audit_log_data[:backupFileName] = params[:fileName]
 
-    exitcode, output, filename = CommonUi::BackupUtils.restore(params[:fileName]) do
+    exitcode, output, filename = CommonUi::BackupUtils.restore(
+      restore_script_name(), script_options, params[:fileName]) do
       after_restore
     end
 
@@ -102,6 +113,10 @@ class BaseBackupController < ApplicationController
 
     authorize!(:backup_configuration)
 
+    validate_params({
+      :fileName => [:required]
+    })
+
     filename = CommonUi::BackupUtils.delete_file(params[:fileName])
 
     audit_log_data[:backupFileName] = filename
@@ -118,6 +133,10 @@ class BaseBackupController < ApplicationController
     audit_log("Upload backup file", audit_log_data = {})
 
     authorize!(:backup_configuration)
+
+    validate_params({
+      :file_upload => [:required]
+    })
 
     filename = CommonUi::BackupUtils.upload_new_file(params[:file_upload])
 

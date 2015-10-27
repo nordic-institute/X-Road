@@ -58,6 +58,7 @@ final class Utils {
         if (verbose) {
             System.out.println(padding + "Id:        " + key.getId());
             System.out.println(padding + "Name:      " + key.getFriendlyName());
+            System.out.println(padding + "Label:     " + key.getLabel());
             System.out.println(padding + "Usage:     " + key.getUsage());
             System.out.println(padding + "Available: " + key.isAvailable());
 

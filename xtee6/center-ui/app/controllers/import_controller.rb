@@ -53,21 +53,19 @@ class ImportController < ApplicationController
   def import_v5_data
     authorize!(:execute_v5_import)
 
-    file_param = params[:file_upload]
-
-    if !file_param || !file_param.original_filename
-      raise t("common.filename_empty")
-    end
+    validate_params({
+      :file_upload => [:required]
+    })
 
     CommonUi::UploadedFile::Validator.new(
-        file_param,
+        params[:file_upload],
         GzipFile::Validator.new,
         GzipFile::restrictions).validate()
 
-    data_file = write_imported_file(file_param)
+    data_file = write_imported_file(params[:file_upload])
 
     exit_status = execute_clients_importer(
-        data_file, file_param.original_filename)
+        data_file, params[:file_upload].original_filename)
 
     V5DataImportStatus.write(data_file, exit_status)
 

@@ -2,9 +2,12 @@
 
 TMP=`mktemp -d`
 
+# FIXME: error handling
+DUMP_FILE=$1
+
 cd $TMP
-sed   '/-- Data/q' /var/lib/xroad/dbdump.dat > head
-sed -e '1,/-- Data/d' /var/lib/xroad/dbdump.dat  > body
+sed   '/-- Data/q' ${DUMP_FILE} > head
+sed -e '1,/-- Data/d' ${DUMP_FILE}  > body
 sed -i -e "{s/\(^COPY \(.*\) (.*$\)/truncate table \2 cascade;\n\1/}" body
 grep "DISABLE TRIGGER ALL" body > head2
 grep "truncate table" body > head3

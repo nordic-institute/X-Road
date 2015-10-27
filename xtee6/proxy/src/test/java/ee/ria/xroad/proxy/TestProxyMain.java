@@ -94,7 +94,7 @@ public final class TestProxyMain {
                 client.getWsdl().add(createWsdl(client, j));
             }
 
-            // TODO add acl
+            // add acl ...
         }
 
         return client;

@@ -13,6 +13,10 @@ import org.bouncycastle.cert.X509CertificateHolder;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
+import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -194,28 +198,6 @@ class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
-    public String getProviderAddress(X509Certificate authCert)
-            throws Exception {
-        if (authCert == null) {
-            return null;
-        }
-
-        byte[] inputCertHash = certHash(authCert);
-
-        for (SharedParameters p : getSharedParameters()) {
-            for (SecurityServerType securityServer : p.getSecurityServers()) {
-                for (byte[] hash : securityServer.getAuthCertHash()) {
-                    if (Arrays.equals(inputCertHash, hash)) {
-                        return securityServer.getAddress();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    @Override
     public Collection<String> getProviderAddress(ClientId clientId) {
         if (clientId == null) {
             return null;
@@ -386,26 +368,51 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Set<SecurityCategoryId> getProvidedCategories(
             X509Certificate authCert) throws Exception {
-        // TODO TBD; Currently returning an empty set.
+        // Currently not implemented.
         return new HashSet<>();
     }
 
     @Override
-    public ClientId getSubjectName(String instanceIdentifier,
+    public Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getApprovedCAs()
+            .stream()
+            .map(ca ->
+                new ApprovedCAInfo(
+                    ca.getName(),
+                    ca.isAuthenticationOnly(),
+                    ca.getCertificateProfileInfo()
+                )
+            )
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
-        X509Certificate caCert = getCaCert(instanceIdentifier, cert);
-
-        SharedParameters p = getSharedParameters(instanceIdentifier);
-
-        IdentifierDecoderType decoder =
-                p.getCaCertsAndIdentifierDecoders().get(caCert);
-        if (decoder != null) {
-            return p.getSubjectName(cert, decoder);
+        if (!CertUtils.isAuthCert(cert)) {
+            throw new IllegalArgumentException(
+                    "Certificate must be authentication certificate");
         }
 
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Could not find name extractor for certificate "
-                        + cert.getSubjectX500Principal().getName());
+        return getCertProfile(
+            parameters.getServerId().getXRoadInstance(), cert
+        ).getAuthCertProfile(parameters);
+    }
+
+    @Override
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        if (!CertUtils.isSigningCert(cert)) {
+            throw new IllegalArgumentException(
+                    "Certificate must be signing certificate");
+        }
+
+        return getCertProfile(
+            parameters.getClientId().getXRoadInstance(), cert
+        ).getSignCertProfile(parameters);
     }
 
     @Override
@@ -575,5 +582,21 @@ class GlobalConfImpl implements GlobalConfProvider {
         return Arrays.stream(instanceIdentifiers)
                 .map(this::getSharedParameters)
                 .collect(Collectors.toList());
+    }
+
+    private CertificateProfileInfoProvider getCertProfile(
+            String instanceIdentifier, X509Certificate cert) throws Exception {
+        X509Certificate caCert = getCaCert(instanceIdentifier, cert);
+        SharedParameters p = getSharedParameters(instanceIdentifier);
+
+        String certProfileProviderClass =
+                p.getCaCertsAndCertProfiles().get(caCert);
+        if (StringUtils.isBlank(certProfileProviderClass)) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not find certificate profile info for certificate "
+                            + cert.getSubjectX500Principal().getName());
+        }
+
+        return new GetCertificateProfile(certProfileProviderClass).instance();
     }
 }

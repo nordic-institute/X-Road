@@ -77,7 +77,8 @@ class DistributedFiles < ActiveRecord::Base
 
   # Gets configuration parts as hash including:
   # :content_identifier, :file_name, :updated_at and :optional.
-  def self.get_configuration_parts_as_json(source_type)
+  def self.get_configuration_parts_as_json(
+      source_type, optional_part_error_callback = nil)
     source_external =
         ConfigurationSource::SOURCE_TYPE_EXTERNAL.eql?(source_type)
 
@@ -89,7 +90,8 @@ class DistributedFiles < ActiveRecord::Base
     result = get_required_configuration_parts_as_json(
         INTERNAL_SOURCE_REQUIRED_CONTENT_IDENTIFIERS)
 
-    result.push(*get_optional_configuration_parts_as_json())
+    result.push(*get_optional_configuration_parts_as_json(
+        optional_part_error_callback))
 
     return result
   end
@@ -166,10 +168,11 @@ class DistributedFiles < ActiveRecord::Base
     return result
   end
 
-  def self.get_optional_configuration_parts_as_json()
+  def self.get_optional_configuration_parts_as_json(error_callback = nil)
     result = []
 
-    get_optional_parts_conf().getAllParts().each do |conf_part|
+    optional_parts_conf = get_optional_parts_conf
+    optional_parts_conf.getAllParts.each do |conf_part|
       file_name = conf_part.fileName
       content_identifier = conf_part.contentIdentifier
 
@@ -188,6 +191,8 @@ class DistributedFiles < ActiveRecord::Base
       result << get_configuration_part_as_json(
           content_identifier, file_name, update_time, true)
     end
+
+    error_callback.call(optional_parts_conf.getErrors) if error_callback
 
     return result
   end

@@ -51,6 +51,11 @@ subprojects {
         testCompile 'junit:junit:4.11'
 
         provided 'org.projectlombok:lombok:1.14.8'
+
+        pmd(
+            'net.sourceforge.pmd:pmd-core:5.3.3',
+            'net.sourceforge.pmd:pmd-java:5.3.3'
+        )
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -103,6 +108,13 @@ subprojects {
 
     pmd {
         ignoreFailures = true
+        toolVersion = '5.3.3'
+        ruleSets = [
+                "java-basic", 
+                "java-imports",
+                "java-sunsecure", 
+                "java-unusedcode"
+                ]
     }
 }
 

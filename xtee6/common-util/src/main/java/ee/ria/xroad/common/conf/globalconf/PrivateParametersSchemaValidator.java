@@ -16,7 +16,7 @@ public class PrivateParametersSchemaValidator extends SchemaValidator {
     private static Schema schema;
 
     static {
-        schema = createSchema("globalconf/internal-conf.xsd");
+        schema = createSchema("globalconf/private-parameters.xsd");
     }
 
     /**

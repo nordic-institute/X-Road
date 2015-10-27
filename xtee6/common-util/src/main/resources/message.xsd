@@ -40,12 +40,12 @@
             <xs:documentation>Encapsulates SOAP message header.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="client" type="id:XroadClientIdentifierType">
+            <xs:element name="client" type="id:XRoadClientIdentifierType">
                 <xs:annotation>
                     <xs:documentation>XROAD identifier for client of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="service" type="id:XroadServiceIdentifierType">
+            <xs:element name="service" type="id:XRoadServiceIdentifierType">
                 <xs:annotation>
                     <xs:documentation>XROAD identifier of the service.</xs:documentation>
                 </xs:annotation>

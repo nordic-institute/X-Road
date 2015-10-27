@@ -4,12 +4,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
@@ -97,35 +99,37 @@ public class GetAuthKeyRequestHandler
 
         if (!certInfo.isActive()) {
             log.trace("Ignoring inactive authentication certificate {}",
-                    cert.getSubjectX500Principal().getName());
+                    CertUtils.identify(cert));
             return false;
         }
 
         if (!isRegistered(certInfo.getStatus())) {
             log.trace("Ignoring non-registered ({}) authentication certificate"
-                    + " {}", certInfo.getStatus(),
-                    cert.getSubjectX500Principal().getName());
+                    + " {}", certInfo.getStatus(), CertUtils.identify(cert));
             return false;
         }
 
+        SecurityServerId serverIdFromConf = GlobalConf.getServerId(cert);
         try {
             cert.checkValidity();
 
-            if (securityServer.equals(GlobalConf.getServerId(cert))) {
+            if (securityServer.equals(serverIdFromConf)) {
                 verifyOcspResponse(securityServer.getXRoadInstance(), cert,
                         certInfo.getOcspBytes());
                 return true;
             }
         } catch (Exception e) {
             log.warn("Ignoring authentication certificate '{}' because: {}",
-                    cert.getSubjectX500Principal().getName(),
+                    CertUtils.identify(cert),
                     e.getMessage());
+            return false;
         }
 
         log.trace("Ignoring authentication certificate {} because it does "
-                + "not belong to security server {}",
-                cert.getSubjectX500Principal().getName(),
-                securityServer);
+                + "not belong to security server {} "
+                + "(server id from global conf: {})", new Object[] {
+                        CertUtils.identify(cert),
+                        securityServer, serverIdFromConf});
         return false;
     }
 

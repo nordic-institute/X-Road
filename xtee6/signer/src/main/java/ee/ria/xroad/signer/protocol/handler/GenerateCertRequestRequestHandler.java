@@ -2,6 +2,7 @@ package ee.ria.xroad.signer.protocol.handler;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.security.PublicKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +13,7 @@ import akka.actor.UntypedActor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
@@ -78,13 +80,33 @@ public class GenerateCertRequestRequestHandler
                 message.getKeyUsage());
 
         return new GenerateCertRequestResponse(certReqId,
-                generatedRequest.getEncoded());
+                convert(generatedRequest, message.getFormat()),
+                message.getFormat());
     }
 
     private static PublicKey readPublicKey(String publicKeyBase64)
             throws Exception {
-        byte[] publicKeyBytes = decodeBase64(publicKeyBase64);
-        return readX509PublicKey(publicKeyBytes);
+        return readX509PublicKey(decodeBase64(publicKeyBase64));
+    }
+
+    private static byte[] convert(PKCS10CertificationRequest request,
+            GenerateCertRequest.RequestFormat format) throws Exception {
+        switch (format) {
+            case PEM:
+                return toPem(request);
+            default:
+                return request.getEncoded(); // DER
+        }
+    }
+
+    private static byte[] toPem(PKCS10CertificationRequest req)
+            throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (PEMWriter pw = new PEMWriter(new OutputStreamWriter(out))) {
+            pw.writeObject(req);
+        }
+
+        return out.toByteArray();
     }
 
     private class TokenContentSigner implements ContentSigner {

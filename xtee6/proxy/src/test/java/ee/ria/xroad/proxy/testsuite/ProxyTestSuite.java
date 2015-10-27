@@ -58,6 +58,7 @@ public final class ProxyTestSuite {
         System.setProperty(
                 SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE,
                 "src/test/serverproxy.xml");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         setUp();
 
@@ -112,7 +113,6 @@ public final class ProxyTestSuite {
         ServerConf.reload(new TestServerConf());
         GlobalConf.reload(new TestGlobalConf());
 
-        System.setProperty(SystemProperties.ASYNC_DB_PATH, "build/asyncdb");
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(
                 SystemProperties.DATABASE_PROPERTIES,

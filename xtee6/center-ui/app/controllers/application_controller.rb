@@ -45,6 +45,10 @@ class ApplicationController < BaseController
   def set_locale
     audit_log("Set UI language", audit_log_params = {})
 
+    validate_params({
+      :locale => [:required]
+    })
+
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
     end
@@ -149,13 +153,6 @@ class ApplicationController < BaseController
     )
   end
 
-  def get_uploaded_file_param
-    params.each do |each_key, each_value|
-      logger.debug("Inspecting value for key '#{each_key}'")
-      return each_value if each_value.is_a?(ActionDispatch::Http::UploadedFile)
-    end
-  end
-
   def render_details_visibility(privilege)
     render_json_without_messages({:can => can?(privilege)})
   end
@@ -190,10 +187,18 @@ class ApplicationController < BaseController
     @ha_node_name = CommonSql.ha_node_name
   end
 
+  def validate_cert(uploaded_file)
+    validate_any_cert(uploaded_file, CertValidator.new)
+  end
+
   def validate_auth_cert(uploaded_file)
+    validate_any_cert(uploaded_file, AuthCertValidator.new)
+  end
+
+  def validate_any_cert(uploaded_file, validator)
     CommonUi::UploadedFile::Validator.new(
         uploaded_file,
-        AuthCertValidator.new).validate
+        validator).validate
   end
 
   class CentralServerId

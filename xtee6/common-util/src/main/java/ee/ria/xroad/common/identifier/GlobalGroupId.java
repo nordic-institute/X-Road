@@ -13,7 +13,7 @@ public final class GlobalGroupId extends AbstractGroupId {
     }
 
     private GlobalGroupId(String xRoadInstance, String groupCode) {
-        super(XroadObjectType.GLOBALGROUP, xRoadInstance, groupCode);
+        super(XRoadObjectType.GLOBALGROUP, xRoadInstance, groupCode);
     }
 
     /**

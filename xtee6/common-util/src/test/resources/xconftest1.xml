@@ -56,17 +56,6 @@
             <fingerprint>0B:A4:E1:74:46:7E:68:EC:07:FF:4D:BB:77:2D:89:47:2E:2C:1B:1C</fingerprint>
             <fingerprint>E2:32:69:CE:46:B3:EC:CE:67:99:CA:20:84:92:63:D1:71:15:ED:EE</fingerprint>
         </registered_certs>
-        <async>
-            <maxsenders>
-                1000
-            </maxsenders>
-            <basedelay>
-                300
-            </basedelay>
-            <maxdelay>
-                18000
-            </maxdelay>
-        </async>
         <intkey>
             MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDQmHTykDtT0b4kY7Onx+Zi5TTitsRCL6kr507ulrSXe4WVBexmmLO4CjWPO5AEXskYSP8Xi7Fg/A1BYCUhExPmFRnawCAtSJrcFjb6addA9NLsh7WwQ/7eLDlmujiHAmtMUKXDdubKSFzs4SWgY5u5oV9Fu5+pG0x3gKJsywkX9P9CChRzJ305jh2GpdQRub3NoEOlOuqY1WYdSOuBx/ks/y92UGfeI3Nw45OqFEA2FhL1iVSXQP4vy48gnxzNrcBXDtKUhfd5pxZKxT7q2nJjOjFXuOQGJ1F6sdLrBenwuaa3VETFCfztQbhTPFmO55I4Ed2xgrrF1kf7/tzzxs9fAgMA//8CggEBAMOnUo/5Qe6PD5O3K2/Q2XKpiDURO8OD8YNEVnf0yFVBS3si6m7hNqocFXpuizH0jTgZZ4RgJX4pxySRr0Tl5rbbj3yRYn97seORpaCjOG2ATvny/6fUXniHGVnokf+Lj2lCqcywaYYyR4Lha6kMNlLho3rORr3mfa4v0Ag0s7svbhjey2rulHJbhCeVBUB/EIs8jOS5yhla6QhQErrvvbCbr+kwx3G8tJM73s4oRrHLuNQZ608RXJsy9QTx9guJ/tCm7sl/wxuCLOh7zyX3eSK2F9XTzShp8ubS/imsjCw8EwdVYLWL7p5usRElpwhN6bSjtwukdVAf01mublOLxkcCgYEA/DBxjq6ZohJCOc4cHEPxXKGSZxvBiBRdjSa4QlhsvKeyVYMs7Z+mZ6hz4R8c58KXo1qOh2rpdL4urSPcXJhb9RaqfZWCNtZGpIiADS4rXjq6vz+LjxJJ6KZp6zt4zAEynS+RZrLhVmFyoLGbAfz/MVE31UX1Qu+EutS35LXh5t0CgYEA079gpYkaMz8Fv5zUrPceQFhe5k+SoCLRtvtO+kDFMh0ZcfjEAT44iIBE5xq1eXAFOfMxHMoHoGRYxzVXtZG40KRfl47mqNaF7M29g45c3NiHBVBFhfGO+lHEYNFBKtj3vCHnVhBHkruJP2TfhpQQx1NM6yv22EFsmJPq0rAtBWsCgYEA0dQkH2nWjxYeHfRhicn1WBZqRKH1jGz2LwnZMlSCdQ0/xrOVkh558xKz1I7WfI589s+sC8l4nLFkyUTyeiDiC3HyNcUdhzuZLDgaOpGXeNL3+V0ZO5fkBCyRpuA3JntZlu+Num8pOSb3JThKf1b9rgcQKkuKFkYcxgsIN5un2tsCgYA2vm3L2YjGjm6b4ziC2/oHHp/PbJvV0DZF46hjrQhoKBwPKh5ebKNsNY2FyNZ5dqZgjLbcJzs1+4dLL56XiH7vN54KPbTxlT9+4wOEuV/NXCvsVJf949wZpSNJJwJfBSy5KQEGqgYa/mTO73QVL/aybsSOhRE7I80mE0vFud+tiQKBgGmYNneadTSp58HtkPwXta/p3FxrsUFBOMxW7CcLLrnDEMi0KVjelsxIrwy1D8axau/t4d0v0AELsmcy0j0cNQ0PqN8ttNxj67enb4KruAKvFMj3ICjsM6piJxh8Xujv6oWeBe61sX8y/haeFdfYv3tvk1uRVnP9OF/+3CqU/4UG
         </intkey>

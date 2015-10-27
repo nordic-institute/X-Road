@@ -27,7 +27,6 @@ import ee.ria.xroad.common.PortNumbers;
 /**
  * Contains utility methods for getting OCSP responses for certificates.
  */
-// TODO use POST method since there might be many hashes and query string has limit
 public final class CertHashBasedOcspResponderClient {
 
     private static final Logger LOG =

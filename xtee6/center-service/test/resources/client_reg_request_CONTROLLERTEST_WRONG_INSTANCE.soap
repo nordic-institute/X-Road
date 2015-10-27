@@ -16,7 +16,6 @@
     </xroad:service>
     <xroad:userId>proxyUi</xroad:userId>
     <xroad:id>9b2fa334-c227-4439-8a80-e22c87317196</xroad:id>
-    <xroad:async>false</xroad:async>
   </SOAP-ENV:Header>
   <SOAP-ENV:Body>
     <xroad:clientReg>

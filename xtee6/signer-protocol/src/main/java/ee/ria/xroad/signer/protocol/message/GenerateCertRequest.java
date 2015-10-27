@@ -13,6 +13,14 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 @Value
 public class GenerateCertRequest implements Serializable {
 
+    /**
+     * Specifies the cert request format to return.
+     */
+    public enum RequestFormat {
+        PEM,
+        DER
+    }
+
     private final String keyId;
 
     private final ClientId memberId;
@@ -20,5 +28,7 @@ public class GenerateCertRequest implements Serializable {
     private final KeyUsageInfo keyUsage;
 
     private final String subjectName;
+
+    private final RequestFormat format;
 
 }

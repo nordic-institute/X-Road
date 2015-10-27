@@ -2,9 +2,7 @@ package ee.ria.xroad.common.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPException;
@@ -18,6 +16,7 @@ import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.ExpectedCodedException;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
@@ -98,30 +97,6 @@ public class SoapMessageTest {
         assertEquals(expectedService, message.getService());
         assertEquals("EE37702211234", message.getUserId());
         assertEquals("1234567890", message.getQueryId());
-    }
-
-    /**
-     * Test that reading a normal async request message is successful and that
-     * header and body are correctly parsed.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void asyncMessage() throws Exception {
-        SoapMessageImpl message = createRequest("async.query");
-
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "getState");
-
-        assertTrue(message.isRequest());
-        assertTrue(message.isAsync());
-        assertEquals(expectedClient, message.getClient());
-        assertEquals(expectedService, message.getService());
-        assertEquals("EE:PIN:abc4567", message.getUserId());
-        assertEquals("411d6755661409fed365ad8135f8210be07613da",
-                message.getQueryId());
     }
 
     /**
@@ -211,8 +186,10 @@ public class SoapMessageTest {
     @Test
     public void invalidContentType() throws Exception {
         thrown.expectError(X_INVALID_CONTENT_TYPE);
-        new SoapParserImpl().parse("text/html", StandardCharsets.UTF_8.name(),
-                new FileInputStream(QUERY_DIR + "simple.query"));
+        try (FileInputStream in =
+                new FileInputStream(QUERY_DIR + "simple.query")) {
+            new SoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF_8, in);
+        }
     }
 
     /**
@@ -224,6 +201,7 @@ public class SoapMessageTest {
         String soapFaultXml = SoapFault.createFaultXml(
                 "foo.bar", "baz", "xxx", "yyy");
         Soap message = new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
@@ -314,7 +292,8 @@ public class SoapMessageTest {
         assertEquals(service, built.getService());
 
         Soap parsedSoap = new SoapParserImpl().parse(
-                        new ByteArrayInputStream(built.getBytes()));
+                built.getContentType(),
+                new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         SoapMessageImpl parsed = (SoapMessageImpl) parsedSoap;
@@ -333,7 +312,8 @@ public class SoapMessageTest {
         assertEquals(centralService, built.getService());
 
         parsedSoap = new SoapParserImpl().parse(
-                        IOUtils.toInputStream(built.getXml()));
+                built.getContentType(),
+                IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -423,4 +403,14 @@ public class SoapMessageTest {
         createRequest("wrong-version.query");
     }
 
+    @Test
+    public void getRequestIdFromManagementServiceResponse() throws Exception {
+        SoapMessageImpl response =
+                createResponse("response-with-requestId.answer");
+
+        Integer requestId = SoapUtils.getRequestIdInCentralDatabase(response);
+
+        Integer expectedRequestId = 413;
+        assertEquals(expectedRequestId, requestId);
+    }
 }

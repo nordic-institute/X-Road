@@ -3,6 +3,7 @@ package ee.ria.xroad.proxyui;
 import java.security.cert.X509Certificate;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -14,6 +15,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
@@ -44,7 +46,6 @@ public class GlobalConfChecker implements Job {
         GlobalConf.verifyValidity();
 
         log.debug("Reloading globalconf");
-
         GlobalConf.reload(); // XXX: temporary fix
 
         updateAuthCertStatuses(doInTransaction(session -> {
@@ -69,13 +70,13 @@ public class GlobalConfChecker implements Job {
 
     private void updateClientStatuses(ServerConfType serverConf,
             SecurityServerId securityServerId) throws Exception {
-        log.debug("updating client statuses");
+        log.debug("Updating client statuses");
 
         for (ClientType client : serverConf.getClient()) {
             boolean registered = GlobalConf.isSecurityServerClient(
                     client.getIdentifier(), securityServerId);
 
-            log.debug("client '{}' registered = '{}'", client.getIdentifier(),
+            log.debug("Client '{}' registered = '{}'", client.getIdentifier(),
                     registered);
 
             if (registered && client.getClientStatus() != null) {
@@ -87,12 +88,12 @@ public class GlobalConfChecker implements Job {
                     case ClientType.STATUS_REGINPROG: // FALL-THROUGH
                     case ClientType.STATUS_GLOBALERR:
                         client.setClientStatus(ClientType.STATUS_REGISTERED);
-                        log.debug("setting client '{}' status to '{}'",
+                        log.debug("Setting client '{}' status to '{}'",
                                 client.getIdentifier(),
                                 client.getClientStatus());
                         break;
                     default:
-                        log.warn("unexpected status {} for client '{}'",
+                        log.warn("Unexpected status {} for client '{}'",
                                 client.getIdentifier(),
                                 client.getClientStatus());
                 }
@@ -102,7 +103,7 @@ public class GlobalConfChecker implements Job {
                     client.getClientStatus())) {
                 client.setClientStatus(ClientType.STATUS_GLOBALERR);
 
-                log.debug("setting client '{}' status to '{}'",
+                log.debug("Setting client '{}' status to '{}'",
                         client.getIdentifier(), client.getClientStatus());
             }
         }
@@ -110,7 +111,7 @@ public class GlobalConfChecker implements Job {
 
     private void updateAuthCertStatuses(SecurityServerId securityServerId)
             throws Exception {
-        log.debug("updating auth cert statuses");
+        log.debug("Updating auth cert statuses");
 
         SignerProxy.getTokens().stream().flatMap(t -> t.getKeyInfo().stream())
             .filter(k -> KeyUsageInfo.AUTHENTICATION.equals(k.getUsage()))
@@ -139,25 +140,24 @@ public class GlobalConfChecker implements Job {
                 case CertificateInfo.STATUS_SAVED:
                 case CertificateInfo.STATUS_REGINPROG:
                 case CertificateInfo.STATUS_GLOBALERR:
-                    log.debug("setting certificate '{}' status to '{}'",
-                            cert.getIssuerDN() + " " + cert.getSerialNumber(),
+                    log.debug("Setting certificate '{}' status to '{}'",
+                            CertUtils.identify(cert),
                             CertificateInfo.STATUS_REGISTERED);
 
                     SignerProxy.setCertStatus(certInfo.getId(),
                             CertificateInfo.STATUS_REGISTERED);
                     break;
                 default:
-                    log.warn("unexpected status '{}' for certificate '{}'",
-                            certInfo.getStatus(),
-                            cert.getIssuerDN() + " " + cert.getSerialNumber());
+                    log.warn("Unexpected status '{}' for certificate '{}'",
+                            certInfo.getStatus(), CertUtils.identify(cert));
             }
 
         }
 
         if (!registered && CertificateInfo.STATUS_REGISTERED.equals(
                 certInfo.getStatus())) {
-            log.debug("setting certificate '{}' status to '{}'",
-                    cert.getIssuerDN() + " " + cert.getSerialNumber(),
+            log.debug("Setting certificate '{}' status to '{}'",
+                    CertUtils.identify(cert),
                     CertificateInfo.STATUS_GLOBALERR);
 
             SignerProxy.setCertStatus(certInfo.getId(),

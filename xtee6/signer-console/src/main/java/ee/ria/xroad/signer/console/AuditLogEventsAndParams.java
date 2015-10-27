@@ -13,7 +13,8 @@ final class AuditLogEventsAndParams {
             "Activate the certificate";
     static final String DEACTIVATE_THE_CERTIFICATE_EVENT =
             "Deactivate the certificate";
-    static final String DELETE_THE_KEY_EVENT = "Delete the key";
+    // NB! Key deletion from token is supported only.
+    static final String DELETE_THE_KEY_EVENT = "Delete the key from token";
     static final String DELETE_THE_CERT_EVENT = "Delete the certificate";
     static final String DELETE_THE_CERT_REQUEST_EVENT =
             "Delete the certificate request";
@@ -25,13 +26,14 @@ final class AuditLogEventsAndParams {
     static final String GENERATE_A_KEY_ON_THE_TOKEN_EVENT =
             "Generate a key on the token";
     static final String GENERATE_A_CERT_REQUEST_EVENT =
-            "Generate a certificate request";
+            "Generate CSR";
     static final String IMPORT_A_CERTIFICATE_FROM_THE_FILE =
             "Import a certificate from the file";
 
     static final String TOKEN_ID_PARAM = "tokenId";
     static final String TOKEN_FRIENDLY_NAME_PARAM = "tokenFriendlyName";
     static final String KEY_ID_PARAM = "keyId";
+    static final String KEY_LABEL_PARAM = "keyLabel";
     static final String KEY_FRIENDLY_NAME_PARAM = "keyFriendlyName";
     static final String CERT_ID_PARAM = "certId";
     static final String CERT_REQUEST_ID_PARAM = "certRequestId";
@@ -39,6 +41,7 @@ final class AuditLogEventsAndParams {
     static final String CLIENT_IDENTIFIER_PARAM = "clientIdentifier";
     static final String SUBJECT_NAME_PARAM = "subjectName";
     static final String CERT_FILE_NAME_PARAM = "certFileName";
+    static final String CSR_FORMAT_PARAM = "csrFormat";
 
     private AuditLogEventsAndParams() {
     }

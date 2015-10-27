@@ -77,6 +77,9 @@ class MembersController < ApplicationController
 
     searchable = params[:sSearch]
     security_server_code = params[:securityServerCode]
+    subsystems_only = params[:subsystemsOnly]
+
+    logger.debug("SUBSYSTEMS ONLY = #{subsystems_only}\n\n\n")
 
     query_params = get_list_query_params(
       get_member_search_column(get_sort_column_no))
@@ -85,9 +88,12 @@ class MembersController < ApplicationController
         get_advanced_search_params(params[:advancedSearchParams])
 
     providers = SecurityServerClient.get_addable_clients_for_server(
-        security_server_code, query_params, advanced_search_params)
+        security_server_code, query_params, advanced_search_params,
+        subsystems_only)
+
     count = SecurityServerClient.get_addable_clients_count(
-        security_server_code, searchable, advanced_search_params)
+        security_server_code, searchable, advanced_search_params,
+        subsystems_only)
 
     result = []
     providers.each do |each|
@@ -109,12 +115,24 @@ class MembersController < ApplicationController
   def owned_servers
     authorize!(:view_member_details)
 
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required]
+    })
+
     member = find_member(params[:memberClass], params[:memberCode])
 
     render_json(get_servers_as_json(member.owned_servers))
   end
 
   def global_groups
+    authorize!(:view_member_details)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required]
+    })
+
     result = get_global_groups_as_json(params[:memberClass],
         params[:memberCode])
 
@@ -124,6 +142,11 @@ class MembersController < ApplicationController
   def subsystems
     authorize!(:view_member_details)
 
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required]
+    })
+
     member = find_member(params[:memberClass], params[:memberCode])
 
     render_json(get_subsystems(member))
@@ -131,6 +154,11 @@ class MembersController < ApplicationController
 
   def used_servers
     authorize!(:view_member_details)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required]
+    })
 
     member = find_member(params[:memberClass], params[:memberCode])
 
@@ -159,6 +187,12 @@ class MembersController < ApplicationController
   def remaining_global_groups
     authorize!(:view_member_details)
 
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => []
+    })
+
     remaining_groups = XroadMember.get_remaining_global_groups(
         params[:memberClass], params[:memberCode], params[:subsystemCode])
 
@@ -177,12 +211,22 @@ class MembersController < ApplicationController
   def get_member_by_id
     authorize!(:view_member_details)
 
+    validate_params({
+      :memberId => [:required]
+    })
+
     member = XroadMember.find(params[:memberId])
     render_json_without_messages(get_all_member_data(member))
   end
 
   def subsystem_codes
     authorize!(:view_member_details)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => []
+    })
 
     member = find_member(params[:memberClass], params[:memberCode])
 
@@ -197,6 +241,12 @@ class MembersController < ApplicationController
     audit_log("Add member", audit_log_data = {})
 
     authorize!(:add_new_member)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :memberName => [:required]
+    })
 
     member_class = params[:memberClass]
     member_code = params[:memberCode]
@@ -222,6 +272,12 @@ class MembersController < ApplicationController
 
     authorize!(:edit_member_name_and_admin_contact)
 
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :memberName => [:required]
+    })
+
     audit_log_data[:memberName] = params[:memberName]
     audit_log_data[:memberClass] = params[:memberClass]
     audit_log_data[:memberCode] = params[:memberCode]
@@ -232,13 +288,20 @@ class MembersController < ApplicationController
         :name => params[:memberName],
         :administrative_contact => params[:adminContact])
 
-    render_json
+    render_json({
+      :name => member_to_update.name
+    })
   end
 
   def delete
     audit_log("Delete member", audit_log_data = {})
 
     authorize!(:delete_member)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required]
+    })
 
     audit_log_data[:memberClass] = params[:memberClass]
     audit_log_data[:memberCode] = params[:memberCode]
@@ -250,10 +313,48 @@ class MembersController < ApplicationController
     render_json({})
   end
 
+  def add_subsystem
+    audit_log("Add subsystem", audit_log_data = {})
+
+    authorize!(:add_member_subsystem)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => [:required]
+    })
+
+    audit_log_data[:memberClass] = params[:memberClass]
+    audit_log_data[:memberCode] = params[:memberCode]
+    audit_log_data[:memberSubsystemCode] = params[:subsystemCode]
+
+    member = find_member(params[:memberClass], params[:memberCode])
+
+    subsystem_exists = Subsystem.where(
+      :xroad_member_id => member.id,
+      :subsystem_code => params[:subsystemCode]).first
+
+    if subsystem_exists
+      raise t("members.subsystem_already_exists",
+        { :subsystem_code => params[:subsystemCode] })
+    end
+
+    Subsystem.create!(
+      :xroad_member => member, :subsystem_code => params[:subsystemCode])
+
+    render_json(get_subsystems(member))
+  end
+
   def delete_subsystem
     audit_log("Delete subsystem", audit_log_data = {})
 
     authorize!(:remove_member_subsystem)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => [:required]
+    })
 
     member = find_member(params[:memberClass], params[:memberCode])
     subsystem = Subsystem.where(:xroad_member_id => member.id,
@@ -270,7 +371,11 @@ class MembersController < ApplicationController
   def import_auth_cert
     authorize!(:add_security_server_reg_request)
 
-    cert_param = get_uploaded_file_param
+    validate_params({
+      :owned_server_cert_upload => [:required]
+    })
+
+    cert_param = params[:owned_server_cert_upload]
     validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
 
@@ -284,6 +389,13 @@ class MembersController < ApplicationController
 
     authorize!(:add_security_server_reg_request)
 
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required],
+      :tempCertId => [:required]
+    })
+
     owner = find_member(params[:ownerClass], params[:ownerCode])
     server_code = params[:serverCode]
 
@@ -295,10 +407,6 @@ class MembersController < ApplicationController
       CommonUi::CertUtils.cert_hash(
         get_temp_cert_from_session(params[:tempCertId]))
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
-
-    if !server_code || server_code.empty?
-      raise t("members.server_code_blank")
-    end
 
     potentially_existing_server = SecurityServer.where(
         :owner_id => owner.id,
@@ -329,6 +437,15 @@ class MembersController < ApplicationController
     audit_log("Register member as security server client", audit_log_data = {})
 
     authorize!(:add_security_server_client_reg_request)
+
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => [],
+      :serverCode => [:required],
+      :ownerClass => [:required],
+      :ownerCode => [:required]
+    })
 
     member_class = params[:memberClass]
     member_code = params[:memberCode]
@@ -381,6 +498,15 @@ class MembersController < ApplicationController
 
     authorize!(:add_security_server_client_reg_request)
 
+    validate_params({
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => [],
+      :serverCode => [:required],
+      :ownerClass => [:required],
+      :ownerCode => [:required]
+    })
+
     member_class = params[:memberClass]
     member_code = params[:memberCode]
 
@@ -424,6 +550,13 @@ class MembersController < ApplicationController
 
     authorize!(:add_and_remove_group_members)
 
+    validate_params({
+      :groupCode => [:required],
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => []
+    })
+
     group_code = params[:groupCode]
     member_class = params[:memberClass]
     member_code = params[:memberCode]
@@ -449,6 +582,13 @@ class MembersController < ApplicationController
     audit_log("Remove member from global group", audit_log_data = {})
 
     authorize!(:add_and_remove_group_members)
+
+    validate_params({
+      :groupCode => [:required],
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => []
+    })
 
     group_code = params[:groupCode]
     member_class = params[:memberClass]

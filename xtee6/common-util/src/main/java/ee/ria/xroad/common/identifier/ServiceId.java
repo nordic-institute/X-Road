@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * Service ID.
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.ServiceIdAdapter.class)
-public class ServiceId extends XroadId {
+public class ServiceId extends XRoadId {
 
     private final String memberClass;
     private final String memberCode;
@@ -18,14 +18,14 @@ public class ServiceId extends XroadId {
         this(null, null, null, null, null, null);
     }
 
-    protected ServiceId(XroadObjectType type, String xRoadInstance,
+    protected ServiceId(XRoadObjectType type, String xRoadInstance,
             String memberClass, String memberCode, String subsystemCode,
             String serviceCode) {
         this(type, xRoadInstance, memberClass, memberCode, subsystemCode,
                 serviceCode, null);
     }
 
-    protected ServiceId(XroadObjectType type, String xRoadInstance,
+    protected ServiceId(XRoadObjectType type, String xRoadInstance,
             String memberClass, String memberCode, String subsystemCode,
             String serviceCode, String serviceVersion) {
         super(type, xRoadInstance);
@@ -151,7 +151,7 @@ public class ServiceId extends XroadId {
         validateField("memberClass", memberClass);
         validateField("memberCode", memberCode);
         validateField("serviceCode", serviceCode);
-        return new ServiceId(XroadObjectType.SERVICE, xRoadInstance, memberClass,
+        return new ServiceId(XRoadObjectType.SERVICE, xRoadInstance, memberClass,
                 memberCode, subsystemCode, serviceCode, serviceVersion);
     }
 }

@@ -38,7 +38,7 @@ public class TestRequest {
         this.service = service;
 
         this.content = new Request(template, client, service, "1234567890",
-                content, false, boundary).toRawContent();
+                content, boundary).toRawContent();
 
         this.description = description;
         this.timeoutSec = timeoutSec;

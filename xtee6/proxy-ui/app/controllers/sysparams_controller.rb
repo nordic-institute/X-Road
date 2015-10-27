@@ -1,4 +1,3 @@
-java_import Java::ee.ria.xroad.asyncdb.AsyncSenderConf
 java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
 
@@ -19,10 +18,6 @@ class SysparamsController < ApplicationController
 
     if can?(:view_tsps)
       sysparams[:tsps] = read_tsps
-    end
-
-    if can?(:view_async_params)
-      sysparams[:async] = read_async_params
     end
 
     if can?(:view_internal_ssl_cert)
@@ -149,24 +144,6 @@ class SysparamsController < ApplicationController
     render_json(read_tsps)
   end
 
-  def async_params_edit
-    authorize!(:edit_async_params)
-
-    validate_params({
-      :base_delay => [:required, :int],
-      :max_delay => [:required, :int],
-      :max_senders => [:required, :int]
-    })
-
-    async_sender_conf = AsyncSenderConf.new
-    async_sender_conf.baseDelay = params[:base_delay].to_i
-    async_sender_conf.maxDelay = params[:max_delay].to_i
-    async_sender_conf.maxSenders = params[:max_senders].to_i
-    async_sender_conf.save
-
-    render_json(read_async_params)
-  end
-
   def internal_ssl_cert_details
     authorize!(:view_internal_ssl_cert)
 
@@ -271,15 +248,5 @@ class SysparamsController < ApplicationController
     end
 
     tsps
-  end
-
-  def read_async_params
-    async_sender_conf = AsyncSenderConf.new
-
-    data = {
-      :base_delay => async_sender_conf.baseDelay,
-      :max_delay => async_sender_conf.maxDelay,
-      :max_senders => async_sender_conf.maxSenders
-    }
   end
 end

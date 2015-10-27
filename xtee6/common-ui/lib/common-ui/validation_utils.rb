@@ -15,6 +15,8 @@ module CommonUi
 
     private
 
+    MAX_PARAM_LENGTH = 255
+
     DEFAULT_VALIDATORS = {
       :action => [],
       :controller => [],
@@ -63,7 +65,7 @@ module CommonUi
       params.each do |param, value|
         unless params_validators.is_a?(Hash) &&
             validators = params_validators[param.to_sym]
-          raise ValidationError.new(param),
+          raise ValidationError.new(param, :unexpected),
             I18n.t('validation.unexpected_param', :param => param)
         end
 
@@ -72,6 +74,11 @@ module CommonUi
         else
           values = value.is_a?(Array) ? value : [value]
           values.each do |value|
+            if value.is_a?(String) && value.length > MAX_PARAM_LENGTH
+              raise ValidationError.new(param, :too_long),
+                I18n.t('validation.too_long_param', :param => param)
+            end
+
             validators.each do |validator|
               AVAILABLE_VALIDATORS[validator].validate(value, param)
             end

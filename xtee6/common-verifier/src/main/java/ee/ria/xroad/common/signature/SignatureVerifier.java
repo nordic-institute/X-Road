@@ -27,6 +27,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
@@ -245,7 +246,10 @@ public class SignatureVerifier {
 
     private static void verifySignerName(ClientId signer,
             X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(signer.getXRoadInstance(),
+        ClientId cn = GlobalConf.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                    signer, signer.getMemberCode()
+                ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
             throw new CodedException(X_INCORRECT_CERTIFICATE,

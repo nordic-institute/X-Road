@@ -86,6 +86,8 @@ module BaseHelper
     result = []
 
     I18n.available_locales.each do |locale|
+      next unless locale == :en
+
       text = t("common.locale_#{locale}", :locale => :en, :short => locale)
       result << [text, locale]
     end

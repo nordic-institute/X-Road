@@ -2,13 +2,13 @@ package ee.ria.xroad.signer;
 
 import java.util.concurrent.TimeUnit;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PeriodicJob;
@@ -33,6 +33,9 @@ public class Signer implements StartStop {
 
     private static final String MODULE_MANAGER_IMPL_CLASS =
             SystemProperties.PREFIX + "signer.moduleManagerImpl";
+
+    private static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
+            Duration.create(60, TimeUnit.SECONDS);
 
     private final ActorSystem actorSystem;
 
@@ -94,11 +97,8 @@ public class Signer implements StartStop {
      */
     private static class ModuleManagerJob extends PeriodicJob {
 
-        private static final FiniteDuration MODULE_MANAGER_INTERVAL =
-                Duration.create(60, TimeUnit.SECONDS);
-
         public ModuleManagerJob() {
-            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_INTERVAL);
+            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
         }
 
         @Override

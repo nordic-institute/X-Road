@@ -11,7 +11,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_KEEP_RECORDS_FOR = 30;
 
-    private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 1800;
+    private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 14400;
 
     private static final int DEFAULT_TIMESTAMP_RECORDS_LIMIT = 10000;
 

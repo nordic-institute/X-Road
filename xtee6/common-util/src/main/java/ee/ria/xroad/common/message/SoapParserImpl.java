@@ -17,6 +17,7 @@ import javax.xml.transform.dom.DOMSource;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import ee.ria.xroad.common.CodedException;
@@ -25,6 +26,7 @@ import ee.ria.xroad.common.util.MimeUtils;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapUtils.*;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
@@ -34,41 +36,25 @@ import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 @Slf4j
 public class SoapParserImpl implements SoapParser {
 
+    private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
+
     @Override
-    public Soap parse(String mimeType, String charset, InputStream is) {
+    public Soap parse(String contentType, InputStream is) {
         try {
-            return parseMessage(mimeType, charset, is);
+            return parseMessage(contentType, is);
         } catch (Exception e) {
             throw translateException(e);
         }
     }
 
-    /**
-     * Parses the given input stream. Returns a Soap object.
-     * @param is the input stream from which to parse the SOAP message
-     * @return a Soap message parsed from the input stream
-     */
-    public Soap parse(InputStream is) {
-        return parse(TEXT_XML, UTF8, is);
-    }
-
-    /**
-     * Parses the given input stream using the provided mime type. Returns a Soap object.
-     * @param contentType expected content-type of the input stream
-     * @param is the input stream from which to parse the SOAP message
-     * @return a Soap message parsed from the input stream
-     */
-    public Soap parse(String contentType, InputStream is) {
+    protected Soap parseMessage(String contentType, InputStream is)
+            throws Exception {
         String mimeType = MimeUtils.getBaseContentType(contentType);
+
         String charset = MimeUtils.getCharset(contentType);
-        return parse(mimeType, charset, is);
-    }
+        charset = StringUtils.isNotBlank(charset) ? charset : UTF8;
 
-    protected Soap parseMessage(String mimeType, String charset,
-            InputStream is) throws Exception {
-        String theCharset = StringUtils.isNotBlank(charset) ? charset : UTF8;
-
-        log.trace("parseMessage({}, {})", mimeType, theCharset);
+        log.trace("parseMessage({}, {})", mimeType, charset);
 
         // We need to keep the original XML around for various logging reasons.
         byte[] rawXml = IOUtils.toByteArray(is);
@@ -80,12 +66,12 @@ public class SoapParserImpl implements SoapParser {
         }
 
         SOAPMessage soap =
-                createSOAPMessage(new ByteArrayInputStream(rawXml), theCharset);
-        return parseMessage(rawXml, soap, theCharset);
+                createSOAPMessage(new ByteArrayInputStream(rawXml), charset);
+        return parseMessage(rawXml, soap, charset, contentType);
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,
-            String charset) throws Exception {
+            String charset, String originalContentType) throws Exception {
         if (soap.getSOAPBody() == null) {
             throw new CodedException(X_MISSING_BODY,
                     "Malformed SOAP message: body missing");
@@ -102,12 +88,12 @@ public class SoapParserImpl implements SoapParser {
         if (fault != null) {
             return new SoapFault(fault, rawXml, charset);
         } else {
-            return createMessage(rawXml, soap, charset);
+            return createMessage(rawXml, soap, charset, originalContentType);
         }
     }
 
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-            String charset) throws Exception {
+            String charset, String originalContentType) throws Exception {
         // Request and response messages must have a header,
         // fault messages may or may not have a header.
         SoapHeader header = null;
@@ -116,11 +102,13 @@ public class SoapParserImpl implements SoapParser {
             header = unmarshalHeader(SoapHeader.class, soap.getSOAPHeader());
         }
 
-        return createMessage(rawXml, header, soap, charset);
+        return createMessage(rawXml, header, soap, charset,
+                originalContentType);
     }
 
     protected Soap createMessage(byte[] rawXml, SoapHeader header,
-            SOAPMessage soap, String charset) throws Exception {
+            SOAPMessage soap, String charset, String originalContentType)
+                    throws Exception {
         if (header == null) {
             throw new CodedException(X_MISSING_HEADER,
                     "Malformed SOAP message: header missing");
@@ -139,7 +127,7 @@ public class SoapParserImpl implements SoapParser {
         validateServiceName(service.getServiceCode(), serviceName);
 
         return new SoapMessageImpl(rawXml, charset, header, soap,
-                serviceName);
+                serviceName, originalContentType);
     }
 
     protected void validateAgainstSoapSchema(SOAPMessage soap)
@@ -195,6 +183,13 @@ public class SoapParserImpl implements SoapParser {
         JAXBElement<T> jaxbElement =
                 (JAXBElement<T>) unmarshaller.unmarshal(soapHeader, clazz);
         return jaxbElement.getValue();
+    }
+
+    static void validateMimeType(String mimeType) {
+        if (!ArrayUtils.contains(ALLOWED_MIMETYPES, mimeType.toLowerCase())) {
+            throw new CodedException(X_INVALID_CONTENT_TYPE,
+                    "Invalid content type: %s", mimeType);
+        }
     }
 }
 

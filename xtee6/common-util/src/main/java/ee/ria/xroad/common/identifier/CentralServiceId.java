@@ -13,7 +13,7 @@ public final class CentralServiceId extends ServiceId {
     }
 
     private CentralServiceId(String xRoadInstance, String serviceCode) {
-        super(XroadObjectType.CENTRALSERVICE, xRoadInstance, null, null,
+        super(XRoadObjectType.CENTRALSERVICE, xRoadInstance, null, null,
                 null, serviceCode);
     }
 

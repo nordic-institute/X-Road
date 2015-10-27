@@ -1,12 +1,10 @@
 package ee.ria.xroad.common.request;
 
 import java.util.UUID;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPBody;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +26,10 @@ final class ManagementRequestBuilder {
     private static final ObjectFactory FACTORY = new ObjectFactory();
     private static final JAXBContext JAXB_CTX = initJaxbContext();
 
-    private final String userId;
     private final ClientId sender;
     private final ClientId receiver;
 
-    ManagementRequestBuilder(String userId, ClientId sender,
-            ClientId receiver) {
-        this.userId = userId;
+    ManagementRequestBuilder(ClientId sender, ClientId receiver) {
         this.sender = sender;
         this.receiver = receiver;
     }
@@ -109,23 +104,16 @@ final class ManagementRequestBuilder {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
         header.setService(service);
-        header.setUserId(userId);
         header.setQueryId(generateQueryId());
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
         builder.setRpcEncoded(false); // D/L wrapped
 
-        builder.setCreateBodyCallback(new SoapBuilder.SoapBodyCallback() {
-                /**
-                 * Using a callback for setting SOAP body enables us to
-                 * marshal the content straight into the body element.
-                 */
-                @Override
-                public void create(SOAPBody soapBodyNode) throws Exception {
-                    getMarshaller().marshal(bodyJaxbElement, soapBodyNode);
-                }
-            });
+        // Using a callback for setting SOAP body enables us to
+        // marshal the content straight into the body element.
+        builder.setCreateBodyCallback(soapBodyNode ->
+                getMarshaller().marshal(bodyJaxbElement, soapBodyNode));
 
         return builder.build();
     }
@@ -140,7 +128,7 @@ final class ManagementRequestBuilder {
 
     private static <T> JAXBElement<T> element(String name, Class<T> clazz,
             T value) {
-        return new JAXBElement<T>(new QName(SoapHeader.NS_XROAD, name),
+        return new JAXBElement<>(new QName(SoapHeader.NS_XROAD, name),
                 clazz, null, value);
     }
 

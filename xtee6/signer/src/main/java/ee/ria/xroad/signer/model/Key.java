@@ -33,6 +33,9 @@ public final class Key {
     /** The friendly name of the key. */
     private String friendlyName;
 
+    /** The label of the key. */
+    private String label;
+
     /** The X509 encoded public key. */
     private String publicKey;
 
@@ -63,9 +66,11 @@ public final class Key {
      * @return the value object
      */
     public KeyInfo toDTO() {
-        return new KeyInfo(available, usage, friendlyName, id, publicKey,
-                Collections.unmodifiableList(getCertsAsDTOs()),
-                Collections.unmodifiableList(getCertRequestsAsDTOs()));
+        return new KeyInfo(
+            available, usage, friendlyName, id, label, publicKey,
+            Collections.unmodifiableList(getCertsAsDTOs()),
+            Collections.unmodifiableList(getCertRequestsAsDTOs())
+        );
     }
 
     private List<CertificateInfo> getCertsAsDTOs() {

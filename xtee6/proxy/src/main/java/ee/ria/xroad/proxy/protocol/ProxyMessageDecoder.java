@@ -34,6 +34,7 @@ import ee.ria.xroad.proxy.signedmessage.Verifier;
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeTypes.*;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
@@ -125,7 +126,7 @@ public class ProxyMessageDecoder {
     }
 
     private void parseFault(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SoapParserImpl().parse(MimeUtils.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw new CodedException(X_INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
@@ -256,8 +257,9 @@ public class ProxyMessageDecoder {
                         bd.getMimeType());
             }
 
-            Soap soap = new SoapParserImpl().parse(bd.getMimeType(),
-                    bd.getCharset(), is);
+            Soap soap = new SoapParserImpl().parse(
+                    contentTypeWithCharset(bd.getMimeType(), bd.getCharset()),
+                    is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {

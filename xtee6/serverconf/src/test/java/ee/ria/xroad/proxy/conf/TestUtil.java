@@ -10,7 +10,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XroadId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
@@ -264,10 +264,10 @@ public final class TestUtil {
     }
 
     static AccessRightType createAccessRight(String serviceCode,
-            XroadId xroadId) {
+            XRoadId xRoadId) {
         AccessRightType accessRight = new AccessRightType();
         accessRight.setServiceCode(serviceCode);
-        accessRight.setSubjectId(xroadId);
+        accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());
 
         return accessRight;

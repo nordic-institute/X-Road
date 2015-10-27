@@ -216,14 +216,26 @@ public final class CertUtils {
     }
 
     /**
-     * Returns the RDN value from the X500Name.
+     * @param name the name
+     * @param id the identifier of the value
+     * @return the RDN value from the X500Name.
      */
-    static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
+    public static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
         RDN[] cnList = name.getRDNs(id);
         if (cnList.length == 0) {
             return null;
         }
 
         return IETFUtils.valueToString(cnList[0].getFirst().getValue());
+    }
+
+    /**
+     * Returns string identifying the certificate. The string consists of
+     * the issuer DN and serial number. This method is used for logging purposes.
+     * @param certificate the certificate
+     * @return the string identifying the certificate
+     */
+    public static String identify(X509Certificate certificate) {
+        return certificate.getIssuerDN() + " " + certificate.getSerialNumber();
     }
 }

@@ -15,9 +15,10 @@ import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
-            SOAPMessage soap, String serviceName) throws Exception {
+            SOAPMessage soap, String serviceName,
+            String originalContentType) throws Exception {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
-                isRpcMessage(soap));
+                isRpcMessage(soap), originalContentType);
     }
 
     /**
@@ -42,14 +43,6 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      */
     public CentralServiceId getCentralService() {
         return getHeader().getCentralService();
-    }
-
-    /**
-     * True if the SOAP message is marked as asynchronous.
-     * @return boolean
-     */
-    public boolean isAsync() {
-        return getHeader().isAsync();
     }
 
     /**

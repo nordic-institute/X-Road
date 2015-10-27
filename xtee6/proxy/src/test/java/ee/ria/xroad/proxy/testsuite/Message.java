@@ -22,6 +22,8 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+
 /**
  * Encapsulates a test SOAP message.
  */
@@ -31,6 +33,8 @@ public class Message {
 
     private final List<Map<String, String>> multipartHeaders =
             new ArrayList<>();
+
+    private final String contentType;
 
     private int numAttachments = 0;
 
@@ -47,6 +51,7 @@ public class Message {
             throws Exception {
         log.debug("new Message({})", contentType);
 
+        this.contentType = contentType;
         try {
             MimeConfig config = new MimeConfig();
             config.setHeadlessParsing(contentType);
@@ -127,18 +132,21 @@ public class Message {
         public void body(BodyDescriptor bd, InputStream is)
                 throws MimeException, IOException {
             switch (nextPart) {
-                case 0:
+                case 0: // SOAP
                     try {
-                        soap = new SoapParserImpl().parse(bd.getMimeType(),
-                                bd.getCharset(), is);
+                        soap = new SoapParserImpl().parse(
+                                contentTypeWithCharset(
+                                    bd.getMimeType(),
+                                    bd.getCharset()
+                                ),
+                                is);
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
 
                     nextPart = 1;
                     break;
-                case 1:
-                default:
+                default: // ATTACHMENT
                     numAttachments++;
                     break;
             }

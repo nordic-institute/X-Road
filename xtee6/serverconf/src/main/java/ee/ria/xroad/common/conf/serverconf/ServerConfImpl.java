@@ -29,7 +29,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XroadId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
@@ -255,7 +255,7 @@ public class ServerConfImpl implements ServerConfProvider {
                 continue;
             }
 
-            XroadId subjectId = accessRight.getSubjectId();
+            XRoadId subjectId = accessRight.getSubjectId();
 
             if (subjectId instanceof GlobalGroupId) {
                 if (GlobalConf.isSubjectInGlobalGroup(client,

@@ -503,6 +503,17 @@ public final class TokenManager {
     }
 
     /**
+     * Sets the key label.
+     * @param keyId the key id
+     * @param label the label
+     */
+    public static synchronized void setKeyLabel(String keyId, String label) {
+        log.trace("setKeyLabel({}, {})", keyId, label);
+
+        findKey(keyId).setLabel(label);
+    }
+
+    /**
      * Sets the key usage.
      * @param keyId the key id
      * @param keyUsage the key usage

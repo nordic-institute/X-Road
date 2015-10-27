@@ -40,7 +40,7 @@ public final class UIServices {
 
         LOG.debug("Creating ActorSystem...");
 
-        // TODO this hardcoded configuration should ideally be loaded from
+        // FUTURE This hardcoded configuration should ideally be loaded from
         // application.conf file
         Config config = config(new String[][] {
                 {"akka.remote.quarantine-systems-for", "off"},

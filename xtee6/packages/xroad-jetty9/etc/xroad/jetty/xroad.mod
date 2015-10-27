@@ -46,3 +46,6 @@ lib/jetty-jndi-${jetty.version}.jar
 lib/annotations/*.jar
 lib/jetty-jaas-${jetty.version}.jar
 
+# For ee.ria.xroad.common.XRoadSizeBasedRollingPolicy
+/usr/share/xroad/jlib/common-util-1.0.jar
+

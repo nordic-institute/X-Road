@@ -8,6 +8,7 @@ import org.apache.http.client.HttpClient;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
@@ -42,6 +43,8 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                     "Must use POST request method instead of %s",
                     request.getMethod());
         }
+
+        GlobalConf.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;

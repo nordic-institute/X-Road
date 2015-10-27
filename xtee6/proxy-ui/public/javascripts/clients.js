@@ -105,7 +105,7 @@
 
         $.get(action("client_certs"), params, function(response) {
             oClientCerts.fnAddData(response.data);
-        });
+        }, "json");
 
         enableActions();
     }
@@ -130,7 +130,7 @@
         $("#client_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            width: 370,
+            minWidth: 450,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -138,7 +138,7 @@
                       var params = $("form", this).serializeObject();
 
                       $.post(action("client_add"), params, function(response) {
-                          oClients.fnReplaceData(response.data);
+                          oClients.fnReplaceData(response.data.clients);
 
                           $(dialog).dialog("close");
 
@@ -148,10 +148,14 @@
                               subsystem_code: params.add_subsystem_code
                           };
 
+                          if (response.data.registered) {
+                              return;
+                          }
+
                           confirm("clients.client_add_dialog.send_regreq", null, function() {
                               $.post(action("client_regreq"), regParams, function() {
                                   refreshClients();
-                              });
+                              }, "json");
                           });
                       }, "json");
                   }
@@ -281,19 +285,27 @@
         $("#details_subsystem_code").val(client.subsystem_code);
         $("#details_member_name").val(client.member_name);
 
+        enableActions();
+
         $("#client_details_dialog").dialog("open");
 
         var oldTabIndex = $("#client_details_tabs").tabs("option", "active");
         var newTabIndex = $("#client_details_tabs a[href='" + tab + "']")
             .parent().index();
 
+        if (client.subsystem_code) {
+            $("#client_details_tabs").tabs("option", "disabled", []);
+            $("#client_details_tabs .ui-tabs-nav").show();
+        } else {
+            $("#client_details_tabs").tabs("option", "disabled", [1, 2, 3, 4]);
+            $("#client_details_tabs .ui-tabs-nav").hide();
+        }
+
         $("#client_details_tabs").tabs("option", "active", newTabIndex);
 
         if (oldTabIndex === newTabIndex) {
             refreshTab(tab);
         }
-
-        enableActions();
     }
 
     function confirmDelete(text) {
@@ -368,7 +380,7 @@
 
     function generateTableActions(actions) {
         var wrap = $('<div/>');
-        var ul = $('<ul/>').addClass('tableitem-actions right cf');
+        var ul = $('<ul/>').addClass('tableitem-actions left cf');
 
         for (var action in actions) {
             if (actions.hasOwnProperty(action)) {
@@ -474,7 +486,7 @@
 
                     return generateTableActions(actions);
                 },
-                sWidth: "150px"
+                sWidth: "140px"
             },
             {
                 mData: 'owner',

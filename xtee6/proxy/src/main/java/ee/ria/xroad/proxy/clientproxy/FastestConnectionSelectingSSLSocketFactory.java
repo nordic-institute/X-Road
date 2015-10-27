@@ -14,7 +14,6 @@ import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocket;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -115,7 +114,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
 
-        verify(context, sslSocket.getSession());
+        verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,

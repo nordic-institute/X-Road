@@ -180,8 +180,6 @@ public class ServerConfTest {
         assertFalse(ServerConf.isQueryAllowed(clientX, service1));
         assertFalse(ServerConf.isQueryAllowed(clientX, serviceX));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceX));
-
-        // TODO tests with local and global groups
     }
 
     /**

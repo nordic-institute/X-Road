@@ -260,16 +260,18 @@ public class BatchSigner extends UntypedActor {
         }
 
         private boolean isWorkerBusy() {
-            if (workerBusy) {
-                if (System.currentTimeMillis() - signStartTime
-                        >= DEFAULT_TIMEOUT.duration().length()) {
-                    workerBusy = false;
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Signature creation timed out");
-                }
+            if (isSignatureCreationTimedOut()) {
+                workerBusy = false;
+                throw new CodedException(X_INTERNAL_ERROR,
+                        "Signature creation timed out");
             }
 
             return workerBusy;
+        }
+
+        private boolean isSignatureCreationTimedOut() {
+            return workerBusy && System.currentTimeMillis() - signStartTime
+                    >= DEFAULT_TIMEOUT.duration().length();
         }
 
         private void doCalculateSignature(String keyId,

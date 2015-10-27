@@ -5,7 +5,7 @@ import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
-import ee.ria.xroad.common.identifier.XroadId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 /**
  * Access right.
@@ -18,7 +18,7 @@ public class AccessRightType {
 
     private String serviceCode;
 
-    private XroadId subjectId;
+    private XRoadId subjectId;
 
     private Date rightsGiven;
 }

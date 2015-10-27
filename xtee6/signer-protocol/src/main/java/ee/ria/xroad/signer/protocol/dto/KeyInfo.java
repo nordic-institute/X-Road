@@ -19,6 +19,8 @@ public final class KeyInfo implements Serializable {
 
     private final String id;
 
+    private final String label;
+    
     private final String publicKey;
 
     private final List<CertificateInfo> certs;

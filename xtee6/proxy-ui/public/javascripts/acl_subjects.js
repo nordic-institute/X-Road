@@ -71,13 +71,15 @@
                 oServicesOpen.fnFilter('');
                 enableActions();
             },
+            close: function() {
+                // In case a new subject is added to
+                // #acl_subjects, we need a clean #services_open
+                // table to display openable services correctly.
+                oServicesOpen.fnClearTable();
+            },
             buttons: [
                 { text: _("common.close"),
                   click: function() {
-                      // In case a new subject is added to
-                      // #acl_subjects, we need a clean #services_open
-                      // table to display openable services correctly.
-                      oServicesOpen.fnClearTable();
                       $(this).dialog("close");
                   }
                 },

@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
@@ -21,6 +20,8 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import ee.ria.xroad.common.CodedException;
 
@@ -32,9 +33,6 @@ import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
  * Contains utility methods for working with SOAP messages.
  */
 public final class SoapUtils {
-
-    // HTTP header field for async messages that are sent from async-sender
-    public static final String X_IGNORE_ASYNC = "X-Ignore-Async";
 
     public static final String PREFIX_SOAPENV = "SOAP-ENV";
 
@@ -249,7 +247,35 @@ public final class SoapUtils {
 
         byte[] xml = getBytes(soap);
         return (SoapMessageImpl) new SoapParserImpl().parseMessage(xml, soap,
-                charset);
+                charset, request.getContentType());
+    }
+
+
+    /**
+     * Parses request database ID out of management service response message.
+     *
+     * @param responseMessage - management service response
+     * @return - request ID in the central server database
+     * @throws SOAPException - when parsing response message fails
+     */
+    public static Integer getRequestIdInCentralDatabase(
+            SoapMessageImpl responseMessage) throws SOAPException {
+        NodeList nodes = responseMessage
+                .getSoap()
+                .getSOAPBody()
+                .getElementsByTagNameNS(SoapHeader.NS_XROAD, "requestId");
+
+        if (nodes.getLength() == 0) {
+            return null;
+        }
+
+        Node node = nodes.item(0);
+
+        try {
+            return Integer.parseInt(node.getTextContent());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static String getServiceCode(
@@ -365,17 +391,6 @@ public final class SoapUtils {
         }
 
         return null;
-    }
-
-    /**
-     * If the given mime type is not text/xml, throws an error.
-     * @param mimeType the mimeType that's expected to be text/xml
-     */
-    public static void validateMimeType(String mimeType) {
-        if (!TEXT_XML.equalsIgnoreCase(mimeType)) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", mimeType);
-        }
     }
 
     /**

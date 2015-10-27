@@ -11,7 +11,9 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -80,6 +82,31 @@ public final class ManagementRequestHandler {
 
         OCSPResp ownerCertOcsp = new OCSPResp(cb.getOwnerCertOcsp());
         verifyCertificate(ownerCert, ownerCertOcsp);
+
+        // verify that the subject id from the certificate matches the one
+        // in the request (server id)
+        AuthCertRegRequestType req =
+                ManagementRequestParser.parseAuthCertRegRequest(soap);
+
+        ClientId idFromCert = GlobalConf.getSubjectName(
+            new SignCertificateProfileInfoParameters(
+                ClientId.create(
+                    GlobalConf.getInstanceIdentifier(),
+                    "dummy",
+                    "dummy"
+                ),
+                "dummy"
+            ),
+            ownerCert
+        );
+
+        ClientId idFromReq = req.getServer().getOwner();
+        if (!idFromReq.equals(idFromCert)) {
+            throw new CodedException(X_INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match"
+                    + " security server owner identifier (%s) in request",
+                    idFromCert, idFromReq);
+        }
     }
 
     private static void verifyCertificate(X509Certificate ownerCert,
@@ -180,13 +207,13 @@ public final class ManagementRequestHandler {
 
             if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(service)) {
                 verifyMessagePart(authSignatureAlgoId,
-                        "Auth signature algorightm id is missing");
+                        "Auth signature algorithm id is missing");
 
                 verifyMessagePart(authSignature,
                         "Auth signature is missing");
 
                 verifyMessagePart(ownerSignatureAlgoId,
-                        "Owner signature algorightm id is missing");
+                        "Owner signature algorithm id is missing");
 
                 verifyMessagePart(ownerSignature,
                         "Owner signature is missing");

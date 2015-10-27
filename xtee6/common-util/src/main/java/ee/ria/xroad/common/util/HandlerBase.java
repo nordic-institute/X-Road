@@ -9,6 +9,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -18,6 +19,7 @@ import ee.ria.xroad.common.message.SoapFault;
 /**
  * Convenience base class for proxy HTTP handlers.
  */
+@Slf4j
 public abstract class HandlerBase extends AbstractHandler {
 
     /**
@@ -32,6 +34,7 @@ public abstract class HandlerBase extends AbstractHandler {
         if (ex instanceof CodedException.Fault) {
             faultXml = ((CodedException.Fault) ex).getFaultXml();
         } else {
+            log.debug("Error detail code: " + ex.getFaultDetail());
             faultXml = SoapFault.createFaultXml(ex);
         }
 

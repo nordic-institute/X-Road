@@ -1,8 +1,11 @@
 en:
   activerecord:
     attributes:
+      approved_ca:
+        cert_profile_info: "Certificate profile info"
       approved_tsa:
-        url: "TSP URL"
+        url: "Timestamping server URL"
+        cert: "Timestamping server certificate"
       central_service:
         service_code: "central service code"
       distributed_files:
@@ -74,10 +77,10 @@ en:
         file_name: "file name"
     errors:
       invalid_url: "'%{url}' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'"
-      input_too_long: "can contain ultimately %{max_length} symbols"
+      input_too_long: "can contain up to %{max_length} symbols"
       messages:
         taken: "'%{value}' has already been taken"
-        blank: "cannot be blank"
+        blank: "%{attribute} cannot be blank"
         record_invalid: "%{errors}"
 
   # Management requests error messages.
@@ -93,11 +96,12 @@ en:
     security_server_exists: "Certificate is already registered, request id '%{id}"
 
   errors:
+    format: "%{message}"
     pki:
       top_ca_cert_too_long_subject_name: "Length of service CA certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
     tsp:
-      cert_and_url_exists: "This combination of URL and certificate already exists"
-      cert_too_long_subject_name: "Length of TSP certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
+      cert_and_url_exists: "An approved timestamping service with the inserted URL and certificate already exists"
+      cert_too_long_subject_name: "Length of TSA certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
     request:
       auth_cert_not_unique: "Security server '%{server_id}' already has authentication certificate You are trying to add"
       cert_not_auth: "This certificate cannot be used for authentication."

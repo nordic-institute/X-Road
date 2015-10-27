@@ -36,6 +36,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.*;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
 import static ee.ria.xroad.signer.util.ExceptionHelper.*;
 import static ee.ria.xroad.signer.util.SignerUtil.keyId;
 import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
@@ -171,11 +172,14 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
         RSAPublicKey rsaPublicKeyTemplate = new RSAPublicKey();
         rsaPublicKeyTemplate.getId().setByteArrayValue(id);
+        rsaPublicKeyTemplate.getLabel().setCharArrayValue(
+                message.getKeyLabel().toCharArray());
         setPublicKeyAttributes(rsaPublicKeyTemplate);
 
         RSAPrivateKey rsaPrivateKeyTemplate = new RSAPrivateKey();
         rsaPrivateKeyTemplate.getId().setByteArrayValue(id);
-        // TODO rsaPrivateKeyTemplate.getLabel().setCharArrayValue(label);
+        rsaPrivateKeyTemplate.getLabel().setCharArrayValue(
+                message.getKeyLabel().toCharArray());
         setPrivateKeyAttributes(rsaPrivateKeyTemplate);
 
         KeyPair generatedKP = activeSession.generateKeyPair(KEYGEN_MECHANISM,
@@ -348,6 +352,12 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
                     log.debug("Found new key with id '{}' on token '{}'",
                             keyId, getWorkerId());
+                }
+
+                // update the key label
+                char[] label = keyOnToken.getLabel().getCharArrayValue();
+                if (label != null) {
+                    TokenManager.setKeyLabel(keyId, new String(label));
                 }
 
                 if (key.getPublicKey() == null) {

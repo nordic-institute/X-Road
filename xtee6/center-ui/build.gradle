@@ -35,8 +35,7 @@ task generateJsTranslations(type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'i18n:js:export']
 }
 
-// TODO - We might want to get rid of warning at .war file generation. RM task #3316
-// TODO: This should depend on 'generateJsTranslations' as well, but this is currently broken.
+// FUTURE - We might want to get rid of warning at .war file generation. RM task #3316
 task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }

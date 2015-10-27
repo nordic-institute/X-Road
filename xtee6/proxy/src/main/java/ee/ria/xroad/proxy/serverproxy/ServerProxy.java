@@ -55,7 +55,7 @@ public class ServerProxy implements StartStop {
     private static final int SSL_SESSION_TIMEOUT = 600;
 
     // Configuration parameters.
-    // TODO #2576 Make configurable in the future
+    // FUTURE #2576 Make configurable.
     private static final int CLIENT_TIMEOUT = 30000; // 30 sec.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;

@@ -19,6 +19,7 @@ public abstract class AbstractSoapMessage<T> implements SoapMessage {
     private final SOAPMessage soap;
     private final boolean isResponse;
     private final boolean isRpcEncoded;
+    private final String contentType;
 
     /**
      * Gets the SOAP header instance for this message.

@@ -47,9 +47,6 @@ public class SoapHeader {
     @XmlElement(name = "requestHash", required = false, namespace = NS_XROAD)
     private RequestHash requestHash;
 
-    @XmlElement(name = "async", required = false, namespace = NS_XROAD)
-    private boolean async;
-
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
     private ProtocolVersion protocolVersion = new ProtocolVersion();
 

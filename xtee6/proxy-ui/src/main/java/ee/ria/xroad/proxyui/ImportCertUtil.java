@@ -3,6 +3,7 @@ package ee.ria.xroad.proxyui;
 import java.security.cert.X509Certificate;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
@@ -39,7 +40,13 @@ public final class ImportCertUtil {
      */
     public static ClientId getClientIdForSigningCert(String instanceIdentifier,
             X509Certificate cert) throws Exception {
-        return GlobalConf.getSubjectName(instanceIdentifier, cert);
+        return GlobalConf.getSubjectName(
+            new SignCertificateProfileInfoParameters(
+                ClientId.create(instanceIdentifier, "dummy", "dummy"),
+                "dummy"
+            ),
+            cert
+        );
     }
 
     private static boolean clientExists(ClientId clientId) {

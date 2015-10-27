@@ -83,6 +83,9 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     private void handleActivateToken(ActivateToken message) throws Exception {
         try {
             activateToken(message);
+
+            onUpdate();
+
             sendSuccessResponse();
         } catch (Exception e) {
             log.error("Failed to activate token '{}': {}", getWorkerId(),
@@ -109,6 +112,8 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         if (!hasKey(keyId)) {
             TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
             TokenManager.setKeyAvailable(keyId, true);
+            TokenManager.setKeyLabel(keyId, message.getKeyLabel());
+            TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
         }
 
         sendResponse(TokenManager.findKeyInfo(keyId));

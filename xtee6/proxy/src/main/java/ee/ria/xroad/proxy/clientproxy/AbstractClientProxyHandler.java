@@ -56,15 +56,16 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         MessageProcessorBase processor = null;
         try {
             processor = createRequestProcessor(target, request, response);
+
             if (processor != null) {
                 handled = true;
                 start = logPerformanceBegin(request);
                 processor.process();
                 success(processor, start);
-            }
 
-            log.info("Request successfully handled ({} ms)",
-                    System.currentTimeMillis() - start);
+                log.info("Request successfully handled ({} ms)",
+                        System.currentTimeMillis() - start);
+            }
         } catch (CodedException.Fault | ClientException ex) {
             handled = true;
 

@@ -10,8 +10,8 @@ ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 if [ "$1" = "upgrade" ];
  then
-   if dpkg --compare-versions "$2" lt-nl "6.3"
-      then echo -e "\n\ndirect upgrade from xroad-proxy<6.3 is not supported\n\n"
+   if dpkg --compare-versions "$2" lt-nl "6.6"
+      then echo -e "\n\ndirect upgrade from xroad-proxy<6.6 is not supported\n\n"
       exit 1
    fi
 fi

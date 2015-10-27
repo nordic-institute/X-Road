@@ -4,6 +4,7 @@ java_import Java::ee.ria.xroad.common.util.CryptoUtils
 module CommonUi
   module ScriptUtils
 
+    CONFIGURATION_CLIENT_EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120
     CONFIGURATION_CLIENT_EXIT_STATUS_MISSING_PRIVATE_PARAMS = 121
     CONFIGURATION_CLIENT_EXIT_STATUS_UNREACHABLE = 122
     CONFIGURATION_CLIENT_EXIT_STATUS_OUTDATED = 123
@@ -40,7 +41,7 @@ module CommonUi
 
       return console_output_lines
     rescue => e
-      logger.error(e)
+      Rails.logger.error(e)
       raise RubyExecutableException.new(e, console_output_lines)
     end
 
@@ -75,6 +76,9 @@ module CommonUi
       case exit_status
       when 0
         Rails.logger.info("Configuration verified successfully")
+
+      when CONFIGURATION_CLIENT_EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE
+        raise I18n.t("conf_verification.anchor_not_for_external_source")
 
       when CONFIGURATION_CLIENT_EXIT_STATUS_MISSING_PRIVATE_PARAMS
         raise I18n.t("conf_verification.missing_private_params")

@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -254,20 +256,6 @@ public final class GlobalConf {
     }
 
     /**
-     * Returns address of the given service provider's proxy based on
-     * authentication certificate.
-     * @param authCert the authentication certificate
-     * @return IP address converted to string, such as "192.168.2.2".
-     * @throws Exception if an error occurs
-     */
-    public static String getProviderAddress(X509Certificate authCert)
-            throws Exception {
-        log.trace("getProviderAddress({})", authCert.getSubjectX500Principal());
-
-        return getInstance().getProviderAddress(authCert);
-    }
-
-    /**
      * Returns address of the given service provider's proxy.
      * @param serviceProvider the service provider identifier
      * @return IP address converted to string, such as "192.168.2.2".
@@ -410,17 +398,61 @@ public final class GlobalConf {
     }
 
     /**
-     * @param instanceIdentifier instance identifier
+     * @param instanceIdentifier the instance identifier
+     * @return all known approved CAs
+     */
+    public static Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        log.trace("getApprovedCAs()");
+
+        return getInstance().getApprovedCAs(instanceIdentifier);
+    }
+
+    /**
+     * @param parameters the parameters
      * @param cert the certificate
-     * @return short name of the certificate subject. Short name is used
-     * in messages and access checking.
+     * @return authentication certificate profile info for this certificate
      * @throws Exception if an error occurs
      */
-    public static ClientId getSubjectName(String instanceIdentifier,
+    public static AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
-        log.trace("getSubjectName({})", instanceIdentifier);
+        log.trace("getAuthCertificateProfileInfo({}, {})",
+                parameters.getServerId(),
+                cert.getSubjectX500Principal());
 
-        return getInstance().getSubjectName(instanceIdentifier, cert);
+        return getInstance().getAuthCertificateProfileInfo(parameters, cert);
+    }
+
+    /**
+     * @param parameters the parameters
+     * @param cert the certificate
+     * @return signing certificate profile info for this certificate
+     * @throws Exception if an error occurs
+     */
+    public static SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        log.trace("getSignCertificateProfileInfo({}, {})",
+                parameters.getClientId(),
+                cert.getSubjectX500Principal());
+
+        return getInstance().getSignCertificateProfileInfo(parameters, cert);
+    }
+
+    /**
+     * @param parameters the parameters
+     * @param cert the signing certificate
+     * @return subject client identifier
+     * @throws Exception if an error occurs
+     */
+    public static ClientId getSubjectName(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        log.trace("getSubjectName({})", parameters.getClientId());
+
+        return getSignCertificateProfileInfo(parameters, cert)
+                .getSubjectIdentifier(cert);
     }
 
     /**

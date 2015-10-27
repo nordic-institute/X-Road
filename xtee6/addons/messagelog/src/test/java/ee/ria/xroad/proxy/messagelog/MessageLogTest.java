@@ -168,7 +168,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
      * the database.
      * @throws Exception in case of any unexpected errors
      *
-     * TODO As this test is quite expensive in terms of time and usable
+     * FUTURE As this test is quite expensive in terms of time and usable
      * resources (in addition depends on external utilities), consider moving
      * this test apart from unit tests.
      */

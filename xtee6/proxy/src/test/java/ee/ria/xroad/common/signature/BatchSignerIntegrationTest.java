@@ -10,6 +10,7 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -49,7 +50,7 @@ public final class BatchSignerIntegrationTest {
     private static final String KEY_ID = "consumer";
 
     private static final ClientId CORRECT_MEMBER =
-            ClientId.create("EE", "TODO", "consumer");
+            ClientId.create("EE", "FOO", "consumer");
 
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
@@ -114,14 +115,20 @@ public final class BatchSignerIntegrationTest {
                         byte[] hash = hash(message);
                         log.info("File: {}, hash: {}", message, hash);
 
-                        List<MessagePart> hashes = new ArrayList<>();
-                        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
-                                SHA512_ID, message.getBytes()));
+                        MessagePart hashPart = new MessagePart(
+                                MessageFileNames.MESSAGE,
+                                SHA512_ID,
+                                message.getBytes());
+
+                        List<MessagePart> hashes =
+                                Collections.singletonList(hashPart);
 
                         SignatureBuilder builder = new SignatureBuilder();
-                        builder.addParts(hashes);
+                        builder.addPart(hashPart);
 
-                        builder.setSigningCert(subjectCert, ocsp);
+                        builder.setSigningCert(subjectCert);
+                        builder.addOcspResponses(
+                                Collections.singletonList(ocsp));
 
                         log.info("### Calculating signature...");
 

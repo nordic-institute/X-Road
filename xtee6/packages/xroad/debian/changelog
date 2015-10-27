@@ -1,3 +1,18 @@
+xroad (6.8-0) trusty; urgency=low
+
+  * Changes to the logging policy
+  * Support for the application/xop+xml content type
+  * Support of pkcs11# labels
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 19 Oct 2015 12:03:52 +0300
+
+xroad (6.7-0) trusty; urgency=low
+
+  * Unreleased version for compatibility with external development
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 19 Oct 2015 12:03:52 +0300
+
 xroad (6.6-3) trusty; urgency=low
 
   * Bugfixes

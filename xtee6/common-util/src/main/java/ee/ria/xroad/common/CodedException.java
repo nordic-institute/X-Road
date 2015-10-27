@@ -1,11 +1,11 @@
 package ee.ria.xroad.common;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Exception thrown by proxy business logic. Contains SOAP fault information
@@ -40,7 +40,7 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     public CodedException(String faultCode) {
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
     }
 
     /**
@@ -52,7 +52,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(faultMessage);
 
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
         faultString = faultMessage;
     }
 
@@ -79,7 +79,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(cause);
 
         this.faultCode = faultCode;
-        this.faultDetail = ExceptionUtils.getStackTrace(cause);
+        this.faultDetail = String.valueOf(UUID.randomUUID());
         this.faultString = cause.getMessage();
     }
 

@@ -171,22 +171,25 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
         Map<String, HostData> newDatabase = new HashMap<>();
 
         // Retain existing members connections
-        for (String existingAddress : database.keySet()) {
-            if (knownAddresses.contains(existingAddress)) {
-                newDatabase.put(existingAddress, database.get(existingAddress));
-            }
-        }
+        database.keySet().stream()
+                .filter(knownAddresses::contains)
+                .forEach(existingAddress -> newDatabase.put(
+                        existingAddress, database.get(existingAddress)));
 
         // Add new members
-        for (String knownAddress : knownAddresses) {
-            if (!database.containsKey(knownAddress)) {
-                log.trace("Registering HostData for " + knownAddress);
-                newDatabase.put(knownAddress, new HostData());
-            }
-        }
+        knownAddresses.stream()
+                .filter(knownAddress -> !database.containsKey(knownAddress))
+                .forEach(knownAddress ->
+                        registerHostData(newDatabase, knownAddress));
 
         previousKnownOrganizations = knownAddresses;
         database = newDatabase;
+    }
+
+    private void registerHostData(
+            Map<String, HostData> newDatabase, String knownAddress) {
+        log.trace("Registering HostData for " + knownAddress);
+        newDatabase.put(knownAddress, new HostData());
     }
 
     private boolean hasSufficientResources() {

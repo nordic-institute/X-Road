@@ -1,1 +1,1 @@
-xroad	ALL=(root) NOPASSWD: /usr/share/xroad/scripts/restore_xroad_real.sh
+xroad	ALL=(root) NOPASSWD: /usr/share/xroad/scripts/_restore_xroad.sh

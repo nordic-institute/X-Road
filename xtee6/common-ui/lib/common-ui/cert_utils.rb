@@ -21,11 +21,24 @@ module CommonUi
     end
 
     # Parameters:
+    # cert - OpenSSL::X509::Certificate
+    def cert_subject_cn(cert)
+      subject_cn = ""
+      cert.subject.to_a.each do |part|
+        if part[0] == "CN"
+          subject_cn = part[1]
+          break
+        end
+      end
+      subject_cn
+    end
+
+    # Parameters:
     # cert - either OpenSSL::X509::Certificate, binary data
     #        as Ruby String, or binary data as Java's byte[]
     def cert_object(cert)
       bytes = cert_to_bytes(cert)
-      OpenSSL::X509::Certificate.new(bytes) if bytes
+      cert_from_bytes(bytes) if bytes
     end
 
     # Parameters:
@@ -57,10 +70,7 @@ module CommonUi
     #
     # Returns DER bytes as Ruby String.
     def pem_to_der(cert)
-      OpenSSL::X509::Certificate.new(cert).to_der
-    rescue
-      Rails.logger.error($!.message)
-      raise I18n.t('validation.invalid_cert')
+     cert_from_bytes(cert).to_der
     end
 
     # Parameters:
@@ -70,6 +80,10 @@ module CommonUi
     def pem_to_java_cert(cert)
       raw_cert = pem_to_der(cert)
       return CryptoUtils::readCertificate(raw_cert.to_java_bytes())
+    end
+
+    def raise_invalid_cert
+      raise I18n.t('validation.invalid_cert')
     end
 
     private_class_method
@@ -96,6 +110,13 @@ module CommonUi
       else
         nil
       end
+    end
+
+    def cert_from_bytes(bytes)
+      OpenSSL::X509::Certificate.new(bytes)
+    rescue
+      Rails.logger.error($!.message)
+      raise_invalid_cert
     end
   end
 end

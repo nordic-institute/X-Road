@@ -133,16 +133,6 @@ public final class SystemProperties {
     public static final String ANTIDOS_MAX_HEAP_USAGE =
             PREFIX + "anti-dos.max-heap-usage";
 
-    // AsyncDB ----------------------------------------------------------------
-
-    /** Property name of the async DB directory. */
-    public static final String ASYNC_DB_PATH =
-            PREFIX + "async-db.path";
-
-    /** Property name of the async sender configuration file. */
-    public static final String ASYNC_SENDER_CONFIGURATION_FILE =
-            PREFIX + "async-db.sender-conf-file";
-
     // Configuration client ---------------------------------------------------
 
     public static final String CONFIGURATION_CLIENT_PORT =
@@ -310,25 +300,6 @@ public final class SystemProperties {
      */
     public static String getConfPath() {
         return System.getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
-    }
-
-    /**
-     * @return path to the directory where asynchronous queries are located,
-     * '/var/spool/xroad/' by default
-     */
-    public static String getAsyncDBPath() {
-        return System.getProperty(ASYNC_DB_PATH,
-                DefaultFilepaths.ASYNC_DB_PATH);
-    }
-
-    /**
-     * @return path to the asynchronous sender configuration file,
-     * '/etc/xroad/async-sender.properties' by default
-     */
-    public static String getAsyncSenderConfFile() {
-        return System.getProperty(ASYNC_SENDER_CONFIGURATION_FILE,
-                getConfPath()
-                    + DefaultFilepaths.ASYNC_SENDER_CONFIGURATION_FILE);
     }
 
     /**

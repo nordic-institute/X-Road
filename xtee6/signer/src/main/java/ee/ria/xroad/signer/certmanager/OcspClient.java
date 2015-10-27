@@ -12,7 +12,6 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -50,11 +49,11 @@ public final class OcspClient {
     }
 
     protected static PrivateKey getOcspRequestKey(X509Certificate subject) {
-        return null; // TODO
+        return null; // FUTURE: 8162
     }
 
     protected static X509Certificate getOcspSignerCert() {
-        return null; // TODO
+        return null; // FUTURE: 8162
     }
 
     protected static OCSPResp fetchResponse(X509Certificate subject,

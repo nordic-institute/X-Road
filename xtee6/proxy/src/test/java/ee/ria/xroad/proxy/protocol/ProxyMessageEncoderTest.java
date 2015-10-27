@@ -165,7 +165,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapMessageImpl createMessage(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
         }
@@ -175,7 +175,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
         }

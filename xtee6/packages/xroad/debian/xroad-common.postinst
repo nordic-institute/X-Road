@@ -60,6 +60,7 @@ Please fix this and reinstall this package." >&2
     #local overrides
     test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
     test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
+    test -f /etc/xroad/devices.ini || cp /usr/share/xroad/doc/devices.ini /etc/xroad/devices.ini && chown xroad:xroad /etc/xroad/devices.ini
 
     test -d /etc/xroad/signer || mkdir -p -m0700 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
     test -d /etc/xroad/conf.d || mkdir -p /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d

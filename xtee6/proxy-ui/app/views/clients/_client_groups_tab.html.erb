@@ -22,7 +22,6 @@
 
 <%= dialog "group_add_dialog", t('.new_group') do %>
   <%= form_tag do %>
-  <section class="container">
     <table class="details">
       <tr>
         <td><%= t '.code' %></td>
@@ -33,7 +32,6 @@
         <td><%= text_area_tag "add_group_description" %></td>
       </tr>
     </table>
-  </section>
   <% end %>
 <% end %>
 

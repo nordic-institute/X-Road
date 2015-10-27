@@ -260,7 +260,7 @@ class BaseController < ActionController::Base
   def render_error_response(exception_message, exception = nil)
     execute_after_rollback_actions
 
-    error(get_full_error_message(exception_message))
+    error(get_full_error_message(exception_message, exception))
 
     # in case of error, only notices from :notice! are rendered
     flash.delete(:notice)
@@ -287,7 +287,11 @@ class BaseController < ActionController::Base
     end
   end
 
-  def get_full_error_message(exception_message)
+  def get_full_error_message(exception_message, exception)
+    if exception && exception.is_a?(ValidationError)
+      return exception_message
+    end
+
     controller_name = params[:controller]
     action_name = params[:action]
 

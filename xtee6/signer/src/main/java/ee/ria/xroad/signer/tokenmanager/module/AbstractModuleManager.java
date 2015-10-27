@@ -2,19 +2,37 @@ package ee.ria.xroad.signer.tokenmanager.module;
 
 import java.util.Collection;
 
-import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
+import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.duration.Duration;
 
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.Update;
 
 /**
- * Module worker base class.
+ * Module manager base class.
  */
 @Slf4j
 public abstract class AbstractModuleManager extends AbstractUpdateableActor {
+
+    @Override
+    public SupervisorStrategy supervisorStrategy() {
+        return new OneForOneStrategy(-1, Duration.Inf(),
+            throwable -> {
+                if (throwable instanceof PKCS11Exception) {
+                    // PKCS11Exceptions should make the module reinitialized
+                    return SupervisorStrategy.restart();
+                } else {
+                    return SupervisorStrategy.resume();
+                }
+            }
+        );
+    }
 
     @Override
     protected void onUpdate() throws Exception {
@@ -75,7 +93,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     void initializeModuleWorker(String name, Props props) {
         log.trace("Starting module worker for module '{}'", name);
 
-        getContext().actorOf(props, name);
+        getContext().watch(getContext().actorOf(props, name));
     }
 
     void deinitializeModuleWorker(String name) {
@@ -83,6 +101,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         if (worker != null) {
             log.trace("Stopping module worker for module '{}'", name);
 
+            getContext().unwatch(worker);
             getContext().stop(worker);
         } else {
             log.warn("Module worker for module '{}' not found", name);
@@ -95,7 +114,9 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
     private static boolean containsModule(String moduleId,
             Collection<ModuleType> modules) {
-        return modules.stream().filter(m -> m.getType().equals(moduleId))
-                .findFirst().isPresent();
+        return modules.stream()
+                .filter(m -> m.getType().equals(moduleId))
+                .findFirst()
+                .isPresent();
     }
 }

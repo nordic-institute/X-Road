@@ -28,8 +28,6 @@ en:
     management:
       title: "Management"
       keys: "Keys and Certificates"
-      async: "Asynchronous Requests"
-      asynclog: "Asynchronous Requests Log"
     help:
       title: "Help"
       version: "Version"
@@ -51,6 +49,7 @@ en:
       client_regreq: "send registration request"
       client_delreq: "send deletion request"
       wsdl_add: "add WSDL"
+      wsdl_edit: "edit WSDL"
     client_exists: "Client already exists"
     unregistered_member: "The person/organisation '%{member}' is not registered as X-Road member."
     new_subsystem: "New subsystem '%{subsystem}' will be registered for member '%{member}'."

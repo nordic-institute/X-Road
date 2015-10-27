@@ -10,6 +10,7 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 
 import ee.ria.xroad.common.CodedException;
@@ -21,6 +22,7 @@ import ee.ria.xroad.common.util.JobManager;
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
 
 /**
  * Main program of configuration client.
@@ -40,9 +42,12 @@ public final class ConfigurationClientMain {
     private static final int ERROR_CODE_EXPIRED_CONF = 123;
     private static final int ERROR_CODE_CANNOT_DOWNLOAD_CONF = 122;
     private static final int ERROR_CODE_MISSING_PRIVATE_PARAMS = 121;
+    private static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120;
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS =
             "verifyPrivateParamsExists";
+    private static final String OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE =
+            "verifyAnchorForExternalSource";
 
     private static ConfigurationClient client;
     private static JobManager jobManager;
@@ -67,8 +72,7 @@ public final class ConfigurationClientMain {
         if (actualArgs.length == 2) {
             System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == 1) {
-            System.exit(validate(actualArgs[0],
-                    cmd.hasOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS)));
+            System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
         } else {
             startDaemon();
         }
@@ -80,6 +84,8 @@ public final class ConfigurationClientMain {
 
         options.addOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS, false,
                 "Verifies that configuration contains private parameters.");
+        options.addOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE, false,
+                "Verifies that configuration contains shared parameters.");
 
         return parser.parse(options, args);
     }
@@ -115,14 +121,12 @@ public final class ConfigurationClientMain {
     }
 
     private static int validate(String configurationAnchorFile,
-            boolean verifyPrivate) throws Exception {
+            final ParamsValidator paramsValidator) throws Exception {
         log.trace("Downloading configuration using anchor {}",
                 configurationAnchorFile);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 configurationAnchorFile);
-
-        final AtomicBoolean foundPrivateParams = new AtomicBoolean();
 
         // create configuration that does not persist files to disk
         ConfigurationDownloader configuration =
@@ -130,10 +134,7 @@ public final class ConfigurationClientMain {
             @Override
             void handle(ConfigurationLocation location,
                     ConfigurationFile file) {
-                if (CONTENT_ID_PRIVATE_PARAMETERS.equals(
-                        file.getContentIdentifier())) {
-                    foundPrivateParams.set(true);
-                }
+                paramsValidator.tryMarkValid(file.getContentIdentifier());
 
                 super.handle(location, file);
             }
@@ -165,9 +166,8 @@ public final class ConfigurationClientMain {
         int result = execute();
 
         // Check if downloaded configuration contained private parameters
-        if (result == RETURN_SUCCESS && verifyPrivate
-                && !foundPrivateParams.get()) {
-            return ERROR_CODE_MISSING_PRIVATE_PARAMS;
+        if (result == RETURN_SUCCESS) {
+            return paramsValidator.getExitCode();
         }
 
         return result;
@@ -249,27 +249,21 @@ public final class ConfigurationClientMain {
         int portNumber = SystemProperties.getConfigurationClientPort();
         adminPort = new AdminPort(portNumber + 1);
 
-        adminPort.addShutdownHook(new Runnable() {
-            @Override
-            public void run() {
-                log.info("Configuration client shutting down...");
-                try {
-                    shutdown();
-                } catch (Exception e) {
-                    log.error("Error while shutting down", e);
-                }
+        adminPort.addShutdownHook(() -> {
+            log.info("Configuration client shutting down...");
+            try {
+                shutdown();
+            } catch (Exception e) {
+                log.error("Error while shutting down", e);
             }
         });
 
-        adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
-            @Override
-            public void run() {
-                log.info("Execute from admin port...");
-                try {
-                    client.execute();
-                } catch (Exception e) {
-                    throw translateException(e);
-                }
+        adminPort.addHandler("/execute", (AdminPort.SynchronousCallback) () -> {
+            log.info("Execute from admin port...");
+            try {
+                client.execute();
+            } catch (Exception e) {
+                throw translateException(e);
             }
         });
     }
@@ -310,6 +304,77 @@ public final class ConfigurationClientMain {
         if (adminPort != null) {
             adminPort.stop();
             adminPort.join();
+        }
+    }
+
+    private static ParamsValidator getParamsValidator(CommandLine cmd) {
+        if (cmd.hasOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS)) {
+            return new ParamsValidator(
+                    CONTENT_ID_PRIVATE_PARAMETERS,
+                    ERROR_CODE_MISSING_PRIVATE_PARAMS);
+        } else if (cmd.hasOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE)) {
+            return new SharedParamsValidator(
+                    CONTENT_ID_SHARED_PARAMETERS,
+                    ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
+        } else {
+            return new ParamsValidator(null, 0);
+        }
+    }
+
+    private static class ParamsValidator {
+        protected final AtomicBoolean valid = new AtomicBoolean();
+
+        private final String expectedContentId;
+        private final int exitCodeWhenInvalid;
+
+        ParamsValidator(
+                String expectedContentId, int exitCodeWhenInvalid) {
+            this.expectedContentId = expectedContentId;
+            this.exitCodeWhenInvalid = exitCodeWhenInvalid;
+        }
+
+        void tryMarkValid(String contentId) {
+            log.trace("tryMarkValid({})", contentId);
+
+            if (valid.get()) {
+                return;
+            }
+
+            valid.set(StringUtils.isBlank(expectedContentId)
+                    || StringUtils.equals(expectedContentId, contentId));
+        }
+
+        int getExitCode() {
+            if (valid.get()) {
+                return RETURN_SUCCESS;
+            }
+
+            return exitCodeWhenInvalid;
+        }
+    }
+
+    private static class SharedParamsValidator extends ParamsValidator {
+
+        private final AtomicBoolean privateParametersIncluded =
+                new AtomicBoolean();
+
+        SharedParamsValidator(
+                String expectedContentId, int exitCodeWhenInvalid) {
+            super(expectedContentId, exitCodeWhenInvalid);
+        }
+
+        @Override
+        void tryMarkValid(String contentId) {
+            if (StringUtils.equals(contentId, CONTENT_ID_PRIVATE_PARAMETERS)) {
+                privateParametersIncluded.set(true);
+            }
+
+            if (privateParametersIncluded.get()) {
+                valid.set(false);
+                return;
+            }
+
+            super.tryMarkValid(contentId);
         }
     }
 }

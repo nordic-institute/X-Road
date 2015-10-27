@@ -50,6 +50,9 @@ public class OptionalPartsConf {
     @Getter
     private final List<OptionalConfPart> allParts = new ArrayList<>();
 
+    @Getter
+    private final List<String> errors = new ArrayList<>();
+
     private final Set<String> existingPartFileNames = new HashSet<>();
 
     /**
@@ -151,20 +154,18 @@ public class OptionalPartsConf {
             allParts.add(new OptionalConfPart(partFileName, contentId));
         } catch (IOException e) {
             log.error("Loading optional parts from file '"
-                    + confFile.getAbsolutePath() + "' failed", e);
+                    + confFile.getAbsolutePath() + "' failed: {}",
+                    e.getMessage());
 
-            throw new IOException(
-                    "Could not load optional parts configuration: ", e);
+            errors.add(e.getMessage());
         }
     }
 
     private boolean isFileContentWellFormed(
             String partFile, String contentId) {
-        if (StringUtils.isBlank(partFile) || StringUtils.isBlank(contentId)) {
-            return false;
-        }
+        return !(StringUtils.isBlank(partFile)
+                || StringUtils.isBlank(contentId));
 
-        return true;
     }
 
     private void validatePartFileName(String partFileName) {

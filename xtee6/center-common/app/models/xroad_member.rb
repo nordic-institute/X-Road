@@ -91,7 +91,7 @@ class XroadMember < SecurityServerClient
     existing_members = get_global_group_members(
         member_class, member_code, subsystem_code)
 
-    result = GlobalGroup.find(:all)
+    result = GlobalGroup.find(:all, :order => :group_code)
 
     is_xroad_member = subsystem_code.blank?
 

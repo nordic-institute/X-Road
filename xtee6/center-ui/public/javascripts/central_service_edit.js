@@ -18,7 +18,7 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
                 }
 
                 openEditDialog();
-                updateCentralServiceSaveOkButtonVisibility();
+                addSaveButtonVisibilityHandler();
             });
         });
     }
@@ -144,18 +144,6 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
 
     /* -- POST REQUESTS - START -- */
 
-    function deleteImplementingService(serviceCode) {
-        params = {serviceCode: serviceCode};
-
-        confirm("central_services.remove_target_service_confirm",
-                {service: serviceCode}, function() {
-            $.post("central_services/delete_target_service", params, function(){
-                XROAD_CENTRAL_SERVICES.refreshTable();
-                clearImplementingServiceData();
-            }, "json");
-        });
-    }
-
     function save(dialog) {
         var serviceData = getSaveableCentralServiceData();
         var controllerAction = isNew ?
@@ -203,17 +191,19 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
         $("#central_service_details_providers_filter label input").focus();
     }
 
+    function adjustSaveButtonVisibility() {
+        if (isInputFilled($("#central_service_details_service_code"))) {
+            $("#central_service_save_ok").enable(); 
+        }
+    }
+
     /* -- MISC - END -- */
 
     /* -- HANDLERS - START -- */
 
-    function updateCentralServiceSaveOkButtonVisibility() {
-        var okButton = $("#central_service_save_ok");
-        if (isInputFilled($("#central_service_details_service_code"))) {
-            okButton.enable();
-        } else {
-            okButton.disable();
-        }
+    function addSaveButtonVisibilityHandler() {
+        $("#central_service_save_ok").enableForInput(
+                $("#central_service_details_service_code"));
     }
 
     /* -- HANDLERS - END -- */
@@ -257,8 +247,8 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
             oProviders.setFocus(0, ev.target.parentNode)
         });
 
-        $("#central_service_details_providers tbody tr").live(
-                "dblclick", function() {
+        $("#central_service_details_providers tbody tr")
+                .unbind("dblclick").live("dblclick", function() {
             fillProviderData(oProviders.getFocusData());
             $("#central_service_member_search_dialog").dialog("close");
         });
@@ -295,6 +285,8 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
             },
             close: function() {
                 isSearchableProvidersDialogOpen = false;
+
+                adjustSaveButtonVisibility();
 
                 oProviders.fnDestroy();
             }
@@ -335,6 +327,7 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
 
         $("#central_service_details_clear_search").live("click", function() {
             clearImplementingServiceData();
+            adjustSaveButtonVisibility();
         });
 
         $("#central_service_details_found_provider_add").live(
@@ -351,9 +344,6 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
             });
         });
 
-        $("#central_service_details_service_code").live("keyup", function() {
-            updateCentralServiceSaveOkButtonVisibility();
-        });
     });
 
     return {

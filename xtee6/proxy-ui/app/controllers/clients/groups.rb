@@ -221,7 +221,10 @@ module Clients::Groups
 
     serverconf_save
 
-    render_json(read_groups(client))
+    render_json({
+      :groups => read_groups(client),
+      :description => params[:description]
+    })
   end
 
   private

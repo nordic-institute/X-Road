@@ -14,6 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.util.HandlerBase;
@@ -47,6 +48,8 @@ class ServerProxyHandler extends HandlerBase {
                         "Must use POST request method instead of %s",
                         request.getMethod());
             }
+
+            GlobalConf.verifyValidity();
 
             logProxyVersion(request);
 

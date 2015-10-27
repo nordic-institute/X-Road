@@ -59,7 +59,7 @@ public class ClientProxy implements StartStop {
             SystemProperties.PREFIX + "proxy.clientHandlers";
 
     // Configuration parameters.
-    // TODO #2576 Make configurable in the future
+    // FUTURE #2576 Make configurable.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
 

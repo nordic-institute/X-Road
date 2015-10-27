@@ -26,6 +26,15 @@ class GlobalGroupMember < ActiveRecord::Base
     get_search_relation(group_id, searchable).count
   end
 
+  def self.remove_matching_members(group_id, searchable)
+    logger.info("remove_matching_members(#{group_id}, #{searchable})")
+
+    removed_members = get_search_relation(group_id, searchable).destroy_all
+    GlobalGroup.find(group_id).update_member_count
+
+    removed_members.map{ |m| m.group_member }.compact
+  end
+
   private
 
   def self.get_search_relation(group_id, searchable)

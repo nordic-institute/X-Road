@@ -19,6 +19,8 @@ import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 
 /**
  * Performs a single request at a time and returns a response.
+ *
+ * FUTURE Only 'extra' project uses it (subproject 'testclient')
  */
 public class SingleRequestSender {
 

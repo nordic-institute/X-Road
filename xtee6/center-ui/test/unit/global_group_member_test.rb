@@ -6,6 +6,10 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     @group_id = ActiveRecord::Fixtures.identify(:vallavalitsused)
   end
 
+  def members_count
+    GlobalGroupMember.where(:global_group_id => @group_id).count
+  end
+
   test "Advanced search with existing member name" do
     # Given
     query_params = ListQueryParams.new(
@@ -193,5 +197,28 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
     # Then
     assert_equal(2, result.size)
+  end
+
+  test "Delete members found with search" do
+    # Given
+    searchable = "subsystem_in_vallavalitsused"
+    members_before = members_count
+
+    # When
+    removed_member_ids =
+        GlobalGroupMember.remove_matching_members(@group_id, searchable)
+
+    # Then
+    members_after = members_count
+    members_less = members_before - members_after
+
+    removed_members_expected_no = 1
+    assert_equal(removed_members_expected_no, members_less)
+    assert_equal(removed_members_expected_no, removed_member_ids.size)
+
+    assert_equal(searchable, removed_member_ids[0].subsystem_code)
+
+    group = GlobalGroup.find(@group_id)
+    assert_equal(members_after, group.member_count)
   end
 end

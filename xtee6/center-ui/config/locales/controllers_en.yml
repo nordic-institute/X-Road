@@ -43,28 +43,26 @@ en:
   approved_cas:
     action:
       index: "display approved CAs page"
-      get_cert_details_by_id: "get approved CA temp cert details by id"
+      get_cert_details_by_id: "get approved CA temp certificate details by id"
       get_records_count: "get approved CA records count"
       can_see_details: "verify visibility of approved CA details"
       refresh: "refresh approved CAs table"
-      get_intermediate_ca_temp_cert_details: "get approved CA intermediate CA temp cert details"
-      get_existing_intermediate_ca_cert_details: "get existing intermediate CA cert details"
-      get_existing_intermediate_ca_cert_dump_and_hash: "get existing intermediate CA cert dump and hash"
-      get_top_ca_cert_details: "get top CA cert details"
-      get_top_ca_cert_dump_and_hash: "get top CA cert dump and hash"
-      get_name_extractor_data: "get top CA name extractor data"
+      get_intermediate_ca_temp_cert_details: "get approved CA intermediate CA temp certificate details"
+      get_existing_intermediate_ca_cert_details: "get existing intermediate CA certificate details"
+      get_existing_intermediate_ca_cert_dump_and_hash: "get existing intermediate CA certificate dump and hash"
+      get_top_ca_cert_details: "get service CA certificate details"
+      get_top_ca_cert_dump_and_hash: "get service CA certificate dump and hash"
       get_ocsp_infos: "get OCSP infos"
-      get_existing_ocsp_cert_details: "get existing OCSP cert details"
+      get_existing_ocsp_cert_details: "get existing OCSP certificate details"
       get_intermediate_cas: "get intermediate CAs"
-      upload_top_ca_cert: "upload top CA cert"
-      upload_ocsp_responder_cert: "upload OCSP responder cert"
-      upload_intermediate_ca_cert: "upload intermediate CA cert"
+      upload_top_ca_cert: "upload service CA certificate"
+      upload_ocsp_responder_cert: "upload OCSP responder certificate"
+      upload_intermediate_ca_cert: "upload intermediate CA certificate"
       save_new_approved_ca: "save new approved CA"
       edit_existing_approved_ca: "edit existing approved CA"
       delete_approved_ca: "delete approved CA"
     approved_ca_added: "Certification service added successfully"
     intermediate_ca_added: "Intermediate CA added successfully"
-    no_name_extractor: "Name extractor method must be provided for approved_ca used for signing"
     ca_settings_saved: "CA settings saved"
 
   orgs:
@@ -121,10 +119,9 @@ en:
       remove_selected_members: "remove selected members from global group"
       add_members_to_group: "add members to global group"
     delete: "Group deleted successfully"
-    description_blank: "Global group description must not be blank."
     change_description: "Description changed successfully"
-    delete_all_members: "All members removed successfully"
-    delete_selected_members: "Selected members removed successfully"
+    remove_selected_members: "Selected members removed successfully"
+    remove_matching_members: "Matching members removed successfully"
 
   members:
     action:
@@ -142,6 +139,7 @@ en:
       member_add: "add member"
       member_edit: "edit member"
       delete: "delete member"
+      add_subsystem: "add subsystem"
       delete_subsystem: "delete subsystem"
       import_auth_cert: "import authentication certificate"
       add_new_owned_server_request: "add new owned server request"
@@ -152,7 +150,7 @@ en:
 
     added: "Successfully added X-Road member with member class '%{member_class}' and member code '%{member_code}'."
     server_already_exists: "Server with owner class '%{member_class}', owner code '%{member_code}' and server code '%{server_code}' already exists."
-    server_code_blank: "Server code cannot be blank!"
+    subsystem_already_exists: "Subsystem '%{subsystem_code}' already exists."
     auth_cert_request_added: "Request of adding authentication certificate to new security server '%{security_server}' added successfully"
     client_add_request_added: "Request of adding client '%{client_id}' to security server '%{server_id}' added successfully"
     client_deletion_request_added: "Request of deleting client '%{client_id}' from security server '%{server_id}' added successfully"
@@ -177,7 +175,7 @@ en:
       edit_security_categories: "edit security categories"
       delete: "delete security server"
       import_auth_cert: "import authentication certificate"
-      auth_cert_adding_request: "add authehtication certificate adding request"
+      auth_cert_adding_request: "add authentication certificate adding request"
       auth_cert_deletion_request: "add authentication certificate deletion request"
     add_auth_cert_adding_request: "Request of adding authentication certificate to existing security server '%{security_server}' added successfully"
     add_auth_cert_deletion_request: "Request of deleting authentication certificate from security server '%{security_server_id}' added successfully"
@@ -269,6 +267,7 @@ en:
       deleting_key_from_token_failed: "Failed to delete key from token '%{token}': %{reason}"
       deleting_key_from_token_success: "Key successfully deleted from token '%{token}'"
       deleting_key_from_conf_success: "Key successfully deleted from central server configuration"
+      optional_part_conf_error: "Cannot read optional configuration part %{message}."
       conf_part_upload:
         successful: "Configuration file for content identifier '%{content_identifier}' uploaded successfully."
         warnings: "Configuration file for content identifier '%{content_identifier}' uploaded with some warnings."
@@ -307,3 +306,5 @@ en:
     central_server_address_edit_params:
       centralServerAddress:
         host: "Central server address must be DNS name or IP address"
+    service_provider_registered: "Management service provider '%{client_id}' registered as security server '%{server_id}' client"
+

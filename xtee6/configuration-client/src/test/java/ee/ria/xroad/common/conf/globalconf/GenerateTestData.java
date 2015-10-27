@@ -68,11 +68,6 @@ public final class GenerateTestData {
         private final List<ConfDirEntry> entries = new ArrayList<>();
         private boolean writeExpireDate = true;
 
-        public TestConfDir(String name, boolean writeExpireDate) {
-            this(name);
-            this.writeExpireDate = writeExpireDate;
-        }
-
         TestConfDir addEntry(ConfDirEntry e, String fileName) throws Exception {
             e.setContent(getFileContent(Paths.get(ROOT, name,
                     e.getInstanceIdentifier(), fileName)));

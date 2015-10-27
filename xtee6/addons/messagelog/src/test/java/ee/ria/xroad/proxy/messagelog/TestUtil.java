@@ -26,6 +26,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -117,6 +118,7 @@ final class TestUtil {
         String soap = message.replaceAll("<xroad:id>1234567890</xroad:id>",
                 "<xroad:id>" + queryId + "</xroad:id>");
         return (SoapMessageImpl) new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(
                         soap.getBytes(StandardCharsets.UTF_8)));
     }

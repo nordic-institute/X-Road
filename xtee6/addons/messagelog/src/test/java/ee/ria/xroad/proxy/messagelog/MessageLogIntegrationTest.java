@@ -1,17 +1,16 @@
 package ee.ria.xroad.proxy.messagelog;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.FileUtils;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
@@ -74,33 +73,17 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
     }
 
     static SoapMessageImpl createTestMessage() throws Exception {
-        String message;
-        try (InputStream in =
-                new FileInputStream("message.xml")) {
-            message = IOUtils.toString(in);
+        try (InputStream in = new FileInputStream("message.xml")) {
+            return (SoapMessageImpl) new SoapParserImpl().parse(
+                    MimeTypes.TEXT_XML_UTF_8, in);
         }
-
-        return (SoapMessageImpl) new SoapParserImpl().parse(
-                new ByteArrayInputStream(
-                        message.getBytes(StandardCharsets.UTF_8)));
     }
 
     static SignatureData createTestSignature() throws Exception {
-        String signature;
-        try (InputStream in = new FileInputStream("signatures.xml")) {
-            signature = IOUtils.toString(in);
-        }
-
-        String hc;
-        try (InputStream in = new FileInputStream("hashchain.xml")) {
-            hc = IOUtils.toString(in);
-        }
-
-        String hcr;
-        try (InputStream in = new FileInputStream("hashchainresult.xml")) {
-            hcr = IOUtils.toString(in);
-        }
-
-        return new SignatureData(signature, hcr, hc);
+        return new SignatureData(
+            FileUtils.readFileToString(new File("signatures.xml")),
+            FileUtils.readFileToString(new File("hashchain.xml")),
+            FileUtils.readFileToString(new File("hashchainresult.xml"))
+        );
     }
 }

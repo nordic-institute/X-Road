@@ -35,9 +35,9 @@ public final class IdentifierXmlNodeParser {
      * @throws Exception if errors occur during parsing
      */
     public static ClientId parseClientId(Node node) throws Exception {
-        XroadClientIdentifierType type =
-                parseType(XroadObjectType.MEMBER, node,
-                        XroadClientIdentifierType.class);
+        XRoadClientIdentifierType type =
+                parseType(XRoadObjectType.MEMBER, node,
+                        XRoadClientIdentifierType.class);
         return IdentifierTypeConverter.parseClientId(type);
     }
 
@@ -48,23 +48,23 @@ public final class IdentifierXmlNodeParser {
      * @throws Exception if errors occur during parsing
      */
     public static ServiceId parseServiceId(Node node) throws Exception {
-        XroadObjectType objectType = getObjectType(node);
-        if (objectType.equals(XroadObjectType.CENTRALSERVICE)) {
-            XroadCentralServiceIdentifierType type =
-                    parseType(XroadObjectType.CENTRALSERVICE, node,
-                            XroadCentralServiceIdentifierType.class);
+        XRoadObjectType objectType = getObjectType(node);
+        if (objectType.equals(XRoadObjectType.CENTRALSERVICE)) {
+            XRoadCentralServiceIdentifierType type =
+                    parseType(XRoadObjectType.CENTRALSERVICE, node,
+                            XRoadCentralServiceIdentifierType.class);
             return IdentifierTypeConverter.parseCentralServiceId(type);
         } else {
-            XroadServiceIdentifierType type =
-                    parseType(XroadObjectType.SERVICE, node,
-                            XroadServiceIdentifierType.class);
+            XRoadServiceIdentifierType type =
+                    parseType(XRoadObjectType.SERVICE, node,
+                            XRoadServiceIdentifierType.class);
             return IdentifierTypeConverter.parseServiceId(type);
         }
     }
 
     // -- Helper methods ------------------------------------------------------
 
-    static <T> T parseType(XroadObjectType expectedType, Node node,
+    static <T> T parseType(XRoadObjectType expectedType, Node node,
             Class<T> clazz) throws Exception {
         verifyObjectType(node, expectedType);
 
@@ -73,16 +73,16 @@ public final class IdentifierXmlNodeParser {
         return element.getValue();
     }
 
-    static void verifyObjectType(Node node, XroadObjectType expected)
+    static void verifyObjectType(Node node, XRoadObjectType expected)
             throws Exception {
-        XroadObjectType type = getObjectType(node);
+        XRoadObjectType type = getObjectType(node);
         if (!expected.equals(type)) {
             throw new CodedException(X_INVALID_XML,
                     "Unexpected objectType: %s", type);
         }
     }
 
-    static XroadObjectType getObjectType(Node node) throws Exception {
+    static XRoadObjectType getObjectType(Node node) throws Exception {
         Node objectType = null;
 
         NamedNodeMap attr = node.getAttributes();
@@ -102,7 +102,7 @@ public final class IdentifierXmlNodeParser {
         }
 
         try {
-            return XroadObjectType.valueOf(typeName);
+            return XRoadObjectType.valueOf(typeName);
         } catch (IllegalArgumentException e) {
             throw new CodedException(X_INVALID_XML,
                     "Unknown objectType: %s", typeName);

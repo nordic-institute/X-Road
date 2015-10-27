@@ -34,8 +34,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
     private SignatureData signature;
     private SoapFault fault;
 
-    private CachingStream attachmentCache;
-    private SoapMessageEncoder encoder;
+    protected CachingStream attachmentCache;
+    protected SoapMessageEncoder encoder;
 
     private boolean hasBeenConsumed;
 
@@ -132,7 +132,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
 
         if (!hasAttachments()) {
             attachmentCache = new CachingStream();
-            encoder = new SoapMessageEncoder(attachmentCache);
+
+            encoder = createEncoder();
 
             // Write the SOAP before attachments
             encoder.soap(soapMessage);
@@ -148,7 +149,11 @@ public class ProxyMessage implements ProxyMessageConsumer {
         this.fault = soapFault;
     }
 
-    private boolean hasAttachments() {
+    protected boolean hasAttachments() {
         return encoder != null;
+    }
+
+    protected SoapMessageEncoder createEncoder() {
+        return new SoapMessageEncoder(attachmentCache);
     }
 }

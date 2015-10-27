@@ -33,12 +33,12 @@ public final class IdentifierXmlNodePrinter {
             return;
         }
 
-        XroadClientIdentifierType type =
+        XRoadClientIdentifierType type =
                 IdentifierTypeConverter.printClientId(clientId);
 
-        JAXBElement<XroadClientIdentifierType> jaxbElement =
-                new JAXBElement<XroadClientIdentifierType>(
-                        nodeQName, XroadClientIdentifierType.class, type);
+        JAXBElement<XRoadClientIdentifierType> jaxbElement =
+                new JAXBElement<XRoadClientIdentifierType>(
+                        nodeQName, XRoadClientIdentifierType.class, type);
 
         getMarshaller().marshal(jaxbElement, parentNode);
     }
@@ -56,12 +56,12 @@ public final class IdentifierXmlNodePrinter {
             return;
         }
 
-        XroadServiceIdentifierType type =
+        XRoadServiceIdentifierType type =
                 IdentifierTypeConverter.printServiceId(serviceId);
 
-        JAXBElement<XroadServiceIdentifierType> jaxbElement =
-                new JAXBElement<XroadServiceIdentifierType>(
-                        nodeQName, XroadServiceIdentifierType.class, type);
+        JAXBElement<XRoadServiceIdentifierType> jaxbElement =
+                new JAXBElement<XRoadServiceIdentifierType>(
+                        nodeQName, XRoadServiceIdentifierType.class, type);
 
         getMarshaller().marshal(jaxbElement, parentNode);
     }

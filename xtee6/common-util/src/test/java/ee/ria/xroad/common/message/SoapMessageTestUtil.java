@@ -7,8 +7,9 @@ import org.apache.commons.io.IOUtils;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.MimeTypes;
 
-final class SoapMessageTestUtil {
+public final class SoapMessageTestUtil {
 
     public static final String QUERY_DIR = "../proxy/src/test/queries/";
 
@@ -59,12 +60,14 @@ final class SoapMessageTestUtil {
 
     public static Soap createSoapMessage(String fileName)
             throws Exception {
-        return new SoapParserImpl().parse(newQueryInputStream(fileName));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8,
+                newQueryInputStream(fileName));
     }
 
     public static Soap createSoapMessage(byte[] data)
             throws Exception {
-        return new SoapParserImpl().parse(new ByteArrayInputStream(data));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8,
+                new ByteArrayInputStream(data));
     }
 
     public static SoapMessageImpl createRequest(String fileName)

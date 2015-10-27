@@ -19,13 +19,15 @@
       </div>
 
       <%= form_tag do %>
-      <table class="details">
+      <table class="details" style="table-layout: fixed;">
         <tr>
-          <td class="label">
+          <td class="label" style="width: 8em;">
             <%= t 'members.name' %>
           </td>
-          <td style="width: 100%;"><p id="member_edit_name" class="input"/></td>
           <td>
+            <p id="member_edit_name" class="input" style="overflow: auto; white-space: pre-wrap;"/>
+          </td>
+          <td style="width: 4em;">
             <% if can?(:edit_member_name_and_admin_contact) %>
             <button id="member_edit_change_name"><%= t 'common.edit' %></button>
             <% end %>
@@ -81,8 +83,9 @@
     <div id="member_subsystems_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:remove_member_subsystem) %>
-        <button id="delete_subsystem" class="btn warning"><%= t 'members.edit.subsystems.delete' %></button>
+        <button id="delete_subsystem" class="btn warning"><%= t 'common.delete' %></button>
         <% end %>
+        <button id="add_subsystem" class="btn"><%= t 'common.add' %></button>
       </div>
 
       <table class="member_subsystems">
@@ -139,6 +142,7 @@
 <%= render :partial => "shared/member_name_edit_dialog" %>
 <%= render :partial => "shared/owned_server_add_dialog" %>
 <%= render :partial => "shared/member_to_group_add_dialog" %>
+<%= render :partial => "shared/subsystem_add_dialog" %>
 <%= render :partial => "shared/member_used_server_register_dialog" %>
 
 <!-- XXX Prevents infinite rendering loop -->

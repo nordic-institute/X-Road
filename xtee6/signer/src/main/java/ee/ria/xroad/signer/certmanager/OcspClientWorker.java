@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.joda.time.DateTime;
 
@@ -57,6 +58,8 @@ public class OcspClientWorker extends AbstractSignerActor {
         GlobalConf.reload(); // ideally Signer should simply listen to global conf download events and reload the conf
 
         if (!GlobalConf.isValid()) {
+            log.warn("Cannot download OCSP responses because "
+                    + "global conf is not valid");
             return;
         }
 

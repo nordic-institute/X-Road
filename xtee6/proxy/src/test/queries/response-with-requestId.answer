@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
+  <SOAP-ENV:Header>
+    <xroad:client id:objectType="MEMBER">
+      <id:xRoadInstance>EE</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>TS1OWNER</id:memberCode>
+    </xroad:client>
+    <xroad:service id:objectType="SERVICE">
+      <id:xRoadInstance>EE</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>TS1OWNER</id:memberCode>
+      <id:subsystemCode>mgmt service provider</id:subsystemCode>
+      <id:serviceCode>clientReg</id:serviceCode>
+    </xroad:service>
+    <xroad:id>d9e5b4e0-052c-42f9-9ed7-b003f97f0f5f</xroad:id>
+    <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    <xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">xhlFFlffQR5L0KOL3dGRuLxxOsl04P1+8/qi/NCT1ze5SQFLtRG1CU34+suTgAEcRfJz/P+wG4dSGHgukcsBdA==</xroad:requestHash>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <xroad:clientRegResponse>
+      <xroad:server id:objectType="SERVER">
+        <id:xRoadInstance>EE</id:xRoadInstance>
+        <id:memberClass>GOV</id:memberClass>
+        <id:memberCode>TS1OWNER</id:memberCode>
+        <id:serverCode>TS1</id:serverCode>
+      </xroad:server>
+      <xroad:client id:objectType="SUBSYSTEM">
+        <id:xRoadInstance>EE</id:xRoadInstance>
+        <id:memberClass>COM</id:memberClass>
+        <id:memberCode>terminaator</id:memberCode>
+        <id:subsystemCode>III</id:subsystemCode>
+      </xroad:client>
+      <xroad:requestId>413</xroad:requestId>
+    </xroad:clientRegResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
