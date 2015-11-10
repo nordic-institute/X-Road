@@ -224,25 +224,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        String originalContentType = httpSender.getResponseHeaders().get(
-            HEADER_ORIGINAL_CONTENT_TYPE
-        );
-
-        response = new ProxyMessage() {
-            @Override
-            protected SoapMessageEncoder createEncoder() {
-                return new SoapMessageEncoder(
-                    attachmentCache,
-                    MimeUtils.getBoundary(originalContentType)
-                );
-            }
-
-            @Override
-            public String getSoapContentType() {
-                return hasAttachments() ? originalContentType
-                        : MimeUtils.TEXT_XML_UTF8;
-            }
-        };
+        response = new ProxyMessage(
+                httpSender.getResponseHeaders().get(
+                        HEADER_ORIGINAL_CONTENT_TYPE));
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
                 httpSender.getResponseContentType(),
@@ -505,7 +489,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         private SoapMessageDecoder.Callback handler;
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             log.trace("soap({})", message.getXml());
 
             requestSoap = (SoapMessageImpl) message;
@@ -516,7 +501,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 handler = new DefaultSoapMessageHandler();
             }
 
-            handler.soap(message);
+            handler.soap(message, headers);
         }
 
         @Override
@@ -579,7 +564,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
             implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             if (request == null) {
                 request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
                 outputContentType = request.getContentType();
@@ -594,7 +580,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 writeOcspResponses();
             }
 
-            request.soap(requestSoap);
+            request.soap(requestSoap, headers);
         }
 
         @Override

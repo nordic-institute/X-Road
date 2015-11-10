@@ -510,15 +510,15 @@ function deleteCert(row) {
     var url = focusData.cert_request ?
         action("delete_cert_request") : action("delete_cert");
 
-    confirm("keys.index.delete_cert_confirm",
-            { hash: focusData.cert_friendly_name },
-            function() {
-                $.post(url, params, function(response) {
-                    oKeys.fnReplaceData(response.data);
+    var confirmText = focusData.cert_request ?
+        "keys.index.delete_csr_confirm" : "keys.index.delete_cert_confirm";
 
-                    enableActions();
-                }, "json");
-            });
+    confirm(confirmText, { hash: focusData.cert_friendly_name }, function() {
+        $.post(url, params, function(response) {
+            oKeys.fnReplaceData(response.data);
+            enableActions();
+        }, "json");
+    });
 }
 
 $(document).ready(function() {

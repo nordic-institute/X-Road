@@ -264,6 +264,7 @@ en:
   layouts:
     application:
       title: "Central Server Administration"
+      server_type: "Central Server"
 
   approved_cas:
     upload_ca_cert: "Insert Service CA Certificate"

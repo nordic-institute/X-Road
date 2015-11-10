@@ -1,6 +1,7 @@
 package ee.cyber.xroad.mediator.message;
 
 import java.io.IOException;
+import java.util.Map;
 
 import ee.ria.xroad.common.message.SoapMessage;
 
@@ -17,9 +18,11 @@ public interface MessageEncoder {
     /**
      * Encodes the given SOAP message.
      * @param soapMessage the SOAP message
+     * @param additionalHeaders SOAP part headers
      * @throws Exception in case of any errors
      */
-    void soap(SoapMessage soapMessage) throws Exception;
+    void soap(SoapMessage soapMessage, Map<String, String> additionalHeaders)
+            throws Exception;
 
     /**
      * Closes internal encoder streams.

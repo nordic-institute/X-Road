@@ -36,7 +36,6 @@ import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
@@ -170,10 +169,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage() {
+        requestMessage = new ProxyMessage(
+                servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
-            public void soap(SoapMessageImpl soapMessage) throws Exception {
-                super.soap(soapMessage);
+            public void soap(SoapMessageImpl soapMessage,
+                    Map<String, String> additionalHeaders) throws Exception {
+                super.soap(soapMessage, additionalHeaders);
 
                 requestServiceId = soapMessage.getService();
 
@@ -185,16 +186,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
                 }
-            }
-
-            @Override
-            protected SoapMessageEncoder createEncoder() {
-                return new SoapMessageEncoder(
-                    attachmentCache,
-                    MimeUtils.getBoundary(
-                        servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)
-                    )
-                );
             }
         };
 
@@ -534,9 +525,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             responseSoap = (SoapMessageImpl) message;
-            encoder.soap(responseSoap);
+            encoder.soap(responseSoap, headers);
         }
 
         @Override

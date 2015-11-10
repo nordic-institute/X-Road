@@ -29,7 +29,6 @@ public class NonUtf8ResponseContentType extends MessageTestCase {
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse)
-            throws Exception {
+    protected void validateNormalResponse(Message receivedResponse) {
     }
 }

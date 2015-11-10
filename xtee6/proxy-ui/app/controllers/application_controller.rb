@@ -329,7 +329,6 @@ class ApplicationController < BaseController
   end
 
   def get_temp_anchor_details
-    # TODO: add constructor for byte[]
     begin
       anchor = ConfigurationAnchor.new(temp_anchor_file)
       generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc

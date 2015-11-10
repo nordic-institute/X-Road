@@ -6,12 +6,7 @@
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
-# FIXME: use regexp for alternation
-DATE=$(date | sed -e 's/ /_/g' | sed -e 's/:/_/g')
-DATABASE_DUMP_FILENAME_WITH_TIMESTAMP="${DATABASE_DUMP_FILENAME}_backup_${DATE}"
-
 BACKED_UP_PATHS="/etc/xroad/ /etc/nginx/sites-enabled/"
-
 THIS_FILE=$(pwd)/$0
 
 die () {
@@ -21,14 +16,12 @@ die () {
 
 create_database_backup () {
   if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
-    echo "CREATING DATABASE DUMP TO ${DATABASE_DUMP_FILENAME_WITH_TIMESTAMP}"
-    ${DATABASE_BACKUP_SCRIPT} ${DATABASE_DUMP_FILENAME_WITH_TIMESTAMP}
+    echo "CREATING DATABASE DUMP TO ${DATABASE_DUMP_FILENAME}"
+    ${DATABASE_BACKUP_SCRIPT} ${DATABASE_DUMP_FILENAME}
     if [ $? -ne 0 ] ; then
       die "Database backup failed!" \
           "Please check the error messages and fix them before trying again!"
     fi
-    # Save the database dump without the timestamp so the restore script can find it.
-    cp ${DATABASE_DUMP_FILENAME_WITH_TIMESTAMP} ${DATABASE_DUMP_FILENAME}
     BACKED_UP_PATHS="${BACKED_UP_PATHS} ${DATABASE_DUMP_FILENAME}"
   else
     die "Failed to execute the database backup script at ${DATABASE_BACKUP_SCRIPT}"

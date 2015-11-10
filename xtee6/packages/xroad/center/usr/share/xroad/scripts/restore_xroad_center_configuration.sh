@@ -20,16 +20,10 @@ OPTIONS:
     -b Treat all input values as encoded in base64.
     -i Instance ID of the installation of X-Road. Mandatory if -F is not used.
     -n Node name of the central server if deployed in HA setup.
-       Mandatory if -F is not used.
+       Mandatory in HA setup if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
 EOF
-}
-
-check_required_values () {
-  check_instance_id
-  check_central_ha_node_name
-  check_backup_file_name
 }
 
 execute_restore () {
@@ -92,7 +86,9 @@ while getopts ":Fi:n:f:bh" opt ; do
 done
 
 check_user
-check_required_values
+check_instance_id
+check_central_ha_node_name
+check_backup_file_name
 execute_restore
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

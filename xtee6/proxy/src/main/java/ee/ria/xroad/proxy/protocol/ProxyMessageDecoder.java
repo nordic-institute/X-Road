@@ -34,7 +34,6 @@ import ee.ria.xroad.proxy.signedmessage.Verifier;
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeTypes.*;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
@@ -156,12 +155,29 @@ public class ProxyMessageDecoder {
 
     private class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
+        private Map<String, String> headers;
+        private String partContentType;
 
         @Override
         public void startMultipart(BodyDescriptor bd) {
             // Do not parse SOAP attachments in the (optional) second
             // part of the message. We will create separate parser for them.
             parser.setFlat();
+        }
+
+        @Override
+        public void startHeader() throws MimeException {
+            headers = new HashMap<>();
+            partContentType = null;
+        }
+
+        @Override
+        public void field(Field field) throws MimeException {
+            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+                partContentType = field.getBody();
+            } else {
+                headers.put(field.getName(), field.getBody());
+            }
         }
 
         @Override
@@ -177,7 +193,7 @@ public class ProxyMessageDecoder {
                 }
                 // $FALL-THROUGH$ OCSP response is only sent from CP to SP.
             case SOAP:
-                handleSoap(bd, is);
+                handleSoap(bd, is, partContentType, headers);
 
                 nextPart = NextPart.ATTACHMENT;
                 break;
@@ -246,24 +262,27 @@ public class ProxyMessageDecoder {
         }
     }
 
-    private void handleSoap(BodyDescriptor bd, InputStream is) {
+    private void handleSoap(BodyDescriptor bd, InputStream is,
+            String partContentType, Map<String, String> soapPartHeaders) {
         try {
             LOG.trace("Looking for SOAP, got: {}, {}", bd.getMimeType(),
                     bd.getCharset());
 
-            if (!TEXT_XML.equalsIgnoreCase(bd.getMimeType())) {
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
-                        "Invalid content type for SOAP message: %s",
-                        bd.getMimeType());
+            switch (bd.getMimeType().toLowerCase()) {
+                case TEXT_XML:
+                case XOP_XML:
+                    break;
+                default:
+                    throw new CodedException(X_INVALID_CONTENT_TYPE,
+                            "Invalid content type for SOAP message: %s",
+                            bd.getMimeType());
             }
 
-            Soap soap = new SoapParserImpl().parse(
-                    contentTypeWithCharset(bd.getMimeType(), bd.getCharset()),
-                    is);
+            Soap soap = new SoapParserImpl().parse(partContentType, is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {
-                callback.soap((SoapMessageImpl) soap);
+                callback.soap((SoapMessageImpl) soap, soapPartHeaders);
 
                 verifier.addPart(MessageFileNames.MESSAGE, getHashAlgoId(),
                         ((SoapMessageImpl) soap).getBytes());
@@ -290,16 +309,20 @@ public class ProxyMessageDecoder {
         attachmentParser.setContentHandler(new AbstractContentHandler() {
             private int attachmentNo = 0;
             private Map<String, String> headers;
+            private String partContentType;
 
             @Override
             public void startHeader() throws MimeException {
                 headers = new HashMap<>();
+                partContentType = null;
             }
 
             @Override
             public void field(Field field) throws MimeException {
-                if (!field.getName().toLowerCase().equals(
+                if (field.getName().toLowerCase().equals(
                         HEADER_CONTENT_TYPE)) {
+                    partContentType = field.getBody();
+                } else {
                     headers.put(field.getName(), field.getBody());
                 }
             }
@@ -319,7 +342,7 @@ public class ProxyMessageDecoder {
                     TeeInputStream proxyIs =
                             new TeeInputStream(is, dc.getOutputStream(), true);
 
-                    callback.attachment(bd.getMimeType(), proxyIs, headers);
+                    callback.attachment(partContentType, proxyIs, headers);
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),

@@ -61,6 +61,16 @@ public final class ClientMediatorIntegrationTest {
         try {
             mediator.start();
 
+            /*doPost("xroad-mtom.request", "Multipart/Related; "
+                    + "start-info=\"application/soap+xml\"; "
+                    + "type=\"application/xop+xml\"; "
+                    + "boundary=\"jetty771207119h3h10dty\"");*/
+
+            doPost("xroad-mimesoap.request", "Multipart/Related; "
+                    + "start-info=\"application/soap+xml\"; "
+                    + "type=\"application/xop+xml\"; "
+                    + "boundary=\"jetty771207119h3h10dty\"");
+
             //doPost("v5xroad-simple.request");
             //doPost("v5xroad-test.request");
             //doPost("xroad-simple.request");
@@ -68,10 +78,10 @@ public final class ClientMediatorIntegrationTest {
             //doGet("?uri=http://www.google.com");
             //doGet("?producer=foobarbaz");
             //doGet("?foo=bar");
-            doGet("listMembers?foo=bar&baz=buzz");
+            //doGet("listMembers?foo=bar&baz=buzz");
 
-            doFault = true;
-            doPost("v5xroad-test.request");
+            //doFault = true;
+            //doPost("v5xroad-test.request");
 
         } finally {
             mediator.stop();
@@ -84,7 +94,8 @@ public final class ClientMediatorIntegrationTest {
         }
     }
 
-    private static void doPost(String requestFileName) throws Exception {
+    private static void doPost(String requestFileName, String contentType)
+            throws Exception {
         String host = MediatorSystemProperties.getClientMediatorConnectorHost();
         int port = MediatorSystemProperties.getClientMediatorHttpPort();
 
@@ -96,7 +107,7 @@ public final class ClientMediatorIntegrationTest {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "text/xml");
+        conn.setRequestProperty("Content-Type", contentType);
 
         OutputStream out = conn.getOutputStream();
         IOUtils.copy(TestResources.get(requestFileName), out);

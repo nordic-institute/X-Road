@@ -19,9 +19,12 @@ class ApplicationController < BaseController
 
   rescue_from ActiveRecord::StatementInvalid,
       ActiveRecord::ConnectionNotEstablished do
-    ActiveRecord::Base.establish_connection
-    error(t("common.db_error"))
-    render_error_response($!.message)
+    begin
+      ActiveRecord::Base.establish_connection
+    rescue
+      log_stacktrace($!)
+      render_error_response(t("common.db_error"))
+    end
   end
 
   before_filter :disable_federation

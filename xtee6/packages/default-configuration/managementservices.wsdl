@@ -141,7 +141,6 @@
             <!-- Header fields -->
             <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
             <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
-            <xsd:element name="userId" type="xsd:string"/>
             <xsd:element name="id" type="xsd:string"/>
             <xsd:element name="protocolVersion" type="xsd:string"/>
             <xsd:element name="requestHash" type="xsd:string"/>
@@ -232,7 +231,6 @@
     <wsdl:message name="requestheader">
         <wsdl:part name="client" element="xroad:client"/>
         <wsdl:part name="service" element="xroad:service"/>
-        <wsdl:part name="userId" element="xroad:userId"/>
         <wsdl:part name="id" element="xroad:id"/>
         <wsdl:part name="protocolVersion" element="xroad:protocolVersion"/>
         <wsdl:part name="requestHash" element="xroad:requestHash"/>
@@ -283,7 +281,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
@@ -291,7 +288,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
@@ -303,7 +299,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
@@ -311,7 +306,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
@@ -323,7 +317,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
@@ -331,7 +324,6 @@
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
                 <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
                 <soap:header message="tns:requestheader" part="requestHash" use="literal"/>

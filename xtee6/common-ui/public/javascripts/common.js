@@ -1108,14 +1108,21 @@ function closeFileUploadDialog() {
     $("#file_upload_dialog").dialog("close");
 }
 
-$(document).ready(function() {
+function moveButtonsToHeader() {
+    $("." + $("#ctrl").val() + "_actions").find("button").each(function() {
+        var clone = $(this).clone();
+        $(this).remove();
+        $(".button-group").append(clone);
+    });
+}
 
-    initMenu();
-
+function addButtonIcons() {
     $("button:contains('Add')" ).addClass("add-icon");
     $("button:contains('Edit')" ).addClass("edit-icon");
     $("button:contains('Delete')" ).addClass("delete-icon");
+}
 
+function disableEnterSubmit() {
     // Submit only search forms with ENTER. Disable ENTER key on textareas.
     $(document).on("keydown", "form, textarea", function(e) {
         if (e.which == 13) {
@@ -1123,7 +1130,9 @@ $(document).ready(function() {
         }
         return e.which !== 13;
     });
+}
 
+function resizeTablesOnRowSelect() {
     // Manually increase the size of scrollBody to accomodate the
     // increased size of the table after selecting a row (which makes
     // clipped data visible for that row). Redrawing the whole table
@@ -1140,37 +1149,24 @@ $(document).ready(function() {
             $(this).css("height", tableHeight);
         }
     });
+}
 
-    // Close buttons on messages.
+function addCloseButtonToMessages() {
     $(document).on("click", ".message i", function() {
         $(this).parent().remove();
     });
+}
 
-    // Misc stuff. TODO: cleanup
-    $('.' + $('#ctrl').val() + '_actions').find('button').each(function() {
-        var clone = $(this).clone();
-        $(this).remove();
-        $('.button-group').append(clone);
-    });
-
-    $('#server-names h2').text($('#server-names h2').text().replace(' Administration', ''));
-    if($('#server-names h1').text() == '')
-        $('#server-names h2').addClass('big');
-
-    if($('#user h2').text() == '')
-        $('#user h1').addClass('big');
-
-    initFileUploadDialog();
-    initLocaleSelectDialog();
-
+function initTooltips() {
     // Init every tooltip on page, even the ones added dynamically later.
     $(document).tooltip({
         content: function() {
             return $(this).attr("title");
         }
     });
+}
 
-    // Init simple/advanced search tabs.
+function initSearchTabs() {
     $(".search_tabs").initTabs({
         active: 0,
         create: function() {
@@ -1194,4 +1190,20 @@ $(document).ready(function() {
             }
         }
     });
+}
+
+$(document).ready(function() {
+    initMenu();
+
+    moveButtonsToHeader();
+    addButtonIcons();
+    disableEnterSubmit();
+    resizeTablesOnRowSelect();
+    addCloseButtonToMessages();
+
+    initFileUploadDialog();
+    initLocaleSelectDialog();
+
+    initTooltips();
+    initSearchTabs();
 });

@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -14,6 +15,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPMessage;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 
@@ -126,7 +128,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
-        responseEncoder.soap(result);
+        responseEncoder.soap(result, new HashMap<>());
     }
 
     private void handleAllowedMethods(SoapMessageImpl request)
@@ -141,7 +143,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createAllowedMethodsResponse(methodList));
-        responseEncoder.soap(result);
+        responseEncoder.soap(result, new HashMap<>());
     }
 
     private void handleGetWsdl(SoapMessageImpl request) throws Exception {
@@ -168,7 +170,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         log.info("Downloading WSDL from URL: {}", url);
         try (InputStream in = getWsdl(url)) {
-            responseEncoder.soap(SoapUtils.toResponse(request));
+            responseEncoder.soap(SoapUtils.toResponse(request),
+                    new HashMap<>());
             responseEncoder.attachment(MimeTypes.TEXT_XML, in, null);
         }
     }

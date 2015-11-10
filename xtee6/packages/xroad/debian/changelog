@@ -1,3 +1,9 @@
+xroad (6.8-1) trusty; urgency=low
+
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 09 Nov 2015 13:03:02 +0200
+
 xroad (6.8-0) trusty; urgency=low
 
   * Changes to the logging policy

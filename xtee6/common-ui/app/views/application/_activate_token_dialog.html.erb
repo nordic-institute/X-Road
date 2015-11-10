@@ -2,7 +2,7 @@
   <table class="details">
     <tr>
       <td><%= t 'common.pin' %></td>
-      <td><%= password_field_tag "activate_token_pin" %></td>
+      <td><%= password_field_tag "activate_token_pin", nil, :autocomplete => "off" %></td>
     </tr>
   </table>
 <% end %>

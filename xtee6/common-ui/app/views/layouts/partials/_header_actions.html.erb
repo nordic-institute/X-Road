@@ -4,11 +4,8 @@
       <i class="fa fa-info-circle"></i>
     </div>
     <div id="server-names">
-      <h1 data-owner-name="<%= @owner_name if @owner_name %>">
-        <%= @server_id.toShortString if @server_id %>
-        <%= " (" + @ha_node_name + ")" if @ha_node_name %>
-      </h1>
-      <h2><%= t 'layouts.application.title' %></h2>
+      <h1 data-owner-name="<%= @owner_name if @owner_name %>"><%= @server_id.toShortString if @server_id %><%= " (" + @ha_node_name + ")" if @ha_node_name %></h1>
+      <h2><%= t 'layouts.application.server_type' %></h2>
     </div>
   </div>
 </div>

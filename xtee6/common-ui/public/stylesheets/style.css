@@ -187,7 +187,7 @@ table {
     background: #fff;
     font-size: 11pt; }
     table tbody tr {
-      border-top: 1px solid #dddddd; }
+      border-top: 1px solid #ddd; }
       table tbody tr:first-of-type {
         border-top: none; }
       table tbody tr:hover td {
@@ -203,7 +203,7 @@ table {
       table tbody tr.row_selected td, table tbody tr.row_selected td[class^='sorting_'], table tbody tr.row_selected td[class*=' sorting_'] {
         background: rgba(23, 148, 255, 0.5) !important; }
       table tbody tr.unavailable {
-        color: #aaaaaa; }
+        color: #aaa; }
       table tbody tr.wsdl.disabled {
         color: #ff412c;
         font-weight: 700; }
@@ -227,7 +227,7 @@ table {
             color: #ff412c;
             text-shadow: 0 0 3px rgba(255, 65, 44, 0.8); }
         table tbody tr td span.xroad-id {
-          border-bottom: 1px dotted #dddddd; }
+          border-bottom: 1px dotted #ddd; }
         table tbody tr td ul.tableitem-actions {
           list-style: none;
           cursor: pointer;
@@ -237,14 +237,14 @@ table {
           table tbody tr td ul.tableitem-actions li {
             display: inline;
             font-size: 8pt;
-            border: 1px solid #dddddd;
+            border: 1px solid #ddd;
             background: #fff;
             border-left: none;
             padding: 3px 7px; }
             table tbody tr td ul.tableitem-actions li:first-of-type {
-              border-left: 1px solid #dddddd; }
+              border-left: 1px solid #ddd; }
       table tbody tr.unselectable {
-        color: #dddddd; }
+        color: #ddd; }
 
 table.dataTable {
   table-layout: fixed; }
@@ -288,12 +288,12 @@ table.details tbody {
 
 .dataTables_wrapper {
   margin-bottom: 10px;
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   border-top: none; }
   .dataTables_wrapper .dataTables_header {
     padding: 5px;
     background: rgba(243, 243, 243, 0.4);
-    border-top: 1px solid #dddddd; }
+    border-top: 1px solid #ddd; }
     .dataTables_wrapper .dataTables_header label {
       font-size: 11pt; }
     .dataTables_wrapper .dataTables_header button {
@@ -305,10 +305,10 @@ table.details tbody {
       margin-right: 5px;
       vertical-align: middle; }
   .dataTables_wrapper .dataTables_scrollHead {
-    border-top: 1px solid #dddddd !important;
+    border-top: 1px solid #ddd !important;
     background: #f3f3f3; }
   .dataTables_wrapper .dataTables_scrollBody {
-    border-top: 1px solid #dddddd;
+    border-top: 1px solid #ddd;
     word-wrap: break-word;
     overflow-x: hidden !important; }
   .dataTables_wrapper .dataTables_footer {
@@ -324,7 +324,7 @@ input[type=text],
 input[type=password],
 textarea, select,
 p.input {
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(85, 85, 85, 0);
   height: auto;
   padding: 5px;
@@ -362,14 +362,14 @@ textarea {
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 3px rgba(85, 85, 85, 0); }
 
 select {
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   cursor: pointer;
   background: #fff;
   padding-left: 2px;
   text-transform: uppercase; }
 
 .btn, .ui-button, .button, label.upload, button {
-  border: 1px solid #dddddd;
+  border: 1px solid #ddd;
   padding: 5px 10px;
   font-family: "Open Sans";
   font-weight: 500;
@@ -390,8 +390,8 @@ select {
   .btn:focus, .ui-button:focus, .button:focus, label.upload:focus, button:focus {
     outline: none; }
   .btn.disabled, .btn[disabled], .ui-button.disabled, .ui-button[disabled], .button.disabled, label.disabled.upload, .button[disabled], label[disabled].upload, button.disabled, button[disabled] {
-    color: #dddddd;
-    border-color: #dddddd !important; }
+    color: #ddd;
+    border-color: #ddd !important; }
     .btn.disabled:hover, .btn[disabled]:hover, .ui-button.disabled:hover, .ui-button[disabled]:hover, .button.disabled:hover, label.disabled.upload:hover, .button[disabled]:hover, label[disabled].upload:hover, button.disabled:hover, button[disabled]:hover {
       background: #fff; }
   .btn.action, .ui-button.action, .button.action, label.action.upload, button.action {
@@ -448,7 +448,7 @@ label.upload input[type="file"] {
   top: -1000px; }
 
 a, a:active, a:visited {
-  color: #111111;
+  color: #111;
   text-decoration: none; }
 
 a:hover {
@@ -516,7 +516,7 @@ p {
       padding: 0;
       width: 51px;
       height: 49px;
-      border-left: 1px solid #dddddd;
+      border-left: 1px solid #ddd;
       background: #fff; }
       .ui-dialog .dialog-buttonbar .ui-action:active {
         background: #f3f3f3; }
@@ -562,10 +562,10 @@ p {
         padding: 0; }
       .ui-dialog .ui-dialog-buttonpane button.ui-state-focus {
         background: #fff;
-        color: #111111; }
+        color: #111; }
       .ui-dialog .ui-dialog-buttonpane button.ui-state-hover, .ui-dialog .ui-dialog-buttonpane button.ui-state-active {
         background: #f3f3f3;
-        color: #111111; }
+        color: #111; }
   .ui-dialog .ui-dialog-title {
     line-height: 50px;
     height: 50px;
@@ -573,7 +573,7 @@ p {
     font-family: "Open Sans";
     font-weight: 500;
     float: none;
-    color: #111111;
+    color: #111;
     font-size: 11pt; }
   .ui-dialog .ui-dialog-content {
     padding-top: 1em;
@@ -589,7 +589,7 @@ p {
   padding: 0;
   margin: 9px 10px; }
   .button-group button {
-    border: 1px solid #dddddd;
+    border: 1px solid #ddd;
     padding: 5px 10px;
     text-transform: uppercase;
     font-size: 11pt;
@@ -615,7 +615,7 @@ p {
   .ui-tabs .ui-tabs-nav {
     list-style: none;
     padding: 0;
-    border: 1px solid #dddddd;
+    border: 1px solid #ddd;
     background: #fff;
     display: table;
     margin: 0 auto; }
@@ -628,7 +628,7 @@ p {
       .ui-tabs .ui-tabs-nav li:hover {
         background: #f3f3f3; }
       .ui-tabs .ui-tabs-nav li:active {
-        background: #eeeeee; }
+        background: #eee; }
       .ui-tabs .ui-tabs-nav li.ui-tabs-active {
         box-shadow: 0 1px 3px rgba(85, 85, 85, 0.2) inset;
         background: #f1f1f1;
@@ -644,7 +644,7 @@ p {
     margin: 0;
     border-bottom: 0; }
   .ui-tabs.search_tabs .ui-tabs-panel {
-    border: 1px solid #dddddd;
+    border: 1px solid #ddd;
     border-bottom: 0;
     padding: 1em; }
     .ui-tabs.search_tabs .ui-tabs-panel table.details {
@@ -696,7 +696,7 @@ p {
   -ms-transform: rotate(45deg); }
 
 .upper-border {
-  border-top: 1px solid #dddddd; }
+  border-top: 1px solid #ddd; }
 
 .white {
   background: #fff; }
@@ -740,7 +740,7 @@ p {
   margin: 10px; }
 
 .under {
-  border-bottom: 1px solid #dddddd; }
+  border-bottom: 1px solid #ddd; }
 
 .center {
   text-align: center; }
@@ -766,7 +766,7 @@ body {
   font-family: "Open Sans", sans-serif;
   font-weight: 400;
   font-size: 11pt;
-  color: #111111; }
+  color: #111; }
 
 td.wide {
   min-width: 200px; }
@@ -776,7 +776,7 @@ td.deletable_subsystem {
   font-weight: bold; }
 
 p.notfound {
-  color: #aaaaaa; }
+  color: #aaa; }
 
 #login {
   background: #f3f3f3; }
@@ -879,16 +879,16 @@ p.notfound {
       font-family: "Open Sans";
       font-weight: 400;
       text-transform: uppercase; }
-      #server-info #server-names h2.big {
-        font-size: 12pt;
-        height: 30px;
-        line-height: 30px; }
+    #server-info #server-names h1:empty + h2 {
+      font-size: 12pt;
+      height: 30px;
+      line-height: 30px; }
   #server-info #server-data {
     padding: 0 10px; }
 
 #actions {
   width: 100%;
-  border-bottom: 1px solid #dddddd;
+  border-bottom: 1px solid #ddd;
   background: #fff; }
   #actions h1 {
     float: left;
@@ -910,7 +910,7 @@ p.notfound {
     margin: 0;
     padding-right: 20px;
     height: 50px;
-    border-right: 1px solid #dddddd; }
+    border-right: 1px solid #ddd; }
     #user .button-group button {
       margin-top: 8px; }
   #user #settings:hover #user-menu {
@@ -918,19 +918,11 @@ p.notfound {
   #user ul {
     float: right; }
     #user ul li#settings #settings-select {
-      border-left: 1px solid #dddddd;
+      border-left: 1px solid #ddd;
       height: 52px;
       line-height: 52px;
       width: 50px;
       text-align: center; }
-    #user ul li h1 {
-      font-size: 12pt;
-      font-family: "Open Sans";
-      font-weight: 500;
-      text-transform: uppercase; }
-      #user ul li h1.big {
-        height: 30px;
-        line-height: 30px; }
     #user ul li h2 {
       font-size: 18px;
       font-family: "Open Sans";
@@ -948,12 +940,12 @@ p.notfound {
       top: 50px;
       right: 0;
       background: #fff;
-      border: 1px solid #dddddd;
+      border: 1px solid #ddd;
       border-right: none;
       z-index: 200; }
       #user ul#user-menu li {
         position: relative;
-        border-bottom: 1px solid #dddddd; }
+        border-bottom: 1px solid #ddd; }
         #user ul#user-menu li:hover {
           background: #f3f3f3;
           color: rgba(17, 17, 17, 0.7); }
@@ -1009,7 +1001,6 @@ p.notfound {
     font-size: 10pt; }
     .messages .message .fa-times {
       position: absolute;
-      top: 4px;
       right: 10px;
       padding: 3px 5px;
       cursor: pointer; }
@@ -1090,3 +1081,5 @@ iframe {
 
 body.wait *, body.wait {
   cursor: wait !important; }
+
+/*# sourceMappingURL=style.css.map */

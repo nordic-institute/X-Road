@@ -50,7 +50,7 @@ public class ClientMediator implements StartStop {
     public ClientMediator() throws Exception {
         try {
             V5IsAuthentication.loadConf();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("Cannot load authentication methods and certificates "
                     + "of information systems of 5.0 X-Road: {}",
                     e.getMessage());

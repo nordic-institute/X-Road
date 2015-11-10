@@ -4,6 +4,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.TestActorRef;
+
 import com.typesafe.config.ConfigFactory;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -41,7 +42,6 @@ abstract class AbstractMessageLogTest {
                     "false");
         }
 
-        System.out.println("### " + getLogManagerImpl());
         TestActorRef<LogManager> testActor = TestActorRef.create(actorSystem,
                 Props.create(getLogManagerImpl(), jobManager),
                 MessageLog.LOG_MANAGER);

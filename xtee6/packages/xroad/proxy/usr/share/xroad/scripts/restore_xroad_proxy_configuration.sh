@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -i <instance ID> -s <security server ID> -f <path of tar archive> [-F]
+Usage: $0 -s <security server ID> -f <path of tar archive> [-F]
 
 Restore the configuration (files and database) of the X-Road security server
 from a tar archive.
@@ -18,17 +18,10 @@ from a tar archive.
 OPTIONS:
     -h Show this message and exit.
     -b Treat all input values as encoded in base64.
-    -i Instance ID of the installation of X-Road. Mandatory if -F is not used.
     -s ID of the security server. Mandatory if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
 EOF
-}
-
-check_required_values () {
-  check_instance_id
-  check_security_server_id
-  check_backup_file_name
 }
 
 execute_restore () {
@@ -37,7 +30,7 @@ execute_restore () {
     if [ -n ${FORCE_RESTORE} ] && [[ ${FORCE_RESTORE} = true ]] ; then
       args="${args} -F"
     else
-      args="${args} -i ${INSTANCE_ID} -s ${SECURITY_SERVER_ID}"
+      args="${args} -s ${SECURITY_SERVER_ID}"
       if [[ $USE_BASE_64 = true ]] ; then
         args="${args} -b"
       fi
@@ -53,7 +46,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":Fi:s:f:bh" opt ; do
+while getopts ":Fs:f:bh" opt ; do
   case $opt in
     h)
       usage
@@ -61,9 +54,6 @@ while getopts ":Fi:s:f:bh" opt ; do
       ;;
     F)
       FORCE_RESTORE=true
-      ;;
-    i)
-      INSTANCE_ID=$OPTARG
       ;;
     s)
       SECURITY_SERVER_ID=$OPTARG
@@ -88,7 +78,8 @@ while getopts ":Fi:s:f:bh" opt ; do
 done
 
 check_user
-check_required_values
+check_security_server_id
+check_backup_file_name
 execute_restore
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

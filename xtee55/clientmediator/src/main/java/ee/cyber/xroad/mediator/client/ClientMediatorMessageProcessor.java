@@ -33,6 +33,7 @@ import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import static ee.cyber.xroad.mediator.util.MediatorUtils.isV6XRoadSoapMessage;
 import static ee.ria.xroad.common.ErrorCodes.*;
@@ -128,7 +129,8 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
         }
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message,
+                Map<String, String> additionalHeaders) throws Exception {
             log.trace("soap({})", message.getXml());
 
             inboundRequestVersion = MessageVersion.fromMessage(message);
@@ -151,20 +153,24 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
                 startSending(requestPipe.in, CHUNKED_LENGTH);
             }
 
-            encoder.soap(outboundRequestMessage);
+            encoder.soap(outboundRequestMessage, additionalHeaders);
         }
 
         private MessageEncoder getEncoder(OutputStream output) {
-            return isMultipart(request.getContentType())
-                    ? new MultipartMessageEncoder(output)
-                            : new SoapMessageEncoder(output);
+            if (isMultipart(request.getContentType())) {
+                return new MultipartMessageEncoder(
+                    output, MimeUtils.getBoundary(request.getContentType())
+                );
+            } else {
+                return new SoapMessageEncoder(output);
+            }
         }
 
         void startSending(InputStream content, long contentLength)
                 throws Exception {
             ClientMediatorMessageProcessor.this.startSending(
                     getTargetAddress(outboundRequestMessage),
-                    encoder.getContentType(), content, contentLength);
+                    request.getContentType(), content, contentLength);
         }
     }
 
@@ -183,23 +189,25 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
         final OutputStream out = response.getOutputStream();
         SoapMessageDecoder.Callback cb = new MessageDecoderCallback() {
             @Override
-            public void soap(SoapMessage message) throws Exception {
+            public void soap(SoapMessage message,
+                    Map<String, String> additionalHeaders) throws Exception {
                 log.trace("soap({})", message.getXml());
 
                 inboundResponseVersion = MessageVersion.fromMessage(message);
 
-                String responseContentType = sender.getResponseContentType();
                 if (isMultipart(sender.getResponseContentType())) {
-                    encoder = new MultipartMessageEncoder(out);
-                    responseContentType = encoder.getContentType();
+                    encoder = new MultipartMessageEncoder(
+                        out,
+                        MimeUtils.getBoundary(sender.getResponseContentType())
+                    );
                 } else {
                     encoder = new SoapMessageEncoder(out);
                 }
 
-                response.setContentType(responseContentType,
+                response.setContentType(sender.getResponseContentType(),
                         sender.getResponseHeaders());
 
-                encoder.soap(message);
+                encoder.soap(message, additionalHeaders);
             }
         };
 
@@ -259,33 +267,26 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
 
     private URI getTargetAddress(SoapMessage message) throws Exception {
         verifyClientAuthentication(message);
-
-        String xRoadProxy = MediatorSystemProperties.getXRoadProxyAddress();
-        String v5XRoadProxy = MediatorSystemProperties.getV5XRoadProxyAddress();
         return new URI(
-                isV6XRoadSoapMessage(message) ? xRoadProxy : v5XRoadProxy);
+                isV6XRoadSoapMessage(message)
+                    ? MediatorSystemProperties.getXRoadProxyAddress()
+                    : MediatorSystemProperties.getV5XRoadProxyAddress());
     }
 
     private void verifyClientAuthentication(SoapMessage message)
             throws Exception {
         if (MediatorUtils.isV5XRoadSoapMessage(message)) {
             String consumer = ((V5XRoadSoapMessageImpl) message).getConsumer();
-
-            if (consumer == null) {
-                return;
+            if (consumer != null) {
+                V5IsAuthentication.verifyConsumerAuthentication(consumer,
+                        isAuthData);
             }
-
-            V5IsAuthentication.verifyConsumerAuthentication(
-                    consumer, isAuthData);
         } else {
             ClientId messageSender = getSender(message);
-
-            if (messageSender == null) {
-                return;
+            if (messageSender != null) {
+                IsAuthentication.verifyClientAuthentication(messageSender,
+                        isAuthData);
             }
-
-            IsAuthentication.verifyClientAuthentication(
-                    messageSender, isAuthData);
         }
     }
 
@@ -299,7 +300,9 @@ class ClientMediatorMessageProcessor implements MediatorMessageProcessor {
     }
 
     private static boolean isMultipart(String contentType) {
-        return MULTIPART_RELATED.equals(getBaseContentType(contentType));
+        return MULTIPART_RELATED.equalsIgnoreCase(
+            getBaseContentType(contentType)
+        );
     }
 
     private CodedException findActualCause(CodedException e) {

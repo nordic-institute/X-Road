@@ -109,13 +109,14 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void soap(SoapMessageImpl message) throws Exception {
+    public void soap(SoapMessageImpl message,
+            Map<String, String> additionalHeaders) throws Exception {
         LOG.trace("writeSoapMessage({})", message.getXml());
 
         byte[] data = message.getBytes();
         try {
-            // FUTURE #2604 handle xml+xop!
-            mpEncoder.startPart(TEXT_XML_UTF8);
+            mpEncoder.startPart(message.getContentType(),
+                    toHeaders(additionalHeaders));
             mpEncoder.write(data);
 
             signer.addPart(MessageFileNames.MESSAGE, hashAlgoId, data);

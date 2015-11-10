@@ -660,7 +660,6 @@ var XROAD_SECURITYSERVER_EDIT = function() {
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
             var updateTablesCallback = function() {
                 refreshManagementRequests();
-                // TODO: Add callback for members if needed!
             }
 
             managementRequestLink.click(function(){
@@ -887,9 +886,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
             return;
         }
 
-        // TODO: what exactly needs to be refreshed here?
-        // var memberId = XROAD_MEMBER_EDIT.getEditableMemberId()
-        // XROAD_MEMBER_EDIT.refreshMemberDataTables(memberId);
+        XROAD_MEMBER_EDIT.refreshServerData()
     }
 
     function enableAuthCertDeletion(event) {

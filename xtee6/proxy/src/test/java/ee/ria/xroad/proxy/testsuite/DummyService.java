@@ -118,7 +118,7 @@ class DummyService extends Server implements StartStop {
                 LOG.debug("Request: encoding={}, soap={}", encoding,
                         receivedRequest.getSoap());
 
-                currentTestCase().onReceiveRequest(receivedRequest);
+                currentTestCase().onServiceReceivedRequest(receivedRequest);
 
                 String responseFile = currentTestCase().getResponseFile();
                 if (responseFile != null) {

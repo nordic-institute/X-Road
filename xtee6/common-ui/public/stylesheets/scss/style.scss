@@ -133,8 +133,6 @@ p.notfound {
     }
 }
 
-
-
 #server-info {
     background: #111;
     width: 270px;
@@ -168,10 +166,10 @@ p.notfound {
             font-family: "Open Sans";
             font-weight: 400;
             text-transform: uppercase;
-            &.big {
-                font-size: 12pt;
-                @include lineheight(30);
-            }
+        }
+        h1:empty + h2 {
+            font-size: 12pt;
+            @include lineheight(30);
         }
     }
     #server-data {
@@ -229,16 +227,6 @@ p.notfound {
                     @include lineheight(52);
                     width: 50px;
                     text-align: center;
-                }
-            }
-            h1 {
-                font-size: 12pt;
-                font-family: "Open Sans";
-                font-weight: 500;
-                text-transform: uppercase;
-
-                &.big {
-                    @include lineheight(30);
                 }
             }
             h2 {

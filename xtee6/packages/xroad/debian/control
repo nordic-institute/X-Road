@@ -8,7 +8,7 @@ Standards-Version: 3.8.3
 Package: xroad-centralserver
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-center
+Depends: xroad-center, uxp-addon-central-monitor
 Pre-depends:
 Description: X-Road central server
  This is meta-package of X-Road central server.
@@ -17,7 +17,7 @@ Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=6.6), curl, unzip, libmhash2
-Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=6.6)
+Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=6.8)
 Description: X-Road central server
  X-Road central server programs and utilities
 
@@ -38,8 +38,8 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=6.6), curl, authbind
-Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.6)
+Depends: ${misc:Depends}, uxp-addon-monitor, rsyslog, xroad-jetty9 (>=6.6), curl, authbind
+Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.8)
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -53,20 +53,20 @@ Description: X-Road configuration proxy
 
 Package: xroad-addon-hwtokens
 Architecture: all
-Depends: ${misc:Depends}, xroad-common (>=6.6)
+Depends: ${misc:Depends}, xroad-common (>=6.8)
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
 
 Package: xroad-addon-messagelog
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.6)
+Depends: ${misc:Depends}, xroad-proxy (>=6.8)
 Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
 Package: xroad-addon-metaservices
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.6)
+Depends: ${misc:Depends}, xroad-proxy (>=6.8)
 Description: X-Road AddOn: metaservices
  AddOn for metaservice reponders
 

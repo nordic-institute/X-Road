@@ -204,8 +204,6 @@ public class LogArchiver extends UntypedActor {
         return result == 0;
     }
 
-    // TODO The method is in this class as protected to facilitate testing.
-    // TODO Is there any better way to recognize invocation of this method?
     protected void markArchiveCreated(final DigestEntry lastArchive,
             final Session session) throws Exception {
         if (lastArchive != null) {

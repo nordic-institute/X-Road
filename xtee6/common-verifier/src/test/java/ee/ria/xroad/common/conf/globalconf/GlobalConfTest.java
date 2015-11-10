@@ -373,6 +373,9 @@ public class GlobalConfTest {
                 GlobalConf.getSecurityServers(instanceIdentifier));
     }
 
+    /**
+     * Tests getting approved CAs.
+     */
     @Test
     public void getApprovedCAs() {
         Collection<ApprovedCAInfo> cas = GlobalConf.getApprovedCAs("EE");

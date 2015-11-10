@@ -1,6 +1,7 @@
 require 'base64'
 
 java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
+java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
 
 class BackupController < BaseBackupController
 
@@ -55,13 +56,15 @@ class BackupController < BaseBackupController
   def backup_restore_script_options
     script_options = []
     transaction do
+      owner = serverconf.owner.identifier
+      server_code = serverconf.serverCode
+      server_id = SecurityServerId.create(
+        owner.xRoadInstance, owner.memberClass,
+        owner.memberCode, server_code)
       # Send input in base64 because we have a problem with passing parameters
       # using spaces.
       script_options << "-b"
-      script_options << "-i" <<
-          "#{Base64.strict_encode64(serverconf.serverCode.to_s)}"
-      script_options << "-s" <<
-          "#{Base64.strict_encode64(serverconf.owner.identifier.to_s)}"
+      script_options << "-s" << "#{Base64.strict_encode64(server_id.toShortString)}"
     end
     return script_options
   end

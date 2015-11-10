@@ -501,7 +501,6 @@ var XROAD_GROUP_EDIT = function() {
 
             confirm("groups.remove.confirm", {group: groupCode}, function() {
                 $.post("groups/delete_group", requestParams, function() {
-                    // TODO: update globalgroupmembership table in member_edit_dialog
                     refreshGlobalGroupsList();
 
                     $("#group_details_dialog").dialog("close");

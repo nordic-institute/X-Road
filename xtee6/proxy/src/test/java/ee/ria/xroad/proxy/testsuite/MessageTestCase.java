@@ -15,6 +15,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -348,7 +349,7 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
-    protected void onReceiveRequest(Message receivedRequest) throws Exception {
+    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
         if (!checkConsistency(sentRequest, receivedRequest)) {
             log.error("Sent request and received request are not "
                     + "consistent, sending fault response.");

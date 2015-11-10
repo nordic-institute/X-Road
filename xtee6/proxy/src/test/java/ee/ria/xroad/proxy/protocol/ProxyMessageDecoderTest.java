@@ -296,7 +296,8 @@ public class ProxyMessageDecoderTest {
         }
 
         @Override
-        public void soap(SoapMessageImpl soap) throws Exception {
+        public void soap(SoapMessageImpl soap,
+                Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = soap;
         }
 

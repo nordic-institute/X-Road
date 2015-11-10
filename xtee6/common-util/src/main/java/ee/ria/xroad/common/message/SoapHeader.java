@@ -48,7 +48,7 @@ public class SoapHeader {
     private RequestHash requestHash;
 
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
-    private ProtocolVersion protocolVersion = new ProtocolVersion();
+    private ProtocolVersion protocolVersion;
 
     @Override
     public String toString() {

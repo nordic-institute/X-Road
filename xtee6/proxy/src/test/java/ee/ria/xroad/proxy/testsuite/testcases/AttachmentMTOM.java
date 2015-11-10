@@ -26,13 +26,36 @@ public class AttachmentMTOM extends MessageTestCase {
     }
 
     @Override
-    protected void onReceiveRequest(Message receivedRequest) throws Exception {
-        super.onReceiveRequest(receivedRequest);
+    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
+        super.onServiceReceivedRequest(receivedRequest);
 
         if (!requestContentType.equals(receivedRequest.getContentType())) {
             throw new RuntimeException(String.format(
                     "Expected request content type '%s' but got '%s'",
                     requestContentType, receivedRequest.getContentType()));
+        }
+
+        if (receivedRequest
+                .getMultipartHeaders().get(1).get("Content-ID") == null) {
+            throw new RuntimeException(
+                    "Content-ID header missing in SOAP part");
+        }
+
+        if (!("application/xop+xml; type=\"application/soap+xml\"; "
+                + "charset=utf-8").equals(receivedRequest
+                .getMultipartHeaders().get(1).get("content-type"))) {
+            throw new RuntimeException("Unexpected SOAP content type");
+        }
+
+        if (receivedRequest
+                .getMultipartHeaders().get(2).get("Content-ID") == null) {
+            throw new RuntimeException(
+                    "Content-ID header missing in attachment part");
+        }
+
+        if (!"text/plain; charset=UTF-8; name=attachment.txt".equals(
+                receivedRequest.getMultipartHeaders().get(2).get("content-type"))) {
+            throw new RuntimeException("Unexpected attachment content type");
         }
     }
 

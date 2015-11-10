@@ -19,6 +19,7 @@
             <id:serviceCode>xroadGetRandom</id:serviceCode>
             <id:serviceVersion>v1</id:serviceVersion>
         </xroad:service>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns4:xroadGetRandom xmlns:ns4="http://xroadts2.ee.x-road.ee/producer/">

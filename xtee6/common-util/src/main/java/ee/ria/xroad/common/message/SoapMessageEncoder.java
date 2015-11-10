@@ -55,8 +55,10 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
     }
 
     @Override
-    public void soap(SoapMessage soapMessage) throws Exception {
-        multipart.startPart(soapMessage.getContentType());
+    public void soap(SoapMessage soapMessage,
+            Map<String, String> additionalHeaders) throws Exception {
+        multipart.startPart(soapMessage.getContentType(),
+                convertHeaders(additionalHeaders));
         multipart.write(soapMessage.getBytes());
     }
 

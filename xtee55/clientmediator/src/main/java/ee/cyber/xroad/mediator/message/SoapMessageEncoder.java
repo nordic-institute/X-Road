@@ -3,6 +3,7 @@ package ee.cyber.xroad.mediator.message;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
@@ -34,7 +35,8 @@ public class SoapMessageEncoder implements MessageEncoder {
     }
 
     @Override
-    public void soap(SoapMessage soapMessage) throws Exception {
+    public void soap(SoapMessage soapMessage,
+            Map<String, String> additionalHeaders) throws Exception {
         LOG.trace("soap()");
 
         out.write(soapMessage.getXml().getBytes(StandardCharsets.UTF_8));

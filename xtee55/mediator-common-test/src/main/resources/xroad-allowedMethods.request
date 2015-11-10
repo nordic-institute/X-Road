@@ -17,6 +17,7 @@
         </xroad:service>
         <xroad:userId>...</xroad:userId>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <xroad:allowedMethods/>

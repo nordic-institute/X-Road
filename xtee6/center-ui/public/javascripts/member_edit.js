@@ -1,10 +1,11 @@
 var XROAD_MEMBER_EDIT = function() {
     var oAddableUsedServers;
     var remainingGlobalGroups = {};
+    var fnServerDataRefresh;
 
     function open(memberData) {
         if (can("view_member_details")) {
-            openMemberEditDialog(memberData);
+            fnServerDataRefresh = openMemberEditDialog(memberData);
         }
     }
 
@@ -148,6 +149,14 @@ var XROAD_MEMBER_EDIT = function() {
         showMessages(response.messages);
 
         return true;
+    }
+
+    function refreshServerData() {
+        if (typeof fnServerDataRefresh != 'function') {
+            return;
+        }
+
+        fnServerDataRefresh();
     }
 
     function clearOwnedServerAddData() {
@@ -502,6 +511,8 @@ var XROAD_MEMBER_EDIT = function() {
         openMemberToGlobalGroupAddDialog: openMemberToGlobalGroupAddDialog,
         openSubsystemAddDialog: openSubsystemAddDialog,
         openUsedServersRegisterDialog: openUsedServersRegisterDialog,
+
+        refreshServerData: refreshServerData,
 
         uploadCallbackOwnedServerAuthCert: uploadCallbackOwnedServerAuthCert
     };

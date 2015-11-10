@@ -7,6 +7,7 @@ import java.util.Map;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
@@ -156,7 +157,8 @@ public final class ManagementRequestHandler {
         private byte[] ownerCertOcsp;
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message,
+                Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = (SoapMessageImpl) message;
         }
 

@@ -1,5 +1,6 @@
 --jetty771207119h3h10dty
 Content-Type: application/xop+xml; type="application/soap+xml"; charset=utf-8
+Content-ID: <foo>
 
 <?xml version="1.0" encoding="utf-8"?>
 <SOAP-ENV:Envelope
@@ -33,7 +34,7 @@ Content-Type: application/xop+xml; type="application/soap+xml"; charset=utf-8
 </SOAP-ENV:Envelope>
 
 --jetty771207119h3h10dty
-Content-Type: application/octet-stream
+Content-Type: text/plain; charset=UTF-8; name=attachment.txt
 Content-ID: <42a7ee0a-20ee-426b-a135-094d72bc138f@example.org>
 
 foobarbaz

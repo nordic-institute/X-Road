@@ -3,7 +3,9 @@ package ee.cyber.xroad.monitoragent;
 import java.util.Date;
 
 import akka.actor.UntypedActor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import ee.ria.xroad.common.identifier.ClientId;
@@ -17,6 +19,7 @@ import static ee.cyber.xroad.monitoragent.DataSender.send;
 import static ee.cyber.xroad.monitoragent.MessageParam.*;
 import static ee.cyber.xroad.monitoragent.MessageType.ALERT;
 import static ee.cyber.xroad.monitoragent.MessageType.QUERY_NOTIFICATION;
+
 import static org.apache.commons.lang3.tuple.ImmutablePair.of;
 
 /**
@@ -27,6 +30,14 @@ import static org.apache.commons.lang3.tuple.ImmutablePair.of;
 public class DataReceiver extends UntypedActor {
 
     private static final int QUERY_PARAMETER_COUNT = 6;
+
+    // The v5 monitoring station requires user ID param. Use this dummy
+    // value, if v6 message does not have the optional header field 'userId'.
+    private static final String DUMMY_USER_ID = "EE00000000000";
+
+    // Value length constraints of the parameters in the v5 monitoring station.
+    private static final int QDB_STRING_LENGTH = 100;
+    private static final int QDB_USER_ID_LENGTH = 20;
 
     @Override
     public void onReceive(Object message) {
@@ -74,7 +85,6 @@ public class DataReceiver extends UntypedActor {
     }
 
     private String socket(Origin origin) {
-        // TODO extract the constants to some class.
         switch (origin) {
             case CLIENT_PROXY:
                 return localSocket();
@@ -102,12 +112,17 @@ public class DataReceiver extends UntypedActor {
         Pair<MessageParam, String>[] ret = new Pair[QUERY_PARAMETER_COUNT];
 
         int idx = 0;
-        ret[idx++] = of(QUERY_CONSUMER, convertId(message.getClient()));
-        ret[idx++] = of(QUERY_USER_ID, message.getUserId());
-        ret[idx++] = of(QUERY_NAME,
-                convertId(message.getService().getClientId()) + "."
-                        + message.getService().getServiceCode());
-        ret[idx++] = of(QUERY_ID, message.getQueryId());
+        ret[idx++] = of(QUERY_CONSUMER,
+                cutIfToLong(convertId(message.getClient()), QDB_STRING_LENGTH));
+        ret[idx++] = of(QUERY_USER_ID, StringUtils.isEmpty(message.getUserId())
+                ? DUMMY_USER_ID
+                : cutIfToLong(message.getUserId(), QDB_USER_ID_LENGTH));
+        ret[idx++] = of(QUERY_NAME, cutIfToLong(convertId(
+                message.getService().getClientId()), QDB_STRING_LENGTH) + "."
+                + cutIfToLong(message.getService().getServiceCode(),
+                QDB_STRING_LENGTH));
+        ret[idx++] = of(QUERY_ID,
+                cutIfToLong(message.getQueryId(), QDB_STRING_LENGTH));
         ret[idx++] = of(QUERY_START_TIME, convertDate(startTime));
         ret[idx] = of(QUERY_END_TIME, convertDate(endTime));
 
@@ -136,5 +151,18 @@ public class DataReceiver extends UntypedActor {
             // Get time in milliseconds and convert to string.
             return String.valueOf(d.getTime());
         }
+    }
+
+    @SneakyThrows
+    private static String cutIfToLong(String str, int maxBytes) {
+        byte[] utf8 = str.getBytes("UTF-8");
+
+        if (utf8.length <= maxBytes) {
+            return str;
+        }
+
+        // FUTURE: if the utf8 brutal cut causes problems then
+        // try to cut between utf8 characters.
+        return new String(utf8, 0, maxBytes, "UTF-8");
     }
 }

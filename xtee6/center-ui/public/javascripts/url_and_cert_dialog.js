@@ -23,12 +23,13 @@
         $("#" + prefix + "_url").change();
     }
 
+    // FUTURE: Can we replace it with enableForInput() if latter works properly?
     function updateSubmitButton(prefix, ev) {
         var submitButton = $("#" + prefix + "_url_and_cert_submit");
         var urlField = $("#" + prefix + "_url");
         var certField = $("#" + prefix + "_cert");
 
-        if (!isInputFilled(urlField)) {
+        if (!isInputFilled(urlField, ev)) {
             submitButton.disable();
             return;
         }
@@ -76,7 +77,7 @@
             $(this).closest("form").submit();
         });
 
-        $(document).on("change keyup paste", "#" + prefix + "_url", function(ev) {
+        $("#" + prefix + "_url").on("change keyup paste", function(ev) {
             enableActions(prefix);
             updateSubmitButton(prefix, ev);
         });

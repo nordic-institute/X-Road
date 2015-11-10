@@ -43,8 +43,8 @@ module CertTransformationHelper
       :serial_number => cert_obj.serial.to_s,
       :subject => cert_obj.subject.to_s,
       :issuer => cert_obj.issuer.to_s,
-      :valid_from => format_time(cert_obj.not_before), # TODO: valid_not_before
-      :expires => format_time(cert_obj.not_after),     # TODO: valid_not_after
+      :valid_from => format_time(cert_obj.not_before),
+      :expires => format_time(cert_obj.not_after),
       :temp_cert_id => cert_id
     }
   end

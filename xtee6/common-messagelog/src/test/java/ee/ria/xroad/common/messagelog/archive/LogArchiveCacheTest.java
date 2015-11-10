@@ -69,7 +69,6 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        // TODO Get bytes from temp file from now on!
         assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse(
                 "Should not rotate, as entry is small enough to fit in.",

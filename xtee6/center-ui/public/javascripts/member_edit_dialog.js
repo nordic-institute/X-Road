@@ -345,7 +345,6 @@ function openMemberEditDialog(memberRowData) {
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
             var updateTablesCallback = function() {
                 refreshManagementRequests();
-                // TODO: Add callback for members if needed!
             }
 
             managementRequestLink.click(function() {
@@ -557,5 +556,16 @@ function openMemberEditDialog(memberRowData) {
             {serversToRemove : serversAsString});
 
         return translatedMessage ;
+    }
+
+    return function() {
+        // Return if dialog closed
+        if (!$( ".member_edit_dialog" ).dialog("isOpen")) {
+            return;
+        }
+
+        refreshOwnedServers();
+        refreshUsedServers();
+        refreshManagementRequests();
     }
 }

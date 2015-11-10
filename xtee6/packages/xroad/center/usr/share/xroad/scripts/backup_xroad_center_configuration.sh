@@ -22,12 +22,6 @@ OPTIONS:
 EOF
 }
 
-check_required_values () {
-  check_instance_id
-  check_central_ha_node_name
-  check_backup_file_name
-}
-
 execute_backup () {
   if [ -x ${COMMON_BACKUP_SCRIPT} ] ; then
     local args="-t central -i ${INSTANCE_ID} -f ${BACKUP_FILENAME}"
@@ -80,7 +74,9 @@ while getopts ":i:n:f:bh" opt ; do
 done
 
 check_user
-check_required_values
+check_instance_id
+check_central_ha_node_name
+check_backup_file_name
 execute_backup
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

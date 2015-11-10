@@ -1,7 +1,11 @@
 #/bin/bash
 # Helper functions and common variables for the backup and restore scripts of X-Road.
 
+# XXX Don't change this file name without a reason -- that will break backwards compatibilty
+# with existing tarballs because the restore scripts expect to find a file with this
+# name after unpacking the tarball.
 DATABASE_DUMP_FILENAME="/var/lib/xroad/dbdump.dat"
+
 DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_db.sh"
 DATABASE_RESTORE_SCRIPT="/usr/share/xroad/scripts/restore_db.sh"
 COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
@@ -100,7 +104,7 @@ check_server_type () {
 make_tarball_label () {
   case ${SERVER_TYPE} in
     security)
-      TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${INSTANCE_ID}_${SECURITY_SERVER_ID}"
+      TARBALL_LABEL="security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
       ;;
     central)
       TARBALL_LABEL="central_${XROAD_VERSION_LABEL}_${INSTANCE_ID}"

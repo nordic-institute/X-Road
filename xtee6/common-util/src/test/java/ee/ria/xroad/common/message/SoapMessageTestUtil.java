@@ -37,6 +37,7 @@ public final class SoapMessageTestUtil {
         header.setService(receiver);
         header.setUserId(userId);
         header.setQueryId(queryId);
+        header.setProtocolVersion(new ProtocolVersion());
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);

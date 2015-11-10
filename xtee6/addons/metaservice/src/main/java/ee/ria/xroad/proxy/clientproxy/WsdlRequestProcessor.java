@@ -14,6 +14,7 @@ import javax.xml.soap.SOAPBody;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.http.MimeTypes;
 
@@ -49,7 +50,6 @@ class WsdlRequestProcessor {
     static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
-    private static final String USER_ID = "wsdl-request";
 
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -83,7 +83,6 @@ class WsdlRequestProcessor {
         header.setClient(client);
         header.setService(createGetWsdlService(implementingService));
         header.setQueryId(UUID.randomUUID().toString());
-        header.setUserId(USER_ID);
 
         SoapBuilder sb = new SoapBuilder();
         sb.setHeader(header);
@@ -166,7 +165,8 @@ class WsdlRequestProcessor {
     private class SoapDecoderCallback implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             // discard
         }
 

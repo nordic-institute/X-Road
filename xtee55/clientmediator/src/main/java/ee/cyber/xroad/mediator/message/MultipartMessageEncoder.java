@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import org.eclipse.jetty.http.MimeTypes;
-
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
@@ -23,9 +21,10 @@ public class MultipartMessageEncoder extends MultipartEncoder
     /**
      * Constructs a multipart message encoder with the given output stream.
      * @param out the output stream
+     * @param topBoundary boundary
      */
-    public MultipartMessageEncoder(OutputStream out) {
-        super(out);
+    public MultipartMessageEncoder(OutputStream out, String topBoundary) {
+        super(out, topBoundary);
     }
 
     @Override
@@ -34,8 +33,10 @@ public class MultipartMessageEncoder extends MultipartEncoder
     }
 
     @Override
-    public void soap(SoapMessage soapMessage) throws Exception {
-        startPart(MimeTypes.TEXT_XML);
+    public void soap(SoapMessage soapMessage,
+            Map<String, String> additionalHeaders) throws Exception {
+        startPart(soapMessage.getContentType(),
+                MimeUtils.toHeaders(additionalHeaders));
         write(soapMessage.getXml().getBytes(StandardCharsets.UTF_8));
     }
 

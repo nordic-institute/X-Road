@@ -462,7 +462,7 @@ class ConfigurationManagementController < ApplicationController
     render_json
   end
 
-  # TODO Get rid of
+  # FUTURE Get rid of
   def clear_uploaded_trusted_anchor
     authorize!(:upload_trusted_anchor)
 

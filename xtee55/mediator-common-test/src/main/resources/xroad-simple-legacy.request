@@ -19,6 +19,7 @@
         </xroad:service>
         <xroad:userId>EE37702211234</xroad:userId>
         <xroad:id>1234567890</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
         <xroad:xroadHeader>
             <xrd:consumer>consumer</xrd:consumer>
             <xrd:producer>producer</xrd:producer>

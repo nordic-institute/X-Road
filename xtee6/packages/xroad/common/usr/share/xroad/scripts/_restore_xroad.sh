@@ -8,10 +8,11 @@
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
-# FIXME: use regexp for alternation
-DATE=$(date | sed -e 's/ /_/g' | sed -e 's/:/_/g')
-PRE_RESTORE_DATABASE_DUMP_FILENAME="${DATABASE_DUMP_FILENAME}_prerestore_${DATE}"
-PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup_${DATE}.tar"
+# XXX Keep the pre-restore database dump named just like the rest of the dumps.
+# This allows the user to restore the pre-restore backup just like any other
+# backup.
+PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
+PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
 V55_XROAD6_INSTALLED="/usr/xtee/etc/v6_xroad_installed"
 V55_XROAD6_ACTIVATED="/usr/xtee/etc/v6_xroad_activated"
@@ -64,7 +65,7 @@ stop_services () {
 
 create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
-  # FIXME: deal with spaces in files names when using find and tar and combining
+  # FIXME: deal with spaces in file names when using find and tar and combining
   # the result with other file names.
   #local backed_up_files="$(find /etc/xroad/ -type f) /etc/nginx/sites-enabled/*"
   local backed_up_files="/etc/xroad/ /etc/nginx/sites-enabled/"
@@ -82,9 +83,14 @@ create_pre_restore_backup () {
         "doing pre-restore backup"
   fi
 
-  echo "Backing up the following files to ${PRE_RESTORE_TARBALL_FILENAME}:"
-  tar cf ${PRE_RESTORE_TARBALL_FILENAME} ${backed_up_files}
-  # FIXME: ei tohi koristada katalooge endid, eemalda -f kasutus
+  echo "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME}:"
+  tar --create -v \
+    --label "${TARBALL_LABEL}" --file ${PRE_RESTORE_TARBALL_FILENAME} ${backed_up_files}
+  if [ $? != 0 ] ; then
+    die "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME} failed"
+  fi
+  # FIXME: ei tohi koristada nginxi kataloogi ennast, aga kasuta backed_up_files sisu
+  # Vt. eelmist FIXME-d.
   rm -rf /etc/xroad/*
   rm -rf /etc/nginx/sites-enabled/*
   #rm -r ${backed_up_files}

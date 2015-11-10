@@ -86,7 +86,7 @@ module KeysHelper
       :cert_ocsp_response => cert_ocsp_response(cert, cert_obj),
       :cert_expires => cert_expires(cert_obj),
       :cert_expires_in => cert_expires_in(cert_obj),
-      :cert_status => cert_status(cert),
+      :cert_status => cert.status,
       :cert_saved_to_conf => cert.savedToConfiguration,
       :cert_request => false,
       :cert_active => cert.active,
@@ -120,13 +120,6 @@ module KeysHelper
 
   def member_code(member_id)
     "#{member_id.member_class} : #{member_id.member_code}" if member_id
-  end
-
-  def cert_status(cert_info)
-    if cert_info.status
-      # TODO: no need to split anymore
-      cert_info.status.split(CertificateInfo::OCSP_RESPONSE_DELIMITER)[0]
-    end
   end
 
   def cert_ocsp_response(cert_info, cert)

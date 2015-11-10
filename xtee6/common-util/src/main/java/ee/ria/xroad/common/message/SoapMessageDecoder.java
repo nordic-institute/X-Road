@@ -136,7 +136,7 @@ public class SoapMessageDecoder {
                     X_INTERNAL_ERROR, "Unexpected SOAP message");
         }
 
-        callback.soap((SoapMessage) soap);
+        callback.soap((SoapMessage) soap, new HashMap<>());
     }
 
     private void readMultipart(InputStream is) throws Exception {
@@ -201,7 +201,7 @@ public class SoapMessageDecoder {
                         }
 
                         soapMessage = (SoapMessage) soap;
-                        callback.soap(soapMessage);
+                        callback.soap(soapMessage, headers);
                     } catch (Exception e) {
                         throw translateException(e);
                     }

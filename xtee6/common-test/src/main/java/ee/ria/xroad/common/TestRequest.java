@@ -47,7 +47,6 @@ public class TestRequest {
     /**
      * @return service code of the test request service
      */
-    // TODO May be we should show entire service id instead?
     public String getName() {
         return service.getServiceCode();
     }
