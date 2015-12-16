@@ -24,7 +24,7 @@ class SecurityServerClient < ActiveRecord::Base
 
     if client_id.subsystem_code == nil
       # Find XROAD member
-      return XroadMember.find_by_code(client_id.member_class, client_id.member_code)
+      return XRoadMember.find_by_code(client_id.member_class, client_id.member_code)
     else
       # Find subsystem
       return Subsystem.find_by_code(
@@ -108,7 +108,7 @@ class SecurityServerClient < ActiveRecord::Base
 
     identifiers.each do |each|
       result << {
-        :name => XroadMember.get_name(each.member_class, each.member_code),
+        :name => XRoadMember.get_name(each.member_class, each.member_code),
         :identifier => each
       }
     end

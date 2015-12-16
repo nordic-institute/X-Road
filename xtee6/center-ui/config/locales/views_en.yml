@@ -80,7 +80,7 @@ en:
         legend: "Subsystems"
         subsystem_code: "Subsystem Code"
         used_servers: "Used Servers"
-        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' X-Road member '{{memberCode}}({{memberClass}})'?"
+        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' from the X-Road member '{{memberClass}}/{{memberCode}}'?"
       used_servers:
         legend: "Used Servers"
         server_code: "Server Code"
@@ -100,7 +100,7 @@ en:
       all_servers:
         search:
           title: "Security Servers"
-    remove_confirm: "Are you sure you want to remove X-Road member '{{memberCode}}({{memberClass}})'? {{ownedServersMessage}}"
+    remove_confirm: "Are you sure you want to delete the X-Road member '{{memberClass}}/{{memberCode}}'? {{ownedServersMessage}}"
     removable_owned_servers: "Following servers owned by this member will also be removed: '{{serversToRemove}}'"
 
   management_requests:
@@ -191,7 +191,7 @@ en:
         legend: "Authentication Certificate Information"
       delete:
         title: "Delete Authentication Certificate"
-    remove_confirm: "Are you sure you want to remove security server '{{server}}' belonging to '{{ownerCode}}({{ownerClass}})'?"
+    remove_confirm: "Are you sure you want to remove security server '{{server}}' belonging to '{{ownerClass}}/{{ownerCode}}'?"
 
   groups:
     code: "Code"
@@ -231,10 +231,6 @@ en:
       group_to_org: "Show by groups"
       org_to_group: "Show by X-Road members"
       org_not_in_group: "X-Road members that don't belong to selected group"
-    orgs:
-      add_all: "Add all X-Road members"
-      add_selected: "Add selected X-Road members"
-      remove_confirm: "Are you sure you want to remove X-Road member '{{member}}' from group '{{group}}'?"
 
   central_services:
     central_service: "Central Service"

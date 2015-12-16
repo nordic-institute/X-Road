@@ -1,13 +1,9 @@
-<div id="server-info">
-  <div id="server-info-inner">
-    <div id="server-status">
-      <i class="fa fa-info-circle"></i>
-    </div>
-    <div id="server-names">
-      <h1 data-owner-name="<%= @owner_name if @owner_name %>"><%= @server_id.toShortString if @server_id %><%= " (" + @ha_node_name + ")" if @ha_node_name %></h1>
-      <h2><%= t 'layouts.application.server_type' %></h2>
-    </div>
-  </div>
+<div id="server-info"
+     data-instance="<%= instance_identifier %>"
+     data-server-code="<%= server_code %>"
+     data-node-name="<%= node_name %>">
+  <h1></h1>
+  <h2><%= t 'layouts.application.server_type' %></h2>
 </div>
 <div id="actions">
   <div id="actions-inner">

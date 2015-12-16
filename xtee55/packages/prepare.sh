@@ -7,7 +7,7 @@ cp xtee55_clients_importer/xtee55_clients_importer-0.1.gem packages/xtee55-cente
 mkdir -p packages/xtee55-proxy/usr/share/xroad/jlib/
 cp monitoragent/build/libs/monitoragent-0.1.jar  packages/xtee55-proxy/usr/share/xroad/jlib/
 cp clientmediator/build/libs/clientmediator-0.1.jar packages/xtee55-proxy/usr/share/xroad/jlib/
-cp serviceimporter/build/libs/serviceimporter-0.1.jar packages/xtee55-proxy/usr/share/xroad/jlib/
+cp confimporter/build/libs/confimporter-0.1.jar packages/xtee55-proxy/usr/share/xroad/jlib/
 
 mkdir -p packages/xtee55-proxy/usr/share/xroad/scripts/
 cp scripts/activate_v6_xroad.sh \
@@ -19,8 +19,7 @@ cp scripts/activate_v6_xroad.sh \
     scripts/import_v5_acl_of_producer.sh \
     scripts/import_v5_acl_of_service.sh \
     scripts/import_v5_acl.sh \
-    scripts/import_v5_services_no_acl.sh \
-    scripts/import_v5_services.sh \
+    scripts/import_v5_clients.sh \
     scripts/modify_inifile.py \
     packages/xtee55-proxy/usr/share/xroad/scripts/
 

@@ -457,6 +457,49 @@ function isNotBlank(value) {
     return $.trim(value) != 0;
 }
 
+function generateIdElement(data, extraData) {
+    extraData = typeof extraData !== 'undefined' ? extraData : [];
+
+    var wrap = $("<div/>");
+    var span = $("<span/>").addClass("xroad-id");
+    var spanText = [];
+    var spanTextExtra = [];
+    var spanTitle = [];
+
+    for (var item in data) {
+        if (data.hasOwnProperty(item) && data[item]) {
+            spanText.push(data[item]);
+            spanTitle.push(item + ": " + data[item]);
+        }
+    }
+
+    for (var item in extraData) {
+        if (extraData.hasOwnProperty(item) && extraData[item]) {
+            spanTextExtra.push(extraData[item]);
+            spanTitle.push(item + ": " + extraData[item]);
+        }
+    }
+
+    span.text(spanText.join(' : '));
+
+    if (spanTextExtra.length > 0) {
+        span.text(span.text() + " (" + spanTextExtra.join(", ") + ")");
+    }
+
+    span.attr("title", spanTitle.join("<br>"));
+
+    return wrap.html(span).html();
+}
+
+function initServerInfo() {
+    $("#server-info h1").prepend(generateIdElement({
+        "Instance": $("#server-info").data("instance"),
+        "Security Server Code": $("#server-info").data("server-code")
+    }, {
+        "Node Name": $("#server-info").data("node-name")
+    }));
+}
+
 function initMenu() {
     $('.menu li a').each(function() {
         if ($(this).attr('href') == location.pathname) {
@@ -521,8 +564,12 @@ function addMessage(type, message) {
     messageContainer.append(message + "<br/>");
 }
 
-function clearMessages() {
-    $(".message").remove();
+function clearMessages(dialogsOnly) {
+    if (dialogsOnly) {
+        $(".ui-dialog .message").remove();
+    } else {
+        $(".message").remove();
+    }
 }
 
 function showMessages(messages) {
@@ -943,12 +990,27 @@ $(document).ajaxSuccess(function(ev, xhr, opts) {
 });
 
 $(document).ajaxError(function(ev, xhr) {
-    var response = $.parseJSON(xhr.responseText);
-    showMessages(response.messages);
+    showMessages(getXRoadAjaxErrorMessages(xhr));
 });
 
+function getXRoadAjaxErrorMessages(xhr) {
+    var errorServerUnreachable = [["error", [_("errors.server_unreachable")]]];
+
+    try {
+        var response = $.parseJSON(xhr.responseText);
+
+        if (response && response.messages) {
+            return response.messages;
+        } else {
+            return errorServerUnreachable;
+        }
+    } catch (err) {
+        return errorServerUnreachable;
+    }
+}
+
 $(document).on("dialogclose", ".ui-dialog", function() {
-    clearMessages();
+    clearMessages(true);
 });
 
 // Default uploadCallback
@@ -1193,6 +1255,7 @@ function initSearchTabs() {
 }
 
 $(document).ready(function() {
+    initServerInfo();
     initMenu();
 
     moveButtonsToHeader();

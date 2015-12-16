@@ -17,8 +17,15 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import static org.bouncycastle.util.Arrays.areEqual;
 import static org.junit.Assert.*;
 
+/**
+ * Tests the implementation of SkKlass3CertificateProfileInfoProvider.
+ */
 public class SkKlass3CertificateProfileInfoProviderTest {
 
+    /**
+     * Tests whether getting expected subject fields of auth and sing profile
+     * succeeds as expected.
+     */
     @Test
     public void returnsCorrectSubjectFields() {
         DnFieldDescription[] expected = {

@@ -8,6 +8,7 @@ class ImportController < ApplicationController
 
   before_filter :verify_get, :only => [:get_imported, :last_result]
   before_filter :verify_post, :only => [:import_v5_data]
+  skip_around_filter :wrap_in_transaction, :only => [:import_v5_data]
 
   upload_callbacks({
     :import_v5_data => "XROAD_IMPORT.uploadCallback"
@@ -125,10 +126,5 @@ class ImportController < ApplicationController
   rescue RubyExecutableException => e
     V5Import.write(original_filename, e.console_output_lines)
     return 2 # Error
-  end
-
-  def write_last_attempt(console_output_lines)
-    CommonUi::IOUtils.write(
-        get_last_attempt_log_path(), console_output_lines.join("\n"))
   end
 end

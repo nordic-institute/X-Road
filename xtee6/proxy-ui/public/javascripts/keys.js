@@ -793,10 +793,26 @@ $(document).ready(function() {
 
         confirm("keys.index.unregister_cert_confirm",
                 { hash: focusData.cert_friendly_name }, function() {
-            $.post(action("unregister"), params, function(response) {
-                oKeys.fnReplaceData(response.data);
-                enableActions();
-            }, "json");
+            $.ajax({
+                type: "POST",
+                url: action("unregister"),
+                data: params,
+                success: function(response) {
+                    oKeys.fnReplaceData(response.data);
+                    enableActions();
+                },
+                complete: function(xhr, textStatus) {
+                    if (textStatus == "error") {
+                        warning("keys.delreq_failed", null, function() {
+                            $.post(action("skip_unregister"), params, function(response) {
+                                oKeys.fnReplaceData(response.data);
+                                enableActions();
+                            }, "json");
+                        });
+                    }
+                },
+                dataType: "json"
+            });
         });
     });
 

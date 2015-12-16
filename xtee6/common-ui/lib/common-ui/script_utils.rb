@@ -27,6 +27,7 @@ module CommonUi
     module_function
 
     # Takes array of script arguments.
+    # FUTURE: Is there any possibility to use array directly with redirection?
     def run_script(commandline)
       console_output_lines = []
 

@@ -106,14 +106,18 @@ restore_configuration_files () {
 }
 
 restore_database () {
-  if [ -x ${DATABASE_RESTORE_SCRIPT} ] && [ -e ${DATABASE_DUMP_FILENAME} ] ; then
-    echo "RESTORING DATABASE FROM ${DATABASE_DUMP_FILENAME}"
-    ${DATABASE_RESTORE_SCRIPT} ${DATABASE_DUMP_FILENAME} 1>/dev/null
-    if [ $? -ne 0 ] ; then
-      die "Failed to restore database!"
-    fi
+  if [ -n ${SKIP_DB_RESTORE} ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
+    echo "SKIPPING DB RESTORE AS REQUESTED"
   else
-    die "Failed to execute database restore script at ${DATABASE_RESTORE_SCRIPT}"
+    if [ -x ${DATABASE_RESTORE_SCRIPT} ] && [ -e ${DATABASE_DUMP_FILENAME} ] ; then
+      echo "RESTORING DATABASE FROM ${DATABASE_DUMP_FILENAME}"
+      ${DATABASE_RESTORE_SCRIPT} ${DATABASE_DUMP_FILENAME} 1>/dev/null
+      if [ $? -ne 0 ] ; then
+        die "Failed to restore database!"
+      fi
+    else
+      die "Failed to execute database restore script at ${DATABASE_RESTORE_SCRIPT}"
+    fi
   fi
 }
 
@@ -134,10 +138,13 @@ export_v55_key_and_cert () {
   fi
 }
 
-while getopts ":Ft:i:s:n:f:b" opt ; do
+while getopts ":FSt:i:s:n:f:b" opt ; do
   case $opt in
     F)
       FORCE_RESTORE=true
+      ;;
+    S)
+      SKIP_DB_RESTORE=true
       ;;
     t)
       SERVER_TYPE=$OPTARG

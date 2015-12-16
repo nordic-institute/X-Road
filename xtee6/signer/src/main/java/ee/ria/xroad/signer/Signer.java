@@ -97,7 +97,7 @@ public class Signer implements StartStop {
      */
     private static class ModuleManagerJob extends PeriodicJob {
 
-        public ModuleManagerJob() {
+        ModuleManagerJob() {
             super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
         }
 
@@ -115,7 +115,7 @@ public class Signer implements StartStop {
         private static final FiniteDuration INITIAL_DELAY =
                 FiniteDuration.create(100, TimeUnit.MILLISECONDS);
 
-        public OcspClientJob() {
+        OcspClientJob() {
             super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
         }
 

@@ -29,8 +29,6 @@ table tbody tr td ul.tableitem-actions {
 #keys_wrapper tr .cert-friendly-name {
   padding-left: 40px; }
 
-#keys .token {
-  line-height: 34px; }
 #keys .unsaved {
   background-color: rgba(239, 227, 12, 0.7); }
 #keys .token-unavailable,
@@ -46,8 +44,7 @@ table tbody tr td ul.tableitem-actions {
   display: inline; }
 #keys .token .locked,
 #keys .token.token-available.token-inactive {
-  color: red;
-  font-family: "open_sansbold"; }
+  color: red; }
 
 .token-name {
   width: 80%;

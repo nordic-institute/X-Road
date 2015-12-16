@@ -324,14 +324,13 @@ class ApplicationController < BaseController
     File.open(temp_anchor_file, 'wb') do |file|
       file.write(content)
     end
-
-    get_temp_anchor_details
   end
 
   def get_temp_anchor_details
     begin
       anchor = ConfigurationAnchor.new(temp_anchor_file)
       generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
+      instance_id = anchor.getInstanceIdentifier
     rescue
       log_stacktrace($!)
       raise t("application.invalid_anchor_file")
@@ -345,7 +344,9 @@ class ApplicationController < BaseController
     return {
       :hash => hash.upcase.scan(/.{1,2}/).join(':'),
       :hash_algorithm => hash_algorithm,
-      :generated_at => format_time(generated_at, true)
+      :generated_at => format_time(generated_at, true),
+      :generated_at_iso => generated_at.iso8601,
+      :instance_id => instance_id
     }
   end
 
@@ -356,8 +357,6 @@ class ApplicationController < BaseController
 
     CommonUi::ScriptUtils.verify_internal_configuration(temp_anchor_file)
     File.rename(temp_anchor_file, SystemProperties::getConfigurationAnchorFile)
-
-    download_configuration
   end
 
   def download_configuration

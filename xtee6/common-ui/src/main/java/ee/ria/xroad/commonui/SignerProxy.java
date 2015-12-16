@@ -112,6 +112,7 @@ public final class SignerProxy {
     /**
      * Generate a new key for the token with the given ID.
      * @param tokenId ID of the token
+     * @param keyLabel label of the key
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */

@@ -85,7 +85,7 @@ public final class ExpectedCodedException implements TestRule {
     private class ExpectedStatement extends Statement {
         private Statement statement;
 
-        public ExpectedStatement(Statement statement) {
+        ExpectedStatement(Statement statement) {
             this.statement = statement;
         }
 

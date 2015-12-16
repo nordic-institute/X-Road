@@ -1,8 +1,8 @@
 XROADTOP = $(shell pwd)
 
-LIBSRC = ee_cyber_xroad_serviceimporter_XLock.c xlock.c
+LIBSRC = ee_cyber_xroad_confimporter_XLock.c xlock.c
 
-OBJECTS = ee_cyber_xroad_serviceimporter_XLock.o xlock.o
+OBJECTS = ee_cyber_xroad_confimporter_XLock.o xlock.o
 
 TEST_PROGRAMS = test_xlock
 

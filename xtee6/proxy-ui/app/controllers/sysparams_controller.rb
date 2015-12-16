@@ -36,8 +36,15 @@ class SysparamsController < ApplicationController
       :file_upload => [:required]
     })
 
-    anchor_details =
-      save_temp_anchor_file(params[:file_upload].read)
+    save_temp_anchor_file(params[:file_upload].read)
+
+    # Check if the uploaded anchor's instance ID matches our configured instance ID.
+    # This is to prevent accidental uploads of anchors obtained from some other
+    # central server.
+    anchor_details = get_temp_anchor_details
+    if anchor_details[:instance_id] != serverconf.owner.identifier.xRoadInstance
+      raise t('sysparams.internal_anchor_upload_invalid_instance_id')
+    end
 
     render_json(anchor_details)
   end
@@ -53,9 +60,11 @@ class SysparamsController < ApplicationController
 
     audit_log_data[:anchorFileHash] = anchor_details[:hash]
     audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
-    audit_log_data[:generatedAt] = anchor_details[:generated_at]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at_iso]
 
     apply_temp_anchor_file
+
+    download_configuration
 
     render_json
   end

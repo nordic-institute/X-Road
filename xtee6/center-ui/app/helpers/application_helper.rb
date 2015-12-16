@@ -95,4 +95,11 @@ module ApplicationHelper
       :locals => { :prefix => prefix })
   end
 
+  def instance_identifier
+    SystemParameter.instance_identifier
+  end
+
+  def node_name
+    CommonSql.ha_node_name
+  end
 end

@@ -11,6 +11,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.lang.StringUtils;
+
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
 import asg.cliche.Command;
@@ -18,12 +24,8 @@ import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
+
 import com.typesafe.config.ConfigFactory;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
 
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
@@ -753,7 +755,8 @@ public class SignerCLI {
         }
 
         ActorSystem actorSystem = ActorSystem.create("SignerConsole",
-                ConfigFactory.load().getConfig("signer-console"));
+                ConfigFactory.load().getConfig("signer-console")
+                    .withFallback(ConfigFactory.load()));
         try {
             SignerClient.init(actorSystem);
 

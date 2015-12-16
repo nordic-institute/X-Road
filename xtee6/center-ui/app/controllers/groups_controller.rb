@@ -89,7 +89,7 @@ class GroupsController < ApplicationController
       member_code = member_id.member_code
 
       result << {
-        :name => XroadMember.get_name(member_class, member_code),
+        :name => XRoadMember.get_name(member_class, member_code),
         :member_code => member_code,
         :member_class => member_class,
         :subsystem => member_id.subsystem_code,
@@ -417,15 +417,15 @@ class GroupsController < ApplicationController
     when 0
       return 'security_server_clients.name'
     when 1
-      return 'identifiers.member_code'
-    when 2
-      return 'identifiers.member_class'
-    when 3
-      return 'identifiers.subsystem_code'
-    when 4
-      return 'identifiers.xroad_instance'
-    when 5
       return 'identifiers.object_type'
+    when 2
+      return 'identifiers.xroad_instance'
+    when 3
+      return 'identifiers.member_class'
+    when 4
+      return 'identifiers.member_code'
+    when 5
+      return 'identifiers.subsystem_code'
     when 6
       return 'identifiers.created_at'
     else
@@ -436,17 +436,17 @@ class GroupsController < ApplicationController
   def get_addable_members_column(index)
     case index
     when 0
-      return 'security_server_client_names.name'
+      return 'security_server_clients.name'
     when 1
-      return 'identifiers.member_code'
-    when 2
-      return 'identifiers.member_class'
-    when 3
-      return 'identifiers.subsystem_code'
-    when 4
-      return 'identifiers.xroad_instance'
-    when 5
       return 'identifiers.object_type'
+    when 2
+      return 'identifiers.xroad_instance'
+    when 3
+      return 'identifiers.member_class'
+    when 4
+      return 'identifiers.member_code'
+    when 5
+      return 'identifiers.subsystem_code'
     else
       raise "Index '#{index}' has no corresponding column."
     end

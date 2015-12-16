@@ -1,6 +1,6 @@
 etc/* etc/
 usr/* usr/
 ../default-configuration/client-mediator.ini etc/xroad/conf.d/
-../default-configuration/service-importer.ini etc/xroad/conf.d/
+../default-configuration/conf-importer.ini etc/xroad/conf.d/
 ../default-configuration/*.xml etc/xroad/conf.d/
 

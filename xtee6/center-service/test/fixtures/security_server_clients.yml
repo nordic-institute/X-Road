@@ -1,5 +1,5 @@
 xroadMember_first:
-  type: "XroadMember"
+  type: "XRoadMember"
   name: "XROAD member name"
   member_code: "codeOfMember"
   member_class_id: <%= ActiveRecord::Fixtures.identify(:memberClass_gov) %>

@@ -116,7 +116,7 @@ public final class MessageLogProperties {
     }
 
     /**
-     * @return the hash algorithm that is used for hashing in secure log.
+     * @return the hash algorithm that is used for hashing in message log.
      */
     public static String getHashAlg() {
         return System.getProperty(HASH_ALGO_ID, CryptoUtils.SHA512_ID);

@@ -153,14 +153,8 @@ public final class ErrorCodes {
     public static final String X_CERT_IMPORT_FAILED = "CertImportFailed";
 
 
-    // SecureLog errors
-
-    public static final String X_SLOG_MALFORMED_RECORD = "MalformedRecord";
-    public static final String X_SLOG_MALFORMED_INDEX = "MalformedIndex";
-    public static final String X_SLOG_MALFORMED_ARCHIVE = "MalformedArchive";
-    public static final String X_SLOG_TIMESTAMPER_FAILED = "TimestamperFailed";
-    public static final String X_SLOG_RECORD_NOT_FOUND = "RecordNotFound";
-
+    // MessageLog errors
+    public static final String X_MLOG_TIMESTAMPER_FAILED = "TimestamperFailed";
 
     /**
      * Translates technical exceptions to proxy exceptions with

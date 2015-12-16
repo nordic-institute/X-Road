@@ -13,7 +13,6 @@ class ApplicationController < BaseController
 end
 
 class ActiveSupport::TestCase
-  CN_CERT_CA1 = "/C=AAA/O=GOV/CN=AAA-central-external"
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #
   # Note: You'll currently still have to declare fixtures explicitly in integration tests

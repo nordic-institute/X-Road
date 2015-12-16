@@ -391,7 +391,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         private final String instanceIdentifier;
         private final ZipOutputStream zos;
 
-        public VerificationConfWriter(String instanceIdentifier,
+        VerificationConfWriter(String instanceIdentifier,
                 OutputStream out) {
             this.instanceIdentifier = instanceIdentifier;
             zos = new ZipOutputStream(out);

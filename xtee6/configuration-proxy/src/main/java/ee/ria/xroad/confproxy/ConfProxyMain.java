@@ -58,7 +58,8 @@ public final class ConfProxyMain {
         log.trace("startup()");
 
         actorSystem = ActorSystem.create("ConfigurationProxy",
-                ConfigFactory.load().getConfig("configuration-proxy"));
+                ConfigFactory.load().getConfig("configuration-proxy")
+                    .withFallback(ConfigFactory.load()));
 
         SignerClient.init(actorSystem);
     }

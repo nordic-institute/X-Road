@@ -124,8 +124,7 @@ public class SoapFault implements Soap {
             String faultActor, String detail) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<SOAP-ENV:Envelope "
-                    + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\" "
-                    + "xmlns:xroad=\"" + SoapHeader.NS_XROAD + "\">"
+                    + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\">"
                     + "<SOAP-ENV:Body>"
                         + "<SOAP-ENV:Fault>"
                             + "<faultcode>" + faultCode + "</faultcode>"
@@ -137,9 +136,9 @@ public class SoapFault implements Soap {
                                      + StringEscapeUtils.escapeXml(faultActor)
                                      + "</faultactor>" : "")
                                      + (detail != null
-                             ? "<detail><xroad:faultDetail>"
+                             ? "<detail><faultDetail xmlns=\"\">"
                                      + StringEscapeUtils.escapeXml(detail)
-                                 + "</xroad:faultDetail>" + "</detail>" : "")
+                                 + "</faultDetail>" + "</detail>" : "")
                          + "</SOAP-ENV:Fault>"
                      + "</SOAP-ENV:Body>"
                  + "</SOAP-ENV:Envelope>";

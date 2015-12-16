@@ -29,6 +29,15 @@ import static ee.ria.xroad.common.ErrorCodes.*;
 @Slf4j
 public final class GlobalConf {
 
+    private static GlobalConfProviderFactory instanceFactory;
+    static {
+        try {
+            instanceFactory = new GlobalConfProviderFactory();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static final ThreadLocal<GlobalConfProvider> THREAD_LOCAL =
             new InheritableThreadLocal<>();
 
@@ -46,7 +55,7 @@ public final class GlobalConf {
         }
 
         if (instance == null) {
-            instance = new GlobalConfImpl(true);
+            instance = instanceFactory.createInstance(true);
         }
 
         return instance;
@@ -61,7 +70,7 @@ public final class GlobalConf {
         log.trace("initForCurrentThread()");
 
         if (instance == null) {
-            instance = new GlobalConfImpl(false);
+            instance = instanceFactory.createInstance(false);
         }
 
         reloadIfChanged();
@@ -75,7 +84,7 @@ public final class GlobalConf {
     public static synchronized void reload() {
         log.trace("reload()");
 
-        instance = new GlobalConfImpl(true);
+        instance = instanceFactory.createInstance(true);
     }
 
     /**
@@ -195,7 +204,7 @@ public final class GlobalConf {
      * no instance identifiers are specified
      */
     public static List<MemberInfo> getMembers(String... instanceIdentifiers) {
-        log.trace("getMembers({})", instanceIdentifiers);
+        log.trace("getMembers({})", (Object[]) instanceIdentifiers);
 
         return getInstance().getMembers(instanceIdentifiers);
     }
@@ -228,7 +237,7 @@ public final class GlobalConf {
      */
     public static List<GlobalGroupInfo> getGlobalGroups(
             String... instanceIdentifiers) {
-        log.trace("getGlobalGroups({})", instanceIdentifiers);
+        log.trace("getGlobalGroups({})", (Object[]) instanceIdentifiers);
 
         return getInstance().getGlobalGroups(instanceIdentifiers);
     }
@@ -250,7 +259,7 @@ public final class GlobalConf {
      * no instance identifiers are specified
      */
     public static Set<String> getMemberClasses(String... instanceIdentifiers) {
-        log.trace("getMemberClasses({})", instanceIdentifiers);
+        log.trace("getMemberClasses({})", (Object[]) instanceIdentifiers);
 
         return getInstance().getMemberClasses(instanceIdentifiers);
     }

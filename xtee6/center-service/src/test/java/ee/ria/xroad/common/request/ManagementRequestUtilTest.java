@@ -13,6 +13,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public class ManagementRequestUtilTest {
 
+    /**
+     * Test adding id to the response.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void addIdToResponse() throws Exception {
         // Given

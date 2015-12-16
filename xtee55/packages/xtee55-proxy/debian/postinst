@@ -30,7 +30,7 @@ if [ -f /usr/xtee/etc/v6_xroad_activated ]; then
 fi
 
 # Set the X-Road 5.5 commands needed by the proxy UI.
-/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k service-importer-command -v /usr/share/xroad/scripts/import_v5_services.sh
+/usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k clients-importer-command -v /usr/share/xroad/scripts/import_v5_clients.sh
 /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k tls-key-importer-command -v /usr/share/xroad/scripts/import_v5_internal_tls_key_wrapper.sh
 /usr/share/xroad/scripts/modify_inifile.py -f /etc/xroad/conf.d/local.ini -s proxy-ui -k tls-key-exporter-command -v /usr/share/xroad/scripts/export_v6_internal_tls_key_wrapper.sh
 # Remove the X-Road 5.5 legacy commands needed by the proxy UI.

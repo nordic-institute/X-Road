@@ -1,3 +1,12 @@
+xroad (6.8.1-0) trusty; urgency=low
+
+  * Bugfixes and UI improvements
+  * Improved getting OCSP responses
+  * ISO8601 time format used in audit log
+  * SOAP Fault message element faultDetail without namespace
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 10 Dec 2015 17:02:55 +0200
+
 xroad (6.8-1) trusty; urgency=low
 
   * Bugfixes

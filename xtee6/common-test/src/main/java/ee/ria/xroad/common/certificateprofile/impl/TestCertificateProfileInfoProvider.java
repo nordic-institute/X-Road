@@ -29,7 +29,7 @@ public class TestCertificateProfileInfoProvider
     static class TestAuthCertificateProfileInfo
             extends EjbcaAuthCertificateProfileInfo {
 
-        public TestAuthCertificateProfileInfo(Parameters params) {
+        TestAuthCertificateProfileInfo(Parameters params) {
             super(params);
         }
     }
@@ -37,7 +37,7 @@ public class TestCertificateProfileInfoProvider
     static class TestSignCertificateProfileInfo
             extends EjbcaSignCertificateProfileInfo {
 
-        public TestSignCertificateProfileInfo(Parameters params) {
+        TestSignCertificateProfileInfo(Parameters params) {
             super(params);
         }
 

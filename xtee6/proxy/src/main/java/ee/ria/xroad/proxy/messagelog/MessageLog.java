@@ -44,7 +44,7 @@ public final class MessageLog {
     }
 
     /**
-     * Initializes the secure log using the provided actor system.
+     * Initializes the message log using the provided actor system.
      *
      * @param actorSystem the actor system
      * @param jobManager the job manager

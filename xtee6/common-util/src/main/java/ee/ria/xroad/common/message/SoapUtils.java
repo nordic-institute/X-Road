@@ -20,8 +20,6 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import ee.ria.xroad.common.CodedException;
 
@@ -248,34 +246,6 @@ public final class SoapUtils {
         byte[] xml = getBytes(soap);
         return (SoapMessageImpl) new SoapParserImpl().parseMessage(xml, soap,
                 charset, request.getContentType());
-    }
-
-
-    /**
-     * Parses request database ID out of management service response message.
-     *
-     * @param responseMessage - management service response
-     * @return - request ID in the central server database
-     * @throws SOAPException - when parsing response message fails
-     */
-    public static Integer getRequestIdInCentralDatabase(
-            SoapMessageImpl responseMessage) throws SOAPException {
-        NodeList nodes = responseMessage
-                .getSoap()
-                .getSOAPBody()
-                .getElementsByTagNameNS(SoapHeader.NS_XROAD, "requestId");
-
-        if (nodes.getLength() == 0) {
-            return null;
-        }
-
-        Node node = nodes.item(0);
-
-        try {
-            return Integer.parseInt(node.getTextContent());
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     private static String getServiceCode(

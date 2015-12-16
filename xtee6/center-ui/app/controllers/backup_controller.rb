@@ -6,7 +6,7 @@ class BackupController < BaseBackupController
   RESTORE_SCRIPT_NAME = "restore_xroad_center_configuration.sh"
 
   skip_around_filter :wrap_in_transaction, :only => [:restore]
-  skip_before_filter :check_conf, :read_server_id, :only => [:restore]
+  skip_before_filter :check_conf, :only => [:restore]
 
   upload_callbacks({
     :upload_new => "XROAD_BACKUP.uploadCallback"

@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
-import static ee.ria.xroad.common.ErrorCodes.X_SLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.*;
 import static org.junit.Assert.*;
@@ -234,7 +234,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampingFailedStopLogging() throws Exception {
         initLogManager();
 
-        thrown.expectError(X_SLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
 
         System.setProperty(
                 MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1");
@@ -316,7 +316,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         ServerConf.reload(new EmptyServerConf());
         initLogManager();
 
-        thrown.expectError(X_SLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
 
         log(createMessage(), createSignature());
     }

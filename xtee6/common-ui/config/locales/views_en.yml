@@ -58,6 +58,9 @@ en:
     hash: "Hash (%{alg})"
     url: "URL"
 
+  errors:
+    server_unreachable: "Server unreachable. Make sure if server is up and running."
+
   layouts:
     application:
       title: "Security Server Administration"

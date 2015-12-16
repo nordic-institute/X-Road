@@ -12,6 +12,6 @@ then
   exit 1
 fi
 
-. /etc/xroad/services/xtee55-serviceimporter.conf
+. /etc/xroad/services/xtee55-confimporter.conf
 
-${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${X55_IMPORTER_PARAMS} -jar /usr/share/xroad/jlib/serviceimporter.jar -aclOfProducer "$@"
+${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${X55_IMPORTER_PARAMS} -jar /usr/share/xroad/jlib/confimporter.jar -aclOfProducer "$@"

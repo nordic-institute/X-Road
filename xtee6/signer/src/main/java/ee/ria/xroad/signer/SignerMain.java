@@ -1,10 +1,11 @@
 package ee.ria.xroad.signer;
 
+import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorSystem;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -95,7 +96,8 @@ public final class SignerMain {
     }
 
     private static Config getConf(int signerPort) {
-        Config conf = ConfigFactory.load().getConfig("signer-main");
+        Config conf = ConfigFactory.load().getConfig("signer-main")
+                .withFallback(ConfigFactory.load());
         return conf.withValue("akka.remote.netty.tcp.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }

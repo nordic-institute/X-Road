@@ -13,7 +13,14 @@ require 'xroad/global_group_member'
 require 'xroad/global_group'
 require 'xroad/security_server_client'
 require 'xroad/request'
-require 'xroad/xroad_member'
+require 'xroad/request_processing'
+require 'xroad/request_with_processing'
+require 'xroad/deletion_request'
+require 'xroad/client_reg_request'
+require 'xroad/auth_cert_deletion_request'
+require 'xroad/auth_cert_reg_request'
+require 'xroad/client_deletion_request'
+require 'xroad/x_road_member'
 require 'xroad/subsystem'
 require 'xroad/member_class'
 require 'xroad/client_id'
@@ -153,7 +160,7 @@ module Xtee55ClientsImporter
         else
           @@log.info("Importing client '#{o.name}'")
 
-          member = XroadMember.create!(
+          member = XRoadMember.create!(
               :name => o.full_name,
               :member_class => member_class,
               :member_code => client_id.getMemberCode(),
@@ -194,7 +201,7 @@ module Xtee55ClientsImporter
     end
 
     def find_member(member_class_id, member_code)
-      members = XroadMember.where(:member_code => member_code,
+      members = XRoadMember.where(:member_code => member_code,
           :member_class_id => member_class_id).first
     end
 

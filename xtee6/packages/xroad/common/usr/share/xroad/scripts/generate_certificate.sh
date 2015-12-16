@@ -4,13 +4,13 @@
 usage()
 {
 cat << EOF
-usage: $0 -n intenal -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p] [-c]
+usage: $0 -n <basename> -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p] [-c]
 
 generate ssl certificate.
 
 OPTIONS:
    -h      Show this message
-   -n      basename, like 'internal'
+   -n      basename, like 'internal' or 'nginx'
    -d      working/output directory. default is /etc/xroad/ssl
    -f      fill subjectAltName automatically from hostname and IP addresses
    -S      fill Subject with /CN=`hostname -f` value

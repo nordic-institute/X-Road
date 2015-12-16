@@ -32,7 +32,7 @@ public class SoapParserImpl
     @Override
     protected void validateAgainstSoapSchema(SOAPMessage soap)
             throws Exception {
-        // Disable SOAP schema validation, because X-Raod 5.0 SOAP messages
+        // Disable SOAP schema validation, because X-Road 5.0 SOAP messages
         // might contain non-valid elements.
     }
 

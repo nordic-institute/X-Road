@@ -3,8 +3,11 @@ package ee.ria.xroad.common.request;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import javax.xml.soap.SOAPException;
 
 import lombok.extern.slf4j.Slf4j;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -13,6 +16,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
@@ -20,7 +24,6 @@ import ee.ria.xroad.common.util.HttpSender;
 
 import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.message.SoapUtils.getRequestIdInCentralDatabase;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.MimeUtils.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
@@ -145,11 +148,32 @@ public final class ManagementRequestSender {
 
         SoapUtils.checkConsistency(requestMessage, responseMessage);
 
-        Integer requestId = getRequestIdInCentralDatabase(responseMessage);
+        Integer requestId = getRequestId(responseMessage);
 
         log.trace("Request ID in the central server database: {}", requestId);
         return requestId;
     }
+
+    static Integer getRequestId(
+            SoapMessageImpl responseMessage) throws SOAPException {
+        NodeList nodes = responseMessage
+                .getSoap()
+                .getSOAPBody()
+                .getElementsByTagNameNS(SoapHeader.NS_XROAD, "requestId");
+
+        if (nodes.getLength() == 0) {
+            return null;
+        }
+
+        Node node = nodes.item(0);
+
+        try {
+            return Integer.parseInt(node.getTextContent());
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
 
     private static SoapMessageImpl getResponse(HttpSender sender,
             String expectedContentType) throws Exception {

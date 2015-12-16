@@ -3,8 +3,9 @@
           "-//Mort Bay Consulting//DTD Configure//EN"
           "http://jetty.mortbay.org/configure.dtd">
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
+   <Set name="extraClasspath"><SystemProperty name="addon.extraClasspath"/></Set>
    <Set name="contextPath">/</Set>
    <Set name="war">/usr/share/xroad/jlib/webapps/proxy-ui.war</Set>
-      <Set name="tempDirectory">/var/tmp/xroad/jetty-proxy-ui-temp</Set>
+   <Set name="tempDirectory">/var/tmp/xroad/jetty-proxy-ui-temp</Set>
 </Configure>
 

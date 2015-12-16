@@ -361,7 +361,7 @@
             <element name="ocspFreshnessSeconds" type="integer">
                 <annotation>
                     <documentation>
-                        Maximum allowed validity time of OCSP responses. If producedAt field of an OCSP response is
+                        Maximum allowed validity time of OCSP responses. If thisUpdate field of an OCSP response is
                         older than ocspFreshnessSeconds seconds, it is no longer valid.
                     </documentation>
                 </annotation>

@@ -27,12 +27,12 @@ def prepare_database()
         :description => "Organization")
   end
 
-  member_a = XroadMember.create(
+  member_a = XRoadMember.create(
       :member_class => member_class,
       :member_code => "MEM_A#{$unique_suffix}",
       :name => "Test member 1",
       :administrative_contact => "foo@bar.ee")
-  member_b = XroadMember.create(
+  member_b = XRoadMember.create(
       :member_class => member_class,
       :member_code => "MEM_B#{$unique_suffix}",
       :name => "Test member 2",
@@ -53,7 +53,7 @@ def cleanup_database()
   AuthCertDeletionRequest.delete_all()
   ClientDeletionRequest.delete_all()
   Subsystem.delete_all()
-  XroadMember.delete_all()
+  XRoadMember.delete_all()
   MemberClass.delete_all()
   SecurityServer.delete_all()
   SystemParameter.delete_all()

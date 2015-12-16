@@ -10,7 +10,7 @@ class SystemSettingsController < ApplicationController
     @service_provider_id =
       SystemParameter.management_service_provider_id
 
-    @service_provider_name = XroadMember.get_name(
+    @service_provider_name = XRoadMember.get_name(
       @service_provider_id.memberClass,
       @service_provider_id.memberCode) if @service_provider_id
 
@@ -82,7 +82,7 @@ class SystemSettingsController < ApplicationController
       SystemParameter::MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM,
       params[:providerSubsystem])
 
-    service_provider_name = XroadMember.get_name(
+    service_provider_name = XRoadMember.get_name(
       params[:providerClass], params[:providerCode])
 
     audit_log_data[:serviceProviderIdentifier] =
@@ -235,19 +235,7 @@ class SystemSettingsController < ApplicationController
 
     audit_log_data[:code] = params[:code]
 
-    MemberClass.find_each do |member_class|
-      if member_class.code.upcase == params[:code].upcase
-
-        if member_class.xroad_members.any?
-          raise t("system_settings.member_class_has_members", {
-            :code => member_class.code.upcase
-          })
-        end
-
-        member_class.destroy
-        break
-      end
-    end
+    MemberClass.delete(params[:code])
 
     render_json(read_member_classes)
   end
@@ -272,7 +260,7 @@ class SystemSettingsController < ApplicationController
         service_provider_id.memberCode,
         service_provider_id.subsystemCode)
     else
-      security_server_client = XroadMember.find_by_code(
+      security_server_client = XRoadMember.find_by_code(
         service_provider_id.memberClass,
         service_provider_id.memberCode)
 

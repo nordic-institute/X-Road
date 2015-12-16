@@ -99,7 +99,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.1.1"
+        toolVersion = "6.11.2"
         configFile = new File(rootDir, "doc/checkstyle-ria.xml")
         configProperties.config_loc = "$rootDir/doc"
         ignoreFailures = true

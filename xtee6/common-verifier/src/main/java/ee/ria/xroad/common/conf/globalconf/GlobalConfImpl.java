@@ -6,6 +6,7 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.*;
 class GlobalConfImpl implements GlobalConfProvider {
 
     // Default value used when no configurations are available
-    private static final int DEFAULT_OCSP_FRESHNESS = 60;
+    private static final int DEFAULT_OCSP_FRESHNESS = 3600;
 
     private final ConfigurationDirectory confDir;
 
@@ -448,9 +449,13 @@ class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    @SneakyThrows
     public boolean isSubjectInGlobalGroup(ClientId subjectId,
             GlobalGroupId groupId) {
-        SharedParameters p = getSharedParameters(groupId.getXRoadInstance());
+        SharedParameters p = confDir.getShared(groupId.getXRoadInstance());
+        if (p == null) {
+            return false;
+        }
 
         GlobalGroupType group = p.findGlobalGroup(groupId);
         if (group == null) {

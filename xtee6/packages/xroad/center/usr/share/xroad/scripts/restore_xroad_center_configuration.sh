@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -i <instance ID> [-n <HA node name>] -f <path of tar archive> [-F]
+Usage: $0 -i <instance ID> [-n <HA node name>] -f <path of tar archive> [-F] [-S]
 
 Restore the configuration (files and database) of the X-Road central server
 from a tar archive.
@@ -23,6 +23,7 @@ OPTIONS:
        Mandatory in HA setup if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
+    -S Skip database restoration.
 EOF
 }
 
@@ -40,6 +41,9 @@ execute_restore () {
         args="${args} -n ${CENTRAL_SERVER_HA_NODE_NAME}"
       fi
     fi
+    if [ -n ${SKIP_DB_RESTORE} ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
+      args="${args} -S"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road central server"
@@ -51,7 +55,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":Fi:n:f:bh" opt ; do
+while getopts ":FSi:n:f:bh" opt ; do
   case $opt in
     h)
       usage
@@ -59,6 +63,9 @@ while getopts ":Fi:n:f:bh" opt ; do
       ;;
     F)
       FORCE_RESTORE=true
+      ;;
+    S)
+      SKIP_DB_RESTORE=true
       ;;
     i)
       INSTANCE_ID=$OPTARG

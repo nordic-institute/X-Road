@@ -62,10 +62,9 @@ class InitController < ApplicationController
       :anchor_upload_file => [:required]
     })
 
-    anchor_details =
-      save_temp_anchor_file(params[:anchor_upload_file].read)
+    save_temp_anchor_file(params[:anchor_upload_file].read)
 
-    render_json(anchor_details)
+    render_json(get_temp_anchor_details)
   end
 
   def anchor_init
@@ -79,10 +78,11 @@ class InitController < ApplicationController
 
     audit_log_data[:anchorFileHash] = anchor_details[:hash]
     audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
-    audit_log_data[:generatedAt] = anchor_details[:generated_at]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at_iso]
 
     apply_temp_anchor_file
-
+    
+    download_configuration
     notice(t('init.configuration_downloaded'))
 
     render_json
@@ -174,7 +174,7 @@ class InitController < ApplicationController
 
     after_commit do
       if x55_installed?
-        import_v5_services
+        import_v5_clients
         import_v5_internal_tls_key
       end
     end
@@ -232,18 +232,18 @@ class InitController < ApplicationController
 
   private
 
-  def import_v5_services
-    if importer = SystemProperties::getServiceImporterCommand
-      logger.info("Importing services from 5.0 to X-Road")
+  def import_v5_clients
+    if importer = SystemProperties::getClientsImporterCommand
+      logger.info("Importing clients from 5.0 to X-Road")
 
       output = %x["#{importer}" 2>&1]
 
       if $?.exitstatus != 0
         logger.error(output)
-        error(t('init.services_import_failed'))
+        error(t('init.clients_import_failed'))
       end
     else
-      logger.warn("Service importer unspecified, skipping import")
+      logger.warn("Clients importer unspecified, skipping import")
     end
   end
 

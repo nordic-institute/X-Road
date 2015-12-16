@@ -98,21 +98,12 @@ class ClientsController < ApplicationController
     member_name = get_member_name(
       params[:add_member_class], params[:add_member_code])
 
-    member_string = "#{member_name} #{params[:add_member_class]}: " \
-      "#{params[:add_member_code]}"
-
     if !member_name
-      warn("new_member",
-        t('clients.unregistered_member', :member => member_string))
-    end
-
-    member_found = GlobalConf::getMembers(xroad_instance).index do |member|
-      member.id == client_id
-    end
-
-    unless member_found
-      warn("new_subsys", t('clients.new_subsystem',
-        :subsystem => params[:add_subsystem_code], :member => member_string))
+      warn("new_member", t('clients.unregistered_member', {
+        :member_name => member_name,
+        :member_class => client_id.memberClass,
+        :member_code => client_id.memberCode
+      }))
     end
 
     client_id = get_identifier(client_id)
@@ -135,7 +126,9 @@ class ClientsController < ApplicationController
 
     render_json({
       :clients => read_clients,
-      :registered => registered
+      :registered => registered,
+      :subsystem_registered => subsystem_registered?(client_id),
+      :member_name => member_name
     })
   end
 
@@ -366,9 +359,14 @@ class ClientsController < ApplicationController
 
   def read_clients
     clients = []
+    registered_subsystems = []
+
+    GlobalConf::getMembers(xroad_instance).each do |member|
+      registered_subsystems << member.id if member.id.subsystemCode
+    end
 
     serverconf.client.each do |client|
-      clients << client_to_json(client)
+      clients << client_to_json(client, registered_subsystems)
     end
 
     cache_client_ids
@@ -376,8 +374,22 @@ class ClientsController < ApplicationController
     clients
   end
 
-  def client_to_json(client)
+  def subsystem_registered?(client_id)
+    registered = GlobalConf::getMembers(xroad_instance).index do |member|
+      member.id == client_id
+    end
+
+    !registered.nil?
+  end
+
+  def client_to_json(client, registered_subsystems = nil)
     is_subsystem = client.identifier.subsystemCode
+
+    unless registered_subsystems
+      registered_subsystems = []
+      registered_subsystems << client.identifier if subsystem_registered?(client.identifier)
+    end
+
     {
       :client_id => client.identifier.toString,
       :member_name => GlobalConf::getMemberName(client.identifier),
@@ -386,6 +398,7 @@ class ClientsController < ApplicationController
       :member_class => client.identifier.memberClass,
       :member_code => client.identifier.memberCode,
       :subsystem_code => client.identifier.subsystemCode,
+      :subsystem_registered => registered_subsystems.include?(client.identifier),
       :state => client.clientStatus,
       :register_enabled =>
         [ClientType::STATUS_SAVED].include?(client.clientStatus),

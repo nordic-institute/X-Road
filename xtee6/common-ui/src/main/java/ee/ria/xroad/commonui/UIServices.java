@@ -1,14 +1,15 @@
 package ee.ria.xroad.commonui;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import akka.actor.ActorSystem;
+
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
 import ee.ria.xroad.common.SystemPropertiesLoader;
 
-import static com.typesafe.config.ConfigValueFactory.fromAnyRef;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
@@ -26,7 +27,6 @@ public final class UIServices {
             .load();
     }
 
-    private String configName;
     private ActorSystem actorSystem;
 
     /**
@@ -36,16 +36,10 @@ public final class UIServices {
      * @param configName the configuration name
      */
     public UIServices(String actorSystemName, String configName) {
-        this.configName = configName;
-
         LOG.debug("Creating ActorSystem...");
 
-        // FUTURE This hardcoded configuration should ideally be loaded from
-        // application.conf file
-        Config config = config(new String[][] {
-                {"akka.remote.quarantine-systems-for", "off"},
-                {"akka.remote.gate-invalid-addresses-for", "2s"},
-        });
+        Config config = ConfigFactory.load().getConfig(configName)
+                .withFallback(ConfigFactory.load());
 
         LOG.debug("Akka using configuration: {}", config);
         actorSystem = ActorSystem.create(actorSystemName, config);
@@ -68,14 +62,5 @@ public final class UIServices {
         if (actorSystem != null) {
             actorSystem.shutdown();
         }
-    }
-
-    private Config config(String[][] config) {
-        Config result = ConfigFactory.load().getConfig(configName);
-        for (String[] keyValue : config) {
-            result = result.withValue(keyValue[0], fromAnyRef(keyValue[1]));
-        }
-
-        return result;
     }
 }

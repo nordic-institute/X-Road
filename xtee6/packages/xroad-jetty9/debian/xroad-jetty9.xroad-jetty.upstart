@@ -23,6 +23,6 @@ end script
 script
   set -x
   . /etc/xroad/services/jetty.conf
-  exec ${JAVA_HOME}/bin/java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9
+  exec ${JAVA_HOME}/bin/java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9
 end script
 

@@ -33,7 +33,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.MessageSendingJob;
 
-import static ee.ria.xroad.common.ErrorCodes.X_SLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.*;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -53,7 +53,7 @@ public class LogManager extends AbstractLogManager {
     private static final Timeout TIMESTAMP_TIMEOUT =
             new Timeout(Duration.create(30, TimeUnit.SECONDS));
 
-    // Actor names of secure log components
+    // Actor names of message log components
     static final String TASK_QUEUE_NAME = "RequestLogTaskQueue";
     static final String TIMESTAMPER_NAME = "RequestLogTimestamper";
     static final String ARCHIVER_NAME = "RequestLogArchiver";
@@ -242,14 +242,14 @@ public class LogManager extends AbstractLogManager {
         }
 
         if (ServerConf.getTspUrl().isEmpty()) {
-            throw new CodedException(X_SLOG_TIMESTAMPER_FAILED,
+            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
                     "Cannot time-stamp messages: "
                             + "no timestamping services configured");
         }
 
         if (isTimestampFailed()) {
             if (new DateTime().minusSeconds(period).isAfter(timestampFailed)) {
-                throw new CodedException(X_SLOG_TIMESTAMPER_FAILED,
+                throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
                         "Cannot time-stamp messages");
             }
         }

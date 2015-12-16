@@ -8,7 +8,7 @@ Standards-Version: 3.8.3
 Package: xtee55-center
 Architecture: all
 Depends: ${misc:Depends}
-Pre-Depends: xroad-common, xroad-center, xroad-jruby
+Pre-Depends: xroad-centralserver (>=6.8.1), xroad-jruby
 Description: X-Road 5.5 addons for X-Road center
  Adapter programs and utilities for co-operating with older X-Road
 

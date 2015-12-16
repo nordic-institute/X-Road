@@ -402,15 +402,4 @@ public class SoapMessageTest {
         thrown.expectError(X_INVALID_PROTOCOL_VERSION);
         createRequest("wrong-version.query");
     }
-
-    @Test
-    public void getRequestIdFromManagementServiceResponse() throws Exception {
-        SoapMessageImpl response =
-                createResponse("response-with-requestId.answer");
-
-        Integer requestId = SoapUtils.getRequestIdInCentralDatabase(response);
-
-        Integer expectedRequestId = 413;
-        assertEquals(expectedRequestId, requestId);
-    }
 }

@@ -136,7 +136,7 @@ public final class InternalServerTestUtil {
 
         private List<X509Certificate> trustedCerts;
 
-        public ServiceTrustManager(List<X509Certificate> trustedCerts) {
+        ServiceTrustManager(List<X509Certificate> trustedCerts) {
             this.trustedCerts = trustedCerts;
         }
 

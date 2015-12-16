@@ -188,11 +188,9 @@ public class ImportCertRequestHandler
                     GlobalConf.getInstanceIdentifier(), cert, null);
             new CertChainVerifier(chain).verifyChainOnly(new Date());
         } catch (Exception e) {
-            String message = (e instanceof CodedException)
-                    ? ((CodedException) e).getFaultString() : e.getMessage();
+            log.error("Failed to import certificate", e);
             throw CodedException.tr(X_CERT_IMPORT_FAILED,
-                    "cert_import_failed",
-                    "Certificate import failed: %s", message);
+                    "cert_import_failed", "%s", "Certificate is not valid");
         }
     }
 

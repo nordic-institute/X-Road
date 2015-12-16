@@ -3,12 +3,13 @@ require 'date'
 require 'openssl'
 
 class ApprovedCaTest < ActiveSupport::TestCase
+  CN_CERT_CA1 = "AAA-central-external"
   CERT_PROFILE_INTERFACE_QNAME = "ee.ria.xroad.common.certificateprofile.impl."\
         "EjbcaCertificateProfileInfoProvider"
 
   # Writing tests - start
 
-  test "Raise XroadArgumentError if no topCaData provided" do
+  test "Raise XRoadArgumentError if no topCaData provided" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
@@ -124,7 +125,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
         second_intermediate_ca.ocsp_infos[0].url)
   end
 
-  test "Raise RecordInvalid if no cert for intermediate CA present" do
+  test "Raise XRoadArgumentError if no cert for intermediate CA present" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = true
@@ -140,7 +141,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca.intermediate_cas = [intermediate_ca]
 
     # When/then
-    error = assert_raises(XroadArgumentError) do
+    error = assert_raises(XRoadArgumentError) do
       approved_ca.save!
     end
 

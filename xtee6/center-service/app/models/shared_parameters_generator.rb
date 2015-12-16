@@ -79,7 +79,7 @@ class SharedParametersGenerator
   end
 
   def add_members
-    XroadMember.find_each do |each_member|
+    XRoadMember.find_each do |each_member|
       member_type = @marshaller.factory.createMemberType()
       member_type.name = each_member.name
       member_type.memberCode = each_member.member_code

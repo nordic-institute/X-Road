@@ -3,11 +3,14 @@ package ee.ria.xroad.proxy;
 import java.util.ArrayList;
 import java.util.List;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import akka.actor.ActorSystem;
+
+import com.typesafe.config.ConfigFactory;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -112,7 +115,8 @@ public final class ProxyMain {
         log.trace("startup()");
 
         actorSystem = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy"));
+                ConfigFactory.load().getConfig("proxy")
+                    .withFallback(ConfigFactory.load()));
 
         readProxyVersion();
 

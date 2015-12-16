@@ -68,7 +68,7 @@ public final class CryptoUtils {
     /** SSL protocol name. */
     public static final String SSL_PROTOCOL = "TLSv1.2";
 
-    /** The list of cipher suites used with SSL. */
+    /** The list of cipher suites used with TLS. */
     public static final String[] INCLUDED_CIPHER_SUITES =
             {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};
 

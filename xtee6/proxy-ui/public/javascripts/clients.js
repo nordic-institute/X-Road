@@ -152,7 +152,21 @@
                               return;
                           }
 
-                          confirm("clients.client_add_dialog.send_regreq", null, function() {
+                          var new_subsystem_warning = "";
+                          if (!response.data.subsystem_registered) {
+                              new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                                  member_name: response.data.member_name || "",
+                                  member_class: regParams.member_class,
+                                  member_code: regParams.member_code,
+                                  subsystem_code: regParams.subsystem_code
+                              });
+                          }
+
+                          var confirmParams = {
+                              new_subsystem_warning: new_subsystem_warning
+                          };
+
+                          confirm("clients.client_add_dialog.send_regreq", confirmParams, function() {
                               $.post(action("client_regreq"), regParams, function() {
                                   refreshClients();
                               }, "json");
@@ -279,7 +293,7 @@
     }
 
     function openClientDetails(client, tab) {
-        $("#details_client_id").val(client.client_id);
+        $("#details_client_id").val(client.client_id).data("client", client);
         $("#details_member_class").val(client.member_class);
         $("#details_member_code").val(client.member_code);
         $("#details_subsystem_code").val(client.subsystem_code);
@@ -572,8 +586,22 @@
                 member_code: $("#details_member_code").val(),
                 subsystem_code: $("#details_subsystem_code").val()
             };
-            confirm("clients.client_details_tab.send_regreq_confirm", null,
-                    function() {
+
+            var new_subsystem_warning = "";
+            if (!$("#details_client_id").data("client").subsystem_registered) {
+                new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                    member_name: $("#details_member_name").val(),
+                    member_class: params.member_class,
+                    member_code: params.member_code,
+                    subsystem_code: params.subsystem_code
+                });
+            }
+
+            var confirmParams = {
+                new_subsystem_warning: new_subsystem_warning
+            };
+
+            confirm("clients.client_details_tab.send_regreq_confirm", confirmParams, function() {
                 $.post(action("client_regreq"), params, function(response) {
                     oClients.fnUpdate(response.data, oClients.getFocus());
                 }, "json");

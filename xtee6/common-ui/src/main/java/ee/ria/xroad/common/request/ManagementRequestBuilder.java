@@ -1,6 +1,7 @@
 package ee.ria.xroad.common.request;
 
 import java.util.UUID;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.ProtocolVersion;
 import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -105,6 +107,7 @@ final class ManagementRequestBuilder {
         header.setClient(sender);
         header.setService(service);
         header.setQueryId(generateQueryId());
+        header.setProtocolVersion(new ProtocolVersion());
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);

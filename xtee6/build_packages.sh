@@ -3,7 +3,7 @@
 set -e
 
 
-GRADLE_HOME="$HOME/gradle-2.4/"
+GRADLE_HOME="$HOME/gradle-2.8/"
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
 PATH=$GRADLE_HOME/bin:$JRUBY_HOME/bin:$JAVA_HOME/bin:$PATH
 

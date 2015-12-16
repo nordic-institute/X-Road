@@ -174,6 +174,9 @@ public class ClientProxy implements StartStop {
         log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
         SslContextFactory cf = new SslContextFactory(false);
+        // Note: Don't use restricted chiper suites
+        // (CryptoUtils.INCLUDED_CIPHER_SUITES) between client IS and
+        // client proxy.
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);

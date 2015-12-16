@@ -42,7 +42,7 @@ class MembersController < ApplicationController
   end
 
   def get_records_count
-    render_json_without_messages(:count => XroadMember.count)
+    render_json_without_messages(:count => XRoadMember.count)
   end
 
   def can_see_details
@@ -61,8 +61,8 @@ class MembersController < ApplicationController
     query_params = get_list_query_params(
       get_column(get_sort_column_no))
 
-    members = XroadMember.get_members(query_params)
-    count = XroadMember.get_member_count(searchable)
+    members = XRoadMember.get_members(query_params)
+    count = XRoadMember.get_member_count(searchable)
 
     result = []
     members.each do |each|
@@ -162,7 +162,7 @@ class MembersController < ApplicationController
 
     member = find_member(params[:memberClass], params[:memberCode])
 
-    render_json(XroadMember.get_used_servers(member.id))
+    render_json(XRoadMember.get_used_servers(member.id))
   end
 
   def management_requests
@@ -174,9 +174,9 @@ class MembersController < ApplicationController
     query_params = get_list_query_params(
       get_management_requests_column(get_sort_column_no))
 
-    requests = XroadMember.get_management_requests(
+    requests = XRoadMember.get_management_requests(
         member_class, member_code, query_params)
-    count = XroadMember.get_management_requests_count(member_class, member_code)
+    count = XRoadMember.get_management_requests_count(member_class, member_code)
 
     result = []
     add_requests_to_result(requests, result)
@@ -193,7 +193,7 @@ class MembersController < ApplicationController
       :subsystemCode => []
     })
 
-    remaining_groups = XroadMember.get_remaining_global_groups(
+    remaining_groups = XRoadMember.get_remaining_global_groups(
         params[:memberClass], params[:memberCode], params[:subsystemCode])
 
     result = []
@@ -215,7 +215,7 @@ class MembersController < ApplicationController
       :memberId => [:required]
     })
 
-    member = XroadMember.find(params[:memberId])
+    member = XRoadMember.find(params[:memberId])
     render_json_without_messages(get_all_member_data(member))
   end
 
@@ -255,7 +255,7 @@ class MembersController < ApplicationController
     audit_log_data[:memberClass] = params[:memberClass]
     audit_log_data[:memberCode] = params[:memberCode]
 
-    XroadMember.create!(
+    XRoadMember.create!(
         :name => params[:memberName],
         :member_class => MemberClass.find_by_code(member_class),
         :member_code => member_code)
@@ -263,7 +263,7 @@ class MembersController < ApplicationController
     notice(t("members.added",
         {:member_class => member_class, :member_code => member_code}))
 
-    saved_member = XroadMember.find_by_code(member_class, member_code)
+    saved_member = XRoadMember.find_by_code(member_class, member_code)
     render_json(get_all_member_data(saved_member))
   end
 
@@ -308,7 +308,7 @@ class MembersController < ApplicationController
 
     member_to_delete = find_member(params[:memberClass], params[:memberCode])
 
-    XroadMember.destroy(member_to_delete)
+    XRoadMember.destroy(member_to_delete)
 
     render_json({})
   end
@@ -629,7 +629,7 @@ class MembersController < ApplicationController
   end
 
   def get_global_groups_as_json(member_class, member_code)
-    group_members = XroadMember.get_global_group_members(
+    group_members = XRoadMember.get_global_group_members(
         member_class, member_code)
 
     result = []
@@ -703,7 +703,7 @@ class MembersController < ApplicationController
   end
 
   def find_member(member_class, member_code)
-    member = XroadMember.find_by_code(member_class, member_code)
+    member = XRoadMember.find_by_code(member_class, member_code)
 
     raise "Member with member class '#{member_class}' and member code"\
          " '#{member_code}' not found." unless member

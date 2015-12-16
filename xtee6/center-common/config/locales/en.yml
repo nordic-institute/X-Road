@@ -97,6 +97,8 @@ en:
 
   errors:
     format: "%{message}"
+    member_class:
+      member_class_has_members: "Cannot delete member class %{code}: found X-Road members belonging to the class. Only classes with no registered members can be deleted."
     pki:
       top_ca_cert_too_long_subject_name: "Length of service CA certificate subject name You are trying to load exceeds %{max_length} symbols. Subject name: '%{subject_name}'"
     tsp:

@@ -183,7 +183,9 @@ class KeysController < ApplicationController
     end
     subject_name = field_values.join(", ")
 
-    client_id = get_cached_client_id(params[:member_id])
+    if params[:key_usage] == PARAM_KEY_USAGE_SIGN
+      client_id = get_cached_client_id(params[:member_id])
+    end
 
     key_usage = params[:key_usage] == PARAM_KEY_USAGE_AUTH ?
       KeyUsageInfo::AUTHENTICATION : KeyUsageInfo::SIGNING
@@ -465,17 +467,43 @@ class KeysController < ApplicationController
       CommonUi::CertUtils.cert_hash(cert.certificateBytes)
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
-    begin
-      request_id = unregister_cert(cert.certificateBytes)
-      audit_log_data[:managementRequestId] = request_id
+    request_id = unregister_cert(cert.certificateBytes)
+    audit_log_data[:managementRequestId] = request_id
 
-      notice(t('keys.request_sent'))
-    rescue
-      warn("delreq_failed", t('keys.delreq_failed', :msg => $!.message))
-    end
+    notice(t('keys.request_sent'))
 
     SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
 
+    audit_log_data[:certStatus] = CertificateInfo::STATUS_DELINPROG
+
+    render_tokens
+  end
+
+  def skip_unregister
+    audit_log("Skip unregistration of authentication certificate", audit_log_data = {})
+
+    authorize!(:send_auth_cert_del_req)
+
+    validate_params({
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
+    })
+
+    GlobalConf::verifyValidity
+
+    cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
     audit_log_data[:certStatus] = CertificateInfo::STATUS_DELINPROG
 
     render_tokens

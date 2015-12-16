@@ -30,7 +30,6 @@ class ApplicationController < BaseController
   before_filter :disable_federation
   before_filter :read_locale
   before_filter :check_conf, :except => [:menu]
-  before_filter :read_server_id, :read_ha_node_name, :except => [:menu]
   before_filter :verify_get, :only => [
       :index,
       :get_records_count,
@@ -180,16 +179,6 @@ class ApplicationController < BaseController
     I18n.locale = ui_user.locale if ui_user
   end
 
-  def read_server_id
-    return @server_id if @server_id
-    @server_id = CentralServerId.new(SystemParameter.instance_identifier)
-  end
-
-  def read_ha_node_name
-    return @ha_node_name if @ha_node_name
-    @ha_node_name = CommonSql.ha_node_name
-  end
-
   def validate_cert(uploaded_file)
     validate_any_cert(uploaded_file, CertValidator.new)
   end
@@ -202,16 +191,5 @@ class ApplicationController < BaseController
     CommonUi::UploadedFile::Validator.new(
         uploaded_file,
         validator).validate
-  end
-
-  class CentralServerId
-    def initialize(xroad_instance)
-      @xroad_instance = xroad_instance
-    end
-
-    # To make it compatible with common-ui
-    def toShortString
-      return @xroad_instance
-    end
   end
 end

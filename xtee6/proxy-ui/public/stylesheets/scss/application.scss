@@ -57,7 +57,6 @@ table tbody tr td ul.tableitem-actions {
 
 #keys {
     .token {
-        line-height: 34px;
     }
     .unsaved {
         background-color: rgba($base-color-yellow, 0.7);
@@ -81,7 +80,6 @@ table tbody tr td ul.tableitem-actions {
     .token .locked,
     .token.token-available.token-inactive {
         color: red;
-        font-family: "open_sansbold";
     }
 }
 

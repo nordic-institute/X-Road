@@ -95,7 +95,15 @@ module BaseHelper
     result
   end
 
+  def instance_identifier
+  end
+
+  def server_code
+  end
   def skin_installed?
     File.exists?(SystemProperties.getConfPath + BaseController::UI_SKIN_FILE)
+  end
+
+  def node_name
   end
 end

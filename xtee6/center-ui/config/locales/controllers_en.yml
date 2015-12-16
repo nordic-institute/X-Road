@@ -2,19 +2,19 @@ en:
   menu:
     configuration:
       title: "Configuration"
-      tsp: "Time Stamping Services"
+      tsp: "Timestamping Services"
       approved_ca: "Certification Services"
       org: "Members"
-      group: "Groups"
+      group: "Global Groups"
       member: "Members"
       securityserver: "Security Servers"
       central_service: "Central Services"
     management:
       title: "Management"
       request: "Management Requests"
-      configuration_management: "Configuration Management"
+      configuration_management: "Global Configuration"
       system_settings: "System Settings"
-      import_v5: "Import X-Road 5.0 Data"
+      import_v5: "Version 5.0 Data Import"
       distributed_file: "Distributed Files"
     help:
       title: "Help"
@@ -302,7 +302,6 @@ en:
 
   system_settings:
     member_class_already_exists: "Member class with the same code already exists"
-    member_class_has_members: "Cannot delete member class %{code}: found X-Road members belonging to the class. Only classes with no registered members can be deleted."
     central_server_address_edit_params:
       centralServerAddress:
         host: "Central server address must be DNS name or IP address"

@@ -1,8 +1,8 @@
 package ee.ria.xroad.common;
 
 import akka.actor.ActorSystem;
+
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValueFactory;
 
 import ee.ria.xroad.signer.protocol.SignerClient;
 
@@ -29,9 +29,8 @@ public final class CenterServices {
     private static void init() throws Exception {
         if (actorSystem == null) {
             actorSystem = ActorSystem.create("CenterService",
-                    ConfigFactory.load().getConfig("centerservice").withValue(
-                            "akka.remote.quarantine-systems-for",
-                            ConfigValueFactory.fromAnyRef("off")));
+                    ConfigFactory.load().getConfig("centerservice")
+                        .withFallback(ConfigFactory.load()));
         }
     }
 

@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.cyber.xroad.serviceimporter.XConf;
-import ee.cyber.xroad.serviceimporter.XConf.Consumer;
+import ee.cyber.xroad.confimporter.XConf;
+import ee.cyber.xroad.confimporter.XConf.Consumer;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;

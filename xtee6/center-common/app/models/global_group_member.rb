@@ -37,6 +37,7 @@ class GlobalGroupMember < ActiveRecord::Base
 
   private
 
+  # FUTURE Consider denormalizing in order to make search more effective
   def self.get_search_relation(group_id, searchable)
     sql_generator = searchable.is_a?(AdvancedSearchParams) ?
         AdvancedSearchSqlGenerator.new(map_advanced_search_params(searchable)):
@@ -45,7 +46,15 @@ class GlobalGroupMember < ActiveRecord::Base
     get_all_members_relation(group_id).
         where(sql_generator.sql, *sql_generator.params).
         joins(:group_member).
-        joins(CommonSql::get_identifier_to_member_join_sql)
+        joins(get_identifier_to_member_join_sql)
+  end
+
+  def self.get_identifier_to_member_join_sql
+    "LEFT JOIN security_server_clients
+      ON identifiers.member_code = security_server_clients.member_code
+    LEFT JOIN member_classes
+      ON security_server_clients.member_class_id = member_classes.id
+      AND identifiers.member_class = member_classes.code"
   end
 
   def self.get_all_members_relation(group_id)

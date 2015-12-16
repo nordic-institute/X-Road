@@ -18,7 +18,6 @@ import akka.actor.Cancellable;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.message.ConnectionPing;
@@ -41,7 +40,7 @@ public final class SignerClient {
     private static ActorSystem actorSystem;
     private static ActorSelection requestProcessor;
 
-    private static Boolean connected;
+    private static Boolean connected = true;
 
     private SignerClient() {
     }
@@ -60,8 +59,8 @@ public final class SignerClient {
             requestProcessor = system.actorSelection(
                     getSignerPath() + "/user/" + REQUEST_PROCESSOR);
 
-            system.actorOf(Props.create(ConnectionPinger.class),
-                    "ConnectionPinger");
+            //system.actorOf(Props.create(ConnectionPinger.class),
+            //        "ConnectionPinger");
         }
     }
 

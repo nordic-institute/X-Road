@@ -20,10 +20,9 @@ override_dh_gencontrol:
 
 
 build:
-	rm -rf jetty.tgz jetty9
-	wget -O jetty.tgz "http://download.eclipse.org/jetty/9.3.3.v20150827/dist/jetty-distribution-9.3.3.v20150827.tar.gz"
-	tar zxf jetty.tgz
-	mv jetty-distribution* jetty9
+	./download_jetty.sh
+	tar zxf ~/jetty/jetty.tgz -C ~/jetty
+	mv ~/jetty/jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod
 	sed -i'' 's/^resources/#resources/' jetty9/modules/logging.mod
@@ -31,4 +30,3 @@ build:
 	sed -i'' 's/^logs/#logs/' jetty9/modules/logging.mod
 	mv jetty9/start.ini jetty9/start.ini.bak
 	java -jar jetty9/start.jar --add-to-start=logging jetty.base=jetty9
-

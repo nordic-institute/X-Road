@@ -227,11 +227,11 @@ var XROAD_GROUP_EDIT = function() {
         opts.sDom = "tp";
         opts.aoColumns = [
             { "mData": "name" },
-            { "mData": "member_code" },
-            { "mData": "member_class", "sWidth": "5em" },
-            { "mData": "subsystem" },
-            { "mData": "xroad", "sWidth": "5em" },
             { "mData": "type" },
+            { "mData": "xroad", "sWidth": "5em" },
+            { "mData": "member_class", "sWidth": "5em" },
+            { "mData": "member_code" },
+            { "mData": "subsystem" },
             { "mData": "added", "sWidth": "13em" }
         ];
         opts.oTableTools = {
@@ -265,11 +265,11 @@ var XROAD_GROUP_EDIT = function() {
         opts.sDom = "<'dataTables_header'<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name" },
-            { "mData": "member_code" },
-            { "mData": "member_class" },
-            { "mData": "subsystem" },
+            { "mData": "type" },
             { "mData": "xroad" },
-            { "mData": "type" }
+            { "mData": "member_class" },
+            { "mData": "member_code" },
+            { "mData": "subsystem" }
         ];
         opts.oTableTools = {
             "sRowSelect": "multi"
@@ -302,7 +302,8 @@ var XROAD_GROUP_EDIT = function() {
             }
         }
 
-        opts.aaSorting = [[1, 'desc']];
+        var codeColumn = 5
+        opts.aaSorting = [[codeColumn, 'desc']];
 
         oAddableMembers = $('#group_addable_members').dataTable(opts);
     }

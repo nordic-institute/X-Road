@@ -448,7 +448,8 @@ class ConfigurationManagementController < ApplicationController
 
     audit_log_data[:instanceIdentifier] =
       @anchor_unmarshaller.get_instance_identifier
-    audit_log_data[:generatedAt] = @anchor_unmarshaller.get_generated_at
+    audit_log_data[:generatedAt] =
+      @anchor_unmarshaller.get_generated_at.iso8601
     audit_log_data[:anchorUrls] =
       @anchor_unmarshaller.get_anchor_urls.collect do |anchor_url|
         anchor_url.url

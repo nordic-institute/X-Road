@@ -1,6 +1,6 @@
 usr/share/xroad/jlib/monitoragent-0.1.jar usr/share/xroad/jlib/monitoragent.jar
 usr/share/xroad/jlib/clientmediator-0.1.jar usr/share/xroad/jlib/clientmediator.jar
-usr/share/xroad/jlib/serviceimporter-0.1.jar usr/share/xroad/jlib/serviceimporter.jar
+usr/share/xroad/jlib/confimporter-0.1.jar usr/share/xroad/jlib/confimporter.jar
 usr/share/xroad/scripts/activate_v6_xroad.sh usr/bin/activate_v6_xroad.sh
 usr/share/xroad/scripts/deactivate_v6_xroad.sh usr/bin/deactivate_v6_xroad.sh
 usr/share/xroad/scripts/export_v6_internal_tls_key.sh usr/bin/export_v6_internal_tls_key.sh
@@ -8,7 +8,6 @@ usr/share/xroad/scripts/export_v6_internal_tls_key_wrapper.sh usr/bin/export_v6_
 usr/share/xroad/scripts/import_v5_acl_of_producer.sh usr/bin/import_v5_acl_of_producer.sh
 usr/share/xroad/scripts/import_v5_acl_of_service.sh usr/bin/import_v5_acl_of_service.sh
 usr/share/xroad/scripts/import_v5_acl.sh usr/bin/import_v5_acl.sh
-usr/share/xroad/scripts/import_v5_services_no_acl.sh usr/bin/import_v5_services_no_acl.sh
-usr/share/xroad/scripts/import_v5_services.sh usr/bin/import_v5_services.sh
+usr/share/xroad/scripts/import_v5_clients.sh usr/bin/import_v5_clients.sh
 usr/share/xroad/scripts/import_v5_internal_tls_key.sh usr/bin/import_v5_internal_tls_key.sh
 usr/share/xroad/scripts/import_v5_internal_tls_key_wrapper.sh usr/bin/import_v5_internal_tls_key_wrapper.sh

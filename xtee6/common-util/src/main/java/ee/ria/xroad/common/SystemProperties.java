@@ -186,8 +186,8 @@ public final class SystemProperties {
 
     // Proxy UI ---------------------------------------------------------------
 
-    public static final String SERVICE_IMPORTER_COMMAND =
-            PREFIX + "proxy-ui.service-importer-command";
+    public static final String CLIENTS_IMPORTER_COMMAND =
+            PREFIX + "proxy-ui.clients-importer-command";
 
     public static final String TLS_KEY_IMPORTER_COMMAND =
             PREFIX + "proxy-ui.tls-key-importer-command";
@@ -547,10 +547,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the shell command used when importing V5 services
+     * @return the shell command used when importing V5 clients
      */
-    public static String getServiceImporterCommand() {
-        return System.getProperty(SERVICE_IMPORTER_COMMAND);
+    public static String getClientsImporterCommand() {
+        return System.getProperty(CLIENTS_IMPORTER_COMMAND);
     }
 
     /**

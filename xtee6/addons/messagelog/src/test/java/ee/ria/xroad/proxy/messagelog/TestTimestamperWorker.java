@@ -14,7 +14,7 @@ class TestTimestamperWorker extends TimestamperWorker {
 
     private static volatile Boolean shouldFail;
 
-    public TestTimestamperWorker(List<String> tspUrls) {
+    TestTimestamperWorker(List<String> tspUrls) {
         super(tspUrls);
     }
 

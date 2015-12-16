@@ -273,7 +273,7 @@ public interface GlobalConfProvider extends ConfProvider {
      * @param smallestValue if true, the smallest value computed over all
      * known instances is returned. Otherwise the value of the current instance
      * is returned.
-     * @return maximum allowed validity time of OCSP responses. If producedAt
+     * @return maximum allowed validity time of OCSP responses. If thisUpdate
      * field of an OCSP response is older than ocspFreshnessSeconds seconds,
      * it is no longer valid.
      */

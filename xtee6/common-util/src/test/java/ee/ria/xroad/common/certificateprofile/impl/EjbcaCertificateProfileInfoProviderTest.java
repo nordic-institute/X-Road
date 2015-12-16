@@ -22,6 +22,9 @@ import static org.junit.Assert.assertTrue;
  */
 public class EjbcaCertificateProfileInfoProviderTest {
 
+    /**
+     * Tests whether provider returns correct implementation as expected.
+     */
     @Test
     public void providerReturnsCorrectImplementations() {
         CertificateProfileInfoProvider provider = provider();
@@ -44,6 +47,9 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether getting expected subject fields succeeds as expected.
+     */
     @Test
     public void signProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
@@ -61,6 +67,10 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating correct subject field succeeds as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void signProfileValidateFieldSuccessfully() throws Exception {
         getSignProfile().validateSubjectField(
@@ -68,6 +78,10 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating unknown subject field fails as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test(expected = Exception.class)
     public void signProfileFailToValidateUnknownField() throws Exception {
         getSignProfile().validateSubjectField(
@@ -75,6 +89,11 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating black subject field of sign profile fails
+     * as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test(expected = Exception.class)
     public void signProfileFailToValidateBlankField() throws Exception {
         getSignProfile().validateSubjectField(
@@ -82,6 +101,9 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether creating subject Dn of sign profile succeeds as expected.
+     */
     @Test
     public void signProfileCreateSubjectDn() {
         assertEquals(
@@ -96,6 +118,10 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether getting subject identifier of sign profile succeeds
+     * as expected.
+     */
     @Test
     public void signProfileGetSubjectIdentifier() {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
@@ -109,6 +135,10 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether getting expected fields of auth profile succeeds
+     * as expected.
+     */
     @Test
     public void authProfileSubjectFields() {
         DnFieldDescription[] expectedFields = {
@@ -124,6 +154,11 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating correct subject field of auth profile succeeds
+     * as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void authProfileValidateFieldSuccessfully() throws Exception {
         getAuthProfile().validateSubjectField(
@@ -131,6 +166,11 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating unknown subject field of auth profile fails
+     * as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test(expected = Exception.class)
     public void authProfileFailToValidateUnknownField() throws Exception {
         getAuthProfile().validateSubjectField(
@@ -138,6 +178,11 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether validating blank subject field of auth profile fails
+     * as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test(expected = Exception.class)
     public void authProfileFailToValidateBlankField() throws Exception {
         getAuthProfile().validateSubjectField(
@@ -145,6 +190,9 @@ public class EjbcaCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether creating subject Dn of auth profile succeeds as expected.
+     */
     @Test
     public void authProfileCreateSubjectDn() {
         assertEquals(

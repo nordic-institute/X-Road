@@ -12,8 +12,15 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ * Tests the implementation of SkEsteidCertificateProfileInfoProvider.
+ */
 public class SkEsteidCertificateProfileInfoProviderTest {
 
+    /**
+     * Tests whether getting subject identifier succeeds as expected.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test
     public void getSubjectIdentifier() throws Exception {
         assertEquals(
@@ -22,6 +29,11 @@ public class SkEsteidCertificateProfileInfoProviderTest {
         );
     }
 
+    /**
+     * Tests whether getting subject identifier fails if serial number of
+     * the certificate is missing.
+     * @throws Exception in case of any unexpected errors
+     */
     @Test(expected = Exception.class)
     public void missingSerialNumber() throws Exception {
         id("C=x");

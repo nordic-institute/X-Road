@@ -94,7 +94,9 @@ en:
     error:
       delete: "Deletion of backup files failed, reason: '%{reason}'"
       not_tar: "Content of uploaded file must be in tar format"
-      invalid_extension: "Uploaded file name '%{file}' has invalid extension, valid ones are '%{extensions}'"
+      invalid_extension:
+        one: "Uploaded file name '%{file}' has an invalid extension, the only valid one is '%{extensions}'"
+        other: "Uploaded file name '%{file}' has an invalid extension, valid ones are '%{extensions}'"
       invalid_content_type: "Invalid content type for uploaded file: '%{content_type}', allowed ones are '%{allowed_content_types}'"
 
   conf_verification:

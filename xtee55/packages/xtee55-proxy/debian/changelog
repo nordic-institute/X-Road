@@ -1,3 +1,9 @@
+xtee55-proxy (2.1-0) lucid; urgency=low
+
+  * Services are not imported from X-Road version 5 any more
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 08 Dec 2015 11:45:24 +0200
+
 xtee55-proxy (2.0-2) lucid; urgency=low
 
   * Logback configuration files updated
@@ -6,7 +12,7 @@ xtee55-proxy (2.0-2) lucid; urgency=low
 
 xtee55-proxy (2.0-1) lucid; urgency=low
 
-  * Major changes of transition from X-Road version 5 to 6.
+  * Major changes of transition from X-Road version 5 to 6
 
  -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 29 Sep 2015 14:55:37 +0300
 

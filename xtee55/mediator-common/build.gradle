@@ -63,7 +63,7 @@ classes.dependsOn cMake
 clean.dependsOn cMakeClean
 
 task runXLockTest(type: JavaExec) {
-    main = "ee.cyber.xroad.serviceimporter.XLockTest"
+    main = "ee.cyber.xroad.confimporter.XLockTest"
     classpath = sourceSets.test.runtimeClasspath
     environment += ["LD_LIBRARY_PATH":"src/main/c"]
 }

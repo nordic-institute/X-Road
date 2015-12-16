@@ -40,8 +40,8 @@ public final class MediatorSystemProperties {
     public static final String CONF_FILE_CLIENT_MEDIATOR =
             SystemProperties.getConfPath() + "conf.d/client-mediator.ini";
 
-    public static final String CONF_FILE_SERVICE_IMPORTER =
-            SystemProperties.getConfPath() + "conf.d/service-importer.ini";
+    public static final String CONF_FILE_CONF_IMPORTER =
+            SystemProperties.getConfPath() + "conf.d/conf-importer.ini";
 
     // --------------------------------------------------------------------- //
 

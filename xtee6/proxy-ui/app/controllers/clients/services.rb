@@ -44,7 +44,8 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = wsdl.url
     audit_log_data[:disabled] = wsdl.disabled
-    audit_log_data[:refreshedDate] = format_time(wsdl.refreshedDate)
+    audit_log_data[:refreshedDate] =
+      Time.at(wsdl.refreshedDate.getTime / 1000).iso8601
 
     parse_and_check_services(wsdl)
 

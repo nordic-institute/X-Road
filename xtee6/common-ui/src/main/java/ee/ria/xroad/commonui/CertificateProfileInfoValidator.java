@@ -9,8 +9,15 @@ import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
  * Valid class must implement CertificateProfileInfo interface.
  */
 @Slf4j
-public class CertificateProfileInfoValidator {
+public final class CertificateProfileInfoValidator {
 
+    private CertificateProfileInfoValidator() {
+    }
+
+    /**
+     * Validates the class against CertificateProfileInfo.
+     * @param className Class name
+     */
     public static void validate(String className) {
         try {
             new GetCertificateProfile(className).klass();

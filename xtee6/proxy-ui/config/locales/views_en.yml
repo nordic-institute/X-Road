@@ -16,7 +16,8 @@ en:
     client_add_dialog:
       select: "Select Client from Global List"
       new_client: "New Client"
-      send_regreq: "Do you want to send a client registration request for added client?<br/>"
+      send_regreq: "Do you want to send a client registration request for the added client?<br/>{{new_subsystem_warning}}"
+      new_subsystem: "New subsystem '%{subsystem_code}' will be submitted for registration for member '%{member_name} %{member_class}: %{member_code}'."
 
     client_select_dialog:
       select_client: "Select Client"
@@ -38,7 +39,7 @@ en:
       register: "Register"
       unregister: "Unregister"
       delete: "Delete"
-      send_regreq_confirm: "Are you sure you want to send a client registration request?<br/>"
+      send_regreq_confirm: "Are you sure you want to send a client registration request?<br/>{{new_subsystem_warning}}"
       send_delreq_confirm: "Are you sure you want to send a request to unregister the client?<br/>"
       delete_client: "Request sent. Do you want to delete the client?"
       delete_client_confirm: "Are you sure you want to delete the client?"
@@ -213,6 +214,7 @@ en:
     token_details:
       friendly_name: "Friendly name"
       token_info: "Token Info"
+      token_id: "Token ID"
     key_details:
       friendly_name: "Friendly name"
       friendly_name_hint: "The key can be renamed after importing a certificate or creating a CSR."

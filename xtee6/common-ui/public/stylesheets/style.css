@@ -778,6 +778,9 @@ td.deletable_subsystem {
 p.notfound {
   color: #aaa; }
 
+pre {
+  white-space: pre-wrap; }
+
 #login {
   background: #f3f3f3; }
 
@@ -802,7 +805,7 @@ p.notfound {
 #server-info,
 #actions {
   display: table-cell;
-  vertical-align: top; }
+  vertical-align: middle; }
 
 #content {
   display: table-cell;
@@ -857,34 +860,18 @@ p.notfound {
   height: 50px;
   color: #fff;
   border-bottom: 1px solid #333; }
-  #server-info #server-status {
-    display: inline-block;
-    margin-left: 10px;
-    vertical-align: middle;
-    font-size: 9pt; }
-  #server-info #server-names {
-    display: inline-block;
-    vertical-align: middle;
-    padding: 10px;
-    margin-left: -5px; }
-    #server-info #server-names h1, #server-info #server-names h2 {
-      line-height: 1; }
-    #server-info #server-names h1 {
-      font-size: 9pt;
-      font-family: "Open Sans";
-      font-weight: 800;
-      text-transform: uppercase; }
-    #server-info #server-names h2 {
-      font-size: 9pt;
-      font-family: "Open Sans";
-      font-weight: 400;
-      text-transform: uppercase; }
-    #server-info #server-names h1:empty + h2 {
-      font-size: 12pt;
-      height: 30px;
-      line-height: 30px; }
-  #server-info #server-data {
-    padding: 0 10px; }
+  #server-info h1 {
+    font-size: 12pt;
+    font-family: "Open Sans";
+    font-weight: 800;
+    line-height: 20px;
+    padding-left: 20px; }
+  #server-info h2 {
+    font-size: 10pt;
+    font-family: "Open Sans";
+    font-weight: 400;
+    text-transform: uppercase;
+    padding-left: 20px; }
 
 #actions {
   width: 100%;

@@ -94,6 +94,11 @@ public class OptionalPartsConfBehavior {
         assertTrue(actualOptionalParts.contains(expectedSecondPart));
     }
 
+    /**
+     * Test to ensure errors are added when cannot read the configuration parts
+     * file.
+     * @throws IOException in case optional parts directory cannot be read
+     */
     @Test
     public void shouldAddErrorsIfCannotReadConfigurationPartFile() throws IOException {
         // Given

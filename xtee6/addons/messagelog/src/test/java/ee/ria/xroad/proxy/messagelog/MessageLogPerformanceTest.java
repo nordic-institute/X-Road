@@ -33,7 +33,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
-        log.info("Starting SecureLog performance test...");
+        log.info("Starting MessageLog performance test...");
 
         new MessageLogPerformanceTest().run();
     }

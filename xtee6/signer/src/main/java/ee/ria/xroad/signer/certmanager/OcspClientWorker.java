@@ -2,25 +2,27 @@ package ee.ria.xroad.signer.certmanager;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.joda.time.DateTime;
 
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.signer.certmanager.OcspResponseManager.IsCachedOcspResponse;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
-import ee.ria.xroad.signer.util.SignerUtil;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
@@ -38,7 +40,7 @@ import static java.util.Collections.emptyList;
 public class OcspClientWorker extends AbstractSignerActor {
 
     private static final int MIN_FRESHNESS_SECONDS = 5;
-    private static final int DEFAULT_FRESHNESS_SECONDS = 600;
+    private static final int DEFAULT_FRESHNESS_SECONDS = 3600;
     private static final int FRESHNESS_DIVISOR = 10;
 
     public static final String EXECUTE = "Execute";
@@ -101,7 +103,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                 continue;
             }
 
+            if (!CertificateInfo.STATUS_REGISTERED.equals(
+                    certInfo.getStatus())) {
+                // do not download OCSP responses for non-registered certificates
+                continue;
+            }
+
             X509Certificate cert;
+
             try {
                 cert = readCertificate(certInfo.getCertificateBytes());
             } catch (Exception e) {
@@ -113,17 +122,9 @@ public class OcspClientWorker extends AbstractSignerActor {
                 continue; // ignore self-signed certificates
             }
 
-            List<X509Certificate> chain = getCertChain(cert);
-            for (X509Certificate certChainCert : chain) {
-                try {
-                    if (shouldFetchResponse(certChainCert)) {
-                        certs.add(certChainCert);
-                    }
-                } catch (Exception e) {
-                    log.error("Unable to check if should fetch status for "
-                            + certChainCert.getSerialNumber(), e);
-                }
-            }
+            getCertChain(cert).stream()
+                    .filter(this::isCertValid)
+                    .forEach(certs::add);
         }
 
         return new ArrayList<>(certs);
@@ -168,38 +169,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                         getSelf());
     }
 
-    // Returns true, if the response for given certificate does not exist
-    // or is expired (in which case it is also removed from cache).
-    boolean shouldFetchResponse(X509Certificate subject) throws Exception {
+    boolean isCertValid(X509Certificate subject) {
         if (!CertUtils.isValid(subject)) {
             log.warn("Certificate '{}' is not valid",
                     subject.getSubjectX500Principal());
             return false;
         }
 
-        String subjectHash = calculateCertHexHash(subject);
-        try {
-            return !isCachedOcspResponse(subjectHash);
-        } catch (Exception e) {
-            // Ignore this error, since any kind of failure to get the response
-            // means we should fetch the response from the responder.
-            return true;
-        }
-    }
-
-    boolean isCachedOcspResponse(String certHash) throws Exception {
-        // Check if the OCSP response is in the cache. We need to check if the
-        // OCSP response expires in the future in order to not leave a gap,
-        // where the OCSP is expired, but the new one is currently being
-        // retrieved.
-        Date atDate = new DateTime().plusSeconds(
-                getNextOcspFreshnessSeconds()).toDate();
-
-        log.trace("isCachedOcspResponse(certHash: {}, atDate: {})", certHash,
-                atDate);
-
-        return (Boolean) SignerUtil.ask(getOcspResponseManager(getContext()),
-                new IsCachedOcspResponse(certHash, atDate));
+        return true;
     }
 
     private List<X509Certificate> getCertChain(X509Certificate cert) {
