@@ -1,3 +1,5 @@
+require "shellwords"
+
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServiceType
@@ -119,9 +121,12 @@ module Clients::Services
 
     wsdls = wsdls_by_urls(client, [params[:wsdl_id]])
     wsdls[0].url = params[:new_url]
+    wsdls[0].refreshedDate = Date.new
 
     added_objs, added, deleted = parse_wsdls(client, wsdls)
     update_wsdls(client, added_objs, deleted)
+
+    serverconf_save
 
     audit_log_data[:wsdl] = {
       :wsdlUrl => params[:wsdl_id],
@@ -150,6 +155,12 @@ module Clients::Services
 
     added_objs, added, deleted = parse_wsdls(client, wsdls, audit_log_data)
     update_wsdls(client, added_objs, deleted)
+
+    wsdls.each do |wsdl|
+      wsdl.refreshedDate = Date.new
+    end
+
+    serverconf_save
 
     render_json(read_services(client))
   end
@@ -558,8 +569,6 @@ module Clients::Services
     if deleted_codes.any?
       remove_access_rights(client.acl, nil, deleted_codes)
     end
-
-    serverconf_save
   end
 
   def parse_and_check_services(wsdl)
@@ -598,8 +607,49 @@ module Clients::Services
     end
   end
 
+  def run_wsdl_validator(url)
+    unless SystemProperties::getWsdlValidatorCommand
+      logger.debug("Skipping WSDL validator, command not set")
+      return
+    end
+
+    command = [
+      "curl -sk #{Shellwords.escape(url)} | #{SystemProperties::getWsdlValidatorCommand} 2>&1 >/dev/null"
+    ]
+
+    logger.debug("Running WSDL validator: #{command}")
+    output = CommonUi::ScriptUtils.run_script(command, false)
+    exitstatus = $?.exitstatus
+
+    logger.debug(" --- Console output - START --- ")
+    output.each { |line| logger.debug(line) }
+    logger.debug(" --- Console output - END --- ")
+
+    logger.debug("WSDL validator finished with exit status '#{exitstatus}'")
+
+    if exitstatus == 127
+      raise t("clients.wsdl_validator_not_found")
+    elsif exitstatus == 126
+      raise t("clients.wsdl_validator_not_executable")
+    elsif exitstatus != 0
+      raise BaseController::ExceptionWithOutput.new(
+        t("clients.wsdl_validation_failed", :wsdl => url), output)
+    elsif output.size > 0
+      warnings = ""
+      output.each do |line|
+        warnings += "#{CGI.escapeHTML(line)}<br/>"
+      end
+
+      warn("wsdl_validation_warnings",
+        t("clients.wsdl_validation_warnings", {:wsdl => url, :warnings => warnings}))
+    end
+  end
+
   def parse_wsdl(wsdl)
-    WSDLParser::parseWSDL(wsdl.url)
+    # Run WSDLParser before validator to catch various IO errors
+    services = WSDLParser::parseWSDL(wsdl.url)
+    run_wsdl_validator(wsdl.url)
+    services
   rescue Java::ee.ria.xroad.common.CodedException
     logger.error(ExceptionUtils.getStackTrace($!))
 

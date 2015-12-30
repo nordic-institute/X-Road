@@ -30,7 +30,7 @@ Description: X-Road shared components
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy, xroad-addon-metaservices, xroad-addon-messagelog
+Depends: xroad-proxy, xroad-addon-metaservices, xroad-addon-messagelog, xroad-addon-wsdlvalidator
 Pre-depends:
 Description: X-Road security server
  This is meta-package of X-Road security server.
@@ -69,6 +69,12 @@ Architecture: all
 Depends: ${misc:Depends}, xroad-proxy (>=6.8)
 Description: X-Road AddOn: metaservices
  AddOn for metaservice reponders
+
+Package: xroad-addon-wsdlvalidator
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=6.8.1)
+Description: X-Road AddOn: wsdlvalidator
+ AddOn for WSDL validator for the X-Road services
 
 Package: xroad-center-clusterhelper
 Architecture: all

@@ -841,8 +841,8 @@ function warning(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
-        width: "auto",
         minWidth: 500,
+        height: "auto",
         buttons: [
             { text: _("common.continue"),
               click: function() {

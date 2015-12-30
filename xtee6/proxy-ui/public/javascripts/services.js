@@ -78,7 +78,7 @@
                           enableActions();
 
                           $(dialog).dialog("close");
-                      }, "json");
+                      }, "json").fail(showOutput);
                   }
                 },
                 { text: _("common.cancel"),
@@ -209,7 +209,7 @@
                           enableActions();
 
                           $(dialog).dialog("close");
-                      });
+                      }, "json").fail(showOutput);;
                   }
                 },
                 { text: _("common.cancel"),
@@ -361,7 +361,7 @@
             $.post(action("wsdl_refresh"), wsdlParams(), function(response) {
                 oServices.fnReplaceData(response.data);
                 enableActions();
-            }, "json");
+            }, "json").fail(showOutput);
         });
 
         $("#wsdl_delete").click(function() {
@@ -407,6 +407,15 @@
         $("#service_acl").click(function() {
             ACL.openDialog(oServices.getFocusData().service_code);
         });
+    }
+
+    function showOutput(jqXHR) {
+        var response = $.parseJSON(jqXHR.responseText);
+
+        if (response.data.stderr && response.data.stderr.length > 0) {
+            initConsoleOutput(response.data.stderr,
+                _("clients.client_services_tab.wsdl_validator_output"), 500);
+        }
     }
 
     $(document).ready(function() {

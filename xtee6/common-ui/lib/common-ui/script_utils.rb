@@ -28,11 +28,11 @@ module CommonUi
 
     # Takes array of script arguments.
     # FUTURE: Is there any possibility to use array directly with redirection?
-    def run_script(commandline)
+    def run_script(commandline, redirect_stderr = true)
       console_output_lines = []
 
       # Redirecting stderr to stdout when command given as array did not work.
-      commandline << "2>&1"
+      commandline << "2>&1" if redirect_stderr
 
       IO.popen(commandline.join(" ")) do |io|
         while (line = io.gets) do

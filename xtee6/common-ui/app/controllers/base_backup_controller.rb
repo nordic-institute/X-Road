@@ -17,16 +17,6 @@ class BaseBackupController < ApplicationController
 
   skip_around_filter :wrap_in_transaction, :only => [:restore]
 
-  class ExceptionWithOutput < StandardError
-    attr_reader :stderr
-
-    def initialize(message, stderr = [])
-      super(message)
-
-      @stderr = stderr
-    end
-  end
-
   def index
     authorize!(:backup_configuration)
   end

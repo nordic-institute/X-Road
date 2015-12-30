@@ -195,6 +195,10 @@ public final class SystemProperties {
     public static final String TLS_KEY_EXPORTER_COMMAND =
             PREFIX + "proxy-ui.tls-key-exporter-command";
 
+    /** Property name of the WSDL validator command. */
+    public static final String WSDL_VALIDATOR_COMMAND =
+            PREFIX + "proxy-ui.wsdl-validator-command";
+
     // Proxy & Central monitor agent ------------------------------------------
 
     /** Property name of the proxy monitor agent configuration file. */
@@ -380,6 +384,13 @@ public final class SystemProperties {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
                 getConfPath()
                     + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+    }
+
+    /**
+     * @return WSDL validator command string. Defaults to null.
+     */
+    public static String getWsdlValidatorCommand() {
+        return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
     }
 
     /**

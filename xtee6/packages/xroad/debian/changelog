@@ -1,3 +1,10 @@
+xroad (6.8.2-0) trusty; urgency=low
+
+  [Security server]
+  * Added WSDL validator
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 22 Dec 2015 10:01:29 +0200
+
 xroad (6.8.1-0) trusty; urgency=low
 
   * Bugfixes and UI improvements

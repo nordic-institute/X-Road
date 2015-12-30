@@ -33,6 +33,16 @@ class BaseController < ActionController::Base
     attr_reader :code, :text
   end
 
+  class ExceptionWithOutput < StandardError
+    attr_reader :output
+
+    def initialize(message, output = [])
+      super(message)
+
+      @output = output
+    end
+  end
+
   rescue_from Exception, :with => :render_error
   rescue_from Warning, :with => :render_warning
   rescue_from ValidationError, :with => :render_validation_error
@@ -267,7 +277,7 @@ class BaseController < ActionController::Base
 
     if request.content_type == "multipart/form-data"
       render_upload_callback(false, {
-        :stderr => (exception.stderr if exception.respond_to?(:stderr))
+        :stderr => (exception.output if exception.respond_to?(:output))
       })
       return
     end
@@ -278,7 +288,7 @@ class BaseController < ActionController::Base
       render :json => {
         :messages => flash.discard,
         :data => {
-          :stderr => (exception.stderr if exception.respond_to?(:stderr))
+          :stderr => (exception.output if exception.respond_to?(:output))
         }
       }, :status => 500
     else

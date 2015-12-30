@@ -108,6 +108,7 @@ en:
       disable_notice: "Notice for clients making queries to disabled services:"
       edit_wsdl_parameters: "Edit WSDL Parameters"
       delete_wsdls_confirm: "Are you sure you want to delete selected WSDLs?"
+      wsdl_validator_output: "WSDL Validator Output"
 
     service_params_dialog:
       edit_service_parameters: "Edit Service Parameters"
