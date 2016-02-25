@@ -150,6 +150,9 @@ pre {
         font-weight: 800;
         line-height: 20px;
         padding-left: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     h2 {
         font-size: 10pt;

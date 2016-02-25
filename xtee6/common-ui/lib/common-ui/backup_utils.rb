@@ -5,14 +5,11 @@ require "common-ui/script_utils"
 require "common-ui/tar_file"
 require "common-ui/uploaded_file"
 
-java_import Java::java.io.RandomAccessFile
 java_import Java::ee.ria.xroad.common.SystemProperties
 
 module CommonUi
   module BackupUtils
-
-    RESTORE_LOCKFILE_NAME = "restore_lock"
-    RESTORE_FLAGFILE_NAME = "restore_in_progress"
+    RESTORE_FLAGFILE_NAME = "/var/lib/xroad/restore_in_progress"
 
     module_function
 
@@ -97,8 +94,9 @@ module CommonUi
 
     # Execute the given restore command with the given options that depend on
     # the type of server.
-    def restore(
-      restore_script_name, restore_command_options, conf_file, &success_handler)
+    def restore(restore_script_name, restore_command_options, conf_file,
+        &after_restore)
+
       if backup_files[conf_file].nil?
         raise "Backup file does not exist"
       end
@@ -110,15 +108,6 @@ module CommonUi
         # Encode the file name because we pass all the data in base64.
         "-f #{Base64.strict_encode64(tarfile)}"
       ]
-
-      lockfile = try_restore_lock
-
-      unless lockfile
-        Rails.logger.info("Aborting restore, another restore already in progress")
-        raise "Restore already in progress"
-      end
-
-      FileUtils.touch(IOUtils.temp_file(RESTORE_FLAGFILE_NAME))
 
       Rails.logger.info("Running configuration restore with command "\
                   "'#{commandline.join(" ")}'")
@@ -133,22 +122,11 @@ module CommonUi
 
       return $?.exitstatus, console_output_lines, backup_file(conf_file)
     ensure
-      begin
-        yield if success_handler
-      ensure
-        if lockfile
-          FileUtils.rm_f(IOUtils.temp_file(RESTORE_FLAGFILE_NAME)) # shouldn't throw?
-          IOUtils.release_lock(lockfile)
-        end
-      end
-    end
-
-    def try_restore_lock
-      return IOUtils.try_lock(RESTORE_LOCKFILE_NAME)
+      yield if after_restore
     end
 
     def restore_in_progress?
-      File.exists?(IOUtils.temp_file(RESTORE_FLAGFILE_NAME))
+      File.exists?(RESTORE_FLAGFILE_NAME)
     end
 
     def backup_file(filename)

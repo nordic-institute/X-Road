@@ -182,12 +182,12 @@ module Clients::Services
 
     deleted = []
     client.wsdl.each do |wsdl|
-      audit_log_data[:wsdlUrls] << wsdl.url
-
       deleted << wsdl if params[:wsdl_ids].include?(wsdl.url)
     end
 
     deleted.each do |wsdl|
+      audit_log_data[:wsdlUrls] << wsdl.url
+
       wsdl.client = nil
       client.wsdl.remove(wsdl)
       @session.delete(wsdl)

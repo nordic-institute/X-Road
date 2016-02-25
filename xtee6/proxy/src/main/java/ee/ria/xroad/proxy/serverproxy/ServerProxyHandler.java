@@ -57,10 +57,12 @@ class ServerProxyHandler extends HandlerBase {
                     createRequestProcessor(request, response, start);
             processor.process();
         } catch (Throwable ex) {
-            log.error("Request processing error", ex);
+            CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
 
-            failure(response,
-                    translateWithPrefix(SERVER_SERVERPROXY_X, ex));
+            log.error("Request processing error (" + cex.getFaultDetail() + ")",
+                    ex);
+
+            failure(response, cex);
         } finally {
             baseRequest.setHandled(true);
 

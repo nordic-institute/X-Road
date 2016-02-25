@@ -79,7 +79,7 @@ public final class ClientId extends XRoadId {
      * SUBSYSTEM:XX/YY/ZZ/TT and MEMBER:XX/YY/ZZ.
      * @param other the ID of the other client
      * @return true, if two identifiers, this and other, refer to the same
-     * XROAD member
+     * X-Road member
      */
     public boolean memberEquals(ClientId other) {
         if (other == null) {

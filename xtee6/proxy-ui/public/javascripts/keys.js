@@ -510,10 +510,18 @@ function deleteCert(row) {
     var url = focusData.cert_request ?
         action("delete_cert_request") : action("delete_cert");
 
-    var confirmText = focusData.cert_request ?
-        "keys.index.delete_csr_confirm" : "keys.index.delete_cert_confirm";
+    var confirmText = focusData.cert_request
+        ? "keys.index.delete_csr_confirm"
+        : (focusData.cert_saved_to_conf
+           ? "keys.index.delete_cert_from_conf_confirm"
+           : "keys.index.delete_cert_from_token_confirm");
 
-    confirm(confirmText, { hash: focusData.cert_friendly_name }, function() {
+    var confirmTextParams = {
+        hash: focusData.cert_friendly_name,
+        token: focusData.token_friendly_name
+    };
+
+    confirm(confirmText, confirmTextParams, function() {
         $.post(url, params, function(response) {
             oKeys.fnReplaceData(response.data);
             enableActions();

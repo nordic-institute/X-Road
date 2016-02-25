@@ -38,7 +38,7 @@ class XRoadMember < SecurityServerClient
         map(&:subsystem_code)
   end
 
-  # Finds a XROAD member by member class and code.
+  # Finds a X-Road member by member class and code.
   # Returns nil, if not found.
   def self.find_by_code(member_class, member_code)
     return get_by_code_relation(member_class, member_code).readonly(false).first

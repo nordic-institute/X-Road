@@ -6,7 +6,7 @@
     margin: 9px 10px;
 
     button {
-        @extend .left;
+        float: left;
         border: 1px solid $base-border-color;
         padding: 5px 10px;
         text-transform: uppercase;

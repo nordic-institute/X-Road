@@ -54,7 +54,7 @@ module Clients::InternalCerts
 
     validate_params({
       :client_id => [:required],
-      :file_upload => [:required]
+      :file_upload => [:required, :cert]
     })
 
     client = get_client(params[:client_id])

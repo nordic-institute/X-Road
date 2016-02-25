@@ -10,7 +10,7 @@ import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
 import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
 
 /**
- * This class represents the XROAD SOAP message.
+ * This class represents the X-Road SOAP message.
  */
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 

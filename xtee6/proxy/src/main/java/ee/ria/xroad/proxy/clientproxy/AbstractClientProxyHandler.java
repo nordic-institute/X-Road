@@ -54,6 +54,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         log.info("Received request from {}", request.getRemoteAddr());
 
         MessageProcessorBase processor = null;
+
         try {
             processor = createRequestProcessor(target, request, response);
 
@@ -69,7 +70,11 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         } catch (CodedException.Fault | ClientException ex) {
             handled = true;
 
-            log.error("Request processing error", ex);
+            String errorMessage = ex instanceof ClientException
+                    ? "Request processing error (" + ex.getFaultDetail() + ")"
+                    : "Request processing error";
+
+            log.error(errorMessage, ex);
 
             // Exceptions caused by incoming message and exceptions
             // derived from faults sent by serverproxy already contain
@@ -80,6 +85,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         } catch (CodedExceptionWithHttpStatus ex) {
             handled = true;
 
+            // No need to log faultDetail hence not sent to client.
             log.error("Request processing error", ex);
 
             // Respond with HTTP status code and plain text error message
@@ -89,11 +95,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         } catch (Throwable ex) {
             handled = true;
 
-            log.error("Request processing error", ex);
-
             // All the other exceptions get prefix Server.ClientProxy...
-            failure(processor, response,
-                    translateWithPrefix(SERVER_CLIENTPROXY_X, ex));
+            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, ex);
+
+            log.error("Request processing error (" + cex.getFaultDetail() + ")",
+                    ex);
+
+            failure(processor, response, cex);
         } finally {
             baseRequest.setHandled(handled);
 

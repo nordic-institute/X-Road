@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 
 
 /**
- * Base class for global identifiers in the XROAD system.
+ * Base class for global identifiers in the X-Road system.
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.GenericXRoadIdAdapter.class)
 public abstract class XRoadId implements Serializable {
@@ -41,7 +41,7 @@ public abstract class XRoadId implements Serializable {
     }
 
     /**
-     * Returns code of the XROAD instance.
+     * Returns code of the X-Road instance.
      * @return String
      */
     public String getXRoadInstance() {

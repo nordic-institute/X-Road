@@ -1,3 +1,15 @@
+xroad (6.8.3-0) trusty; urgency=low
+
+  [Security server]
+  * WSDL validator bugfixes
+  * Better logging of SOAP Fault details
+  * Minor fixes
+
+  [Central]
+  * Minor fixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 18 Feb 2016 10:09:29 +0200
+
 xroad (6.8.2-0) trusty; urgency=low
 
   [Security server]

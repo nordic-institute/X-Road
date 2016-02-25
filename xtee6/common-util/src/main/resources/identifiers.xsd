@@ -2,7 +2,7 @@
 <xs:schema elementFormDefault="qualified" jxb:version="2.1" targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:complexType name="XRoadIdentifierType">
         <xs:annotation>
-            <xs:documentation>Globally unique identifier in the XROAD system. Identifier consists of object type specifier and list of hierarchical codes (starting with code that identifiers the XROAD instance).</xs:documentation>
+            <xs:documentation>Globally unique identifier in the X-Road system. Identifier consists of object type specifier and list of hierarchical codes (starting with code that identifiers the X-Road instance).</xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:element minOccurs="0" ref="xRoadInstance"/>
@@ -19,7 +19,7 @@
     </xs:complexType>
     <xs:simpleType name="XRoadObjectType">
         <xs:annotation>
-            <xs:documentation>Enumeration for XROAD identifier types.</xs:documentation>
+            <xs:documentation>Enumeration for X-Road identifier types.</xs:documentation>
             <xs:appinfo>
                 <jxb:javaType name="ee.ria.xroad.common.identifier.XRoadObjectType" parseMethod="valueOf" printMethod="name"/>
              </xs:appinfo>
@@ -37,7 +37,7 @@
     </xs:simpleType>
     <xs:element name="xRoadInstance" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Identifies the XROAD instance. This field is applicable to all identifier types.</xs:documentation>
+            <xs:documentation>Identifies the X-Road instance. This field is applicable to all identifier types.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="memberClass" type="xs:string">
@@ -52,17 +52,17 @@
     </xs:element>
     <xs:element name="subsystemCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies a subsystem of given XROAD member.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies a subsystem of given X-Road member.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="groupCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies a global group in given XROAD instance.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies a global group in given X-Road instance.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serviceCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies a service offered by given XROAD member or subsystem.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies a service offered by given X-Road member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serviceVersion" type="xs:string">
@@ -72,12 +72,12 @@
     </xs:element>
     <xs:element name="securityCategoryCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies security category in a given XROAD instance.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies security category in a given X-Road instance.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="serverCode" type="xs:string">
         <xs:annotation>
-            <xs:documentation>Code that uniquely identifies security server offered by a given XROAD member or subsystem.</xs:documentation>
+            <xs:documentation>Code that uniquely identifies security server offered by a given X-Road member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:attribute name="objectType" type="XRoadObjectType"/>

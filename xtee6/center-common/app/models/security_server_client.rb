@@ -17,13 +17,13 @@ class SecurityServerClient < ActiveRecord::Base
     remove_client_from_global_groups(record)
   }
 
-  # Finds a XROAD member or subsystem by ClientId
+  # Finds a X-Road member or subsystem by ClientId
   # Returns nil, if not found.
   def self.find_by_id(client_id)
     Rails.logger.info("SecurityServerClient.find_by_id(#{client_id})")
 
     if client_id.subsystem_code == nil
-      # Find XROAD member
+      # Find X-Road member
       return XRoadMember.find_by_code(client_id.member_class, client_id.member_code)
     else
       # Find subsystem

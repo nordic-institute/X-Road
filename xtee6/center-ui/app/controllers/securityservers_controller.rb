@@ -141,7 +141,7 @@ class SecurityserversController < ApplicationController
         xroad_member = client
       end
 
-      logger.debug("XROAD member for client: '#{xroad_member.inspect}'")
+      logger.debug("X-Road member for client: '#{xroad_member.inspect}'")
 
       clients << {
         :id => xroad_member.id,

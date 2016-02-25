@@ -14,12 +14,21 @@ source /usr/share/xroad/scripts/_backup_restore_common.sh
 PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
+RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
+RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
 V55_XROAD6_INSTALLED="/usr/xtee/etc/v6_xroad_installed"
 V55_XROAD6_ACTIVATED="/usr/xtee/etc/v6_xroad_activated"
 V6_INTERNAL_TLS_KEY_EXPORTER="/usr/share/xroad/scripts/export_v6_internal_tls_key.sh"
 
 THIS_FILE=$(pwd)/$0
 XROAD_SERVICES=
+
+acquire_lock () {
+    [ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -n $RESTORE_LOCK_FILENAME "$0" "$@" || true
+
+    trap "rm -f ${RESTORE_IN_PROGRESS_FILENAME}" EXIT
+    touch ${RESTORE_IN_PROGRESS_FILENAME}
+}
 
 check_is_correct_tarball () {
   tar tf ${BACKUP_FILENAME} > /dev/null
@@ -174,6 +183,7 @@ while getopts ":FSt:i:s:n:f:b" opt ; do
   esac
 done
 
+acquire_lock $@
 check_server_type
 check_is_correct_tarball
 make_tarball_label

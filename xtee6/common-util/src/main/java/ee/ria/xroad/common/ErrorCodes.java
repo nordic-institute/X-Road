@@ -8,8 +8,10 @@ import java.net.UnknownServiceException;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
 
+import javax.xml.bind.UnmarshalException;
 import javax.xml.soap.SOAPException;
 
+import com.sun.xml.bind.api.AccessorException;
 import org.apache.james.mime4j.MimeException;
 import org.xml.sax.SAXException;
 
@@ -91,6 +93,8 @@ public final class ErrorCodes {
     public static final String X_SECURITY_CATEGORY = "SecurityCategory";
     public static final String X_INVALID_PROTOCOL_VERSION =
             "InvalidProtocolVersion";
+    public static final String X_INVALID_CLIENT_IDENTIFIER =
+            "InvalidClientIdentifier";
 
     // ASiC container related errors
 
@@ -181,6 +185,14 @@ public final class ErrorCodes {
             return new CodedException(X_MIME_PARSING_FAILED, ex);
         } else if (ex instanceof SAXException) {
             return new CodedException(X_INVALID_XML, ex);
+        } else if (ex instanceof UnmarshalException) {
+            return ex.getCause() instanceof AccessorException
+                    ? translateException(ex.getCause())
+                    : new CodedException(X_INTERNAL_ERROR, ex);
+        } else if (ex instanceof AccessorException) {
+            return ex.getCause() instanceof CodedException
+                    ? (CodedException) ex.getCause()
+                    : new CodedException(X_INTERNAL_ERROR, ex);
         } else { // other system exceptions.
             return new CodedException(X_INTERNAL_ERROR, ex);
         }

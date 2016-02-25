@@ -30,14 +30,9 @@ public abstract class HandlerBase extends AbstractHandler {
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
-        String faultXml;
-        if (ex instanceof CodedException.Fault) {
-            faultXml = ((CodedException.Fault) ex).getFaultXml();
-        } else {
-            log.debug("Error detail code: " + ex.getFaultDetail());
-            faultXml = SoapFault.createFaultXml(ex);
-        }
-
+        String faultXml = ex instanceof CodedException.Fault
+                ? ((CodedException.Fault) ex).getFaultXml()
+                : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
         byte[] messageBytes = faultXml.getBytes(encoding);
 

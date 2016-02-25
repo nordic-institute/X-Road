@@ -15,7 +15,7 @@ import org.junit.runners.Parameterized.Parameters;
 import static org.junit.Assert.*;
 
 /**
- * Tests to verify XROAD identifier hashCode and equals methods behavior.
+ * Tests to verify X-Road identifier hashCode and equals methods behavior.
  */
 @RunWith(value = Parameterized.class)
 public class IdentifierEqualsAndHashCodeTest {

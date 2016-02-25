@@ -14,7 +14,7 @@ class ManagementRequestsController < ApplicationController
       response.content_type = "text/xml"
 
       @xroad_instance = SystemParameter.instance_identifier
-      raise "XROAD instance must exist!" if @xroad_instance.blank?
+      raise "X-Road instance must exist!" if @xroad_instance.blank?
 
       @request_soap = ManagementRequestHandler.readRequest(
         request.headers["CONTENT_TYPE"],

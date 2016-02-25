@@ -182,6 +182,24 @@ module CommonUi
       end
     end
 
+    class CertValidator < Validator
+      CERT_MAX_BYTES = 1000000 # 1 MB
+
+      def validate(val, param)
+        if val.size > CERT_MAX_BYTES
+          CertUtils.raise_invalid_cert
+        end
+
+        begin
+          Java::ee.ria.xroad.common.util.CryptoUtils::readCertificate(
+            val.read.to_java_bytes)
+          val.rewind
+        rescue Java::java.lang.Exception
+          CertUtils.raise_invalid_cert
+        end
+      end
+    end
+
     AVAILABLE_VALIDATORS = {
       :required => RequiredValidator.new,
       :int => IntValidator.new,
@@ -189,7 +207,8 @@ module CommonUi
       :email => EmailAddressValidator.new,
       :filename => FilenameValidator.new,
       :url => URLValidator.new,
-      :host => HostValidator.new
+      :host => HostValidator.new,
+      :cert => CertValidator.new
     }
   end
 end

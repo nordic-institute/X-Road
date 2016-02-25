@@ -8,6 +8,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPFault;
@@ -15,6 +16,7 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
 
+import com.sun.xml.bind.api.AccessorException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -179,6 +181,22 @@ public class SoapParserImpl implements SoapParser {
         if (checkRequiredFields) {
             unmarshaller.setListener(new RequiredHeaderFieldsChecker(clazz));
         }
+
+        unmarshaller.setEventHandler(event -> {
+            switch (event.getSeverity()) {
+                case ValidationEvent.WARNING:
+                    return true;
+                case ValidationEvent.ERROR:
+                    Throwable t = event.getLinkedException();
+
+                    return !(t instanceof AccessorException
+                            && t.getCause() instanceof CodedException);
+                case ValidationEvent.FATAL_ERROR:
+                   return false;
+                default:
+                    return true;
+            }
+        });
 
         JAXBElement<T> jaxbElement =
                 (JAXBElement<T>) unmarshaller.unmarshal(soapHeader, clazz);

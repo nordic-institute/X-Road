@@ -6,7 +6,7 @@ set -e
 
 
 #add groups
-groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-system-auditor xroad-users-administrator"
+groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator"
 
 db_name=serverconf
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}

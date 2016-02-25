@@ -6,9 +6,9 @@
             <xsd:complexType name="XRoadIdentifierType">
                 <xsd:annotation>
                     <xsd:documentation>Globally unique identifier in the
-                        XROAD system. Identifier consists of object type
+                        X-Road system. Identifier consists of object type
                         specifier and list of hierarchical codes
-                        (starting with code that identifiers the XROAD
+                        (starting with code that identifiers the X-Road
                         instance).
                     </xsd:documentation>
                 </xsd:annotation>
@@ -25,7 +25,7 @@
             </xsd:complexType>
             <xsd:simpleType name="XRoadObjectType">
                 <xsd:annotation>
-                    <xsd:documentation>Enumeration for XROAD identifier
+                    <xsd:documentation>Enumeration for X-Road identifier
                         types that can be used in requests.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -38,7 +38,7 @@
             </xsd:simpleType>
             <xsd:element name="xRoadInstance" type="xsd:string">
                 <xsd:annotation>
-                    <xsd:documentation>Identifies the XROAD instance.
+                    <xsd:documentation>Identifies the X-Road instance.
                         This field is applicable to all identifier
                         types.
                     </xsd:documentation>
@@ -61,14 +61,14 @@
             <xsd:element name="subsystemCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        subsystem of given XROAD member.
+                        subsystem of given X-Road member.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="serviceCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        service offered by given XROAD member or
+                        service offered by given X-Road member or
                         subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -82,7 +82,7 @@
             <xsd:element name="serverCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies
-                        security server offered by a given XROAD member
+                        security server offered by a given X-Road member
                         or subsystem.
                     </xsd:documentation>
                 </xsd:annotation>

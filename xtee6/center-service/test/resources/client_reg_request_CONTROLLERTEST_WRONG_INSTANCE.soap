@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
   <SOAP-ENV:Header>
-    <xroad:client id:objectType="MEMBER">
+    <xroad:client id:objectType="SUBSYSTEM">
       <id:xRoadInstance>EE</id:xRoadInstance>
       <id:memberClass>GOV</id:memberClass>
       <id:memberCode>codeOfMember</id:memberCode>

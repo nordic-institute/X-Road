@@ -251,7 +251,7 @@ class KeysController < ApplicationController
     audit_log("Import certificate from file", audit_log_data = {})
 
     validate_params({
-      :file_upload => [:required]
+      :file_upload => [:required, :cert]
     })
 
     GlobalConf::verifyValidity
