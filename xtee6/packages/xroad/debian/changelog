@@ -1,3 +1,13 @@
+xroad (6.8.3-1) trusty; urgency=low
+
+  [Security server]
+  * Bugfixes
+
+  [Central]
+  * Bugfixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 07 Mar 2016 15:20:05 +0200
+
 xroad (6.8.3-0) trusty; urgency=low
 
   [Security server]

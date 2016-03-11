@@ -92,11 +92,13 @@ function enableActions() {
             $("#activate:visible, #disable:visible").enable();
         }
     }
+
+    $(window).resize();
 }
 
 function refreshTokens() {
     $.get(action("refresh"), null, function(response) {
-        oKeys.fnReplaceData(response.data);
+        oKeys.fnReplaceData(response.data.tokens);
         enableActions();
     }, "json");
 }
@@ -115,7 +117,7 @@ function initDialogs() {
                 url: action("refresh"),
                 global: false,
                 success: function(response) {
-                    oKeys.fnReplaceData(response.data);
+                    oKeys.fnReplaceData(response.data.tokens);
                     enableActions();
                 },
                 dataType: "json"
@@ -141,8 +143,8 @@ function initDialogs() {
 
                   $.post(action("generate_key"), params, function(response) {
                       $(dialog).dialog("close");
-                      oKeys.fnAddData(response.data);
-                      oKeys.setFocus(0, $(".key[data-id='" + response.data[1].key_id + "']"));
+                      oKeys.fnAddData(response.data.tokens);
+                      oKeys.setFocus(0, $(".key[data-id='" + response.data.tokens[1].key_id + "']"));
                       enableActions();
                   }, "json");
               }
@@ -306,7 +308,7 @@ function initDialogs() {
                   var params = $("form", this).serialize();
 
                   $.post(action("friendly_name"), params, function(response) {
-                      oKeys.fnReplaceData(response.data);
+                      oKeys.fnReplaceData(response.data.tokens);
 
                       enableActions();
 
@@ -397,7 +399,7 @@ function initDialogs() {
                   params.cert_id = focusData.cert_id;
 
                   $.post(action("register"), params, function(response) {
-                      oKeys.fnReplaceData(response.data);
+                      oKeys.fnReplaceData(response.data.tokens);
                       enableActions();
 
                       $(dialog).dialog("close");
@@ -492,7 +494,7 @@ function deleteKey(row) {
 
     confirm(confirmText, confirmTextParams, function() {
         $.post(action("delete_key"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
 
             enableActions();
         }, "json");
@@ -523,7 +525,7 @@ function deleteCert(row) {
 
     confirm(confirmText, confirmTextParams, function() {
         $.post(url, params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -748,7 +750,7 @@ $(document).ready(function() {
             cert_id: data.cert_id
         };
         $.post(action("import"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -772,7 +774,7 @@ $(document).ready(function() {
         };
 
         $.post(action("activate_cert"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -786,7 +788,7 @@ $(document).ready(function() {
         };
 
         $.post(action("deactivate_cert"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });

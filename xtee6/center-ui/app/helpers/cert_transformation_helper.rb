@@ -9,6 +9,7 @@ module CertTransformationHelper
     end
 
     uploaded_bytes = file_param.read
+    file_param.rewind
 
     cert_obj = CommonUi::CertUtils.cert_object(uploaded_bytes)
 

@@ -20,6 +20,11 @@ class KeysController < ApplicationController
 
   CSR_FORMATS = GenerateCertRequest::RequestFormat.values.map { |e| e.toString }
 
+  include Keys::TokenRenderer
+
+  helper_method :token_saved_to_configuration?
+  helper_method :key_saved_to_configuration?
+
   def index
     authorize!(:view_keys)
 
@@ -73,8 +78,9 @@ class KeysController < ApplicationController
 
     clone.keyInfo.add(key)
 
-    @tokens = [clone]
-    render :partial => "refresh"
+    render_json({
+      :tokens => tokens_to_json([clone])
+    })
   end
 
   def approved_cas
@@ -231,7 +237,7 @@ class KeysController < ApplicationController
     end
 
     render_json({
-      :tokens => view_context.columns(SignerProxy::getTokens),
+      :tokens => tokens_to_json(SignerProxy::getTokens),
       :redirect => csr_file
     })
   end
@@ -696,9 +702,9 @@ class KeysController < ApplicationController
   private
 
   def render_tokens
-    @tokens = SignerProxy::getTokens
-
-    render :partial => "refresh"
+    render_json({
+      :tokens => tokens_to_json(SignerProxy::getTokens)
+    })
   end
 
   def get_key(token_id, key_id)
