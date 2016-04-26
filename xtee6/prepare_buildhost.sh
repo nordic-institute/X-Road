@@ -1,15 +1,11 @@
 #!/bin/bash
-
 set -e
 
 sudo apt-get install -y curl software-properties-common
 sudo apt-add-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 
-
-sudo apt-get install -y openjdk-7-jre-headless
-sudo apt-get install -y openjdk-8-jdk  build-essential git unzip maven debhelper
-sudo apt-get remove -y openjdk-7-jre-headless
+sudo apt-get install -y openjdk-8-jdk build-essential git unzip debhelper
 
 cd ~
 
@@ -22,3 +18,6 @@ source ~/.rvm/scripts/rvm
 rvm install jruby-1.7.22 --binary
 rvm use jruby-1.7.22
 jgem install bundle warbler:1.4.9
+
+mkdir -p /var/tmp/xroad
+

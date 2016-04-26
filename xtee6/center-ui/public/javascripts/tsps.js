@@ -8,7 +8,7 @@ var XROAD_TSPS = function() {
         opts.bScrollCollapse = true;
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name" },
+            { "mData": "name", mRender: util.escape },
             { "mData": "valid_from", "sWidth": "14em" },
             { "mData": "valid_to", "sWidth": "14em" }
         ];

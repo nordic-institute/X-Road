@@ -351,9 +351,9 @@ create_tls_keys() {
       output "\nCreating TLS keys for node $node"
       mkdir $node
       openssl req -new -$NODESFILE -days 7300  -keyout $node/server.key -out $node/server.csr -subj "/O=HACluster/CN=$node"
-      openssl x509 -req -CAcreateserial -in $node/server.csr -CA root.crt -CAkey root.key -out $node/server.crt
+      openssl x509 -req -CAcreateserial -days 7300 -in $node/server.csr -CA root.crt -CAkey root.key -out $node/server.crt
       openssl req -new -$NODESFILE -days 7300  -keyout $node/replicator.key -out $node/replicator.csr -subj "/O=HACluster/OU=$node/CN=replicator"
-      openssl x509 -req -CAcreateserial -in $node/replicator.csr -CA root.crt -CAkey root.key -out $node/replicator.crt
+      openssl x509 -req -CAcreateserial -days 7300 -in $node/replicator.csr -CA root.crt -CAkey root.key -out $node/replicator.crt
     fi
   done 10<../$NODESFILE
 

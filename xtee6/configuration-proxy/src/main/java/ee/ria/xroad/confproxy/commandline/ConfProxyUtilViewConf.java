@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 
@@ -22,6 +23,7 @@ import static ee.ria.xroad.confproxy.ConfProxyProperties.*;
 /**
  * Utility tool for viewing the configuration proxy configuration settings.
  */
+@Slf4j
 public class ConfProxyUtilViewConf extends ConfProxyUtil {
 
     private static final String ACTIVE_KEY_NA_MSG =
@@ -53,16 +55,15 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
                 try {
                     conf = new ConfProxyProperties(instance);
                 } catch (Exception e) {
-                    System.err.println("'" + ConfProxyProperties.CONF_INI
+                    fail("'" + ConfProxyProperties.CONF_INI
                             + "' could not be loaded for proxy '"
-                            + instance + "': " + e.getMessage());
+                            + instance + "': ", e);
                     continue;
                 }
                 displayInfo(instance, conf);
             }
         } else {
             printHelp();
-            System.exit(0);
         }
     }
 
@@ -80,7 +81,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             anchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception e) {
             anchorError = "'" + ConfProxyProperties.ANCHOR_XML
-                    + "' could not be loaded: " + e.getMessage();
+                    + "' could not be loaded: " + e;
         }
         String delimiter = "==================================================";
 
@@ -153,11 +154,13 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
         try {
             certBytes = Files.readAllBytes(certPath);
         } catch (IOException e) {
+            log.warn("Cert file missing: {}", e);
             return " (CERTIFICATE FILE MISSING!)";
         }
         try {
             CryptoUtils.readCertificate(certBytes);
         } catch (Exception e) {
+            log.warn("Invalid certificate: {}", e);
             return " (INVALID CERTIFICATE - " + e.getMessage() + ")";
         }
         return " (Certificate: " + certPath.toString() + ")";
@@ -177,7 +180,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             anchorBytes = Files.readAllBytes(anchorPath);
         } catch (IOException e) {
             fail("Failed to load proxy '" + conf.getInstance()
-                    + "' anchor file: " + e.getMessage());
+                    + "' anchor file: ", e);
         }
         String hash = CryptoUtils.hexDigest(CryptoUtils.SHA224_ID, anchorBytes);
         return StringUtils.join(hash.toUpperCase().split("(?<=\\G.{2})"), ':');

@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.clientproxy;
 
 import java.io.File;
@@ -137,7 +159,7 @@ public class ClientProxy implements StartStop {
                 new TrustManager[] {new AuthTrustManager()},
                 new SecureRandom());
         return new FastestConnectionSelectingSSLSocketFactory(ctx,
-                CryptoUtils.INCLUDED_CIPHER_SUITES);
+                CryptoUtils.getINCLUDED_CIPHER_SUITES());
     }
 
     private void createConnectors() throws Exception {
@@ -163,7 +185,7 @@ public class ClientProxy implements StartStop {
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());
-
+        server.setSendServerVersion(false);
         server.addConnector(connector);
 
         log.info("Client HTTP connector created ({}:{})", hostname, port);
@@ -177,6 +199,8 @@ public class ClientProxy implements StartStop {
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
+        cf.setIncludeProtocols(SystemProperties.getProxyClientTLSProtocols());
+        cf.setIncludeCipherSuites(SystemProperties.getProxyClientTLSCipherSuites());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
         ctx.init(new KeyManager[] {new ClientSslKeyManager()},

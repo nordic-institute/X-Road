@@ -5,6 +5,7 @@ Wants=postgresql.service nginx.service
 Wants=xroad-signer.service xroad-async.service xroad-confclient.service xroad-jetty9.service
 
 [Service]
+EnvironmentFile=-/etc/sysconfig/xroad-proxy
 PermissionsStartOnly=true
 ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
 ExecStartPre=/bin/chown xroad:xroad /var/run/xroad

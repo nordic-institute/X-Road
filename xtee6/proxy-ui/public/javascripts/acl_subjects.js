@@ -331,6 +331,14 @@
             enableActions();
         });
     }
+    
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#acl_subject_open_services_dialog").parent().attr("data-name", "acl_subject_open_services_dialog");
+        $("#acl_subject_open_services_add_dialog").parent().attr("data-name", "acl_subject_open_services_add_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+    }
 
     $(document).ready(function() {
         initClientAclSubjectsTab();
@@ -340,6 +348,7 @@
         initAclSubjectsTable();
         initServicesOpenTable();
         initServicesAllTable();
+        initTestability();
     });
 
     ACL_SUBJECTS.init = function() {

@@ -9,7 +9,7 @@ var XROAD_CAS = function() {
         var opts = scrollableTableOpts(400);
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name" },
+            { "mData": "name", mRender: util.escape },
             { "mData": "valid_from", "sWidth": "14em" },
             { "mData": "valid_to", "sWidth": "14em" }
         ];

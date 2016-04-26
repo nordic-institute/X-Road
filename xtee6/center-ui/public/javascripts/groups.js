@@ -44,8 +44,8 @@ var XROAD_GROUPS = function() {
         opts.bScrollCollapse = true;
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "code", "sWidth": "25%" },
-            { "mData": "description" },
+            { "mData": "code", "sWidth": "25%", mRender: util.escape },
+            { "mData": "description", mRender: util.escape },
             { "mData": "member_count", "sClass": "center", "sWidth": "5em" },
             { "mData": "updated", "sWidth": "14em" }
         ];

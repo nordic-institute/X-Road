@@ -1,0 +1,4 @@
+<xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
+    <verifyNextUpdate>true</verifyNextUpdate>
+    <harazoo>122</harazoo>
+</xro:conf>

@@ -53,6 +53,7 @@
 -   delete_key: [xroad-security-officer, xroad-registration-officer]
 -   generate_auth_cert_req: [xroad-security-officer]
 -   generate_sign_cert_req: [xroad-security-officer, xroad-registration-officer]
+-   generate_internal_cert_req: [xroad-security-officer]
 -   import_auth_cert: [xroad-security-officer]
 -   import_sign_cert: [xroad-security-officer, xroad-registration-officer]
 -   activate_disable_auth_cert: [xroad-security-officer]
@@ -76,4 +77,5 @@
 -     export_internal_ssl_cert: [xroad-security-officer, xroad-system-administrator]
 -     generate_internal_ssl: [xroad-security-officer, xroad-system-administrator]
 - backup_configuration: [xroad-system-administrator]
+- diagnostics: [xroad-system-administrator]
 - restore_configuration: [xroad-system-administrator]

@@ -1,0 +1,12 @@
+USER     %CPU START %MEM   PID COMMAND
+root      7.0 marras05  0.2  1 init
+root      0.0 marras05  0.0  2 kthreadd
+root      0.0 marras05  0.0  3 ksoftirqd/0
+janne     0.0 marras05  0.0 2303 gvfsd-metadata
+janne     0.0 marras05  0.0 2306 deja-dup-monito
+janne     0.0 02:01  0.0  7730 bash
+root      0.0 02:15  0.0  8506 cupsd
+lp        0.0 02:15  0.0  8512 dbus
+root      0.0 04:32  0.0 11330 kworker/u2:0
+janne     0.1 10:14  2.1 18296 java
+janne     0.0 10:59  0.0 18444 ps

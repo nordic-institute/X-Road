@@ -66,6 +66,17 @@ module CommonUi
     # Parameters:
     # cert - PEM or DER encoded cert bytes as Ruby String
     #
+    # Returns PEM bytes as Ruby String.
+    def der_to_pem(cert)
+      OpenSSL::X509::Certificate.new(cert).to_pem
+    rescue
+      Rails.logger.error($!.message)
+      raise I18n.t('validation.invalid_cert')
+    end
+
+    # Parameters:
+    # cert - PEM or DER encoded cert bytes as Ruby String
+    #
     # Returns java.security.cert.X509Certificate.
     def pem_to_java_cert(cert)
       raw_cert = pem_to_der(cert)

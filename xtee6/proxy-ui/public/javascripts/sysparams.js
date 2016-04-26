@@ -1,4 +1,4 @@
-var oTsps, oTspsApproved;
+var oTsps, oTspsApproved, isAnchorUpload;
 
 function uploadCallback(response) {
     if (!response.success) {
@@ -6,47 +6,32 @@ function uploadCallback(response) {
         return;
     }
 
-    var row1 = $("<tr>")
-        .append($("<td>")
-                .text(_("common.hash", { alg: response.data.hash_algorithm }))
-            .addClass("semibold"))
-        .append($("<td>").text(response.data.hash));
+    if (isAnchorUpload) {
+        confirm("anchor.upload_confirm", response.data, function () {
+            $.post(action("anchor_apply"), null, function () {
+                if (!response.success) {
+                    // Let just the dialog remain open.
+                    return;
+                }
 
-    var row2 = $("<tr>")
-        .append($("<td>").text(_("common.generated")).addClass("semibold"))
-        .append($("<td>").text(response.data.generated_at));
+                closeFileUploadDialog();
 
-    var details = $("<table>")
-        .append(row1)
-        .append(row2)
-        .addClass("details")
-        .css("margin", "1em 0");
-
-    var confirmParams = {
-        details: $("<p>").append(details).html()
-    };
-
-    confirm("anchor.upload_confirm", confirmParams, function() {
-        $.post(action("anchor_apply"), null, function() {
-            if (!response.success) {
-                // Let just the dialog remain open.
-                return;
-            }
-
-            closeFileUploadDialog();
-
-            $(".anchor-hash").text(response.data.hash);
-            $(".anchor-generated_at").text(response.data.generated_at);
-        }, "json");
-    });
+                $(".anchor-hash").text(response.data.hash);
+                $(".anchor-generated_at").text(response.data.generated_at);
+            }, "json");
+        });
+    } else {
+        closeFileUploadDialog();
+        showMessages(response.messages);
+    }
 }
 
 function initTables() {
     var opts = scrollableTableOpts(200);
     opts.sDom = "t";
     opts.aoColumns = [
-        { "mData": "name" },
-        { "mData": "url" }
+        { "mData": "name", mRender: util.escape },
+        { "mData": "url", mRender: util.escape }
     ];
     opts.asStripeClasses = [];
 
@@ -73,6 +58,7 @@ function initTables() {
 
 function initAnchorActions() {
     $("#anchor_upload").click(function() {
+        isAnchorUpload = true;
         openFileUploadDialog(
             action("anchor_upload"), _("anchor.upload_title"));
     });
@@ -193,6 +179,12 @@ function initInternalSSLActions() {
             }, "json");
         });
     });
+
+    $("#import_internal_ssl_cert").click(function() {
+        isAnchorUpload = false;
+        openFileUploadDialog(
+            action("import_cert"), _("sysparams.index.import_certificate"));
+    });
 }
 
 function populate() {
@@ -221,12 +213,59 @@ function populate() {
     }, "json");
 }
 
+function initDialogs() {
+    $("#internal_ssl_generate_csr_dialog").initDialog({
+        autoOpen: false,
+        modal: true,
+        width: 550,
+        close: function() {
+        },
+        buttons: [
+            { text: _("common.ok"),
+                click: function() {
+                    $("#key_usage", this).val("auth");
+
+                    var dialog = this;
+                    var params = $("form", this).serializeObject();
+
+                    $.post(action("generate_csr"), params, function(response) {
+
+                        location.href = action("download_csr")
+                            + "?csr=" + response.data.redirect
+                            + "&key_usage=" + params.key_usage;
+
+                        $(dialog).dialog("close");
+                    });
+                }
+            },
+            { text: _("common.cancel"),
+                click: function() {
+                    $(this).dialog("close");
+                }
+            }
+        ]
+    });
+
+    $("#generate_ssl_csr").click(function() {
+        $("#internal_ssl_generate_csr_dialog").dialog("open");
+    });
+}
+
+function initTestability() {
+        // add data-name attributes to improve testability
+        $("#internal_ssl_generate_csr_dialog").parent().attr("data-name", "internal_ssl_generate_csr_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+}
+
+
 $(document).ready(function() {
     initTables();
     initAnchorActions();
     initTspActions();
     initAsyncActions();
     initInternalSSLActions();
-
+    initDialogs();
     populate();
+    initTestability();  
 });

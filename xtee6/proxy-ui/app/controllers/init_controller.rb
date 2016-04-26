@@ -1,3 +1,26 @@
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
 require 'net/http'
 
 java_import Java::ee.ria.xroad.common.SystemProperties
@@ -6,6 +29,7 @@ java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServerConfType
 java_import Java::ee.ria.xroad.common.identifier.ClientId
 java_import Java::ee.ria.xroad.commonui.SignerProxy
+java_import Java::ee.ria.xroad.common.util.TokenPinPolicy
 
 class InitController < ApplicationController
 
@@ -164,6 +188,23 @@ class InitController < ApplicationController
         pin = Array.new
         params[:pin].bytes do |b|
           pin << b
+        end
+
+        if SystemProperties::should_enforce_token_pin_policy
+          description = TokenPinPolicy::describe(pin.to_java(:char))
+          if !description.valid?
+
+            if description.has_invalid_characters
+              raise  t('init.pin_not_ascii')
+            end
+
+            raise t('init.pin_weak', {
+                :min_length => description.min_length,
+                :length => description.length,
+                :min_character_class_count => description.min_character_class_count,
+                :character_class_count => description.character_classes.size
+            })
+          end
         end
 
         SignerProxy::initSoftwareToken(pin.to_java(:char))

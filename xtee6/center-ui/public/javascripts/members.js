@@ -45,9 +45,9 @@ var XROAD_MEMBERS = function() {
         opts.sScrollY = "400px";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name", "sWidth": "50%" },
-            { "mData": "member_class", "sWidth": "15%" },
-            { "mData": "member_code" }
+            { "mData": "name", "sWidth": "50%", mRender: util.escape },
+            { "mData": "member_class", "sWidth": "15%", mRender: util.escape },
+            { "mData": "member_code", mRender: util.escape }
         ];
 
         opts.fnDrawCallback = function() {

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://x-road.eu/xsd/monitoring" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://x-road.eu/xsd/monitoring"
+        elementFormDefault="qualified">
+    <xs:complexType name="MetricType" abstract="true">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="NumericMetricType">
+        <xs:complexContent>
+            <xs:extension base="tns:MetricType">
+                <xs:sequence>
+                    <xs:element name="value" type="xs:decimal"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="StringMetricType">
+        <xs:complexContent>
+            <xs:extension base="tns:MetricType">
+                <xs:sequence>
+                    <xs:element name="value" type="xs:string"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="HistogramMetricType">
+        <xs:complexContent>
+            <xs:extension base="tns:MetricType">
+                <xs:sequence>
+                    <xs:element name="updated" type="xs:dateTime"/>
+                    <xs:element name="min" type="xs:decimal"/>
+                    <xs:element name="max" type="xs:decimal"/>
+                    <xs:element name="mean" type="xs:decimal"/>
+                    <xs:element name="median" type="xs:decimal"/>
+                    <xs:element name="stddev" type="xs:decimal"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="MetricSetType">
+        <xs:complexContent>
+            <xs:extension base="tns:MetricType">
+                <xs:sequence>
+                    <xs:choice maxOccurs="unbounded">
+                        <xs:element name="metricSet" type="tns:MetricSetType"/>
+                        <xs:element name="numericMetric" type="tns:NumericMetricType"/>
+                        <xs:element name="stringMetric" type="tns:StringMetricType"/>
+                        <xs:element name="histogramMetric" type="tns:HistogramMetricType"/>
+                    </xs:choice>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:element name="getSecurityServerMetricsResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="metricSet" type="tns:MetricSetType"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:complexType name="getSecurityServerMetricsType">
+        <xs:sequence/>
+    </xs:complexType>
+    <xs:element name="getSecurityServerMetrics" type="tns:getSecurityServerMetricsType"/>
+</schema>

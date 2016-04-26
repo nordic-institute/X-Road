@@ -31,7 +31,7 @@ $(document).ready(function() {
     opts.bFilter = false;
     opts.oLanguage.sZeroRecords = "&nbsp;";
     opts.aoColumns = [
-        { "mData": "name" },
+        { "mData": "name", mRender: util.escape },
         { "mData": "requests" },
         { "mData": "send_attempts" },
         { "mData": "last_attempt" },
@@ -53,9 +53,9 @@ $(document).ready(function() {
         { "mData": "id" },
         { "mData": "received" },
         { "mData": "removed" },
-        { "mData": "sender" },
-        { "mData": "user" },
-        { "mData": "service" }
+        { "mData": "sender", mRender: util.escape },
+        { "mData": "user", mRender: util.escape },
+        { "mData": "service", mRender: util.escape }
     ];
 
     oRequests = $("#requests").dataTable(opts);

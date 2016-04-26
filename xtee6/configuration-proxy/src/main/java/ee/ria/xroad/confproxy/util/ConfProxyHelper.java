@@ -49,10 +49,7 @@ public final class ConfProxyHelper {
                 sourceAnchor, path);
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.debug("Running '{} {} {}' ...", new String[] {
-                ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor, path });
-
+        log.debug("Running '{} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path);
         runConfClient(pb);
         return new ConfigurationDirectory(path);
     }
@@ -70,9 +67,9 @@ public final class ConfProxyHelper {
                 sourceAnchor);
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.info("Running '{} {}' ...", new String[] {
+        log.info("Running '{} {}' ...",
                 ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor});
+                sourceAnchor);
         runConfClient(pb);
     }
 
@@ -88,8 +85,10 @@ public final class ConfProxyHelper {
             Process process = pb.start();
             exitCode = process.waitFor();
         } catch (IOException e) {
+            log.error("IOException: {}", e);
             exitCode = 2;
         } catch (Exception e) {
+            log.error("Undetermined ConfigurationClient exitCode: {}", e);
             //undetermined ConfigurationClient exitCode, fail in 'finally'
             return;
         } finally {

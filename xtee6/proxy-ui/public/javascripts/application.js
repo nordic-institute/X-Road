@@ -7,7 +7,7 @@ function generateIdElement(data) {
     for (var item in data) {
         if (data.hasOwnProperty(item) && data[item]) {
             spanText.push(data[item]);
-            spanTitle.push(item + ": " + data[item]);
+            spanTitle.push(item + ": " + util.escape(data[item]));
         }
     }
 
@@ -18,12 +18,12 @@ function generateIdElement(data) {
 }
 
 function clientName(name) {
-    return name ||
+    return util.escape(name) ||
         "&lt;" + _("clients.client_acl_subjects_tab.client_not_found") + "&gt;";
 }
 
 function groupDesc(desc) {
-    return desc ||
+    return util.escape(desc) ||
         "&lt;" + _("clients.client_acl_subjects_tab.group_not_found") + "&gt;";
 }
 
@@ -33,11 +33,11 @@ $(document).ready(function() {
     serverNameEl.text(serverName[0] + " : " + serverName[serverName.length - 1]);
 
     var serverInfo = [
-        "Environment: " + serverName[0],
-        "Security server: " + serverName[3],
-        "Owner Name: " + serverNameEl.data("owner-name"),
-        "Owner Class: " + serverName[1],
-        "Owner Code: " + serverName[2]
+        "Environment: " + util.escape(serverName[0]),
+        "Security server: " + util.escape(serverName[3]),
+        "Owner Name: " + util.escape(serverNameEl.data("owner-name")),
+        "Owner Class: " + util.escape(serverName[1]),
+        "Owner Code: " + util.escape(serverName[2])
     ];
 
     var status = $("#server-status").data().status;

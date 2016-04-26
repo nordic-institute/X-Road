@@ -2,13 +2,13 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-securityserver-fi
-Version:            6.7
+Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road security server with Finnish settings
 BuildArch:          noarch
 Group:              Applications/Internet
-License:            Proprietary
+License:            MIT
 Requires:           xroad-securityserver >= %version
 Conflicts:          xroad-centralserver
 
@@ -25,10 +25,11 @@ This is meta package of X-Road security server with Finnish settings
 
 %install
 mkdir -p %{buildroot}/etc/xroad/conf.d
-cp -p %{src}/../default-configuration/signer-fi.ini %{buildroot}/etc/xroad/conf.d/
+cp -p %{src}/../default-configuration/override-securityserver-fi.ini %{buildroot}/etc/xroad/conf.d/
 
 %files
-/etc/xroad/conf.d/signer-fi.ini
+%defattr(-,xroad,xroad,-)
+%config /etc/xroad/conf.d/override-securityserver-fi.ini
 
 %post
-cp -pf /etc/xroad/conf.d/signer-fi.ini /etc/xroad/conf.d/signer.ini
+

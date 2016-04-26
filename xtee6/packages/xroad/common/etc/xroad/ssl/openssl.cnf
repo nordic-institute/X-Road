@@ -1,4 +1,4 @@
-
+default_md  = sha256
 
 [ req ]
 default_bits		= 2048

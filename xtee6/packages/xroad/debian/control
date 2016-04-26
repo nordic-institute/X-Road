@@ -5,6 +5,14 @@ Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
+Package: xroad-centralserver-monitoring
+Conflicts: xroad-securityserver
+Architecture: all
+Depends: xroad-centralserver (>=${source:Upstream-Version})
+Pre-depends:
+Description: Monitoring client configuration for X-Road central
+ This meta-package adds optional global monitoring configuration file.
+
 Package: xroad-centralserver
 Conflicts: xroad-securityserver
 Architecture: all
@@ -16,8 +24,8 @@ Description: X-Road central server
 Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=6.6), curl, unzip, libmhash2
-Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=6.6)
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=${source:Upstream-Version}), curl, unzip, libmhash2
+Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=${source:Upstream-Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
@@ -30,7 +38,7 @@ Description: X-Road shared components
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy, xroad-addon-metaservices, xroad-addon-messagelog
+Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server
  This is meta-package of X-Road security server.
@@ -38,8 +46,8 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=6.6), curl, authbind
-Pre-depends: postgresql, postgresql-contrib, xroad-common (>=6.6)
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=${source:Upstream-Version}), curl, authbind
+Pre-depends: postgresql, postgresql-contrib, xroad-common (>=${source:Upstream-Version})
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -47,28 +55,40 @@ Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
 Depends: ${misc:Depends}
-Pre-depends: xroad-common  (>=6.6)
+Pre-depends: xroad-common  (>=${source:Upstream-Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
 
 Package: xroad-addon-hwtokens
 Architecture: all
-Depends: ${misc:Depends}, xroad-common (>=6.6)
+Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
 Description: X-Road AddOn: hwtokens
  AddOn for hardware tokens
 
 Package: xroad-addon-messagelog
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.6)
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version})
 Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
 Package: xroad-addon-metaservices
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.6)
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version})
 Description: X-Road AddOn: metaservices
  AddOn for metaservice reponders
+
+Package: xroad-addon-proxymonitor
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=6.6), xroad-monitor (>=6.6)
+Description: X-Road AddOn: proxy monitoring metaservice
+ Addon for proxy monitoring
+
+Package: xroad-monitor
+Architecture: all
+Depends: ${misc:Depends}, xroad-common (>=6.6)
+Description: X-Road monitoring service
+ Monitoring service
 
 Package: xroad-center-clusterhelper
 Architecture: all
@@ -79,7 +99,7 @@ Description: X-Road central cluster scripts
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-securityserver
+Depends: xroad-securityserver (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.

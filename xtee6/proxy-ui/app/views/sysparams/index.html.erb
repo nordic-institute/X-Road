@@ -80,6 +80,8 @@
 
       <button id="cert_details"><%= t 'shared.cert_details_dialog.cert_details' %></button>
       <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
+      <button id="import_internal_ssl_cert"><%= t 'common.import' %></button>
+      <button id="generate_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
       <% if can?(:generate_internal_ssl) %>
       <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
       <% end %>
@@ -90,6 +92,19 @@
       <span id="internal_ssl_cert_hash"></span>
     </p>
   </div>
+
+  <%= dialog "internal_ssl_generate_csr_dialog", t('.internal_ssl_generate_csr') do %>
+    <%= form_tag do %>
+      <input name="token_id" id="token_id" type="hidden"/>
+      <input name="key_id" id="key_id" type="hidden"/>
+      <input name="key_usage" id="key_usage" type="hidden"/>
+
+      <span style="float: left;"><%= t '.distinguished_name' %>:</span>
+      <span style="float: right;">
+        <input id="subject_name" name="subject_name" type="text" style="width: 25em;"/>
+      </span>
+    <% end %>
+  <% end %>
 
   <%= render :partial => 'tsp_add_dialog' %>
   <%= render :partial => 'shared/cert_details_dialog' %>

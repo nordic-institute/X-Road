@@ -2,9 +2,11 @@
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
+# disable useless debuginfo package
+%define debug_package %{nil}
 
 Name:		xroad-jetty9           
-Version:        6.7
+Version:        %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:        %{rel}%{?snapshot}%{?dist}
 Summary:        Jetty9 for X-Road purposes
@@ -18,6 +20,7 @@ Source0:        %{jetty}
 Source1:        https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod
 Source2:        %{name}
 Source3:        %{name}.service
+Source4:        %{name}.conf
 
 BuildRequires:  systemd, curl
 Requires(post): systemd
@@ -53,6 +56,8 @@ cp -aP * %{buildroot}/usr/share/xroad/jetty9
 cp -aP %{_topdir}/../etc %{buildroot}/etc
 cp %{SOURCE2} %{buildroot}%{_bindir}
 cp %{SOURCE3} %{buildroot}%{_unitdir}
+mkdir -p %{buildroot}/etc/tmpfiles.d
+cp %{SOURCE4} %{buildroot}/etc/tmpfiles.d/
 
 %clean
 rm -rf %{buildroot}
@@ -61,6 +66,8 @@ rm -rf %{buildroot}
 %defattr(-,xroad,xroad,-)
 %config /etc/xroad/jetty
 %config /etc/xroad/conf.d/jetty-logback.xml
+%config %attr(664,root,root) /etc/tmpfiles.d/%{name}.conf
+
 /usr/share/xroad/jetty9
 %dir /var/log/xroad/jetty
 %dir /usr/share/xroad/webapps

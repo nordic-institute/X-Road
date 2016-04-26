@@ -29,7 +29,7 @@ init_postgres() {
 db_name=serverconf
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=serverconf
-db_passwd=serverconf
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
 
 #is database connection configured?
@@ -56,6 +56,7 @@ else
     if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='${db_user}'\" "` == "1" ]]
     then
         echo  "$db_user user exists, skipping schema creation"
+        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
     else
         echo "CREATE ROLE ${db_user} LOGIN PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
     fi

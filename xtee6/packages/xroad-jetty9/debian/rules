@@ -27,9 +27,9 @@ override_dh_installinit:
 
 override_dh_gencontrol:
 ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-$(rel)~lucid0 
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)~lucid0 
 else 
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-$(rel)
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 endif
 
 build: 

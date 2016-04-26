@@ -1,0 +1,3 @@
+#!/bin/bash
+invoke-rc.d xroad-monitor restart
+exit 0

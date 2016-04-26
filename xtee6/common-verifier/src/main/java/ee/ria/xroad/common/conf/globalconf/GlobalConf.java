@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
 
 import java.nio.file.Path;
@@ -193,7 +215,7 @@ public final class GlobalConf {
      * no instance identifiers are specified
      */
     public static List<MemberInfo> getMembers(String... instanceIdentifiers) {
-        log.trace("getMembers({})", instanceIdentifiers);
+        log.trace("getMembers({})", (Object)instanceIdentifiers);
 
         return getInstance().getMembers(instanceIdentifiers);
     }
@@ -226,7 +248,7 @@ public final class GlobalConf {
      */
     public static List<GlobalGroupInfo> getGlobalGroups(
             String... instanceIdentifiers) {
-        log.trace("getGlobalGroups({})", instanceIdentifiers);
+        log.trace("getGlobalGroups({})", (Object)instanceIdentifiers);
 
         return getInstance().getGlobalGroups(instanceIdentifiers);
     }
@@ -248,7 +270,7 @@ public final class GlobalConf {
      * no instance identifiers are specified
      */
     public static Set<String> getMemberClasses(String... instanceIdentifiers) {
-        log.trace("getMemberClasses({})", instanceIdentifiers);
+        log.trace("getMemberClasses({})", (Object)instanceIdentifiers);
 
         return getInstance().getMemberClasses(instanceIdentifiers);
     }
@@ -279,6 +301,16 @@ public final class GlobalConf {
         return getInstance().getProviderAddress(serviceProvider);
     }
 
+    /**
+     * Returns address of the given service provider's proxy.
+     * @return IP address converted to string, such as "192.168.2.2".
+     */
+    public static String getSecurityServerAddress(
+            SecurityServerId serverId) {
+        log.trace("getSecurityServerAddress({})", serverId);
+
+        return getInstance().getSecurityServerAddress(serverId);
+    }
     /**
      * Returns a list of OCSP responder addresses for the given member
      * certificate.
@@ -390,8 +422,8 @@ public final class GlobalConf {
     public static boolean authCertMatchesMember(X509Certificate cert,
             ClientId memberId) throws Exception {
         log.trace("authCertMatchesMember({}: {}, {})",
-                new Object[] {cert.getSerialNumber(), cert.getSubjectDN(),
-                        memberId});
+                cert.getSerialNumber(), cert.getSubjectDN(),
+                memberId);
 
         return getInstance().authCertMatchesMember(cert, memberId);
     }

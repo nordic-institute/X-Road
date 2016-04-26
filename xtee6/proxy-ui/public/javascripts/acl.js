@@ -130,11 +130,11 @@
                   }
               }
             },
-            { "mData": "type", "bVisible": false },
-            { "mData": "instance", "bVisible": false },
-            { "mData": "member_class", "bVisible": false },
-            { "mData": "member_group_code", "bVisible": false },
-            { "mData": "subsystem_code", "bVisible": false },
+            { "mData": "type", "bVisible": false, mRender: util.escape },
+            { "mData": "instance", "bVisible": false, mRender: util.escape },
+            { "mData": "member_class", "bVisible": false, mRender: util.escape },
+            { "mData": "member_group_code", "bVisible": false, mRender: util.escape },
+            { "mData": "subsystem_code", "bVisible": false, mRender: util.escape },
             {
                 mData: function(source, type, val) {
                     return generateIdElement({
@@ -202,11 +202,23 @@
         });
     }
 
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#service_acl_dialog").parent().attr("data-name", "service_acl_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+        $("button span:contains('Add Subjects')").parent().attr("data-name", "add_subjects");
+        $("button span:contains('Remove Selected')").parent().attr("data-name", "remove_selected");
+        $("button span:contains('Remove All')").parent().attr("data-name", "remove_all");
+    }
+
     $(document).ready(function() {
         initServiceAclDialog();
         initServiceAclSubjectsTable();
         initServiceAclActions();
         enableActions();
+        initTestability();
     });
 
     ACL.openDialog = function(serviceCode) {

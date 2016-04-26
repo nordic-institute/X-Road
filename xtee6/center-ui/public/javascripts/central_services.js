@@ -29,16 +29,16 @@ var XROAD_CENTRAL_SERVICES = function () {
         opts.bScrollCollapse = true;
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "central_service_code", "sWidth": '250px' },
+            { "mData": "central_service_code", "sWidth": '250px', mRender: util.escape },
             { "mData": "id_service_code", "sWidth": '250px',
-              "sClass": "implementing_service_data" },
+              "sClass": "implementing_service_data", mRender: util.escape },
             { "mData": "id_service_version",
-              "sClass": "center implementing_service_data", "sWidth": "3em"},
+              "sClass": "center implementing_service_data", "sWidth": "3em", mRender: util.escape},
             { "mData": "id_provider_code",
-              "sClass": "implementing_service_data" },
+              "sClass": "implementing_service_data", mRender: util.escape },
             { "mData": "id_provider_class",
-              "sClass": "implementing_service_data" },
-            { "mData": "id_provider_subsystem" }
+              "sClass": "implementing_service_data", mRender: util.escape },
+            { "mData": "id_provider_subsystem", mRender: util.escape }
         ];
         opts.asRowId = ["central_service_code"];
 

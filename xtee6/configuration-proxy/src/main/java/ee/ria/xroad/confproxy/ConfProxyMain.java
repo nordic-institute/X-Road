@@ -42,9 +42,9 @@ public final class ConfProxyMain {
         try {
             setup();
             execute(args);
-        } catch (Throwable t) {
-            log.error("Configuration proxy failed to start", t);
-            throw t;
+        } catch (Exception e) {
+            log.error("Configuration proxy failed to start", e);
+            throw e;
         } finally {
             shutdown();
         }

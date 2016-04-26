@@ -147,6 +147,14 @@
 
         showMessages(response.messages);
     };
+    
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#cert_details_dialog").parent().attr("data-name", "cert_details_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+    }
 
     $(document).ready(function() {
         initInternalCertsTables();
@@ -154,6 +162,7 @@
         initInternalCertsActions();
 
         enableInternalCertsActions();
+        initTestability();
     });
 
 })(window.INTERNAL_CERTS = window.INTERNAL_CERTS || {}, jQuery);

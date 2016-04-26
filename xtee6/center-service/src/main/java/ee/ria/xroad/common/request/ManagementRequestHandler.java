@@ -1,23 +1,24 @@
 package ee.ria.xroad.common.request;
 
-import java.io.InputStream;
-import java.security.Signature;
-import java.security.cert.X509Certificate;
-import java.util.Map;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
+import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.MimeUtils;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.io.InputStream;
+import java.security.Signature;
+import java.security.cert.X509Certificate;
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
@@ -87,6 +88,7 @@ public final class ManagementRequestHandler {
         try {
             ownerCert.checkValidity();
         } catch (Exception e) {
+            log.warn("Owner certificate is invalid: {}", e);
             throw new CodedException(X_CERT_VALIDATION,
                     "Owner certificate is invalid: %s", e.getMessage());
         }
@@ -94,8 +96,9 @@ public final class ManagementRequestHandler {
         X509Certificate issuer =
                 GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(),
                         ownerCert);
-        new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false))
-            .verifyValidityAndStatus(ownerCertOcsp, ownerCert, issuer);
+        new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
+                new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
+                .verifyValidityAndStatus(ownerCertOcsp, ownerCert, issuer);
     }
 
     private static boolean verifySignature(X509Certificate cert,

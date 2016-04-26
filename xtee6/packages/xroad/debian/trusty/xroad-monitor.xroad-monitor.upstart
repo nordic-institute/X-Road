@@ -1,0 +1,23 @@
+description	"X-Road monitor"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+umask 007
+setuid xroad
+setgid xroad
+console log
+
+pre-start script
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
+end script
+
+script
+  set -x
+  . /etc/xroad/services/monitor.conf
+  exec ${JAVA_HOME}/bin/java ${MONITOR_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.monitor.MonitorMain
+end script
+

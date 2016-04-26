@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -x
-
+set -e
 
 GRADLE_HOME="$HOME/gradle-2.4/"
 JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
@@ -15,9 +14,9 @@ source $HOME/.rvm/scripts/rvm
 rvm use jruby-1.7.22
 
 if [[ -n $1 ]] && [[ $1 == "sonar" ]]; then
-    gradle --daemon --stacktrace buildAll sonarRunner
+    gradle --stacktrace buildAll sonarRunner
 else
-    gradle --daemon --stacktrace buildAll
+    gradle --stacktrace buildAll
 fi
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
@@ -26,3 +25,4 @@ cd $XROAD/packages/xroad/
 dpkg-buildpackage -tc -b -us -uc
 cd $XROAD/packages/xroad-jetty9/
 dpkg-buildpackage -tc -b -us -uc
+

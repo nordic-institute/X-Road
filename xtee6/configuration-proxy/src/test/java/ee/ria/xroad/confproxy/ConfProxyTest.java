@@ -42,8 +42,8 @@ public final class ConfProxyTest {
             OutputBuilder output = new OutputBuilder(confDir, conf);
             output.buildSignedDirectory();
             output.moveAndCleanup();
-        } catch (Throwable t) {
-            log.error("Error when executing configuration-proxy", t);
+        } catch (Exception ex) {
+            log.error("Error when executing configuration-proxy", ex);
         } finally {
             actorSystem.shutdown();
         }

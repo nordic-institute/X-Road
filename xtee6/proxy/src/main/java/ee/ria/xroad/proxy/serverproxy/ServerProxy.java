@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.serverproxy;
 
 import java.io.File;
@@ -149,7 +171,8 @@ public class ServerProxy implements StartStop {
         log.info("SSL context successfully created");
 
         return new CustomSSLSocketFactory(ctx,
-                null,
+                SystemProperties.getProxyClientTLSProtocols(),
+                SystemProperties.getProxyClientTLSCipherSuites(),
                 SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
 
@@ -172,6 +195,7 @@ public class ServerProxy implements StartStop {
         connector.setAcceptors(2 * Runtime.getRuntime().availableProcessors());
 
         server.addConnector(connector);
+        server.setSendServerVersion(false);
 
         log.info("ClientProxy {} created ({}:{})",
                 new Object[] {connector.getClass().getSimpleName(),
@@ -241,7 +265,7 @@ public class ServerProxy implements StartStop {
             throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
-        cf.setIncludeCipherSuites(CryptoUtils.INCLUDED_CIPHER_SUITES);
+        cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 

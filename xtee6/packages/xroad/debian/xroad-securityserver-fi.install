@@ -1,1 +1,2 @@
-../default-configuration/signer-fi.ini etc/xroad/conf.d/
+../default-configuration/override-securityserver-fi.ini etc/xroad/conf.d/
+

@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.messagelog.archive;
 
 import java.io.Closeable;
@@ -36,8 +58,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 @Slf4j
 public class LogArchiveWriter implements Closeable {
 
-    private static final SimpleDateFormat SIMPLE_DATE_FORMAT =
-            new SimpleDateFormat("yyyyMMddHHmmss");
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
     public static final int MAX_RANDOM_GEN_ATTEMPTS = 1000;
 
@@ -139,8 +160,8 @@ public class LogArchiveWriter implements Closeable {
 
     protected String getArchiveFilename(String random) {
         return String.format("mlog-%s-%s-%s.zip",
-                SIMPLE_DATE_FORMAT.format(logArchiveCache.getStartTime()),
-                SIMPLE_DATE_FORMAT.format(logArchiveCache.getEndTime()),
+                simpleDateFormat.format(logArchiveCache.getStartTime()),
+                simpleDateFormat.format(logArchiveCache.getEndTime()),
                 random);
     }
 

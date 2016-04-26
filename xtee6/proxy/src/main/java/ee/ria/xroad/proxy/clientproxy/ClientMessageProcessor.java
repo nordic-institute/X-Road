@@ -1,30 +1,26 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.clientproxy;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPMessage;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
-import org.eclipse.jetty.http.MimeTypes;
-import org.w3c.dom.Node;
 
 import ee.ria.xroad.asyncdb.AsyncDB;
 import ee.ria.xroad.asyncdb.WritingCtx;
@@ -33,11 +29,12 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.monitoring.MessageInfo;
@@ -53,6 +50,27 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
+import org.eclipse.jetty.http.MimeTypes;
+import org.w3c.dom.Node;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.net.URI;
+import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -209,7 +227,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // (socket that connects first) from the provided addresses.
             // Dummy service address is only needed so that host name resolving
             // could do its thing and start the ssl connection.
-            URI[] addresses = getServiceAddresses(requestServiceId);
+            URI[] addresses = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
             httpSender.setAttribute(ID_TARGETS, addresses);
             httpSender.setTimeout(SystemProperties.getClientProxyTimeout());
 
@@ -243,6 +261,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (CodedException ex) {
+            log.error("Coded exception: {}", ex);
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -427,18 +446,15 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private static URI getDummyServiceAddress(URI[] addresses)
             throws Exception {
-        boolean sslEnabled = SystemProperties.isSslEnabled();
-        if (!sslEnabled) {
+        if (!SystemProperties.isSslEnabled()) {
             // In non-ssl mode we just connect to the first address
             return addresses[0];
         }
-
-        String protocol = sslEnabled ? "https" : "http";
-        int port = SystemProperties.getServerProxyPort();
-        return new URI(protocol, null, "localhost", port, "/", null, null);
+        final int port = SystemProperties.getServerProxyPort();
+        return new URI("https", null, "localhost", port, "/", null, null);
     }
 
-    private static URI[] getServiceAddresses(ServiceId serviceProvider)
+    private static URI[] getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
             throws Exception {
         log.trace("getServiceAddresses({})", serviceProvider);
 
@@ -448,6 +464,23 @@ class ClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_UNKNOWN_MEMBER,
                     "Could not find addresses for service provider \"%s\"",
                     serviceProvider);
+        }
+
+        if (serverId != null) {
+            final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
+            if (securityServerAddress == null) {
+                throw new CodedException(X_INVALID_SECURITY_SERVER,
+                        "Could not find security server \"%s\"",
+                        serverId);
+            }
+
+            if (!hostNames.contains(securityServerAddress)) {
+                throw new CodedException(X_INVALID_SECURITY_SERVER,
+                        "Invalid security server \"%s\"",
+                        serviceProvider);
+            }
+
+            hostNames = Collections.singleton(securityServerAddress);
         }
 
         String protocol = SystemProperties.isSslEnabled() ? "https" : "http";
@@ -482,7 +515,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 } catch (Exception ex) {
                     throw new ClientException(translateException(ex));
                 }
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 setError(ex);
             } finally {
                 continueProcessing();

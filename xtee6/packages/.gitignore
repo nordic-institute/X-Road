@@ -1,0 +1,11 @@
+xroad-jetty9/debian/xroad-jetty9.xroad-jetty.upstart
+xroad-jetty9/jetty.tgz
+xroad-jetty9/redhat/SOURCES/jetty*
+xroad-jetty9/redhat/SOURCES/logging*
+xroad/center/usr/share/xroad/scripts/restore_db.sh
+xroad/debian/xroad-common.xroad-signer.upstart
+xroad/debian/xroad-proxy.xroad-async.upstart
+xroad/debian/xroad-proxy.xroad-confclient.upstart
+xroad/debian/xroad-proxy.xroad-proxy.upstart
+xroad/proxy/usr/share/xroad/scripts/restore_db.sh
+

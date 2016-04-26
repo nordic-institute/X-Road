@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://x-road.eu/wsdl/monitoring"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:tns="http://x-road.eu/wsdl/monitoring"
+                  xmlns:monitoring-xsd="http://x-road.eu/xsd/monitoring"
+                  xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+                  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <wsdl:types>
+        <xs:schema elementFormDefault="qualified"
+                   targetNamespace="http://x-road.eu/wsdl/monitoring">
+            <xs:import namespace="http://x-road.eu/xsd/xroad.xsd" schemaLocation="xroad.xsd"/>
+            <xs:import namespace="http://x-road.eu/xsd/monitoring" schemaLocation="monitoring.xsd"/>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="getSecurityServerMetricsRequest">
+        <wsdl:part name="parameters" element="monitoring-xsd:getSecurityServerMetrics"/>
+    </wsdl:message>
+
+    <wsdl:message name="getSecurityServerMetricsResponse">
+        <wsdl:part name="parameters" element="monitoring-xsd:getSecurityServerMetricsResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="requestheader">
+        <wsdl:part name="client" element="xrd:client" />
+        <wsdl:part name="service" element="xrd:service"/>
+        <wsdl:part name="securityServer" element="xrd:securityServer"/>
+        <wsdl:part name="userId" element="xrd:userId"/>
+        <wsdl:part name="id" element="xrd:id"/>
+    </wsdl:message>
+
+    <wsdl:portType name="getSecurityServerMetricsPort">
+        <wsdl:operation name="getSecurityServerMetrics">
+            <wsdl:documentation>
+                <xrd:title>getSecurityServerMetrics</xrd:title>
+            </wsdl:documentation>
+            <wsdl:input name="getSecurityServerMetricsRequest"
+                        message="tns:getSecurityServerMetricsRequest"/>
+            <wsdl:output name="getSecurityServerMetricsResponse"
+                         message="tns:getSecurityServerMetricsResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="getSecurityServerMetricsPortBinding" type="tns:getSecurityServerMetricsPort">
+        <soap:binding style="document"
+                      transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="getSecurityServerMetrics">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="getSecurityServerMetricsRequest">
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="service"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="userId"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="id"
+                             use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="getSecurityServerMetricsResponse">
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="service"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="userId"
+                             use="literal"/>
+                <soap:header message="tns:requestheader" part="id"
+                             use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="MonitoringService">
+        <wsdl:port name="getSecurityServerMetricsPort"
+                   binding="tns:getSecurityServerMetricsPortBinding">
+            <soap:address location="https://SECURITYSERVER/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

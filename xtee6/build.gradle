@@ -2,6 +2,16 @@ def getRubySourceCheckCommand(def projectPath) {
     return ["$rootDir/check_ruby_source.sh", "$projectPath"]
 }
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+    }
+}
+
 subprojects {
     apply plugin: 'eclipse'
     apply plugin: 'java'
@@ -12,6 +22,10 @@ subprojects {
     apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
+
+    jacoco {
+        toolVersion = "0.7.5.201505241946"
+    }
 
     repositories {
         mavenCentral()
@@ -32,25 +46,10 @@ subprojects {
         provided
     }
 
-    configurations.all {
-//        resolutionStrategy.failOnVersionConflict()
-
-        // Let's replace the c3p0 ver. 0.9.1.1 required by Quartz
-        // with ver. 0.9.2.1 used by Hibernate
-        resolutionStrategy.eachDependency {
-            DependencyResolveDetails details ->
-                if (details.requested.group == 'c3p0' &&
-                        details.requested.name == 'c3p0' &&
-                        details.requested.version == '0.9.1.1') {
-                    details.useTarget "com.mchange:c3p0:0.9.2.1"
-                }
-        }
-    }
-
     dependencies {
         testCompile 'junit:junit:4.11'
 
-        provided 'org.projectlombok:lombok:1.14.8'
+        provided 'org.projectlombok:lombok:1.16.6'
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -95,10 +94,10 @@ subprojects {
 
     checkstyle {
         toolVersion = "6.1.1"
-        configFile = new File(rootDir, "doc/checkstyle-ria.xml")
+        configFile = new File(rootDir, "doc/checkstyle.xml")
         configProperties.config_loc = "$rootDir/doc"
-        ignoreFailures = true
-        showViolations = false
+        ignoreFailures = false
+        showViolations = true
     }
 
     pmd {
@@ -112,6 +111,35 @@ subprojects {
     }
 }
 
+configure(subprojects.findAll { it.file('LICENSE.txt').exists() }) {
+   
+    apply plugin: "license"
+  
+    license {
+        header project.file('LICENSE.txt')
+        include '**/*.java'
+        include '**/*.rb'
+    }
+
+   jar {
+        from project.file('LICENSE.txt')
+   }
+
+}
+
+configure(subprojects.findAll { it.file('LICENSE.txt').exists() && it.name.contains('-ui') }) {
+
+    apply plugin: "license"
+  
+    task licenseFormatUi(type:nl.javadude.gradle.plugins.license.License) {
+        source = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
+    }
+    
+    licenseFormat.dependsOn licenseFormatUi
+}
+
+
+
 apply plugin: 'idea'
 apply plugin: 'sonar-runner'
 apply plugin: 'jacoco'
@@ -119,8 +147,8 @@ apply plugin: 'jacoco'
 sonarRunner {
     sonarProperties {
         property "sonar.host.url", "http://localhost:9000"
-        property "sonar.jdbc.url", "jdbc:h2:tcp://localhost:9092/sonar"
-        property "sonar.jdbc.driverClassName", "org.h2.Driver"
+        property "sonar.jdbc.url", "jdbc:postgresql://localhost/sonar"
+        property "sonar.jdbc.driverClassName", "jdbc:postgresql://localhost/sonar"
         property "sonar.jdbc.username", "sonar"
         property "sonar.jdbc.password", "sonar"
     }

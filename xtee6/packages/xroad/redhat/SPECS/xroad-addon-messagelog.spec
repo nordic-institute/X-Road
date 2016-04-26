@@ -4,11 +4,11 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:       xroad-addon-messagelog
-Version:    6.7
+Version:    %{xroad_version}
 Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: messagelog
 Group:      Applications/Internet
-License:    Proprietary
+License:    MIT
 Requires:   xroad-proxy >= %version
 
 %define src %{_topdir}/..
@@ -27,6 +27,7 @@ mkdir -p %{buildroot}/etc/xroad/conf.d/addons
 mkdir -p %{buildroot}/usr/share/xroad/db/messagelog
 mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server
 mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{src}/addon/proxy/messagelog.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{src}/../../addons/messagelog/build/libs/messagelog-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
@@ -40,6 +41,8 @@ cp -p %{src}/../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/
 cp -p %{src}/../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 cp -p %{src}/../../asicverifier/build/libs/asicverifier-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 ln -s /usr/share/xroad/jlib/asicverifier-1.0.jar %{buildroot}/usr/share/xroad/jlib/asicverifier.jar
+cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
+cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -57,13 +60,15 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/asicverifier-1.0.jar
 /usr/share/xroad/scripts/archive-http-transporter.sh
 /usr/share/xroad/jlib/asicverifier.jar
+%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+%doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
 %post
 
 db_name=messagelog
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=messagelog
-db_passwd=messagelog
+db_passwd=$(head -c 24 /dev/urandom | base64 | tr "/+" "_-")
 db_properties=/etc/xroad/db.properties
 
 die () {
@@ -96,6 +101,7 @@ else
     if [[ `su - postgres -c "psql postgres -tAc \"SELECT 1 FROM pg_roles WHERE rolname='$db_user'\" "` == "1" ]]
     then
         echo  "$db user exists, skipping schema creation"
+        echo "ALTER ROLE ${db_user} WITH PASSWORD '${db_passwd}';" | su - postgres -c psql postgres
     else
         echo "CREATE ROLE $db_user LOGIN PASSWORD '$db_passwd';" | su - postgres -c psql postgres
     fi
