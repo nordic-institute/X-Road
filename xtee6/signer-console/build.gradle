@@ -23,6 +23,8 @@ fatJar {
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.signer.console.SignerCLI'
     }
+
+    from rootProject.file('LICENSE.info')
 }
 
 jar.enabled = false

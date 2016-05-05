@@ -5,6 +5,10 @@ die () {
     exit 1
 }
 
+has_command () {
+    command -v $1 &>/dev/null
+}
+
 
 if [ "$(id -nu )" != "root" ]
 then
@@ -29,16 +33,29 @@ then
  die "${filename} is not compatible backup file. Aborting restore!"
 fi
 
+if has_command initctl
+then
+    LIST_CMD="initctl list"
+    STOP_CMD="initctl stop"
+    START_CMD="initctl start"
+elif has_command systemctl
+then
+    LIST_CMD="systemctl list-units"
+    STOP_CMD="systemctl stop"
+    START_CMD="systemctl start"
+else
+    die "Cannot control X-Road services (initctl/systemctl not found). Aborting restore"
+fi
 
-echo "STOP ALL SERVICES EXCEPT JETTY"
+echo "STOPING ALL SERVICES EXCEPT JETTY"
 
-SERVICES=$(initctl list | grep -E  "^xroad-|^xtee55-" | grep -v -- -jetty | cut -f 1 -d " "  )
+SERVICES=$($LIST_CMD | grep -E  "^xroad-|^xtee55-" | grep -v -- -jetty | cut -f 1 -d " "  )
 
-for xrdservice in $SERVICES; do  initctl stop $xrdservice  ;done
+for xrdservice in $SERVICES; do  $STOP_CMD $xrdservice  ;done
 
 ##
 
-listf="`find /etc/xroad/ -type f` /etc/nginx/sites-enabled/*"
+listf="`find /etc/xroad/ -type f` `find /etc/nginx/ -name *xroad*`"
 
 echo "CREATING PRE-RESTORE BACKUP"
 
@@ -72,7 +89,7 @@ then
 
 fi
 
-echo -e "\nRESTARING SERVICES\n"
+echo -e "\nRESTARTING SERVICES\n"
 
-for xrdservice in $SERVICES; do  initctl start $xrdservice ;done
+for xrdservice in $SERVICES; do $START_CMD $xrdservice ;done
 

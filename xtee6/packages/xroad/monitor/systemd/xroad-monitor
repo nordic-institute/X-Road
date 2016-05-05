@@ -1,0 +1,5 @@
+#!/bin/sh
+set -x
+. /etc/xroad/services/monitor.conf
+exec ${JAVA_HOME}/bin/java ${MONITOR_PARAMS} ${XROAD_PARAMS} -cp ${CP} ee.ria.xroad.monitor.MonitorMain
+

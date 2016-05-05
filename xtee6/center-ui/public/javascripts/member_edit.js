@@ -161,7 +161,7 @@ var XROAD_MEMBER_EDIT = function() {
         $("#member_to_group_add_dialog").initDialog({
             title: _("members.edit.global_group_membership.add_member_to_group", {
                 member: memberName
-            }),
+            }, false),
             modal: true,
             width: 600,
             open: function() {
@@ -399,9 +399,20 @@ var XROAD_MEMBER_EDIT = function() {
             $("#member_securityserver_search_select").click();
         });
     }
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#member_name_edit_dialog").parent().attr("data-name", "member_name_edit_dialog");
+        $("#owned_server_add_dialog").parent().attr("data-name", "owned_server_add_dialog");
+        $("#member_to_group_add_dialog").parent().attr("data-name", "member_to_group_add_dialog");
+        $("#securityserver_search_dialog").parent().attr("data-name", "securityserver_search_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
 
     $(document).ready(function() {
         initSecurityServerSearchDialog();
+        initTestability();
     });
 
     return {

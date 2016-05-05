@@ -191,12 +191,12 @@ var XROAD_GROUP_EDIT = function() {
         opts.sScrollY = 200;
         opts.sDom = "tp";
         opts.aoColumns = [
-            { "mData": "name" },
-            { "mData": "member_code" },
-            { "mData": "member_class", "sWidth": "5em" },
-            { "mData": "subsystem" },
-            { "mData": "xroad", "sWidth": "5em" },
-            { "mData": "type" },
+            { "mData": "name", mRender: util.escape },
+            { "mData": "member_code", mRender: util.escape },
+            { "mData": "member_class", "sWidth": "5em", mRender: util.escape },
+            { "mData": "subsystem", mRender: util.escape },
+            { "mData": "xroad", "sWidth": "5em", mRender: util.escape },
+            { "mData": "type", mRender: util.escape },
             { "mData": "added", "sWidth": "13em" }
         ];
         opts.oTableTools = {
@@ -229,12 +229,12 @@ var XROAD_GROUP_EDIT = function() {
         opts.sScrollY = 300;
         opts.sDom = "<'dataTables_header'<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name" },
-            { "mData": "member_code" },
-            { "mData": "member_class" },
-            { "mData": "subsystem" },
-            { "mData": "xroad" },
-            { "mData": "type" }
+            { "mData": "name", mRender: util.escape },
+            { "mData": "member_code", mRender: util.escape },
+            { "mData": "member_class", mRender: util.escape },
+            { "mData": "subsystem", mRender: util.escape },
+            { "mData": "xroad", mRender: util.escape },
+            { "mData": "type", mRender: util.escape }
         ];
         opts.oTableTools = {
             "sRowSelect": "multi"
@@ -443,7 +443,15 @@ var XROAD_GROUP_EDIT = function() {
             table.dataTable().fnFilter("");
         });
     }
-
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#group_description_edit_dialog").parent().attr("data-name", "group_description_edit_dialog");
+        $("#group_details_dialog").parent().attr("data-name", "group_details_dialog");
+        $("#group_members_add_dialog").parent().attr("data-name", "group_members_add_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
     /* -- DIALOGS - END -- */
 
     $(document).ready(function(){
@@ -481,6 +489,7 @@ var XROAD_GROUP_EDIT = function() {
 
             $("#add_selected_members_to_group").disable();
         });
+        initTestability();
     });
 
     return {

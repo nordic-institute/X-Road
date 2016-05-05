@@ -208,7 +208,7 @@
                   id: "client_select_ok",
                   click: function() {
                       var client = oClientsGlobal.getFocusData();
-                      $("#add_member_name").html(client.member_name);
+                      $("#add_member_name").text(client.member_name);
                       $("#add_member_class").val(client.member_class);
                       $("#add_member_code").val(client.member_code);
                       $("#add_subsystem_code").val(client.subsystem_code);
@@ -375,6 +375,7 @@
                 var li = $('<li/>')
                     .attr('data-tab', action)
                     .attr('data-id', actions[action].id)
+                    .attr('data-name', actions[action].id)
                     .attr('title', actions[action].title)
                     .append($('<i/>').addClass('fa fa-' + actions[action].icon));
                 ul.append(li);
@@ -514,10 +515,10 @@
         opts.sDom = "t";
         opts.bFilter = false;
         opts.aoColumns = [
-            { "mData": "member_name", "sWidth": "40%" },
-            { "mData": "member_class", "sWidth": "15%"  },
-            { "mData": "member_code" },
-            { "mData": "subsystem_code" }
+            { "mData": "member_name", "sWidth": "40%", "mRender" : util.escape },
+            { "mData": "member_class", "sWidth": "15%", "mRender" : util.escape  },
+            { "mData": "member_code", "mRender" : util.escape },
+            { "mData": "subsystem_code", "mRender" : util.escape }
         ];
 
         oClientsGlobal = $("#clients_global").dataTable(opts);
@@ -541,6 +542,14 @@
         ];
 
         oClientCerts = $("#certificates").dataTable(opts);
+    }
+
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#client_details_dialog").parent().attr("data-name", "client_details_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
     }
 
     $(document).ready(function() {
@@ -587,6 +596,8 @@
         $("#client_delete").live('click', function() {
             confirmDelete("clients.client_details_tab.delete_client_confirm");
         });
+
+        initTestability();
     });
 
     CLIENTS.getClientId = function() {

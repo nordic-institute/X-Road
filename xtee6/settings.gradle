@@ -21,6 +21,9 @@ include "configuration-proxy"
 include "configuration-client"
 include "asicverifier"
 include "asic-util"
+include "monitor"
+include "monitor-common"
+include "monitor-test"
 
 // Utils
 include "signer-console"
@@ -32,3 +35,6 @@ include "common-test"
 include "addons:hwtoken"
 include "addons:messagelog"
 include "addons:metaservice"
+include "addons:proxymonitor:common"
+include "addons:proxymonitor:metaservice"
+

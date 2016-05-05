@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+  <import namespace="http://x-road.eu/xsd/identifiers"
+          schemaLocation="identifiers.xsd" id="id"/>
+
+  <element name="conf" type="tns:OcspNextUpdateType">
+    <annotation>
+      <documentation>
+        OCSP nextUpdate configuration element
+      </documentation>
+    </annotation>
+  </element>
+
+  <complexType name="OcspNextUpdateType">
+    <sequence>
+      <element name="verifyNextUpdate"
+               minOccurs="1"
+               maxOccurs="1"
+               type="boolean">
+        <annotation>
+          <documentation>
+            Tells whether OCSP nextUpdate should be verified true/false
+          </documentation>
+        </annotation>
+      </element>
+    </sequence>
+  </complexType>
+</schema>

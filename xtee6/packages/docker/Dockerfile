@@ -1,12 +1,8 @@
 FROM centos:7
 MAINTAINER "Sami Kallio" <sami.kallio@gofore.com>
-ENV RELEASE=0
-#ENV SNAPSHOT=.`env TZ=UTC date +'%Y%m%d%H%M'`
-ENV ROOT=`pwd`/..
 
-RUN yum -y install epel-release 
-RUN yum -y update
-RUN yum -y install @development sudo rpmdevtools java-1.8.0-openjdk
+RUN yum -y install sudo git rpm-build java-1.8.0-openjdk-headless
+RUN yum clean all
 RUN sed -i 's/requiretty/!requiretty/' /etc/sudoers
 
 USER jenkins

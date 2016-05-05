@@ -30,7 +30,7 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile project(':common-verifier').sourceSets.test.output
-    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.1'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
@@ -55,6 +55,8 @@ fatJar {
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
+
+    from rootProject.file('LICENSE.info')
 }
 
 jar.enabled = false
@@ -109,6 +111,21 @@ task runSignerMain(type: JavaExec) {
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
 
 idea.module {
     excludeDirs -= file(buildDir)

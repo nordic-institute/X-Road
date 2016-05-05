@@ -162,11 +162,20 @@
             }, "json");
         });
     }
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#central_server_address_edit_dialog").parent().attr("data-name", "central_server_address_edit_dialog");
+        $("#member_class_edit_dialog").parent().attr("data-name", "member_class_edit_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
 
     $(document).ready(function() {
         initMemberClassesTable();
         initDialogs();
         initActions();
+        initTestability();
     });
 
 }(window.SYSTEM_SETTINGS = window.SYSTEM_SETTINGS || {}, jQuery));

@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common;
 
 import java.io.IOException;
@@ -105,6 +127,7 @@ public class SystemPropertiesLoader {
     private boolean withCommon;
     private boolean withLocal;
     private boolean withAddOn;
+    private boolean withOverrides = true;
 
     // ------------------------------------------------------------------------
 
@@ -132,6 +155,16 @@ public class SystemPropertiesLoader {
      */
     public SystemPropertiesLoader withCommon() {
         withCommon = true;
+        return this;
+    }
+
+    /**
+     * Specifies that the system override INI files should not be included when
+     * loading.
+     * @return this instance
+     */
+    public SystemPropertiesLoader withoutOverrides() {
+        withOverrides = false;
         return this;
     }
 
@@ -196,7 +229,17 @@ public class SystemPropertiesLoader {
                         });
             } catch (IOException e) {
                 log.error("Cannot load addon configuration: {}",
-                        e.getMessage());
+                        e);
+            }
+        }
+
+        if (withOverrides) {
+            try {
+                Files.newDirectoryStream(FileSystems.getDefault().getPath(
+                        SystemProperties.getConfPath(), "conf.d"), "override-*.ini")
+                        .forEach(path -> load(new FileWithSections(path.toString())));
+            } catch (IOException e) {
+                log.error("Cannot load override configuration: {}", e);
             }
         }
 
@@ -215,8 +258,13 @@ public class SystemPropertiesLoader {
 
     private void load(FileWithSections file) {
         try {
-            HierarchicalINIConfiguration ini =
-                    new HierarchicalINIConfiguration(file.getName());
+            // turn off list delimiting (before parsing),
+            // otherwise we lose everything after first ","
+            // in loadSection/sec.getString(key)
+            HierarchicalINIConfiguration ini = new HierarchicalINIConfiguration();
+            ini.setDelimiterParsingDisabled(true);
+            ini.load(file.getName());
+
             for (String sectionName : ini.getSections()) {
                 if (isEmpty(file.getSections())
                         || contains(file.getSections(), sectionName)) {
@@ -225,7 +273,7 @@ public class SystemPropertiesLoader {
             }
         } catch (ConfigurationException e) {
             log.warn("Error while loading {}: {}", file.getName(),
-                    e.getMessage());
+                    e);
         }
     }
 

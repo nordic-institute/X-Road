@@ -10,7 +10,7 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile 'org.hsqldb:hsqldb:2.3.2'
-    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.1'
 
     testCompile files(this.project(':common-util').sourceSets.test.output)
     testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
@@ -26,6 +26,8 @@ fatJar {
     exclude "META-INF/*.SF"
     exclude "META-INF/*.DSA"
     exclude "META-INF/*.RSA"
+
+    from rootProject.file("LICENSE.info")
 
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.proxy.ProxyMain'

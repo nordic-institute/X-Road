@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -23,6 +45,10 @@ public final class SystemProperties {
     /** Property name of the downloaded global configuration directory. */
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
+
+    /** Property name of the default digital signature algorithm. */
+    public static final String DEFAULT_SIGNATURE_ALGORITHM =
+            PREFIX + "common.default-signature-algorithm";
 
     // Proxy ------------------------------------------------------------------
 
@@ -90,6 +116,19 @@ public final class SystemProperties {
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
 
+
+    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
+    private static final String PROXY_CLIENT_TLS_PROTOCOLS =
+            PREFIX + "proxy.client-tls-protocols";
+
+    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
+    private static final String PROXY_CLIENT_TLS_CIPHERS =
+            PREFIX + "proxy.client-tls-ciphers";
+
+    private static final java.lang.String PROXY_ENFORCE_TOKEN_PIN_POLICY =
+            PREFIX + "proxy.enforce-token-pin-policy";
+
+
     // Signer -----------------------------------------------------------------
 
     /** Property name of the key configuration file. */
@@ -110,6 +149,15 @@ public final class SystemProperties {
 
     public static final String SIGNER_MODULE_INSTANCE_PROVIDER =
             PREFIX + "signer.module-instance-provider";
+
+    public static final String SIGNER_KEY_LENGTH =
+            PREFIX + "signer.key-length";
+
+    public static final int MIN_SIGNER_KEY_LENGTH = 2048;
+    public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
+
+    public static final String SIGNER_CSR_SIGNATURE_ALGORITHM =
+            PREFIX + "signer.csr-signature-algorithm";
 
     // AntiDos ----------------------------------------------------------------
 
@@ -147,6 +195,10 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_PORT =
             PREFIX + "configuration-client.port";
+
+    public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
+            PREFIX + "configuration-client.admin-port";
+
 
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
@@ -538,6 +590,22 @@ public final class SystemProperties {
     }
 
     /**
+     * @return authentication and signing key length
+     */
+    public static int getSignerKeyLength() {
+        return Math.max(MIN_SIGNER_KEY_LENGTH,
+                Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
+    }
+
+    /**
+     * Get CSR signature algorithm
+     * @return algorithm
+     */
+    public static String getSignerCsrSignatureAlgorithm() {
+        return System.getProperty(SIGNER_CSR_SIGNATURE_ALGORITHM, getDefaultSignatureAlgorithm());
+    }
+
+    /**
      * @return the HTTP port on which the configuration client is listening,
      * '5665' by default
      */
@@ -546,6 +614,17 @@ public final class SystemProperties {
                 System.getProperty(CONFIGURATION_CLIENT_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
     }
+
+    /**
+     * @return the HTTP port on which the configuration client is listening,
+     * '5675' by default
+     */
+    public static int getConfigurationClientAdminPort() {
+        return Integer.parseInt(
+                System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
+                        Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
+    }
+
 
     /**
      * @return the update interval in seconds at which configuration client
@@ -620,7 +699,7 @@ public final class SystemProperties {
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
         return "true".equalsIgnoreCase(
-               System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
+                System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
     }
 
     /**
@@ -677,7 +756,7 @@ public final class SystemProperties {
     public static String getMonitorAgentConfFile() {
         return System.getProperty(MONITOR_AGENT_CONFIGURATION_FILE,
                 getConfPath()
-                    + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
+                        + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
     }
 
     /**
@@ -828,5 +907,50 @@ public final class SystemProperties {
         return Integer.parseInt(
                 System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
                         Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
+    }
+
+    /**
+     * Global default digital signature algorithm.
+     * @return algorithm
+     */
+    public static String getDefaultSignatureAlgorithm() {
+        return System.getProperty(DEFAULT_SIGNATURE_ALGORITHM, CryptoUtils.DEFAULT_SIGNATURE_ALGORITHM);
+    }
+
+    /**
+     * Get proxy client's TLS protocols
+     * @return protocols
+     */
+    public static String[] getProxyClientTLSProtocols() {
+        return System.getProperty(PROXY_CLIENT_TLS_PROTOCOLS, "TLSv1.2,TLSv1.1").split(",");
+    }
+
+    private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
+                            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
+                            + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
+                            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+                            + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
+                            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
+                            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
+                            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,"
+                            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,"
+                            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA,"
+                            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,"
+                            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA";
+
+    /**
+     * Get proxy client's TLS cipher suites
+     * @return cipher suites
+     */
+    public static String[] getProxyClientTLSCipherSuites() {
+        return System.getProperty(PROXY_CLIENT_TLS_CIPHERS, DEFAULT_CLIENT_SSL_CIPHER_SUITES).split(",");
+    }
+
+    /**
+     * Tell whether token PIN policy should be enforced
+     * @return true if PIN policy should be enforced
+     */
+    public static boolean shouldEnforceTokenPinPolicy() {
+        return Boolean.valueOf(System.getProperty(PROXY_ENFORCE_TOKEN_PIN_POLICY, "false"));
     }
 }

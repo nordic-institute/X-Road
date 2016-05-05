@@ -48,7 +48,6 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             addSigningKey(conf, keyInfo.getId());
         } else {
             printHelp();
-            System.exit(0);
         }
     }
 

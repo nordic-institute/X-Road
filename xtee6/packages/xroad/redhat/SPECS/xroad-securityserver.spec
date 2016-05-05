@@ -2,16 +2,17 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-securityserver
-Version:            6.7
+Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road security server
 BuildArch:          noarch
 Group:              Applications/Internet
-License:            Proprietary
+License:            MIT
 Requires:           xroad-proxy >= %version
 Requires:           xroad-addon-messagelog >= %version
 Requires:           xroad-addon-metaservices >= %version
+Requires:           xroad-addon-proxymonitor >= %version
 Conflicts:          xroad-centralserver
 
 %description

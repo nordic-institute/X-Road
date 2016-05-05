@@ -9,7 +9,7 @@ DIR=$(cd "$(dirname $0)" && pwd)
 cd $DIR
 set -e
 JETTY=$(head -1 xroad-jetty9/jetty.url)
-RELEASE=2
+RELEASE=1
 DATE=$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')
 HASH=$(git show -s --format=git%h || echo 'local')
 SNAPSHOT=$DATE$HASH
@@ -30,6 +30,7 @@ if [[ ! -f $(basename $JETTY) || "$md5a" != "$md5b" ]]; then
 fi
 cd ..
 rpmbuild \
+    --define "xroad_version 6.7.12" \
     --define "jetty $JETTY" \
     --define "rel $RELEASE" \
     --define "snapshot .$SNAPSHOT" \

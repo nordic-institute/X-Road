@@ -10,8 +10,8 @@ $(document).ready(function() {
         { "mData": "received" },
         { "mData": "removed" },
         { "mData": "send_attempts" },
-        { "mData": "producer" },
-        { "mData": "sender" },
+        { "mData": "producer", mRender: util.escape },
+        { "mData": "sender", mRender: util.escape },
         { "mData": "request_id" }
     ];
 

@@ -45,7 +45,7 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
                 Files.createFile(confPath);
             } catch (FileAlreadyExistsException ex) {
                 fail("Configuration for instance '" + instance
-                        + "' already exists, aborting.");
+                        + "' already exists, aborting. ", ex);
             }
             ConfProxyProperties conf = new ConfProxyProperties(instance);
             System.out.println("Populating '" + CONF_INI
@@ -54,7 +54,6 @@ public class ConfProxyUtilCreateInstance extends ConfProxyUtil {
             System.out.println("Done.");
         } else {
             printHelp();
-            System.exit(0);
         }
     }
 }

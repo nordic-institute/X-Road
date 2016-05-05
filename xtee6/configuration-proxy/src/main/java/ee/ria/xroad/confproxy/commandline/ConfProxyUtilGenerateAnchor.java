@@ -47,17 +47,17 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         try {
             sourceAnchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
         } catch (Exception ex) {
-            fail("Could not load source anchor: " + ex.getMessage());
+            fail("Could not load source anchor: ", ex);
         }
         String instance = sourceAnchor.getInstanceIdentifier();
 
         if (conf.getConfigurationProxyURL().equals("0.0.0.0")) {
             fail("configuration-proxy.address has not been"
-                    + " configured in 'local.ini'!");
+                    + " configured in 'local.ini'!", null);
         }
 
         if (conf.getKeyList().isEmpty()) {
-            fail("No signing keys configured!");
+            fail("No signing keys configured!", null);
         }
 
         if (commandLine.hasOption("filename")) {
@@ -68,12 +68,11 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
                         out -> generateAnchorXml(conf, instance, out));
             } catch (AccessDeniedException ex) {
                 fail("Cannot write anchor to '" + filename
-                        + "', permission denied.");
+                        + "', permission denied. ", ex);
             }
             System.out.println("Generated anchor xml to '" + filename + "'");
         } else {
             printHelp();
-            System.exit(0);
         }
     }
 

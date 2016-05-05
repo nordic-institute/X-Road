@@ -1,0 +1,5 @@
+#!/bin/sh
+
+invoke-rc.d xroad-proxy restart 
+exit 0
+

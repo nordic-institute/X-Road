@@ -1,23 +1,45 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.protocol.handler;
-
-import java.security.cert.X509Certificate;
-import java.util.List;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
+import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
@@ -90,7 +112,7 @@ public class GetMemberSigningInfoRequestHandler
                     cert.getOcspBytes());
             return true;
         } catch (Exception e) {
-            log.error("Certificate not suitable: {}", e.getMessage());
+            log.error("Certificate not suitable", e);
             return false;
         }
     }
@@ -99,11 +121,12 @@ public class GetMemberSigningInfoRequestHandler
             byte[] ocspBytes) throws Exception {
         X509Certificate subject = readCertificate(certBytes);
         subject.checkValidity();
-        verifyOcspResponse(instanceIdentifier, ocspBytes, subject);
+        verifyOcspResponse(instanceIdentifier, ocspBytes, subject,
+                new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
     }
 
     private void verifyOcspResponse(String instanceIdentifier,
-            byte[] ocspBytes, X509Certificate subject) throws Exception {
+            byte[] ocspBytes, X509Certificate subject, OcspVerifierOptions verifierOptions) throws Exception {
         if (ocspBytes == null) {
             throw new Exception("OCSP response for certificate "
                     + subject.getSubjectX500Principal().getName()
@@ -114,7 +137,7 @@ public class GetMemberSigningInfoRequestHandler
         X509Certificate issuer =
                 GlobalConf.getCaCert(instanceIdentifier, subject);
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), verifierOptions);
         verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 }

@@ -32,11 +32,11 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
         if (commandLine.hasOption("key-id")) {
             String keyId = commandLine.getOptionValue("k");
             if (keyId.equals(conf.getActiveSigningKey())) {
-                fail("Not allowed to delete an active signing key!");
+                fail("Not allowed to delete an active signing key!", null);
             }
             if (!conf.removeKeyId(keyId)) {
                 fail("The key ID '" + keyId
-                        + "' could not be found in '" + CONF_INI + "'.");
+                        + "' could not be found in '" + CONF_INI + "'.", null);
             }
             System.out.println("Deleted key from '" + CONF_INI + "'.");
             conf.deleteCert(keyId);
@@ -46,7 +46,6 @@ public class ConfProxyUtilDelSigningKey extends ConfProxyUtil {
             System.out.println("Deleted key from signer");
         } else {
             printHelp();
-            System.exit(0);
         }
     }
 }

@@ -129,14 +129,14 @@ var XROAD_REQUESTS = function() {
         opts.aoColumns = [
             { "mData": "id", "sClass": "center", "sWidth": "4em" },
             { "mData": "received", "sWidth": "14em" },
-            { "mData": "type" },
+            { "mData": "type"  },
             { "mData": "source" },
 
-            { "mData": "server_owner_name" },
-            { "mData": "server_owner_class" },
-            { "mData": "server_owner_code" },
-            { "mData": "server_code" },
-            { "mData": "status", "sWidth": "8em" }
+            { "mData": "server_owner_name", mRender: util.escape },
+            { "mData": "server_owner_class", mRender: util.escape },
+            { "mData": "server_owner_code", mRender: util.escape },
+            { "mData": "server_code", mRender: util.escape },
+            { "mData": "status", "sWidth": "8em", mRender: util.escape }
         ];
         opts.asRowId = ["id"];
 

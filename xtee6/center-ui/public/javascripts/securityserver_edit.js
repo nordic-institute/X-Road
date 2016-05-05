@@ -547,7 +547,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         opts.sDom = "t";
         opts.bFilter = false;
         opts.aoColumns = [
-            { "mData": "description" }
+            { "mData": "description", mRender : util.escape }
         ];
 
         oSecurityCategories =
@@ -559,10 +559,10 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         opts.sDom = "t";
         opts.bDestroy = true;
         opts.aoColumns = [
-            { "mData": "name" },
-            { "mData": "member_class" },
-            { "mData": "member_code" },
-            { "mData": "subsystem_code" }
+            { "mData": "name", mRender : util.escape },
+            { "mData": "member_class", mRender : util.escape },
+            { "mData": "member_code", mRender : util.escape },
+            { "mData": "subsystem_code", mRender : util.escape }
         ];
         opts.fnRowCallback = function(nRow, client) {
             var clientLink =
@@ -598,10 +598,10 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         opts.bFilter = false;
         opts.bDestroy = true;
         opts.aoColumns = [
-            { "mData": "csp" },
-            { "mData": "serial_number" },
-            { "mData": "subject" },
-            { "mData": "expires" }
+            { "mData": "csp", mRender : util.escape },
+            { "mData": "serial_number", mRender : util.escape },
+            { "mData": "subject", mRender : util.escape },
+            { "mData": "expires", mRender : util.escape }
         ];
         opts.fnRowCallback = function(nRow, authCert) {
             var authCertLink =

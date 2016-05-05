@@ -1,19 +1,35 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.util;
-
-import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.cert.X509Certificate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Random;
-
-import javax.xml.bind.DatatypeConverter;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -21,8 +37,17 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import scala.concurrent.Await;
 
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import javax.xml.bind.DatatypeConverter;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.cert.X509Certificate;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Collection of various utility methods.
@@ -31,9 +56,7 @@ public final class SignerUtil {
 
     private static final int RANDOM_ID_LENGTH = 20;
 
-    private static final Timeout DEFAULT_ASK_TIMEOUT = new Timeout(5000);
-
-    public static final Long KEY_SIZE = 2048L;
+    private static final Timeout DEFAULT_ASK_TIMEOUT = new Timeout(5000, TimeUnit.MILLISECONDS);
 
     private SignerUtil() {
     }
@@ -225,4 +248,23 @@ public final class SignerUtil {
         return workerId;
     }
 
+    /**
+     * @return certificate matching certHash
+     */
+    public static X509Certificate getCertForCertHash(String certHash)
+            throws Exception {
+        X509Certificate cert =
+                TokenManager.getCertificateForCertHash(certHash);
+        if (cert != null) {
+            return cert;
+        }
+
+        // not in key conf, look elsewhere
+        for (X509Certificate caCert : GlobalConf.getAllCaCerts()) {
+            if (certHash.equals(calculateCertHexHash(caCert))) {
+                return caCert;
+            }
+        }
+        return null;
+    }
 }

@@ -235,13 +235,17 @@
             { "mData": "wsdl_id", "bVisible": false, "bSearchable": false },
             { "mData": "wsdl", "bVisible": false,
               "mRender": function(data, type, full) {
-                  if (type == 'filter' && data) {
-                      // if it is WSDL row, return current filter
-                      // value to always keep the row visible
-                      var filterValue = $("#services_filter input").val();
-                      return filterValue ? filterValue : data;
+                  if (type == 'filter') {
+                      if ( data ) {
+                          // if it is WSDL row, return current filter
+                          // value to always keep the row visible
+                          var filterValue = $("#services_filter input").val();
+                          return filterValue ? filterValue : data;
+                      } else {
+                          return data;
+                      }
                   }
-                  return data;
+                  return util.escape(data);
               }
             },
             { "sDefaultContent": "", "bSortable": false,
@@ -259,9 +263,9 @@
                       return data + " (" + full.wsdl_id + ")";
                   }
 
-                  return data + " (" + full.subjects_count + ")";
+                  return util.escape(data) + " (" + full.subjects_count + ")";
               } },
-            { "mData": "title" },
+            { "mData": "title", mRender: util.escape },
             { "mData": "url",
               "mRender": function(data, type, full) {
                   if (type == 'filter') {
@@ -274,7 +278,7 @@
 
                   return "<div class='left valign-bottom'><i class='fa "
                       + getConnectionTypeIcon(data, full.sslauth) + "'></i></div>"
-                      + data;
+                      + util.escape(data);
               } },
             { "mData": "timeout", "sClass": "center", "sWidth": "4em",
               "mRender": function(data, type, full) {
@@ -421,6 +425,17 @@
         });
     }
 
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#wsdl_add_dialog").parent().attr("data-name", "wsdl_add_dialog");
+        $("#wsdl_params_dialog").parent().attr("data-name", "wsdl_params_dialog");
+        $("#service_params_dialog").parent().attr("data-name", "service_params_dialog");
+        $("#wsdl_disable_dialog").parent().attr("data-name", "wsdl_disable_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
+
     $(document).ready(function() {
         initWSDLAddDialog();
         initWSDLDisableDialog();
@@ -429,6 +444,7 @@
 
         initServicesTable();
         initClientServicesActions();
+        initTestability();
     });
 
     SERVICES.init = function() {

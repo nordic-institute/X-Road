@@ -66,8 +66,8 @@ public abstract class ConfProxyUtil {
             try {
                 return new ConfProxyProperties(instance);
             } catch (Exception e) {
-                fail("Could not load configuration for '" + instance + "': "
-                        + e.getMessage());
+                fail("Could not load configuration for '" + instance,
+                        e);
             }
         } else {
             printHelp();
@@ -89,7 +89,7 @@ public abstract class ConfProxyUtil {
             File instanceDir = Paths.get(confDir, instance).toFile();
             if (!instanceDir.exists()) {
                 fail("Configuration for proxy instance '" + instance
-                        + "' does not exist.");
+                        + "' does not exist.", null);
             }
         }
     }
@@ -98,8 +98,11 @@ public abstract class ConfProxyUtil {
      * Abort the configuration proxy utility program with the provided message.
      * @param msg the error message to display
      */
-    protected final void fail(final String msg) {
+    protected final void fail(final String msg, final Exception e) {
         System.err.println(msg);
+        if (e != null) {
+            System.err.println(e);
+        }
         System.exit(1);
     }
 }

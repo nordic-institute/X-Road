@@ -63,17 +63,28 @@
                 { text: _("clients.acl_subjects_search_dialog.add_all"),
                   id: "acl_subjects_search_add_all",
                   click: function() {
-                      var subjectIds = [];
 
-                      $.each(oAclSubjectsSearch.fnGetNodes(), function(idx, val) {
-                          if (!$(val).hasClass("unselectable")) {
-                              var subject = oAclSubjectsSearch.fnGetData(val);
-                              subjectIds.push(subject.subject_id);
-                          }
-                      });
 
-                      onAdd(subjectIds);
-                      $(dialog).dialog("close");
+
+                      confirm("clients.acl_subjects_search_dialog.add_all_confirm", null,
+                          function() {
+
+                              var subjectIds = [];
+
+                              $.each(oAclSubjectsSearch.fnGetNodes(), function(idx, val) {
+                                  if (!$(val).hasClass("unselectable")) {
+                                      var subject = oAclSubjectsSearch.fnGetData(val);
+                                      subjectIds.push(subject.subject_id);
+                                  }
+                              });
+
+                              onAdd(subjectIds);
+                              $(dialog).dialog("close");
+
+                          });
+
+
+
                   }
                 },
                 { text: _("common.next"),
@@ -96,7 +107,7 @@
         var opts = scrollableTableOpts(345);
         opts.sDom = "t";
         opts.aoColumns = [
-            { "mData": "name_description" },
+            { "mData": "name_description", mRender: util.escape },
             {
                 mData: function(source, type, val) {
                     return generateIdElement({
@@ -172,11 +183,19 @@
             enableActions();
         });
     }
+    
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#acl_subjects_search_dialog").parent().attr("data-name", "acl_subjects_search_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+    }
 
     $(document).ready(function() {
         initAclSubjectsSearchDialog();
         initAclSubjectsSearchTable();
         initAclSubjectsSearchActions();
+        initTestability();
     });
 
     ACL_SUBJECTS_SEARCH.openDialog = function(_unselectableAclSubjects, _onAdd) {

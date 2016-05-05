@@ -3,10 +3,10 @@
 use CGI;
 use Fcntl;
 use strict;
-
 use constant FILE_FIELD => "file";
 
 my $q = new CGI;
+my $url = $q->url();
 
 # Error handling.
 sub err {
@@ -16,7 +16,18 @@ sub err {
 }
 
 # Directory where to archive posted files.
-my $FILESTORE = './message_log_archive';
+my $FILESTORE = '/var/www/html/message_log_archive/';
+
+# Create archive directory if not exists.
+(! -d $FILESTORE) &&
+    (mkdir $FILESTORE || err("Cannot create directory $FILESTORE"));
+
+# If hostname is defined, then add directory
+my $hostname;
+if ($url =~ m/cgi-bin\/(.+)\/(demo-)?upload.pl/) {
+  $hostname = $1;
+  $FILESTORE .= $hostname .'/';
+}
 
 # Create archive directory if not exists.
 (! -d $FILESTORE) &&
@@ -45,4 +56,3 @@ close($filehandle);
 print $q->header();
 
 exit 0;
-

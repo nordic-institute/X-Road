@@ -4,12 +4,12 @@
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-proxy
-Version:            6.7
+Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road security server
 Group:              Applications/Internet
-License:            Proprietary
+License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
@@ -43,6 +43,7 @@ mkdir -p %{buildroot}/etc/pam.d
 mkdir -p %{buildroot}/usr/share/xroad/jlib/webapps
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
+mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{_sourcedir}/proxy/xroad-{proxy,async,confclient} %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
@@ -63,6 +64,8 @@ cp -p %{src}/../default-configuration/async-sender-logback.xml %{buildroot}/etc/
 cp -p %{src}/../default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{src}/debian/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
 cp -p %{src}/debian/trusty/proxy_restore_db.sh %{buildroot}/usr/share/xroad/scripts/restore_db.sh
+cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.txt
+cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /usr/share/xroad/jlib/async-sender-1.0.jar %{buildroot}/usr/share/xroad/jlib/async-sender.jar
@@ -120,8 +123,20 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
 /usr/share/xroad/scripts/verify_internal_configuration.sh
+%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+%doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
 %pre
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # remove the previous port forwarding rules (if any)
+    if [ -e /etc/sysconfig/xroad-proxy ]; then
+        source /etc/sysconfig/xroad-proxy
+    fi
+    if [ -x /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh ]; then
+        /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh disable
+    fi
+fi
 
 %post
 %systemd_post xroad-proxy.service
@@ -129,9 +144,23 @@ rm -rf %{buildroot}
 %systemd_post xroad-confclient.service
 
 if [ $1 -eq 1 ] ; then
-# Initial installation
-/usr/share/xroad/scripts/xroad-initdb.sh
+    # Initial installation
+    /usr/share/xroad/scripts/xroad-initdb.sh
+    if ! grep -qs DISABLE_PORT_REDIRECT /etc/sysconfig/xroad-proxy; then
+    cat <<"EOF" >>/etc/sysconfig/xroad-proxy
+# Setting DISABLE_PORT_REDIRECT to false enables iptables port redirection (default: disabled)
+# DISABLE_PORT_REDIRECT=true
+EOF
+    fi
 fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    if [ ! -e /etc/sysconfig/xroad-proxy ]; then
+        echo 'DISABLE_PORT_REDIRECT=false' >>/etc/sysconfig/xroad-proxy
+    fi
+fi
+
 sh /usr/share/xroad/scripts/xroad-proxy-setup.sh
 
 %preun
@@ -143,6 +172,7 @@ sh /usr/share/xroad/scripts/xroad-proxy-setup.sh
 %systemd_postun_with_restart xroad-proxy.service
 %systemd_postun_with_restart xroad-async.service
 %systemd_postun_with_restart xroad-confclient.service
+%systemd_postun_with_restart xroad-jetty9.service
 
 %changelog
 

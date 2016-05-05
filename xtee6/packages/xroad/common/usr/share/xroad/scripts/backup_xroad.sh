@@ -14,7 +14,12 @@ fi
 [ "$#" -eq 1 ] || die "1 argument required, $# provided"
 
 
-list="/etc/xroad/ /etc/nginx/sites-enabled/"
+list="/etc/xroad/ /etc/nginx/conf.d/*xroad*.conf"
+if [ -d "/etc/nginx/sites-enabled" ]
+then
+    list="$list /etc/nginx/sites-enabled/*xroad*"
+fi
+
 filename=$1
 
 echo "CREATING BACKUP TO ${filename}\n"

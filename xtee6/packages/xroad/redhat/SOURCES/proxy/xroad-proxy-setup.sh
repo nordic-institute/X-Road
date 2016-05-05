@@ -50,30 +50,6 @@ cd /usr/share/xroad/db/
 /usr/share/xroad/db/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
 
 #
-# add X-road groups
-#
-groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-system-auditor xroad-users-administrator"
-#
-for groupname in $groups
-do
-    if ! getent group $groupname > /dev/null; then
-        groupadd --system $groupname
-    fi
-done
-
-#
-# proxy-ui uses PAM password authentication by default
-# make /etc/shadow readable by group 'shadow'
-#
-if ! getent group shadow >/dev/null; then
-    groupadd --system shadow
-fi
-
-chgrp shadow /etc/shadow
-chmod g+r /etc/shadow
-usermod -a -G shadow xroad || true
-
-#
 # SELinux policy modification
 #
 

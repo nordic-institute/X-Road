@@ -50,6 +50,11 @@
                     <xs:documentation>XROAD identifier of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
+            <xs:element name="securityServer" type="id:XroadSecurityServerIdentifierType" minOccurs="0">
+                <xs:annotation>
+                    <xs:documentation>XROAD identifier of the security server.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
             <xs:element name="id" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>Query ID.</xs:documentation>

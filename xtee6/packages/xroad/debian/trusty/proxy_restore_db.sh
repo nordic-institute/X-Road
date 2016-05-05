@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cat << EOC | su - postgres -c "psql postgres"
 DROP DATABASE IF EXISTS serverconf_restore;
@@ -7,8 +7,9 @@ CREATE DATABASE serverconf_restore ENCODING 'UTF-8';
 EOC
 su - postgres -c "psql -d serverconf_restore -c \"CREATE EXTENSION hstore;\""
 
-PGPASSWORD=serverconf pg_restore -h 127.0.0.1 -U serverconf -O -x -n public  -1 -d serverconf_restore /var/lib/xroad/dbdump.dat
-
+PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
+USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
+PGPASSWORD=${PW:-serverconf} pg_restore -h 127.0.0.1 -U ${USER:-serverconf} -O -x -n public  -1 -d serverconf_restore /var/lib/xroad/dbdump.dat
 
 cat << EOC | su - postgres -c "psql postgres"
 revoke connect on database serverconf from serverconf;

@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
 
 import java.io.OutputStream;
@@ -52,7 +74,7 @@ class GlobalConfImpl implements GlobalConfProvider {
             confDir.eachFile(ConfigurationDirectory::verifyUpToDate);
             return true;
         } catch (Exception e) {
-            log.warn("Global configuration is invalid: {}", e.getMessage());
+            log.warn("Global configuration is invalid: {}", e);
             return false;
         }
     }
@@ -223,6 +245,21 @@ class GlobalConfImpl implements GlobalConfProvider {
 
         SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
         return p.getMemberAddresses().get(clientId);
+    }
+
+    @Override
+    public String getSecurityServerAddress(SecurityServerId serverId) {
+        if (serverId == null) {
+            return null;
+        }
+
+        SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
+        final SecurityServerType serverType = p.getSecurityServersById().get(serverId);
+        if (serverType != null) {
+            return serverType.getAddress();
+        }
+
+        return null;
     }
 
     @Override

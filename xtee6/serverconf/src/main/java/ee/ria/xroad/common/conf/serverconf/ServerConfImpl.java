@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.serverconf;
 
 import java.security.cert.X509Certificate;
@@ -106,8 +128,7 @@ public class ServerConfImpl implements ServerConfProvider {
     }
 
     @Override
-    public List<ServiceId> getAllowedServices(ClientId serviceProvider,
-            ClientId client) {
+    public List<ServiceId> getAllowedServices(ClientId serviceProvider, ClientId client) {
         return tx(session -> {
             List<ServiceId> allServices =
                     new ServiceDAOImpl().getServices(session, serviceProvider);
@@ -238,9 +259,9 @@ public class ServerConfImpl implements ServerConfProvider {
         return new WsdlDAOImpl().getWsdl(session, service);
     }
 
-    private boolean internalIsQueryAllowed(Session session, ClientId client,
-            ServiceId service) {
-        if (getService(session, service) == null || client == null) {
+    private boolean internalIsQueryAllowed(Session session, ClientId client, ServiceId service) {
+
+        if (client == null) {
             return false;
         }
 
@@ -290,8 +311,7 @@ public class ServerConfImpl implements ServerConfProvider {
                 .findFirst().isPresent();
     }
 
-    private LocalGroupType findLocalGroup(Session session, String groupCode,
-            ClientId groupOwnerId) {
+    private LocalGroupType findLocalGroup(Session session, String groupCode, ClientId groupOwnerId) {
         // No need to check for null because we already know the service
         // (and therefore the owner) exists.
         return getClient(session, groupOwnerId).getLocalGroup().stream()

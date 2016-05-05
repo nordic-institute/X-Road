@@ -446,7 +446,7 @@ $(document).ready(function() {
         { "mData": "token_id",
           "bVisible": false },
         { "mData": "token_friendly_name",
-          "bVisible": false },
+          "bVisible": false, mRender: util.escape },
         { "mData": "token_available",
           "bVisible": false },
         { "mData": "token_active",
@@ -454,14 +454,14 @@ $(document).ready(function() {
         { "mData": "key_id",
           "bVisible": false },
         { "mData": "key_friendly_name",
-          "bVisible": false },
+          "bVisible": false, mRender: util.escape },
         { "mData": "key_usage",
           "bVisible": false },
         { "mData": "cert_id",
           "bVisible": false },
         { "mData": "cert_friendly_name",
-          "sClass": "cert-friendly-name" },
-        { "mData": "cert_member_code" },
+          "sClass": "cert-friendly-name", mRender: util.escape },
+        { "mData": "cert_member_code", mRender: util.escape },
         { "mData": "cert_ocsp_response",
           "sClass": "cert-ocsp-response align-center",
           "sWidth": "6.5em" },
@@ -542,7 +542,7 @@ $(document).ready(function() {
                     + "<button class='deactivate_token'>" + _("keys.index.logout") + "</button>"
                     + "</div>";
 
-                return "<div class='left token-name'>" + _("keys.index.token") + friendlyName +
+                return "<div class='left token-name'>" + _("keys.index.token") + util.escape(friendlyName) +
                     (oData.token_locked ? locked : "") + "</div>" +
                     (oData.token_activatable ? buttons : "");
             },
@@ -555,7 +555,7 @@ $(document).ready(function() {
                     (oData.token_id != SOFTTOKEN_ID
                      && oData.key_usage == KEY_USAGE_AUTH) ? ", not supported" : "";
 
-                return _("keys.index.key") + friendlyName
+                return _("keys.index.key") + util.escape(friendlyName)
                     + " (<span class='key-usage'>" + keyUsage + keyNotSupported + "</span>)";
             }
         ],
