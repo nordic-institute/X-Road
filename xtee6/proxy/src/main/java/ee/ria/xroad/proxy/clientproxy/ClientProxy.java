@@ -159,7 +159,6 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());
@@ -195,7 +194,6 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());

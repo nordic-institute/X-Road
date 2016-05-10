@@ -100,7 +100,8 @@ public class CertHashBasedOcspResponder implements StartStop {
                 new MultiPartOutputStream(response.getOutputStream());
 
         response.setContentType(
-                MimeUtils.mpRelatedContentType(mpResponse.getBoundary()));
+                MimeUtils.mpRelatedContentType(mpResponse.getBoundary(),
+                        MimeTypes.OCSP_RESPONSE));
         response.setStatus(HttpServletResponse.SC_OK);
 
         for (OCSPResp ocsp : ocspResponses) {

@@ -35,7 +35,7 @@ public class IdentifierTypeConverterTest {
                 fileToType("clientid.xml", MEMBER,
                         XRoadClientIdentifierType.class));
 
-        assertEquals(MEMBER , id.getObjectType());
+        assertEquals(MEMBER, id.getObjectType());
         assertEquals("EE", id.getXRoadInstance());
         assertEquals("COMPANY", id.getMemberClass());
         assertEquals("FOOBAR", id.getMemberCode());
@@ -45,7 +45,7 @@ public class IdentifierTypeConverterTest {
     /**
      * Test to ensure client ID (MEMBER) reading from XML fails, if excessive
      * subsystem code element is present.
-     * @throws Exception
+     * @throws Exception in case of any unexpected errors
      */
     @Test
     public void readInvalidClientIdentifierAsMember() throws Exception {

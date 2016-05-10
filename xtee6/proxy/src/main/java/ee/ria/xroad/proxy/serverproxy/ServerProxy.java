@@ -166,7 +166,6 @@ public class ServerProxy implements StartStop {
         connector.setPort(port);
         connector.setHost(listenAddress);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(2 * Runtime.getRuntime().availableProcessors());

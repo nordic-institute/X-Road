@@ -1,3 +1,20 @@
+xroad (6.8.3-2) trusty; urgency=low
+
+  [Security Server]
+  * Bugfix: Added the mandatory "type" parameter to the multipart/related
+    content-type header
+  * Bugfix: Fixed the premature termination of message streams
+  * Bugfix: Ensured that the signature is not sent before the message has been
+    successfully logged
+  * Feature: Do not validate SOAP messages against the SOAP schema, to prevent
+    causing errors in case a type definition of the SOAP message element is 
+    described in an external schema (the necessary checks are performed in other
+    ways)
+  * Feature: Remove the UTF-8 BOM bytes (if found) from the incoming request
+    and response
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 05 May 2016 10:18:22 +0300
+
 xroad (6.8.3-1) trusty; urgency=low
 
   [Security server]

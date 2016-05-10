@@ -14,7 +14,6 @@ import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
-import javax.xml.transform.dom.DOMSource;
 
 import com.sun.xml.bind.api.AccessorException;
 import lombok.extern.slf4j.Slf4j;
@@ -79,13 +78,6 @@ public class SoapParserImpl implements SoapParser {
                     "Malformed SOAP message: body missing");
         }
 
-        // Currently only validate D/L wrapped messages, since there is an
-        // error in SOAP Schema that prohibits the use of encodingStyle
-        // attribute in the SOAP envelope.
-        if (!SoapUtils.isRpcMessage(soap)) {
-            validateAgainstSoapSchema(soap);
-        }
-
         SOAPFault fault = soap.getSOAPBody().getFault();
         if (fault != null) {
             return new SoapFault(fault, rawXml, charset);
@@ -130,12 +122,6 @@ public class SoapParserImpl implements SoapParser {
 
         return new SoapMessageImpl(rawXml, charset, header, soap,
                 serviceName, originalContentType);
-    }
-
-    protected void validateAgainstSoapSchema(SOAPMessage soap)
-            throws Exception {
-        SoapSchemaValidator.validate(
-                new DOMSource(soap.getSOAPPart().getDocumentElement()));
     }
 
     /**

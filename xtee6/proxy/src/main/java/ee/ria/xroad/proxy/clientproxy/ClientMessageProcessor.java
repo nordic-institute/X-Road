@@ -305,14 +305,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void logRequestMessage() throws Exception {
-        if (request != null) {
-            log.trace("logRequestMessage()");
-
-            MessageLog.log(requestSoap, request.getSignature(), true);
-        }
-    }
-
     private void logResponseMessage() throws Exception {
         log.trace("logResponseMessage()");
 
@@ -480,13 +472,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    /** This is wrapper class that internally selects the proper handler
-     * based on the SOAP message. If the SOAP message is asynchronous, then
-     * AsyncSoapMessageHandler is used, otherwise DefaultSoapMessageHandler
-     * is used. */
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
-
-        private SoapMessageDecoder.Callback handler;
 
         @Override
         public void soap(SoapMessage message, Map<String, String> headers)
@@ -496,76 +482,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
             requestSoap = (SoapMessageImpl) message;
             requestServiceId = requestSoap.getService();
 
-            if (handler == null) {
-                log.trace("Creating handler for messages");
-                handler = new DefaultSoapMessageHandler();
-            }
-
-            handler.soap(message, headers);
-        }
-
-        @Override
-        public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
-            log.trace("attachment({})", contentType);
-
-            if (handler != null) {
-                handler.attachment(contentType, content, additionalHeaders);
-            } else {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "No soap message handler present");
-            }
-        }
-
-        @Override
-        public void fault(SoapFault fault) throws Exception {
-            onError(fault.toCodedException());
-        }
-
-        @Override
-        public void onCompleted() {
-            log.trace("onCompleted()");
-
-            if (requestSoap == null) {
-                setError(new ClientException(X_MISSING_SOAP,
-                        "Request does not contain SOAP message"));
-                return;
-            }
-
-            if (handler != null) {
-                handler.onCompleted();
-            }
-
-            try {
-                logRequestMessage();
-            } catch (Exception e) {
-                setError(e);
-            }
-        }
-
-        @Override
-        public void onError(Exception e) throws Exception {
-            log.error("onError(): ", e);
-
-            if (handler != null) {
-                handler.onError(e);
-            } else {
-                throw e;
-            }
-        }
-
-        @Override
-        public void close() {
-            handler.close();
-        }
-    }
-
-    private class DefaultSoapMessageHandler
-            implements SoapMessageDecoder.Callback {
-
-        @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
             if (request == null) {
                 request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
                 outputContentType = request.getContentType();
@@ -586,6 +502,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         @Override
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
+            log.trace("attachment()");
+
             request.attachment(contentType, content, additionalHeaders);
         }
 
@@ -596,15 +514,33 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void onCompleted() {
+            log.trace("onCompleted()");
+
+            if (requestSoap == null) {
+                setError(new ClientException(X_MISSING_SOAP,
+                        "Request does not contain SOAP message"));
+                return;
+            }
+
             try {
                 request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
+                logRequestMessage();
+                request.writeSignature();
             } catch (Exception ex) {
                 setError(ex);
             }
         }
 
+        private void logRequestMessage() throws Exception {
+            log.trace("logRequestMessage()");
+
+            MessageLog.log(requestSoap, request.getSignature(), true);
+        }
+
         @Override
         public void onError(Exception e) throws Exception {
+            log.error("onError(): ", e);
+
             // Simply re-throw
             throw e;
         }

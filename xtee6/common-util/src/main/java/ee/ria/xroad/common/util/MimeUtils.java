@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiPartWriter;
 
@@ -61,14 +62,16 @@ public final class MimeUtils {
 
     /**
      * Constructs content-type string for multipart/related content with given
-     * boundary.
+     * boundary and root part content-type.
      * @param boundary boundary to be used in the content-type construction
+     * @param rootContentType type of the root part of the multipart message
      * @return String
      */
-    public static String mpRelatedContentType(String boundary) {
+    public static String mpRelatedContentType(String boundary,
+            String rootContentType) {
         return contentTypeWithCharsetAndBoundary(MimeTypes.MULTIPART_RELATED,
-                UTF8, boundary);
-    }
+            rootContentType, UTF8, boundary);
+     }
 
     /**
      * Constructs a content type with given type, charset and boundary.
@@ -80,6 +83,21 @@ public final class MimeUtils {
     public static String contentTypeWithCharsetAndBoundary(String mimeType,
             String charset, String boundary) {
         return mimeType + "; charset=" + charset + "; boundary=" + boundary;
+    }
+
+    /**
+     * Constructs a content-type with given type, type parameter, charset and
+     * boundary.
+     * @param mimeType mime type to be used in the content-type construction
+     * @param type type to be used in the content-type construction
+     * @param charset charset to be used in the content-type construction
+     * @param boundary boundary to be used in the content-type construction
+     * @return String
+     */
+    public static String contentTypeWithCharsetAndBoundary(String mimeType,
+            String type, String charset, String boundary) {
+        return mimeType + "; type=\"" + type + "\"; charset=" + charset
+                + "; boundary=" + boundary;
     }
 
     /**
@@ -109,6 +127,17 @@ public final class MimeUtils {
      */
     public static String getCharset(String contentType) {
         return getParameterValue(contentType, "charset");
+    }
+
+    /**
+     * Returns true, if content type has UTF-8 charset or "charset" is not set.
+     * @param contentType content type from which to extract the charset
+     * @return true, if content type has UTF-8 charset or "charset" is not set
+     */
+    public static boolean hasUtf8Charset(String contentType) {
+        String charset = getCharset(contentType);
+
+        return StringUtils.isBlank(charset) || charset.equalsIgnoreCase(UTF8);
     }
 
     /**

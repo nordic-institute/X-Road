@@ -60,7 +60,8 @@ class AuthCertRegRequest implements ManagementRequest {
 
     @Override
     public String getRequestContentType() {
-        return mpRelatedContentType(multipart.getBoundary());
+        return mpRelatedContentType(multipart.getBoundary(),
+                MimeTypes.BINARY);
     }
 
     @Override

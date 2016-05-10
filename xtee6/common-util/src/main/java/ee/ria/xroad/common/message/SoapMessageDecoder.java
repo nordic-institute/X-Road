@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
@@ -16,12 +17,15 @@ import org.apache.james.mime4j.stream.MimeConfig;
 
 import ee.ria.xroad.common.CodedException;
 
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
+
 
 /**
  * Decodes SOAP messages from an input stream.
@@ -100,14 +104,17 @@ public class SoapMessageDecoder {
                     "Could not get content type from request");
         }
 
+        // Detect and exclude a UTF-8 BOM.
+        InputStream stream = excludeUtf8Bom(soapStream);
+
         try {
             switch (baseContentType.toLowerCase()) {
                 case TEXT_XML:
                 case XOP_XML:
-                    readSoapMessage(soapStream);
+                    readSoapMessage(stream);
                     break;
                 case MULTIPART_RELATED:
-                    readMultipart(soapStream);
+                    readMultipart(stream);
                     break;
                 default:
                     throw new CodedException(X_INVALID_CONTENT_TYPE,
@@ -118,6 +125,11 @@ public class SoapMessageDecoder {
         }
 
         callback.onCompleted();
+    }
+
+    private InputStream excludeUtf8Bom(InputStream soapStream) {
+        return hasUtf8Charset(contentType)
+                ? new BOMInputStream(soapStream) : soapStream;
     }
 
     private void readSoapMessage(InputStream is) throws Exception {

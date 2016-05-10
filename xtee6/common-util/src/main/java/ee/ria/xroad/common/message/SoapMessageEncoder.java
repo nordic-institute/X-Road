@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 
+import ee.ria.xroad.common.util.MimeTypes;
+
 import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 /**
@@ -46,7 +48,8 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
      * current boundary.
      */
     public String getContentType() {
-        return mpRelatedContentType(multipart.getBoundary());
+        return mpRelatedContentType(multipart.getBoundary(),
+                MimeTypes.TEXT_XML);
     }
 
     @Override

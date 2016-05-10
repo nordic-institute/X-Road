@@ -175,7 +175,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Signs all the parts and writes the signature to stream.
+     * Signs all the parts.
      * Call after adding SOAP message and attachments.
      * @param securityCtx signing context to use when signing the parts
      * @throws Exception in case of any errors
@@ -183,14 +183,24 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public void sign(SigningCtx securityCtx) throws Exception {
         LOG.trace("sign()");
 
-        endAttachments();
-
         signer.sign(securityCtx);
+    }
+
+    /**
+     * Writes the signature to stream.
+     * Call after sing().
+     * @throws Exception in case of any errors
+     */
+    public void writeSignature() throws Exception {
+        LOG.trace("writeSignature()");
+
+        endAttachments();
 
         // If the signature is a batch signature, then encode the
         // hash chain result and corresponding hash chain immediately before
         // the signature document.
         SignatureData sd = signer.getSignatureData();
+
         if (sd.isBatchSignature()) {
             hashChain(sd.getHashChainResult(), sd.getHashChain());
         }

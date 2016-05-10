@@ -89,6 +89,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             handleRequest();
 
             sign();
+            logResponseMessage();
+            writeSignature();
 
             close();
 
@@ -113,7 +115,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void postprocess() throws Exception {
-        logResponseMessage();
     }
 
     private void loadServiceHandlers() {
@@ -385,6 +386,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("sign({})", requestServiceId.getClientId());
 
         encoder.sign(responseSigningCtx);
+    }
+
+    private void writeSignature() throws Exception {
+        log.trace("writeSignature()");
+
+        encoder.writeSignature();
     }
 
     private void close() throws Exception {

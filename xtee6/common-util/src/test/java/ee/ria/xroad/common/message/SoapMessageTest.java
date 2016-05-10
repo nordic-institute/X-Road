@@ -100,17 +100,6 @@ public class SoapMessageTest {
     }
 
     /**
-     * Tests that verification fails against schema, if the message is not a
-     * valid SOAP message.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void notSoapMessage() throws Exception {
-        thrown.expectError(X_MALFORMED_SOAP);
-        createSoapMessage("malformed-soap.query");
-    }
-
-    /**
      * Tests that missing header is detected on not fault messages.
      * @throws Exception in case of any unexpected errors
      */

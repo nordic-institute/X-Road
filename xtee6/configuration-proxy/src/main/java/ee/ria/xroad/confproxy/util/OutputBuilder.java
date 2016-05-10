@@ -13,6 +13,7 @@ import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
+import org.eclipse.jetty.util.MultiPartWriter;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -27,21 +28,8 @@ import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
-import static ee.ria.xroad.common.util.MimeUtils
-        .HEADER_CONTENT_TRANSFER_ENCODING;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERIFICATION_CERT_HASH;
-import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
-import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
-import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.*;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded
@@ -131,7 +119,8 @@ public class OutputBuilder {
         dataBoundary = randomBoundary();
         envelopeBoundary = randomBoundary();
         envelopeHeader = HEADER_CONTENT_TYPE + ": "
-                + mpRelatedContentType(envelopeBoundary) + "\n\n";
+                + mpRelatedContentType(envelopeBoundary,
+                        MultiPartWriter.MULTIPART_MIXED) + "\n\n";
     }
 
     /**

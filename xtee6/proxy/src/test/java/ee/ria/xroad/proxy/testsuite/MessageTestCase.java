@@ -1,6 +1,7 @@
 package ee.ria.xroad.proxy.testsuite;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -12,10 +13,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,6 +69,9 @@ public class MessageTestCase {
     protected String requestFileName;
     @Getter
     protected String responseFile;
+
+    protected boolean addUtf8BomToRequestFile = false;
+    protected boolean addUtf8BomToResponseFile = false;
 
     protected String requestContentType = MimeUtils.TEXT_XML_UTF8;
 
@@ -206,7 +212,8 @@ public class MessageTestCase {
 
         // Request input stream is read twice, once for recording,
         // second time for HTTP request.
-        Pair<String, InputStream> requestInput = getRequestInput();
+        Pair<String, InputStream> requestInput = getRequestInput(false);
+
         try (InputStream is = requestInput.getRight()) {
             sentRequest = new Message(is, requestInput.getLeft());
         }
@@ -216,7 +223,8 @@ public class MessageTestCase {
         sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
         // Get the input again.
-        requestInput = getRequestInput();
+        requestInput = getRequestInput(addUtf8BomToRequestFile);
+
         try (InputStream is = requestInput.getRight()) {
             for (Entry<String, String> e : requestHeaders.entrySet()) {
                 sender.addHeader(e.getKey(), e.getValue());
@@ -298,18 +306,31 @@ public class MessageTestCase {
     /**
      * Returns pair of <contenttype, inputstream> containing the request.
      */
-    protected Pair<String, InputStream> getRequestInput() throws Exception {
+    protected Pair<String, InputStream> getRequestInput(
+            boolean addUtf8Bom) throws Exception {
         if (requestFileName != null) {
             String file = QUERIES_DIR + "/" + requestFileName;
-            return Pair.of(requestContentType, getQueryInputStream(file));
+            return Pair.of(requestContentType, getQueryInputStream(
+                    file, addUtf8Bom));
         }
 
         throw new IllegalArgumentException("requestFileName must be specified");
     }
 
-    protected InputStream getQueryInputStream(String fileName)
-            throws Exception {
-        return changeQueryId(new FileInputStream(fileName));
+    protected InputStream getQueryInputStream(String fileName,
+            boolean addUtf8Bom) throws Exception {
+        InputStream is = changeQueryId(new FileInputStream(fileName));
+
+        return addUtf8Bom ? addUtf8Bom(is) : is;
+    }
+
+    private InputStream addUtf8Bom(InputStream is) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        out.write(ByteOrderMark.UTF_8.getBytes());
+        out.write(IOUtils.toByteArray(is));
+
+        return new ByteArrayInputStream(out.toByteArray());
     }
 
     protected CloseableHttpAsyncClient getClient() throws Exception {
