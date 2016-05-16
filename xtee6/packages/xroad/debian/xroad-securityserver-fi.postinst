@@ -1,7 +1,0 @@
-#!/bin/bash
-
-set -e
-
-cp -pf /etc/xroad/conf.d/signer-fi.ini /etc/xroad/conf.d/signer.ini
-
-exit 0
