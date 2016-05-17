@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.input.BOMInputStream;
+
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
@@ -24,7 +24,6 @@ import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
-import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
 
 
 /**
@@ -104,17 +103,14 @@ public class SoapMessageDecoder {
                     "Could not get content type from request");
         }
 
-        // Detect and exclude a UTF-8 BOM.
-        InputStream stream = excludeUtf8Bom(soapStream);
-
         try {
             switch (baseContentType.toLowerCase()) {
                 case TEXT_XML:
                 case XOP_XML:
-                    readSoapMessage(stream);
+                    readSoapMessage(soapStream);
                     break;
                 case MULTIPART_RELATED:
-                    readMultipart(stream);
+                    readMultipart(soapStream);
                     break;
                 default:
                     throw new CodedException(X_INVALID_CONTENT_TYPE,
@@ -125,11 +121,6 @@ public class SoapMessageDecoder {
         }
 
         callback.onCompleted();
-    }
-
-    private InputStream excludeUtf8Bom(InputStream soapStream) {
-        return hasUtf8Charset(contentType)
-                ? new BOMInputStream(soapStream) : soapStream;
     }
 
     private void readSoapMessage(InputStream is) throws Exception {

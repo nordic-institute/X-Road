@@ -1,3 +1,11 @@
+xroad (6.8.3-3) trusty; urgency=low
+
+  [Security Server]
+  * Feature: Do not remove the UTF-8 BOM bytes (if found) from the incoming
+    SOAP request (except in case a central service is used)
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Fri, 13 May 2016 12:46:29 +0300
+
 xroad (6.8.3-2) trusty; urgency=low
 
   [Security Server]

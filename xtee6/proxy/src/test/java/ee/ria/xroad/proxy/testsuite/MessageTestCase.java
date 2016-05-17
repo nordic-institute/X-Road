@@ -88,6 +88,7 @@ public class MessageTestCase {
     @Setter
     private String id;
 
+    @Getter
     private String queryId;
 
     @Getter

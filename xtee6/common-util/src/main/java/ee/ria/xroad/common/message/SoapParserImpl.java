@@ -16,8 +16,11 @@ import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
 import com.sun.xml.bind.api.AccessorException;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -25,14 +28,17 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
 
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapUtils.*;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
 
 /**
- * Default Soap parser implementation for reading Soap messages from an input stream.
+ * Default Soap parser implementation for reading Soap messages from an
+ * input stream.
  */
 @Slf4j
 public class SoapParserImpl implements SoapParser {
@@ -66,9 +72,17 @@ public class SoapParserImpl implements SoapParser {
             validateMimeType(mimeType);
         }
 
-        SOAPMessage soap =
-                createSOAPMessage(new ByteArrayInputStream(rawXml), charset);
+        // Detect and exclude a UTF-8 BOM.
+        SOAPMessage soap = createSOAPMessage(excludeUtf8Bom(contentType,
+                new ByteArrayInputStream(rawXml)), charset);
+
         return parseMessage(rawXml, soap, charset, contentType);
+    }
+
+    private InputStream excludeUtf8Bom(String contentType,
+            InputStream soapStream) {
+        return hasUtf8Charset(contentType)
+                ? new BOMInputStream(soapStream) : soapStream;
     }
 
     protected Soap parseMessage(byte[] rawXml, SOAPMessage soap,

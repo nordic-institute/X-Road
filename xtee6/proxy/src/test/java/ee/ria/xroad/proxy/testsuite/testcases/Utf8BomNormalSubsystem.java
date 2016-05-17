@@ -1,5 +1,11 @@
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.util.Arrays;
+
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -24,6 +30,20 @@ public class Utf8BomNormalSubsystem extends MessageTestCase {
     @Override
     protected void validateNormalResponse(Message receivedResponse)
             throws Exception {
-        // Normal response, nothing more to check here.
+
+        RequestHash requestHashFromResponse = ((SoapMessageImpl)
+                receivedResponse.getSoap()).getHeader().getRequestHash();
+
+        byte[] requestHash = CryptoUtils.calculateDigest(
+                CryptoUtils.getAlgorithmId(
+                        requestHashFromResponse.getAlgorithmId()),
+                IOUtils.toByteArray(getRequestInput(
+                        addUtf8BomToRequestFile).getRight()));
+
+        if (!Arrays.areEqual(requestHash, CryptoUtils.decodeBase64(
+                requestHashFromResponse.getHash()))) {
+            throw new RuntimeException(
+                    "Request message hash does not match request message");
+        }
     }
 }
