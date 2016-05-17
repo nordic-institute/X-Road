@@ -28,14 +28,6 @@ import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
 @Slf4j
 public class SoapParserImpl
         extends ee.ria.xroad.common.message.SoapParserImpl {
-
-    @Override
-    protected void validateAgainstSoapSchema(SOAPMessage soap)
-            throws Exception {
-        // Disable SOAP schema validation, because X-Road 5.0 SOAP messages
-        // might contain non-valid elements.
-    }
-
     @Override
     protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
             String charset, String originalContentType) throws Exception {

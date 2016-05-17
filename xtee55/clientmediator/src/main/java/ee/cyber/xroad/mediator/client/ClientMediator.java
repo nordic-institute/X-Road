@@ -81,7 +81,6 @@ public class ClientMediator implements StartStop {
         connector.setHost(host);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());
@@ -114,7 +113,6 @@ public class ClientMediator implements StartStop {
         connector.setHost(host);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());

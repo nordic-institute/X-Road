@@ -2,10 +2,10 @@ package ee.cyber.xroad.mediator.message;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
 
@@ -29,7 +29,7 @@ public class MultipartMessageEncoder extends MultipartEncoder
 
     @Override
     public String getContentType() {
-        return MimeUtils.mpRelatedContentType(topBoundary);
+        return MimeUtils.mpRelatedContentType(topBoundary, MimeTypes.TEXT_XML);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class MultipartMessageEncoder extends MultipartEncoder
             Map<String, String> additionalHeaders) throws Exception {
         startPart(soapMessage.getContentType(),
                 MimeUtils.toHeaders(additionalHeaders));
-        write(soapMessage.getXml().getBytes(StandardCharsets.UTF_8));
+        write(soapMessage.getBytes());
     }
 
     /**

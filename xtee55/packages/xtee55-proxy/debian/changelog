@@ -1,3 +1,11 @@
+xtee55-proxy (2.1-1) lucid; urgency=low
+
+  * Supported the UTF-8 BOM bytes in the SOAP message
+  * Fixed the premature termination of message streams
+  * Minor fixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Fri, 13 May 2016 14:10:24 +0300
+
 xtee55-proxy (2.1-0) lucid; urgency=low
 
   * Services are not imported from X-Road version 5 any more
