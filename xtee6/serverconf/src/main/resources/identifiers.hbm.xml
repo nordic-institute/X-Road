@@ -4,7 +4,7 @@
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 <hibernate-mapping package="ee.ria.xroad.common.identifier">
 
-    <class name="XroadId" table="IDENTIFIER">
+    <class name="XRoadId" table="IDENTIFIER">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
@@ -13,7 +13,7 @@
 
         <property name="type" access="field">
              <type name="org.hibernate.type.EnumType">
-                 <param name="enumClass">ee.ria.xroad.common.identifier.XroadObjectType</param>
+                 <param name="enumClass">ee.ria.xroad.common.identifier.XRoadObjectType</param>
                  <param name="type">12</param>
              </type>
         </property>

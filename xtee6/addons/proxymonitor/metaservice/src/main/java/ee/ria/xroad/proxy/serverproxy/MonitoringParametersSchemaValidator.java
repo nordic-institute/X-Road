@@ -22,16 +22,18 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.util.SchemaValidator;
-import org.apache.commons.io.FileUtils;
+import java.io.File;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
-import java.io.File;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
+
+import org.apache.commons.io.FileUtils;
+
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.SchemaValidator;
 
 /**
  * Validator for monitoring parameters xml

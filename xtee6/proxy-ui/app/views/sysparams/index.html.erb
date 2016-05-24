@@ -47,33 +47,6 @@
     </table>
   </div>
 
-  <% if can?(:view_async_params) %>
-  <div class="box">
-    <div class="box-heading">
-      <span class="box-title"><%= t '.async_params' %></span>
-
-      <% if can?(:edit_async_params) %>
-      <button id="async_edit"><%= t 'common.save' %></button>
-      <% end %>
-    </div>
-
-    <table class="details">
-      <tr>
-        <td><%= t '.async_period' %>:</td>
-        <td><%= text_field_tag 'async_period', nil, :disabled => !can?(:edit_async_params) %></td>
-      </tr>
-      <tr>
-        <td><%= t '.async_max_period' %>:</td>
-        <td><%= text_field_tag 'async_max_period', nil, :disabled => !can?(:edit_async_params) %></td>
-      </tr>
-      <tr>
-        <td><%= t '.async_parallel' %>:</td>
-        <td><%= text_field_tag 'async_parallel', nil, :disabled => !can?(:edit_async_params) %></td>
-      </tr>
-    </table>
-  </div>
-  <% end %>
-
   <div class="box">
     <div class="box-heading">
       <span class="box-title"><%= t '.internal_ssl_cert' %></span>

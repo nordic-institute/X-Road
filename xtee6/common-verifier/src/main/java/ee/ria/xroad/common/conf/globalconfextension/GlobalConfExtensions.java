@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconfextension;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import lombok.extern.slf4j.Slf4j;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Provides access to global configuration extensions

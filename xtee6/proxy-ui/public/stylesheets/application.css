@@ -1,6 +1,9 @@
 .ui-dialog-titlebar .xroad-id {
   font-weight: 300; }
 
+table tbody tr td ul.tableitem-actions {
+  line-height: 1px; }
+
 #services .fa {
   padding-right: 0.5em; }
 #services .gray {
@@ -26,8 +29,6 @@
 #keys_wrapper tr .cert-friendly-name {
   padding-left: 40px; }
 
-#keys .token {
-  line-height: 34px; }
 #keys .unsaved {
   background-color: rgba(239, 227, 12, 0.7); }
 #keys .token-unavailable,
@@ -43,8 +44,7 @@
   display: inline; }
 #keys .token .locked,
 #keys .token.token-available.token-inactive {
-  color: red;
-  font-family: "open_sansbold"; }
+  color: red; }
 
 .token-name {
   width: 80%;
@@ -52,6 +52,7 @@
   text-overflow: ellipsis;
   line-height: normal; }
 
+/*# sourceMappingURL=application.css.map */
 .diagnostics_status_ok {
   color: #30e55f;
   text-shadow: 0 0 3px rgba(48, 229, 95, 0.8); }

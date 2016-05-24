@@ -27,7 +27,6 @@ import java.util.Date;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-
 import ee.ria.xroad.common.SystemProperties;
 
 /**

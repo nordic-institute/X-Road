@@ -22,41 +22,56 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
+
+import ee.ria.xroad.common.util.MimeTypes;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.util.MultiPartOutputStream;
-
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 /**
  * Encodes SOAP with attachments as MIME multipart.
  */
 public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
 
-    private MultiPartOutputStream multipart;
+    private MultipartOutputStream multipart;
 
     /**
-     * Creates a SOAP message encoder that writes messages to the given output stream.
+     * Creates a SOAP message encoder that writes messages to the given
+     * output stream.
      * @param output output stream to write SOAP messages
-     * @throws Exception if a MIME multipart stream could not be created
      */
-    public SoapMessageEncoder(OutputStream output) throws Exception {
-        multipart = new MultiPartOutputStream(output);
+    public SoapMessageEncoder(OutputStream output) {
+        this(output, null);
     }
 
     /**
-     * Gets the content-type string for multipart/related content with the current boundary.
-     * @return String
+     * Creates a SOAP message encoder that writes messages to the given
+     * output stream.
+     * @param output output stream to write SOAP messages
+     * @param boundary the MIME boundary value to use
+     */
+    public SoapMessageEncoder(OutputStream output, String boundary) {
+        if (boundary == null) {
+            multipart = new MultipartOutputStream(output);
+        } else {
+            multipart = new MultipartOutputStream(output, boundary);
+        }
+    }
+
+    /**
+     * @return the content-type string for multipart/related content with the
+     * current boundary.
      */
     public String getContentType() {
-        return mpRelatedContentType(multipart.getBoundary());
+        return mpRelatedContentType(multipart.getBoundary(),
+                MimeTypes.TEXT_XML);
     }
 
     @Override
@@ -65,16 +80,17 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
     }
 
     @Override
-    public void soap(SoapMessage soapMessage) throws Exception {
-        String charset = soapMessage.getCharset();
-        multipart.startPart(contentTypeWithCharset(TEXT_XML, charset));
+    public void soap(SoapMessage soapMessage,
+            Map<String, String> additionalHeaders) throws Exception {
+        multipart.startPart(soapMessage.getContentType(),
+                convertHeaders(additionalHeaders));
         multipart.write(soapMessage.getBytes());
     }
 
     @Override
     public void attachment(String contentType, InputStream content,
             Map<String, String> additionalHeaders) throws Exception {
-        String[] headers = null;
+        String[] headers = {};
         if (additionalHeaders != null && !additionalHeaders.isEmpty()) {
             headers = convertHeaders(additionalHeaders);
         }
@@ -84,12 +100,9 @@ public class SoapMessageEncoder implements SoapMessageConsumer, Closeable {
     }
 
     private static String[] convertHeaders(Map<String, String> headers) {
-        String[] ret = new String[headers.size()];
-        int idx = 0;
-        for (Map.Entry<String, String> entry: headers.entrySet()) {
-            ret[idx++] = entry.getKey() + ": " + entry.getValue();
-        }
-
-        return ret;
+        return headers.entrySet().stream()
+            .map(e -> e.getKey() + ": " + e.getValue())
+            .collect(Collectors.toList())
+            .toArray(new String[] {});
     }
 }

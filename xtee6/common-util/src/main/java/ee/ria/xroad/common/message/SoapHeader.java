@@ -27,14 +27,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * This class represents X-Road SOAP message header.
@@ -73,11 +73,8 @@ public class SoapHeader {
     @XmlElement(name = "requestHash", required = false, namespace = NS_XROAD)
     private RequestHash requestHash;
 
-    @XmlElement(name = "async", required = false, namespace = NS_XROAD)
-    private boolean async;
-
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
-    private ProtocolVersion protocolVersion = new ProtocolVersion();
+    private ProtocolVersion protocolVersion;
 
     @Override
     public String toString() {

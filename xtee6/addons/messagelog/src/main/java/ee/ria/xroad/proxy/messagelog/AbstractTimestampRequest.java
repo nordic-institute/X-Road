@@ -22,13 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
+import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.addSignerCertificate;
+import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
+
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.tsp.TimeStampRequest;
@@ -40,12 +42,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.signature.TimestampVerifier;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmIdentifier;
-import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.addSignerCertificate;
-import static ee.ria.xroad.proxy.messagelog.TimestamperUtil.getTimestampResponse;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor

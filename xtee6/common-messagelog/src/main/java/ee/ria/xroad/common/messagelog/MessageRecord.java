@@ -22,12 +22,21 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
+
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import lombok.*;
+import ee.ria.xroad.common.util.CryptoUtils;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -146,4 +155,17 @@ public class MessageRecord extends AbstractLogRecord {
         return new AsicContainer(message, signatureData, timestamp);
     }
 
+    /**
+     * @param queryId the query ID
+     * @return MD5 hex digest of the given query ID
+     * @throws Exception if any errors occur
+     */
+    public static String hashQueryId(String queryId) throws Exception {
+        return hexDigest(MD5_ID, queryId);
+    }
+
+    static String decodeBase64(String base64Encoded) {
+        return (base64Encoded != null && !base64Encoded.isEmpty())
+                ? new String(CryptoUtils.decodeBase64(base64Encoded)) : null;
+    }
 }

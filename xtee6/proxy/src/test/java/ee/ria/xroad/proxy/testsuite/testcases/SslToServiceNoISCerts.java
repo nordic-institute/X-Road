@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * ServerProxy connects to Service using SSL, serverconf contains no IS certs.

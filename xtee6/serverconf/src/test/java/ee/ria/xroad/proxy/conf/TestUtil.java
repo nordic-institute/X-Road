@@ -22,20 +22,28 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+
 import java.util.Date;
 
 import org.hibernate.Query;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.serverconf.model.*;
+import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
+import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XroadId;
-
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 /**
  * Contains server conf test utility methods.
@@ -286,10 +294,10 @@ public final class TestUtil {
     }
 
     static AccessRightType createAccessRight(String serviceCode,
-            XroadId xroadId) {
+            XRoadId xRoadId) {
         AccessRightType accessRight = new AccessRightType();
         accessRight.setServiceCode(serviceCode);
-        accessRight.setSubjectId(xroadId);
+        accessRight.setSubjectId(xRoadId);
         accessRight.setRightsGiven(new Date());
 
         return accessRight;

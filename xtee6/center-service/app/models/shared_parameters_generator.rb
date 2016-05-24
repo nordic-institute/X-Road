@@ -50,10 +50,8 @@ class SharedParametersGenerator
     ApprovedCa.find_each do |each_approved_ca|
       approved_ca_type = @marshaller.factory.createApprovedCAType()
 
-      auth_only = each_approved_ca.authentication_only
-
       approved_ca_type.name = each_approved_ca.name
-      approved_ca_type.authenticationOnly = auth_only
+      approved_ca_type.authenticationOnly = each_approved_ca.authentication_only
 
       approved_ca_type.topCA = get_ca_info_type(each_approved_ca.top_ca)
 
@@ -62,15 +60,7 @@ class SharedParametersGenerator
             get_ca_info_type(each_intermediate_ca))
       end
 
-      if !auth_only
-        identifier_decoder_type =
-            @marshaller.factory.createIdentifierDecoderType()
-        identifier_decoder_type.memberClass =
-            each_approved_ca.identifier_decoder_member_class
-        identifier_decoder_type.methodName =
-            each_approved_ca.identifier_decoder_method_name
-        approved_ca_type.identifierDecoder = identifier_decoder_type
-      end
+      approved_ca_type.certificateProfileInfo = each_approved_ca.cert_profile_info
 
       @marshaller.root.getApprovedCA().add(approved_ca_type)
     end
@@ -89,7 +79,7 @@ class SharedParametersGenerator
   end
 
   def add_members
-    XroadMember.find_each do |each_member|
+    XRoadMember.find_each do |each_member|
       member_type = @marshaller.factory.createMemberType()
       member_type.name = each_member.name
       member_type.memberCode = each_member.member_code

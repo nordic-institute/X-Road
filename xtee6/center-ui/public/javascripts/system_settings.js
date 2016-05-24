@@ -120,7 +120,7 @@
         });
 
         $("#service_provider_edit").click(function() {
-            MEMBER_SEARCH_DIALOG.open(null, function(member) {
+            MEMBER_SEARCH_DIALOG.open(null, true, function(member) {
                 var params = {
                     providerClass: member.member_class,
                     providerCode: member.member_code
@@ -132,10 +132,32 @@
 
                 $.post(action("service_provider_edit"), params, function(response) {
                     $("#service_provider_id").val(response.data.id);
+                    $("#service_provider_member_class").val(response.data.member_class);
+                    $("#service_provider_member_code").val(response.data.member_code);
+                    $("#service_provider_subsystem_code").val(response.data.subsystem_code);
                     $("#service_provider_name").text(response.data.name);
+                    $("#service_provider_security_servers").text(
+                        response.data.security_servers);
+
+                    enableServiceProviderSecurityServerRegister();
                 }, "json");
-            }, false);
+            });
         });
+
+        $("#service_provider_security_server_register").click(function() {
+            XROAD_MEMBER_EDIT.openUsedServersRegisterDialog(
+                { memberClass: $("#service_provider_member_class").val(),
+                  memberCode: $("#service_provider_member_code").val(),
+                  subsystemCode: $("#service_provider_subsystem_code").val() },
+                $("#service_provider_name").text(),
+                function(response) {
+                    $("#service_provider_security_servers").text(
+                        response.data.security_servers);
+                    enableServiceProviderSecurityServerRegister();
+                }, true);
+        });
+
+        enableServiceProviderSecurityServerRegister();
 
         $("#member_class_add").click(function() {
             $("#member_class_code, #member_class_description").val("").enable();
@@ -169,6 +191,15 @@
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
+
+    function enableServiceProviderSecurityServerRegister() {
+        if ($("#service_provider_id").val() &&
+              !$.trim($("#service_provider_security_servers").text())) {
+            $("#service_provider_security_server_register").show();
+        } else {
+            $("#service_provider_security_server_register").hide();
+        }
     }
 
     $(document).ready(function() {

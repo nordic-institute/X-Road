@@ -53,6 +53,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 /**
  * Contains utility methods for creating test HTTP clients.
+ *
+ * FUTURE Only 'extra' project uses it (subprojects 'testclient' and 'systemtest')
  */
 public final class HttpUtils {
 

@@ -24,10 +24,9 @@ package ee.ria.xroad.common.conf.serverconf.model;
 
 import java.util.Date;
 
+import ee.ria.xroad.common.identifier.XRoadId;
 import lombok.Getter;
 import lombok.Setter;
-
-import ee.ria.xroad.common.identifier.XroadId;
 
 /**
  * Access right.
@@ -40,7 +39,7 @@ public class AccessRightType {
 
     private String serviceCode;
 
-    private XroadId subjectId;
+    private XRoadId subjectId;
 
     private Date rightsGiven;
 }

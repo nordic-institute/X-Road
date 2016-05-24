@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.common.signature;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
@@ -39,11 +41,10 @@ import org.w3c.dom.Attr;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.util.MessageFileNames;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.MessageFileNames.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class handles the (batch) signature creation. After requests

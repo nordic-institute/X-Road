@@ -22,6 +22,17 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+
+import java.io.Serializable;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.Map.Entry;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import akka.actor.Props;
 import akka.actor.UntypedActorContext;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -38,14 +49,6 @@ import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.io.Serializable;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.Map.Entry;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 
 /**

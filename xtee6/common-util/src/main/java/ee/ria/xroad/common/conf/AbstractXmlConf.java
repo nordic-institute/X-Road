@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.conf;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -42,8 +44,6 @@ import ee.ria.xroad.common.util.FileContentChangeChecker;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 import lombok.extern.slf4j.Slf4j;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Base class for XML-based configurations, where underlying classes are

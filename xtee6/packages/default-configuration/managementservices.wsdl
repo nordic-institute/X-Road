@@ -1,48 +1,44 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-    xmlns:tns="http://www.example.org/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    name="centralservice" targetNamespace="http://www.example.org/centralservice/">
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://x-road.eu/centralservice/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="centralservice" targetNamespace="http://x-road.eu/centralservice/">
     <wsdl:types>
         <!-- Schema for identifiers (reduced) -->
-        <xsd:schema elementFormDefault="qualified"
-            targetNamespace="http://x-road.eu/xsd/identifiers" xmlns="http://x-road.eu/xsd/identifiers">
-            <xsd:complexType name="XroadIdentifierType">
+        <xsd:schema xmlns="http://x-road.eu/xsd/identifiers" elementFormDefault="qualified" targetNamespace="http://x-road.eu/xsd/identifiers">
+            <xsd:complexType name="XRoadIdentifierType">
                 <xsd:annotation>
                     <xsd:documentation>Globally unique identifier in the
-                        XROAD system. Identifier consists of object type
+                        X-Road system. Identifier consists of object type
                         specifier and list of hierarchical codes
-                        (starting with code that identifiers the XROAD
+                        (starting with code that identifiers the X-Road
                         instance).
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:sequence>
-                    <xsd:element minOccurs="0" ref="xRoadInstance" />
-                    <xsd:element minOccurs="0" ref="memberClass" />
-                    <xsd:element minOccurs="0" ref="memberCode" />
-                    <xsd:element minOccurs="0" ref="subsystemCode" />
-                    <xsd:element minOccurs="0" ref="serverCode" />
-                    <xsd:element minOccurs="0" ref="serviceCode" />
-                    <xsd:element minOccurs="0" ref="serviceVersion" />
+                    <xsd:element minOccurs="0" ref="xRoadInstance"/>
+                    <xsd:element minOccurs="0" ref="memberClass"/>
+                    <xsd:element minOccurs="0" ref="memberCode"/>
+                    <xsd:element minOccurs="0" ref="subsystemCode"/>
+                    <xsd:element minOccurs="0" ref="serverCode"/>
+                    <xsd:element minOccurs="0" ref="serviceCode"/>
+                    <xsd:element minOccurs="0" ref="serviceVersion"/>
                 </xsd:sequence>
-                <xsd:attribute ref="objectType" use="required" />
+                <xsd:attribute ref="objectType" use="required"/>
             </xsd:complexType>
-            <xsd:simpleType name="XroadObjectType">
+            <xsd:simpleType name="XRoadObjectType">
                 <xsd:annotation>
-                    <xsd:documentation>Enumeration for XROAD identifier
+                    <xsd:documentation>Enumeration for X-Road identifier
                         types that can be used in requests.
                     </xsd:documentation>
                 </xsd:annotation>
                 <xsd:restriction base="xsd:string">
-                    <xsd:enumeration value="MEMBER" />
-                    <xsd:enumeration value="SUBSYSTEM" />
-                    <xsd:enumeration value="SERVER" />
-                    <xsd:enumeration value="SERVICE" />
+                    <xsd:enumeration value="MEMBER"/>
+                    <xsd:enumeration value="SUBSYSTEM"/>
+                    <xsd:enumeration value="SERVER"/>
+                    <xsd:enumeration value="SERVICE"/>
                 </xsd:restriction>
             </xsd:simpleType>
             <xsd:element name="xRoadInstance" type="xsd:string">
                 <xsd:annotation>
-                    <xsd:documentation>Identifies the XROAD instance.
+                    <xsd:documentation>Identifies the X-Road instance.
                         This field is applicable to all identifier
                         types.
                     </xsd:documentation>
@@ -65,14 +61,14 @@
             <xsd:element name="subsystemCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        subsystem of given XROAD member.
+                        subsystem of given X-Road member.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="serviceCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies a
-                        service offered by given XROAD member or
+                        service offered by given X-Road member or
                         subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -86,116 +82,129 @@
             <xsd:element name="serverCode" type="xsd:string">
                 <xsd:annotation>
                     <xsd:documentation>Code that uniquely identifies
-                        security server offered by a given XROAD member
+                        security server offered by a given X-Road member
                         or subsystem.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:attribute name="objectType" type="XroadObjectType" />
-            <xsd:complexType name="XroadClientIdentifierType">
+            <xsd:attribute name="objectType" type="XRoadObjectType"/>
+            <xsd:complexType name="XRoadClientIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="XroadIdentifierType">
+                    <xsd:restriction base="XRoadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="xRoadInstance" />
-                            <xsd:element ref="memberClass" />
-                            <xsd:element ref="memberCode" />
-                            <xsd:element minOccurs="0"
-                                ref="subsystemCode" />
+                            <xsd:element ref="xRoadInstance"/>
+                            <xsd:element ref="memberClass"/>
+                            <xsd:element ref="memberCode"/>
+                            <xsd:element minOccurs="0" ref="subsystemCode"/>
                         </xsd:sequence>
                     </xsd:restriction>
                 </xsd:complexContent>
             </xsd:complexType>
-            <xsd:complexType name="XroadServiceIdentifierType">
+            <xsd:complexType name="XRoadServiceIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="XroadIdentifierType">
+                    <xsd:restriction base="XRoadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="xRoadInstance" />
-                            <xsd:element ref="memberClass" />
-                            <xsd:element ref="memberCode" />
-                            <xsd:element minOccurs="0"
-                                ref="subsystemCode" />
-                            <xsd:element ref="serviceCode" />
-                            <xsd:element minOccurs="0"
-                                ref="serviceVersion" />
+                            <xsd:element ref="xRoadInstance"/>
+                            <xsd:element ref="memberClass"/>
+                            <xsd:element ref="memberCode"/>
+                            <xsd:element minOccurs="0" ref="subsystemCode"/>
+                            <xsd:element ref="serviceCode"/>
+                            <xsd:element minOccurs="0" ref="serviceVersion"/>
                         </xsd:sequence>
                     </xsd:restriction>
                 </xsd:complexContent>
             </xsd:complexType>
-            <xsd:complexType name="XroadSecurityServerIdentifierType">
+            <xsd:complexType name="XRoadSecurityServerIdentifierType">
                 <xsd:complexContent>
-                    <xsd:restriction base="XroadIdentifierType">
+                    <xsd:restriction base="XRoadIdentifierType">
                         <xsd:sequence>
-                            <xsd:element ref="xRoadInstance" />
-                            <xsd:element ref="memberClass" />
-                            <xsd:element ref="memberCode" />
-                            <xsd:element ref="serverCode" />
+                            <xsd:element ref="xRoadInstance"/>
+                            <xsd:element ref="memberClass"/>
+                            <xsd:element ref="memberCode"/>
+                            <xsd:element ref="serverCode"/>
                         </xsd:sequence>
                     </xsd:restriction>
                 </xsd:complexContent>
             </xsd:complexType>
         </xsd:schema>
-
         <!-- Schema for requests (reduced) -->
-        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema"
-            xmlns:tns="http://x-road.eu/xsd/xroad.xsd" targetNamespace="http://x-road.eu/xsd/xroad.xsd"
-            xmlns:id="http://x-road.eu/xsd/identifiers"
-            elementFormDefault="qualified">
-
-            <xsd:import namespace="http://x-road.eu/xsd/identifiers"
-                id="id" />
-
-            <xsd:element name="clientReg" type="tns:ClientRequestType" />
-            <xsd:element name="clientRegResponse" type="tns:ClientRequestType" />
-
-            <xsd:element name="clientDeletion" type="tns:ClientRequestType" />
-            <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType" />
-
-            <xsd:element name="authCertDeletion" type="tns:authCertDeletionType" />
-            <xsd:element name="authCertDeletionResponse"
-                type="tns:authCertDeletionType" />
-
+        <xsd:schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" targetNamespace="http://x-road.eu/xsd/xroad.xsd" elementFormDefault="qualified">
+            <xsd:import namespace="http://x-road.eu/xsd/identifiers" id="id"/>
+            <xsd:element name="clientReg" type="tns:ClientRequestType"/>
+            <xsd:element name="clientRegResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="clientDeletion" type="tns:ClientRequestType"/>
+            <xsd:element name="clientDeletionResponse" type="tns:ClientRequestType"/>
+            <xsd:element name="authCertReg" type="tns:AuthCertRegRequestType"/>
+            <xsd:element name="authCertRegResponse" type="tns:AuthCertRegRequestType"/>
+            <xsd:element name="authCertDeletion" type="tns:AuthCertDeletionRequestType"/>
+            <xsd:element name="authCertDeletionResponse" type="tns:AuthCertDeletionRequestType"/>
             <!-- Header fields -->
-            <xsd:element name="client" type="id:XroadClientIdentifierType" />
-            <xsd:element name="service" type="id:XroadServiceIdentifierType" />
-            <xsd:element name="userId" type="xsd:string" />
-            <xsd:element name="id" type="xsd:string" />
-            <xsd:element name="async" type="xsd:boolean" />
-
-            <xsd:complexType name="authCertDeletionType">
+            <xsd:element name="client" type="id:XRoadClientIdentifierType"/>
+            <xsd:element name="service" type="id:XRoadServiceIdentifierType"/>
+            <xsd:element name="id" type="xsd:string"/>
+            <xsd:element name="protocolVersion" type="xsd:string"/>
+            <xsd:element name="requestHash" type="xsd:string"/>
+            <xsd:complexType name="AuthCertRegRequestType">
                 <xsd:sequence>
-                    <xsd:element name="server"
-                        type="id:XroadSecurityServerIdentifierType">
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                         <xsd:annotation>
-                            <xsd:documentation>Identifier of the security
-                                server the deletable authentication certificate
-                                is associated with.
+                            <xsd:documentation>Identity of the security server the
+                                authentication certificate will be associated with.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="address" type="string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>Address of the security server the
+                                authentication certificate will be associated with.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="authCert" type="base64Binary">
                         <xsd:annotation>
-                          <xsd:documentation>Contents (in DER encoding) of
-                                the authentication certificate that will
-                                be deleted from the list of certificates
-                                authenticating this security server.
+                            <xsd:documentation>
+                              Contents (in DER encoding) of
+                              the authentication certificate that will
+                              be added to the list of certificates
+                              authenticating the security server.
+                          </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AuthCertDeletionRequestType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
+                        <xsd:annotation>
+                            <xsd:documentation>Identity of the security server the
+                                authentication certificate will be deleted from.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="authCert" type="base64Binary">
+                        <xsd:annotation>
+                            <xsd:documentation>Contents (in DER encoding) of
+                                the authentication certificate that will
+                                be deleted from the list of certificates
+                                authenticating the security server.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:complexType>
             <xsd:complexType name="ClientRequestType">
                 <xsd:sequence>
-                    <xsd:element name="server"
-                        type="id:XroadSecurityServerIdentifierType">
+                    <xsd:element name="server" type="id:XRoadSecurityServerIdentifierType">
                         <xsd:annotation>
                             <xsd:documentation>Identifier of the security
-                                server where the client is added or removed
-                                (depending on the request type)
+                                server where the client is added to or removed
+                                from (depending on the request type).
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="client"
-                        type="id:XroadClientIdentifierType">
+                    <xsd:element name="client" type="id:XRoadClientIdentifierType">
                         <xsd:annotation>
                             <xsd:documentation>Identifier of the client
                                 associated with the security server. When the
@@ -206,125 +215,124 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="requestId" type="tns:RequestIdType" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:complexType>
+            <xsd:simpleType name="RequestIdType">
+                <xsd:annotation>
+                    <xsd:documentation>For responses only, unique identifier 
+                        of the request that is stored in the central server database.
+                    </xsd:documentation>
+                </xsd:annotation>
+                <xsd:restriction base="integer"/>
+            </xsd:simpleType>
         </xsd:schema>
     </wsdl:types>
-
     <wsdl:message name="requestheader">
-        <wsdl:part name="client" element="xroad:client" />
-        <wsdl:part name="service" element="xroad:service" />
-        <wsdl:part name="userId" element="xroad:userId" />
-        <wsdl:part name="id" element="xroad:id" />
-        <wsdl:part name="async" element="xroad:async" />
+        <wsdl:part name="client" element="xroad:client"/>
+        <wsdl:part name="service" element="xroad:service"/>
+        <wsdl:part name="id" element="xroad:id"/>
+        <wsdl:part name="protocolVersion" element="xroad:protocolVersion"/>
+        <wsdl:part name="requestHash" element="xroad:requestHash"/>
     </wsdl:message>
-
     <wsdl:message name="clientReg">
-        <wsdl:part element="xroad:clientReg" name="parameters" />
+        <wsdl:part element="xroad:clientReg" name="parameters"/>
     </wsdl:message>
     <wsdl:message name="clientRegResponse">
-        <wsdl:part element="xroad:clientRegResponse" name="parameters" />
+        <wsdl:part element="xroad:clientRegResponse" name="parameters"/>
     </wsdl:message>
-
     <wsdl:message name="clientDeletion">
-        <wsdl:part element="xroad:clientDeletion" name="parameters" />
+        <wsdl:part element="xroad:clientDeletion" name="parameters"/>
     </wsdl:message>
     <wsdl:message name="clientDeletionResponse">
-        <wsdl:part element="xroad:clientDeletionResponse" name="parameters" />
+        <wsdl:part element="xroad:clientDeletionResponse" name="parameters"/>
     </wsdl:message>
-
+    <wsdl:message name="authCertReg">
+        <wsdl:part element="xroad:authCertReg" name="parameters"/>
+    </wsdl:message>
+    <wsdl:message name="authCertRegResponse">
+        <wsdl:part element="xroad:authCertRegResponse" name="parameters"/>
+    </wsdl:message>
     <wsdl:message name="authCertDeletion">
-        <wsdl:part element="xroad:authCertDeletion" name="parameters" />
+        <wsdl:part element="xroad:authCertDeletion" name="parameters"/>
     </wsdl:message>
     <wsdl:message name="authCertDeletionResponse">
-        <wsdl:part element="xroad:authCertDeletionResponse"
-            name="parameters" />
+        <wsdl:part element="xroad:authCertDeletionResponse" name="parameters"/>
     </wsdl:message>
-
     <wsdl:portType name="centralservice">
         <wsdl:operation name="clientReg">
-            <wsdl:input message="tns:clientReg" />
-            <wsdl:output message="tns:clientRegResponse" />
+            <wsdl:input message="tns:clientReg"/>
+            <wsdl:output message="tns:clientRegResponse"/>
         </wsdl:operation>
-
         <wsdl:operation name="clientDeletion">
-            <wsdl:input message="tns:clientDeletion" />
-            <wsdl:output message="tns:clientDeletionResponse" />
+            <wsdl:input message="tns:clientDeletion"/>
+            <wsdl:output message="tns:clientDeletionResponse"/>
         </wsdl:operation>
-
         <wsdl:operation name="authCertDeletion">
-            <wsdl:input message="tns:authCertDeletion" />
-            <wsdl:output message="tns:authCertDeletionResponse" />
+            <wsdl:input message="tns:authCertDeletion"/>
+            <wsdl:output message="tns:authCertDeletionResponse"/>
         </wsdl:operation>
     </wsdl:portType>
-
     <wsdl:binding name="centralserviceSOAP" type="tns:centralservice">
-        <soap:binding style="document"
-            transport="http://schemas.xmlsoap.org/soap/http" />
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="clientReg">
-            <soap:operation soapAction="" />
+            <soap:operation soapAction=""/>
             <wsdl:input>
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output>
                 <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-
         <wsdl:operation name="clientDeletion">
-            <soap:operation soapAction="" />
+            <soap:operation soapAction=""/>
             <wsdl:input>
-                <soap:body use="literal" />
+                <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output>
-                <soap:body use="literal" />
+                <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-
         <wsdl:operation name="authCertDeletion">
-            <soap:operation soapAction="" />
+            <soap:operation soapAction=""/>
             <wsdl:input>
-                <soap:body use="literal" />
+                <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
             </wsdl:input>
             <wsdl:output>
-                <soap:body use="literal" />
+                <soap:body use="literal"/>
                 <soap:header message="tns:requestheader" part="client" use="literal"/>
                 <soap:header message="tns:requestheader" part="service" use="literal"/>
-                <soap:header message="tns:requestheader" part="userId" use="literal"/>
                 <soap:header message="tns:requestheader" part="id" use="literal"/>
-                <soap:header message="tns:requestheader" part="async" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <soap:header message="tns:requestheader" part="requestHash" use="literal"/>
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="centralservice">
         <wsdl:port binding="tns:centralserviceSOAP" name="centralserviceSOAP">
-            <soap:address
-                location="http://INSERT_MANAGEMENT_SERVICE_ADDRESS_HERE" />
+            <soap:address location="http://INSERT_MANAGEMENT_SERVICE_ADDRESS_HERE"/>
         </wsdl:port>
     </wsdl:service>
 </wsdl:definitions>

@@ -28,8 +28,6 @@ et:
     index:
       name: "Nimi"
       rootCA_SN: "Tipmise CA sertifikaadi subjektinimi"
-    add:
-      no_name_extractor: "Identifikaatori dekodeerimisreegli meetod peab olemas olema signeerimiseks kasutataval approved_ca-l"
     edit:
       no_ca_cert: "Ei saa salvestada SK-d ilma sertifikaadita"
 
@@ -61,8 +59,7 @@ et:
   groups:
     delete: "Grupp edukalt kustutatud"
     change_description: "Kirjeldus edukalt muudetud"
-    delete_all_members: "Kõik liikmed edukalt eemaldatud"
-    delete_selected_members: "Valitud liikmed edukalt eemaldatud"
+    remove_selected_members: "Valitud liikmed edukalt eemaldatud"
 
   members:
     added: "Edukalt lisatud liige liikmeklassiga '%{member_class}' ja liikmekoodiga '%{member_code}'."

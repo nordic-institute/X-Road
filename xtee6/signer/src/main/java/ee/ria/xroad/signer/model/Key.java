@@ -27,12 +27,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.Data;
-
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import lombok.Data;
 
 /**
  * Model object representing a key.
@@ -54,6 +53,9 @@ public final class Key {
 
     /** The friendly name of the key. */
     private String friendlyName;
+
+    /** The label of the key. */
+    private String label;
 
     /** The X509 encoded public key. */
     private String publicKey;
@@ -85,9 +87,11 @@ public final class Key {
      * @return the value object
      */
     public KeyInfo toDTO() {
-        return new KeyInfo(available, usage, friendlyName, id, publicKey,
-                Collections.unmodifiableList(getCertsAsDTOs()),
-                Collections.unmodifiableList(getCertRequestsAsDTOs()));
+        return new KeyInfo(
+            available, usage, friendlyName, id, label, publicKey,
+            Collections.unmodifiableList(getCertsAsDTOs()),
+            Collections.unmodifiableList(getCertRequestsAsDTOs())
+        );
     }
 
     private List<CertificateInfo> getCertsAsDTOs() {

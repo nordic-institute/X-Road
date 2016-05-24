@@ -22,6 +22,25 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
+import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
+import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
+
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.ErrorCodes;
@@ -42,23 +61,6 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
-import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
-import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 
 @Slf4j
 class AsicContainerClientRequestProcessor extends MessageProcessorBase {

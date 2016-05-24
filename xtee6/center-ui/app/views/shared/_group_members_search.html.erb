@@ -8,19 +8,11 @@
     <td><%= text_field_tag "group_members_search_name", nil, :id => nil %></td>
   </tr>
   <tr>
-    <td><%= t 'groups.details.code' %></td>
-    <td><%= text_field_tag "group_members_search_code", nil, :id => nil %></td>
-  </tr>
-  <tr>
-    <td><%= t 'groups.details.class' %></td>
+    <td><%= t 'groups.details.type' %></td>
     <td>
-      <%= select_tag("group_members_search_class",
-          options_for_select(member_classes), :id => nil, :include_blank => true) %>
+      <%= select_tag("group_members_search_type",
+          options_for_select(member_types), :id => nil, :include_blank => true) %>
     </td>
-  </tr>
-  <tr>
-    <td><%= t 'groups.details.subsystem' %></td>
-    <td><%= text_field_tag "group_members_search_subsystem", nil, :id => nil %></td>
   </tr>
   <tr>
     <td><%= t 'groups.details.xroad' %></td>
@@ -30,10 +22,18 @@
     </td>
   </tr>
   <tr>
-    <td><%= t 'groups.details.type' %></td>
+    <td><%= t 'groups.details.class' %></td>
     <td>
-      <%= select_tag("group_members_search_type",
-          options_for_select(member_types), :id => nil, :include_blank => true) %>
+      <%= select_tag("group_members_search_class",
+          options_for_select(member_classes), :id => nil, :include_blank => true) %>
     </td>
+  </tr>
+  <tr>
+    <td><%= t 'groups.details.code' %></td>
+    <td><%= text_field_tag "group_members_search_code", nil, :id => nil %></td>
+  </tr>
+  <tr>
+    <td><%= t 'groups.details.subsystem' %></td>
+    <td><%= text_field_tag "group_members_search_subsystem", nil, :id => nil %></td>
   </tr>
 <% end %>

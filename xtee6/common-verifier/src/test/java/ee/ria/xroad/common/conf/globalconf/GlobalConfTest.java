@@ -22,9 +22,18 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
+import static java.util.Collections.singleton;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,16 +49,12 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CryptoUtils;
-
-import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
-import static java.util.Collections.singleton;
-import static org.junit.Assert.*;
 
 /**
  * Tests the global configuration functionality.
@@ -152,40 +157,6 @@ public class GlobalConfTest {
 
         assertEquals(singleton("127.0.0.1"),
                 GlobalConf.getProviderAddress(producer));
-    }
-
-    /**
-     * Tests getting the provider addresses for authentication certificates.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void getProviderAddressForAuthCert() throws Exception {
-        String certBase64 =
-        "MIIDiDCCAnCgAwIBAgIIVYNTWA8JcLwwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE"
-        + "AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw"
-        + "HhcNMTIxMTE5MDkxNDIzWhcNMTQxMTE5MDkxNDIzWjATMREwDwYDVQQDDAhwcm9k"
-        + "dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALKNC381RiACCftv"
-        + "ApBzk5HD5YHw0u9SOkwcIkn4cZ4eQWrlROnqHTpS9IVSBoOz6pjCx/FwxZTdpw0j"
-        + "X+bRYpxnj11I2XKzHfhfa6BvL5VkaDtjGpOdSGMJUtrI6m9jFiYryEmYHWxPlL9V"
-        + "pDK0KknevYm2BR23/xDHweBSZ7tkMENU1kXFWLunoBys+W0waR+Z8HH5WNuBLz8X"
-        + "z2iz/6KQ5BoWSPJc9P5TXNOBB+5XyjBR2ogoAOtX53OJzu0wMgLpjuJGdfcpy1S9"
-        + "ukU27B21i2MfZ6Tjhu9oKrAIgcMWJaHJ/gRX6iX1vXlfhUTkE1ACSfvhZdntKLzN"
-        + "TZGEcxsCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0"
-        + "dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z"
-        + "dGF0dXMvb2NzcDAdBgNVHQ4EFgQUUHtGmEl0Cuh/x/wj+UU5S7Wui48wDAYDVR0T"
-        + "AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B"
-        + "Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBACJqqey5Ywoegq+Rjo4v89AN78Ou"
-        + "tKtRzQZtuCZP9+ZhY6ivCPK4F8Ne6qpWZb63OLORyQosDAvj6m0iCFMsUZS3nC0U"
-        + "DR0VyP2WrOihBOFC4CA7H2X4l7pkSyMN73ZC6icXkbj9H0ix5/Bv3Ug64DK9SixG"
-        + "RxMwLxouIzk7WvePQ6ywlhGvZRTXxhr0DwvfZnPXxHDPB2q+9pKzC9h2txG1tyD9"
-        + "ffohEC/LKdGrHSe6hnTRedQUN3hcMQqCTc5cHsaB8bh5EaHrib3RR0YsOhjAd6IC"
-        + "ms33BZnfNWQuGVTXw74Eu/P1JkwR0ReO+XuxxMp3DW2epMfL44OHWTb6JGY=";
-
-        byte[] certBytes = CryptoUtils.decodeBase64(certBase64);
-        X509Certificate authCert = CryptoUtils.readCertificate(certBytes);
-
-        String url = GlobalConf.getProviderAddress(authCert);
-        assertEquals("https://foo.bar.baz", url);
     }
 
     /**
@@ -303,26 +274,18 @@ public class GlobalConfTest {
      */
     @Test
     public void getSubjectName() throws Exception {
-        X509Certificate producerCert = TestCertUtil.getProducer().cert;
+        X509Certificate cert = TestCertUtil.getProducer().cert;
 
-        ClientId expectedName = ClientId.create("EE", "BUSINESS", "producer");
-        ClientId actualName = GlobalConf.getSubjectName("EE", producerCert);
+        ClientId expected = ClientId.create("EE", "BUSINESS", "producer");
+        ClientId actual = GlobalConf.getSubjectName(
+            new SignCertificateProfileInfoParameters(
+                ClientId.create("EE", "foo", "bar"),
+                "baz"
+            ),
+            cert
+        );
 
-        assertEquals(expectedName, actualName);
-    }
-
-    /**
-     * Tests getting the subject client identifier from a certificate.
-     * @throws Exception if an error occurs
-     */
-    @Test
-    public void getSubjectClientId() throws Exception {
-        X509Certificate cert = TestCertUtil.getCertChainCert("user_5.p12");
-
-        ClientId expectedName = ClientId.create("EE", "BUSINESS", "CnOfOrg");
-        ClientId actualName = GlobalConf.getSubjectName("EE", cert);
-
-        assertEquals(expectedName, actualName);
+        assertEquals(expected, actual);
     }
 
     /**
@@ -434,6 +397,15 @@ public class GlobalConfTest {
 
         assertEquals(expectedList,
                 GlobalConf.getSecurityServers(instanceIdentifier));
+    }
+
+    /**
+     * Tests getting approved CAs.
+     */
+    @Test
+    public void getApprovedCAs() {
+        Collection<ApprovedCAInfo> cas = GlobalConf.getApprovedCAs("EE");
+        assertEquals(5, cas.size());
     }
 
     private static ClientId newClientId(String name) {

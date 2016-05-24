@@ -67,7 +67,7 @@ public class CentralServiceMessage extends MessageTestCase {
     }
 
     @Override
-    protected void onReceiveRequest(Message receivedRequest) throws Exception {
+    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
         // Message inconsistency at this point is expected, since client
         // proxy will modify the request message
     }

@@ -23,6 +23,8 @@
 package ee.ria.xroad.common.db;
 
 
+import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -30,9 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.HibernateException;
 import org.hibernate.SessionFactory;
@@ -43,8 +42,8 @@ import org.hibernate.cfg.Configuration;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PrefixedProperties;
-
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Hibernate utility methods.

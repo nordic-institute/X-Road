@@ -105,7 +105,7 @@
 
         $.get(action("client_certs"), params, function(response) {
             oClientCerts.fnAddData(response.data);
-        });
+        }, "json");
 
         enableActions();
     }
@@ -130,7 +130,7 @@
         $("#client_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            width: 370,
+            minWidth: 450,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -138,7 +138,7 @@
                       var params = $("form", this).serializeObject();
 
                       $.post(action("client_add"), params, function(response) {
-                          oClients.fnReplaceData(response.data);
+                          oClients.fnReplaceData(response.data.clients);
 
                           $(dialog).dialog("close");
 
@@ -148,10 +148,28 @@
                               subsystem_code: params.add_subsystem_code
                           };
 
-                          confirm("clients.client_add_dialog.send_regreq", null, function() {
+                          if (response.data.registered) {
+                              return;
+                          }
+
+                          var new_subsystem_warning = "";
+                          if (!response.data.subsystem_registered) {
+                              new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                                  member_name: response.data.member_name || "",
+                                  member_class: regParams.member_class,
+                                  member_code: regParams.member_code,
+                                  subsystem_code: regParams.subsystem_code
+                              });
+                          }
+
+                          var confirmParams = {
+                              new_subsystem_warning: new_subsystem_warning
+                          };
+
+                          confirm("clients.client_add_dialog.send_regreq", confirmParams, function() {
                               $.post(action("client_regreq"), regParams, function() {
                                   refreshClients();
-                              });
+                              }, "json");
                           });
                       }, "json");
                   }
@@ -275,11 +293,13 @@
     }
 
     function openClientDetails(client, tab) {
-        $("#details_client_id").val(client.client_id);
+        $("#details_client_id").val(client.client_id).data("client", client);
         $("#details_member_class").val(client.member_class);
         $("#details_member_code").val(client.member_code);
         $("#details_subsystem_code").val(client.subsystem_code);
         $("#details_member_name").val(client.member_name);
+
+        enableActions();
 
         $("#client_details_dialog").dialog("open");
 
@@ -287,13 +307,19 @@
         var newTabIndex = $("#client_details_tabs a[href='" + tab + "']")
             .parent().index();
 
+        if (client.subsystem_code) {
+            $("#client_details_tabs").tabs("option", "disabled", []);
+            $("#client_details_tabs .ui-tabs-nav").show();
+        } else {
+            $("#client_details_tabs").tabs("option", "disabled", [1, 2, 3, 4]);
+            $("#client_details_tabs .ui-tabs-nav").hide();
+        }
+
         $("#client_details_tabs").tabs("option", "active", newTabIndex);
 
         if (oldTabIndex === newTabIndex) {
             refreshTab(tab);
         }
-
-        enableActions();
     }
 
     function confirmDelete(text) {
@@ -368,7 +394,7 @@
 
     function generateTableActions(actions) {
         var wrap = $('<div/>');
-        var ul = $('<ul/>').addClass('tableitem-actions right cf');
+        var ul = $('<ul/>').addClass('tableitem-actions left cf');
 
         for (var action in actions) {
             if (actions.hasOwnProperty(action)) {
@@ -475,7 +501,7 @@
 
                     return generateTableActions(actions);
                 },
-                sWidth: "150px"
+                sWidth: "140px"
             },
             {
                 mData: 'owner',
@@ -569,8 +595,22 @@
                 member_code: $("#details_member_code").val(),
                 subsystem_code: $("#details_subsystem_code").val()
             };
-            confirm("clients.client_details_tab.send_regreq_confirm", null,
-                    function() {
+
+            var new_subsystem_warning = "";
+            if (!$("#details_client_id").data("client").subsystem_registered) {
+                new_subsystem_warning = _("clients.client_add_dialog.new_subsystem", {
+                    member_name: $("#details_member_name").val(),
+                    member_class: params.member_class,
+                    member_code: params.member_code,
+                    subsystem_code: params.subsystem_code
+                });
+            }
+
+            var confirmParams = {
+                new_subsystem_warning: new_subsystem_warning
+            };
+
+            confirm("clients.client_details_tab.send_regreq_confirm", confirmParams, function() {
                 $.post(action("client_regreq"), params, function(response) {
                     oClients.fnUpdate(response.data, oClients.getFocus());
                 }, "json");

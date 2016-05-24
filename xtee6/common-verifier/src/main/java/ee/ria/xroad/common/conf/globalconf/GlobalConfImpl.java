@@ -22,20 +22,46 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static ee.ria.xroad.common.util.CryptoUtils.certHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
+import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberClassType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SubsystemType;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -44,16 +70,14 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class GlobalConfImpl implements GlobalConfProvider {
 
     // Default value used when no configurations are available
-    private static final int DEFAULT_OCSP_FRESHNESS = 60;
+    private static final int DEFAULT_OCSP_FRESHNESS = 3600;
 
     private final ConfigurationDirectory confDir;
 
@@ -213,28 +237,6 @@ class GlobalConfImpl implements GlobalConfProvider {
                 .flatMap(p -> p.getGlobalSettings().getMemberClass().stream())
                 .map(MemberClassType::getCode)
                 .collect(Collectors.toSet());
-    }
-
-    @Override
-    public String getProviderAddress(X509Certificate authCert)
-            throws Exception {
-        if (authCert == null) {
-            return null;
-        }
-
-        byte[] inputCertHash = certHash(authCert);
-
-        for (SharedParameters p : getSharedParameters()) {
-            for (SecurityServerType securityServer : p.getSecurityServers()) {
-                for (byte[] hash : securityServer.getAuthCertHash()) {
-                    if (Arrays.equals(inputCertHash, hash)) {
-                        return securityServer.getAddress();
-                    }
-                }
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -423,26 +425,51 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public Set<SecurityCategoryId> getProvidedCategories(
             X509Certificate authCert) throws Exception {
-        // TODO TBD; Currently returning an empty set.
+        // Currently not implemented.
         return new HashSet<>();
     }
 
     @Override
-    public ClientId getSubjectName(String instanceIdentifier,
+    public Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getApprovedCAs()
+            .stream()
+            .map(ca ->
+                new ApprovedCAInfo(
+                    ca.getName(),
+                    ca.isAuthenticationOnly(),
+                    ca.getCertificateProfileInfo()
+                )
+            )
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
-        X509Certificate caCert = getCaCert(instanceIdentifier, cert);
-
-        SharedParameters p = getSharedParameters(instanceIdentifier);
-
-        IdentifierDecoderType decoder =
-                p.getCaCertsAndIdentifierDecoders().get(caCert);
-        if (decoder != null) {
-            return p.getSubjectName(cert, decoder);
+        if (!CertUtils.isAuthCert(cert)) {
+            throw new IllegalArgumentException(
+                    "Certificate must be authentication certificate");
         }
 
-        throw new CodedException(X_INTERNAL_ERROR,
-                "Could not find name extractor for certificate "
-                        + cert.getSubjectX500Principal().getName());
+        return getCertProfile(
+            parameters.getServerId().getXRoadInstance(), cert
+        ).getAuthCertProfile(parameters);
+    }
+
+    @Override
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        if (!CertUtils.isSigningCert(cert)) {
+            throw new IllegalArgumentException(
+                    "Certificate must be signing certificate");
+        }
+
+        return getCertProfile(
+            parameters.getClientId().getXRoadInstance(), cert
+        ).getSignCertProfile(parameters);
     }
 
     @Override
@@ -478,9 +505,13 @@ class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    @SneakyThrows
     public boolean isSubjectInGlobalGroup(ClientId subjectId,
             GlobalGroupId groupId) {
-        SharedParameters p = getSharedParameters(groupId.getXRoadInstance());
+        SharedParameters p = confDir.getShared(groupId.getXRoadInstance());
+        if (p == null) {
+            return false;
+        }
 
         GlobalGroupType group = p.findGlobalGroup(groupId);
         if (group == null) {
@@ -612,5 +643,21 @@ class GlobalConfImpl implements GlobalConfProvider {
         return Arrays.stream(instanceIdentifiers)
                 .map(this::getSharedParameters)
                 .collect(Collectors.toList());
+    }
+
+    private CertificateProfileInfoProvider getCertProfile(
+            String instanceIdentifier, X509Certificate cert) throws Exception {
+        X509Certificate caCert = getCaCert(instanceIdentifier, cert);
+        SharedParameters p = getSharedParameters(instanceIdentifier);
+
+        String certProfileProviderClass =
+                p.getCaCertsAndCertProfiles().get(caCert);
+        if (StringUtils.isBlank(certProfileProviderClass)) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    "Could not find certificate profile info for certificate "
+                            + cert.getSubjectX500Principal().getName());
+        }
+
+        return new GetCertificateProfile(certProfileProviderClass).instance();
     }
 }

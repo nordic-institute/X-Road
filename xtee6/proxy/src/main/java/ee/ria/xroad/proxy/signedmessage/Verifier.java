@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.proxy.signedmessage;
 
+import static ee.ria.xroad.common.ErrorCodes.X_SIGNATURE_VERIFICATION_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static ee.ria.xroad.common.ErrorCodes.X_SIGNATURE_VERIFICATION_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
  * Encapsulates message verification functionality. This class does not

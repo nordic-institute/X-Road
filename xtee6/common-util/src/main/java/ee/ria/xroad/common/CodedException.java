@@ -23,11 +23,12 @@
 package ee.ria.xroad.common;
 
 import java.io.Serializable;
+import java.util.UUID;
+
+import org.apache.commons.lang3.StringUtils;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Exception thrown by proxy business logic. Contains SOAP fault information
@@ -62,7 +63,7 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     public CodedException(String faultCode) {
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
     }
 
     /**
@@ -74,7 +75,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(faultMessage);
 
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
         faultString = faultMessage;
     }
 
@@ -101,7 +102,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(cause);
 
         this.faultCode = faultCode;
-        this.faultDetail = ExceptionUtils.getStackTrace(cause);
+        this.faultDetail = String.valueOf(UUID.randomUUID());
         this.faultString = cause.getMessage();
     }
 
@@ -111,14 +112,17 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param faultString the fault string (e.g. the message)
      * @param faultActor the fault actor
      * @param faultDetail the details
+     * @param faultXml the XML document representing the fault
      * @return new proxy exception
      */
     public static CodedException fromFault(String faultCode, String faultString,
-            String faultActor, String faultDetail) {
-        CodedException ret = new Fault(faultCode, faultString);
+            String faultActor, String faultDetail, String faultXml) {
+        Fault ret = new Fault(faultCode, faultString);
 
         ret.faultActor = faultActor;
         ret.faultDetail = faultDetail;
+
+        ret.faultXml = faultXml;
 
         return ret;
     }
@@ -204,6 +208,9 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     @SuppressWarnings("serial") // does not need to have serial
     public static class Fault extends CodedException implements Serializable {
+
+        @Getter
+        private String faultXml;
 
         /**
          * Creates new fault.

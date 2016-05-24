@@ -4,7 +4,7 @@ member_in_vallavalitsused:
   name: "This member should belong to group 'vallavalitsused'"
   administrative_contact: "a@b.com"
   server_client_id: <%= ActiveRecord::Fixtures.identify(:member_in_vallavalitsused_client_identifier) %>
-  type: "XroadMember"
+  type: "XRoadMember"
 
 member_out_of_vallavalitsused:
   member_class_id: <%= ActiveRecord::Fixtures.identify(:riigiasutus) %>
@@ -12,7 +12,7 @@ member_out_of_vallavalitsused:
   name: "This member should NOT belong to group 'vallavalitsused'"
   administrative_contact: "a@c.com"
   server_client_id: <%= ActiveRecord::Fixtures.identify(:member_out_of_vallavalitsused_client_identifier) %>
-  type: "XroadMember"
+  type: "XRoadMember"
 
 subsystem_in_vallavalitsused:
   xroad_member_id: <%= ActiveRecord::Fixtures.identify(:member_out_of_vallavalitsused) %>
@@ -33,7 +33,7 @@ member_as_server_client:
   name: "Testing member as server client"
   administrative_contact: "a@r.com"
   server_client_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client_client_identifier) %>
-  type: "XroadMember"
+  type: "XRoadMember"
 
 subsystem_as_server_client:
   xroad_member_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client) %>

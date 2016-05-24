@@ -118,6 +118,8 @@ module BaseHelper
     result = []
 
     I18n.available_locales.each do |locale|
+      next unless locale == :en
+
       text = t("common.locale_#{locale}", :locale => :en, :short => locale)
       result << [text, locale]
     end
@@ -125,7 +127,15 @@ module BaseHelper
     result
   end
 
+  def instance_identifier
+  end
+
+  def server_code
+  end
   def skin_installed?
     File.exists?(SystemProperties.getConfPath + BaseController::UI_SKIN_FILE)
+  end
+
+  def node_name
   end
 end

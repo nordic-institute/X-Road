@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singleton;
+
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -33,13 +36,12 @@ import java.util.Set;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
-
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singleton;
 
 /**
  * Test globalconf implementation.
@@ -100,7 +102,6 @@ public class TestGlobalConf extends EmptyGlobalConf {
     @Override
     public CertChain getCertChain(String instanceIdentifier,
             X509Certificate subject) throws Exception {
-        // TODO Also add intermediate certs based on the subject...
         return CertChain.create(instanceIdentifier, subject, null);
     }
 
@@ -111,15 +112,35 @@ public class TestGlobalConf extends EmptyGlobalConf {
     }
 
     @Override
-    public ClientId getSubjectName(String instancedentifier,
-            X509Certificate cert) throws Exception {
-        String commonName = CertHelper.getSubjectCommonName(cert);
-        return ClientId.create("EE", "BUSINESS", commonName);
-    }
-
-    @Override
     public boolean authCertMatchesMember(X509Certificate cert, ClientId memberId)
             throws Exception {
         return true;
+    }
+
+    @Override
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        return new EjbcaSignCertificateProfileInfo(parameters) {
+            @Override
+            public ClientId getSubjectIdentifier(X509Certificate certificate) {
+                // Currently the test certificate contains invalid member class
+                // so we just fix the member class here instead of regenerating
+                // new certificate.
+                ClientId id = super.getSubjectIdentifier(certificate);
+                return ClientId.create(
+                    id.getXRoadInstance(),
+                    "BUSINESS",
+                    id.getMemberCode()
+                );
+            }
+        };
+    }
+
+    @Override
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        return null;
     }
 }

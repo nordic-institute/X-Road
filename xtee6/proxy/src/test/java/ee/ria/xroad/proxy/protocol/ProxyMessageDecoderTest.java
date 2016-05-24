@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Map;
@@ -40,8 +45,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests to verify correct proxy message decoder behavior.
@@ -318,7 +321,8 @@ public class ProxyMessageDecoderTest {
         }
 
         @Override
-        public void soap(SoapMessageImpl soap) throws Exception {
+        public void soap(SoapMessageImpl soap,
+                Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = soap;
         }
 

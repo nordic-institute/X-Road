@@ -16,7 +16,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-center
+Depends: xroad-center, uxp-addon-central-monitor
 Pre-depends:
 Description: X-Road central server
  This is meta-package of X-Road central server.
@@ -38,7 +38,7 @@ Description: X-Road shared components
 Package: xroad-securityserver
 Conflicts: xroad-centralserver
 Architecture: all
-Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version})
+Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server
  This is meta-package of X-Road security server.
@@ -46,7 +46,7 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=${source:Upstream-Version}), curl, authbind
+Depends: ${misc:Depends}, uxp-addon-monitor, rsyslog, xroad-jetty9  (>=${source:Upstream-Version}), curl, authbind
 Pre-depends: postgresql, postgresql-contrib, xroad-common (>=${source:Upstream-Version})
 Description: X-Road security server
  X-Road security server programs and utilities
@@ -89,6 +89,12 @@ Architecture: all
 Depends: ${misc:Depends}, xroad-common (>=6.6)
 Description: X-Road monitoring service
  Monitoring service
+
+Package: xroad-addon-wsdlvalidator
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=6.8.1)
+Description: X-Road AddOn: wsdlvalidator
+ AddOn for WSDL validator for the X-Road services
 
 Package: xroad-center-clusterhelper
 Architecture: all

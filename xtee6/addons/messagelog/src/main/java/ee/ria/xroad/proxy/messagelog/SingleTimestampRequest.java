@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+
 import org.bouncycastle.tsp.TimeStampResponse;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Creates a timestamp request for a single message.

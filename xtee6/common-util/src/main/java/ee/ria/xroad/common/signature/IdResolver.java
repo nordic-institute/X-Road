@@ -22,7 +22,7 @@
  */
 package ee.ria.xroad.common.signature;
 
-import lombok.RequiredArgsConstructor;
+import static ee.ria.xroad.common.util.XmlUtils.getElementById;
 
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
@@ -31,7 +31,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import static ee.ria.xroad.common.util.XmlUtils.getElementById;
+import lombok.RequiredArgsConstructor;
 
 /**
  * DOM element resolver that resolves by the element id.

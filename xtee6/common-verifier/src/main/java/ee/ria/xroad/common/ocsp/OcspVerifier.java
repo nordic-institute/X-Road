@@ -22,17 +22,14 @@
  */
 package ee.ria.xroad.common.ocsp;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.ocsp.ResponderID;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.ocsp.*;
-import org.bouncycastle.operator.ContentVerifierProvider;
-import org.bouncycastle.operator.DigestCalculator;
-import org.joda.time.DateTime;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
+import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
@@ -40,9 +37,24 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.ocsp.ResponderID;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
+import org.bouncycastle.operator.ContentVerifierProvider;
+import org.bouncycastle.operator.DigestCalculator;
+import org.joda.time.DateTime;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import lombok.extern.slf4j.Slf4j;
 
 /** Helper class for verifying OCSP responses. */
 @Slf4j

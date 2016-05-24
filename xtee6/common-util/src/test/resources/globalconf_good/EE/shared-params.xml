@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" 
-    xmlns:tns="http://x-road.eu/xsd/xroad.xsd" 
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
 
@@ -77,10 +77,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass>BUSINESS</memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>pki2</name>
@@ -154,10 +151,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass>BUSINESS</memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectCommonName</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>pki3</name>
@@ -231,10 +225,7 @@
                     2HaLh8hiYRXpgw3WVSBg6CPTLoU5xFb57BNL3qccVetmbpZgznHMYEBN4b4pyHk=</cert>
             </ocsp>
         </topCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
     <approvedCA>
         <name>pki4</name>
@@ -261,10 +252,7 @@
                 Pe5VvXxCL6guFtZtBbnAAtRreTC3bhS+bnxLyj+Hk7oAYyaW441BnzPcVWYeAf56
                 89A9e6HCmXEY1bo=</cert>
         </topCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
 
     <approvedCA>
@@ -361,10 +349,7 @@
                 1Z2YSB+hTVhscCU=
             </cert>
         </intermediateCA>
-        <identifierDecoder>
-            <memberClass></memberClass>
-            <methodName>ee.ria.xroad.common.cert.CertHelper.getSubjectClientId</methodName>
-        </identifierDecoder>
+        <certificateProfileInfo>ee.ria.xroad.common.certificateprofile.impl.TestCertificateProfileInfoProvider</certificateProfileInfo>
     </approvedCA>
 
     <approvedTSA>

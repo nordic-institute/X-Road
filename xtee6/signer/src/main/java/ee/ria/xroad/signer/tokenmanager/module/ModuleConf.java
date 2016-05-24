@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
+import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -34,8 +34,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
 import ee.ria.xroad.common.util.FileContentChangeChecker;
-
-import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates module data read form the external configuration file.

@@ -22,8 +22,35 @@
  */
 package ee.ria.xroad.common.signature;
 
-import akka.actor.ActorSystem;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.DigestCalculator;
+import org.joda.time.DateTime;
+
 import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
@@ -34,24 +61,6 @@ import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.DigestCalculator;
-import org.joda.time.DateTime;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Batch signer test program.
@@ -66,7 +75,7 @@ public final class BatchSignerIntegrationTest {
     private static final String KEY_ID = "consumer";
 
     private static final ClientId CORRECT_MEMBER =
-            ClientId.create("EE", "TODO", "consumer");
+            ClientId.create("EE", "FOO", "consumer");
 
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
@@ -131,14 +140,20 @@ public final class BatchSignerIntegrationTest {
                         byte[] hash = hash(message);
                         log.info("File: {}, hash: {}", message, hash);
 
-                        List<MessagePart> hashes = new ArrayList<>();
-                        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
-                                SHA512_ID, message.getBytes()));
+                        MessagePart hashPart = new MessagePart(
+                                MessageFileNames.MESSAGE,
+                                SHA512_ID,
+                                message.getBytes());
+
+                        List<MessagePart> hashes =
+                                Collections.singletonList(hashPart);
 
                         SignatureBuilder builder = new SignatureBuilder();
-                        builder.addParts(hashes);
+                        builder.addPart(hashPart);
 
-                        builder.setSigningCert(subjectCert, ocsp);
+                        builder.setSigningCert(subjectCert);
+                        builder.addOcspResponses(
+                                Collections.singletonList(ocsp));
 
                         log.info("### Calculating signature...");
 

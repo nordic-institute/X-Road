@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -37,8 +37,8 @@ import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Log record manager handles saving of log records to database.

@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import org.bouncycastle.tsp.TimeStampResponse;
-
-import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.MessageFileNames.SIGNATURE;
 import static ee.ria.xroad.common.util.MessageFileNames.TS_HASH_CHAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import org.bouncycastle.tsp.TimeStampResponse;
+
+import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 
 class BatchTimestampRequest extends AbstractTimestampRequest {

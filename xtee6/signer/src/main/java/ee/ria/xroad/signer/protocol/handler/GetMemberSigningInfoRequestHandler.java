@@ -22,6 +22,16 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
@@ -36,15 +46,6 @@ import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.security.cert.X509Certificate;
-import java.util.List;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.protocol.dto.CertificateInfo.STATUS_REGISTERED;
 
 /**
  * Handles requests for member signing info.

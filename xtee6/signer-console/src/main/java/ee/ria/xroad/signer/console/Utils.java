@@ -22,10 +22,12 @@
  */
 package ee.ria.xroad.signer.console;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +40,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import lombok.SneakyThrows;
 
 final class Utils {
 
@@ -80,6 +80,7 @@ final class Utils {
         if (verbose) {
             System.out.println(padding + "Id:        " + key.getId());
             System.out.println(padding + "Name:      " + key.getFriendlyName());
+            System.out.println(padding + "Label:     " + key.getLabel());
             System.out.println(padding + "Usage:     " + key.getUsage());
             System.out.println(padding + "Available: " + key.isAvailable());
 

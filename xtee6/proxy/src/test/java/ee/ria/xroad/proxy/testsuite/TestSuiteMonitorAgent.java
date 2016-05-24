@@ -26,13 +26,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgentProvider;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Monitor agent implementation for the testsuite.

@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.util;
 
-import org.junit.Test;
-
 import static ee.ria.xroad.common.util.PasswordStore.getPassword;
 import static ee.ria.xroad.common.util.PasswordStore.storePassword;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import org.junit.Test;
 
 /**
  * Tests to verify

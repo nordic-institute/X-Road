@@ -22,6 +22,14 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.util.CertUtils.getCertHashes;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
 import java.io.File;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -29,7 +37,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
@@ -48,10 +55,7 @@ import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CertUtils.getCertHashes;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates KeyConf related functionality.

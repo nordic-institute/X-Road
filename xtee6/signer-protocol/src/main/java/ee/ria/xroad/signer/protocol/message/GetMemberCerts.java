@@ -24,9 +24,8 @@ package ee.ria.xroad.signer.protocol.message;
 
 import java.io.Serializable;
 
-import lombok.Value;
-
 import ee.ria.xroad.common.identifier.ClientId;
+import lombok.Value;
 
 /**
  * Signer API message.

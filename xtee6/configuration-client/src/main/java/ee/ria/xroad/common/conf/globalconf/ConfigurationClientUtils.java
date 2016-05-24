@@ -22,10 +22,15 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.CodedException;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_CANNOT_DOWNLOAD_CONF;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_EXPIRED_CONF;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INTERNAL;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.*;
-import static ee.ria.xroad.common.ErrorCodes.*;
+import ee.ria.xroad.common.CodedException;
 
 /**
  * Utilities for configuration client module

@@ -23,7 +23,7 @@ if [ ! -n "${LIQUIBASE_HOME+x}" ]; then
   # echo "Liquibase Home: $LIQUIBASE_HOME"
 fi
 
- 
+
 # build classpath from all jars in lib
 if [ -f /usr/bin/cygpath ]; then
   CP=.

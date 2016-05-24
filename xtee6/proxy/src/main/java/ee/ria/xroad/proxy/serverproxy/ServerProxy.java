@@ -31,8 +31,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -52,6 +50,7 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
+import ch.qos.logback.access.jetty.RequestLogImpl;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
@@ -62,6 +61,7 @@ import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.antidos.AntiDosSslConnector;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -77,7 +77,7 @@ public class ServerProxy implements StartStop {
     private static final int SSL_SESSION_TIMEOUT = 600;
 
     // Configuration parameters.
-    // TODO #2576 Make configurable in the future
+    // FUTURE #2576 Make configurable.
     private static final int CLIENT_TIMEOUT = 30000; // 30 sec.
     private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
     private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
@@ -189,7 +189,6 @@ public class ServerProxy implements StartStop {
         connector.setPort(port);
         connector.setHost(listenAddress);
 
-        connector.setSoLingerTime(0);
         connector.setMaxIdleTime(0);
 
         connector.setAcceptors(2 * Runtime.getRuntime().availableProcessors());

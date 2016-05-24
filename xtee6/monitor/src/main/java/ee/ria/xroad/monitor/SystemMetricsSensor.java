@@ -22,16 +22,17 @@
  */
 package ee.ria.xroad.monitor;
 
+import java.util.concurrent.TimeUnit;
+
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.sun.management.UnixOperatingSystemMXBean;
+
 import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * System metrics sensor collects information such as

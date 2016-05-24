@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.common.util;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Calculates hash values according to the provided algorithm URI.

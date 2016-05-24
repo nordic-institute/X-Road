@@ -30,10 +30,10 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import lombok.extern.slf4j.Slf4j;
 import org.xml.sax.SAXException;
 
 import ee.ria.xroad.common.CodedException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for schema-based validators.

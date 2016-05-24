@@ -26,10 +26,11 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
 
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.nio.SelectChannelEndPoint;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class implements a SSL connector that prevents DoS attacks.

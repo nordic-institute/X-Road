@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -36,23 +41,28 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedCAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CaInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SharedParametersType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 /**
  * Contains shared parameters of a configuration instance.
@@ -75,7 +85,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
     // Cached items, filled at conf reload
     private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
             new HashMap<>();
-    private final Map<X509Certificate, IdentifierDecoderType> caCertsAndIdentifierDecoders =
+    private final Map<X509Certificate, String> caCertsAndCertProfiles =
             new HashMap<>();
     private final Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData =
             new HashMap<>();
@@ -163,12 +173,6 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
         return subjectsAndCaCerts.get(certHolder.getIssuer());
     }
 
-    ClientId getSubjectName(X509Certificate cert,
-            IdentifierDecoderType decoder) throws Exception {
-        return IdentifierDecoderHelper.getSubjectName(cert, decoder,
-                getInstanceIdentifier());
-    }
-
     @Override
     public void load(String fileName) throws Exception {
         super.load(fileName);
@@ -199,7 +203,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
 
     private void clearCache() {
         subjectsAndCaCerts.clear();
-        caCertsAndIdentifierDecoders.clear();
+        caCertsAndCertProfiles.clear();
         caCertsAndOcspData.clear();
         memberAddresses.clear();
         memberAuthCerts.clear();
@@ -230,11 +234,9 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
                 verificationCaCerts.addAll(pkiCaCerts);
             }
 
-            IdentifierDecoderType identifierDecoder =
-                    caType.getIdentifierDecoder();
-
             for (X509Certificate pkiCaCert : pkiCaCerts) {
-                caCertsAndIdentifierDecoders.put(pkiCaCert, identifierDecoder);
+                caCertsAndCertProfiles.put(pkiCaCert,
+                        caType.getCertificateProfileInfo());
             }
             allCaCerts.addAll(pkiCaCerts);
         }

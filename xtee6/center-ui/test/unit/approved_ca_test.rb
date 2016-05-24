@@ -3,14 +3,17 @@ require 'date'
 require 'openssl'
 
 class ApprovedCaTest < ActiveSupport::TestCase
+  CN_CERT_CA1 = "AAA-central-external"
+  CERT_PROFILE_INTERFACE_QNAME = "ee.ria.xroad.common.certificateprofile.impl."\
+        "EjbcaCertificateProfileInfoProvider"
+
   # Writing tests - start
 
-  test "Raise XroadArgumentError if no topCaData provided" do
+  test "Raise XRoadArgumentError if no topCaData provided" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
-    approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.extract"
+    approved_ca.cert_profile_info = CERT_PROFILE_INTERFACE_QNAME
 
     # When/Then
     error = assert_raises(ActiveRecord::RecordInvalid) do
@@ -18,47 +21,47 @@ class ApprovedCaTest < ActiveSupport::TestCase
     end
   end
 
-  test "Raise XroadArgumentError if no nameExtractorMethodName provided" do
+  test "Raise RecordInvalid if no certificate profile info provided" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
-    approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = nil
 
     top_ca = CaInfo.new()
     top_ca.cert = read_cert_ca1()
     approved_ca.top_ca = top_ca
 
     # When/Then
-    error = assert_raises(XroadArgumentError) do
+    error = assert_raises(ActiveRecord::RecordInvalid) do
       approved_ca.save!
     end
-    assert_equal(:no_name_extractor_method, error.type)
+
+    assert(error.message.include?(
+        I18n.t("activerecord.attributes.approved_ca.cert_profile_info")))
   end
 
   test "Raise OpenSSL::OpenSSLError if cert invalid" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
-    approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.extract"
+    approved_ca.cert_profile_info = CERT_PROFILE_INTERFACE_QNAME
 
     top_ca = CaInfo.new()
     top_ca.cert = "invalidcert"
     approved_ca.top_ca = top_ca
 
     # When/Then
-    assert_raises(OpenSSL::X509::CertificateError) do
+    error = assert_raises(RuntimeError) do
       approved_ca.save!
     end
+
+    assert_equal(I18n.t("validation.invalid_cert"), error.message)
   end
 
   test "Save approved ca successfully" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = false
-    approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name = "ee.ria.xroad.Extractor.saveSuccessfully"
+    approved_ca.cert_profile_info = CERT_PROFILE_INTERFACE_QNAME
 
     first_top_ca_ocsp_info = OcspInfo.new()
     first_top_ca_ocsp_info.url = "http://www.ocsp1.ee"
@@ -97,10 +100,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     # Then
     saved = ApprovedCa.where(:name => CN_CERT_CA1).first()
 
-    assert_equal("ee.ria.xroad.Extractor.saveSuccessfully",
-        saved.identifier_decoder_method_name)
-
-    assert_equal("riigiasutus", saved.identifier_decoder_member_class)
+    assert_equal(CERT_PROFILE_INTERFACE_QNAME, saved.cert_profile_info)
 
     top_ca = saved.top_ca
     assert_not_nil(top_ca.cert)
@@ -125,10 +125,11 @@ class ApprovedCaTest < ActiveSupport::TestCase
         second_intermediate_ca.ocsp_infos[0].url)
   end
 
-  test "Raise RecordInvalid if no cert for intermediate CA present" do
+  test "Raise XRoadArgumentError if no cert for intermediate CA present" do
     # Given
     approved_ca = ApprovedCa.new()
     approved_ca.authentication_only = true
+    approved_ca.cert_profile_info = CERT_PROFILE_INTERFACE_QNAME
 
     top_ca = CaInfo.new()
     top_ca.cert = read_cert_ca1()
@@ -140,7 +141,7 @@ class ApprovedCaTest < ActiveSupport::TestCase
     approved_ca.intermediate_cas = [intermediate_ca]
 
     # When/then
-    error = assert_raises(XroadArgumentError) do
+    error = assert_raises(XRoadArgumentError) do
       approved_ca.save!
     end
 
@@ -148,39 +149,6 @@ class ApprovedCaTest < ActiveSupport::TestCase
   end
 
   # Writing tests - end
-
-  # Updating tests - start
-
-  test "Update name extractor from ordinary to authOnly" do
-    # Given
-    approved_ca = ApprovedCa.new()
-    approved_ca.authentication_only = false
-    approved_ca.identifier_decoder_member_class = "riigiasutus"
-    approved_ca.identifier_decoder_method_name =
-        "ee.ria.xroad.Extractor.extractorToAuthOnly"
-
-    top_ca = CaInfo.new()
-    top_ca.cert = read_cert_ca1()
-    approved_ca.top_ca = top_ca
-    approved_ca.save!
-
-    approved_ca_to_update = ApprovedCa.where(
-      :identifier_decoder_method_name =>
-      "ee.ria.xroad.Extractor.extractorToAuthOnly").first()
-
-    # When
-    approved_ca.authentication_only = true
-    approved_ca.save!
-
-    # Then
-    updated_approved_ca = ApprovedCa.where(:name => CN_CERT_CA1).first()
-
-    assert(updated_approved_ca.authentication_only)
-    assert_nil(updated_approved_ca.identifier_decoder_member_class)
-    assert_nil(updated_approved_ca.identifier_decoder_method_name)
-  end
-
-  # Updating tests - end
 
   # Reading tests - start
 

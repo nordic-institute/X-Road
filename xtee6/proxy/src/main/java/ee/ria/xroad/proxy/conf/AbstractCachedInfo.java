@@ -24,9 +24,9 @@ package ee.ria.xroad.proxy.conf;
 
 import java.util.Date;
 
-import lombok.Getter;
-
 import org.joda.time.DateTime;
+
+import lombok.Getter;
 
 abstract class AbstractCachedInfo {
 

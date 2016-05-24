@@ -21,14 +21,14 @@ Please fix this and reinstall this package." >&2
 Please fix this and reinstall this package." >&2
         exit 1
     fi
-    #add xroad to shadow group for pam 
+    #add xroad to shadow group for pam
     adduser xroad shadow
 
     # ensure home directory ownership
     mkdir -p /var/lib/xroad/backup
     su - xroad -c "test -O /var/lib/xroad &&
             test -G /var/lib/xroad" || \
-        chown xroad:xroad /var/lib/xroad 
+        chown xroad:xroad /var/lib/xroad
     chown xroad:xroad /var/lib/xroad/backup
     chmod 0775 /var/lib/xroad
 
@@ -58,8 +58,9 @@ Please fix this and reinstall this package." >&2
     test -e /usr/lib/jvm/java-1.8.0-openjdk-amd64 || ln -sf /usr/lib/jvm/java-1.8.0-openjdk/ /usr/lib/jvm/java-1.8.0-openjdk-amd64
 
     #local overrides
-    test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf 
+    test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
     test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
+    test -f /etc/xroad/devices.ini || cp /usr/share/xroad/doc/devices.ini /etc/xroad/devices.ini && chown xroad:xroad /etc/xroad/devices.ini
 
     test -d /etc/xroad/signer || mkdir -p -m0700 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
     test -d /etc/xroad/conf.d || mkdir -p /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
@@ -71,11 +72,11 @@ Please fix this and reinstall this package." >&2
     #check if java trustAnchor file is non-empty. add certs if neccecary
     JAVACERTS=`find  /etc/ssl/certs/java/ -type f -size +1k -print -quit`
     if [ -z "$JAVACERTS" ] && [ -f /usr/share/ca-certificates-java/ca-certificates-java.jar ]
-     then 
+     then
        find /etc/ssl/certs -name \*.pem | while read filename; do alias=$(basename $filename .pem | tr A-Z a-z | tr -cs a-z0-9 _);     alias=${alias%*_}; echo "+${filename}";     done | java  -jar /usr/share/ca-certificates-java/ca-certificates-java.jar -storepass "changeit"
     fi
 
-fi    
+fi
 
 invoke-rc.d xroad-signer restart
 

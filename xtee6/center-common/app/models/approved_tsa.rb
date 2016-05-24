@@ -12,7 +12,7 @@ class ApprovedTsa < ActiveRecord::Base
     cert_obj = CommonUi::CertUtils.cert_object(tsp.cert)
     tsp.valid_from = cert_obj.not_before
     tsp.valid_to = cert_obj.not_after
-    tsp.name = cert_obj.subject.to_s
+    tsp.name = CommonUi::CertUtils.cert_subject_cn(cert_obj)
 
     unless MaxlengthValidator.string_length_valid?(tsp.name)
       raise I18n.t("errors.tsp.cert_too_long_subject_name", {

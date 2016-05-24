@@ -39,10 +39,9 @@ public final class PerformanceLogger {
      * @return current time in milliseconds
      */
     public static long log(Logger logger, String message) {
-        long now = 0;
+        long now = System.currentTimeMillis();
 
         if (logger.isTraceEnabled()) {
-            now = System.currentTimeMillis();
             logger.trace("PERFORMANCE: {}: {}", now, message);
         }
 

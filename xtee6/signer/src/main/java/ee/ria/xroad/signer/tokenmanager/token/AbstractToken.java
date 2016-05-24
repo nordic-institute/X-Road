@@ -22,10 +22,16 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_WORKER;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
+import static ee.ria.xroad.signer.util.SignerUtil.getWorkerId;
+
 import akka.actor.ActorRef;
 import akka.actor.Props;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
@@ -34,12 +40,7 @@ import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.Update;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_WORKER;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.SignerUtil.getWorkerId;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Token base class.

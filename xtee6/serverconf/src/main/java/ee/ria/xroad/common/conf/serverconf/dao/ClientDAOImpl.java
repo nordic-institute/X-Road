@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
+import static java.util.Collections.emptyList;
+
 import java.util.List;
 
 import org.hibernate.Criteria;
@@ -31,8 +33,6 @@ import org.hibernate.criterion.Example;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Client data access object implementation.

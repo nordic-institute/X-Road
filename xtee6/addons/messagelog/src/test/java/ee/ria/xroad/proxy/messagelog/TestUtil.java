@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,9 +37,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Query;
 
@@ -48,11 +50,10 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
-
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import ee.ria.xroad.common.util.MimeTypes;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 final class TestUtil {
@@ -139,6 +140,7 @@ final class TestUtil {
         String soap = message.replaceAll("<xroad:id>1234567890</xroad:id>",
                 "<xroad:id>" + queryId + "</xroad:id>");
         return (SoapMessageImpl) new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(
                         soap.getBytes(StandardCharsets.UTF_8)));
     }

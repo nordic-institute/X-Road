@@ -181,16 +181,6 @@ public final class SystemProperties {
     public static final String ANTIDOS_MAX_HEAP_USAGE =
             PREFIX + "anti-dos.max-heap-usage";
 
-    // AsyncDB ----------------------------------------------------------------
-
-    /** Property name of the async DB directory. */
-    public static final String ASYNC_DB_PATH =
-            PREFIX + "async-db.path";
-
-    /** Property name of the async sender configuration file. */
-    public static final String ASYNC_SENDER_CONFIGURATION_FILE =
-            PREFIX + "async-db.sender-conf-file";
-
     // Configuration client ---------------------------------------------------
 
     public static final String CONFIGURATION_CLIENT_PORT =
@@ -248,14 +238,18 @@ public final class SystemProperties {
 
     // Proxy UI ---------------------------------------------------------------
 
-    public static final String SERVICE_IMPORTER_COMMAND =
-            PREFIX + "proxy-ui.service-importer-command";
+    public static final String CLIENTS_IMPORTER_COMMAND =
+            PREFIX + "proxy-ui.clients-importer-command";
 
     public static final String TLS_KEY_IMPORTER_COMMAND =
             PREFIX + "proxy-ui.tls-key-importer-command";
 
     public static final String TLS_KEY_EXPORTER_COMMAND =
             PREFIX + "proxy-ui.tls-key-exporter-command";
+
+    /** Property name of the WSDL validator command. */
+    public static final String WSDL_VALIDATOR_COMMAND =
+            PREFIX + "proxy-ui.wsdl-validator-command";
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -365,25 +359,6 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where asynchronous queries are located,
-     * '/var/spool/xroad/' by default
-     */
-    public static String getAsyncDBPath() {
-        return System.getProperty(ASYNC_DB_PATH,
-                DefaultFilepaths.ASYNC_DB_PATH);
-    }
-
-    /**
-     * @return path to the asynchronous sender configuration file,
-     * '/etc/xroad/async-sender.properties' by default
-     */
-    public static String getAsyncSenderConfFile() {
-        return System.getProperty(ASYNC_SENDER_CONFIGURATION_FILE,
-                getConfPath()
-                    + DefaultFilepaths.ASYNC_SENDER_CONFIGURATION_FILE);
-    }
-
-    /**
      * @return path to the directory where application logs are stored,
      * '/var/log/xroad/' by default
      */
@@ -461,6 +436,13 @@ public final class SystemProperties {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
                 getConfPath()
                     + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+    }
+
+    /**
+     * @return WSDL validator command string. Defaults to null.
+     */
+    public static String getWsdlValidatorCommand() {
+        return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
     }
 
     /**
@@ -655,10 +637,10 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the shell command used when importing V5 services
+     * @return the shell command used when importing V5 clients
      */
-    public static String getServiceImporterCommand() {
-        return System.getProperty(SERVICE_IMPORTER_COMMAND);
+    public static String getClientsImporterCommand() {
+        return System.getProperty(CLIENTS_IMPORTER_COMMAND);
     }
 
     /**

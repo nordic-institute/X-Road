@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
+
 import org.hibernate.Criteria;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 
 /**
  * Server conf data access object implementation.

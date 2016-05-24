@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static java.util.Collections.singletonList;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -33,8 +35,6 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
-
-import static java.util.Collections.singletonList;
 
 /**
  * ServerProxy connects to Service using SSL.

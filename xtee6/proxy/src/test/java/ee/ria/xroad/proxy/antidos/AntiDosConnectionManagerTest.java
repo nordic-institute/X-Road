@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,9 +33,6 @@ import org.junit.Test;
 
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test to verify correct Anti-Dos behavior.

@@ -1,3 +1,7 @@
+plugins {
+    id "it.tellnet.sass" version "1.2"
+}
+
 dependencies {
     compile project(':common-util')
     compile project(':common-verifier')
@@ -7,6 +11,7 @@ dependencies {
     compile 'org.kohsuke:libpam4j:1.7'
 
     testCompile project(':common-test')
+    testCompile project(':common-util').sourceSets.test.output
 }
 
 task copyDeps(type: Copy) {
@@ -16,6 +21,12 @@ task copyDeps(type: Copy) {
 
 task checkRubySource(type: Exec) {
     commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+/* use task sassCompile to compile from scss to css */
+sass {
+    sassDir = "public/stylesheets/scss/"
+    cssDir = "public/stylesheets"
 }
 
 check.dependsOn checkRubySource

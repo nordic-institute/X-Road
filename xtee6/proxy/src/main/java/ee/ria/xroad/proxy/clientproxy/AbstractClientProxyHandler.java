@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -30,8 +33,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Request;
 
@@ -43,9 +44,8 @@ import ee.ria.xroad.common.monitoring.MonitorAgent;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for client proxy handlers.
@@ -76,21 +76,27 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         log.info("Received request from {}", request.getRemoteAddr());
 
         MessageProcessorBase processor = null;
+
         try {
             processor = createRequestProcessor(target, request, response);
+
             if (processor != null) {
                 handled = true;
                 start = logPerformanceBegin(request);
                 processor.process();
                 success(processor, start);
-            }
 
-            log.info("Request successfully handled ({} ms)",
-                    System.currentTimeMillis() - start);
+                log.info("Request successfully handled ({} ms)",
+                        System.currentTimeMillis() - start);
+            }
         } catch (CodedException.Fault | ClientException ex) {
             handled = true;
 
-            log.error("Request processing error", ex);
+            String errorMessage = ex instanceof ClientException
+                    ? "Request processing error (" + ex.getFaultDetail() + ")"
+                    : "Request processing error";
+
+            log.error(errorMessage, ex);
 
             // Exceptions caused by incoming message and exceptions
             // derived from faults sent by serverproxy already contain
@@ -101,6 +107,7 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         } catch (CodedExceptionWithHttpStatus ex) {
             handled = true;
 
+            // No need to log faultDetail hence not sent to client.
             log.error("Request processing error", ex);
 
             // Respond with HTTP status code and plain text error message
@@ -110,11 +117,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         } catch (Exception ex) {
             handled = true;
 
-            log.error("Request processing error", ex);
-
             // All the other exceptions get prefix Server.ClientProxy...
-            failure(processor, response,
-                    translateWithPrefix(SERVER_CLIENTPROXY_X, ex));
+            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, ex);
+
+            log.error("Request processing error (" + cex.getFaultDetail() + ")",
+                    ex);
+
+            failure(processor, response, cex);
         } finally {
             baseRequest.setHandled(handled);
 

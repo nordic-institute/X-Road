@@ -22,6 +22,15 @@
  */
 package ee.ria.xroad.signer;
 
+import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
+
+import java.util.concurrent.TimeUnit;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -40,10 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.signer.protocol.ComponentNames.*;
-
 /**
  * Signer application.
  */
@@ -53,6 +58,9 @@ public class Signer implements StartStop {
 
     private static final String MODULE_MANAGER_IMPL_CLASS =
             SystemProperties.PREFIX + "signer.moduleManagerImpl";
+
+    private static final FiniteDuration MODULE_MANAGER_UPDATE_INTERVAL =
+            Duration.create(60, TimeUnit.SECONDS);
 
     private final ActorSystem actorSystem;
 
@@ -126,11 +134,8 @@ public class Signer implements StartStop {
      */
     private static class ModuleManagerJob extends PeriodicJob {
 
-        private static final FiniteDuration MODULE_MANAGER_INTERVAL =
-                Duration.create(60, TimeUnit.SECONDS);
-
         ModuleManagerJob() {
-            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_INTERVAL);
+            super(MODULE_MANAGER, new Update(), MODULE_MANAGER_UPDATE_INTERVAL);
         }
 
         @Override

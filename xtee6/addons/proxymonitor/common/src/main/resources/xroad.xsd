@@ -10,25 +10,25 @@
     <xs:import namespace="http://www.w3.org/XML/1998/namespace"
                schemaLocation="http://www.w3.org/2001/xml.xsd" />
 
-    <xs:element name="client" type="id:XroadClientIdentifierType">
+    <xs:element name="client" type="id:XRoadClientIdentifierType">
         <xs:annotation>
             <xs:documentation>Identies service client</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="service" type="id:XroadServiceIdentifierType">
+    <xs:element name="service" type="id:XRoadServiceIdentifierType">
         <xs:annotation>
             <xs:documentation>Identies the service
                 that is invoked by the request</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="securityServer" type="id:XroadSecurityServerIdentifierType">
+    <xs:element name="securityServer" type="id:XRoadSecurityServerIdentifierType">
         <xs:annotation>
             <xs:documentation>Identies the security server
                 that is invoked by the request</xs:documentation>
         </xs:annotation>
     </xs:element>
     <xs:element name="centralCervice"
-                type="id:XroadCentralServiceIdentifierType">
+                type="id:XRoadCentralServiceIdentifierType">
         <xs:annotation>
             <xs:documentation>Identies the central service
                 that is invoked by the request.</xs:documentation>

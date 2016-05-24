@@ -22,6 +22,17 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.w3c.dom.Node;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -39,14 +50,6 @@ import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 import lombok.extern.slf4j.Slf4j;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 
 /**
  * Service handler for proxy monitoring
@@ -111,7 +114,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         root.getMetrics().add(client.getMetrics());
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
-        responseEncoder.soap(result);
+        responseEncoder.soap(result, Collections.emptyMap());
     }
 
     @Override

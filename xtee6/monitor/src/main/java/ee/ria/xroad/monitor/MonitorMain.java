@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.monitor;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
+import java.util.concurrent.TimeUnit;
+
 import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import lombok.extern.java.Log;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Main class for monitor application

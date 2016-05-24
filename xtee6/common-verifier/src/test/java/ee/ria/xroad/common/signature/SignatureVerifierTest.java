@@ -22,6 +22,29 @@
  */
 package ee.ria.xroad.common.signature;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
@@ -31,20 +54,6 @@ import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.MessageFileNames;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
 
 /**
  * Tests the signature verifier.

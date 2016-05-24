@@ -33,8 +33,6 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -48,6 +46,7 @@ import org.bouncycastle.operator.ContentSigner;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * OCSP client downloads OCSP responses for specified certificates using
@@ -72,11 +71,11 @@ public final class OcspClient {
     }
 
     protected static PrivateKey getOcspRequestKey(X509Certificate subject) {
-        return null; // TODO
+        return null; // FUTURE: 8162
     }
 
     protected static X509Certificate getOcspSignerCert() {
-        return null; // TODO
+        return null; // FUTURE: 8162
     }
 
     protected static OCSPResp fetchResponse(X509Certificate subject,

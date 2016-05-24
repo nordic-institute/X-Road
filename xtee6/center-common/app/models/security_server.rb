@@ -4,7 +4,7 @@ class SecurityServer < ActiveRecord::Base
 
   class DuplicateSecurityServerValidator < ActiveModel::Validator
     def validate(new_record)
-      xroad_member = XroadMember.find(new_record.owner_id)
+      xroad_member = XRoadMember.find(new_record.owner_id)
 
       server_code = new_record.server_code
       member_code = xroad_member.member_code
@@ -58,7 +58,7 @@ class SecurityServer < ActiveRecord::Base
   validates_presence_of :owner_id
   validates_with DuplicateSecurityServerValidator, :on => :create
 
-  belongs_to :owner, :class_name => "XroadMember", :foreign_key => "owner_id"
+  belongs_to :owner, :class_name => "XRoadMember", :foreign_key => "owner_id"
 
   has_and_belongs_to_many :security_categories,
       :join_table => "security_servers_security_categories"

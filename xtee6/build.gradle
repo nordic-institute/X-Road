@@ -50,6 +50,11 @@ subprojects {
         testCompile 'junit:junit:4.11'
 
         provided 'org.projectlombok:lombok:1.16.6'
+
+        pmd(
+            'net.sourceforge.pmd:pmd-core:5.3.3',
+            'net.sourceforge.pmd:pmd-java:5.3.3'
+        )
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -93,7 +98,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.1.1"
+        toolVersion = "6.11.2"
         configFile = new File(rootDir, "doc/checkstyle.xml")
         configProperties.config_loc = "$rootDir/doc"
         ignoreFailures = false
@@ -102,6 +107,13 @@ subprojects {
 
     pmd {
         ignoreFailures = true
+        toolVersion = '5.3.3'
+        ruleSets = [
+                "java-basic", 
+                "java-imports",
+                "java-sunsecure", 
+                "java-unusedcode"
+                ]
     }
 
     jacocoTestReport {

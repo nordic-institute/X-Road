@@ -14,7 +14,7 @@ class SecurityServerTest < ActiveSupport::TestCase
     xroad_member_owner = get_owner()
     member_class_riigiasutus = get_riigiasutus()
 
-    xroad_member_client = XroadMember.create!(
+    xroad_member_client = XRoadMember.create!(
       :member_class => member_class_riigiasutus,
       :member_code => "member_client",
       :name => "Owner name",
@@ -52,7 +52,7 @@ class SecurityServerTest < ActiveSupport::TestCase
 
   test "Should preserve owner name in request after owner deleted" do
     # Given
-    owner_member = XroadMember.create!(
+    owner_member = XRoadMember.create!(
       :member_class => get_riigiasutus,
       :member_code => "ownerMember",
       :name => "Owner name",
@@ -71,7 +71,7 @@ class SecurityServerTest < ActiveSupport::TestCase
       :origin => Request::CENTER).register()
 
     # When
-    XroadMember.destroy(owner_member)
+    XRoadMember.destroy(owner_member)
 
     # Then
     auth_cert_deletion_requests = AuthCertDeletionRequest.all
@@ -108,7 +108,7 @@ class SecurityServerTest < ActiveSupport::TestCase
 
   def get_owner
     id = ActiveRecord::Fixtures.identify(:member_in_vallavalitsused)
-    XroadMember.find(id)
+    XRoadMember.find(id)
   end
 
   test "Should remove owner from owners group if only one owned server" do

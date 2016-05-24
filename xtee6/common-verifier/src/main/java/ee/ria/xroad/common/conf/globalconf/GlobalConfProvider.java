@@ -24,10 +24,13 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.ConfProvider;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -108,15 +111,6 @@ public interface GlobalConfProvider extends ConfProvider {
      * no instance identifiers are specified
      */
     Set<String> getMemberClasses(String... instanceIdentifiers);
-
-    /**
-     * Returns address of the given service provider's proxy based on
-     * authentication certificate.
-     * @param authCert the authentication certificate
-     * @return IP address converted to string, such as "192.168.2.2".
-     * @throws Exception if an error occurs
-     */
-    String getProviderAddress(X509Certificate authCert) throws Exception;
 
     /**
      * Returns address of the given service provider's proxy.
@@ -214,14 +208,33 @@ public interface GlobalConfProvider extends ConfProvider {
             throws Exception;
 
     /**
-     * @param instanceIdentifier instance identifier
+     * @param instanceIdentifier the instance identifier
+     * @return all known approved CAs
+     */
+    default Collection<ApprovedCAInfo> getApprovedCAs(
+            String instanceIdentifier) {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @param parameters the authentication certificate profile info parameters
      * @param cert the certificate
-     * @return short name of the certificate subject. Short name is used
-     * in messages and access checking.
+     * @return auth certificate profile info for this certificate
      * @throws Exception if an error occurs
      */
-    ClientId getSubjectName(String instanceIdentifier, X509Certificate cert)
-            throws Exception;
+    AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception;
+
+    /**
+     * @param parameters the signing certificate profile info parameters
+     * @param cert the certificate
+     * @return signing certificate profile info for this certificate
+     * @throws Exception if an error occurs
+     */
+    SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception;
 
     /**
      * @param instanceIdentifier the instance identifier
@@ -289,7 +302,7 @@ public interface GlobalConfProvider extends ConfProvider {
      * @param smallestValue if true, the smallest value computed over all
      * known instances is returned. Otherwise the value of the current instance
      * is returned.
-     * @return maximum allowed validity time of OCSP responses. If producedAt
+     * @return maximum allowed validity time of OCSP responses. If thisUpdate
      * field of an OCSP response is older than ocspFreshnessSeconds seconds,
      * it is no longer valid.
      */

@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import java.security.PrivateKey;
+import java.util.Date;
+import java.util.List;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.security.PrivateKey;
-import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @Getter

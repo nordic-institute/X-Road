@@ -22,11 +22,18 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -35,7 +42,6 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPMessage;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Node;
 
@@ -55,10 +61,7 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -148,7 +151,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createListMethodsResponse(methodList));
-        responseEncoder.soap(result);
+        responseEncoder.soap(result, new HashMap<>());
     }
 
     private void handleAllowedMethods(SoapMessageImpl request)
@@ -163,7 +166,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         SoapMessageImpl result = createMethodListResponse(request,
                 OBJECT_FACTORY.createAllowedMethodsResponse(methodList));
-        responseEncoder.soap(result);
+        responseEncoder.soap(result, new HashMap<>());
     }
 
     private void handleGetWsdl(SoapMessageImpl request) throws Exception {
@@ -190,7 +193,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         log.info("Downloading WSDL from URL: {}", url);
         try (InputStream in = getWsdl(url)) {
-            responseEncoder.soap(SoapUtils.toResponse(request));
+            responseEncoder.soap(SoapUtils.toResponse(request),
+                    new HashMap<>());
             responseEncoder.attachment(MimeTypes.TEXT_XML, in, null);
         }
     }

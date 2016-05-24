@@ -22,14 +22,20 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -55,11 +61,8 @@ import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles generation of self signed certificates.

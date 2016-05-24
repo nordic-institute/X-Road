@@ -1,6 +1,5 @@
 dependencies {
     compile project(':serverconf')
-    compile project(':async-db')
     compile project(':common-ui')
 
     compile 'wsdl4j:wsdl4j:1.6.3'
@@ -13,7 +12,13 @@ clean << {
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
-    exclude '**/build/**'
+    include "Gemfile"
+    include "Rakefile"
+    include "common-ui.gemspec"
+    include "config/"
+    include "lib/**"
+    include "app/**"
+    include "public/**"
 }
 
 task copyDeps(dependsOn: copyCommon, type: Copy) {

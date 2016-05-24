@@ -19,15 +19,17 @@ class ApplicationController < BaseController
 
   rescue_from ActiveRecord::StatementInvalid,
       ActiveRecord::ConnectionNotEstablished do
-    ActiveRecord::Base.establish_connection
-    error(t("common.db_error"))
-    render_error_response($!.message)
+    begin
+      ActiveRecord::Base.establish_connection
+    rescue
+      log_stacktrace($!)
+      render_error_response(t("common.db_error"))
+    end
   end
 
   before_filter :disable_federation
   before_filter :read_locale
   before_filter :check_conf, :except => [:menu]
-  before_filter :read_server_id, :read_ha_node_name, :except => [:menu]
   before_filter :verify_get, :only => [
       :index,
       :get_records_count,
@@ -44,6 +46,10 @@ class ApplicationController < BaseController
 
   def set_locale
     audit_log("Set UI language", audit_log_params = {})
+
+    validate_params({
+      :locale => [:required]
+    })
 
     unless I18n.available_locales.include?(params[:locale].to_sym)
       raise "invalid locale"
@@ -149,13 +155,6 @@ class ApplicationController < BaseController
     )
   end
 
-  def get_uploaded_file_param
-    params.each do |each_key, each_value|
-      logger.debug("Inspecting value for key '#{each_key}'")
-      return each_value if each_value.is_a?(ActionDispatch::Http::UploadedFile)
-    end
-  end
-
   def render_details_visibility(privilege)
     render_json_without_messages({:can => can?(privilege)})
   end
@@ -180,30 +179,17 @@ class ApplicationController < BaseController
     I18n.locale = ui_user.locale if ui_user
   end
 
-  def read_server_id
-    return @server_id if @server_id
-    @server_id = CentralServerId.new(SystemParameter.instance_identifier)
-  end
-
-  def read_ha_node_name
-    return @ha_node_name if @ha_node_name
-    @ha_node_name = CommonSql.ha_node_name
+  def validate_cert(uploaded_file)
+    validate_any_cert(uploaded_file, CertValidator.new)
   end
 
   def validate_auth_cert(uploaded_file)
-    CommonUi::UploadedFile::Validator.new(
-        uploaded_file,
-        AuthCertValidator.new).validate
+    validate_any_cert(uploaded_file, AuthCertValidator.new)
   end
 
-  class CentralServerId
-    def initialize(xroad_instance)
-      @xroad_instance = xroad_instance
-    end
-
-    # To make it compatible with common-ui
-    def toShortString
-      return @xroad_instance
-    end
+  def validate_any_cert(uploaded_file, validator)
+    CommonUi::UploadedFile::Validator.new(
+        uploaded_file,
+        validator).validate
   end
 end

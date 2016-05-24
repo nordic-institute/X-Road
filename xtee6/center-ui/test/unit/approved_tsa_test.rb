@@ -41,9 +41,11 @@ class ApprovedTsaTest < ActiveSupport::TestCase
     tsp.cert = "arbitrary String"
 
     # When/then
-    assert_raises(OpenSSL::X509::CertificateError) do
+    error = assert_raises(RuntimeError) do
       tsp.save!
     end
+
+    assert_equal(I18n.t("validation.invalid_cert"), error.message)
   end
 
   test "Should save approved TSP correctly" do
@@ -115,10 +117,12 @@ class ApprovedTsaTest < ActiveSupport::TestCase
     tsp2.cert = read_cert_ca1()
 
     # When/then
-    assert_raises(ActiveRecord::RecordInvalid) do
+    error = assert_raises(ActiveRecord::RecordInvalid) do
       tsp1.save!
       tsp2.save!
     end
+
+    assert_equal(I18n.t("errors.tsp.cert_and_url_exists"), error.message)
   end
 
   test "Should not let change cert for already existing approved TSP" do

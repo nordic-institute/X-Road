@@ -226,7 +226,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
 
   test "Should remove related global group memberships when member destroyed" do
     # Given
-    member_to_destroy = XroadMember.create!(
+    member_to_destroy = XRoadMember.create!(
       :member_class => get_riigiasutus(),
       :member_code => "deletable",
       :name => "DeletableName",
@@ -240,7 +240,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     second_group.add_member(group_member_id.clean_copy())
 
     # When
-    XroadMember.destroy(member_to_destroy)
+    XRoadMember.destroy(member_to_destroy)
 
     # Then
     assert(!first_group.has_member?(group_member_id.clean_copy()),
@@ -254,7 +254,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
     # Given
     server_to_destroy = get_security_server()
 
-    member_to_destroy = XroadMember.create!(
+    member_to_destroy = XRoadMember.create!(
       :member_class => get_riigiasutus(),
       :member_code => "memberToDestroy",
       :name => "DeletableName",
@@ -267,7 +267,7 @@ class SecurityServerClientTest < ActiveSupport::TestCase
       :security_servers => [server_to_destroy])
 
     # When
-    XroadMember.destroy(member_to_destroy)
+    XRoadMember.destroy(member_to_destroy)
 
     # Then
     client_deletion_requests = ClientDeletionRequest.all

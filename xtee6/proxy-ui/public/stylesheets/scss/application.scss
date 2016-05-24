@@ -4,6 +4,10 @@
      font-weight: 300;
 }
 
+table tbody tr td ul.tableitem-actions {
+  line-height: 1px;
+}
+
 #services {
     .fa {
         padding-right: 0.5em;
@@ -53,7 +57,6 @@
 
 #keys {
     .token {
-        line-height: 34px;
     }
     .unsaved {
         background-color: rgba($base-color-yellow, 0.7);
@@ -77,7 +80,6 @@
     .token .locked,
     .token.token-available.token-inactive {
         color: red;
-        font-family: "open_sansbold";
     }
 }
 

@@ -22,6 +22,49 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.SOAPMessage;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -33,7 +76,15 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -47,28 +98,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPMessage;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
@@ -109,6 +138,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
             handleRequest();
 
             sign();
+            logResponseMessage();
+            writeSignature();
 
             close();
 
@@ -133,7 +164,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void postprocess() throws Exception {
-        logResponseMessage();
     }
 
     private void loadServiceHandlers() {
@@ -189,10 +219,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage() {
+        requestMessage = new ProxyMessage(
+                servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
-            public void soap(SoapMessageImpl soapMessage) throws Exception {
-                super.soap(soapMessage);
+            public void soap(SoapMessageImpl soapMessage,
+                    Map<String, String> additionalHeaders) throws Exception {
+                super.soap(soapMessage, additionalHeaders);
 
                 requestServiceId = soapMessage.getService();
 
@@ -367,7 +399,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.info("Sending request to {}", uri);
         try (InputStream in = requestMessage.getSoapContent()) {
             httpSender.doPost(uri, in, CHUNKED_LENGTH,
-                    requestMessage.getSoapContentType());
+                    servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
@@ -377,6 +409,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("parseResponse()");
 
         preprocess();
+
+        // Preserve the original content type of the service response
+        servletResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE,
+                handler.getResponseContentType());
         try {
             SoapMessageDecoder soapMessageDecoder =
                     new SoapMessageDecoder(handler.getResponseContentType(),
@@ -408,6 +444,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
         encoder.sign(responseSigningCtx);
     }
 
+    private void writeSignature() throws Exception {
+        log.trace("writeSignature()");
+
+        encoder.writeSignature();
+    }
+
     private void close() throws Exception {
         log.trace("close()");
 
@@ -417,7 +459,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void handleException(Exception ex) throws Exception {
         CodedException exception;
         if (ex instanceof CodedException.Fault) {
-            exception = (CodedException) ex;
+            exception = (CodedException.Fault) ex;
         } else {
             exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
         }
@@ -465,7 +507,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private static String getHashAlgoId() {
-        // TODO #2578 make hash function configurable
+        // FUTURE #2578 make hash function configurable
         return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
@@ -546,9 +588,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             responseSoap = (SoapMessageImpl) message;
-            encoder.soap(responseSoap);
+            encoder.soap(responseSoap, headers);
         }
 
         @Override
@@ -586,7 +629,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         @Override
         protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                String charset) throws Exception {
+                String charset, String originalContentType) throws Exception {
             if (soap.getSOAPHeader() != null) {
                 String hash = encodeBase64(calculateDigest(getHashAlgoId(),
                         requestMessage.getSoap().getBytes()));
@@ -598,9 +641,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
                         soap.getSOAPHeader());
 
                 byte[] newRawXml = SoapUtils.getBytes(soap);
-                return super.createMessage(newRawXml, soap, charset);
+                return super.createMessage(newRawXml, soap, charset,
+                        originalContentType);
             } else {
-                return super.createMessage(rawXml, soap, charset);
+                return super.createMessage(rawXml, soap, charset,
+                        originalContentType);
             }
         }
     }

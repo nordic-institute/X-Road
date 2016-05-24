@@ -148,8 +148,7 @@ var XROAD_TRUSTED_ANCHORS = function() {
     function deleteAnchor(anchorId, instanceIdentifier) {
         var confirmParams = { instanceIdentifier: instanceIdentifier };
         var params = {
-            id: anchorId,
-            instanceIdentifier: instanceIdentifier
+            id: anchorId
         };
 
         confirm("configuration_management.trusted_anchors.delete_confirm",

@@ -56,17 +56,6 @@
             <fingerprint>0B:A4:E1:74:46:7E:68:EC:07:FF:4D:BB:77:2D:89:47:2E:2C:1B:1C</fingerprint>
             <fingerprint>E2:32:69:CE:46:B3:EC:CE:67:99:CA:20:84:92:63:D1:71:15:ED:EE</fingerprint>
         </registered_certs>
-        <async>
-            <maxsenders>
-                1000
-            </maxsenders>
-            <basedelay>
-                300
-            </basedelay>
-            <maxdelay>
-                18000
-            </maxdelay>
-        </async>
         <intkey>
             MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDQmHTykDtT0b4kY7Onx+Zi5TTitsRCL6kr507ulrSXe4WVBexmmLO4CjWPO5AEXskYSP8Xi7Fg/A1BYCUhExPmFRnawCAtSJrcFjb6addA9NLsh7WwQ/7eLDlmujiHAmtMUKXDdubKSFzs4SWgY5u5oV9Fu5+pG0x3gKJsywkX9P9CChRzJ305jh2GpdQRub3NoEOlOuqY1WYdSOuBx/ks/y92UGfeI3Nw45OqFEA2FhL1iVSXQP4vy48gnxzNrcBXDtKUhfd5pxZKxT7q2nJjOjFXuOQGJ1F6sdLrBenwuaa3VETFCfztQbhTPFmO55I4Ed2xgrrF1kf7/tzzxs9fAgMA//8CggEBAMOnUo/5Qe6PD5O3K2/Q2XKpiDURO8OD8YNEVnf0yFVBS3si6m7hNqocFXpuizH0jTgZZ4RgJX4pxySRr0Tl5rbbj3yRYn97seORpaCjOG2ATvny/6fUXniHGVnokf+Lj2lCqcywaYYyR4Lha6kMNlLho3rORr3mfa4v0Ag0s7svbhjey2rulHJbhCeVBUB/EIs8jOS5yhla6QhQErrvvbCbr+kwx3G8tJM73s4oRrHLuNQZ608RXJsy9QTx9guJ/tCm7sl/wxuCLOh7zyX3eSK2F9XTzShp8ubS/imsjCw8EwdVYLWL7p5usRElpwhN6bSjtwukdVAf01mublOLxkcCgYEA/DBxjq6ZohJCOc4cHEPxXKGSZxvBiBRdjSa4QlhsvKeyVYMs7Z+mZ6hz4R8c58KXo1qOh2rpdL4urSPcXJhb9RaqfZWCNtZGpIiADS4rXjq6vz+LjxJJ6KZp6zt4zAEynS+RZrLhVmFyoLGbAfz/MVE31UX1Qu+EutS35LXh5t0CgYEA079gpYkaMz8Fv5zUrPceQFhe5k+SoCLRtvtO+kDFMh0ZcfjEAT44iIBE5xq1eXAFOfMxHMoHoGRYxzVXtZG40KRfl47mqNaF7M29g45c3NiHBVBFhfGO+lHEYNFBKtj3vCHnVhBHkruJP2TfhpQQx1NM6yv22EFsmJPq0rAtBWsCgYEA0dQkH2nWjxYeHfRhicn1WBZqRKH1jGz2LwnZMlSCdQ0/xrOVkh558xKz1I7WfI589s+sC8l4nLFkyUTyeiDiC3HyNcUdhzuZLDgaOpGXeNL3+V0ZO5fkBCyRpuA3JntZlu+Num8pOSb3JThKf1b9rgcQKkuKFkYcxgsIN5un2tsCgYA2vm3L2YjGjm6b4ziC2/oHHp/PbJvV0DZF46hjrQhoKBwPKh5ebKNsNY2FyNZ5dqZgjLbcJzs1+4dLL56XiH7vN54KPbTxlT9+4wOEuV/NXCvsVJf949wZpSNJJwJfBSy5KQEGqgYa/mTO73QVL/aybsSOhRE7I80mE0vFud+tiQKBgGmYNneadTSp58HtkPwXta/p3FxrsUFBOMxW7CcLLrnDEMi0KVjelsxIrwy1D8axau/t4d0v0AELsmcy0j0cNQ0PqN8ttNxj67enb4KruAKvFMj3ICjsM6piJxh8Xujv6oWeBe61sX8y/haeFdfYv3tvk1uRVnP9OF/+3CqU/4UG
         </intkey>
@@ -171,7 +160,7 @@ testgrupp uus-andmekogu.getProducerACL
                         MIIE6jAcBgoqhkiG9w0BDAEDMA4ECKn9AaCdjJVRAgIIAASCBMi4/YYJowzyWu2Svn3BfIKoKvG0Y0jHHt2TdItxRdcnsZIHIBCMTsuH1UC8biZ3mun7cr6sR0UQlR4B0JyVPO7Yfg5dRDqH6zy/3wPJPozNS9f+JPu46zctvh6JbeyehxfTc8i74Sg8kLSCsnN9ild7Ny6SqzeUkjagTQrhqqJq2HPDOUy6wjMolteHHXPEObtGPApbNWg2owwUynl1dtYng8zcaWSeYVvsczB+MMFrOrLowKihDmsNaAqn1zX1fBmTFGE8f4xYG7W5j0RJZiytiLKkUcJyDCgfiF5KWaBzvtIFXKHbVVupeMmLT7L3y+wzqNGilgTmD1ufxlJllV2Q+wtFpjz2iH4dx+fZr/x4Hx4OC5rkQULkC/OKFzSVRxT6SudZfLeO3duhfbH2Ekc+7A7rqOtUgtL9gtK0JLARKIXvwMBl5JgZYLZQjWYx8xn4UkcO74xsqd+VaDGz5GfylF2Ord3vD+PIon2haYLx/i4ytAnYOoIgbqTcsvO068WDq4AsxJot6p5Wi9j18XRa5kgXXXNAK5fj8fCtpStVteN47/2QPMLlrjIUGhh67rrbQ26nR8frbzEK2Z2i2czcOBykda+S21efoHxxhG0nwO+K5RsDHosuAiJi3qYJTO6VBSn3r5pHPUSNvCJfarLNV0erRIyAm5NWsdI6zr1tthU86aBDc4JfkuEAl+kxuO2WinQhzeWBhIh26z05USK9OvPWv1icdY3B54c6Sfhixt0NHp8cUB5lRmIPfturecpYFFwYLf7ZDo4Oy8oeEek5aiX+5s52pCVNG0STgbwoVDtTa0LrhCnAotowCIkODxVw/ME36NV8HyuRrREswfKFgob71twwfsyFkBWBx9XzFQEYruAqDJbkNSfMZffIebyYj0grJlCHvgBQOJysQKGZqnvFd/u3aGyk5iv9Y4WehH6VH0ggiTSAvW9MkIoioTnOA8vMJs1eV37uYoM1TKHUJRbe9J37nCJJBBzpSIxYGnBxkQaW66IKydbQ+JGX7vU1cVnLxhmYw07z/7DQNd+puiNZHwjeuK+PzMwMN8lA0Udx2SBx3DSuZr+jtUHaFpx9WnD4oH6NpOZICD+7qS8ymgYOJuOrbzdgot8tDruQOxcny0RMLwN8U1YoN9/n6CGFHTf6TkWX7+W8K/E19axa4S62fmIWcqW5uSIVqkYPs6tvSlFwbcBQCnrakDgxsywLPD7R8keLfqDIFeKNJaRH9w1H/VDINZ9lwLKWfy61qauYqAofWCtPy8+Y9kKnTiRKgR75c479VdbeiEc3A3YzOaWs5eo5NTNm5K3DKv9KGkb/OgWyiLBemovEx09yuh3gnGZW1cgtuaBn6GtL5iiWF/+uop5jL5Di/msqg2ugYVNwqWcdAl5zvj79JOznt40b0u7PS3AcdjqcpFvm/fm66fwlvfdBwm8o0Ki+ZMrL1RDM5x1Mqu5BdwbuZrmdIV+JvdCehGGTsOWV5FDlqegGpAOOavagOBxRla/mjTxabvgzG42UGUh2xj1ETUyPj5TG6UEH9D4FAkQWZhTrNL/RPEVn9mnS2jevmradNW+DpYNyH2IGzfDUJLYv9LJkfNe7URSSfEhPMc9GI+lhPoqdBBveUa2pQp0=
                     </current_key>
                     <consumer_list>
-                        
+
                     </consumer_list>
                     <adapter_state>
                         2
@@ -201,7 +190,7 @@ testgrupp uus-andmekogu.nopQuery
 
                     </sacl>
                     <acl>
-                        
+
                     </acl>
                     <adapter_uri>
                         /cgi-bin/test_swa_uus

@@ -22,18 +22,19 @@
  */
 package ee.ria.xroad.signer;
 
-import akka.actor.ActorSystem;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
+
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.AdminPort;
 import lombok.extern.slf4j.Slf4j;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
 /**
  * Signer main program.
@@ -127,7 +128,8 @@ public final class SignerMain {
     }
 
     private static Config getConf(int signerPort) {
-        Config conf = ConfigFactory.load().getConfig("signer-main");
+        Config conf = ConfigFactory.load().getConfig("signer-main")
+                .withFallback(ConfigFactory.load());
         return conf.withValue("akka.remote.netty.tcp.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }

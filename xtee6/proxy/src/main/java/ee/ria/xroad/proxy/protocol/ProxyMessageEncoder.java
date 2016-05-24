@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.MimeUtils.TEXT_XML_UTF8;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import static ee.ria.xroad.common.util.MimeUtils.toHeaders;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,10 +48,6 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.signedmessage.Signer;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.MimeUtils.*;
 
 /**
  * Encodes proxy SOAP messages from an output stream.
@@ -131,14 +133,16 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     @Override
-    public void soap(SoapMessageImpl message) throws Exception {
+    public void soap(SoapMessageImpl message,
+            Map<String, String> additionalHeaders) throws Exception {
         LOG.trace("writeSoapMessage({})", message.getXml());
 
         byte[] data = message.getBytes();
         try {
-            // TODO #2604 handle xml+xop!
-            mpEncoder.startPart(TEXT_XML_UTF8);
+            mpEncoder.startPart(message.getContentType(),
+                    toHeaders(additionalHeaders));
             mpEncoder.write(data);
+
             signer.addPart(MessageFileNames.MESSAGE, hashAlgoId, data);
         } catch (Exception ex) {
             throw translateException(ex);
@@ -195,7 +199,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     }
 
     /**
-     * Signs all the parts and writes the signature to stream.
+     * Signs all the parts.
      * Call after adding SOAP message and attachments.
      * @param securityCtx signing context to use when signing the parts
      * @throws Exception in case of any errors
@@ -203,14 +207,24 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public void sign(SigningCtx securityCtx) throws Exception {
         LOG.trace("sign()");
 
-        endAttachments();
-
         signer.sign(securityCtx);
+    }
+
+    /**
+     * Writes the signature to stream.
+     * Call after sing().
+     * @throws Exception in case of any errors
+     */
+    public void writeSignature() throws Exception {
+        LOG.trace("writeSignature()");
+
+        endAttachments();
 
         // If the signature is a batch signature, then encode the
         // hash chain result and corresponding hash chain immediately before
         // the signature document.
         SignatureData sd = signer.getSignatureData();
+
         if (sd.isBatchSignature()) {
             hashChain(sd.getHashChainResult(), sd.getHashChain());
         }

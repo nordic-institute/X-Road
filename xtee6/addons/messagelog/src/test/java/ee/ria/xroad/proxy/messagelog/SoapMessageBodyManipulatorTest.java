@@ -22,21 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,8 +34,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.util.MimeTypes;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Tests for SOAP message body manipulation
@@ -130,7 +133,7 @@ public class SoapMessageBodyManipulatorTest {
      */
     public static Soap createSoapMessage(String fileName)
             throws Exception {
-        return new SoapParserImpl().parse(newQueryInputStream(fileName));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, newQueryInputStream(fileName));
     }
 
     /**

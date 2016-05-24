@@ -23,3 +23,4 @@ class AdvancedSearchSqlGenerator < SearchSqlGenerator
     end
   end
 end
+

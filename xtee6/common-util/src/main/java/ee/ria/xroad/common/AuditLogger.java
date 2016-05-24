@@ -25,11 +25,11 @@ package ee.ria.xroad.common;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import ee.ria.xroad.common.util.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Audit log.

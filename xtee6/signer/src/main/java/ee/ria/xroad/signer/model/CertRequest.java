@@ -22,10 +22,9 @@
  */
 package ee.ria.xroad.signer.model;
 
-import lombok.Value;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import lombok.Value;
 
 /**
  * Model object representing the certificate request.

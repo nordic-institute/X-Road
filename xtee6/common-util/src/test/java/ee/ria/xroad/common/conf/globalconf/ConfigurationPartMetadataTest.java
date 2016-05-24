@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 
 import org.joda.time.DateTime;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to verify writing and reading of metadata.

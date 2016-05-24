@@ -100,8 +100,8 @@ class ConfigurationSource < ActiveRecord::Base
       )
   end
 
-  def generate_signing_key(token_id)
-    key_info = SignerProxy::generateKey(token_id)
+  def generate_signing_key(token_id, label)
+    key_info = SignerProxy::generateKey(token_id, label)
 
     begin
       cert = SignerProxy::generateSelfSignedCert(

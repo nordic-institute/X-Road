@@ -22,6 +22,32 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
+
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -34,12 +60,10 @@ import java.security.Signature;
 import java.util.HashMap;
 import java.util.Map;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.TokenPinPolicy;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PasswordStore;
+import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -48,14 +72,7 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.*;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates the software token worker which handles software signing and key

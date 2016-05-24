@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +45,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -57,8 +60,6 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 @SuppressWarnings("unchecked")
 class DummyService extends Server implements StartStop {
@@ -137,12 +138,14 @@ class DummyService extends Server implements StartStop {
                         request.getInputStream(), request.getContentType());
 
                 String encoding = request.getCharacterEncoding();
+
                 LOG.debug("Request: encoding={}, soap={}", encoding,
                         receivedRequest.getSoap());
 
-                currentTestCase().onReceiveRequest(receivedRequest);
+                currentTestCase().onServiceReceivedRequest(receivedRequest);
 
                 String responseFile = currentTestCase().getResponseFile();
+
                 if (responseFile != null) {
                     try {
                         sendResponseFromFile(responseFile, response);
@@ -176,8 +179,9 @@ class DummyService extends Server implements StartStop {
             String responseContentType =
                     currentTestCase().getResponseContentType();
 
-            LOG.debug("Sending response, content-type = {}",
-                    responseContentType);
+            LOG.debug("Sending response, content-type = {}, BOM = {}",
+                    responseContentType,
+                    currentTestCase().addUtf8BomToResponseFile);
 
             response.setContentType(responseContentType);
             response.setStatus(HttpServletResponse.SC_OK);
@@ -187,6 +191,11 @@ class DummyService extends Server implements StartStop {
             try (InputStream fileIs = new FileInputStream(file);
                     InputStream responseIs =
                             currentTestCase().changeQueryId(fileIs)) {
+
+                if (currentTestCase().addUtf8BomToResponseFile) {
+                    response.getOutputStream().write(
+                            ByteOrderMark.UTF_8.getBytes());
+                }
 
                 IOUtils.copy(responseIs, response.getOutputStream());
             }
