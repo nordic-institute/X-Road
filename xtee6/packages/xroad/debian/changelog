@@ -1,3 +1,12 @@
+xroad (6.8.3-4) trusty; urgency=low
+
+  [Central]
+  * Bugfix: Fixed race conditions in the client registration and authentication
+    certificate registration processes
+  * Minor fixes
+
+ -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 23 May 2016 13:17:30 +0300
+
 xroad (6.8.3-3) trusty; urgency=low
 
   [Security Server]
