@@ -28,10 +28,10 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Holds the list of recently downloaded files. Used for checking for removed

@@ -26,13 +26,12 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Configuration of the current proxy server.

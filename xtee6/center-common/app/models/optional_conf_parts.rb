@@ -36,8 +36,6 @@ module OptionalConfParts
       Open3.popen3(@validation_program) \
           do |stdin, stdout, stderr, wait_thr|
         stdin_thr = Thread.new do
-          # TODO (task #4995): We should somehow handle raw file bytes,
-          # not strings
           stdin.write(@file_bytes)
           stdin.close()
         end

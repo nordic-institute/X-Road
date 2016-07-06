@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.signature;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.cert.X509Certificate;
@@ -40,8 +42,6 @@ import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests timestamp verifier.

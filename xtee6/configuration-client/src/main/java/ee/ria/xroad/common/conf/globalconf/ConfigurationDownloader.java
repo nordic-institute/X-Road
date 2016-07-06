@@ -22,13 +22,12 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.CodedException;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.bouncycastle.operator.DigestCalculator;
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,14 +36,35 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.operator.DigestCalculator;
+
+import ee.ria.xroad.common.CodedException;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Downloaded configuration directory.
+ * Downloads configuration directory from a configuration location defined
+ * in the configuration anchor.
+ *
+ * When there is only one configuration location in the configuration anchor, it
+ * is used. If there is more than one configuration location, then, for
+ * high-availability concerns, list of configuration locations is shuffled and
+ * then traversed to find the first location where configuration * can be
+ * downloaded. The successful location is remembered and used first next time
+ * the configuration is downloaded.
  */
 @Slf4j
 class ConfigurationDownloader {

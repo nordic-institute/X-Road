@@ -20,3 +20,9 @@ Simple depenency installing and building instructions on Ubuntu 14.04:
    ./build_packages.sh
 
 
+PS! Building and installing packages in the same computer causes shared
+memory access rights errors in case running the building process by a user
+other then 'xroad'. To overcame it reboot the computer or use the system
+utilities ipcs and ipcrm to find and delete corresponding shared memory
+segment (key 0xa1010002).
+

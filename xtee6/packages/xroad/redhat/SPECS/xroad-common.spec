@@ -59,6 +59,7 @@ cp -p %{_sourcedir}/signer/xroad-signer %{buildroot}%{_bindir}
 cp -p %{_sourcedir}/signer/xroad-signer.service %{buildroot}%{_unitdir}
 cp -p %{src}/../default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/signer.ini %{buildroot}/etc/xroad/conf.d/
+cp -p %{src}/../default-configuration/devices.ini %{buildroot}/etc/xroad/
 cp -p %{src}/../default-configuration/signer-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/signer-console-logback.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../../signer/build/libs/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/
@@ -99,10 +100,10 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/signer-*.jar
 /usr/share/xroad/lib/libpasswordstore.so
 /usr/share/xroad/lib/libpkcs11wrapper.so
-/usr/share/xroad/scripts/backup_xroad.sh
+/usr/share/xroad/scripts/_backup_xroad.sh
 /usr/share/xroad/scripts/generate_certificate.sh
-/usr/share/xroad/scripts/restore_xroad.sh
-/usr/share/xroad/scripts/restore_xroad_real.sh
+/usr/share/xroad/scripts/_restore_xroad.sh
+/usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
 %attr(754,xroad,xroad) %{_bindir}/xroad-signer
 %attr(664,root,root) %{_unitdir}/xroad-signer.service

@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -42,9 +45,6 @@ import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.util.StartStop;
-
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 @SuppressWarnings("unchecked")
 class DummyServerProxy extends Server implements StartStop {

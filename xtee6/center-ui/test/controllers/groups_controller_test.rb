@@ -106,4 +106,51 @@ class GroupsControllerTest < ActionController::TestCase
     response_as_json = JSON.parse(response.body)
     assert_equal("1", response_as_json["sEcho"])
   end
+
+  test "Remove members found with advanced search" do
+    # Given
+    advanced_search_params = {
+      :name => "This member should NOT belong to group 'vallavalitsused'",
+      :memberCode => "member_out_of_vallavalitsused",
+      :memberClass => "riigiasutus",
+      :subsystem => "subsystem_in_vallavalitsused",
+      :xRoadInstance => "EE",
+      :objectType => "SUBSYSTEM"
+    }.to_json
+
+    req_params = {
+      'groupId' => ActiveRecord::Fixtures.identify(:vallavalitsused),
+      'searchable' => "",
+      'advancedSearchParams' => advanced_search_params
+    }
+
+    # When
+    post(:remove_matching_members, req_params)
+
+    # Then
+    deleted_member_id = ActiveRecord::Fixtures.identify(
+        :subsystem_in_vallavalitsused_group_member_identifier)
+
+    member_count = GlobalGroupMember.where(:id => deleted_member_id).count
+    assert_equal(
+        0,
+        member_count,
+        "This member should be deleted as a result of the test")
+  end
+
+  test "Remove all members from global group" do
+    # Given
+    group_id = ActiveRecord::Fixtures.identify(:vallavalitsused)
+    params = {
+      'groupId' => group_id,
+      'searchable' => ""
+    }
+
+    # When
+    post(:remove_matching_members, params)
+
+    # Then
+    member_count = GlobalGroupMember.where(:global_group_id => group_id).count
+    assert_equal(0, member_count, "There should be no members")
+  end
 end

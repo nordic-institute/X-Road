@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common.messagelog;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import akka.actor.UntypedActor;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -29,10 +33,6 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Base class for log manager actors.

@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common.util;
 
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +53,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.CodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Base class for a closeable HTTP sender.

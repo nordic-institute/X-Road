@@ -22,13 +22,12 @@
  */
 package ee.ria.xroad.signer.util;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.message.SuccessResponse;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * A generic actor base.

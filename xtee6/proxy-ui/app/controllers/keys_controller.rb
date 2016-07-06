@@ -23,10 +23,9 @@
 
 java_import Java::java.util.ArrayList
 
-java_import Java::org.bouncycastle.pkcs.PKCS10CertificationRequest
-java_import Java::org.bouncycastle.asn1.x500.style.BCStyle
-
-java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
+java_import Java::ee.ria.xroad.common.certificateprofile.GetCertificateProfile
+java_import Java::ee.ria.xroad.common.certificateprofile.impl.AuthCertificateProfileInfoParameters
+java_import Java::ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters
 java_import Java::ee.ria.xroad.common.util.CertUtils
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
@@ -35,13 +34,25 @@ java_import Java::ee.ria.xroad.signer.protocol.dto.CertificateInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenInfo
 java_import Java::ee.ria.xroad.signer.protocol.dto.TokenStatusInfo
+java_import Java::ee.ria.xroad.signer.protocol.message.GenerateCertRequest
 
 class KeysController < ApplicationController
+
+  PARAM_KEY_USAGE_AUTH = "auth"
+  PARAM_KEY_USAGE_SIGN = "sign"
+
+  CSR_FORMATS = GenerateCertRequest::RequestFormat.values.map { |e| e.toString }
+
+  include Keys::TokenRenderer
+
+  helper_method :token_saved_to_configuration?
+  helper_method :key_saved_to_configuration?
 
   def index
     authorize!(:view_keys)
 
     @client_ids = cache_client_ids
+    @csr_formats = CSR_FORMATS
   end
 
   def refresh
@@ -56,15 +67,21 @@ class KeysController < ApplicationController
 
     authorize!(:generate_key)
 
+    validate_params({
+      :token_id => [:required],
+      :label => []
+    })
+
     token = SignerProxy::getToken(params[:token_id])
 
     audit_log_data[:tokenId] = token.id
     audit_log_data[:tokenSerialNumber] = token.serialNumber
     audit_log_data[:tokenFriendlyName] = token.friendlyName
 
-    key = SignerProxy::generateKey(params[:token_id])
+    key = SignerProxy::generateKey(params[:token_id], params[:label])
 
     audit_log_data[:keyId] = key.id
+    audit_log_data[:keyLabel] = key.label
     audit_log_data[:keyFriendlyName] = key.friendlyName
 
     # lets make a clone with just the generated key inside
@@ -84,22 +101,122 @@ class KeysController < ApplicationController
 
     clone.keyInfo.add(key)
 
-    @tokens = [clone]
-    render :partial => "refresh"
+    render_json({
+      :tokens => tokens_to_json([clone])
+    })
   end
 
-  def generate_csr
-    audit_log("Generate certificate request", audit_log_data = {})
-
-    if params[:key_usage] == "auth"
+  def approved_cas
+    if params[:key_usage] == PARAM_KEY_USAGE_AUTH
       authorize!(:generate_auth_cert_req)
     else
       authorize!(:generate_sign_cert_req)
     end
 
-    client_id = get_cached_client_id(params[:member_id])
+    validate_params({
+      :key_usage => [:required]
+    })
 
-    key_usage = params[:key_usage] == "auth" ?
+    approved_cas = GlobalConf::getApprovedCAs(xroad_instance)
+
+    names = []
+    approved_cas.each do |ca|
+      if params[:key_usage] == PARAM_KEY_USAGE_SIGN && ca.authenticationOnly
+        next
+      end
+
+      names << ca.name
+    end
+
+    render_json({
+      :approved_cas => names
+    })
+  end
+
+  def subject_dn_fields
+    if params[:key_usage] == PARAM_KEY_USAGE_AUTH
+      authorize!(:generate_auth_cert_req)
+    else
+      authorize!(:generate_sign_cert_req)
+    end
+
+    validate_params({
+      :key_usage => [:required],
+      :approved_ca => [:required],
+      :member_id => []
+    })
+
+    profile = get_certificate_profile(params[:approved_ca], params[:key_usage],
+      get_cached_client_id(params[:member_id]))
+
+    fields = []
+    profile.subjectFields.each do |field|
+      fields << {
+        :id => field.id,
+        :label => field.label,
+        :default_value => field.defaultValue,
+        :read_only => !field.defaultValue.nil?,
+        :required => field.isRequired
+      }
+    end if profile.subjectFields
+
+    render_json({
+      :fields => fields
+    })
+  end
+
+  def generate_csr
+    audit_log("Generate CSR", audit_log_data = {})
+
+    if params[:key_usage] == PARAM_KEY_USAGE_AUTH
+      authorize!(:generate_auth_cert_req)
+    else
+      authorize!(:generate_sign_cert_req)
+    end
+
+    profile = get_certificate_profile(params[:approved_ca], params[:key_usage],
+      get_cached_client_id(params[:member_id]))
+
+    field_params = {}
+    profile.subjectFields.each do |field|
+      field_params[field.id.to_sym] =
+        field.isRequired && !field.isReadOnly ? [:required] : []
+    end
+
+    validate_params({
+      :token_id => [:required],
+      :key_id => [:required],
+      :key_usage => [:required],
+      :member_id => [],
+      :approved_ca => [:required],
+      :csr_format => [:required]
+    }.merge(field_params))
+
+    unless [PARAM_KEY_USAGE_AUTH, PARAM_KEY_USAGE_SIGN].include?(
+        params[:key_usage])
+      raise "Invalid key usage"
+    end
+
+    unless CSR_FORMATS.include?(
+        params[:csr_format])
+      raise "Invalid CSR format: #{params[:csr_format]}, #{CSR_FORMATS}"
+    end
+
+    field_values = []
+    profile.subjectFields.each do |field|
+      value = field.defaultValue || params[field.id.to_sym]
+
+      if value
+        field_values << "#{field.id}=#{value}"
+      end
+    end
+    subject_name = field_values.join(", ")
+
+    if params[:key_usage] == PARAM_KEY_USAGE_SIGN
+      client_id = get_cached_client_id(params[:member_id])
+    end
+
+    key_usage = params[:key_usage] == PARAM_KEY_USAGE_AUTH ?
       KeyUsageInfo::AUTHENTICATION : KeyUsageInfo::SIGNING
 
     key = get_key(params[:token_id], params[:key_id])
@@ -111,19 +228,39 @@ class KeysController < ApplicationController
     audit_log_data[:keyFriendlyName] = key.friendlyName
     audit_log_data[:keyUsage] = (key_usage.toString if key_usage)
     audit_log_data[:clientIdentifier] = client_id if client_id
-    audit_log_data[:subjectName] = params[:subject_name]
+    audit_log_data[:subjectName] = subject_name
+    audit_log_data[:certificationServiceName] = params[:approved_ca]
+    audit_log_data[:csrFormat] = params[:csr_format].upcase
 
     csr = SignerProxy::generateCertRequest(
-      params[:key_id], client_id, key_usage, params[:subject_name])
+      params[:key_id], client_id, key_usage, subject_name,
+      GenerateCertRequest::RequestFormat.valueOf(params[:csr_format]))
+
+    if params[:key_usage] == PARAM_KEY_USAGE_AUTH
+      identifier = "securityserver_" \
+        "#{@server_id.xRoadInstance}_" \
+        "#{@server_id.memberClass}_" \
+        "#{@server_id.memberCode}_" \
+        "#{@server_id.serverCode}"
+    else
+      identifier = "member_" \
+        "#{client_id.xRoadInstance}_" \
+        "#{client_id.memberClass}_" \
+        "#{client_id.memberCode}"
+    end
+
+    date = Time.now.strftime("%Y%m%d")
 
     csr_file = SecureRandom.hex(4)
+    session[csr_file] = "#{params[:key_usage]}_csr_" \
+      "#{date}_#{identifier}.#{params[:csr_format].downcase}"
 
     File.open(CommonUi::IOUtils.temp_file(csr_file), 'wb') do |f|
       f.write(csr)
     end
 
     render_json({
-      :tokens => view_context.columns(SignerProxy::getTokens),
+      :tokens => tokens_to_json(SignerProxy::getTokens),
       :redirect => csr_file
     })
   end
@@ -136,19 +273,14 @@ class KeysController < ApplicationController
 
     file = CommonUi::IOUtils.temp_file(params[:csr])
 
-    # file name parts
-    subject = get_csr_subject(file)
-    date = Time.now.strftime("%Y%m%d")
-
-    send_file(file, :filename =>
-      "#{params[:key_usage]}_cert_request_#{date}#{subject}.p10")
+    send_file(file, :filename => session[params[:csr]])
   end
 
   def import_cert
     audit_log("Import certificate from file", audit_log_data = {})
 
     validate_params({
-      :file_upload => [:required]
+      :file_upload => [:required, :cert]
     })
 
     GlobalConf::verifyValidity
@@ -328,7 +460,8 @@ class KeysController < ApplicationController
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
     audit_log_data[:address] = params[:address]
 
-    register_cert(params[:address], cert.certificateBytes)
+    request_id = register_cert(params[:address], cert.certificateBytes)
+    audit_log_data[:managementRequestId] = request_id
 
     notice(t('keys.request_sent'))
 
@@ -363,12 +496,10 @@ class KeysController < ApplicationController
       CommonUi::CertUtils.cert_hash(cert.certificateBytes)
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
 
-    begin
-      unregister_cert(cert.certificateBytes)
-      notice(t('keys.request_sent'))
-    rescue
-      warn("delreq_failed", t('keys.delreq_failed', :msg => $!.message))
-    end
+    request_id = unregister_cert(cert.certificateBytes)
+    audit_log_data[:managementRequestId] = request_id
+
+    notice(t('keys.request_sent'))
 
     SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
 
@@ -377,8 +508,39 @@ class KeysController < ApplicationController
     render_tokens
   end
 
+  def skip_unregister
+    audit_log("Skip unregistration of authentication certificate", audit_log_data = {})
+
+    authorize!(:send_auth_cert_del_req)
+
+    validate_params({
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
+    })
+
+    GlobalConf::verifyValidity
+
+    cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
+
+    audit_log_data[:tokenId] = @token.id
+    audit_log_data[:tokenSerialNumber] = @token.serialNumber
+    audit_log_data[:tokenFriendlyName] = @token.friendlyName
+    audit_log_data[:keyId] = @key.id
+    audit_log_data[:certId] = cert.id
+    audit_log_data[:certHash] =
+      CommonUi::CertUtils.cert_hash(cert.certificateBytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
+    audit_log_data[:certStatus] = CertificateInfo::STATUS_DELINPROG
+
+    render_tokens
+  end
+
   def delete_key
-    audit_log("Delete key", audit_log_data = {})
+    audit_log_event = "Delete key"
+    audit_log(audit_log_event, audit_log_data = {})
 
     validate_params({
       :token_id => [:required],
@@ -408,9 +570,13 @@ class KeysController < ApplicationController
           CertificateInfo::STATUS_REGISTERED].include?(cert.status)
         authorize!(:send_auth_cert_del_req)
         unregister_cert(cert.certificateBytes)
+
         SignerProxy::setCertStatus(cert.id, CertificateInfo::STATUS_DELINPROG)
       end
     end
+
+    audit_log_event.replace(audit_log_event +
+        " from token and configuration")
 
     SignerProxy::deleteKey(params[:key_id], false)
     SignerProxy::deleteKey(params[:key_id], true)
@@ -419,7 +585,7 @@ class KeysController < ApplicationController
   end
 
   def delete_cert_request
-    audit_log("Delete certificate request", audit_log_data = {})
+    audit_log("Delete CSR", audit_log_data = {})
 
     validate_params({
       :token_id => [:required],
@@ -449,7 +615,8 @@ class KeysController < ApplicationController
   end
 
   def delete_cert
-    audit_log("Delete certificate", audit_log_data = {})
+    audit_log_event = "Delete certificate"
+    audit_log(audit_log_event, audit_log_data = {})
 
     validate_params({
       :token_id => [:required],
@@ -458,6 +625,9 @@ class KeysController < ApplicationController
     })
 
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
+
+    audit_log_event.replace(audit_log_event +
+        (cert.savedToConfiguration ? " from configuration" : " from token"))
 
     audit_log_data[:tokenId] = @token.id
     audit_log_data[:tokenSerialNumber] = @token.serialNumber
@@ -514,18 +684,33 @@ class KeysController < ApplicationController
   end
 
   def token_details
+    validate_params({
+      :token_id => [:required]
+    })
+
     @token = SignerProxy::getToken(params[:token_id])
 
     render :partial => "token_details"
   end
 
   def key_details
+    validate_params({
+      :token_id => [:required],
+      :key_id => [:required]
+    })
+
     @key = get_key(params[:token_id], params[:key_id])
 
     render :partial => "key_details"
   end
 
   def cert_details
+    validate_params({
+      :token_id => [:required],
+      :key_id => [:required],
+      :cert_id => [:required]
+    })
+
     cert = get_cert(params[:token_id], params[:key_id], params[:cert_id])
 
     render_json({
@@ -537,9 +722,9 @@ class KeysController < ApplicationController
   private
 
   def render_tokens
-    @tokens = SignerProxy::getTokens
-
-    render :partial => "refresh"
+    render_json({
+      :tokens => tokens_to_json(SignerProxy::getTokens)
+    })
   end
 
   def get_key(token_id, key_id)
@@ -580,22 +765,30 @@ class KeysController < ApplicationController
     get_identifier(session[:client_ids][key])
   end
 
-  # returns subject in format "_C_xx_O_xx_CN_xx"
-  def get_csr_subject(file)
-    bytes = IO.read(file).to_java_bytes
-    csr = PKCS10CertificationRequest.new(bytes)
+  def get_certificate_profile(ca_name, key_usage, client_id = nil)
+    profile = nil
 
-    result = ""
-    csr.subject.getRDNs.each do |rdn|
-      if BCStyle::C == rdn.first.type
-        result += "_C_#{rdn.first.value}"
-      elsif BCStyle::O == rdn.first.type
-        result += "_O_#{rdn.first.value}"
-      elsif BCStyle::CN == rdn.first.type
-        result += "_CN_#{rdn.first.value}"
+    GlobalConf::getApprovedCAs(xroad_instance).each do |ca|
+      if ca.name == ca_name
+        profile = GetCertificateProfile.new(ca.certificateProfileInfo).instance
+        break
       end
     end
 
-    result
+    if key_usage == PARAM_KEY_USAGE_AUTH
+      member_name = get_member_name(
+          @server_id.memberClass, @server_id.memberCode)
+
+      profile.getAuthCertProfile(
+        AuthCertificateProfileInfoParameters.new(@server_id, member_name))
+    else
+      if client_id
+        member_name = get_member_name(
+          client_id.memberClass, client_id.memberCode)
+      end
+
+      profile.getSignCertProfile(
+        SignCertificateProfileInfoParameters.new(client_id, member_name))
+    end
   end
 end

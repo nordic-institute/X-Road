@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 
@@ -44,9 +42,7 @@ class ClientException extends CodedException {
     }
 
     ClientException(String faultCode, Throwable cause) {
-        super(faultCode, cause.getMessage());
-
-        faultDetail = ExceptionUtils.getStackTrace(cause);
+        super(faultCode, cause);
 
         // All the client messages have prefix Client...
         withPrefix(ErrorCodes.CLIENT_X);

@@ -1,28 +1,18 @@
 <table class="details">
   <tr>
-    <td class="label pre"><%= t 'approved_cas.name_extractor_disabled' %>
-<%= t 'approved_cas.name_extractor_disabled_hint' %></td>
+    <td class="label pre"><%= t 'approved_cas.authentication_only' %>
+<%= t 'approved_cas.authentication_only_hint' %></td>
     <td>
-      <input name="name_extractor_disabled" type="checkbox"
-             class="name_extractor_disabled" />
+      <input name="authentication_only" type="checkbox"
+             class="authentication_only" />
     </td>
   </tr>
   <tr>
-    <td class="label pre"><%= t 'approved_cas.name_extractor_member_class' %>
-<%= t 'approved_cas.name_extractor_member_class_hint' %></td>
+    <td class="label pre"><%= t 'approved_cas.cert_profile_info' %>
+<%= t 'approved_cas.cert_profile_info_hint' %></td>
     <td>
-      <select name="name_extractor_member_class"
-              class="name_extractor_member_class">
-        <option></option>
-        <%= options_for_select @member_classes %>
-      </select>
-    </td>
-  </tr>
-  <tr>
-    <td><%= t 'approved_cas.name_extractor_method' %></td>
-    <td>
-      <input name="name_extractor_method" type="text"
-             class="name_extractor_method">
+      <input name="cert_profile_info" type="text"
+             class="cert_profile_info">
     </td>
   </tr>
   <% if with_save_button %>

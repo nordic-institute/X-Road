@@ -10,20 +10,20 @@ warn() {
   echo "WARNING: $1" >&2
 }
 
-ruby_version=$(ruby -v)
+jruby_version=$(jruby -v)
 if [ $? != 0 ]; then
-  warn "Ruby is not installed"
+  warn "JRuby is not installed"
 fi
 
-if ! echo "$ruby_version" | egrep -q  ^jruby\ 1\.7; then
-  warn "Ruby version 'jruby-1.7.x' is supported, but used is: \n\t$ruby_version"
+if ! echo "$jruby_version" | egrep -q  ^jruby\ 1\.7; then
+  warn "JRuby version 'jruby-1.7.x' is supported, but used is: \n\t$jruby_version"
 fi
 
 # Install Rubocop if not present
 rubocop -v
 if [ $? != 0 ]; then
   # XXX: rubocop-0.32.1 seems to contain fatal bug, 0.32.0 is proven to be working here.
-  gem install rubocop -v 0.32.0 || warn "Failed to install Ruby gem 'rubocop'."
+  jgem install rubocop -v 0.32.0 || warn "Failed to install Ruby gem 'rubocop'."
 fi
 
 if [ "$#" -eq 0 ]; then

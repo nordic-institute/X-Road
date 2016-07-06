@@ -22,11 +22,14 @@
  */
 package ee.ria.xroad.proxymonitor.util;
 
+import java.util.concurrent.TimeUnit;
+
+import com.typesafe.config.ConfigFactory;
+
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -37,8 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by hyoty on 25.9.2015.

@@ -22,9 +22,51 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.asyncdb.AsyncDB;
-import ee.ria.xroad.asyncdb.WritingCtx;
-import ee.ria.xroad.asyncdb.messagequeue.MessageQueue;
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
+import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
+
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import javax.xml.soap.SOAPEnvelope;
+import javax.xml.soap.SOAPMessage;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
+import org.w3c.dom.Node;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -36,7 +78,17 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapNamespacePrefixMapper;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -51,33 +103,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
-import org.eclipse.jetty.http.MimeTypes;
-import org.w3c.dom.Node;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPMessage;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.net.URI;
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
-import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 @Slf4j
 class ClientMessageProcessor extends MessageProcessorBase {
@@ -112,12 +137,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private volatile SoapMessageImpl requestSoap;
     private volatile ServiceId requestServiceId;
 
-    /** Holds true, if the incoming message should be treated as asynchronous.
-     * An incoming message should be treated as asynchronous (sent to async-db)
-     * if the message header contains the async field and HTTP request headers
-     * do not contain X-Ignore-Async field. */
-    private volatile boolean isAsync;
-
     /** If the request failed, will contain SOAP fault. */
     private volatile CodedException executionException;
 
@@ -139,10 +158,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         this.clientCert = clientCert;
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
-    }
-
-    SoapMessageImpl getRequestSoap() {
-        return requestSoap;
     }
 
     @Override
@@ -167,10 +182,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // Check client authentication mode
             verifyClientAuthentication();
 
-            // If the message is synchronous, start sending proxy message
-            if (!isAsync) {
-                processRequest();
-            }
+            processRequest();
 
             if (response != null) {
                 sendResponse();
@@ -217,7 +229,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // If we're using SSL, we need to include the provider name in
             // the HTTP request so that server proxy could verify the SSL
             // certificate properly.
-            if (SystemProperties.isSslEnabled()) {
+            if (isSslEnabled()) {
                 httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME,
                         requestServiceId);
             }
@@ -233,6 +245,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
             httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
+
+            // Preserve the original content type in the "x-original-content-type"
+            // HTTP header, which will be used to send the request to the
+            // service provider
+            httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE,
+                    servletRequest.getContentType());
 
             try {
                 httpSender.doPost(getDummyServiceAddress(addresses), reqIns,
@@ -253,7 +271,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage();
+        response = new ProxyMessage(
+                httpSender.getResponseHeaders().get(
+                        HEADER_ORIGINAL_CONTENT_TYPE));
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
                 httpSender.getResponseContentType(),
@@ -310,9 +330,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 response.getSoap().getHeader().getRequestHash();
         if (requestHashFromResponse != null) {
             byte[] requestHash = calculateDigest(
-                    getAlgorithmId(
-                            requestHashFromResponse.getAlgorithmId()),
-                    requestSoap.getBytes());
+                getAlgorithmId(requestHashFromResponse.getAlgorithmId()),
+                requestSoap.getBytes()
+            );
 
             if (log.isTraceEnabled()) {
                 log.trace("Calculated request message hash: {}\n"
@@ -330,14 +350,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
             throw new CodedException(X_INCONSISTENT_RESPONSE,
                     "Response from server proxy is missing request message "
                             + "hash");
-        }
-    }
-
-    private void logRequestMessage() throws Exception {
-        if (request != null) {
-            log.trace("logRequestMessage()");
-
-            MessageLog.log(requestSoap, request.getSignature(), true);
         }
     }
 
@@ -446,12 +458,13 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private static URI getDummyServiceAddress(URI[] addresses)
             throws Exception {
-        if (!SystemProperties.isSslEnabled()) {
+        if (!isSslEnabled()) {
             // In non-ssl mode we just connect to the first address
             return addresses[0];
         }
-        final int port = SystemProperties.getServerProxyPort();
-        return new URI("https", null, "localhost", port, "/", null, null);
+
+        return new URI("https", null, "localhost", getServerProxyPort(), "/",
+                null, null);
     }
 
     private static URI[] getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
@@ -483,19 +496,19 @@ class ClientMessageProcessor extends MessageProcessorBase {
             hostNames = Collections.singleton(securityServerAddress);
         }
 
-        String protocol = SystemProperties.isSslEnabled() ? "https" : "http";
-        int port = SystemProperties.getServerProxyPort();
+        String protocol = isSslEnabled() ? "https" : "http";
+        int port = getServerProxyPort();
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
         for (String host : hostNames) {
             addresses.add(new URI(protocol, null, host, port, "/", null, null));
         }
 
-        return addresses.toArray(new URI[] {});
+        return addresses.toArray(new URI[addresses.size()]);
     }
 
     private static String getHashAlgoId() {
-        // TODO #2578 make hash function configurable
+        // FUTURE #2578 make hash function configurable
         return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
@@ -524,56 +537,44 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    /** This is wrapper class that internally selects the proper handler
-     * based on the SOAP message. If the SOAP message is asynchronous, then
-     * AsyncSoapMessageHandler is used, otherwise DefaultSoapMessageHandler
-     * is used. */
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
-        private SoapMessageDecoder.Callback handler;
-
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             log.trace("soap({})", message.getXml());
 
             requestSoap = (SoapMessageImpl) message;
             requestServiceId = requestSoap.getService();
 
-            if (handler == null) {
-                chooseHandler();
+            if (request == null) {
+                request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
+                outputContentType = request.getContentType();
             }
 
-            handler.soap(message);
+            // We have the request SOAP message, we can start sending the
+            // request to server proxy.
+            continueProcessing();
+
+            // In SSL mode, we need to send the OCSP response of our SSL cert.
+            if (isSslEnabled()) {
+                writeOcspResponses();
+            }
+
+            request.soap(requestSoap, headers);
         }
 
         @Override
         public void attachment(String contentType, InputStream content,
                 Map<String, String> additionalHeaders) throws Exception {
-            log.trace("attachment({})", contentType);
+            log.trace("attachment()");
 
-            if (handler != null) {
-                handler.attachment(contentType, content, additionalHeaders);
-            } else {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "No soap message handler present");
-            }
+            request.attachment(contentType, content, additionalHeaders);
         }
 
         @Override
         public void fault(SoapFault fault) throws Exception {
             onError(fault.toCodedException());
-        }
-
-        private void chooseHandler() {
-            isAsync = requestSoap.isAsync() && (servletRequest.getHeader(
-                    SoapUtils.X_IGNORE_ASYNC) == null);
-            if (isAsync) {
-                log.trace("Creating handler for asynchronous messages");
-                handler = new AsyncSoapMessageHandler();
-            } else {
-                log.trace("Creating handler for normal messages");
-                handler = new DefaultSoapMessageHandler();
-            }
         }
 
         @Override
@@ -586,78 +587,25 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 return;
             }
 
-            if (handler != null) {
-                handler.onCompleted();
-            }
-
             try {
+                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
-            } catch (Exception e) {
-                setError(e);
+                request.writeSignature();
+            } catch (Exception ex) {
+                setError(ex);
             }
+        }
+
+        private void logRequestMessage() throws Exception {
+            log.trace("logRequestMessage()");
+
+            MessageLog.log(requestSoap, request.getSignature(), true);
         }
 
         @Override
         public void onError(Exception e) throws Exception {
             log.error("onError(): ", e);
 
-            if (handler != null) {
-                handler.onError(e);
-            } else {
-                throw e;
-            }
-        }
-
-        @Override
-        public void close() {
-            handler.close();
-        }
-    }
-
-    private class DefaultSoapMessageHandler
-            implements SoapMessageDecoder.Callback {
-
-        @Override
-        public void soap(SoapMessage message) throws Exception {
-            if (request == null) {
-                request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
-                outputContentType = request.getContentType();
-            }
-
-            // We have the request SOAP message, we can start sending the
-            // request to server proxy.
-            continueProcessing();
-
-            // In SSL mode, we need to send the OCSP response of our SSL cert.
-            if (SystemProperties.isSslEnabled()) {
-                writeOcspResponses();
-            }
-
-            request.soap(requestSoap);
-        }
-
-        @Override
-        public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
-            request.attachment(contentType, content, additionalHeaders);
-        }
-
-        @Override
-        public void fault(SoapFault fault) throws Exception {
-            onError(fault.toCodedException());
-        }
-
-        @Override
-        public void onCompleted() {
-            try {
-                request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
-            } catch (Exception ex) {
-                setError(ex);
-            }
-        }
-
-        @Override
-        public void onError(Exception e) throws Exception {
             // Simply re-throw
             throw e;
         }
@@ -683,94 +631,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private class AsyncSoapMessageHandler
-            implements SoapMessageDecoder.Callback {
-
-        WritingCtx writingCtx = null;
-
-        SoapMessageConsumer consumer = null;
-
-        @Override
-        public void soap(SoapMessage message) throws Exception {
-            if (writingCtx == null) {
-                MessageQueue queue =
-                        AsyncDB.getMessageQueue(requestServiceId.getClientId());
-                writingCtx = queue.startWriting();
-                consumer = writingCtx.getConsumer();
-            }
-
-            consumer.soap(message);
-        }
-
-        @Override
-        public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
-            if (consumer != null) {
-                consumer.attachment(contentType, content, additionalHeaders);
-            }
-        }
-
-        @Override
-        public void fault(SoapFault fault) throws Exception {
-            onError(fault.toCodedException());
-        }
-
-        @Override
-        public void onCompleted() {
-            try {
-                commit();
-                createAsyncSoapResponse();
-            } catch (Exception e) {
-                log.error("Error when committing async message", e);
-                setError(e);
-                rollback();
-            } finally {
-                continueProcessing();
-            }
-        }
-
-        @Override
-        public void onError(Exception e) {
-            setError(e);
-            try {
-                rollback();
-            } finally {
-                continueProcessing();
-            }
-        }
-
-        private void commit() throws Exception {
-            if (writingCtx != null) {
-                writingCtx.commit();
-            }
-        }
-
-        private void rollback() {
-            if (writingCtx != null) {
-                try {
-                    writingCtx.rollback();
-                } catch (Exception e) {
-                    log.error("Rollback failed", e);
-                }
-            }
-        }
-
-        private void createAsyncSoapResponse() {
-            response = new ProxyMessage() {
-                @Override
-                public String getSoapContentType() {
-                    return MimeTypes.TEXT_XML;
-                }
-
-                @Override
-                public InputStream getSoapContent() throws Exception {
-                    SoapMessageImpl soap = SoapUtils.toResponse(requestSoap);
-                    return new ByteArrayInputStream(soap.getBytes());
-                }
-            };
-        }
-    }
-
     /**
      * Soap parser that changes the CentralServiceId to ServiceId in message
      * header.
@@ -779,7 +639,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                String charset) throws Exception {
+                String charset, String originalContentType) throws Exception {
             if (soap.getSOAPHeader() != null) {
                 SoapHeader header =
                         unmarshalHeader(SoapHeader.class, soap.getSOAPHeader());
@@ -808,10 +668,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     envelope.appendChild(soapBody);
 
                     byte[] newRawXml = SoapUtils.getBytes(soap);
-                    return super.createMessage(newRawXml, soap, charset);
+                    return super.createMessage(newRawXml, soap, charset,
+                            originalContentType);
                 }
             }
-            return super.createMessage(rawXml, soap, charset);
+            return super.createMessage(rawXml, soap, charset,
+                    originalContentType);
         }
     }
 }

@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Example;
 
-import ee.ria.xroad.common.identifier.XroadId;
-
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 /**
  * Identifier data access object implementation.
  */
-public class IdentifierDAOImpl extends AbstractDAOImpl<XroadId> {
+public class IdentifierDAOImpl extends AbstractDAOImpl<XRoadId> {
 
     /**
      * Returns the identifier.
@@ -42,7 +42,7 @@ public class IdentifierDAOImpl extends AbstractDAOImpl<XroadId> {
      * @throws Exception if an error occurs
      */
     @SuppressWarnings("unchecked")
-    public static <T extends XroadId> T getIdentifier(T example)
+    public static <T extends XRoadId> T getIdentifier(T example)
             throws Exception {
         Criteria criteria =
                 get().getSession().createCriteria(example.getClass());

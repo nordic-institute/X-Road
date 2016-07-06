@@ -22,15 +22,16 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
+import java.time.LocalTime;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
-import java.time.LocalTime;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.SystemProperties;
 
 /**
  * Quartz job implementation for the configuration client.

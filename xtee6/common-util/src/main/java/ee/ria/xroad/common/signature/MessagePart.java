@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.signature;
 
+import java.io.Serializable;
+
 import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.Data;
-
-import java.io.Serializable;
 
 
 /**

@@ -26,11 +26,15 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
@@ -38,6 +42,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
 import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates optional parts configuration of central server.
@@ -71,6 +78,9 @@ public class OptionalPartsConf {
 
     @Getter
     private final List<OptionalConfPart> allParts = new ArrayList<>();
+
+    @Getter
+    private final List<String> errors = new ArrayList<>();
 
     private final Set<String> existingPartFileNames = new HashSet<>();
 
@@ -173,20 +183,18 @@ public class OptionalPartsConf {
             allParts.add(new OptionalConfPart(partFileName, contentId));
         } catch (IOException e) {
             log.error("Loading optional parts from file '"
-                    + confFile.getAbsolutePath() + "' failed", e);
+                    + confFile.getAbsolutePath() + "' failed: {}",
+                    e.getMessage());
 
-            throw new IOException(
-                    "Could not load optional parts configuration: ", e);
+            errors.add(e.getMessage());
         }
     }
 
     private boolean isFileContentWellFormed(
             String partFile, String contentId) {
-        if (StringUtils.isBlank(partFile) || StringUtils.isBlank(contentId)) {
-            return false;
-        }
+        return !(StringUtils.isBlank(partFile)
+                || StringUtils.isBlank(contentId));
 
-        return true;
     }
 
     private void validatePartFileName(String partFileName) {

@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MonitorAgentMessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 
 /**
  * Client sends normal message. The CP gets connection refused error

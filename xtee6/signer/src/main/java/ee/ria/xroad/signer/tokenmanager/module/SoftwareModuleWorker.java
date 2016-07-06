@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import akka.actor.Props;
-
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;

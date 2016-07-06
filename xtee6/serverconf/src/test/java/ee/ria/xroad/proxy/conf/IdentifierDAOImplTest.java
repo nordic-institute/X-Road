@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import static org.junit.Assert.assertEquals;
+
 import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
@@ -30,9 +32,14 @@ import org.junit.Test;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.identifier.*;
-
-import static org.junit.Assert.assertEquals;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.LocalGroupId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 /**
  * Tests identifier DAO implementation -- creating and reading the identifiers.
@@ -142,21 +149,21 @@ public class IdentifierDAOImplTest {
             SecurityServerId.create("XX", "class", "code", "srv2"));
     }
 
-    private <T extends XroadId> T get(T example) throws Exception {
+    private <T extends XRoadId> T get(T example) throws Exception {
         return IdentifierDAOImpl.getIdentifier(example);
     }
 
     private <T> void assertCreateRead(
-            IdentifierCallback<? extends XroadId> callback) throws Exception {
-        XroadId in = callback.create();
+            IdentifierCallback<? extends XRoadId> callback) throws Exception {
+        XRoadId in = callback.create();
         session.save(in);
 
-        XroadId out = get(callback.create());
+        XRoadId out = get(callback.create());
         assertEquals(in, out);
     }
 
     @FunctionalInterface
-    private interface IdentifierCallback<T extends XroadId> {
+    private interface IdentifierCallback<T extends XRoadId> {
         T create();
     }
 }

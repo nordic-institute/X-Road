@@ -1,19 +1,15 @@
 require "fileutils"
+require "base64"
 require "common-ui/io_utils"
 require "common-ui/script_utils"
 require "common-ui/tar_file"
 require "common-ui/uploaded_file"
 
-java_import Java::java.io.RandomAccessFile
 java_import Java::ee.ria.xroad.common.SystemProperties
 
-# TODO: whitelist known backup files and do not allow random filenames
-# from client!
 module CommonUi
   module BackupUtils
-
-    RESTORE_LOCKFILE_NAME = "restore_lock"
-    RESTORE_FLAGFILE_NAME = "restore_in_progress"
+    RESTORE_FLAGFILE_NAME = "/var/lib/xroad/restore_in_progress"
 
     module_function
 
@@ -68,13 +64,19 @@ module CommonUi
       uploaded_backup_file
     end
 
-    def backup
+    # Execute the given backup command with the given options that depend on
+    # the type of server.
+    def backup(backup_script_name, backup_command_options)
       ensure_backup_directory_exists
 
       tarfile =
         backup_file("conf_backup_#{Time.now.strftime('%Y%m%d-%H%M%S')}.tar")
 
-      commandline = [ScriptUtils.get_script_file("backup_xroad.sh"), tarfile]
+      commandline = [
+        ScriptUtils.get_script_file(backup_script_name), backup_command_options,
+        # Encode the file name because we pass all the data in base64.
+        "-f #{Base64.strict_encode64(tarfile)}"
+      ]
 
       Rails.logger.info("Running configuration backup with command "\
                   "'#{commandline}'")
@@ -90,22 +92,22 @@ module CommonUi
       return $?.exitstatus, console_output_lines, tarfile
     end
 
-    def restore(conf_file, &success_handler)
+    # Execute the given restore command with the given options that depend on
+    # the type of server.
+    def restore(restore_script_name, restore_command_options, conf_file,
+        &after_restore)
+
       if backup_files[conf_file].nil?
         raise "Backup file does not exist"
       end
 
+      tarfile = backup_file(conf_file)
       commandline = [
-        ScriptUtils.get_script_file("restore_xroad.sh"), backup_file(conf_file) ]
-
-      lockfile = try_restore_lock
-
-      unless lockfile
-        Rails.logger.info("Aborting restore, another restore already in progress")
-        raise "Restore already in progress"
-      end
-
-      FileUtils.touch(IOUtils.temp_file(RESTORE_FLAGFILE_NAME))
+        ScriptUtils.get_script_file(restore_script_name),
+        restore_command_options,
+        # Encode the file name because we pass all the data in base64.
+        "-f #{Base64.strict_encode64(tarfile)}"
+      ]
 
       Rails.logger.info("Running configuration restore with command "\
                   "'#{commandline.join(" ")}'")
@@ -120,22 +122,11 @@ module CommonUi
 
       return $?.exitstatus, console_output_lines, backup_file(conf_file)
     ensure
-      begin
-        yield if success_handler
-      ensure
-        if lockfile
-          FileUtils.rm_f(IOUtils.temp_file(RESTORE_FLAGFILE_NAME)) # shouldn't throw?
-          IOUtils.release_lock(lockfile)
-        end
-      end
-    end
-
-    def try_restore_lock
-      return IOUtils.try_lock(RESTORE_LOCKFILE_NAME)
+      yield if after_restore
     end
 
     def restore_in_progress?
-      File.exists?(IOUtils.temp_file(RESTORE_FLAGFILE_NAME))
+      File.exists?(RESTORE_FLAGFILE_NAME)
     end
 
     def backup_file(filename)

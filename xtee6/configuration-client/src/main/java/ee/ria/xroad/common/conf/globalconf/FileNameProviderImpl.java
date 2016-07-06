@@ -22,15 +22,16 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang.StringUtils;
-
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.PRIVATE_PARAMETERS_XML;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.SHARED_PARAMETERS_XML;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.apache.commons.lang.StringUtils;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Default implementation of file name provider.

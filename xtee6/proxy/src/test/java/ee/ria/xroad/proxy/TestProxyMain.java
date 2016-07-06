@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -32,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class creates a test-database and starts the proxy main.
@@ -116,7 +115,7 @@ public final class TestProxyMain {
                 client.getWsdl().add(createWsdl(client, j));
             }
 
-            // TODO add acl
+            // add acl ...
         }
 
         return client;

@@ -285,6 +285,6 @@ class Request < ActiveRecord::Base
   end
 
   def self.get_name(id)
-    XroadMember.get_name(id.member_class, id.member_code)
+    XRoadMember.get_name(id.member_class, id.member_code)
   end
 end

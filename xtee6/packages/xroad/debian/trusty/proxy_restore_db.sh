@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# FIXME: error handling
+DUMP_FILE=$1
+
 cat << EOC | su - postgres -c "psql postgres"
 DROP DATABASE IF EXISTS serverconf_restore;
 DROP DATABASE IF EXISTS serverconf_backup;
@@ -9,7 +12,7 @@ su - postgres -c "psql -d serverconf_restore -c \"CREATE EXTENSION hstore;\""
 
 PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
 USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
-PGPASSWORD=${PW:-serverconf} pg_restore -h 127.0.0.1 -U ${USER:-serverconf} -O -x -n public  -1 -d serverconf_restore /var/lib/xroad/dbdump.dat
+PGPASSWORD=${PW:-serverconf} pg_restore -h 127.0.0.1 -U ${USER:-serverconf} -O -x -n public  -1 -d serverconf_restore ${DUMP_FILE}
 
 cat << EOC | su - postgres -c "psql postgres"
 revoke connect on database serverconf from serverconf;

@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common.asic;
 
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MESSAGE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
+
 import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,8 +37,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Tests to verify correct ASiC container loading behavior.

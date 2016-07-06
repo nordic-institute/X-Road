@@ -33,11 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.management.UnixOperatingSystemMXBean;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
+import com.sun.management.UnixOperatingSystemMXBean;
+
 import ee.ria.xroad.common.SystemProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains methods for gathering and retrieving system metrics information.

@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.common.signature;
 
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -43,8 +50,6 @@ import org.w3c.dom.NodeList;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.XmlUtils;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Local helper class for constructing Xades signatures.

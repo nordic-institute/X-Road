@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
+import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -31,13 +38,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
 /**
  * Signer client is used to send messages to signer from other components
@@ -98,7 +98,7 @@ public final class SignerClient {
             return result(Await.result(Patterns.ask(requestProcessor, message, timeout), timeout.duration()));
         } catch (TimeoutException te) {
             throw connectionTimeoutException();
-        }
+       }
     }
 
     /**

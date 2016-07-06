@@ -34,8 +34,8 @@ class ConfGeneratorController < ApplicationController
       logger.debug("Starting global conf generation transaction "\
           "for thread #{get_current_thread_name()}")
 
-      # TODO: Move global conf generation implementation away from this
-      # controller!
+      # FUTURE (task #7845): Move global conf generation implementation away
+      # from this controller!
       ActiveRecord::Base.isolation_level(:repeatable_read) do
         ActiveRecord::Base.transaction do
           create_distributable_configuration()
@@ -47,12 +47,18 @@ class ConfGeneratorController < ApplicationController
           "for thread #{get_current_thread_name()}")
     end
 
+    success_msg = "Global configuration generated successfully.\n"
+    GlobalConfGenerationStatus.write_success(success_msg)
+
     render :text => ""
   rescue
     remove_new_conf_dir()
 
     logger.error($!.message)
     logger.error($!.backtrace.join("\n"))
+
+    GlobalConfGenerationStatus.write_failure(
+        GlobalConfSigningLog.get_exception_ctx($!))
 
     render :text => "#{$!.message}\n"
 # ensure
@@ -104,14 +110,10 @@ class ConfGeneratorController < ApplicationController
 
     logger.info("Saving success message")
 
-    success_msg = "Global configuration generated successfully.\n"
-    GlobalConfGenerationStatus.write_success(success_msg)
-
     logger.info("Configuration generation: success")
   rescue
-    logger.info("#{$!.message}")
-    GlobalConfGenerationStatus.write_failure(
-        GlobalConfSigningLog.get_exception_ctx($!))
+    logger.info("Failed to generate global configuration: #{$!.message}")
+
     raise "Failed to generate valid global configuration: #{$!.message}"
   end
 
@@ -134,9 +136,8 @@ class ConfGeneratorController < ApplicationController
     process_internal_configuration()
     process_external_configuration()
 
-    serve_configuration()
-
     clean_up_old_configuration()
+    serve_configuration()
   rescue
     logger.error("#{$!.message}")
     raise $!
@@ -160,6 +161,8 @@ class ConfGeneratorController < ApplicationController
     unless signing_key
       raise "Internal source must have an active key, but there is none."
     end
+
+    ConfigurationSigningKey.validate(signing_key)
 
     target_file = get_temp_internal_directory()
 
@@ -189,7 +192,16 @@ class ConfGeneratorController < ApplicationController
 
     signing_key = ConfigurationSource.get_external_signing_key
 
-    return if signing_key == nil
+    unless signing_key
+      if federation_switched_on?
+        raise "Active external signing key must exist if federation is "\
+            "switched on, but there is none."
+      else
+        return
+      end
+    end
+
+    ConfigurationSigningKey.validate(signing_key)
 
     allowed_content_identifiers =
       [SharedParameters::CONTENT_ID_SHARED_PARAMETERS]
@@ -281,14 +293,18 @@ class ConfGeneratorController < ApplicationController
     end
 
     old_entries.each do |each|
-      # TODO: Can we assume that we may remove all directories that are too old?
-      next unless File.directory?(each)
+      next unless is_global_conf_dir?(each)
 
       FileUtils.remove_entry_secure(each, :force => true)
     end
   rescue
     logger.error(
         "Failed to clean up old configuration, message:\n#{$!.message}")
+  end
+
+  def is_global_conf_dir?(file)
+    # We assume directory with name consisting of numbers only.
+    File.directory?(file) && File.basename(file) =~ /\A\d+\z/
   end
 
   def get_signer(sign_key_id, allowed_content_identifiers)
@@ -368,7 +384,6 @@ class ConfGeneratorController < ApplicationController
     target_directory = "#{get_local_conf_directory()}/#{instance_identifier}"
 
     # Create the target directory, if it does not exist
-    # TODO might need to delete old files first
     FileUtils.mkdir_p(target_directory, :mode => 0755)
 
     target_file = "#{target_directory}/#{file.file_name}"
@@ -400,6 +415,10 @@ class ConfGeneratorController < ApplicationController
     logger.error("Failed to save distributed file #{target_file} "\
         "to disk: #{$!.message}")
     raise $!
+  end
+
+  def federation_switched_on?
+    Java::ee.ria.xroad.common.SystemProperties::getCenterTrustedAnchorsAllowed
   end
 
   # -- Conf distribution logic - end ---

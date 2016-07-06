@@ -8,6 +8,7 @@ class ImportController < ApplicationController
 
   before_filter :verify_get, :only => [:get_imported, :last_result]
   before_filter :verify_post, :only => [:import_v5_data]
+  skip_around_filter :wrap_in_transaction, :only => [:import_v5_data]
 
   upload_callbacks({
     :import_v5_data => "XROAD_IMPORT.uploadCallback"
@@ -53,21 +54,19 @@ class ImportController < ApplicationController
   def import_v5_data
     authorize!(:execute_v5_import)
 
-    file_param = params[:file_upload]
-
-    if !file_param || !file_param.original_filename
-      raise t("common.filename_empty")
-    end
+    validate_params({
+      :file_upload => [:required]
+    })
 
     CommonUi::UploadedFile::Validator.new(
-        file_param,
+        params[:file_upload],
         GzipFile::Validator.new,
         GzipFile::restrictions).validate()
 
-    data_file = write_imported_file(file_param)
+    data_file = write_imported_file(params[:file_upload])
 
     exit_status = execute_clients_importer(
-        data_file, file_param.original_filename)
+        data_file, params[:file_upload].original_filename)
 
     V5DataImportStatus.write(data_file, exit_status)
 
@@ -127,10 +126,5 @@ class ImportController < ApplicationController
   rescue RubyExecutableException => e
     V5Import.write(original_filename, e.console_output_lines)
     return 2 # Error
-  end
-
-  def write_last_attempt(console_output_lines)
-    CommonUi::IOUtils.write(
-        get_last_attempt_log_path(), console_output_lines.join("\n"))
   end
 end

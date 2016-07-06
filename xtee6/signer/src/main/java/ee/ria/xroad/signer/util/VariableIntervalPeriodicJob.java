@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.signer.util;
 
+import java.util.concurrent.TimeUnit;
+
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 import akka.actor.UntypedActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Periodic job with potentially variable interval. The next interval is

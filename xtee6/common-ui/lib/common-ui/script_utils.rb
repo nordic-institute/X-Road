@@ -4,6 +4,7 @@ java_import Java::ee.ria.xroad.common.util.CryptoUtils
 module CommonUi
   module ScriptUtils
 
+    CONFIGURATION_CLIENT_EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120
     CONFIGURATION_CLIENT_EXIT_STATUS_MISSING_PRIVATE_PARAMS = 121
     CONFIGURATION_CLIENT_EXIT_STATUS_UNREACHABLE = 122
     CONFIGURATION_CLIENT_EXIT_STATUS_OUTDATED = 123
@@ -26,11 +27,12 @@ module CommonUi
     module_function
 
     # Takes array of script arguments.
-    def run_script(commandline)
+    # FUTURE: Is there any possibility to use array directly with redirection?
+    def run_script(commandline, redirect_stderr = true)
       console_output_lines = []
 
       # Redirecting stderr to stdout when command given as array did not work.
-      commandline << "2>&1"
+      commandline << "2>&1" if redirect_stderr
 
       IO.popen(commandline.join(" ")) do |io|
         while (line = io.gets) do
@@ -40,7 +42,7 @@ module CommonUi
 
       return console_output_lines
     rescue => e
-      logger.error(e)
+      Rails.logger.error(e)
       raise RubyExecutableException.new(e, console_output_lines)
     end
 
@@ -75,6 +77,9 @@ module CommonUi
       case exit_status
       when 0
         Rails.logger.info("Configuration verified successfully")
+
+      when CONFIGURATION_CLIENT_EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE
+        raise I18n.t("conf_verification.anchor_not_for_external_source")
 
       when CONFIGURATION_CLIENT_EXIT_STATUS_MISSING_PRIVATE_PARAMS
         raise I18n.t("conf_verification.missing_private_params")

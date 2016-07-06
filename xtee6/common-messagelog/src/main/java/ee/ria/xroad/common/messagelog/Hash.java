@@ -22,8 +22,9 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import lombok.Data;
 import org.apache.commons.lang.StringUtils;
+
+import lombok.Data;
 
 /**
  * Encapsulates a hash value and algorithm ID used to compute it.

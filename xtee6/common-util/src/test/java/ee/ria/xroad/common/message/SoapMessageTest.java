@@ -22,9 +22,28 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createRequest;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createSoapMessage;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.fileToBytes;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.messageToBytes;
+import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -40,11 +59,7 @@ import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.ExpectedCodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
-import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
-import static org.junit.Assert.*;
+import ee.ria.xroad.common.util.MimeTypes;
 
 /**
  * This class tests the basic functionality (parsing the soap message etc.)
@@ -123,41 +138,6 @@ public class SoapMessageTest {
     }
 
     /**
-     * Test that reading a normal async request message is successful and that
-     * header and body are correctly parsed.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void asyncMessage() throws Exception {
-        SoapMessageImpl message = createRequest("async.query");
-
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "getState");
-
-        assertTrue(message.isRequest());
-        assertTrue(message.isAsync());
-        assertEquals(expectedClient, message.getClient());
-        assertEquals(expectedService, message.getService());
-        assertEquals("EE:PIN:abc4567", message.getUserId());
-        assertEquals("411d6755661409fed365ad8135f8210be07613da",
-                message.getQueryId());
-    }
-
-    /**
-     * Tests that verification fails against schema, if the message is not a
-     * valid SOAP message.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void notSoapMessage() throws Exception {
-        thrown.expectError(X_MALFORMED_SOAP);
-        createSoapMessage("malformed-soap.query");
-    }
-
-    /**
      * Tests that missing header is detected on not fault messages.
      * @throws Exception in case of any unexpected errors
      */
@@ -233,8 +213,10 @@ public class SoapMessageTest {
     @Test
     public void invalidContentType() throws Exception {
         thrown.expectError(X_INVALID_CONTENT_TYPE);
-        new SoapParserImpl().parse("text/html", StandardCharsets.UTF_8.name(),
-                new FileInputStream(QUERY_DIR + "simple.query"));
+        try (FileInputStream in =
+                new FileInputStream(QUERY_DIR + "simple.query")) {
+            new SoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF_8, in);
+        }
     }
 
     /**
@@ -246,6 +228,7 @@ public class SoapMessageTest {
         String soapFaultXml = SoapFault.createFaultXml(
                 "foo.bar", "baz", "xxx", "yyy");
         Soap message = new SoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
@@ -336,7 +319,8 @@ public class SoapMessageTest {
         assertEquals(service, built.getService());
 
         Soap parsedSoap = new SoapParserImpl().parse(
-                        new ByteArrayInputStream(built.getBytes()));
+                built.getContentType(),
+                new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         SoapMessageImpl parsed = (SoapMessageImpl) parsedSoap;
@@ -355,7 +339,8 @@ public class SoapMessageTest {
         assertEquals(centralService, built.getService());
 
         parsedSoap = new SoapParserImpl().parse(
-                        IOUtils.toInputStream(built.getXml()));
+                built.getContentType(),
+                IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -444,5 +429,4 @@ public class SoapMessageTest {
         thrown.expectError(X_INVALID_PROTOCOL_VERSION);
         createRequest("wrong-version.query");
     }
-
 }

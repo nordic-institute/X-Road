@@ -38,8 +38,8 @@ function enableActions() {
 
         // only enable if keyUsage is not determined yet or user can
         // generate csr-s of this keyUsage type
-        if (!keyUsage || $("#key_usage_select option[value="
-                          + keyUsage + "]").length > 0) {
+        if (!keyUsage || $("#key_usage option[value="
+                           + keyUsage + "]").length > 0) {
             $("#generate_csr").enable();
         }
     }
@@ -92,11 +92,13 @@ function enableActions() {
             $("#activate:visible, #disable:visible").enable();
         }
     }
+
+    $(window).resize();
 }
 
 function refreshTokens() {
     $.get(action("refresh"), null, function(response) {
-        oKeys.fnReplaceData(response.data);
+        oKeys.fnReplaceData(response.data.tokens);
         enableActions();
     }, "json");
 }
@@ -115,12 +117,44 @@ function initDialogs() {
                 url: action("refresh"),
                 global: false,
                 success: function(response) {
-                    oKeys.fnReplaceData(response.data);
+                    oKeys.fnReplaceData(response.data.tokens);
                     enableActions();
                 },
                 dataType: "json"
             });
         });
+    });
+
+    $("#generate_key_dialog").initDialog({
+        autoOpen: false,
+        modal: true,
+        width: 550,
+        open: function() {
+            $("#label", this).val("");
+        },
+        buttons: [
+            { text: _("common.ok"),
+              click: function() {
+                  var dialog = this;
+                  var params = {
+                      token_id: oKeys.getFocus().dataset.id,
+                      label: $("#label", dialog).val()
+                  };
+
+                  $.post(action("generate_key"), params, function(response) {
+                      $(dialog).dialog("close");
+                      oKeys.fnAddData(response.data.tokens);
+                      oKeys.setFocus(0, $(".key[data-id='" + response.data.tokens[1].key_id + "']"));
+                      enableActions();
+                  }, "json");
+              }
+            },
+            { text: _("common.cancel"),
+              click: function() {
+                  $(this).dialog("close");
+              }
+            }
+        ]
     });
 
     $("#generate_csr_dialog").initDialog({
@@ -129,16 +163,67 @@ function initDialogs() {
         width: 550,
         close: function() {
             $("input[type!=hidden], select", this).val("");
-            $("#key_usage_select").enable();
+            $("#key_usage").enable();
         },
+        open: function() {
+            $("#key_usage").change();
+        },
+        buttons: [
+            { id: "generate_csr_submit",
+              text: _("common.ok"),
+              click: function() {
+                  var params = {
+                      key_usage: $("#key_usage", this).val(),
+                      approved_ca: $("#approved_ca", this).val(),
+                      member_id : $("#member_id", this).val()
+                  };
+
+                  $.get(action("subject_dn_fields"), params, function(response) {
+                      $("#subject_dn_dialog .details").empty();
+
+                      $.each(response.data.fields, function(idx, val) {
+                          var input = $("<input type='text'>")
+                              .attr("name", val.id)
+                              .val(val.default_value)
+                              .enable(!val.read_only);
+                          var labelColumn = $("<td>")
+                              .addClass("label")
+                              .text(val.label + (val.required ? "*" : ""));
+                          var inputColumn = $("<td>").append(input);
+                          var row = $("<tr>").append(labelColumn).append(inputColumn)
+
+                          $("#subject_dn_dialog .details").append(row);
+                      });
+
+                      $("#subject_dn_dialog").dialog("open");
+                  }, "json");
+              }
+            },
+            { text: _("common.cancel"),
+              click: function() {
+                  $(this).dialog("close");
+              }
+            }
+        ]
+    });
+
+    $("#subject_dn_dialog").initDialog({
+        autoOpen: false,
+        modal: true,
+        width: 550,
         buttons: [
             { text: _("common.ok"),
               click: function() {
-                  $("#key_usage", this).val(
-                      $("#key_usage_select", this).val());
-
                   var dialog = this;
                   var params = $("form", this).serializeObject();
+
+                  var csrDialog = $("#generate_csr_dialog");
+                  params.token_id = $("#token_id", csrDialog).val();
+                  params.key_id = $("#key_id", csrDialog).val();
+                  params.key_usage = $("#key_usage", csrDialog).val();
+                  params.member_id = $("#member_id", csrDialog).val();
+                  params.approved_ca = $("#approved_ca", csrDialog).val();
+                  params.csr_format = $("#csr_format", csrDialog).val();
 
                   $.post(action("generate_csr"), params, function(response) {
                       oKeys.fnReplaceData(response.data.tokens);
@@ -149,8 +234,9 @@ function initDialogs() {
                           + "&key_usage=" + params.key_usage;
 
                       $(dialog).dialog("close");
+                      $(csrDialog).dialog("close");
                       $("input[type!=hidden], select", dialog).val("");
-                      $("#key_usage_select").enable();
+                      $("#key_usage").enable();
                   });
               }
             },
@@ -161,6 +247,9 @@ function initDialogs() {
             }
         ]
     });
+
+    $("#generate_csr_submit")
+        .enableForInput("#generate_csr_dialog #approved_ca");
 
     $("#generate_csr").click(function() {
         var keyRow = oKeys.getFocus();
@@ -173,16 +262,16 @@ function initDialogs() {
         }
 
         if (keyUsage) {
-            $("#generate_csr_dialog form #key_usage_select")
+            $("#generate_csr_dialog form #key_usage")
                 .val(keyUsage).disable();
         }
 
         if (keyUsage == KEY_USAGE_AUTH) {
             $("#generate_csr_dialog form #member_id")
-                .disable().hide().closest("div").hide();
+                .disable().hide().closest("tr").hide();
         } else {
             $("#generate_csr_dialog form #member_id")
-                .enable().show().closest("div").show();
+                .enable().show().closest("tr").show();
         }
 
         $("#generate_csr_dialog form #token_id").val(keyRow.dataset.parentId);
@@ -219,7 +308,7 @@ function initDialogs() {
                   var params = $("form", this).serialize();
 
                   $.post(action("friendly_name"), params, function(response) {
-                      oKeys.fnReplaceData(response.data);
+                      oKeys.fnReplaceData(response.data.tokens);
 
                       enableActions();
 
@@ -310,7 +399,7 @@ function initDialogs() {
                   params.cert_id = focusData.cert_id;
 
                   $.post(action("register"), params, function(response) {
-                      oKeys.fnReplaceData(response.data);
+                      oKeys.fnReplaceData(response.data.tokens);
                       enableActions();
 
                       $(dialog).dialog("close");
@@ -405,7 +494,7 @@ function deleteKey(row) {
 
     confirm(confirmText, confirmTextParams, function() {
         $.post(action("delete_key"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
 
             enableActions();
         }, "json");
@@ -423,15 +512,23 @@ function deleteCert(row) {
     var url = focusData.cert_request ?
         action("delete_cert_request") : action("delete_cert");
 
-    confirm("keys.index.delete_cert_confirm",
-            { hash: focusData.cert_friendly_name },
-            function() {
-                $.post(url, params, function(response) {
-                    oKeys.fnReplaceData(response.data);
+    var confirmText = focusData.cert_request
+        ? "keys.index.delete_csr_confirm"
+        : (focusData.cert_saved_to_conf
+           ? "keys.index.delete_cert_from_conf_confirm"
+           : "keys.index.delete_cert_from_token_confirm");
 
-                    enableActions();
-                }, "json");
-            });
+    var confirmTextParams = {
+        hash: focusData.cert_friendly_name,
+        token: focusData.token_friendly_name
+    };
+
+    confirm(confirmText, confirmTextParams, function() {
+        $.post(url, params, function(response) {
+            oKeys.fnReplaceData(response.data.tokens);
+            enableActions();
+        }, "json");
+    });
 }
 
 $(document).ready(function() {
@@ -619,26 +716,28 @@ $(document).ready(function() {
     });
 
     $("#generate_key").click(function() {
-        clearMessages();
-
-        var params = {
-            token_id: oKeys.getFocus().dataset.id
-        };
-
-        $.post(action("generate_key"), params, function(response) {
-            oKeys.fnAddData(response.data);
-            oKeys.setFocus(0, $(".key[data-id='" + response.data[1].key_id + "']"));
-            enableActions();
-        }, "json");
+        $("#generate_key_dialog").dialog("open");
     });
 
-    $("#key_usage_select").change(function() {
+    $("#key_usage").change(function() {
+        var params = {
+            key_usage: $(this).val()
+        };
+
+        $.get(action("approved_cas"), params, function(response) {
+            $("#approved_ca").empty().append("<option>");
+            
+            $.each(response.data.approved_cas, function(idx, val) {
+                $("#approved_ca").append($("<option>", { value: val, html: val }));
+            });
+        }, "json");
+
         if ($(this).val() == KEY_USAGE_AUTH) {
             $("#generate_csr_dialog form #member_id")
-                .disable().hide().closest("div").hide();
+                .disable().hide().closest("tr").hide();
         } else {
             $("#generate_csr_dialog form #member_id")
-                .enable().show().closest("div").show();
+                .enable().show().closest("tr").show();
         }
     });
 
@@ -651,7 +750,7 @@ $(document).ready(function() {
             cert_id: data.cert_id
         };
         $.post(action("import"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -675,7 +774,7 @@ $(document).ready(function() {
         };
 
         $.post(action("activate_cert"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -689,7 +788,7 @@ $(document).ready(function() {
         };
 
         $.post(action("deactivate_cert"), params, function(response) {
-            oKeys.fnReplaceData(response.data);
+            oKeys.fnReplaceData(response.data.tokens);
             enableActions();
         }, "json");
     });
@@ -704,10 +803,26 @@ $(document).ready(function() {
 
         confirm("keys.index.unregister_cert_confirm",
                 { hash: focusData.cert_friendly_name }, function() {
-            $.post(action("unregister"), params, function(response) {
-                oKeys.fnReplaceData(response.data);
-                enableActions();
-            }, "json");
+            $.ajax({
+                type: "POST",
+                url: action("unregister"),
+                data: params,
+                success: function(response) {
+                    oKeys.fnReplaceData(response.data);
+                    enableActions();
+                },
+                complete: function(xhr, textStatus) {
+                    if (textStatus == "error") {
+                        warning("keys.delreq_failed", null, function() {
+                            $.post(action("skip_unregister"), params, function(response) {
+                                oKeys.fnReplaceData(response.data);
+                                enableActions();
+                            }, "json");
+                        });
+                    }
+                },
+                dataType: "json"
+            });
         });
     });
 

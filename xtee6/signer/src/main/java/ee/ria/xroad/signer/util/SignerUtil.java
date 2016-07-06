@@ -22,22 +22,8 @@
  */
 package ee.ria.xroad.signer.util;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.operator.ContentSigner;
-import scala.concurrent.Await;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
-import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -47,7 +33,23 @@ import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import javax.xml.bind.DatatypeConverter;
+
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+import scala.concurrent.Await;
 
 /**
  * Collection of various utility methods.

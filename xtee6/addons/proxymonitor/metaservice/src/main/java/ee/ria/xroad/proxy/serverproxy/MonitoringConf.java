@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import lombok.extern.slf4j.Slf4j;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 /**
  * Global configuration for monitoring addon.

@@ -1,3 +1,9 @@
+xroad (6.8.4) trusty; urgency=low
+
+  * Merged with XTEE6 repo
+
+ -- Aktors <info@aktors.ee>  Wed,  11 May 2016 17:33:00 +0300
+
 xroad (6.7.12-1) trusty; urgency=low
 
   * Fixed security server not starting if xroad-addon-messagelog is not installed

@@ -34,11 +34,11 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;
 
 import ee.ria.xroad.common.AuditLogger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The PAM login module implementation.

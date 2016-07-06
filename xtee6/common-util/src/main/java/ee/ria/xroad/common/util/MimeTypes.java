@@ -48,4 +48,6 @@ public class MimeTypes extends org.eclipse.jetty.http.MimeTypes {
 
     public static final String JSON = "application/json";
     public static final String JSON_RPC = "application/json-rpc";
+
+    public static final String XOP_XML = "application/xop+xml";
 }

@@ -22,16 +22,17 @@
  */
 package ee.ria.xroad.common.util;
 
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Stack;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
-import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Writes multipart content into a output stream.

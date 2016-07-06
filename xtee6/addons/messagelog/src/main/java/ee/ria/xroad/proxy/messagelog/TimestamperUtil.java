@@ -31,8 +31,6 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
 import org.bouncycastle.asn1.cmp.PKIStatus;
@@ -42,6 +40,8 @@ import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 final class TimestamperUtil {

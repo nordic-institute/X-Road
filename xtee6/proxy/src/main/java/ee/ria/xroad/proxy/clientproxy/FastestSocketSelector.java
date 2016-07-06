@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static org.apache.commons.io.IOUtils.closeQuietly;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -36,8 +38,6 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import static org.apache.commons.io.IOUtils.closeQuietly;
 
 /**
  * Given a list of addresses, selects the first one to respond.

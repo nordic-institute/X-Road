@@ -31,6 +31,10 @@ p.notfound {
   color: $base-color-medium
 }
 
+pre {
+  white-space: pre-wrap;
+}
+
 #login {
     background: #f3f3f3;
 }
@@ -58,7 +62,7 @@ p.notfound {
 #server-info,
 #actions {
     display: table-cell;
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 #content {
@@ -133,8 +137,6 @@ p.notfound {
     }
 }
 
-
-
 #server-info {
     background: #111;
     width: 270px;
@@ -142,40 +144,22 @@ p.notfound {
     color: #fff;
     border-bottom: 1px solid #333;
 
-    #server-status {
-        display: inline-block;
-        margin-left: 10px;
-        vertical-align: middle;
-        font-size: 9pt;
+    h1 {
+        font-size: 12pt;
+        font-family: "Open Sans";
+        font-weight: 800;
+        line-height: 20px;
+        padding-left: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-
-    #server-names {
-        display: inline-block;
-        vertical-align: middle;
-        padding: 10px;
-        margin-left: -5px;
-        h1, h2 {
-            line-height: 1;
-        }
-        h1 {
-            font-size: 9pt;
-            font-family: "Open Sans";
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-        h2 {
-            font-size: 9pt;
-            font-family: "Open Sans";
-            font-weight: 400;
-            text-transform: uppercase;
-            &.big {
-                font-size: 12pt;
-                @include lineheight(30);
-            }
-        }
-    }
-    #server-data {
-        padding: 0 10px;
+    h2 {
+        font-size: 10pt;
+        font-family: "Open Sans";
+        font-weight: 400;
+        text-transform: uppercase;
+        padding-left: 20px;
     }
 }
 
@@ -229,16 +213,6 @@ p.notfound {
                     @include lineheight(52);
                     width: 50px;
                     text-align: center;
-                }
-            }
-            h1 {
-                font-size: 12pt;
-                font-family: "Open Sans";
-                font-weight: 500;
-                text-transform: uppercase;
-
-                &.big {
-                    @include lineheight(30);
                 }
             }
             h2 {

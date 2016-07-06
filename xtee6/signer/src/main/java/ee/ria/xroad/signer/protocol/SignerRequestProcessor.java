@@ -22,19 +22,20 @@
  */
 package ee.ria.xroad.signer.protocol;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.message.ConnectionPing;
 import ee.ria.xroad.signer.protocol.message.ConnectionPong;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Request handler will handle all incoming requests...

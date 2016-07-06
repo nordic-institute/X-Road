@@ -22,15 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
+
+import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Messagelog performance test program.
@@ -55,7 +54,7 @@ public class MessageLogPerformanceTest extends AbstractMessageLogTest {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
-        log.info("Starting SecureLog performance test...");
+        log.info("Starting MessageLog performance test...");
 
         new MessageLogPerformanceTest().run();
     }

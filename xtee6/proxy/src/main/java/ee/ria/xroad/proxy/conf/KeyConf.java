@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_KEYCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +38,6 @@ import org.slf4j.LoggerFactory;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.identifier.ClientId;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Static class for accessing Key Configuration.

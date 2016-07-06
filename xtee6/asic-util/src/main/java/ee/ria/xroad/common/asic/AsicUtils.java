@@ -26,9 +26,8 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
 
-import lombok.SneakyThrows;
-
 import ee.ria.xroad.common.CodedException;
+import lombok.SneakyThrows;
 
 /**
  * Helper functions for ASIC container verification utilities.

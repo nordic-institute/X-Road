@@ -22,8 +22,8 @@
  */
 package ee.ria.xroad.common.db;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
 
 import org.hibernate.HibernateException;
 import org.hibernate.JDBCException;
@@ -31,9 +31,8 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import ee.ria.xroad.common.CodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
-import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Database context manages database connections for a specific session

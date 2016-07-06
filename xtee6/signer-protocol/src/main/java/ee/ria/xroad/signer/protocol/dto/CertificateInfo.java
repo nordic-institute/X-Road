@@ -24,10 +24,9 @@ package ee.ria.xroad.signer.protocol.dto;
 
 import java.io.Serializable;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import lombok.ToString;
 import lombok.Value;
-
-import ee.ria.xroad.common.identifier.ClientId;
 
 /**
  * Certificate info DTO.
@@ -42,7 +41,6 @@ public class CertificateInfo implements Serializable {
     public static final String STATUS_DELINPROG = "deletion in progress";
     public static final String STATUS_GLOBALERR = "global error";
 
-    public static final String OCSP_RESPONSE_DELIMITER = ":";
     public static final String OCSP_RESPONSE_GOOD = "good";
     public static final String OCSP_RESPONSE_REVOKED = "revoked";
     public static final String OCSP_RESPONSE_UNKNOWN = "unknown";

@@ -42,9 +42,11 @@ public interface ProxyMessageConsumer {
     /**
      * Called when SOAP message is parsed.
      * @param message the SOAP message
+     * @param additionalHeaders headers
      * @throws Exception if an error occurs
      */
-    void soap(SoapMessageImpl message) throws Exception;
+    void soap(SoapMessageImpl message, Map<String, String> additionalHeaders)
+            throws Exception;
 
     /**
      * Called when an attachment is received.

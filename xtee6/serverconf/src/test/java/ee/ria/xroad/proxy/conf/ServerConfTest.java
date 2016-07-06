@@ -22,6 +22,36 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.proxy.conf.TestUtil.BASE64_CERT;
+import static ee.ria.xroad.proxy.conf.TestUtil.CLIENT_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CLASS;
+import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICES;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_TSPS;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_WSDLS;
+import static ee.ria.xroad.proxy.conf.TestUtil.SECURITY_CATEGORY;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVER_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_TIMEOUT;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_URL;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_VERSION;
+import static ee.ria.xroad.proxy.conf.TestUtil.SUBSYSTEM;
+import static ee.ria.xroad.proxy.conf.TestUtil.XROAD_INSTANCE;
+import static ee.ria.xroad.proxy.conf.TestUtil.client;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestClientId;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestServiceId;
+import static ee.ria.xroad.proxy.conf.TestUtil.prepareDB;
+import static ee.ria.xroad.proxy.conf.TestUtil.service;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,11 +75,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.proxy.conf.TestUtil.*;
-import static org.junit.Assert.*;
 
 /**
  * Tests server conf API.
@@ -202,8 +227,6 @@ public class ServerConfTest {
         assertFalse(ServerConf.isQueryAllowed(clientX, service1));
         assertFalse(ServerConf.isQueryAllowed(clientX, serviceX));
         assertFalse(ServerConf.isQueryAllowed(client1, serviceX));
-
-        // TODO tests with local and global groups
     }
 
     /**

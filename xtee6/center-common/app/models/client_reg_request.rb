@@ -10,7 +10,7 @@ class ClientRegRequest < RequestWithProcessing
     Request.set_server_owner_name(rec)
     Request.set_server_user_name(rec)
   end
-  
+
   def self.find_by_server_and_client(server_id, client_id,
       processing_status = nil)
     Request.find_by_server_and_client(ClientRegRequest, server_id, client_id,
@@ -97,5 +97,32 @@ class ClientRegRequest < RequestWithProcessing
         security_server, sec_serv_user)
 
     requests.first ? requests.first.id : nil
+  end
+
+  def self.new_management_service_provider_request(server_id, client_id)
+    ClientRegRequest.new(
+      :security_server => server_id,
+      :sec_serv_user => client_id,
+      :origin => CENTER,
+      :comments => "Management service provider registration")
+  end
+
+  def register_management_service_provider
+    java_client_id = JavaClientId.create(
+      SystemParameter.instance_identifier,
+      sec_serv_user.member_class,
+      sec_serv_user.member_code,
+      sec_serv_user.subsystem_code)
+
+    service_provider_id = SystemParameter.management_service_provider_id
+    unless service_provider_id && service_provider_id == java_client_id
+      raise "#{java_client_id} is not management service provider"
+    end
+
+    register
+
+    request_processing.execute(self)
+    request_processing.status = RequestProcessing::APPROVED
+    request_processing.save!
   end
 end

@@ -22,16 +22,23 @@
  */
 package ee.ria.xroad.monitor;
 
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.monitor.executablelister.*;
+import ee.ria.xroad.monitor.executablelister.ListedData;
+import ee.ria.xroad.monitor.executablelister.OsInfoLister;
+import ee.ria.xroad.monitor.executablelister.PackageInfo;
+import ee.ria.xroad.monitor.executablelister.PackageLister;
+import ee.ria.xroad.monitor.executablelister.ProcessInfo;
+import ee.ria.xroad.monitor.executablelister.ProcessLister;
+import ee.ria.xroad.monitor.executablelister.XroadProcessLister;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Sensor which collects data by running external commands and

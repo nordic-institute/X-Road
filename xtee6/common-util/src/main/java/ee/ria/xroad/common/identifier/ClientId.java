@@ -23,16 +23,16 @@
 package ee.ria.xroad.common.identifier;
 
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
+import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
 
-import static ee.ria.xroad.common.identifier.XroadObjectType.MEMBER;
-import static ee.ria.xroad.common.identifier.XroadObjectType.SUBSYSTEM;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Client ID.
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.ClientIdAdapter.class)
-public final class ClientId extends XroadId {
+public final class ClientId extends XRoadId {
 
     private final String memberClass;
     private final String memberCode;
@@ -83,8 +83,9 @@ public final class ClientId extends XroadId {
      * class and code
      */
     public boolean subsystemContainsMember(ClientId member) {
-        if (getObjectType() == XroadObjectType.SUBSYSTEM
-                && member.getObjectType() == XroadObjectType.MEMBER) {
+        if (member != null
+                && getObjectType() == XRoadObjectType.SUBSYSTEM
+                && member.getObjectType() == XRoadObjectType.MEMBER) {
             return getXRoadInstance().equals(member.getXRoadInstance())
                     && getMemberClass().equals(member.getMemberClass())
                     && getMemberCode().equals(member.getMemberCode());
@@ -100,7 +101,7 @@ public final class ClientId extends XroadId {
      * SUBSYSTEM:XX/YY/ZZ/TT and MEMBER:XX/YY/ZZ.
      * @param other the ID of the other client
      * @return true, if two identifiers, this and other, refer to the same
-     * XROAD member
+     * X-Road member
      */
     public boolean memberEquals(ClientId other) {
         if (other == null) {

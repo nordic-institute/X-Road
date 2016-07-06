@@ -22,20 +22,26 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import ee.ria.xroad.common.ocsp.OcspCache;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.OCSPResp;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.getOcspCachePath;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.getOcspCachePath;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import ee.ria.xroad.common.ocsp.OcspCache;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * OCSP cache that holds the OCSP responses on disk.

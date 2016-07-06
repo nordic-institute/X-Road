@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.asic;
 
+import static ee.ria.xroad.common.asic.AsicHelper.stripSlash;
+
 import java.util.regex.Pattern;
 
 import ee.ria.xroad.common.util.MessageFileNames;
 import lombok.Getter;
-
-import static ee.ria.xroad.common.asic.AsicHelper.stripSlash;
 
 /**
  * ASiC container entry name constants.

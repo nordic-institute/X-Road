@@ -94,7 +94,7 @@ Content-Date: 2013-02-04T13:50:18+0000
             SQze3NGcaR1i3kyZvNijzG3C+jrUnJ/lFs5AcIiPG0Emz6oZEYs=
         </cert>
     </tsp>
-    <!-- <group> <shortName>shortName</shortName> <fullName>fullName</fullName> 
+    <!-- <group> <shortName>shortName</shortName> <fullName>fullName</fullName>
         <org>org</org> </group> -->
 
 </tns:conf>

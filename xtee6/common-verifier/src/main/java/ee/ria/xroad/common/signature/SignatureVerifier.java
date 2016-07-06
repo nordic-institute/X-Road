@@ -22,18 +22,27 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.hashchain.DigestValue;
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
-import ee.ria.xroad.common.hashchain.HashChainVerifier;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.dom.DOMSource;
+
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
@@ -44,17 +53,19 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 
-import javax.xml.transform.dom.DOMSource;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainVerifier;
+import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.hashchain.DigestValue;
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -263,7 +274,10 @@ public class SignatureVerifier {
 
     private static void verifySignerName(ClientId signer,
             X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(signer.getXRoadInstance(),
+        ClientId cn = GlobalConf.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                    signer, signer.getMemberCode()
+                ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
             throw new CodedException(X_INCORRECT_CERTIFICATE,

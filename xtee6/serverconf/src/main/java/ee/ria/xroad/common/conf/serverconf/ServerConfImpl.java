@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,11 +57,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XroadId;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 /**
  * Server conf implementation.
@@ -276,7 +278,7 @@ public class ServerConfImpl implements ServerConfProvider {
                 continue;
             }
 
-            XroadId subjectId = accessRight.getSubjectId();
+            XRoadId subjectId = accessRight.getSubjectId();
 
             if (subjectId instanceof GlobalGroupId) {
                 if (GlobalConf.isSubjectInGlobalGroup(client,

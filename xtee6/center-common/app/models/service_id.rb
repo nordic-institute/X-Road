@@ -21,3 +21,4 @@ class ServiceId < Identifier
     "#{object_type}:#{xroad_instance}/#{member_class}/#{member_code}#{subsystem_code ? '/' + subsystem_code : ''}/#{service_code}"
   end
 end
+

@@ -22,25 +22,26 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
+import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
+
+import javax.xml.soap.SOAPMessage;
+
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import javax.xml.soap.SOAPMessage;
-
-import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
-import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
-
 /**
- * This class represents the XROAD SOAP message.
+ * This class represents the X-Road SOAP message.
  */
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
-                    SOAPMessage soap, String serviceName) throws Exception {
+            SOAPMessage soap, String serviceName,
+            String originalContentType) throws Exception {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
-                isRpcMessage(soap));
+                isRpcMessage(soap), originalContentType);
     }
 
     /**
@@ -76,16 +77,6 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      */
     public SecurityServerId getSecurityServer() {
         return getHeader().getSecurityServer();
-    }
-
-
-    /**
-     * True if the SOAP message is marked as asynchronous.
-     *
-     * @return boolean
-     */
-    public boolean isAsync() {
-        return getHeader().isAsync();
     }
 
     /**

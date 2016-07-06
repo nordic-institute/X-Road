@@ -17,14 +17,14 @@ class SecurityServerClient < ActiveRecord::Base
     remove_client_from_global_groups(record)
   }
 
-  # Finds a XROAD member or subsystem by ClientId
+  # Finds a X-Road member or subsystem by ClientId
   # Returns nil, if not found.
   def self.find_by_id(client_id)
     Rails.logger.info("SecurityServerClient.find_by_id(#{client_id})")
 
     if client_id.subsystem_code == nil
-      # Find XROAD member
-      return XroadMember.find_by_code(client_id.member_class, client_id.member_code)
+      # Find X-Road member
+      return XRoadMember.find_by_code(client_id.member_class, client_id.member_code)
     else
       # Find subsystem
       return Subsystem.find_by_code(
@@ -69,8 +69,8 @@ class SecurityServerClient < ActiveRecord::Base
 
   # Returns all server clients except for subsystems that are already
   # clients for the server.
-  def self.get_addable_clients_for_server(
-      server_code, query_params, advanced_search_params = nil)
+  def self.get_addable_clients_for_server(server_code, query_params,
+        advanced_search_params = nil, subsystems_only = false)
     logger.info("SecurityServerClient.get_addable_clients_for_server(\
         '#{server_code}', '#{query_params}', '#{advanced_search_params}')")
 
@@ -78,14 +78,25 @@ class SecurityServerClient < ActiveRecord::Base
         where(get_excluded_ids_relation(server_code ?
             get_excluded_server_client_ids(server_code) : []))
 
+    if subsystems_only
+      identifiers = identifiers.where("identifiers.subsystem_code is not null")
+    end
+
     return get_clients_with_name(identifiers)
   end
 
-  def self.get_addable_clients_count(
-      server_code, searchable = "", advanced_search_params = nil)
-    return get_search_relation(searchable).
+  def self.get_addable_clients_count(server_code, searchable = "",
+        advanced_search_params = nil, subsystems_only = false)
+
+    identifiers = get_search_relation(searchable).
         where(get_excluded_ids_relation(server_code ?
-            get_excluded_server_client_ids(server_code) : [])).count
+          get_excluded_server_client_ids(server_code) : []))
+
+    if subsystems_only
+      identifiers = identifiers.where("identifiers.subsystem_code is not null")
+    end
+
+    return identifiers.count
   end
 
   private
@@ -97,7 +108,7 @@ class SecurityServerClient < ActiveRecord::Base
 
     identifiers.each do |each|
       result << {
-        :name => XroadMember.get_name(each.member_class, each.member_code),
+        :name => XRoadMember.get_name(each.member_class, each.member_code),
         :identifier => each
       }
     end

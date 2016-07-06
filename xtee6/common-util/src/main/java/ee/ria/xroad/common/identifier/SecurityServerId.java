@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * Security server ID.
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityServerIdAdapter.class)
-public final class SecurityServerId extends XroadId {
+public final class SecurityServerId extends XRoadId {
 
     private final String memberClass;
     private final String memberCode;
@@ -40,7 +40,7 @@ public final class SecurityServerId extends XroadId {
 
     private SecurityServerId(String xRoadInstance,
             String memberClass, String memberCode, String serverCode) {
-        super(XroadObjectType.SERVER, xRoadInstance);
+        super(XRoadObjectType.SERVER, xRoadInstance);
 
         this.memberClass = memberClass;
         this.memberCode = memberCode;

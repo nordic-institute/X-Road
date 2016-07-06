@@ -27,34 +27,30 @@
         <param-value>none</param-value>
     </context-param>
 
-    <session-config>
-        <session-timeout>30</session-timeout>
-    </session-config>
-
     <filter>
         <filter-name>AuthFilter</filter-name>
         <filter-class>ee.ria.xroad.commonui.jaas.AuthFilter</filter-class>
     </filter>
-
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
 
     <filter>
         <filter-name>SessionTimeoutFilter</filter-name>
         <filter-class>ee.ria.xroad.commonui.SessionTimeoutFilter</filter-class>
     </filter>
 
-    <filter-mapping>
-        <filter-name>SessionTimeoutFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <filter>
         <filter-name>RackFilter</filter-name>
         <filter-class>org.jruby.rack.RackFilter</filter-class>
     </filter>
+
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>SessionTimeoutFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 
     <filter-mapping>
         <filter-name>RackFilter</filter-name>
@@ -64,6 +60,10 @@
     <listener>
         <listener-class>org.jruby.rack.rails.RailsServletContextListener</listener-class>
     </listener>
+
+    <session-config>
+        <session-timeout>30</session-timeout>
+    </session-config>
 
     <login-config>
         <auth-method>FORM</auth-method>

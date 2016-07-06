@@ -22,19 +22,18 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
+import ee.ria.xroad.common.CodedException;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.ToString;
-
-import ee.ria.xroad.common.CodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
 
 /**
  * Represents the protocolVersion header field value.

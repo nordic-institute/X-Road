@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.common.conf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,15 +32,11 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 /**
  * The certificate and private key for internal TLS communications are held

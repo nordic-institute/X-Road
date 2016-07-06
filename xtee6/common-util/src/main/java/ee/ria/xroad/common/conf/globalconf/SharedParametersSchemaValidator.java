@@ -38,7 +38,7 @@ public class SharedParametersSchemaValidator extends SchemaValidator {
     private static Schema schema;
 
     static {
-        schema = createSchema("globalconf/external-conf.xsd");
+        schema = createSchema("globalconf/shared-parameters.xsd");
     }
 
     /**

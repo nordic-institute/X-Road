@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -32,14 +34,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 
 /**
  * Configuration client downloads the configuration from sources found in the

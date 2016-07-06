@@ -22,13 +22,23 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_MIME_PARSING_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
@@ -37,12 +47,7 @@ import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.MimeUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
-import static ee.ria.xroad.common.util.MimeUtils.*;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Decodes SOAP messages from an input stream.
@@ -80,7 +85,8 @@ public class SoapMessageDecoder {
         void onError(Exception t) throws Exception;
 
         @Override
-        default void close() { };
+        default void close() {
+        }
     }
 
     /**
@@ -121,8 +127,9 @@ public class SoapMessageDecoder {
         }
 
         try {
-            switch (baseContentType) {
+            switch (baseContentType.toLowerCase()) {
                 case TEXT_XML:
+                case XOP_XML:
                     readSoapMessage(soapStream);
                     break;
                 case MULTIPART_RELATED:
@@ -142,7 +149,8 @@ public class SoapMessageDecoder {
     private void readSoapMessage(InputStream is) throws Exception {
         log.trace("readSoapMessage");
 
-        Soap soap = parser.parse(baseContentType, getCharset(contentType), is);
+        //Soap soap = parser.parse(baseContentType, getCharset(contentType), is);
+        Soap soap = parser.parse(contentType, is);
         if (soap instanceof SoapFault) {
             callback.fault((SoapFault) soap);
             return;
@@ -154,7 +162,7 @@ public class SoapMessageDecoder {
                     X_INTERNAL_ERROR, "Unexpected SOAP message");
         }
 
-        callback.soap((SoapMessage) soap);
+        callback.soap((SoapMessage) soap, new HashMap<>());
     }
 
     private void readMultipart(InputStream is) throws Exception {
@@ -212,16 +220,14 @@ public class SoapMessageDecoder {
                     // First part, consisting of the SOAP message.
                     log.trace("Read SOAP from multipart: {}", partContentType);
                     try {
-                        Soap soap = parser.parse(
-                                MimeUtils.getBaseContentType(partContentType),
-                                MimeUtils.getCharset(partContentType), is);
+                        Soap soap = parser.parse(partContentType, is);
                         if (!(soap instanceof SoapMessage)) {
                             throw new CodedException(X_INTERNAL_ERROR,
                                     "Unexpected SOAP message");
                         }
 
                         soapMessage = (SoapMessage) soap;
-                        callback.soap(soapMessage);
+                        callback.soap(soapMessage, headers);
                     } catch (Exception e) {
                         throw translateException(e);
                     }

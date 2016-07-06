@@ -31,7 +31,7 @@
         <sequence>
             <element name="monitoringClientId"
                      minOccurs="0"
-                     type="id:XroadClientIdentifierType">
+                     type="id:XRoadClientIdentifierType">
                 <annotation>
                     <documentation>
                         Identifier of the X-Road member or subsystem which is authorized to query monitoring data from all security servers.

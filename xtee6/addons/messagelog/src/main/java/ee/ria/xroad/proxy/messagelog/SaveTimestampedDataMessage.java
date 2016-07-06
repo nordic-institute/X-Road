@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import java.io.Serializable;
+
 import akka.dispatch.ControlMessage;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
-import java.io.Serializable;
 
 @Data
 @RequiredArgsConstructor

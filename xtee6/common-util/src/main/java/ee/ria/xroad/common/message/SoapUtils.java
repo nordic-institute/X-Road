@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.common.message;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -46,17 +52,10 @@ import org.apache.commons.lang.ObjectUtils;
 
 import ee.ria.xroad.common.CodedException;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
-
 /**
  * Contains utility methods for working with SOAP messages.
  */
 public final class SoapUtils {
-
-    // HTTP header field for async messages that are sent from async-sender
-    public static final String X_IGNORE_ASYNC = "X-Ignore-Async";
 
     public static final String PREFIX_SOAPENV = "SOAP-ENV";
 
@@ -271,7 +270,7 @@ public final class SoapUtils {
 
         byte[] xml = getBytes(soap);
         return (SoapMessageImpl) new SoapParserImpl().parseMessage(xml, soap,
-                charset);
+                charset, request.getContentType());
     }
 
     private static String getServiceCode(
@@ -387,17 +386,6 @@ public final class SoapUtils {
         }
 
         return null;
-    }
-
-    /**
-     * If the given mime type is not text/xml, throws an error.
-     * @param mimeType the mimeType that's expected to be text/xml
-     */
-    public static void validateMimeType(String mimeType) {
-        if (!TEXT_XML.equalsIgnoreCase(mimeType)) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", mimeType);
-        }
     }
 
     /**

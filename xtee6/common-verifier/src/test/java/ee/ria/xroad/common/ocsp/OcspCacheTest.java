@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common.ocsp;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Date;
@@ -36,8 +40,6 @@ import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-
-import static org.junit.Assert.*;
 
 /**
  * Tests the OCSP cache.

@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -31,8 +33,6 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
@@ -44,8 +44,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {

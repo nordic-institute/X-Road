@@ -337,7 +337,7 @@ create_ca() {
     output "\nUsing the existing CA keys"
   else
     output "\nCreating a new CA"
-    openssl req -new -x509 -days 7300 -$NODESFILE -out root.crt -keyout root.key -subj '/O=HACluster/CN=CA'
+    openssl req -new -x509 -days 7300 -nodes -out root.crt -keyout root.key -subj '/O=HACluster/CN=CA'
   fi
 }
 
@@ -350,9 +350,9 @@ create_tls_keys() {
     else
       output "\nCreating TLS keys for node $node"
       mkdir $node
-      openssl req -new -$NODESFILE -days 7300  -keyout $node/server.key -out $node/server.csr -subj "/O=HACluster/CN=$node"
-      openssl x509 -req -CAcreateserial -days 7300 -in $node/server.csr -CA root.crt -CAkey root.key -out $node/server.crt
-      openssl req -new -$NODESFILE -days 7300  -keyout $node/replicator.key -out $node/replicator.csr -subj "/O=HACluster/OU=$node/CN=replicator"
+      openssl req -new -nodes -days 7300  -keyout $node/server.key -out $node/server.csr -subj "/O=HACluster/CN=$node"
+      openssl x509 -req -CAcreateserial  -days 7300 -in $node/server.csr -CA root.crt -CAkey root.key -out $node/server.crt
+      openssl req -new -nodes -keyout $node/replicator.key -out $node/replicator.csr -subj "/O=HACluster/OU=$node/CN=replicator"
       openssl x509 -req -CAcreateserial -days 7300 -in $node/replicator.csr -CA root.crt -CAkey root.key -out $node/replicator.crt
     fi
   done 10<../$NODESFILE
@@ -378,8 +378,6 @@ EOF
   then
     die "$node: Failed to install PostgreSQL. Check the detailed log"
   fi
-
-  # TODO: pg_lscluster kontroll: versioon, port, staatus (online vs down)
 }
 
 _copy_tls_keys_and_certs() {

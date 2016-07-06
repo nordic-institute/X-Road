@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     compile project(':serverconf')
-    compile project(':async-db')
     compile project(':signer-protocol')
     compile project(':common-messagelog')
 
@@ -43,7 +42,6 @@ task runProxyMain(type: JavaExec) {
         '-Dxroad.proxy.globalConfDistributor.enabled=false',
         '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
-        '-Dxroad.asyncdb.path=build',
         '-Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
         '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
         '-Dxroad.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
@@ -60,12 +58,11 @@ task runProxyMain(type: JavaExec) {
 task runProxyTest(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
-        '-Dxroad.asyncdb.path=build',
         '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
         '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
         '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml'
-//	'-Djava.security.properties==src/main/resources/java.security'
+//      '-Djava.security.properties==src/main/resources/java.security'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath

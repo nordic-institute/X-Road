@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import iaik.pkcs.pkcs11.TokenInfo;
-
 import java.util.Map;
+
+import iaik.pkcs.pkcs11.TokenInfo;
 
 /**
  * Fills out the token information for a hardware token.

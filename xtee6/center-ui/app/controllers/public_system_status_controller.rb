@@ -4,8 +4,6 @@ java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
 # This controller contains actions for public requests for the status of
 # the system. No authentication is required for making the requests.
 # XXX The actions in BaseController are accessible via this controller, too.
-# FIXME: konfida routes.rb sees t2psemad piirangud või t6sta lahku veahalduse
-# abivahendid ja tokeniga seotud tegevused baaskontrolleris!
 class PublicSystemStatusController < BaseController
 
   # The meaning of HA node status labels as of BDR 0.9
@@ -15,7 +13,7 @@ class PublicSystemStatusController < BaseController
     "b" => "bootstrapping",
     "i" => "initial slot creation or dump",
     "c" => "catching up",
-    "o" => "caught up, waiting for slot creation", 
+    "o" => "caught up, waiting for slot creation",
     "k" => "killed or removed"
   }
   HA_STATUS_UNKNOWN = :unknown
@@ -34,7 +32,7 @@ class PublicSystemStatusController < BaseController
     if !CommonSql.ha_configured?
       return { :ha_configured => false }
     end
- 
+
     status_info = {
       :ha_configured => true, :nodes =>Hash.new,
     }

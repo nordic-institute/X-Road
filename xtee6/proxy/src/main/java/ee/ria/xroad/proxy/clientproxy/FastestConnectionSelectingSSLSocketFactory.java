@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.verify;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -35,8 +39,6 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocket;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -44,10 +46,7 @@ import org.apache.http.protocol.HttpContext;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
-import static ee.ria.xroad.proxy.clientproxy.AuthTrustVerifier.verify;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is a custom SSL socket factory that connects to the fastest target
@@ -137,7 +136,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
 
-        verify(context, sslSocket.getSession());
+        verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,

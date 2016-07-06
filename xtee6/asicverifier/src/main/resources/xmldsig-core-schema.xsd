@@ -19,7 +19,7 @@
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         targetNamespace="http://www.w3.org/2000/09/xmldsig#"
-        version="0.1" elementFormDefault="qualified"> 
+        version="0.1" elementFormDefault="qualified">
 
 <!-- Basic Types Defined for Signatures -->
 
@@ -32,16 +32,16 @@
 
 <element name="Signature" type="ds:SignatureType"/>
 <complexType name="SignatureType">
-  <sequence> 
-    <element ref="ds:SignedInfo"/> 
-    <element ref="ds:SignatureValue"/> 
-    <element ref="ds:KeyInfo" minOccurs="0"/> 
-    <element ref="ds:Object" minOccurs="0" maxOccurs="unbounded"/> 
-  </sequence>  
+  <sequence>
+    <element ref="ds:SignedInfo"/>
+    <element ref="ds:SignatureValue"/>
+    <element ref="ds:KeyInfo" minOccurs="0"/>
+    <element ref="ds:Object" minOccurs="0" maxOccurs="unbounded"/>
+  </sequence>
   <attribute name="Id" type="ID" use="optional"/>
 </complexType>
 
-  <element name="SignatureValue" type="ds:SignatureValueType"/> 
+  <element name="SignatureValue" type="ds:SignatureValueType"/>
   <complexType name="SignatureValueType">
     <simpleContent>
       <extension base="base64Binary">
@@ -54,21 +54,21 @@
 
 <element name="SignedInfo" type="ds:SignedInfoType"/>
 <complexType name="SignedInfoType">
-  <sequence> 
-    <element ref="ds:CanonicalizationMethod"/> 
-    <element ref="ds:SignatureMethod"/> 
-    <element ref="ds:Reference" maxOccurs="unbounded"/> 
-  </sequence>  
-  <attribute name="Id" type="ID" use="optional"/> 
+  <sequence>
+    <element ref="ds:CanonicalizationMethod"/>
+    <element ref="ds:SignatureMethod"/>
+    <element ref="ds:Reference" maxOccurs="unbounded"/>
+  </sequence>
+  <attribute name="Id" type="ID" use="optional"/>
 </complexType>
 
-  <element name="CanonicalizationMethod" type="ds:CanonicalizationMethodType"/> 
+  <element name="CanonicalizationMethod" type="ds:CanonicalizationMethodType"/>
   <complexType name="CanonicalizationMethodType" mixed="true">
     <sequence>
       <any namespace="##any" minOccurs="0" maxOccurs="unbounded"/>
       <!-- (0,unbounded) elements from (1,1) namespace -->
     </sequence>
-    <attribute name="Algorithm" type="anyURI" use="required"/> 
+    <attribute name="Algorithm" type="anyURI" use="required"/>
   </complexType>
 
   <element name="SignatureMethod" type="ds:SignatureMethodType"/>
@@ -78,48 +78,48 @@
       <any namespace="##other" minOccurs="0" maxOccurs="unbounded"/>
       <!-- (0,unbounded) elements from (1,1) external namespace -->
     </sequence>
-    <attribute name="Algorithm" type="anyURI" use="required"/> 
+    <attribute name="Algorithm" type="anyURI" use="required"/>
   </complexType>
 
 <!-- Start Reference -->
 
 <element name="Reference" type="ds:ReferenceType"/>
 <complexType name="ReferenceType">
-  <sequence> 
-    <element ref="ds:Transforms" minOccurs="0"/> 
-    <element ref="ds:DigestMethod"/> 
-    <element ref="ds:DigestValue"/> 
+  <sequence>
+    <element ref="ds:Transforms" minOccurs="0"/>
+    <element ref="ds:DigestMethod"/>
+    <element ref="ds:DigestValue"/>
   </sequence>
-  <attribute name="Id" type="ID" use="optional"/> 
-  <attribute name="URI" type="anyURI" use="optional"/> 
-  <attribute name="Type" type="anyURI" use="optional"/> 
+  <attribute name="Id" type="ID" use="optional"/>
+  <attribute name="URI" type="anyURI" use="optional"/>
+  <attribute name="Type" type="anyURI" use="optional"/>
 </complexType>
 
   <element name="Transforms" type="ds:TransformsType"/>
   <complexType name="TransformsType">
     <sequence>
-      <element ref="ds:Transform" maxOccurs="unbounded"/>  
+      <element ref="ds:Transform" maxOccurs="unbounded"/>
     </sequence>
   </complexType>
 
   <element name="Transform" type="ds:TransformType"/>
   <complexType name="TransformType" mixed="true">
-    <choice minOccurs="0" maxOccurs="unbounded"> 
+    <choice minOccurs="0" maxOccurs="unbounded">
       <any namespace="##other" processContents="lax"/>
       <!-- (1,1) elements from (0,unbounded) namespaces -->
-      <element name="XPath" type="string"/> 
+      <element name="XPath" type="string"/>
     </choice>
-    <attribute name="Algorithm" type="anyURI" use="required"/> 
+    <attribute name="Algorithm" type="anyURI" use="required"/>
   </complexType>
 
 <!-- End Reference -->
 
 <element name="DigestMethod" type="ds:DigestMethodType"/>
-<complexType name="DigestMethodType" mixed="true"> 
+<complexType name="DigestMethodType" mixed="true">
   <sequence>
     <any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-  </sequence>    
-  <attribute name="Algorithm" type="anyURI" use="required"/> 
+  </sequence>
+  <attribute name="Algorithm" type="anyURI" use="required"/>
 </complexType>
 
 <element name="DigestValue" type="ds:DigestValueType"/>
@@ -131,26 +131,26 @@
 
 <!-- Start KeyInfo -->
 
-<element name="KeyInfo" type="ds:KeyInfoType"/> 
+<element name="KeyInfo" type="ds:KeyInfoType"/>
 <complexType name="KeyInfoType" mixed="true">
-  <choice maxOccurs="unbounded">     
-    <element ref="ds:KeyName"/> 
-    <element ref="ds:KeyValue"/> 
-    <element ref="ds:RetrievalMethod"/> 
-    <element ref="ds:X509Data"/> 
-    <element ref="ds:PGPData"/> 
+  <choice maxOccurs="unbounded">
+    <element ref="ds:KeyName"/>
+    <element ref="ds:KeyValue"/>
+    <element ref="ds:RetrievalMethod"/>
+    <element ref="ds:X509Data"/>
+    <element ref="ds:PGPData"/>
     <element ref="ds:SPKIData"/>
     <element ref="ds:MgmtData"/>
     <any processContents="lax" namespace="##other"/>
     <!-- (1,1) elements from (0,unbounded) namespaces -->
   </choice>
-  <attribute name="Id" type="ID" use="optional"/> 
+  <attribute name="Id" type="ID" use="optional"/>
 </complexType>
 
   <element name="KeyName" type="string"/>
   <element name="MgmtData" type="string"/>
 
-  <element name="KeyValue" type="ds:KeyValueType"/> 
+  <element name="KeyValue" type="ds:KeyValueType"/>
   <complexType name="KeyValueType" mixed="true">
    <choice>
      <element ref="ds:DSAKeyValue"/>
@@ -159,18 +159,18 @@
    </choice>
   </complexType>
 
-  <element name="RetrievalMethod" type="ds:RetrievalMethodType"/> 
+  <element name="RetrievalMethod" type="ds:RetrievalMethodType"/>
   <complexType name="RetrievalMethodType">
     <sequence>
-      <element ref="ds:Transforms" minOccurs="0"/> 
-    </sequence>  
+      <element ref="ds:Transforms" minOccurs="0"/>
+    </sequence>
     <attribute name="URI" type="anyURI"/>
     <attribute name="Type" type="anyURI" use="optional"/>
   </complexType>
 
 <!-- Start X509Data -->
 
-<element name="X509Data" type="ds:X509DataType"/> 
+<element name="X509Data" type="ds:X509DataType"/>
 <complexType name="X509DataType">
   <sequence maxOccurs="unbounded">
     <choice>
@@ -184,10 +184,10 @@
   </sequence>
 </complexType>
 
-<complexType name="X509IssuerSerialType"> 
-  <sequence> 
-    <element name="X509IssuerName" type="string"/> 
-    <element name="X509SerialNumber" type="integer"/> 
+<complexType name="X509IssuerSerialType">
+  <sequence>
+    <element name="X509IssuerName" type="string"/>
+    <element name="X509SerialNumber" type="integer"/>
   </sequence>
 </complexType>
 
@@ -195,17 +195,17 @@
 
 <!-- Begin PGPData -->
 
-<element name="PGPData" type="ds:PGPDataType"/> 
-<complexType name="PGPDataType"> 
+<element name="PGPData" type="ds:PGPDataType"/>
+<complexType name="PGPDataType">
   <choice>
     <sequence>
-      <element name="PGPKeyID" type="base64Binary"/> 
-      <element name="PGPKeyPacket" type="base64Binary" minOccurs="0"/> 
+      <element name="PGPKeyID" type="base64Binary"/>
+      <element name="PGPKeyPacket" type="base64Binary" minOccurs="0"/>
       <any namespace="##other" processContents="lax" minOccurs="0"
        maxOccurs="unbounded"/>
     </sequence>
     <sequence>
-      <element name="PGPKeyPacket" type="base64Binary"/> 
+      <element name="PGPKeyPacket" type="base64Binary"/>
       <any namespace="##other" processContents="lax" minOccurs="0"
        maxOccurs="unbounded"/>
     </sequence>
@@ -216,13 +216,13 @@
 
 <!-- Begin SPKIData -->
 
-<element name="SPKIData" type="ds:SPKIDataType"/> 
+<element name="SPKIData" type="ds:SPKIDataType"/>
 <complexType name="SPKIDataType">
   <sequence maxOccurs="unbounded">
     <element name="SPKISexp" type="base64Binary"/>
     <any namespace="##other" processContents="lax" minOccurs="0"/>
   </sequence>
-</complexType> 
+</complexType>
 
 <!-- End SPKIData -->
 
@@ -230,40 +230,40 @@
 
 <!-- Start Object (Manifest, SignatureProperty) -->
 
-<element name="Object" type="ds:ObjectType"/> 
+<element name="Object" type="ds:ObjectType"/>
 <complexType name="ObjectType" mixed="true">
   <sequence minOccurs="0" maxOccurs="unbounded">
     <any namespace="##any" processContents="lax"/>
   </sequence>
-  <attribute name="Id" type="ID" use="optional"/> 
+  <attribute name="Id" type="ID" use="optional"/>
   <attribute name="MimeType" type="string" use="optional"/> <!-- add a grep facet -->
-  <attribute name="Encoding" type="anyURI" use="optional"/> 
+  <attribute name="Encoding" type="anyURI" use="optional"/>
 </complexType>
 
-<element name="Manifest" type="ds:ManifestType"/> 
+<element name="Manifest" type="ds:ManifestType"/>
 <complexType name="ManifestType">
   <sequence>
-    <element ref="ds:Reference" maxOccurs="unbounded"/> 
+    <element ref="ds:Reference" maxOccurs="unbounded"/>
   </sequence>
-  <attribute name="Id" type="ID" use="optional"/> 
+  <attribute name="Id" type="ID" use="optional"/>
 </complexType>
 
-<element name="SignatureProperties" type="ds:SignaturePropertiesType"/> 
+<element name="SignatureProperties" type="ds:SignaturePropertiesType"/>
 <complexType name="SignaturePropertiesType">
   <sequence>
-    <element ref="ds:SignatureProperty" maxOccurs="unbounded"/> 
+    <element ref="ds:SignatureProperty" maxOccurs="unbounded"/>
   </sequence>
-  <attribute name="Id" type="ID" use="optional"/> 
+  <attribute name="Id" type="ID" use="optional"/>
 </complexType>
 
-   <element name="SignatureProperty" type="ds:SignaturePropertyType"/> 
+   <element name="SignatureProperty" type="ds:SignaturePropertyType"/>
    <complexType name="SignaturePropertyType" mixed="true">
      <choice maxOccurs="unbounded">
        <any namespace="##other" processContents="lax"/>
        <!-- (1,1) elements from (1,unbounded) namespaces -->
      </choice>
-     <attribute name="Target" type="anyURI" use="required"/> 
-     <attribute name="Id" type="ID" use="optional"/> 
+     <attribute name="Target" type="anyURI" use="required"/>
+     <attribute name="Id" type="ID" use="optional"/>
    </complexType>
 
 <!-- End Object (Manifest, SignatureProperty) -->
@@ -296,10 +296,10 @@
 <element name="RSAKeyValue" type="ds:RSAKeyValueType"/>
 <complexType name="RSAKeyValueType">
   <sequence>
-    <element name="Modulus" type="ds:CryptoBinary"/> 
-    <element name="Exponent" type="ds:CryptoBinary"/> 
+    <element name="Modulus" type="ds:CryptoBinary"/>
+    <element name="Exponent" type="ds:CryptoBinary"/>
   </sequence>
-</complexType> 
+</complexType>
 
 <!-- End KeyValue Element-types -->
 

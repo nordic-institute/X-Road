@@ -29,14 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.Data;
-
 import org.apache.commons.lang3.ObjectUtils;
 
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+import lombok.Data;
 
 /**
  * Model object representing a token.
@@ -75,7 +74,7 @@ public final class Token {
     private int slotIndex;
 
     /** Whether batch signing should be enabled for this token. */
-    private boolean batchSigningEnabled = false;
+    private boolean batchSigningEnabled = true;
 
     /** Holds the currect status of the token. */
     private TokenStatusInfo status = TokenStatusInfo.OK;

@@ -3,6 +3,8 @@ dependencies {
 
     compile project(':common-verifier')
     compile project(':signer-protocol')
+
+    testCompile project(':common-util').sourceSets.test.output
 }
 
 clean << {
@@ -43,7 +45,7 @@ task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type
     commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
 }
 
-// TODO - We might want to get rid of warning at .war file generation
+// FUTURE - We might want to get rid of warning at .war file generation
 task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }

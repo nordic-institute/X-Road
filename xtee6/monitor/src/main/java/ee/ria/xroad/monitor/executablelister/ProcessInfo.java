@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
+import java.io.Serializable;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
 
 /**
  * Created by janne on 29.10.2015.

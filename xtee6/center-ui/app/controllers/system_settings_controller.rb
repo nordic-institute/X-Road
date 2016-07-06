@@ -10,11 +10,13 @@ class SystemSettingsController < ApplicationController
     @service_provider_id =
       SystemParameter.management_service_provider_id
 
-    @service_provider_name = XroadMember.get_name(
+    @service_provider_name = XRoadMember.get_name(
       @service_provider_id.memberClass,
       @service_provider_id.memberCode) if @service_provider_id
 
     @security_server_owners_group = SystemParameter.security_server_owners_group
+
+    read_service_provider_security_servers
 
     read_services_addresses
   end
@@ -80,16 +82,84 @@ class SystemSettingsController < ApplicationController
       SystemParameter::MANAGEMENT_SERVICE_PROVIDER_SUBSYSTEM,
       params[:providerSubsystem])
 
-    service_provider_name = XroadMember.get_name(
+    service_provider_name = XRoadMember.get_name(
       params[:providerClass], params[:providerCode])
 
     audit_log_data[:serviceProviderIdentifier] =
       SystemParameter.management_service_provider_id
     audit_log_data[:serviceProviderName] = service_provider_name
 
+    read_service_provider_security_servers
+
+    provider_id = SystemParameter.management_service_provider_id
+
     render_json({
-      :id => SystemParameter.management_service_provider_id.toString,
-      :name => service_provider_name
+      :id => provider_id.toString,
+      :member_class => provider_id.memberClass,
+      :member_code => provider_id.memberCode,
+      :subsystem_code => provider_id.subsystemCode,
+      :name => service_provider_name,
+      :security_servers => @service_provider_security_servers
+    })
+  end
+
+  def service_provider_register
+    audit_log("Register management service provider as security server client",
+      audit_log_data = {})
+
+    authorize!(:register_service_provider)
+
+    validate_params({
+      :serverCode => [:required],
+      :ownerClass => [:required],
+      :ownerCode => [:required],
+      :memberClass => [:required],
+      :memberCode => [:required],
+      :subsystemCode => []
+    })
+
+    if params[:subsystemCode] && params[:subsystemCode].empty?
+      params[:subsystemCode] = nil
+    end
+
+    java_client_id = JavaClientId.create(
+      SystemParameter.instance_identifier,
+      params[:memberClass],
+      params[:memberCode],
+      params[:subsystemCode])
+
+    audit_log_data[:serverCode] = params[:serverCode]
+    audit_log_data[:ownerClass] = params[:ownerClass]
+    audit_log_data[:ownerCode] = params[:ownerCode]
+    audit_log_data[:clientIdentifier] = java_client_id
+
+    client_id = ClientId.from_parts(
+      SystemParameter.instance_identifier,
+      params[:memberClass],
+      params[:memberCode],
+      params[:subsystemCode])
+
+    server_id = SecurityServerId.from_parts(
+        SystemParameter.instance_identifier,
+        params[:ownerClass],
+        params[:ownerCode],
+        params[:serverCode])
+
+    ClientRegRequest \
+      .new_management_service_provider_request(server_id, client_id) \
+      .register_management_service_provider
+
+    logger.debug("Management service provider reg request " \
+        "'#{request.inspect}' registered successfully")
+
+    notice(t("system_settings.service_provider_registered", {
+      :client_id => client_id, :server_id => server_id
+    }))
+
+    read_service_provider_security_servers
+
+    render_json({
+      :security_servers => @service_provider_security_servers
     })
   end
 
@@ -111,7 +181,7 @@ class SystemSettingsController < ApplicationController
       :description => [:required]
     })
 
-    audit_log_data[:code] = params[:code]
+    audit_log_data[:code] = params[:code].upcase
     audit_log_data[:description] = params[:description]
 
     MemberClass.find_each do |member_class|
@@ -165,24 +235,48 @@ class SystemSettingsController < ApplicationController
 
     audit_log_data[:code] = params[:code]
 
-    MemberClass.find_each do |member_class|
-      if member_class.code.upcase == params[:code].upcase
-
-        if member_class.xroad_members.any?
-          raise t("system_settings.member_class_has_members", {
-            :code => member_class.code.upcase
-          })
-        end
-
-        member_class.destroy
-        break
-      end
-    end
+    MemberClass.delete(params[:code])
 
     render_json(read_member_classes)
   end
 
   private
+
+  def read_service_provider_security_servers
+    @service_provider_security_servers = nil
+
+    service_provider_id = SystemParameter.management_service_provider_id
+
+    unless service_provider_id
+      return
+    end
+
+    security_server_client = nil
+    security_servers = []
+
+    if service_provider_id.subsystemCode
+      security_server_client = Subsystem.find_by_code(
+        service_provider_id.memberClass,
+        service_provider_id.memberCode,
+        service_provider_id.subsystemCode)
+    else
+      security_server_client = XRoadMember.find_by_code(
+        service_provider_id.memberClass,
+        service_provider_id.memberCode)
+
+      if security_server_client.owned_servers
+        security_servers.concat(security_server_client \
+          .owned_servers.map { |ss| ss.get_identifier })
+      end
+    end
+
+    security_servers.concat(ServerClient \
+      .where(:security_server_client_id => security_server_client.id) \
+      .joins(:security_server) \
+      .map { |ss| ss.security_server.get_identifier })
+
+    @service_provider_security_servers = security_servers.join("; ")
+  end
 
   def read_services_addresses
     @wsdl_address =

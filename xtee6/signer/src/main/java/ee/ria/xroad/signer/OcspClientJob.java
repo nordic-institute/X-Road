@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.signer;
 
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
+
+import java.util.concurrent.TimeUnit;
+
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.util.VariableIntervalPeriodicJob;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 
 /**
  * Periodically executes the OcspClient

@@ -22,20 +22,22 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.ConfProvider;
-import ee.ria.xroad.common.util.AtomicSave;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.joda.time.DateTime;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,9 +45,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
+import org.apache.commons.io.FileUtils;
+import org.joda.time.DateTime;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.ConfProvider;
+import ee.ria.xroad.common.util.AtomicSave;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class for reading global configuration directory. The directory must
@@ -231,7 +238,7 @@ public class ConfigurationDirectory {
      * @param consumer the function instance that should be applied to
      * @throws Exception if an error occurs
      */
-    public synchronized void  eachFile(final Consumer<Path> consumer)
+    public synchronized void eachFile(final Consumer<Path> consumer)
             throws Exception {
         Files.walkFileTree(path, new Walker(consumer));
     }

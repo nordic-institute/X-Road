@@ -41,9 +41,11 @@ module CommonUi
           return if filename.end_with?(".#{each}")
         end
 
-        raise I18n.t("backup.error.invalid_extension", {
+        raise I18n.t(
+          "backup.error.invalid_extension", {
             :file => filename,
-            :extensions => @allowed_extensions.join(", ")
+            :extensions => @allowed_extensions.join(", "),
+            :count => @allowed_extensions.length
         })
       end
 

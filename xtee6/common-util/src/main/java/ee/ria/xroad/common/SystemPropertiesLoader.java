@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.common;
 
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -31,14 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
-import static org.apache.commons.lang3.ArrayUtils.contains;
-import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * <p>SystemPropertiesLoader reads INI files and creates a Java system property

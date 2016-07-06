@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common.util;
 
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.DSYNC;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
@@ -34,8 +39,6 @@ import java.nio.file.StandardCopyOption;
 
 import ee.ria.xroad.common.DefaultFilepaths;
 import lombok.extern.slf4j.Slf4j;
-
-import static java.nio.file.StandardOpenOption.*;
 
 /**
  * Holds atomic save utility methods.
@@ -102,7 +105,7 @@ public final class AtomicSave {
     public static void execute(String fileName, String tmpPrefix,
             final byte[] data, CopyOption... options) throws Exception {
         execute(fileName, tmpPrefix, out -> out.write(data), options);
-    }
+   }
 
     /**
      * Atomically moves one file from source path to target. Works between filesystems.

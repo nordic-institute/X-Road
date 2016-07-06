@@ -34,11 +34,6 @@ en:
       repeat_pin: "Repeat PIN"
       initialized: "Central Server initialized"
 
-  backup:
-    index:
-      item:
-        restore_confirm: "During restore you will be logged out of global configuration signing token. Are you sure you want to restore configuration from file '{{file}}'?"
-
   orgs:
     index:
       name: "Registry code"
@@ -48,7 +43,7 @@ en:
       add_address: "Add address"
       delete: "Delete"
       add_contact: "Add E-mail"
-      add_auth_cert_hash: "Add auth cert hash"
+      add_auth_cert_hash: "Add authentication certificate hash"
       contact: "E-mail addresses"
       address: "Addresses of security servers"
 
@@ -85,8 +80,7 @@ en:
         legend: "Subsystems"
         subsystem_code: "Subsystem Code"
         used_servers: "Used Servers"
-        delete: "Delete Subsystem"
-        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' X-Road member '{{memberCode}}({{memberClass}})'?"
+        remove_confirm: "Are you sure you want to remove subsystem '{{subsystem}}' from the X-Road member '{{memberClass}}/{{memberCode}}'?"
       used_servers:
         legend: "Used Servers"
         server_code: "Server Code"
@@ -94,6 +88,7 @@ en:
         server_owner: "Server Owner"
         add:
           title: "New Client Registration Request"
+          management_service_provider_title: "Management Service Provider Registration Request"
           client:
             legend: "Client Information"
         remove:
@@ -105,14 +100,14 @@ en:
       all_servers:
         search:
           title: "Security Servers"
-    remove_confirm: "Are you sure you want to remove X-Road member '{{memberCode}}({{memberClass}})'? {{ownedServersMessage}}"
+    remove_confirm: "Are you sure you want to delete the X-Road member '{{memberClass}}/{{memberCode}}'? {{ownedServersMessage}}"
     removable_owned_servers: "Following servers owned by this member will also be removed: '{{serversToRemove}}'"
 
   management_requests:
     legend: "Management Requests"
     process_id: "Request ID"
     received: "Received"
-    process_type: "Request type"
+    process_type: "Request Type"
     created: "Created"
     status: "Status"
     request_id: "Request ID"
@@ -170,7 +165,6 @@ en:
     edit:
       address:
         title: "Edit Address"
-        legend: "Edit Address"
       categories:
         title: "Security Categories"
     categories:
@@ -197,7 +191,7 @@ en:
         legend: "Authentication Certificate Information"
       delete:
         title: "Delete Authentication Certificate"
-    remove_confirm: "Are you sure you want to remove security server '{{server}}' belonging to '{{ownerCode}}({{ownerClass}})'?"
+    remove_confirm: "Are you sure you want to remove security server '{{server}}' belonging to '{{ownerClass}}/{{ownerCode}}'?"
 
   groups:
     code: "Code"
@@ -211,6 +205,7 @@ en:
     remove:
       confirm: "Are you sure you want to remove group '{{group}}'?"
       selected_members_confirm: "Are you sure you want to remove selected members from group '{{group}}'?"
+      all_members_confirm: "Are you sure you want to remove all found members from group '{{group}}'?"
     details:
       title: "Global group '{{group}}'"
       members: "Group members"
@@ -225,6 +220,7 @@ en:
       added: "Added"
       delete_group: "Delete group"
       remove_selected_members: "Remove selected members"
+      remove_all_members: "Remove all members"
       add_members: "Add members"
       description:
         edit:
@@ -235,10 +231,6 @@ en:
       group_to_org: "Show by groups"
       org_to_group: "Show by X-Road members"
       org_not_in_group: "X-Road members that don't belong to selected group"
-    orgs:
-      add_all: "Add all X-Road members"
-      add_selected: "Add selected X-Road members"
-      remove_confirm: "Are you sure you want to remove X-Road member '{{member}}' from group '{{group}}'?"
 
   central_services:
     central_service: "Central Service"
@@ -268,22 +260,22 @@ en:
   layouts:
     application:
       title: "Central Server Administration"
+      server_type: "Central Server"
 
   approved_cas:
     upload_ca_cert: "Insert Service CA Certificate"
-    upload_intermediate_ca_cert: "Insert Service Intermediate CA Certificate"
-    trusted_certification_service: "Trusted Certification Service"
+    upload_intermediate_ca_cert: "Insert Intermediate CA Certificate"
+    trusted_certification_service: "Approved Certification Service"
     approved_ca_details: "Certification Service CA Details"
     ca_certificate: "CA Certificate"
     ocsp_responders: "OCSP Responders"
     edit_ocsp_responder: "Edit OCSP Responder"
     add_ocsp_responder: "Add OCSP Responder"
     ca_settings: "CA Settings"
-    name_extractor_disabled: "This CA can only be used for TLS authentication"
-    name_extractor_disabled_hint: "(mark if true)"
-    name_extractor_member_class: "This CA is issuing certificates for member class"
-    name_extractor_member_class_hint: "(leave empty if this CA is used for more than one member class)"
-    name_extractor_method: "Member Code/Identifier Extractor Method"
+    authentication_only: "This CA can only be used for TLS authentication"
+    authentication_only_hint: "(mark if true)"
+    cert_profile_info: "Certificate Profile Info"
+    cert_profile_info_hint: "(fully qualified class name that implements the \n ee.ria.xroad.common.certificateprofile.\nCertificateProfileInfoProvider interface)"
     intermediate_cas: "Intermediate CAs"
     intermediate_ca: "Intermediate CA"
     intermediate_ca_details: "Intermediate CA Details"
@@ -322,7 +314,7 @@ en:
   tsps:
     edit_new: "Add Timestamping Service"
     edit_existing: "Edit Timestamping Service"
-    remove_confirm: "Are you sure you want to remove TSP '{{tsp}}'?"
+    remove_confirm: "Are you sure you want to remove the timestamping service '{{tsp}}'?"
 
   configuration_management:
     source_tab:
@@ -333,6 +325,8 @@ en:
       anchor_file_not_found: "Anchor file not found"
       download_url: "Download URL"
       signing_keys: "Signing Keys"
+      token: "Token"
+      label: "Label"
       login: "Login"
       logout: "Logout"
       activate: "Activate"
@@ -368,6 +362,7 @@ en:
       management_services: "Management Services"
       service_provider_id: "Service Provider Identifier"
       service_provider_name: "Service Provider Name"
+      service_provider_security_servers: "Management Services' Security Server"
       wsdl_address: "WSDL Address"
       services_address: "Services Address"
       security_server_owners_group: "Security Server Owners Group Code"

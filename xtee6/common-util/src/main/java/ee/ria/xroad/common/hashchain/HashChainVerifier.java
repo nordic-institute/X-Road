@@ -22,6 +22,15 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,9 +60,6 @@ import org.w3c.dom.Document;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.SchemaValidator;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Verification of hash chains.

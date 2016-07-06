@@ -41,5 +41,6 @@ public final class DiagnosticsErrorCodes {
     public static final int ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT = 120;
     public static final int ERROR_CODE_NO_NETWORK_CONNECTION = 119;
     public static final int ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL = 118;
+    public static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 117;
 
 }

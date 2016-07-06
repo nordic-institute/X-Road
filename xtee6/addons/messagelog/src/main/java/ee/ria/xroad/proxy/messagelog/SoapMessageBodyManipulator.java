@@ -22,7 +22,11 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import java.util.Collection;
+import java.util.Objects;
+
 import com.google.common.collect.Iterables;
+
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
@@ -30,9 +34,6 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import lombok.Setter;
-
-import java.util.Collection;
-import java.util.Objects;
 
 /**
  * Utility class for processing SoapMessages and removing altered message with <soap:body>

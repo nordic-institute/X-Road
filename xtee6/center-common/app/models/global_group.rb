@@ -83,6 +83,10 @@ class GlobalGroup < ActiveRecord::Base
     GlobalGroupMember.where(:global_group_id => group_id).count
   end
 
+  def update_member_count
+    update_attributes!(:member_count => global_group_members.size)
+  end
+
   private
 
   def client_id_parameters(client_id)
@@ -91,10 +95,6 @@ class GlobalGroup < ActiveRecord::Base
       :member_class => client_id.member_class,
       :member_code => client_id.member_code,
       :subsystem_code => client_id.subsystem_code }
-  end
-
-  def update_member_count
-    update_attributes!(:member_count => global_group_members.size)
   end
 
   def self.get_search_relation(searchable)

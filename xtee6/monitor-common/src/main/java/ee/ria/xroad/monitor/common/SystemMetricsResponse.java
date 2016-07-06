@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.monitor.common;
 
+import java.io.Serializable;
+
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import lombok.Getter;
-
-import java.io.Serializable;
 
 /**
  * Message for returning system metrics data
