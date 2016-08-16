@@ -1,5 +1,3 @@
-require 'thread'
-
 java_import Java::ee.ria.xroad.common.request.ManagementRequestHandler
 java_import Java::ee.ria.xroad.common.request.ManagementRequestParser
 java_import Java::ee.ria.xroad.common.request.ManagementRequestUtil
@@ -10,8 +8,6 @@ java_import Java::ee.ria.xroad.common.ErrorCodes
 java_import Java::ee.ria.xroad.common.CodedException
 
 class ManagementRequestsController < ApplicationController
-  @@auth_cert_registration_mutex = Mutex.new
-  @@client_registration_mutex = Mutex.new
 
   def create
     begin
@@ -68,17 +64,12 @@ class ManagementRequestsController < ApplicationController
     verify_xroad_instance(security_server)
     verify_owner(security_server)
 
-    req = nil
-
-    @@auth_cert_registration_mutex.synchronize do
-      req = AuthCertRegRequest.new(
-        :security_server => security_server,
-        :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
-        :address => req_type.getAddress(),
-        :origin => Request::SECURITY_SERVER)
-      req.register()
-    end
-
+    req = AuthCertRegRequest.new(
+      :security_server => security_server,
+      :auth_cert => String.from_java_bytes(req_type.getAuthCert()),
+      :address => req_type.getAddress(),
+      :origin => Request::SECURITY_SERVER)
+    req.register()
     req.id
   end
 
@@ -108,17 +99,11 @@ class ManagementRequestsController < ApplicationController
 
     verify_owner(security_server)
 
-    req = nil
-
-    @@client_registration_mutex.synchronize do
-      req = ClientRegRequest.new(
-        :security_server => security_server,
-        :sec_serv_user => server_user,
-        :origin => Request::SECURITY_SERVER)
-
-      req.register()
-    end
-
+    req = ClientRegRequest.new(
+      :security_server => security_server,
+      :sec_serv_user => server_user,
+      :origin => Request::SECURITY_SERVER)
+    req.register()
     req.id
   end
 
@@ -156,7 +141,7 @@ class ManagementRequestsController < ApplicationController
     verify_xroad_instance(sender)
 
     if not security_server.matches_client_id(sender)
-      raise I18n.t("request.server_id_not_match_owner",
+      raise I18n.t("requests.serverid.does.not.match.owner",
         :security_server => security_server.to_s,
         :sec_serv_owner => sender.to_s)
     end

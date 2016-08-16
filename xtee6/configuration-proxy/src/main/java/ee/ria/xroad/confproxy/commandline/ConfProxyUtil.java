@@ -67,11 +67,11 @@ public abstract class ConfProxyUtil {
      * Prints the available arguments for the utility program.
      */
     protected final void printHelp() {
-        try (final PrintWriter writer = new PrintWriter(System.out)) {
-            final HelpFormatter helpFormatter = new HelpFormatter();
-            helpFormatter.printHelp(writer, HELP_LINE_WIDTH, name, "", options,
-                    HELP_LINE_PADDING, HELP_LINE_DESCRIPTION_PADDING, "", true);
-        }
+        final PrintWriter writer = new PrintWriter(System.out);
+        final HelpFormatter helpFormatter = new HelpFormatter();
+        helpFormatter.printHelp(writer, HELP_LINE_WIDTH, name, "", options,
+                HELP_LINE_PADDING, HELP_LINE_DESCRIPTION_PADDING, "", true);
+        writer.close();
      }
 
     /**

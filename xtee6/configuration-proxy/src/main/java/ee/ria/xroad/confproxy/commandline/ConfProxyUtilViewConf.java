@@ -76,7 +76,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             displayInfo(conf.getInstance(), conf);
         } else if (commandLine.hasOption("a")) {
             for (String instance : ConfProxyHelper.availableInstances()) {
-                ConfProxyProperties conf;
+                ConfProxyProperties conf = null;
                 try {
                     conf = new ConfProxyProperties(instance);
                 } catch (Exception e) {
@@ -175,7 +175,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             return "";
         }
         Path certPath = conf.getCertPath(keyId).toAbsolutePath();
-        byte[] certBytes;
+        byte[] certBytes = null;
         try {
             certBytes = Files.readAllBytes(certPath);
         } catch (IOException e) {
