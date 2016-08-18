@@ -1,3 +1,9 @@
+xroad (6.8.5) trusty; urgency=low
+
+  * Version bump
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 16 Aug 2016 13:54:52 +0300
+
 xroad-jetty9 (6.8.4) trusty; urgency=low
 
   * Merged with XTEE6 repo
