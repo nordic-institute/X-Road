@@ -101,7 +101,7 @@ public final class GenerateTestData {
             String parts = "";
 
             if (writeExpireDate) {
-                parts += "--innerboundary\nExpire-date: 2017-07-20T17:42:55Z\n\n";
+                parts += "--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n";
             }
 
             for (ConfDirEntry entry : entries) {

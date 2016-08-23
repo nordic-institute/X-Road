@@ -1,5 +1,14 @@
 # Change Log
 
+## 6.8.5 - 2016-08-16
+- Bugfix: it's not possible to send duplicate client registration requests (https://github.com/vrk-kpa/xroad-joint-development/issues/48)
+- Bugfix: added one missing translation
+- Updated configuration client test data
+- Some minor corrections
+
+## 6.8.4 - 2016-05-11
+- Merged with XTEE6 repo
+
 ## 6.7.12 - 2016-04-25
 - Fixed security server not starting if xroad-addon-messagelog is not installed
 - Added connection timeouts to configuration client to prevent hanging problems
