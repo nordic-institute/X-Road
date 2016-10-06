@@ -1,5 +1,10 @@
 # Change Log
 
+## 6.8.6 - 2016-09-30
+- Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)
+- Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5 (XTE-278)
+- Added xroad-securityserver conflicts uxp-addon-monitoring <= 6.4.0
+
 ## 6.8.5 - 2016-08-16
 - Bugfix: it's not possible to send duplicate client registration requests (https://github.com/vrk-kpa/xroad-joint-development/issues/48)
 - Bugfix: added one missing translation
