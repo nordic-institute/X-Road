@@ -210,7 +210,7 @@ public final class MimeUtils {
         Map<String, String> params = new HashMap<>();
         HttpFields.valueParameters(contentType, params);
         return params.entrySet().stream()
-                .filter(e -> e.getKey().equalsIgnoreCase(parameterName))
+                .filter(e -> e.getKey().trim().equalsIgnoreCase(parameterName))
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
