@@ -1,4 +1,0 @@
-source "http://rubygems.org"
-
-# Declare your gem's dependencies in xtee55_clients_importer.gemspec.
-gemspec

@@ -1,1 +1,0 @@
-include "mediator-common", "clientmediator", "sandbox", "monitoragent", "mediator-common-test", "systemtest", "testservice", "confimporter", "xtee55_clients_importer", "validator-identifiermapping"
