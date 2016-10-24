@@ -1,0 +1,8 @@
+account-plugin-aim/3.8.6-0ubuntu9.2
+account-plugin-facebook/0.11+14.04.20140409.1-0ubuntu2
+account-plugin-flickr/0.11+14.04.20140409.1-0ubuntu2
+gnome-desktop3-data/3.8.4-0ubuntu3.1
+libasound2/1.0.27.2-3ubuntu7
+system-config-printer-common/1.4.3+20140219-0ubuntu2.6
+wget/1.15-1ubuntu1.14.04.1
+xserver-xorg-video-openchrome-lts-vivid/1:0.3.3-1ubuntu1~trusty1

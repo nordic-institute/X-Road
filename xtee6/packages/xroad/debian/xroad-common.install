@@ -11,3 +11,6 @@ common/usr/*  usr/
 ../../lib/libpasswordstore.so usr/share/xroad/lib/
 ../../configuration-client/build/libs/configuration-client-1.0.jar usr/share/xroad/jlib/
 ../default-configuration/confclient-logback.xml etc/xroad/conf.d
+../../securityserver-LICENSE.txt usr/share/doc/xroad-common/
+../../securityserver-LICENSE.info usr/share/doc/xroad-common/
+

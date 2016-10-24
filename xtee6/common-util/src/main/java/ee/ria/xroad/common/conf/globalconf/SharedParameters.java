@@ -1,4 +1,31 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
+
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -14,23 +41,28 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedCAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CaInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SharedParametersType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SubsystemType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import lombok.AccessLevel;
+import lombok.Getter;
 
 /**
  * Contains shared parameters of a configuration instance.
@@ -65,6 +97,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
             new HashMap<>();
     private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
     private final Set<String> knownAddresses = new HashSet<>();
+    private final Map<SecurityServerId, SecurityServerType> securityServersById = new HashMap<>();
 
     SharedParameters() {
         super(ObjectFactory.class, SharedParametersSchemaValidator.class);
@@ -178,6 +211,7 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
         securityServerClients.clear();
         verificationCaCerts.clear();
         knownAddresses.clear();
+        securityServersById.clear();
     }
 
     private void cacheCaCerts() throws CertificateException, IOException {
@@ -234,6 +268,13 @@ public class SharedParameters extends AbstractXmlConf<SharedParametersType> {
             // Add owner of the security server.
             MemberType owner = (MemberType) securityServer.getOwner();
             addServerClient(createMemberId(owner), securityServer);
+
+            // cache security server information by serverId
+            SecurityServerId securityServerId = SecurityServerId.create(
+                    confType.getInstanceIdentifier(),
+                    owner.getMemberClass().getCode(),
+                    owner.getMemberCode(), securityServer.getServerCode());
+            securityServersById.put(securityServerId, securityServer);
 
             // Add clients of the security server.
             for (JAXBElement<?> client : securityServer.getClient()) {

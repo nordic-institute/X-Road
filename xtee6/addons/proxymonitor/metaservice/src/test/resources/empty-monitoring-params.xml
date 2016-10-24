@@ -1,0 +1,7 @@
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+          xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+    <monitoringClient>
+    </monitoringClient>
+</tns:conf>

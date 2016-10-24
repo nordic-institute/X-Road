@@ -1,4 +1,42 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.confproxy.util;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
+import static ee.ria.xroad.common.util.MimeUtils
+        .HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERIFICATION_CERT_HASH;
+import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
+import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -10,7 +48,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.eclipse.jetty.util.MultiPartWriter;
@@ -27,9 +64,7 @@ import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.common.util.MimeUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded

@@ -1,34 +1,58 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.ConfProvider;
 import ee.ria.xroad.common.util.AtomicSave;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class for reading global configuration directory. The directory must
@@ -214,10 +238,40 @@ public class ConfigurationDirectory {
      * @param consumer the function instance that should be applied to
      * @throws Exception if an error occurs
      */
-    public synchronized void eachFile(Consumer<Path> consumer)
+    public synchronized void eachFile(final Consumer<Path> consumer)
             throws Exception {
-        try (Stream<Path> paths = excludeMetadataAndDirs(Files.walk(path))) {
-            paths.forEach(consumer::accept);
+        Files.walkFileTree(path, new Walker(consumer));
+    }
+
+    private static class Walker extends SimpleFileVisitor<Path> {
+        private final Consumer<Path> consumer;
+
+        Walker(Consumer<Path> consumer) {
+            this.consumer = consumer;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            if (shouldVisit(file, attrs)) {
+                consumer.accept(file);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+            if (file.toString().endsWith(".tmp")) {
+                return FileVisitResult.CONTINUE;
+            }
+            return super.visitFileFailed(file, exc);
+        }
+
+        private static boolean shouldVisit(Path file, BasicFileAttributes attrs) {
+            return !file.toString().endsWith(".tmp")
+                    && attrs.isRegularFile()
+                    && !file.endsWith("files")
+                    && !file.endsWith(INSTANCE_IDENTIFIER_FILE)
+                    && !file.toString().endsWith(METADATA_SUFFIX);
         }
     }
 
@@ -229,26 +283,26 @@ public class ConfigurationDirectory {
      * @throws Exception if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws Exception {
-        try (Stream<Path> paths = excludeMetadataAndDirs(Files.walk(path))) {
-            for (Path filepath : paths.collect(Collectors.toList())) {
+        eachFile(filepath -> {
+            try (InputStream is = new FileInputStream(filepath.toFile())) {
                 log.trace("Processing '{}'", filepath);
-                try (InputStream is = new FileInputStream(filepath.toFile())) {
-                    ConfigurationPartMetadata metadata = null;
-                    try {
-                        metadata = getMetadata(filepath);
-                    } catch (Exception e) {
-                        log.error("Could not open configuration file '{}'"
-                                + " metadata: {}", filepath, e);
-                        throw e;
-                    }
-                    consumer.consume(metadata, is);
+                ConfigurationPartMetadata metadata = null;
+                try {
+                    metadata = getMetadata(filepath);
                 } catch (Exception e) {
-                    log.error("Error processing configuration file '{}': {}",
-                            filepath, e);
+                    log.error("Could not open configuration file '{}'"
+                            + " metadata: {}", filepath, e);
                     throw e;
                 }
+                consumer.consume(metadata, is);
+            } catch (RuntimeException e) {
+                log.error("Error processing configuration file '{}': {}", filepath, e);
+                throw e;
+            } catch (Exception e) {
+                log.error("Error processing configuration file '{}': {}", filepath, e);
+                throw new RuntimeException(e);
             }
-        }
+        });
     }
 
     /**
@@ -448,10 +502,4 @@ public class ConfigurationDirectory {
         return params;
     }
 
-    private static Stream<Path> excludeMetadataAndDirs(Stream<Path> stream) {
-        return stream.filter(Files::isRegularFile)
-                .filter(p -> !p.endsWith("files"))
-                .filter(p -> !p.endsWith(INSTANCE_IDENTIFIER_FILE))
-                .filter(p -> !p.toString().endsWith(METADATA_SUFFIX));
-    }
 }

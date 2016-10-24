@@ -1,14 +1,26 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.tokenmanager.token;
-
-import iaik.pkcs.pkcs11.Module;
-import iaik.pkcs.pkcs11.Session;
-import iaik.pkcs.pkcs11.TokenException;
-import iaik.pkcs.pkcs11.TokenInfo;
-import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
-import iaik.pkcs.pkcs11.objects.RSAPublicKey;
-import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -20,7 +32,15 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
-import ee.ria.xroad.signer.util.SignerUtil;
+import iaik.pkcs.pkcs11.Module;
+import iaik.pkcs.pkcs11.Session;
+import iaik.pkcs.pkcs11.TokenException;
+import iaik.pkcs.pkcs11.TokenInfo;
+import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.RSAPublicKey;
+import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 
 /**
  * Utility methods for hardware token.
@@ -133,7 +153,7 @@ public final class HardwareTokenUtil {
     }
 
     static void setPublicKeyAttributes(RSAPublicKey keyTemplate) {
-        keyTemplate.getModulusBits().setLongValue(SignerUtil.KEY_SIZE);
+        keyTemplate.getModulusBits().setLongValue(Long.valueOf(SystemProperties.getSignerKeyLength()));
         byte[] publicExponentBytes = {0x01, 0x00, 0x01}; // 2^16 + 1
         keyTemplate.getPublicExponent().setByteArrayValue(publicExponentBytes);
         keyTemplate.getToken().setBooleanValue(Boolean.TRUE);

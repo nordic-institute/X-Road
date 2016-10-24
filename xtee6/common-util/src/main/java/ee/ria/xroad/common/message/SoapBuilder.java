@@ -1,4 +1,35 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.message;
+
+import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
+import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
+import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
+import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
+import static ee.ria.xroad.common.message.SoapUtils.RPC_ATTR;
+import static ee.ria.xroad.common.message.SoapUtils.RPC_ENCODING;
+import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
+import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
 
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
@@ -7,8 +38,6 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,12 +46,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.util.MimeUtils;
-
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
-import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
-import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
-import static ee.ria.xroad.common.message.SoapUtils.*;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Builds SOAP messages from the provided header.

@@ -53,3 +53,20 @@ table tbody tr td ul.tableitem-actions {
   line-height: normal; }
 
 /*# sourceMappingURL=application.css.map */
+.diagnostics_status_ok {
+  color: #30e55f;
+  text-shadow: 0 0 3px rgba(48, 229, 95, 0.8); }
+.diagnostics_status_waiting {
+  color: #efe30c;
+  text-shadow: 0 0 3px rgba(239, 227, 12, 0.8); }
+.diagnostics_status_fail {
+  color: #ff412c;
+  text-shadow: 0 0 3px rgba(255, 65, 44, 0.8); }
+.diagnostics_col_status {
+  width: 100px; }
+.diagnostics_col_message {
+  min-width: 50px; }
+.diagnostics_col_prev_update {
+  width: 150px; }
+.diagnostics_col_next_update {
+  width: 150px; }

@@ -1,10 +1,32 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.tokenmanager.module;
+
+import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
@@ -12,8 +34,7 @@ import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
 import ee.ria.xroad.common.util.FileContentChangeChecker;
-
-import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates module data read form the external configuration file.
@@ -48,17 +69,12 @@ public final class ModuleConf {
     public static boolean hasChanged() {
         try {
             if (changeChecker == null) {
-                changeChecker =
-                        new FileContentChangeChecker(getDeviceConfFile());
+                changeChecker = new FileContentChangeChecker(getDeviceConfFile());
                 return true;
             }
+            return changeChecker.hasChanged();
         } catch (Exception e) {
-            log.error("Failed to create content change checker", e);
-        }
-
-        try {
-            return changeChecker != null ? changeChecker.hasChanged() : true;
-        } catch (Exception e) {
+            log.error("Failed to create content change checker or calculate check sum", e);
             return true;
         }
     }
@@ -91,7 +107,7 @@ public final class ModuleConf {
             try {
                 parseSection(uid, conf.getSection(uid));
             } catch (ConversionException e) {
-                log.error(e.getMessage());
+                log.error("Parse section failed with {}", e);
             }
         }
     }
@@ -137,7 +153,7 @@ public final class ModuleConf {
         } catch (ConversionException e) {
             throw new ConversionException(String.format(
                     "Invalid value of '%s' for module (%s), skipping...",
-                    key, section.getSubnodeKey()));
+                    key, section.getSubnodeKey()), e);
         }
     }
 }

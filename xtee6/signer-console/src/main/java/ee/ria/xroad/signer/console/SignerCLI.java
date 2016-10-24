@@ -1,4 +1,65 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.console;
+
+import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.ACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_FILE_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_REQUEST_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CLIENT_IDENTIFIER_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CSR_FORMAT_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DEACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_KEY_ON_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.IMPORT_A_CERTIFICATE_FROM_THE_FILE;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.INITIALIZE_THE_SOFTWARE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_LABEL_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_USAGE_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOGOUT_FROM_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOG_INTO_THE_TOKEN;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SUBJECT_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_ID_PARAM;
+import static ee.ria.xroad.signer.console.Utils.base64ToFile;
+import static ee.ria.xroad.signer.console.Utils.bytesToFile;
+import static ee.ria.xroad.signer.console.Utils.createClientId;
+import static ee.ria.xroad.signer.console.Utils.fileToBytes;
+import static ee.ria.xroad.signer.console.Utils.printCertInfo;
+import static ee.ria.xroad.signer.console.Utils.printKeyInfo;
+import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +78,8 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringUtils;
 
+import com.typesafe.config.ConfigFactory;
+
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
 import asg.cliche.Command;
@@ -24,9 +87,6 @@ import asg.cliche.InputConverter;
 import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
-
-import com.typesafe.config.ConfigFactory;
-
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -40,13 +100,31 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.*;
-
-import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.*;
-import static ee.ria.xroad.signer.console.Utils.*;
+import ee.ria.xroad.signer.protocol.message.ActivateCert;
+import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
+import ee.ria.xroad.signer.protocol.message.DeleteKey;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
+import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
+import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
+import ee.ria.xroad.signer.protocol.message.ImportCert;
+import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
+import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 /**
  * Signer command line interface.
@@ -62,6 +140,11 @@ public class SignerCLI {
             .load();
     }
 
+    /**
+     * Shell input converters
+     * @see <a href="http://cliche.sourceforge.net/">Cliche Manual</a>
+     */
+    @SuppressWarnings({"squid:S1873", "squid:S2386"})
     public static final InputConverter[] CLI_INPUT_CONVERTERS = {
         new InputConverter() {
             @Override

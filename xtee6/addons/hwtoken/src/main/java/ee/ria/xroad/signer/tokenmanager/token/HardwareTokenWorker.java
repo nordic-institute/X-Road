@@ -1,4 +1,58 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.tokenmanager.token;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setPublicKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenInfo;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKey;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeyCertificates;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeys;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.generateX509PublicKey;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPrivateKeyAttributes;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPublicKeyAttributes;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
+import static ee.ria.xroad.signer.util.ExceptionHelper.logoutFailed;
+import static ee.ria.xroad.signer.util.SignerUtil.keyId;
+import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -8,17 +62,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
-
-import iaik.pkcs.pkcs11.Mechanism;
-import iaik.pkcs.pkcs11.Session;
-import iaik.pkcs.pkcs11.Token;
-import iaik.pkcs.pkcs11.objects.KeyPair;
-import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
-import iaik.pkcs.pkcs11.objects.RSAPublicKey;
-import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
-import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -30,16 +73,16 @@ import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.*;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
-import static ee.ria.xroad.signer.util.SignerUtil.keyId;
-import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
+import iaik.pkcs.pkcs11.Mechanism;
+import iaik.pkcs.pkcs11.Session;
+import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.objects.KeyPair;
+import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.RSAPublicKey;
+import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Token worker for hardware tokens.
@@ -98,7 +141,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         try {
             closeActiveSession();
         } catch (Exception e) {
-            log.warn("Failed to close active session: {}", e.getMessage());
+            log.warn("Failed to close active session", e);
         }
     }
 
@@ -147,6 +190,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
                 login();
             } catch (Exception e) {
+                log.warn("Token login failed", e);
                 throw loginFailed(e.getMessage());
             }
         } else { // logout
@@ -154,6 +198,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             try {
                 logout();
             } catch (Exception e) {
+                log.warn("Token logout failed", e);
                 throw logoutFailed(e.getMessage());
             }
         }
@@ -301,6 +346,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             try {
                 login();
             } catch (Exception e) {
+                log.warn("Login failed", e);
                 throw loginFailed(e.getMessage());
             }
         }

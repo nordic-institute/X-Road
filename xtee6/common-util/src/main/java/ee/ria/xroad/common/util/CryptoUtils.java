@@ -1,4 +1,31 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.util;
+
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA384;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA512;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -27,7 +54,6 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
-import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -47,7 +73,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
 
-import static org.apache.xml.security.signature.XMLSignature.*;
+import ee.ria.xroad.common.SystemProperties;
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -69,7 +97,8 @@ public final class CryptoUtils {
     public static final String SSL_PROTOCOL = "TLSv1.2";
 
     /** The list of cipher suites used with TLS. */
-    public static final String[] INCLUDED_CIPHER_SUITES =
+    @Getter
+    private static final String[] INCLUDED_CIPHER_SUITES =
             {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};
 
     /** Global default digest method identifier and URL. */
@@ -120,8 +149,10 @@ public final class CryptoUtils {
             new BcDigestCalculatorProvider();
 
     /** Verification builder instance. */
-    public static final JcaContentVerifierProviderBuilder VERIFICATION_BUILDER =
+    public static final JcaContentVerifierProviderBuilder BC_VERIFICATION_BUILDER =
             new JcaContentVerifierProviderBuilder().setProvider("BC");
+    public static final JcaContentVerifierProviderBuilder SUN_VERIFICATION_BUILDER =
+            new JcaContentVerifierProviderBuilder().setProvider("SunRsaSign");
 
     /** Holds the certificate factory instance. */
     public static final CertificateFactory CERT_FACTORY;
@@ -316,7 +347,7 @@ public final class CryptoUtils {
      */
     public static ContentSigner createDefaultContentSigner(
             PrivateKey key) throws OperatorCreationException {
-        return createContentSigner(DEFAULT_SIGNATURE_ALGORITHM, key);
+        return createContentSigner(SystemProperties.getDefaultSignatureAlgorithm(), key);
     }
 
     /**
@@ -327,7 +358,13 @@ public final class CryptoUtils {
      */
     public static ContentVerifierProvider createDefaultContentVerifier(
             PublicKey key) throws OperatorCreationException {
-        return VERIFICATION_BUILDER.build(key);
+        if ("RSA" == key.getAlgorithm()) {
+            // SunRsaSign supports only RSA signatures but it is (for some reason) about 2x faster
+            // than the BC implementation
+            return SUN_VERIFICATION_BUILDER.build(key);
+        } else {
+            return BC_VERIFICATION_BUILDER.build(key);
+        }
     }
 
     /**

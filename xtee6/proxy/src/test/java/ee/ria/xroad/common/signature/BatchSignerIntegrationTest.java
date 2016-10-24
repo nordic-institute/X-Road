@@ -1,4 +1,30 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.signature;
+
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -15,9 +41,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -25,6 +48,9 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 import org.joda.time.DateTime;
 
+import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
@@ -34,8 +60,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Batch signer test program.

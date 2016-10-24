@@ -1,4 +1,66 @@
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+sourceSets {
+    main {
+        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        resources.srcDirs = ['src/main/resources']
+    }
+}
+
+configurations {
+    xjc
+}
+
 dependencies {
     compile project(':common-util')
     testCompile project(':common-test').sourceSets.main.output
+    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
+    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+}
+
+task createDirs() {
+    project.ext.schemaTargetDir.mkdirs()
+}
+
+task xjc {
+    println '---- verifier xjc @ configuration phase'
+    doLast {
+        println '---- verifier xjc @ execution phase'
+        ant.taskdef(name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
+                schema: 'build/resources/main/ocsp-nextupdate-conf.xsd'
+        )
+
+    }
+}
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+xjc.dependsOn createDirs
+xjc.dependsOn processResources
+xjc.mustRunAfter processResources
+
+compileJava.dependsOn xjc
+compileJava.dependsOn processResources
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
 }

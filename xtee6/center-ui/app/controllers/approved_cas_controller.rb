@@ -233,6 +233,11 @@ class ApprovedCasController < ApplicationController
     audit_log_data[:authenticationOnly] = ca.authentication_only != nil
     audit_log_data[:certificateProfileInfo] = ca.cert_profile_info
 
+    audit_log_data[:caId] = params[:ca_id]
+    audit_log_data[:authenticationOnly] = ca.authentication_only != nil
+    audit_log_data[:nameExtractorMemberClass] = ca.identifier_decoder_member_class
+    audit_log_data[:nameExtractorMethod] = ca.identifier_decoder_method_name
+
     ca.save!
 
     logger.info("Certificate profile info edited, result: '#{ca}'")

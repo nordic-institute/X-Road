@@ -1,11 +1,31 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.confproxy.commandline;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -13,6 +33,8 @@ import org.apache.commons.cli.Options;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Base for all the configuration proxy utility tools.
@@ -66,8 +88,8 @@ public abstract class ConfProxyUtil {
             try {
                 return new ConfProxyProperties(instance);
             } catch (Exception e) {
-                fail("Could not load configuration for '" + instance + "': "
-                        + e.getMessage());
+                fail("Could not load configuration for '" + instance,
+                        e);
             }
         } else {
             printHelp();
@@ -89,7 +111,7 @@ public abstract class ConfProxyUtil {
             File instanceDir = Paths.get(confDir, instance).toFile();
             if (!instanceDir.exists()) {
                 fail("Configuration for proxy instance '" + instance
-                        + "' does not exist.");
+                        + "' does not exist.", null);
             }
         }
     }
@@ -98,8 +120,11 @@ public abstract class ConfProxyUtil {
      * Abort the configuration proxy utility program with the provided message.
      * @param msg the error message to display
      */
-    protected final void fail(final String msg) {
+    protected final void fail(final String msg, final Exception e) {
         System.err.println(msg);
+        if (e != null) {
+            System.err.println(e);
+        }
         System.exit(1);
     }
 }

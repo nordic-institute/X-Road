@@ -9,6 +9,10 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+jetty_url=$(shell cat jetty.url)
+jetty_md5=$(shell md5sum jetty.tgz | cut -f1 -d ' ')
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
+
 %:
 	dh  $@
 
@@ -16,10 +20,9 @@ override_dh_installinit:
 	dh_installinit --name=xroad-jetty
 
 override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 
-
-build:
+build: 
 	./download_jetty.sh
 	tar zxf ~/jetty/jetty.tgz -C ~/jetty
 	mv ~/jetty/jetty-distribution* jetty9

@@ -11,6 +11,21 @@ en:
     invalid_anchor_file: "Configuration anchor import failed: invalid anchor file"
     configuration_download_failed: "Configuration download failed: %{response}"
 
+  diagnostics:
+    confclient_status_failed: "Global configuration client status query failed: %{response}"
+    return_success: "Ok."
+    error_code_internal: "Internal error occurred."
+    error_code_invalid_signature_value: "Invalid signature value."
+    error_code_expired_conf: "The downloaded global configuration has expired."
+    error_code_cannot_download_conf: "Unable to download global configuration. Check network connection to global configuration provider."
+    error_code_missing_private_params: "The downloaded global configuration did not contain private parameters."
+    error_code_timestamp_request_timed_out: "Connection to the timestamp server timed out. Check the network connection to the timestamp server."
+    error_code_malformed_timestamp_server_url: "Malformed timestamp server ulr. Check the URL."
+    error_code_unknown: "Unknown error code."
+    error_code_uninitialized: "The configuration client is initializing."
+    error_code_timestamp_uninitialized: "Connection ok, no timestamp request made yet."
+    error_code_connection_failed: "Connection to configuration client failed. Ensure that xroad-confclient is running."
+
   init:
     not_authorized: "Fatal system error - contact system administrator"
     already_initialized: "Security Server already initialized"
@@ -19,6 +34,8 @@ en:
     configuration_downloaded: "Successfully downloaded configuration"
     clients_import_failed: "Failed to import X-Road 5.0 clients"
     internal_tls_key_import_failed: "Failed to import X-Road 5.0 internal TLS key"
+    pin_not_ascii: "Software token pin can only contain ASCII characters."
+    pin_weak: "Software token pin does not meet complexity requirements: Pin length is %{length} (minimum: %{min_length}) characters and it contains characters from %{character_class_count} (minimum: %{min_character_class_count}) character classes."
 
   menu:
     configuration:
@@ -28,6 +45,7 @@ en:
     management:
       title: "Management"
       keys: "Keys and Certificates"
+      diagnostics: "Diagnostics"
     help:
       title: "Help"
       version: "Version"
@@ -52,6 +70,7 @@ en:
       wsdl_edit: "edit WSDL"
       wsdl_refresh: "refresh WSDL(s)"
     client_exists: "Client already exists"
+    client_does_not_exist: "Client does not exist"
     unregistered_member: "The person/organisation '%{member_name} %{member_class}: %{member_code}' is not registered as X-Road member."
     cert_in_use: "in use"
     cert_disabled: "disabled"
@@ -80,6 +99,8 @@ en:
     action:
       tsp_add: "add timestamping service"
       tsp_delete: "delete timestamping service"
+    cert_invalid: "Invalid certificate"
+    cert_loaded: "Certificate loaded"
     distributor_exists: "Distributor already exists"
     tsp_exists: "timestamping service already exists"
     tsp_not_approved: "timestamping service not approved"

@@ -1,4 +1,50 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.serverproxy;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -15,7 +61,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.Marshaller;
 import javax.xml.soap.SOAPMessage;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
@@ -29,8 +74,17 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -43,12 +97,7 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
@@ -259,6 +308,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void verifyAccess() throws Exception {
         log.trace("verifyAccess()");
 
+        final SecurityServerId requestSecurityServer = requestMessage.getSoap().getSecurityServer();
+        if (requestSecurityServer != null && !ServerConf.getIdentifier().equals(requestSecurityServer)) {
+            throw new CodedException(X_INVALID_SECURITY_SERVER,
+                    "Invalid security server %s", requestSecurityServer);
+        }
+
         if (!ServerConf.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE,
                     "Unknown service: %s", requestServiceId);
@@ -335,6 +390,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
+            log.error("Malformed service address:{}", e);
             throw new CodedException(X_SERVICE_MALFORMED_URL,
                     "Malformed service address '%s': %s", serviceAddress,
                     e.getMessage());

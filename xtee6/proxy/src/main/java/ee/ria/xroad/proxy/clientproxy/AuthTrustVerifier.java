@@ -1,4 +1,31 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.clientproxy;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
@@ -9,7 +36,6 @@ import java.util.List;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.http.protocol.HttpContext;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -21,9 +47,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CertHashBasedOcspResponderClient.getOcspResponsesFromServer;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is responsible for verifying the server proxy SSL certificate.
@@ -83,6 +107,7 @@ public final class AuthTrustVerifier {
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {
+            log.error("Coded exception: {}", e);
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 
@@ -104,7 +129,9 @@ public final class AuthTrustVerifier {
             OCSPResp response = null;
             try {
                 // Do we have a cached OCSP response for that cert?
+                log.trace("get ocsp response from key conf");
                 response = KeyConf.getOcspResponse(cert);
+                log.trace("ocsp response from key conf: {}", response);
             } catch (CodedException e) {
                 // Log it and continue; only thrown if the response could
                 // not be loaded from a file -- not important to us here.
@@ -123,7 +150,10 @@ public final class AuthTrustVerifier {
         // Retrieve OCSP responses for those certs whose responses
         // are not locally available, from ServerProxy
         if (!certs.isEmpty()) {
+            log.trace("number of certs that still need ocsp responses: {}", certs.size());
             responses.addAll(getAndCacheOcspResponses(certs, address));
+        } else {
+            log.trace("all the certs have ocsp responses");
         }
 
         return responses;
@@ -137,6 +167,7 @@ public final class AuthTrustVerifier {
             String address) throws Exception {
         List<OCSPResp> receivedResponses;
         try {
+            log.trace("get ocsp responses from server {}", address);
             receivedResponses = getOcspResponsesFromServer(address,
                     CertUtils.getCertHashes(hashes));
         } catch (Exception e) {
@@ -152,6 +183,7 @@ public final class AuthTrustVerifier {
         }
 
         // Cache the responses locally
+        log.trace("got ocsp responses, setting them to key conf");
         KeyConf.setOcspResponses(hashes, receivedResponses);
 
         return receivedResponses;

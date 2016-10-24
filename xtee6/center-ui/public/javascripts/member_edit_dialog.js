@@ -141,8 +141,8 @@ function openMemberEditDialog(memberRowData) {
         opts.bFilter = false;
         opts.bDestroy = true;
         opts.aoColumns = [
-            {"mData" : "group_code"},
-            {"mData" : "subsystem"},
+            {"mData" : "group_code", mRender: util.escape},
+            {"mData" : "subsystem", mRender: util.escape},
             {"mData" : "added_to_group"}];
 
         opts.fnRowCallback = function(nRow, globalGroup) {
@@ -203,8 +203,8 @@ function openMemberEditDialog(memberRowData) {
         opts.bFilter = false;
         opts.bDestroy = true;
         opts.aoColumns = [
-            {"mData" : "subsystem_code"},
-            {"mData" : "used_servers"} ];
+            {"mData" : "subsystem_code", mRender: util.escape},
+            {"mData" : "used_servers", mRender: util.escape} ];
 
         opts.fnRowCallback = function(nRow, subsystem) {
             usedServers = subsystem.used_servers;
@@ -282,9 +282,9 @@ function openMemberEditDialog(memberRowData) {
         opts.bFilter = false;
         opts.bDestroy = true;
         opts.aoColumns = [
-            {"mData" : "server"},
-            {"mData" : "client_subsystem_code"},
-            {"mData" : "owner_name"}];
+            {"mData" : "server", mRender: util.escape},
+            {"mData" : "client_subsystem_code", mRender: util.escape},
+            {"mData" : "owner_name", mRender: util.escape}];
 
         opts.fnRowCallback = function(nRow, usedServer) {
             var serverCodeColumn = $(nRow).find("td:first");

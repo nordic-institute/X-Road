@@ -1,8 +1,42 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.signature;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.bouncycastle.operator.OperatorCreationException;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -11,19 +45,15 @@ import akka.actor.UntypedActor;
 import akka.actor.UntypedActorWithStash;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import lombok.Data;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.Data;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
 
 /**
  * This class handles batch signing. Batch signatures are created always, if
@@ -41,7 +71,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.*;
 @Slf4j
 public class BatchSigner extends UntypedActor {
 
-    private static final Timeout DEFAULT_TIMEOUT = new Timeout(30000);
+    private static final Timeout DEFAULT_TIMEOUT = new Timeout(30000, TimeUnit.MILLISECONDS);
 
     // Holds the actor instance, which sends and receives messages.
     private static ActorRef instance;
@@ -186,7 +216,7 @@ public class BatchSigner extends UntypedActor {
                                 new GetTokenBatchSigningEnabled(keyId));
             } catch (Exception e) {
                 log.error("Failed to query if batch signing is enabled for "
-                        + "token with key {}: {}", keyId, e.getMessage());
+                        + "token with key {}", keyId, e);
             }
         }
 
@@ -275,7 +305,8 @@ public class BatchSigner extends UntypedActor {
         }
 
         private void doCalculateSignature(String keyId,
-                String signatureAlgorithmId, byte[] data) throws Exception {
+                String signatureAlgorithmId, byte[] data) throws
+                NoSuchAlgorithmException, IOException, OperatorCreationException {
             workerBusy = true;
             signStartTime = System.currentTimeMillis();
 
@@ -283,8 +314,7 @@ public class BatchSigner extends UntypedActor {
                     getDigestAlgorithmId(signatureAlgorithmId), data);
 
             // Proxy this request to the Signer.
-            SignerClient.execute(new Sign(keyId, signatureAlgorithmId, digest),
-                    getSelf());
+            SignerClient.execute(new Sign(keyId, signatureAlgorithmId, digest), getSelf());
         }
 
         private void sendResponse(Object message) {

@@ -1,6 +1,31 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.asicverifier;
 
+import static java.lang.System.out;
+
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
@@ -11,8 +36,6 @@ import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-
-import static java.lang.System.out;
 
 /**
  * ASiC container verifier utility program.
@@ -45,8 +68,7 @@ public final class AsicVerifierMain {
             verifyConfPathCorrectness();
         } catch (CodedException e) {
             System.err.println("Unable to load configuration: "
-                    + e.getFaultString());
-            System.exit(1);
+                    + e);
         }
     }
 
@@ -58,7 +80,7 @@ public final class AsicVerifierMain {
         GlobalConf.getInstanceIdentifier();
     }
 
-    private static void verifyAsic(String fileName) throws Exception {
+    private static void verifyAsic(String fileName) {
         out.println("Verifying ASiC container \"" + fileName + "\" ...");
 
         try {
@@ -68,18 +90,17 @@ public final class AsicVerifierMain {
             onVerificationSucceeded(verifier);
         } catch (Exception e) {
             onVerificationFailed(e);
-            System.exit(1);
         }
     }
 
     @SuppressWarnings("resource") //
     private static void onVerificationSucceeded(
-            AsicContainerVerifier verifier) throws Exception {
+            AsicContainerVerifier verifier) throws IOException {
         out.println(AsicUtils.buildSuccessOutput(verifier));
 
         out.print("\nWould you like to extract the signed files? (y/n) ");
 
-        if (new Scanner(System.in).nextLine().equalsIgnoreCase("y")) {
+        if ("y".equalsIgnoreCase(new Scanner(System.in).nextLine())) {
             AsicContainer asic = verifier.getAsic();
             writeToFile(AsicContainerEntries.ENTRY_MESSAGE, asic.getMessage());
 
@@ -91,8 +112,7 @@ public final class AsicVerifierMain {
         System.err.println(AsicUtils.buildFailureOutput(cause));
     }
 
-    private static void writeToFile(String fileName, String contents)
-            throws Exception {
+    private static void writeToFile(String fileName, String contents) throws IOException {
         try (FileOutputStream file = new FileOutputStream(fileName)) {
             file.write(contents.getBytes(StandardCharsets.UTF_8));
         }

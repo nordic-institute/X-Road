@@ -6,6 +6,27 @@ function can(privilege) {
     return PRIVILEGES.indexOf(privilege) != -1;
 }
 
+var util = (function(){
+    var regexEscape = /["&'<>`]/g;
+    var escapeMap = {
+        '"': '&quot;',
+        '&': '&amp;',
+        '\'': '&#x27;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '`': '&#x60;'
+    };
+    var replaceFn = function (m) { return escapeMap[m]; };
+    return {
+        "escape": function(string) {
+            if ( string === undefined || string === null ) {
+                return "";
+            }
+            return String(string).replace(regexEscape, replaceFn);
+        }
+    };
+}());
+
 $.fn.disable = function() {
     if (this.is("label.upload")) {
         this.find("input[type=file]").attr("disabled", "true");
@@ -776,14 +797,28 @@ function scrollableTableOpts(maxY) {
     return result;
 }
 
-function _(str, params) {
+function _(str, params, escapeParams) {
+
+    if ( escapeParams !== false && params && typeof(params) == "object" ) {
+        var escapedParams = {};
+        for ( var p in params ) {
+            if ( params.hasOwnProperty(p) ) {
+                var value = params[p];
+                if ( value !== undefined && value !== null ) {
+                    escapedParams[p] = util.escape(value);
+                }
+            }
+        }
+        return I18n.t(str, escapedParams);
+    }
+
     return I18n.t(str, params);
 }
 
 function confirm(text, params, success) {
     var title = _(text + "_title", {
         defaultValue: _("layouts.application.confirm_title")
-    });
+    }, false);
 
     $("#confirm").html(_(text, params)).initDialog({
         title: title,
@@ -809,7 +844,7 @@ function confirm(text, params, success) {
 function yesno(text, params, success) {
     var title = _(text + "_title", {
         defaultValue: _("layouts.application.yesno_title")
-    });
+    }, false);
 
     $("#yesno").html(_(text, params)).initDialog({
         title: title,
@@ -835,7 +870,7 @@ function yesno(text, params, success) {
 function warning(text, params, success) {
     var title = _(text + "_title", {
         defaultValue: _("layouts.application.warning_title")
-    });
+    }, false);
 
     $("#warning").html(_(text, params)).initDialog({
         title: title,
@@ -860,7 +895,7 @@ function warning(text, params, success) {
 function alert(text, params, success) {
     var title = _(text + "_title", {
         defaultValue: _("layouts.application.alert_title")
-    });
+    }, false);
 
     $("#alert").html(_(text, params)).initDialog({
         title: title,
@@ -1170,6 +1205,17 @@ function closeFileUploadDialog() {
     $("#file_upload_dialog").dialog("close");
 }
 
+function initTestability() {
+    // add data-name attributes to improve testability
+    $("#file_upload_dialog").parent().attr("data-name", "file_upload_dialog");
+    $("#locale_select_dialog").parent().attr("data-name", "locale_select_dialog");
+    $("button span:contains('Close')").parent().attr("data-name", "close");
+    $("button span:contains('OK')").parent().attr("data-name", "ok");
+    $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+    $("button span:contains('Yes')").parent().attr("data-name", "yes");
+    $("button span:contains('Confirm')").parent().attr("data-name", "confirm");
+}
+
 function moveButtonsToHeader() {
     $("." + $("#ctrl").val() + "_actions").find("button").each(function() {
         var clone = $(this).clone();
@@ -1266,6 +1312,7 @@ $(document).ready(function() {
 
     initFileUploadDialog();
     initLocaleSelectDialog();
+	initTestability();
 
     initTooltips();
     initSearchTabs();

@@ -22,7 +22,8 @@
     <property name="connection.url">jdbc:postgresql://localhost:5432/serverconf</property>
 -->
 
-    <property name="connection.pool_size">1</property>
+    <!-- property name="connection.pool_size">1</property-->
+    <property name="connection.provider_class">org.hibernate.hikaricp.internal.HikariCPConnectionProvider</property>
 
     <!-- Enable Hibernate's automatic session context management -->
     <property name="current_session_context_class">thread</property>
@@ -34,13 +35,8 @@
     <!-- Echo all executed SQL to stdout -->
     <property name="show_sql">false</property>
 
-    <!-- c3p0 configuration -->
-    <property name="c3p0.acquire_increment">1</property>
-    <property name="c3p0.idle_test_period">100</property>
-    <property name="c3p0.min_size">5</property>
-    <property name="c3p0.max_size">20</property>
-    <property name="c3p0.timeout">1800</property>
-    <property name="c3p0.max_statements">50</property>
+    <!-- hikariCP config -->
+    <property name="hikari.maximumPoolSize">20</property>
 
   </session-factory>
 </hibernate-configuration>

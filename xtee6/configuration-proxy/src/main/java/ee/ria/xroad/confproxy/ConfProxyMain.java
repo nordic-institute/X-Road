@@ -1,18 +1,39 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.confproxy;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-import akka.actor.ActorSystem;
-
 import com.typesafe.config.ConfigFactory;
 
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main program for the configuration proxy.
@@ -42,9 +63,9 @@ public final class ConfProxyMain {
         try {
             setup();
             execute(args);
-        } catch (Throwable t) {
-            log.error("Configuration proxy failed to start", t);
-            throw t;
+        } catch (Exception e) {
+            log.error("Configuration proxy failed to start", e);
+            throw e;
         } finally {
             shutdown();
         }

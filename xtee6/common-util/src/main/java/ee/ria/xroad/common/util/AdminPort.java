@@ -1,4 +1,30 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.util;
+
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -18,7 +44,9 @@ import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Service that listens for administrative commands on a specific port.
@@ -26,15 +54,35 @@ import static javax.servlet.http.HttpServletResponse.*;
 public class AdminPort implements StartStop {
 
     /**
+     * Jetty HTTP request handler parameters
+     */
+    @AllArgsConstructor
+    public static class JettyHandlerParams {
+        public final String target;
+        public final Request baseRequest;
+        public final HttpServletRequest request;
+        public HttpServletResponse response;
+    }
+
+    /**
+     * Base class for AdminPort callbacks
+     */
+    @Getter
+    @Setter
+    public abstract static class AdminPortCallback implements Runnable {
+        private JettyHandlerParams params;
+    }
+
+    /**
      * Asynchronous AdminPort callback interface.
      */
-    public interface AsynchronousCallback extends Runnable {
+    public abstract static class AsynchronousCallback extends AdminPortCallback {
     }
 
     /**
      * Synchronous AdminPort callback interface.
      */
-    public interface SynchronousCallback extends Runnable {
+    public abstract static class SynchronousCallback extends AdminPortCallback {
     }
 
     public static final String REQUEST_STOP = "/stop";
@@ -47,7 +95,7 @@ public class AdminPort implements StartStop {
 
     private final Server server = new Server();
 
-    private final Map<String, Runnable> handlers = new HashMap<>();
+    private final Map<String, AdminPortCallback> handlers = new HashMap<>();
 
     /**
      * Constructs an AdminPort instance that listens for commands on the given port number.
@@ -140,8 +188,9 @@ public class AdminPort implements StartStop {
 
             LOG.info("Admin request: {}", target);
             try {
-                Runnable handler = handlers.get(target);
+                AdminPortCallback handler = handlers.get(target);
                 if (handler != null) {
+                    handler.setParams(new JettyHandlerParams(target, baseRequest, request, response));
                     if (handler instanceof SynchronousCallback) {
                         handler.run();
                     } else {

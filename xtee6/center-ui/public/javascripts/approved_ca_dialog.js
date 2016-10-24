@@ -135,7 +135,7 @@ var XROAD_APPROVED_CA_DIALOG = function() {
         var opts = scrollableTableOpts(400);
         opts.sDom = "t";
         opts.aoColumns = [
-            { "mData": "url" },
+            { "mData": "url", mRender: util.escape },
             { "mData": null,
               "sWidth": "13em",
               "mRender": function(data, type, full) {
@@ -229,7 +229,7 @@ var XROAD_APPROVED_CA_DIALOG = function() {
         var opts = scrollableTableOpts(400);
         opts.sDom = "t";
         opts.aoColumns = [
-            { "mData": "name" },
+            { "mData": "name", mRender: util.escape },
             { "mData": "valid_from", "sWidth": "14em" },
             { "mData": "valid_to", "sWidth": "14em" }
         ];
@@ -346,6 +346,16 @@ var XROAD_APPROVED_CA_DIALOG = function() {
             $("#approved_ca_dialog").dialog("open");
         });
     }
+    
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#ca_cert_upload_dialog").parent().attr("data-name", "ca_cert_upload_dialog");
+        $("#ca_settings_dialog").parent().attr("data-name", "ca_settings_dialog");
+        $("#approved_ca_dialog").parent().attr("data-name", "approved_ca_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
 
     $(document).ready(function() {
         initCACertUploadDialog();
@@ -361,6 +371,7 @@ var XROAD_APPROVED_CA_DIALOG = function() {
         initOCSPRespondersTab();
         initIntermediateCAsTable();
         initIntermediateCAsTab();
+        initTestability();
     });
 
     return {

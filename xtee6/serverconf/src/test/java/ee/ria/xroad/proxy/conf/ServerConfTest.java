@@ -1,4 +1,56 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.conf;
+
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.proxy.conf.TestUtil.BASE64_CERT;
+import static ee.ria.xroad.proxy.conf.TestUtil.CLIENT_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CLASS;
+import static ee.ria.xroad.proxy.conf.TestUtil.MEMBER_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_SERVICES;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_TSPS;
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_WSDLS;
+import static ee.ria.xroad.proxy.conf.TestUtil.SECURITY_CATEGORY;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVER_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_CODE;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_TIMEOUT;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_URL;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_VERSION;
+import static ee.ria.xroad.proxy.conf.TestUtil.SUBSYSTEM;
+import static ee.ria.xroad.proxy.conf.TestUtil.XROAD_INSTANCE;
+import static ee.ria.xroad.proxy.conf.TestUtil.client;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestClientId;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestServiceId;
+import static ee.ria.xroad.proxy.conf.TestUtil.prepareDB;
+import static ee.ria.xroad.proxy.conf.TestUtil.service;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -23,11 +75,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.proxy.conf.TestUtil.*;
-import static org.junit.Assert.*;
 
 /**
  * Tests server conf API.

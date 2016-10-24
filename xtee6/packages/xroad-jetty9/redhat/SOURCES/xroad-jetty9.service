@@ -1,0 +1,13 @@
+[Unit]
+Description=X-Road Jetty server
+After=network.target
+
+[Service]
+User=xroad
+Group=xroad
+ExecStart=/usr/bin/xroad-jetty9
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
