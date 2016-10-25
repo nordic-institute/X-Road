@@ -1,0 +1,21 @@
+[Unit]
+Description=X-Road Proxy
+After=network.target
+Wants=postgresql.service nginx.service
+Wants=xroad-signer.service xroad-async.service xroad-confclient.service xroad-jetty9.service
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/xroad-proxy
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
+ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
+ExecStartPre=/usr/share/xroad/scripts/xroad-proxy-port-redirect.sh enable
+User=xroad
+Group=xroad
+ExecStart=/usr/share/xroad/bin/xroad-proxy
+Restart=on-failure
+ExecStopPost=/usr/share/xroad/scripts/xroad-proxy-port-redirect.sh disable
+
+[Install]
+WantedBy=multi-user.target
+

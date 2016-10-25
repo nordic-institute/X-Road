@@ -1,8 +1,48 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getCleanInterval;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
+import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
+import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+
+import org.joda.time.DateTime;
+import org.quartz.JobDataMap;
+import org.quartz.SchedulerException;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -11,15 +51,11 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
-
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.CommonMessages;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -32,15 +68,11 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.MessageSendingJob;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.*;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
-import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
-import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 /**
  * Message log manager. Sets up the whole logging system components.
@@ -61,6 +93,8 @@ public class LogManager extends AbstractLogManager {
 
     private final LogRecordManager logRecordManager = new LogRecordManager();
 
+
+
     // Date at which a time-stamping first failed.
     private DateTime timestampFailed;
 
@@ -76,8 +110,13 @@ public class LogManager extends AbstractLogManager {
         createCleaner(jobManager);
     }
 
+    @Getter
+    private ActorRef taskQueueRef;
+
+
     private void createTaskQueue() {
-        getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
+        taskQueueRef = getContext().actorOf(getTaskQueueImpl(),
+                TASK_QUEUE_NAME);
     }
 
     private void createTimestamper() {
@@ -86,7 +125,16 @@ public class LogManager extends AbstractLogManager {
                 TIMESTAMPER_NAME
             );
 
-        getContext().actorOf(Props.create(TimestamperJob.class));
+        getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
+    }
+
+    /**
+     * Can be overwritten in test classes if we want to make sure that timestamping
+     * does not start prematurely
+     * @return
+     */
+    protected FiniteDuration getTimestamperJobInitialDelay() {
+        return Duration.create(1, TimeUnit.SECONDS);
     }
 
     private void createArchiver(JobManager jobManager) {
@@ -107,7 +155,7 @@ public class LogManager extends AbstractLogManager {
 
     @Override
     protected void log(SoapMessageImpl message, SignatureData signature,
-            boolean clientSide) throws Exception {
+                       boolean clientSide) throws Exception {
         verifyCanLogMessage();
 
         MessageRecord logRecord = saveMessageRecord(message, signature,
@@ -131,14 +179,37 @@ public class LogManager extends AbstractLogManager {
 
     @Override
     protected LogRecord findByQueryId(String queryId, Date startTime,
-            Date endTime) throws Exception {
+                                      Date endTime) throws Exception {
         return logRecordManager.getByQueryId(queryId, startTime, endTime);
+    }
+
+    @Override
+    public void onReceive(Object message) throws Exception {
+        try {
+            if (message instanceof String && CommonMessages.TIMESTAMP_STATUS.equals(message)) {
+                getSender().tell(statusMap, getSelf());
+            } else if (message instanceof SetTimestampingStatusMessage) {
+                setTimestampingStatus((SetTimestampingStatusMessage) message);
+            } else if (message instanceof SaveTimestampedDataMessage) {
+                try {
+                    SaveTimestampedDataMessage data = (SaveTimestampedDataMessage) message;
+                    saveTimestampRecord(data.getTimestampSucceeded());
+                } catch (Exception e) {
+                    log.error("Failed to save time-stamp record to database", e);
+                    setTimestampFailed(new DateTime());
+                }
+            } else {
+                super.onReceive(message);
+            }
+        } catch (Exception e) {
+            getSender().tell(e, getSelf());
+        }
     }
 
     // ------------------------------------------------------------------------
 
     protected Props getTaskQueueImpl() {
-        return Props.create(TaskQueue.class, this);
+        return Props.create(TaskQueue.class);
     }
 
     protected Props getTimestamperImpl() {
@@ -161,26 +232,45 @@ public class LogManager extends AbstractLogManager {
             throws Exception {
         log.trace("timestampImmediately({})", logRecord);
 
-        Object result = Await.result(Patterns.ask(timestamper,
-                new Timestamper.TimestampTask(logRecord), TIMESTAMP_TIMEOUT),
-                TIMESTAMP_TIMEOUT.duration());
+        try {
 
-        if (result instanceof Timestamper.TimestampSucceeded) {
-            return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
-        } else if (result instanceof Timestamper.TimestampFailed) {
-            throw ((Timestamper.TimestampFailed) result).getCause();
-        } else {
-            throw new RuntimeException(
-                    "Unexpected result from Timestamper: " + result.getClass());
+
+            Object result = Await.result(Patterns.ask(timestamper,
+                            new Timestamper.TimestampTask(logRecord), TIMESTAMP_TIMEOUT),
+                    TIMESTAMP_TIMEOUT.duration());
+
+
+            if (result instanceof Timestamper.TimestampSucceeded) {
+                return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
+            } else if (result instanceof Timestamper.TimestampFailed) {
+                Exception e = ((Timestamper.TimestampFailed) result).getCause();
+                log.warn("Timestamp failed: {}", e);
+                for (String tspUrl: ServerConf.getTspUrl()) {
+                    statusMap.put(tspUrl, new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), LocalTime.now(),
+                            tspUrl));
+                }
+                throw e;
+            } else {
+
+                throw new RuntimeException(
+                        "Unexpected result from Timestamper: " + result.getClass());
+            }
+        } catch (Exception e) {
+            throw e;
         }
     }
 
     protected MessageRecord saveMessageRecord(SoapMessageImpl message,
-            SignatureData signature, boolean clientSide) throws Exception {
+                                              SignatureData signature, boolean clientSide) throws Exception {
         log.trace("saveMessageRecord()");
 
+        String loggedMessage = new SoapMessageBodyManipulator().getLoggableMessageText(message, clientSide);
+
         MessageRecord messageRecord =
-                new MessageRecord(message, signature.getSignatureXml(),
+                new MessageRecord(message.getQueryId(),
+                        loggedMessage,
+                        signature.getSignatureXml(),
+                        message.isResponse(),
                         clientSide ? message.getClient()
                                 : message.getService().getClientId());
 
@@ -203,9 +293,14 @@ public class LogManager extends AbstractLogManager {
         return messageRecord;
     }
 
+    /**
+     * Only externally use this method from tests. Otherwise send message to this actor.
+     */
     protected TimestampRecord saveTimestampRecord(
             Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
+
+        statusMap.put(message.getUrl(), new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now()));
 
         TimestampRecord timestampRecord = new TimestampRecord();
         timestampRecord.setTime(new Date().getTime());
@@ -225,17 +320,31 @@ public class LogManager extends AbstractLogManager {
         return timestampFailed != null;
     }
 
-    synchronized void setTimestampFailed(DateTime atTime) {
+    private void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
+        if (statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS) {
+            setTimestampSucceeded();
+        } else {
+            setTimestampFailed(statusMessage.getAtTime());
+        }
+    }
+
+    /**
+     * Only use this method externally from tests. Otherwise send message to this actor.
+     */
+    void setTimestampFailed(DateTime atTime) {
         if (timestampFailed == null) {
             timestampFailed = atTime;
         }
     }
 
-    synchronized void setTimestampSucceeded() {
+    /**
+     * Only use this method externally from tests. Otherwise send message to this actor.
+     */
+    void setTimestampSucceeded() {
         timestampFailed = null;
     }
 
-    synchronized void verifyCanLogMessage() {
+    void verifyCanLogMessage() {
         int period = getAcceptableTimestampFailurePeriodSeconds();
         if (period == 0) { // check disabled
             return;
@@ -256,7 +365,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     void registerCronJob(JobManager jobManager, String actorName,
-            Object message, String cronExpression) {
+                         Object message, String cronExpression) {
         ActorSelection actor = getContext().actorSelection(actorName);
 
         JobDataMap jobData = MessageSendingJob.createJobData(actor, message);
@@ -285,10 +394,12 @@ public class LogManager extends AbstractLogManager {
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
-        private static final FiniteDuration INITIAL_DELAY =
-                Duration.create(1, TimeUnit.SECONDS);
-
+        private FiniteDuration initialDelay;
         private Cancellable tick;
+
+        public TimestamperJob(FiniteDuration initialDelay) {
+            this.initialDelay = initialDelay;
+        }
 
         @Override
         public void onReceive(Object message) throws Exception {
@@ -307,7 +418,7 @@ public class LogManager extends AbstractLogManager {
 
         @Override
         public void preStart() throws Exception {
-            schedule(INITIAL_DELAY);
+            schedule(initialDelay);
         }
 
         @Override

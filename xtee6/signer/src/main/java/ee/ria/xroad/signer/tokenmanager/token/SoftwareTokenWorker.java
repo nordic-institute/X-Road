@@ -1,4 +1,52 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.tokenmanager.token;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -12,10 +60,10 @@ import java.security.Signature;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PasswordStore;
+import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -24,13 +72,7 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.*;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -101,7 +143,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
 
         java.security.KeyPair keyPair =
-                generateKeyPair(SignerUtil.KEY_SIZE.intValue());
+                generateKeyPair(SystemProperties.getSignerKeyLength());
 
         String keyId = SignerUtil.randomId();
         savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId),
@@ -174,8 +216,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             try {
                 activateToken();
             } catch (Exception e) {
-                // Swallow exception; the token status reflects the state
                 setTokenActive(tokenId, false);
+                log.trace("Failed to activate token", e);
             }
         }
     }
@@ -194,8 +236,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 initializePrivateKey(keyId);
             } catch (Exception e) {
                 setKeyAvailable(keyId, false);
-                log.trace("Failed to load private key from key store: {}",
-                        e.getMessage());
+                log.trace("Failed to load private key from key store", e);
             }
         }
     }
@@ -212,7 +253,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                     log.debug("Found new key with id '{}'", keyId);
                     addKey(tokenId, keyId, publicKeyBase64);
                 } catch (Exception e) {
-                    log.error("Failed to read pkcs#12 key '{}': {}", keyId, e);
+                    log.error("Failed to read pkcs#12 key '{}'", keyId, e);
                 }
             }
         }
@@ -240,8 +281,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
         log.info("Initializing software token with new pin...");
 
+        if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(pin)) {
+            throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
+        }
+
         java.security.KeyPair kp =
-                generateKeyPair(SignerUtil.KEY_SIZE.intValue());
+                generateKeyPair(SystemProperties.getSignerKeyLength());
 
         String keyStoreFile = getKeyStoreFileName(PIN_FILE);
         savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);

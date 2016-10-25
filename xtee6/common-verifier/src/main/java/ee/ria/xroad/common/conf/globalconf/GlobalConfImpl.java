@@ -1,13 +1,49 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static ee.ria.xroad.common.util.CryptoUtils.certHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -18,7 +54,14 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberClassType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.SubsystemType;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -27,10 +70,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class GlobalConfImpl implements GlobalConfProvider {
@@ -57,7 +98,7 @@ class GlobalConfImpl implements GlobalConfProvider {
             confDir.eachFile(ConfigurationDirectory::verifyUpToDate);
             return true;
         } catch (Exception e) {
-            log.warn("Global configuration is invalid: {}", e.getMessage());
+            log.warn("Global configuration is invalid: {}", e);
             return false;
         }
     }
@@ -206,6 +247,21 @@ class GlobalConfImpl implements GlobalConfProvider {
 
         SharedParameters p = getSharedParameters(clientId.getXRoadInstance());
         return p.getMemberAddresses().get(clientId);
+    }
+
+    @Override
+    public String getSecurityServerAddress(SecurityServerId serverId) {
+        if (serverId == null) {
+            return null;
+        }
+
+        SharedParameters p = getSharedParameters(serverId.getXRoadInstance());
+        final SecurityServerType serverType = p.getSecurityServersById().get(serverId);
+        if (serverType != null) {
+            return serverType.getAddress();
+        }
+
+        return null;
     }
 
     @Override

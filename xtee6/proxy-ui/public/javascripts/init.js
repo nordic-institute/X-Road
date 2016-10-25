@@ -3,28 +3,7 @@ function uploadCallback(response) {
         showMessages(response.messages);
         return;
     }
-
-    var row1 = $("<tr>")
-        .append($("<td>")
-            .text(_("common.hash", { alg: response.data.hash_algorithm }))
-            .addClass("semibold"))
-        .append($("<td>").text(response.data.hash));
-
-    var row2 = $("<tr>")
-        .append($("<td>").text(_("common.generated")).addClass("semibold"))
-        .append($("<td>").text(response.data.generated_at));
-
-    var details = $("<table>")
-        .append(row1)
-        .append(row2)
-        .addClass("details")
-        .css("margin", "1em 0");
-
-    var confirmParams = {
-        details: $("<p>").append(details).html()
-    };
-
-    confirm("anchor.upload_confirm", confirmParams, function() {
+    confirm("anchor.upload_confirm", response.data, function() {
         $.post(action("anchor_init"), null, function() {
             if ($("#serverconf_form").length > 0) {
                 $("#anchor_upload_form").hide();

@@ -342,13 +342,23 @@ var XROAD_REQUEST_EDIT = function(){
         });
     }
     /* -- DIALOGS - END -- */
-
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#auth_cert_reg_request_edit_dialog").parent().attr("data-name", "auth_cert_reg_request_edit_dialog");
+        $("#client_reg_request_edit_dialog").parent().attr("data-name", "client_reg_request_edit_dialog");
+        $("#auth_cert_deletion_request_edit_dialog").parent().attr("data-name", "auth_cert_deletion_request_edit_dialog");
+        $("#client_deletion_request_edit_dialog").parent().attr("data-name", "client_deletion_request_edit_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
     function blurInputs() {
         $("input").blur();
     }
 
     $(document).ready(function() {
         initDialogs();
+        initTestability();
     });
 
     return {

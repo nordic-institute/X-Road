@@ -1,3 +1,25 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.util;
 
 import java.io.File;
@@ -7,14 +29,16 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.management.UnixOperatingSystemMXBean;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
+import com.sun.management.UnixOperatingSystemMXBean;
+
 import ee.ria.xroad.common.SystemProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains methods for gathering and retrieving system metrics information.
@@ -37,7 +61,7 @@ public final class SystemMetrics {
 
     private static MemoryMXBean memoryStats;
 
-    private static Integer numConnections = 0;
+    private static AtomicInteger numConnections = new AtomicInteger(0);
 
     private SystemMetrics() {
     }
@@ -80,7 +104,7 @@ public final class SystemMetrics {
             long used = memoryStats.getHeapMemoryUsage().getUsed();
             return ((double) used) / max;
         } catch (InternalError err) {
-            log.error("Error getting heap usage: {}", err.getMessage());
+            log.error("Error getting heap usage: {}", err);
             return -1;
         }
     }
@@ -89,27 +113,21 @@ public final class SystemMetrics {
      * Informs system metrics of a connection accepted event.
      */
     public static void connectionAccepted() {
-        synchronized (numConnections) {
-            numConnections++;
-        }
+        numConnections.getAndIncrement();
     }
 
     /**
      * Informs system metrics of a connection closed event.
      */
     public static void connectionClosed() {
-        synchronized (numConnections) {
-            numConnections--;
-        }
+        numConnections.getAndDecrement();
     }
 
     /**
      * @return the current number of open connection.
      */
     public static int getNumConnections() {
-        synchronized (numConnections) {
-            return numConnections;
-        }
+        return numConnections.get();
     }
 
     /**
@@ -187,7 +205,7 @@ public final class SystemMetrics {
             return max - open;
         } catch (InternalError probablyOutOfFileHandles) {
             log.error("Error getting free file descriptor count: {}",
-                    probablyOutOfFileHandles.getMessage());
+                    probablyOutOfFileHandles);
             return -1;
         }
     }

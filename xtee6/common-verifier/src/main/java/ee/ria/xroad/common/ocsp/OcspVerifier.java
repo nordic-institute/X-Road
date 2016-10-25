@@ -1,12 +1,41 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.ocsp;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
+import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.bouncycastle.asn1.DERBitString;
@@ -25,19 +54,29 @@ import org.joda.time.DateTime;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /** Helper class for verifying OCSP responses. */
 @Slf4j
-@RequiredArgsConstructor
 public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
 
     private final int ocspFreshnessSeconds;
+
+    private final OcspVerifierOptions options;
+
+    /**
+     * Constructor
+     */
+    public OcspVerifier(int ocspFreshnessSeconds, OcspVerifierOptions options) {
+        this.ocspFreshnessSeconds = ocspFreshnessSeconds;
+        if (options == null) {
+            this.options = new OcspVerifierOptions(true);
+        } else {
+            this.options = options;
+        }
+    }
 
     /**
      * Verifies certificate with respect to OCSP response.
@@ -49,8 +88,7 @@ public final class OcspVerifier {
      */
     public void verifyValidityAndStatus(OCSPResp response,
             X509Certificate subject, X509Certificate issuer) throws Exception {
-        verifyValidity(response, subject, issuer, new Date());
-        verifyStatus(response);
+        verifyValidityAndStatus(response, subject, issuer, new Date());
     }
 
     /**
@@ -150,13 +188,20 @@ public final class OcspVerifier {
                     singleResp.getThisUpdate());
         }
 
-        // 6. When available, the time at or before which newer information will
-        // be available about the status of the certificate (nextUpdate) is
-        // greater than the current time.
-        if (singleResp.getNextUpdate() != null
-                && singleResp.getNextUpdate().before(atDate)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                    "OCSP response is too old: newer information is available");
+        if (options.isVerifyNextUpdate()) {
+            // 6. When available, the time at or before which newer information will
+            // be available about the status of the certificate (nextUpdate) is
+            // greater than the current time.
+            log.trace("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
+            if (singleResp.getNextUpdate() != null
+                    && singleResp.getNextUpdate().before(atDate)) {
+                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
+                                fmt.format(singleResp.getNextUpdate())));
+            }
+        } else {
+            log.trace("OCSP nextUpdate verification is turned off");
         }
     }
 
@@ -179,7 +224,7 @@ public final class OcspVerifier {
     }
 
     /**
-     * Returns true of the OCSP response is about to expire at the given date.
+     * Returns true if the OCSP response is about to expire at the given date.
      * @param singleResp the response
      * @param atDate the date
      * @return true, if the OCSP response is expired
@@ -196,7 +241,7 @@ public final class OcspVerifier {
     }
 
     /**
-     * Returns true of the OCSP response is about to expire at the current date.
+     * Returns true if the OCSP response is about to expire at the current date.
      * @param response the response
      * @return true, if the OCSP response is expired
      * @throws Exception if an error occurs
@@ -208,7 +253,7 @@ public final class OcspVerifier {
     }
 
     /**
-     * Returns true of the OCSP response is about to expire at the
+     * Returns true if the OCSP response is about to expire at the
      * specified date.
      * @param response the response
      * @param atDate the date

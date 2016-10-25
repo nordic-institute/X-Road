@@ -1,19 +1,30 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.tokenmanager;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.conf.keyconf.CertRequestType;
-import ee.ria.xroad.common.conf.keyconf.CertificateType;
-import ee.ria.xroad.common.conf.keyconf.DeviceType;
-import ee.ria.xroad.common.conf.keyconf.KeyConfType;
-import ee.ria.xroad.common.conf.keyconf.KeyType;
-import ee.ria.xroad.common.conf.keyconf.ObjectFactory;
+import ee.ria.xroad.common.conf.keyconf.*;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.CertRequest;
 import ee.ria.xroad.signer.model.Key;
@@ -21,6 +32,11 @@ import ee.ria.xroad.signer.model.Token;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
@@ -171,6 +187,11 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         token.setSerialNumber(type.getTokenId());
         token.setLabel(type.getSlotId());
 
+        // software token forgets batch signing setting
+        if (SoftwareModuleType.TYPE.equals(token.getType())) {
+            token.setBatchSigningEnabled(true);
+        }
+
         for (KeyType keyType : type.getKey()) {
             token.addKey(from(token, keyType));
         }
@@ -242,7 +263,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
             try {
                  return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
-                log.error("Failed to calculate certificate hash for {}",  type);
+                log.error("Failed to calculate certificate hash for {}. {}",  type, e);
                 return SignerUtil.randomId();
             }
         }

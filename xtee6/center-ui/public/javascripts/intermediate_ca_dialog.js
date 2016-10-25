@@ -182,6 +182,13 @@ var XROAD_INTERMEDIATE_CA_DIALOG = function() {
     function isOpen() {
         return $("#intermediate_ca_dialog").dialog("isOpen");
     }
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#intermediate_ca_dialog").parent().attr("data-name", "intermediate_ca_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
 
     $(document).ready(function() {
         initDialog();
@@ -191,6 +198,7 @@ var XROAD_INTERMEDIATE_CA_DIALOG = function() {
 
         initOCSPRespondersTable();
         initOCSPRespondersTab();
+        initTestability();
     });
 
     return {

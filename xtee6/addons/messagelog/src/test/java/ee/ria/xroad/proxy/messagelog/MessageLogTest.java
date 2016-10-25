@@ -1,14 +1,49 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.proxy.messagelog;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import akka.actor.Props;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Restrictions;
@@ -18,6 +53,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import akka.actor.Props;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -33,11 +69,10 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
-
-import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.proxy.messagelog.TestUtil.*;
-import static org.junit.Assert.*;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 /**
  * Contains tests to verify correct message log behavior.
@@ -104,6 +139,10 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertEquals(timestamp1, timestamp2);
     }
 
+    private TestLogManager getTestLogManager() {
+        return (TestLogManager) logManager;
+    }
+
     /**
      * Logs 3 messages (message and signature is same) and time-stamps them.
      * Expects 1 time-stamp record and 3 message records that refer to
@@ -123,11 +162,16 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         TimestampSucceeded timestamp = waitForTimestampSuccessful();
 
+        assertTrue(TestLogManager.waitForTimestampSaved());
+
         assertEquals(3, timestamp.getMessageRecords().length);
         assertNotNull(timestamp.getTimestampDer());
         assertNotNull(timestamp.getHashChainResult());
         assertEquals(3, timestamp.getHashChains().length);
         assertTaskQueueSize(0);
+
+        assertEquals(0, getDeadLetters().size());
+        log.info("dead letters: " + getDeadLetters());
     }
 
     /**
@@ -267,9 +311,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
         assertTaskQueueSize(3);
 
+        log.info("startTimestamping();");
         startTimestamping();
 
+        log.info("waitForTimestampSuccessful();");
         waitForTimestampSuccessful();
+
+        log.info("TestLogManager.waitForTimestampSaved();");
+        assertFalse(TestLogManager.waitForTimestampSaved());
 
         assertTrue(logManager.isTimestampFailed());
 
@@ -516,9 +565,59 @@ public class MessageLogTest extends AbstractMessageLogTest {
             super(jobManager);
         }
 
+        /**
+         * Tests expect that they can control when timestamping starts, as in:
+         *
+         *     @Test
+         *     public void timestampingFailed() throws Exception {
+         *      initLogManager();
+         *      TestTimestamperWorker.failNextTimestamping(true);
+         *      log(createMessage(), createSignature);
+         *      log(createMessage(), createSignature());
+         *      log(createMessage(), createSignature());
+         *      assertTaskQueueSize(3);
+         *      startTimestamping();
+         *
+         * Now if TimestamperJob starts somewhere before startTimestamping (which
+         * is a likely outcome with the default initial delay of 1 sec) the results
+         * will not be what the test expects.
+         *
+         * To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
+         * @return
+         */
+        @Override
+        protected FiniteDuration getTimestamperJobInitialDelay() {
+            return Duration.create(1, TimeUnit.MINUTES);
+        }
+
         @Override
         protected Props getTaskQueueImpl() {
-            return Props.create(TestTaskQueue.class, this);
+            return Props.create(TestTaskQueue.class);
+        }
+
+        /**
+         * This method is synchronized in the test class
+         * @param atTime
+         */
+        @Override
+        synchronized void setTimestampFailed(DateTime atTime) {
+            super.setTimestampFailed(atTime);
+        }
+
+        /**
+         * This method is synchronized in the test class
+         */
+        @Override
+        synchronized void setTimestampSucceeded() {
+            super.setTimestampSucceeded();
+        }
+
+        /**
+         * This method is synchronized in the test class
+         */
+        @Override
+        synchronized void verifyCanLogMessage() {
+            super.verifyCanLogMessage();
         }
 
         @Override
@@ -543,12 +642,18 @@ public class MessageLogTest extends AbstractMessageLogTest {
         @Override
         protected MessageRecord saveMessageRecord(MessageRecord messageRecord)
                 throws Exception {
+            log.info("saving message record");
             if (logRecordTime != null) {
                 messageRecord.setTime(logRecordTime.getTime());
             }
 
             return super.saveMessageRecord(messageRecord);
         }
+
+        /**
+         * countdownlatch for waiting for next timestamp record save
+         */
+        private static CountDownLatch timestampSavedLatch = new CountDownLatch(1);
 
         @Override
         protected TimestampRecord saveTimestampRecord(
@@ -557,7 +662,22 @@ public class MessageLogTest extends AbstractMessageLogTest {
                 throw throwWhenSavingTimestamp;
             }
 
-            return super.saveTimestampRecord(message);
+            TimestampRecord record = super.saveTimestampRecord(message);
+            timestampSavedLatch.countDown();
+            return record;
+        }
+
+        /**
+         * Waits for a call to saveTimestampRecord for a defined time
+         * @return true when call came, false if timeouted waiting
+         * @throws Exception
+         */
+        public static boolean waitForTimestampSaved() throws Exception {
+            try {
+                return timestampSavedLatch.await(5, TimeUnit.SECONDS);
+            } finally {
+                timestampSavedLatch = new CountDownLatch(1);
+            }
         }
     }
 }

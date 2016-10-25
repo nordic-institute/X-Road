@@ -219,10 +219,10 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
         opts.sScrollY = "100px";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name", "sWidth": "10em" },
-            { "mData": "member_code", "sWidth": "10em" },
-            { "mData": "member_class", "sWidth": "10em" },
-            { "mData": "subsystem", "sWidth": "10em" }
+            { "mData": "name", "sWidth": "10em", mRender: util.escape },
+            { "mData": "member_code", "sWidth": "10em", mRender: util.escape },
+            { "mData": "member_class", "sWidth": "10em", mRender: util.escape },
+            { "mData": "subsystem", "sWidth": "10em", mRender: util.escape }
         ];
 
         opts.sAjaxSource = "central_services/search_providers";

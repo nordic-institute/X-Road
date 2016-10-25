@@ -19,7 +19,9 @@ fi
 
 echo -e "Cleaning non-subsystem relations\n"
 
-su - postgres -c "PGPASSWORD=serverconf psql -h 0 serverconf serverconf" <<EOF
+PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
+USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
+su - postgres -c "PGPASSWORD=${PW:-serverconf} psql -h 0 serverconf ${USER:-serverconf}" <<EOF
 begin;
 delete from groupmember where localgroup_id in (select localgroup.id from localgroup join client on localgroup.client_id=client.id join identifier on client.identifier=identifier.id where identifier.type='MEMBER');
 delete from groupmember where groupmemberid in (select groupmember.groupmemberid from groupmember join identifier on groupmember.groupmemberid=identifier.id where identifier.type='MEMBER');

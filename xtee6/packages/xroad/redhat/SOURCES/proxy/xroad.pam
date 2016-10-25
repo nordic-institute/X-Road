@@ -1,0 +1,6 @@
+#%PAM-1.0
+auth       required     pam_unix.so
+account    required     pam_unix.so
+password   required     pam_deny.so
+password   required     pam_warn.so
+session    required     pam_deny.so

@@ -77,7 +77,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
             {
                 "mData": function(source, type, val) {
                     return source.token_friendly_name + ": " + source.key_id;
-                }
+                },
+                mRender: util.escape
             },
             {
                 "mData": "key_generated_at",
@@ -360,6 +361,13 @@ var XROAD_CONFIGURATION_SOURCE = function() {
             });
         }, 30000);
     }
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#generate_signing_key_dialog").parent().attr("data-name", "generate_signing_key_dialog");
+        $("button span:contains('Close')").parent().attr("data-name", "close");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
 
     $(document).ready(function() {
         initSourceTables();
@@ -368,6 +376,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         initConfPartsActions();
 
         pollSigningKeys();
+        initTestability();
     });
 
     return {

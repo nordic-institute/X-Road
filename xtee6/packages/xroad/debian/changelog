@@ -1,101 +1,148 @@
-xroad (6.8.3-4) trusty; urgency=low
+xroad (6.8.6) trusty; urgency=low
 
-  [Central]
-  * Bugfix: Fixed race conditions in the client registration and authentication
-    certificate registration processes
-  * Minor fixes
+  * Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)
+  * Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5 (XTE-278)
+  * Added xroad-securityserver conflicts uxp-addon-monitoring <= 6.4.0
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 23 May 2016 13:17:30 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee> Fri, 30 Sep 2016 14:43:36 +0300
 
-xroad (6.8.3-3) trusty; urgency=low
+xroad (6.8.5) trusty; urgency=low
 
-  [Security Server]
-  * Feature: Do not remove the UTF-8 BOM bytes (if found) from the incoming
-    SOAP request (except in case a central service is used)
+  * Bugfix: it's not possible to send duplicate client registration requests
+    (https://github.com/vrk-kpa/xroad-joint-development/issues/48)
+  * Bugfix: added one missing tanslation
+  * Updated configuration client test data
+  * Some minor corrections
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Fri, 13 May 2016 12:46:29 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 16 Aug 2016 13:54:52 +0300
 
-xroad (6.8.3-2) trusty; urgency=low
+xroad (6.8.4) trusty; urgency=low
 
-  [Security Server]
-  * Bugfix: Added the mandatory "type" parameter to the multipart/related
-    content-type header
-  * Bugfix: Fixed the premature termination of message streams
-  * Bugfix: Ensured that the signature is not sent before the message has been
-    successfully logged
-  * Feature: Do not validate SOAP messages against the SOAP schema, to prevent
-    causing errors in case a type definition of the SOAP message element is 
-    described in an external schema (the necessary checks are performed in other
-    ways)
-  * Feature: Remove the UTF-8 BOM bytes (if found) from the incoming request
-    and response
+  * Merged with XTEE6 repo
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 05 May 2016 10:18:22 +0300
+ -- Aktors <info@aktors.ee>  Wed,  11 May 2016 17:33:00 +0300
 
-xroad (6.8.3-1) trusty; urgency=low
+xroad (6.7.12-1) trusty; urgency=low
 
-  [Security server]
-  * Bugfixes
+  * Fixed security server not starting if xroad-addon-messagelog is not installed
+  * Added connection timeouts to configuration client to prevent hanging problems
+  * In security server's keys and certificates view delete button now removes both key and certificates
+  * Signer reacts to ocspFreshnessSeconds parameter change immediately
+  * OCSP nextUpdate verification can be switched off with optional global configuration part
+  * Fixed bug in xroad-create-cluster.sh script that created the certificates with 30 days expiry period
+  * Fix software token batch signing setting
 
-  [Central]
-  * Bugfixes
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Mon, 25 Apr 2016 14:51:45 +0300
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 07 Mar 2016 15:20:05 +0200
+xroad (6.7.11-1) trusty; urgency=low
 
-xroad (6.8.3-0) trusty; urgency=low
+  * Minor documentation changes
 
-  [Security server]
-  * WSDL validator bugfixes
-  * Better logging of SOAP Fault details
-  * Minor fixes
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Mon, 8 Feb 2016 16:32:45 +0200
 
-  [Central]
-  * Minor fixes
+xroad (6.7.10-1) trusty; urgency=low
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 18 Feb 2016 10:09:29 +0200
+  * Change configuration client admin port default to 5675 and make it configurable
+  * Security server message exchange performance optimizations
+  * Security server environmental monitoring
 
-xroad (6.8.2-0) trusty; urgency=low
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Tue, 26 Jan 2016 10:23:45 +0200
 
-  [Security server]
-  * Added WSDL validator
+xroad (6.7.9-1) trusty; urgency=low
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Tue, 22 Dec 2015 10:01:29 +0200
+  * Fix timestamper connection checking
+  * Fix timestamper status when batch timestamping is used
+  * Timestamping diagnostics displays status for all defined timestamping services
 
-xroad (6.8.1-0) trusty; urgency=low
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Fri, 15 Jan 2016 14:41:01 +0200
 
-  * Bugfixes and UI improvements
-  * Improved getting OCSP responses
-  * ISO8601 time format used in audit log
-  * SOAP Fault message element faultDetail without namespace
+xroad (6.7.8-1) trusty; urgency=low
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Thu, 10 Dec 2015 17:02:55 +0200
+  * Security server offers diagnostics information for time stamping service
+  * Fixed database backup to support generated passwords
 
-xroad (6.8-1) trusty; urgency=low
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 7 Jan 2016 14:00:01 +0200
 
-  * Bugfixes
+xroad (6.7.7-1) trusty; urgency=low
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 09 Nov 2015 13:03:02 +0200
+  * Fixed critical errors found by SonarQube
+  * Added option for requiring strong password for PIN-code
+  * Security server offers diagnostics information for global configuration fetching
+  * Taken to use HTML-attribute data-name to improve testability
 
-xroad (6.8-0) trusty; urgency=low
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 9 Dec 2015 11:46:12 +0200
 
-  * Changes to the logging policy
-  * Support for the application/xop+xml content type
-  * Support of pkcs11# labels
-  * Bugfixes
+xroad (6.7.6-1) trusty; urgency=low
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 19 Oct 2015 12:03:52 +0300
+  * Fixed changing of security server configuration anchor
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 27 Nov 2015 12:50:01 +0200
+
+xroad (6.7.5-1) trusty; urgency=low
+
+  * Updated member code/identifier extractor for Finnish instance
+  * Fixed XSS vulnerabilities in central server and security server user interfaces
+  * Security server's internal TLS certificate can be replaced from the UI
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 26 Nov 2015 15:42:01 +0200
+
+xroad (6.7.4-1) trusty; urgency=low
+
+  * Add MIT license header to security server source code
+  * Add LICENSE.info file to security server source code and binaries
+  * Add LICENSE.info file to central server source code and binaries
+  * Add LICENSE.info file to configuration proxy source code and binaries
+  * Add LICENSE file containing MIT license to security server source code and binaries
+  * Fixed 'Global configuration expired' error occurring under heavy load
+  * The password for messagelog and serverconf databases is generated during installation
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 12 Nov 2015 12:48:18 +0200
+
+xroad (6.7.3-1) trusty; urgency=low
+
+  * Add license information
+  * Refactor proxy setup scripts (RHEL)
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 26 Oct 2015 16:10:22 +0300
+
+xroad (6.7.2-1) trusty; urgency=medium
+
+  * Fix nginx configuration (remove X-Frame-Options)
+  
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 19 Oct 2015 11:12:56 +0300
+
+xroad (6.7.1-1) trusty; urgency=low
+
+  * Finnish settings set SHA256withRSA as default signature algorithm
+  * Finnish settings set SHA256withRSA as default CSR signature algorithm
+  * Configurable message body logging
+  * Perfect forward secrecy management services
+  * Security server user interface uses TLSv1.2
+  * Central server user interface uses TLSv1.2
+  * Security server communicates with backend services using TLSv1.2
+  * Perfect forward secrecy for security server user interface
+  * Perfect forward secrecy for central server user interface
+  * Perfect forward secrecy for security server communications with backend services
+  * Fixed SonarQube static analysis blocker issues
+  * Management services use TLSv1.2
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 14 Oct 2015 12:07:08 +0300
 
 xroad (6.7-0) trusty; urgency=low
 
-  * Unreleased version for compatibility with external development
+  * Member Code/Identifier Extractor for Finnish instance 
+    o Signing certificate subject DN format supported by the decoder: C=FI,O=<instanceIdentifier>, OU=<memberClass>, CN=<memberCode> (e.g. C=FI, O=FI-DEV, OU=PUB, CN=1234567-8)
+  * Configurable key size for signing and authentication RSA keys 
+    o New configuration parameter signer.key-length (default 2048)
+  * Configurable certificate signing request signing algorithm 
+    o New configuration parameter signer.csr-signature-algorithm (default: SHA1withRSA)
+  * New security server metapackage with default configuration for Finnish instance
+    o xroad-securityserver-fi
+    o uses SHA256withRSA as signer.csr-signature-algorithm
+  * Fixed atomic save to work between separate file systems
+    o OS temp directory and X-Road software can now reside on different file systems
 
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Mon, 19 Oct 2015 12:03:52 +0300
-
-xroad (6.6-3) trusty; urgency=low
-
-  * Bugfixes
-
- -- Tarmo Oja <tarmo.oja@cyber.ee>  Fri, 25 Sep 2015 12:38:24 +0300
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 29 Sep 2015 09:36:56 +0300
 
 xroad (6.6-2) trusty; urgency=low
 

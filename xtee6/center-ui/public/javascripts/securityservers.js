@@ -30,10 +30,10 @@ var XROAD_SECURITYSERVERS = function() {
         opts.bScrollCollapse = true;
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "server_code", "sWidth": "20%" },
-            { "mData": "owner_name" },
-            { "mData": "owner_class", "sWidth": "15%" },
-            { "mData": "owner_code", "sWidth": "25%" }
+            { "mData": "server_code", "sWidth": "20%", mRender: util.escape },
+            { "mData": "owner_name", mRender: util.escape },
+            { "mData": "owner_class", "sWidth": "15%", mRender: util.escape },
+            { "mData": "owner_code", "sWidth": "25%", mRender: util.escape }
         ];
 
         opts.fnDrawCallback = function() {

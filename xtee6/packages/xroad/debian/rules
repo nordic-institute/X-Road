@@ -9,12 +9,13 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-lucid =
+lucid=
 
 ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
-	lucid = true
+lucid = true
 endif
 
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
 
 %:
 	dh  $@
@@ -44,7 +45,7 @@ override_dh_builddeb:
 
 override_dh_gencontrol:
 ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`~lucid0
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)~lucid0
 else
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`-`env TZ=UTC date +'%Y%m%d%H%M'`
+	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 endif

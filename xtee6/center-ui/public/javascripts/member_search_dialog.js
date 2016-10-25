@@ -13,12 +13,12 @@
         opts.sScrollY = "100px";
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData": "name" },
-            { "mData": "member_code" },
-            { "mData": "member_class" },
-            { "mData": "subsystem_code" },
-            { "mData": "xroad_instance" },
-            { "mData": "type" },
+            { "mData": "name", mRender: util.escape },
+            { "mData": "member_code", mRender: util.escape },
+            { "mData": "member_class", mRender: util.escape },
+            { "mData": "subsystem_code", mRender: util.escape },
+            { "mData": "xroad_instance", mRender: util.escape },
+            { "mData": "type", mRender: util.escape },
         ];
 
         opts.sAjaxSource = "members/member_search";

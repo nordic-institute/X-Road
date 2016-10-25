@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ "$(id -nu)" != "xroad" ]
+then
+echo $0 must run under xroad user
+exit 1
+fi
+
+. /etc/xroad/services/jetty.conf
+exec ${JAVA_HOME}/bin/java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9 jetty.base=/usr/share/xroad/jetty9
+

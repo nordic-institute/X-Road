@@ -1,5 +1,30 @@
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
 java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
+java_import Java::ee.ria.xroad.common.util.CryptoUtils
+java_import Java::ee.ria.xroad.common.conf.InternalSSLKey
 
 class SysparamsController < ApplicationController
 
@@ -200,6 +225,89 @@ class SysparamsController < ApplicationController
     render_json({
       :hash => cert_hash
     })
+  end
+
+  def generate_csr
+    audit_log("Generate certificate request for TLS", audit_log_data = {})
+
+    authorize!(:generate_internal_cert_req)
+
+    audit_log_data[:subjectName] = params[:subject_name]
+
+    kp = CertUtils::readKeyPairFromPemFile(SystemProperties::getConfPath() + InternalSSLKey::PK_FILE_NAME)
+    csr = CertUtils::generateCertRequest(kp.getPrivate(), kp.getPublic(), params[:subject_name])
+
+    csr_file = SecureRandom.hex(4)
+
+    File.open(CommonUi::IOUtils.temp_file(csr_file), 'wb') do |f|
+      f.write(csr)
+    end
+
+    render_json({
+                    :tokens => view_context.columns(SignerProxy::getTokens),
+                    :redirect => csr_file
+                })
+  end
+
+  def download_csr
+    validate_params({
+                        :csr => [:required, :filename],
+                        :key_usage => [:required]
+                    })
+
+    file = CommonUi::IOUtils.temp_file(params[:csr])
+
+    # file name parts
+    date = Time.now.strftime("%Y%m%d")
+
+    send_file(file, :filename => "tls_cert_request_#{date}.p10")
+  end
+
+  def import_cert
+    audit_log("Import TLS certificate from file", audit_log_data = {})
+
+    validate_params({
+                        :file_upload => [:required]
+                    })
+
+    cert_bytes = params[:file_upload].read.to_java_bytes
+
+    # check that this is valid x509 certificate
+    cert_obj = CommonUi::CertUtils.cert_object(cert_bytes)
+
+    audit_log_data[:certFileName] = params[:file_upload].original_filename
+    audit_log_data[:certHash] = CommonUi::CertUtils.cert_hash(cert_bytes)
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    # write the uploaded certificate to file
+    CertUtils::writePemToFile(cert_bytes, SystemProperties::getConfPath() + "ssl/internal.crt")
+
+    # create pkcs12 keystore
+    CertUtils::createPkcs12(
+        SystemProperties::getConfPath() + InternalSSLKey::PK_FILE_NAME,
+        SystemProperties::getConfPath() + InternalSSLKey::CRT_FILE_NAME,
+        SystemProperties::getConfPath() + InternalSSLKey::KEY_FILE_NAME)
+
+    notice(t('sysparams.cert_loaded'))
+
+    restart_service("xroad-proxy")
+
+    if x55_installed?
+      export_v6_internal_tls_key
+      restart_service("xtee55-clientemediator")
+    end
+
+    cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
+    audit_log_data[:certHash] = cert_hash
+    audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
+
+    render_json({
+                    :hash => cert_hash
+                })
+
+  rescue
+    error(t('sysparams.cert_invalid'))
+    render_json
   end
 
   private

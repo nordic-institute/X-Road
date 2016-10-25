@@ -1,28 +1,59 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.conf.globalconf;
+
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.JobListener;
 
-import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
+import ee.ria.xroad.common.util.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main program of configuration client.
@@ -30,19 +61,14 @@ import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SH
 @Slf4j
 public final class ConfigurationClientMain {
 
+    private static ConfigurationClientJobListener listener;
+
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
             .with(CONF_FILE_PROXY, "configuration-client")
             .load();
+        listener = new ConfigurationClientJobListener();
     }
-
-    private static final int RETURN_SUCCESS = 0;
-    private static final int ERROR_CODE_INTERNAL = 125;
-    private static final int ERROR_CODE_INVALID_SIGNATURE_VALUE = 124;
-    private static final int ERROR_CODE_EXPIRED_CONF = 123;
-    private static final int ERROR_CODE_CANNOT_DOWNLOAD_CONF = 122;
-    private static final int ERROR_CODE_MISSING_PRIVATE_PARAMS = 121;
-    private static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120;
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS =
             "verifyPrivateParamsExists";
@@ -179,27 +205,8 @@ public final class ConfigurationClientMain {
             return RETURN_SUCCESS;
         } catch (Exception e) {
             log.error("Error when downloading conf", e);
-            return getErrorCode(e);
+            return ConfigurationClientUtils.getErrorCode(e);
         }
-    }
-
-    private static int getErrorCode(Exception e) {
-        if (e instanceof CodedException) {
-            CodedException ce = (CodedException) e;
-
-            switch (ce.getFaultCode()) {
-                case X_HTTP_ERROR:
-                    return ERROR_CODE_CANNOT_DOWNLOAD_CONF;
-                case X_OUTDATED_GLOBALCONF:
-                    return ERROR_CODE_EXPIRED_CONF;
-                case X_INVALID_SIGNATURE_VALUE:
-                    return ERROR_CODE_INVALID_SIGNATURE_VALUE;
-                default: // do nothing
-                    break;
-            }
-        }
-
-        return ERROR_CODE_INTERNAL;
     }
 
     private static void startDaemon() throws Exception {
@@ -246,8 +253,7 @@ public final class ConfigurationClientMain {
 
         client = createClient();
 
-        int portNumber = SystemProperties.getConfigurationClientPort();
-        adminPort = new AdminPort(portNumber + 1);
+        adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 
         adminPort.addShutdownHook(() -> {
             log.info("Configuration client shutting down...");
@@ -258,12 +264,27 @@ public final class ConfigurationClientMain {
             }
         });
 
-        adminPort.addHandler("/execute", (AdminPort.SynchronousCallback) () -> {
-            log.info("Execute from admin port...");
-            try {
-                client.execute();
-            } catch (Exception e) {
-                throw translateException(e);
+        adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
+            @Override
+            public void run() {
+                log.info("handler /execute");
+                try {
+                    client.execute();
+                } catch (Exception e) {
+                    throw translateException(e);
+                }
+            }
+        });
+
+        adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void run() {
+                try {
+                    log.info("handler /status");
+                    JsonUtils.getSerializer().toJson(listener.getStatus(), getParams().response.getWriter());
+                } catch (Exception e) {
+                    log.error("Error getting conf client status {}", e);
+                }
             }
         });
     }
@@ -274,6 +295,7 @@ public final class ConfigurationClientMain {
         adminPort.start();
 
         jobManager = new JobManager();
+        jobManager.getJobScheduler().getListenerManager().addJobListener(listener);
 
         JobDataMap data = new JobDataMap();
         data.put("client", client);
@@ -304,6 +326,52 @@ public final class ConfigurationClientMain {
         if (adminPort != null) {
             adminPort.stop();
             adminPort.join();
+        }
+    }
+
+    /**
+     * Listens for daemon job completions and collects results
+     */
+    @Slf4j
+    private static class ConfigurationClientJobListener implements JobListener {
+
+        public static final String LISTENER_NAME = "confClientJobListener";
+
+        // access only via synchronized getter/setter
+        private static DiagnosticsStatus status;
+
+        static {
+            status = new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED, LocalTime.now(),
+                    LocalTime.now().plusSeconds(SystemProperties.getConfigurationClientUpdateIntervalSeconds()));
+        }
+
+        private static synchronized void setStatus(DiagnosticsStatus newStatus) {
+            status = newStatus;
+        }
+
+        private static synchronized DiagnosticsStatus getStatus() {
+            return status;
+        }
+
+        @Override
+        public String getName() {
+            return LISTENER_NAME;
+        }
+
+        @Override
+        public void jobToBeExecuted(JobExecutionContext context) {
+            // NOP
+        }
+
+        @Override
+        public void jobExecutionVetoed(JobExecutionContext context) {
+            // NOP
+        }
+
+        @Override
+        public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
+            log.info("job was executed result={}", context.getResult());
+            setStatus((DiagnosticsStatus) context.getResult());
         }
     }
 

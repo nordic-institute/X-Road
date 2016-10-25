@@ -1,15 +1,39 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer;
+
+import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 
 import java.util.concurrent.TimeUnit;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PeriodicJob;
 import ee.ria.xroad.common.util.StartStop;
@@ -20,9 +44,10 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
 import ee.ria.xroad.signer.util.Update;
-import ee.ria.xroad.signer.util.VariableIntervalPeriodicJob;
-
-import static ee.ria.xroad.signer.protocol.ComponentNames.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 /**
  * Signer application.
@@ -52,7 +77,19 @@ public class Signer implements StartStop {
 
         createComponent(OCSP_RESPONSE_MANAGER, OcspResponseManager.class);
         createComponent(OCSP_CLIENT, OcspClientWorker.class);
-        createComponent(OcspClientJob.class);
+        createComponent(OCSP_CLIENT_JOB, OcspClientJob.class);
+        createComponent(OCSP_CLIENT_RELOAD, OcspClientReload.class);
+    }
+
+    /**
+     * Executes polling immediately
+     */
+    public void execute() throws Exception {
+        log.trace("sending cancel");
+        actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
+        log.trace("sending execute");
+        actorSystem.actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
+        log.trace("done");
     }
 
     @Override
@@ -107,28 +144,4 @@ public class Signer implements StartStop {
         }
     }
 
-    /**
-     * Periodically executes the OcspClient
-     */
-    private static class OcspClientJob extends VariableIntervalPeriodicJob {
-
-        private static final FiniteDuration INITIAL_DELAY =
-                FiniteDuration.create(100, TimeUnit.MILLISECONDS);
-
-        OcspClientJob() {
-            super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
-        }
-
-        @Override
-        protected FiniteDuration getInitialDelay() {
-            return INITIAL_DELAY;
-        }
-
-        @Override
-        protected FiniteDuration getNextDelay() {
-            return FiniteDuration.create(
-                    OcspClientWorker.getNextOcspFreshnessSeconds(),
-                    TimeUnit.SECONDS);
-        }
-    }
 }

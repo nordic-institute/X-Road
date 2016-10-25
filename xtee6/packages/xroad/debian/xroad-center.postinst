@@ -48,7 +48,7 @@ case "$1" in
     echo "running db migrations"
     /usr/share/xroad/db/migrate.sh db:migrate
     if [[ $? -ne 0 ]]
-    then
+    then 
       echo "database migrate failed.ABORTING"
       exit 2
     fi
@@ -95,7 +95,7 @@ esac
 
 #DEBHELPER#
 
-invoke-rc.d rsyslog restart
+invoke-rc.d rsyslog restart 
 invoke-rc.d xroad-jetty restart
 invoke-rc.d xroad-signer restart
 invoke-rc.d nginx restart

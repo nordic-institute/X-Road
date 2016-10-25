@@ -1,4 +1,40 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.common.message;
+
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.message.SoapUtils.createSOAPMessage;
+import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
+import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
+import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
+import static ee.ria.xroad.common.util.MimeUtils.UTF8;
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -15,26 +51,17 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
-import com.sun.xml.bind.api.AccessorException;
-
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import com.sun.xml.bind.api.AccessorException;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
-
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.message.SoapUtils.*;
-import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
-import static ee.ria.xroad.common.util.MimeUtils.UTF8;
-import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default Soap parser implementation for reading Soap messages from an

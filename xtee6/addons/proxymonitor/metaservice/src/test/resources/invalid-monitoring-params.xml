@@ -1,0 +1,13 @@
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+          xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+    <monitoringClient>
+        <monitoringClientId id:objectType="MEMBER">
+            <id:xRoadInstance>fdev</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>66655666</id:memberCode>
+            <id:broken>gagaga</id:broken>
+        </monitoringClientId>
+    </monitoringClient>
+</tns:conf>

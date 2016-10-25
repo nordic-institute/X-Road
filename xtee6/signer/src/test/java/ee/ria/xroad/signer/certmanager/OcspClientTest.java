@@ -1,4 +1,32 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package ee.ria.xroad.signer.certmanager;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -14,9 +42,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -34,17 +59,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 
 /**
  * Tests the OCSP client.
@@ -94,7 +117,7 @@ public class OcspClientTest {
         assertNotNull(ocsp);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject,
                 GlobalConf.getCaCert("EE", subject));
     }
@@ -126,7 +149,7 @@ public class OcspClientTest {
         assertNotNull(ocsp);
 
         OcspVerifier verifier =
-                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false));
+                new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false), new OcspVerifierOptions(true));
         verifier.verifyValidityAndStatus(ocsp, subject,
                 GlobalConf.getCaCert("EE", subject));
     }
@@ -314,7 +337,7 @@ public class OcspClientTest {
 
     private void queryAndUpdateCertStatus(OcspClientWorker client,
             X509Certificate subject) throws Exception {
-        OCSPResp response = client.queryCertStatus(subject);
+        OCSPResp response = client.queryCertStatus(subject, new OcspVerifierOptions(true));
         String subjectHash = calculateCertHexHash(subject);
         OCSP_RESPONSES.put(subjectHash, response);
     }

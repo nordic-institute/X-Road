@@ -1,0 +1,16 @@
+[Unit]
+Description=X-Road Monitor
+After=network.target
+
+[Service]
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
+ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
+User=xroad
+Group=xroad
+ExecStart=/usr/share/xroad/bin/xroad-monitor
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+
