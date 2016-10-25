@@ -26,16 +26,17 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Sends message with central service.
+ * Check that messages without any whitespace or tabulation between messages are
+ * handled correctly.
  */
-public class CentralServiceMessage extends MessageTestCase {
+public class NoWhitespaceMessage extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public CentralServiceMessage() {
-        requestFileName = "simple-centralservice.query";
-        responseFile = "simple-centralservice.answer";
+    public NoWhitespaceMessage() {
+        requestFileName = "nowhitespace.query";
+        responseFile = "nowhitespace.answer";
     }
 
     @Override
@@ -45,9 +46,10 @@ public class CentralServiceMessage extends MessageTestCase {
     }
 
     @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
+    protected void onServiceReceivedRequest(Message receivedRequest)
+            throws Exception {
         // Message inconsistency at this point is expected, since client
-        // proxy will modify the request message
+        // proxy will be sending a central service request and modifying it
     }
 
 }

@@ -26,16 +26,17 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Sends message with central service.
+ * Ensure that centralService elements outside the header do not
+ * get substituted with the service element on the ClientProxy.
  */
-public class CentralServiceMessage extends MessageTestCase {
+public class CentralServiceElementMessage extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public CentralServiceMessage() {
-        requestFileName = "simple-centralservice.query";
-        responseFile = "simple-centralservice.answer";
+    public CentralServiceElementMessage() {
+        requestFileName = "centralserviceelement.query";
+        responseFile = "centralserviceelement.answer";
     }
 
     @Override
@@ -45,7 +46,8 @@ public class CentralServiceMessage extends MessageTestCase {
     }
 
     @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
+    protected void onServiceReceivedRequest(Message receivedRequest)
+            throws Exception {
         // Message inconsistency at this point is expected, since client
         // proxy will modify the request message
     }

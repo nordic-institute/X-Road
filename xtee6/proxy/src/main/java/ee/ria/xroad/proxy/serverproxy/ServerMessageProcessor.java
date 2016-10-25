@@ -22,31 +22,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-
 import java.io.InputStream;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
@@ -58,12 +35,14 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPMessage;
+import javax.xml.namespace.QName;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -76,19 +55,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.RequestHash;
-import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
@@ -97,7 +73,13 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
@@ -156,9 +138,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
     @Override
     protected void preprocess() throws Exception {
         encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(),
-                getHashAlgoId());
+                SoapUtils.getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
-        servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
+        servletResponse.addHeader(HEADER_HASH_ALGO_ID,
+                SoapUtils.getHashAlgoId());
         servletResponse.addHeader("Connection", "close");
     }
 
@@ -457,6 +440,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void handleException(Exception ex) throws Exception {
+        log.error("handleException(): ", ex);
+
         CodedException exception;
         if (ex instanceof CodedException.Fault) {
             exception = (CodedException.Fault) ex;
@@ -504,11 +489,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private X509Certificate getClientAuthCert() {
         return clientSslCerts != null ? clientSslCerts[0] : null;
-    }
-
-    private static String getHashAlgoId() {
-        // FUTURE #2578 make hash function configurable
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
     }
 
     private static String getHashAlgoId(HttpServletRequest servletRequest) {
@@ -625,28 +605,134 @@ class ServerMessageProcessor extends MessageProcessorBase {
      * Soap parser that adds the request message hash to the response
      * message header.
      */
-    private class ResponseSoapParserImpl extends SoapParserImpl {
+    private class ResponseSoapParserImpl extends SaxSoapParserImpl {
+
+        private boolean inHeader;
+        private boolean inBody;
+        private boolean inExistingRequestHash;
+        private boolean bufferFlushed = true;
+
+        private char[] headerElementTabs;
+
+        private char[] bufferedChars;
+        private int bufferedOffset;
+        private int bufferedLength;
+
+        // force usage of processed XML since we need to write the request hash
+        @Override
+        protected boolean isProcessedXmlRequired() {
+            return true;
+        }
 
         @Override
-        protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                String charset, String originalContentType) throws Exception {
-            if (soap.getSOAPHeader() != null) {
-                String hash = encodeBase64(calculateDigest(getHashAlgoId(),
-                        requestMessage.getSoap().getBytes()));
+        protected SoapHeaderHandler getSoapHeaderHandler(SoapHeader header) {
+            return new SoapHeaderHandler(header) {
+                @Override
+                protected void openTag() {
+                    super.openTag();
+                    inHeader = true;
+                }
 
-                Marshaller m = JaxbUtils.createMarshaller(RequestHash.class);
-                m.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-                m.marshal(new RequestHash(
-                                getDigestAlgorithmURI(getHashAlgoId()), hash),
-                        soap.getSOAPHeader());
+                @Override
+                protected void closeTag() {
+                    super.closeTag();
+                    inHeader = false;
+                }
+            };
+        }
 
-                byte[] newRawXml = SoapUtils.getBytes(soap);
-                return super.createMessage(newRawXml, soap, charset,
-                        originalContentType);
+        @Override
+        protected void writeEndElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
+                inExistingRequestHash = false;
             } else {
-                return super.createMessage(rawXml, soap, charset,
-                        originalContentType);
+                writeBufferedCharacters(writer);
+                super.writeEndElementXml(prefix, element, attributes, writer);
             }
+            if (inHeader && element.equals(QNAME_XROAD_QUERY_ID)) {
+                try {
+                    byte[] hashBytes = requestMessage.getSoap().getHash();
+                    String hash = encodeBase64(hashBytes);
+
+                    AttributesImpl hashAttrs = new AttributesImpl(attributes);
+                    String algoId = getDigestAlgorithmURI(
+                            SoapUtils.getHashAlgoId());
+                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID,
+                            "xs:string", algoId);
+
+                    char[] tabs = headerElementTabs != null
+                            ? headerElementTabs : new char[0];
+                    super.writeCharactersXml(tabs, 0, tabs.length, writer);
+                    super.writeStartElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
+                            hashAttrs, writer);
+                    super.writeCharactersXml(hash.toCharArray(), 0,
+                            hash.length(), writer);
+                    super.writeEndElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
+                            hashAttrs, writer);
+                } catch (Exception e) {
+                    throw translateException(e);
+                }
+            }
+        }
+
+        @Override
+        protected void writeStartElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
+                inExistingRequestHash = true;
+            } else {
+                if (!inBody && element.equals(QNAME_SOAP_BODY)) {
+                    inBody = true;
+                }
+
+                writeBufferedCharacters(writer);
+                super.writeStartElementXml(prefix, element, attributes, writer);
+            }
+        }
+
+        private void writeBufferedCharacters(Writer writer) {
+            // Write the characters we ignored at the last characters event
+            if (!bufferFlushed) {
+                super.writeCharactersXml(bufferedChars, bufferedOffset,
+                        bufferedLength, writer);
+                bufferFlushed = true;
+            }
+        }
+
+        @Override
+        protected void writeCharactersXml(char[] characters, int start,
+                int length, Writer writer) {
+            if (inHeader && headerElementTabs == null) {
+                String value = new String(characters, start, length);
+                if (value.trim().isEmpty()) {
+                    headerElementTabs = value.toCharArray();
+                }
+            }
+
+            // When writing characters outside of the SOAP body, delay this
+            // operation until the next event, sometimes we don't want to write
+            // these characters, like when we're discarding a header
+            if (!inBody && bufferFlushed) {
+                bufferCharacters(characters, start, length);
+            } else if (!inExistingRequestHash) {
+                writeBufferedCharacters(writer);
+                super.writeCharactersXml(characters, start, length, writer);
+            }
+        }
+
+        private void bufferCharacters(char[] characters, int start,
+                int length) {
+            if (bufferedChars == null
+                    || bufferedChars.length < characters.length) {
+                bufferedChars = ArrayUtils.clone(characters);
+            } else {
+                System.arraycopy(characters, start, bufferedChars, start,
+                        length);
+            }
+            bufferedOffset = start;
+            bufferedLength = length;
+            bufferFlushed = false;
         }
     }
 }

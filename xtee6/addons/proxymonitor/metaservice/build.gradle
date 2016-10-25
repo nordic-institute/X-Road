@@ -70,6 +70,10 @@ jar {
     enabled = false
 }
 
+install {
+    enabled = false
+}
+
 shadowJar {
     baseName = "proxymonitor-metaservice"
     classifier = ''

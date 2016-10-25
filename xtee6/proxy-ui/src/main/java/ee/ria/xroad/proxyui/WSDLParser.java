@@ -22,10 +22,6 @@
  */
 package ee.ria.xroad.proxyui;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
@@ -59,6 +55,7 @@ import javax.wsdl.xml.WSDLLocator;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.MimeTypes;
@@ -68,10 +65,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 
 /**
  * Contains utility methods for extracting information from WSDL files.
@@ -316,7 +316,7 @@ public final class WSDLParser {
         private void checkForSoapFault(byte[] response) {
             Soap soap = null;
             try {
-                soap = new SoapParserImpl().parse(
+                soap = new SaxSoapParserImpl().parse(
                         contentTypeWithCharset(
                             MimeTypes.TEXT_XML,
                             StandardCharsets.UTF_8.name()

@@ -22,15 +22,6 @@
  */
 package ee.ria.xroad.common.asic;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
-import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -44,6 +35,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -62,9 +56,9 @@ import ee.ria.xroad.common.hashchain.DigestValue;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.Signature;
@@ -72,9 +66,15 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.signature.TimestampVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
+import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Controls the validity of ASiC containers.
@@ -139,7 +139,7 @@ public class AsicContainerVerifier {
         signatureVerifier.setVerifySchema(false);
 
         // Add required part "message" to the hash chain verifier.
-        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null));
+        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null, null));
 
         signatureVerifier.verify(signerName, atDate);
         signerCert = signatureVerifier.getSigningCertificate();
@@ -233,7 +233,7 @@ public class AsicContainerVerifier {
     }
 
     private static ClientId getSigner(String messageXml) {
-        Soap soap = new SoapParserImpl().parse(
+        Soap soap = new SaxSoapParserImpl().parse(
                 MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
         if (!(soap instanceof SoapMessageImpl)) {
