@@ -54,6 +54,7 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
@@ -62,6 +63,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import lombok.extern.slf4j.Slf4j;
+import lombok.SneakyThrows;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -91,14 +93,18 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
+    @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
             ProxyMessage requestProxyMessage) {
         requestMessage = requestProxyMessage.getSoap();
 
-        switch (requestMessage.getService().getServiceCode()) {
+        switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS: // $FALL-THROUGH$
             case ALLOWED_METHODS: // $FALL-THROUGH$
             case GET_WSDL:
+                requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
+                        requestProxyMessage.getSoapContentType(),
+                        requestProxyMessage.getSoapContent());
                 return true;
             default:
                 return false;

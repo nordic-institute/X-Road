@@ -22,12 +22,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +48,10 @@ import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.MessageFileNames;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 
 /**
  * Tests the signature verifier.
@@ -98,8 +96,9 @@ public class SignatureVerifierTest {
     @Test
     public void verifyValidSignature() throws Exception {
         List<MessagePart> hashes = new ArrayList<>();
+        byte[] messageBytes = fileToBytes("message-0.xml");
         hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                fileToBytes("message-0.xml")));
+                calculateDigest(SHA512_ID, messageBytes), messageBytes));
 
         SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
         verifier.addParts(hashes);
@@ -295,7 +294,7 @@ public class SignatureVerifierTest {
         thrown.expectError(X_INVALID_SIGNATURE_VALUE);
         List<MessagePart> hashes = new ArrayList<>();
         hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                hash("foo")));
+                hash("foo"), hash("foo")));
 
         SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
         verifier.addParts(hashes);

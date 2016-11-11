@@ -24,10 +24,10 @@ package ee.ria.xroad.common.message;
 
 import javax.xml.soap.SOAPFault;
 
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 
 import ee.ria.xroad.common.CodedException;
-import lombok.SneakyThrows;
 
 /**
  * Soap interface implementation representing an error message.
@@ -44,6 +44,25 @@ public class SoapFault implements Soap {
 
     private final byte[] rawXml;
     private final String charset;
+
+    /**
+     * Creates a new SOAP fault from the given parts.
+     * @param faultCode the fault code
+     * @param faultString the fault string
+     * @param faultActor the fault actor
+     * @param faultDetail the fault detail
+     * @param rawXml the raw XML data
+     * @param charset the charset of the XML
+     */
+    public SoapFault(String faultCode, String faultString, String faultActor,
+            String faultDetail, byte[] rawXml, String charset) {
+        this.faultCode = faultCode;
+        this.faultString = faultString;
+        this.faultActor = faultActor;
+        this.faultDetail = faultDetail;
+        this.rawXml = rawXml;
+        this.charset = charset;
+    }
 
     /**
      * Creates a new SOAP fault from a SOAPFault DOM element.

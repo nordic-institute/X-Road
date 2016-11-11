@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.message.SoapFault;
@@ -39,7 +40,6 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.MultipartEncoder;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Reads in all of the proxy message, extracts the parts and is later able
@@ -145,11 +145,13 @@ public class ProxyMessage implements ProxyMessageConsumer {
      * Finalize SOAP message processing.
      */
     public void consume() {
-        if (!hasBeenConsumed) {
+        if (!hasBeenConsumed && hasAttachments()) {
             try {
-                getSoapContent().close();
+                encoder.close();
+
+                hasBeenConsumed = true;
             } catch (Exception ignored) {
-                log.warn("Error closing SOAP content input stream: {}", ignored);
+                log.warn("Error closing SOAP encoder: {}", ignored);
             }
         }
     }

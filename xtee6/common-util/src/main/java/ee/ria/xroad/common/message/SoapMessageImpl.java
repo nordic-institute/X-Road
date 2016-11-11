@@ -22,26 +22,43 @@
  */
 package ee.ria.xroad.common.message;
 
-import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
-import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
-
 import javax.xml.soap.SOAPMessage;
+
+import lombok.SneakyThrows;
 
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+
 /**
  * This class represents the X-Road SOAP message.
  */
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
+    private byte[] hash;
+
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
-            SOAPMessage soap, String serviceName,
+            SOAPMessage soap, String serviceName, boolean isRpcEncoded,
             String originalContentType) throws Exception {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
-                isRpcMessage(soap), originalContentType);
+                isRpcEncoded, originalContentType);
+    }
+
+    /**
+     * Lazy method to retrieve the hash of the message, will calculate it
+     * on the first invocation of the method.
+     * @return hash of the message
+     */
+    @SneakyThrows
+    public byte[] getHash() {
+        if (hash == null) {
+            hash = calculateDigest(SoapUtils.getHashAlgoId(), getBytes());
+        }
+        return hash;
     }
 
     /**

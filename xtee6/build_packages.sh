@@ -10,6 +10,9 @@ XROAD=`pwd`
 
 export GRADLE_HOME PATH JAVA_HOME
 
+## if env is set DEB_BUILD_OPTIONS=release then packages are built without git hash
+#export DEB_BUILD_OPTIONS=release
+
 source $HOME/.rvm/scripts/rvm
 rvm use jruby-1.7.22
 

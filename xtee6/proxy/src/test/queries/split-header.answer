@@ -4,31 +4,28 @@
         xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <SOAP-ENV:Header>
+        <xroad:userId>12345</xroad:userId>
         <xroad:client id:objectType="MEMBER">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </xroad:client>
-        <xroad:centralService id:objectType="CENTRALSERVICE">
-            <id:xRoadInstance>EE</id:xRoadInstance>
-            <id:serviceCode>centralservice</id:serviceCode>
-        </xroad:centralService>
+        <xroad:issue>w
+aa
+ww
+</xroad:issue>
         <xroad:service id:objectType="SERVICE">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>
-            <id:memberCode>consumer</id:memberCode>
-            <id:serviceCode>centralservice</id:serviceCode>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>getState</id:serviceCode>
         </xroad:service>
-        <xroad:userId>EE37702211234</xroad:userId>
-        <xroad:id>1234567890</xroad:id>
+        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
-        <ns1:centralservice xmlns:ns1="http://cosumer.ee.xroad.net">
-            <request>
-                <name>foo</name>
-                <age>35</age>
-            </request>
-        </ns1:centralservice>
+        <xroad:getStateResponse>
+            <response>aä</response>
+        </xroad:getStateResponse>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>

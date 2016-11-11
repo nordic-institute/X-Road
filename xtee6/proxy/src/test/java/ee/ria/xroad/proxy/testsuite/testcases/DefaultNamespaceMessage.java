@@ -26,16 +26,17 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Sends message with central service.
+ * Normal message that used default namespace declarations.
+ * Result: client receives message.
  */
-public class CentralServiceMessage extends MessageTestCase {
+public class DefaultNamespaceMessage extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public CentralServiceMessage() {
-        requestFileName = "simple-centralservice.query";
-        responseFile = "simple-centralservice.answer";
+    public DefaultNamespaceMessage() {
+        requestFileName = "getstate-defaultnamespace.query";
+        responseFile = "getstate.answer";
     }
 
     @Override
@@ -43,11 +44,4 @@ public class CentralServiceMessage extends MessageTestCase {
             throws Exception {
         // Normal response, nothing more to check here.
     }
-
-    @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
-        // Message inconsistency at this point is expected, since client
-        // proxy will modify the request message
-    }
-
 }

@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.8.7 - 2016-10-21
+- DOM parser replacement with SAX parser (XTE-262)
+
 ## 6.8.6 - 2016-09-30
 - Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)
 - Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5 (XTE-278)

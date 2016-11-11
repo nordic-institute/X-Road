@@ -25,29 +25,26 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+
 /**
- * Sends message with central service.
+ * Client sends a normal message with an identifier that's missing
+ * it's object type.
+ * Result: CP responds with InvalidXml
  */
-public class CentralServiceMessage extends MessageTestCase {
+public class MissingObjectTypeMessage extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public CentralServiceMessage() {
-        requestFileName = "simple-centralservice.query";
-        responseFile = "simple-centralservice.answer";
+    public MissingObjectTypeMessage() {
+        requestFileName = "missingobjecttype.query";
+        responseFile = "getstate.query";
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse)
-            throws Exception {
-        // Normal response, nothing more to check here.
+    protected void validateFaultResponse(Message receivedResponse) {
+        assertErrorCode(CLIENT_X, X_INVALID_XML);
     }
-
-    @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
-        // Message inconsistency at this point is expected, since client
-        // proxy will modify the request message
-    }
-
 }

@@ -13,6 +13,13 @@ jetty_url=$(shell cat jetty.url)
 jetty_md5=$(shell md5sum jetty.tgz | cut -f1 -d ' ')
 rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
 
+
+#if DEB_BUILD_OPTIONS has release value set, use package names without git hash
+ifneq (,$(findstring release,$(DEB_BUILD_OPTIONS)))
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')
+endif
+
+
 %:
 	dh  $@
 
@@ -25,6 +32,7 @@ override_dh_gencontrol:
 build: 
 	./download_jetty.sh
 	tar zxf ~/jetty/jetty.tgz -C ~/jetty
+	rm -rf jetty9
 	mv ~/jetty/jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod

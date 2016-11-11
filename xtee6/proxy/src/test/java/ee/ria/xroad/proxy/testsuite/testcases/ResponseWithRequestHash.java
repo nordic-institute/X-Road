@@ -26,16 +26,16 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Sends message with central service.
+ * Ensures that if a request hash is present in the answer it is overridden.
  */
-public class CentralServiceMessage extends MessageTestCase {
+public class ResponseWithRequestHash extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public CentralServiceMessage() {
-        requestFileName = "simple-centralservice.query";
-        responseFile = "simple-centralservice.answer";
+    public ResponseWithRequestHash() {
+        requestFileName = "getstate.query";
+        responseFile = "requesthash.answer";
     }
 
     @Override
@@ -43,11 +43,4 @@ public class CentralServiceMessage extends MessageTestCase {
             throws Exception {
         // Normal response, nothing more to check here.
     }
-
-    @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
-        // Message inconsistency at this point is expected, since client
-        // proxy will modify the request message
-    }
-
 }

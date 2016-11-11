@@ -1,3 +1,9 @@
+xroad (6.8.7) trusty; urgency=low
+
+  * DOM parser replacement with SAX parser (XTE-262)
+
+ -- Cybernetica AS <xroad-support@cyber.ee> Fri, 21 Sep 2016 14:09:00 +0300
+
 xroad (6.8.6) trusty; urgency=low
 
   * Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)

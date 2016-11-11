@@ -36,7 +36,7 @@ Description: X-Road shared components
  X-Road shared components and utilities
 
 Package: xroad-securityserver
-Conflicts: xroad-centralserver, uxp-addon-monitoring (<=6.4.0)
+Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
 Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version})
 Pre-depends:
