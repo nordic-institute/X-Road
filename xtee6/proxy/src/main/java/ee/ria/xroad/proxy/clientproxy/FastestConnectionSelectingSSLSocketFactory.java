@@ -45,6 +45,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -124,10 +125,28 @@ class FastestConnectionSelectingSSLSocketFactory
 
         log.info("Connecting to {}", selectedSocket.getUri());
 
+        updateOpMonitoringData(context, selectedSocket);
+
         SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
         return sslSocket;
+    }
+
+    private static void updateOpMonitoringData(HttpContext context,
+            SocketInfo socketInfo) {
+        try {
+            OpMonitoringData opMonitoringData = (OpMonitoringData) context
+                    .getAttribute(OpMonitoringData.class.getName());
+
+            if (opMonitoringData != null) {
+                opMonitoringData.setServiceSecurityServerAddress(
+                        socketInfo.getUri().getHost());
+            }
+        } catch (Exception e) {
+            log.error("Failed to assign op monitoring data field {}",
+                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
+        }
     }
 
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
@@ -157,7 +176,7 @@ class FastestConnectionSelectingSSLSocketFactory
             socket.connect(toAddress(address), timeout);
             return new SocketInfo(address, socket);
         } catch (IOException | UnresolvedAddressException e) {
-            log.error("Could not connect to '{}': {}", address, e);
+            log.error("Could not connect to '{}'", address, e);
 
             IOUtils.closeQuietly(socket);
             return null;
@@ -216,9 +235,8 @@ class FastestConnectionSelectingSSLSocketFactory
             URI sslHost = (URI) session.getValue(ID_SELECTED_TARGET);
             return sslHost != null ? sslHost.equals(host) : false;
         } catch (Exception e) {
-            log.error("Error checking if host {} is in session ({}).", host,
-                    session);
-            log.error("Exception :{}", e);
+            log.error("Error checking if host {} is in session ({})", host,
+                    session, e);
         }
 
         return false;

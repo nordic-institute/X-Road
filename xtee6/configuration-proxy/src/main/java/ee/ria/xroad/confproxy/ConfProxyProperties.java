@@ -363,7 +363,8 @@ public class ConfProxyProperties {
                 new FileInputStream(getCertPath(keyId).toFile())) {
             return CryptoUtils.readCertificate(is);
         } catch (Exception e) {
-            log.error("Failed to read cert for key ID '{}'. Exception: {}", keyId, e);
+            log.error("Failed to read cert for key ID '{}'", keyId, e);
+
             return null;
         }
     }

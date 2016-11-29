@@ -27,14 +27,15 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * This class represents X-Road SOAP message header.
@@ -47,6 +48,8 @@ public class SoapHeader {
 
     public static final String NS_XROAD = "http://x-road.eu/xsd/xroad.xsd";
     public static final String PREFIX_XROAD = "xroad";
+    public static final String NS_REPR =
+            "http://x-road.eu/xsd/representation.xsd";
 
     @CheckConsistency
     @XmlElement(name = "client", required = true, namespace = NS_XROAD)
@@ -65,6 +68,14 @@ public class SoapHeader {
     @CheckConsistency
     @XmlElement(name = "userId", required = false, namespace = NS_XROAD)
     private String userId;
+
+    @CheckConsistency
+    @XmlElement(name = "representedParty", required = false, namespace = NS_REPR)
+    private RepresentedParty representedParty;
+
+    @CheckConsistency
+    @XmlElement(name = "issue", required = false, namespace = NS_XROAD)
+    private String issue;
 
     @CheckConsistency
     @XmlElement(name = "id", required = true, namespace = NS_XROAD)

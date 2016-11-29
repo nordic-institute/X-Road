@@ -27,17 +27,23 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
+
 import org.eclipse.jetty.http.HttpFields;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +92,11 @@ public class ProxyMessageDecoder {
 
     /** The signature that is read from the message*/
     private SignatureData signature = new SignatureData(null, null, null);
+
+    @Getter
+    private long attachmentsByteCount = 0;
+
+    private int attachmentNo = 0;
 
     /**
      * Construct a message decoder.
@@ -144,6 +155,10 @@ public class ProxyMessageDecoder {
     public void verify(ClientId sender, SignatureData signatureData)
             throws Exception {
         verifier.verify(sender, signatureData);
+    }
+
+    public int getAttachmentCount() {
+        return attachmentNo;
     }
 
     private void parseFault(InputStream is) throws Exception {
@@ -329,7 +344,6 @@ public class ProxyMessageDecoder {
 
         final MimeStreamParser attachmentParser = new MimeStreamParser(config);
         attachmentParser.setContentHandler(new AbstractContentHandler() {
-            private int attachmentNo = 0;
             private Map<String, String> headers;
             private String partContentType;
 
@@ -361,10 +375,13 @@ public class ProxyMessageDecoder {
                 try {
                     DigestCalculator dc =
                             CryptoUtils.createDigestCalculator(getHashAlgoId());
-                    TeeInputStream proxyIs =
-                            new TeeInputStream(is, dc.getOutputStream(), true);
+                    CountingOutputStream cos = new CountingOutputStream(
+                            dc.getOutputStream());
+                    TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
                     callback.attachment(partContentType, proxyIs, headers);
+
+                    attachmentsByteCount += cos.getByteCount();
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),

@@ -44,9 +44,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.StringUtils;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -72,6 +74,8 @@ import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
 public class SaxSoapParserImpl implements SoapParser {
     private static final String URI_IDENTIFIERS =
             "http://x-road.eu/xsd/identifiers";
+    private static final String URI_REPRESENTATION =
+            "http://x-road.eu/xsd/representation.xsd";
     private static final String URI_ENVELOPE =
             "http://schemas.xmlsoap.org/soap/envelope/";
     private static final String URI_ENCODING =
@@ -89,6 +93,10 @@ public class SaxSoapParserImpl implements SoapParser {
 
     private static final String QUERY_ID = "id";
     private static final String USER_ID = "userId";
+    private static final String ISSUE = "issue";
+    private static final String REPRESENTED_PARTY = "representedParty";
+    private static final String PARTY_CLASS = "partyClass";
+    private static final String PARTY_CODE = "partyCode";
     private static final String PROTOCOL_VERSION = "protocolVersion";
     private static final String CLIENT = "client";
     private static final String SERVICE = "service";
@@ -120,6 +128,10 @@ public class SaxSoapParserImpl implements SoapParser {
             new QName(SoapHeader.NS_XROAD, QUERY_ID);
     protected static final QName QNAME_XROAD_USER_ID =
             new QName(SoapHeader.NS_XROAD, USER_ID);
+    protected static final QName QNAME_XROAD_ISSUE =
+            new QName(SoapHeader.NS_XROAD, ISSUE);
+    protected static final QName QNAME_REPR_REPRESENTED_PARTY =
+            new QName(SoapHeader.NS_REPR, REPRESENTED_PARTY);
     protected static final QName QNAME_XROAD_PROTOCOL_VERSION =
             new QName(SoapHeader.NS_XROAD, PROTOCOL_VERSION);
     protected static final QName QNAME_XROAD_REQUEST_HASH =
@@ -147,6 +159,11 @@ public class SaxSoapParserImpl implements SoapParser {
             new QName(URI_IDENTIFIERS, SERVICE_VERSION);
     protected static final QName QNAME_ID_SERVER_CODE =
             new QName(URI_IDENTIFIERS, SERVER_CODE);
+
+    protected static final QName QNAME_PARTY_CLASS =
+            new QName(URI_REPRESENTATION, PARTY_CLASS);
+    protected static final QName QNAME_PARTY_CODE =
+            new QName(URI_REPRESENTATION, PARTY_CODE);
 
     private static final String MISSING_HEADER_MESSAGE =
             "Malformed SOAP message: header missing";
@@ -660,7 +677,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         /**
          * Called when a security server header has been parsed.
-         * @param clientId the parsed client ID
+         * @param securityServerId the parsed client ID
          */
         protected void onSecurityServer(SecurityServerId securityServerId) {
             header.setSecurityServer(securityServerId);
@@ -690,6 +707,13 @@ public class SaxSoapParserImpl implements SoapParser {
             header.setCentralService(centralServiceId);
         }
 
+        /**
+         * Called when a represented party header has been paresed.
+         * @param representedParty the represented party
+         */
+        protected void onRepresentedParty(RepresentedParty representedParty) {
+            header.setRepresentedParty(representedParty);
+        }
 
         @Override
         protected XmlElementHandler getChildElementHandler(QName element) {
@@ -699,6 +723,9 @@ public class SaxSoapParserImpl implements SoapParser {
             } else if (element.equals(QNAME_XROAD_USER_ID)) {
                 validateDuplicateHeader(element, header.getUserId());
                 return createValueElementHandler(header::setUserId);
+            } else if (element.equals(QNAME_XROAD_ISSUE)) {
+                validateDuplicateHeader(element, header.getIssue());
+                return createValueElementHandler(header::setIssue);
             } else if (element.equals(QNAME_XROAD_PROTOCOL_VERSION)) {
                 validateDuplicateHeader(element, header.getProtocolVersion());
                 return createValueElementHandler(this::setProtocolVersion);
@@ -708,6 +735,10 @@ public class SaxSoapParserImpl implements SoapParser {
             } else if (element.equals(QNAME_XROAD_SERVICE)) {
                 validateDuplicateHeader(element, header.getService());
                 return new XRoadServiceHeaderHandler(this::onService);
+            } else if (element.equals(QNAME_REPR_REPRESENTED_PARTY)) {
+                validateDuplicateHeader(element, header.getRepresentedParty());
+                return new XRoadRepresentedPartyHeaderHandler(
+                        this::onRepresentedParty);
             } else if (element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
                 validateDuplicateHeader(element, header.getService());
                 return new XRoadCentralServiceHeaderHandler(
@@ -884,6 +915,65 @@ public class SaxSoapParserImpl implements SoapParser {
                     getValue(QNAME_ID_SUBSYSTEM_CODE),
                     getValue(QNAME_ID_SERVICE_CODE),
                     getValue(QNAME_ID_SERVICE_VERSION)));
+        }
+    }
+
+    /**
+     * Handler for the XRoad protocol extension represented party header.
+     */
+    @RequiredArgsConstructor
+    private static class XRoadRepresentedPartyHeaderHandler
+            extends XmlElementHandler {
+        protected static final List<QName> REPRESENTED_PARTY_PARTS =
+                Arrays.asList(QNAME_PARTY_CLASS, QNAME_PARTY_CODE);
+
+        private final Consumer<RepresentedParty> onRepresentedPartyCallback;
+
+        private Map<QName, String> representedPartyValues = new HashMap<>();
+
+        protected String getValue(QName key) {
+            return representedPartyValues.get(key);
+        }
+
+        protected void setValue(QName key, String value) {
+            representedPartyValues.put(key, value);
+        }
+
+        private List<QName> getAllowedChildElements() {
+            return REPRESENTED_PARTY_PARTS;
+        }
+
+        @Override
+        protected XmlElementHandler getChildElementHandler(QName element) {
+            if (getAllowedChildElements().contains(element)) {
+                validateDuplicateHeader(element, getValue(element));
+
+                return new RepresentedPartyElementHandler(element);
+            }
+
+            return super.getChildElementHandler(element);
+        }
+
+        @RequiredArgsConstructor
+        private class RepresentedPartyElementHandler extends XmlElementHandler {
+            private final QName key;
+
+            @Override
+            protected void openTag() {
+                validateDuplicateHeader(key, getValue(key));
+            }
+
+            @Override
+            protected void value(String val) {
+                setValue(key, val);
+            }
+        }
+
+        @Override
+        public void closeTag() {
+            onRepresentedPartyCallback.accept(new RepresentedParty(
+                    getValue(QNAME_PARTY_CLASS),
+                    getValue(QNAME_PARTY_CODE)));
         }
     }
 

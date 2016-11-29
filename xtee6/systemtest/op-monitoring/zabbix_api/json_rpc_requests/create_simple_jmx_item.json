@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "method": "item.create",
+    "params": {
+        "name": "Last successful request timestamp: XTEE-CI-XM/GOV/00000000/Center/xroadGetRandom/v1",
+        "key_": "jmx[metrics:name=lastSuccessfulRequestTimestamp(XTEE-CI-XM/GOV/00000000/Center/xroadGetRandom/v1), Value]",
+        "hostid": "10141",
+        "type": 16,
+        "value_type": 3,
+        "interfaceid": "44",
+        "delay": 10,
+        "username": "monitorRole",
+        "password": "Vaarikas456"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 3
+}

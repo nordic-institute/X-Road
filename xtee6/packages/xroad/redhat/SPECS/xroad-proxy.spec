@@ -45,7 +45,7 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 
-cp -p %{_sourcedir}/proxy/xroad-{proxy,confclient} %{buildroot}/usr/share/xroad/bin/
+cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-proxy-port-redirect.sh %{buildroot}/usr/share/xroad/scripts/
@@ -73,7 +73,6 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,xroad,xroad,-)
-%config /etc/xroad/services/confclient.conf
 %config /etc/xroad/services/proxy.conf
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/proxy-ui.ini
@@ -87,7 +86,6 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/pam.d/xroad
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
-%attr(644,root,root) %{_unitdir}/xroad-confclient.service
 
 %config %attr(644,root,root) /etc/logrotate.d/xroad-proxy
 %config %attr(644,root,root) /etc/rsyslog.d/40-xroad.conf
@@ -95,7 +93,6 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
 
 %attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-proxy
-%attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-setup.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh
@@ -103,8 +100,6 @@ rm -rf %{buildroot}
 
 /usr/bin/xroad-add-admin-user
 /usr/lib/systemd/system/xroad-async.service
-/usr/share/xroad/db/liquibase
-/usr/share/xroad/db/liquibase.jar
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh

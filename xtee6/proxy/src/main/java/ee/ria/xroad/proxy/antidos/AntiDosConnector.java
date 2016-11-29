@@ -80,7 +80,7 @@ public class AntiDosConnector extends SelectChannelConnector {
         try {
             delegate.accept(server);
         } catch (Exception err) {
-            log.error("Error accepting connection:", err);
+            log.error("Error accepting connection", err);
             server.close();
         }
     }

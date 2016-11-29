@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -31,34 +29,36 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.protocol.HttpContext;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 @Slf4j
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
 
     CustomSSLSocketFactory(SSLContext sslContext,
             String[] supportedCipherSuites,
-            X509HostnameVerifier hostNameVerifier) {
+            HostnameVerifier hostNameVerifier) {
         super(sslContext, null, supportedCipherSuites, hostNameVerifier);
     }
 
     CustomSSLSocketFactory(SSLContext sslContext,
                            String[] supportedProtocols,
                            String[] supportedCipherSuites,
-                           X509HostnameVerifier hostNameVerifier) {
+                           HostnameVerifier hostNameVerifier) {
         super(sslContext, supportedProtocols, supportedCipherSuites, hostNameVerifier);
     }
 

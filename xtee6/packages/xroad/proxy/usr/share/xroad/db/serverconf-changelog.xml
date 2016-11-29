@@ -11,4 +11,5 @@
   <include file="serverconf/3-history.xml" />
   <include file="serverconf/4-refactoring.xml" />
   <include file="serverconf/5-backendtype.xml" />
+  <include file="serverconf/6-ownerauthtype.xml" />
 </databaseChangeLog>

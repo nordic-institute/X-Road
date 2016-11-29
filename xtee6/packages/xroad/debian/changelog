@@ -1,16 +1,28 @@
+xroad (6.8.9) trusty; urgency=low
+
+  * Operational data monitoring improvements
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Wed, 23 Nov 2016 15:49:14 +0200
+
+xroad (6.8.8) trusty; urgency=low
+
+  * Operational data monitoring proof of concept
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Thu, 27 Oct 2016 11:03:15 +0300
+
 xroad (6.8.7) trusty; urgency=low
 
-  * DOM parser replacement with SAX parser (XTE-262)
+  * DOM parser replacement with SAX parser
 
- -- Cybernetica AS <xroad-support@cyber.ee> Fri, 21 Sep 2016 14:09:00 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 21 Sep 2016 14:09:00 +0300
 
 xroad (6.8.6) trusty; urgency=low
 
-  * Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)
-  * Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5 (XTE-278)
+  * Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter
+  * Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5
   * Added xroad-securityserver conflicts uxp-addon-monitoring <= 6.4.0
 
- -- Cybernetica AS <xroad-support@cyber.ee> Fri, 30 Sep 2016 14:43:36 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 30 Sep 2016 14:43:36 +0300
 
 xroad (6.8.5) trusty; urgency=low
 

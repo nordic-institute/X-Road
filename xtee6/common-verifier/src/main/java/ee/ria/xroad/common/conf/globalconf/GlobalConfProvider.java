@@ -189,6 +189,14 @@ public interface GlobalConfProvider extends ConfProvider {
     SecurityServerId getServerId(X509Certificate cert) throws Exception;
 
     /**
+     * @param serverId the security server id
+     * @return the client id that owns the security server with the specified id
+     * or null if the given id does not match an existing server
+     * @throws Exception if an error occurs
+     */
+    ClientId getServerOwner(SecurityServerId serverId);
+
+    /**
      * @param cert the certificate
      * @param memberId the member identifier
      * @return true, if cert can be used to authenticate as

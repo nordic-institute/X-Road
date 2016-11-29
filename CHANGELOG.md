@@ -1,5 +1,11 @@
 # Change Log
 
+## 6.8.9 - 2016-11-23
+- Operational data monitoring improvements
+
+## 6.8.8 - 2016-10-27
+- Operational data monitoring proof of concept
+
 ## 6.8.7 - 2016-10-21
 - DOM parser replacement with SAX parser (XTE-262)
 

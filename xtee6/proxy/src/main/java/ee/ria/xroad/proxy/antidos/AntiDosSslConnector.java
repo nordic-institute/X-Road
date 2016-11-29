@@ -82,7 +82,7 @@ public class AntiDosSslConnector extends SslSelectChannelConnector {
         try {
             delegate.accept(server);
         } catch (Exception err) {
-            log.error("Error accepting connection:", err);
+            log.error("Error accepting connection", err);
             server.close();
         }
     }

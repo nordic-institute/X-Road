@@ -1,10 +1,10 @@
 <?xml version="1.0" ?>
-<xroad:securityServerId id:objectType="SERVER"
+<xroad:securityServer id:objectType="SERVER"
         xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
         xmlns:id="http://x-road.eu/xsd/identifiers">
     <id:xRoadInstance>EE</id:xRoadInstance>
     <id:memberClass>BUSINESS</id:memberClass>
     <id:memberCode>123456789</id:memberCode>
     <id:serverCode>bambi</id:serverCode>
-</xroad:securityServerId>
+</xroad:securityServer>
 

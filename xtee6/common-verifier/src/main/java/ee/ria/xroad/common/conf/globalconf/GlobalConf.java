@@ -22,16 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -44,7 +42,8 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Global configuration.
@@ -408,6 +407,19 @@ public final class GlobalConf {
         log.trace("getServerId({})", cert.getSubjectDN());
 
         return getInstance().getServerId(cert);
+    }
+
+    /**
+     * @param serverId the security server id
+     * @return the client id that owns the security server with the specified id
+     * or null if the given id does not match an existing server
+     * @throws Exception if an error occurs
+     */
+    public static ClientId getServerOwner(SecurityServerId serverId)
+            throws Exception {
+        log.trace("getOwner({})", serverId);
+
+        return getInstance().getServerOwner(serverId);
     }
 
     /**
