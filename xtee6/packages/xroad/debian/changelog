@@ -1,3 +1,9 @@
+xroad (6.8.7.1) trusty; urgency=low
+
+  * CDATA parsing fix (XTE-262)
+
+ -- Vitali Stupin <vitali.stupin@ria.ee>  Thu, 1 Dec 2016 10:15:00 +0300
+
 xroad (6.8.7) trusty; urgency=low
 
   * DOM parser replacement with SAX parser (XTE-262)
