@@ -1,3 +1,9 @@
+xroad-jetty9 (6.8.8) trusty; urgency=low
+
+  * Version bump
+
+ -- Vitali Stupin <vitali.stupin@ria.ee>  Thu, 1 Dec 2016 13:45:00 +0300
+
 xroad-jetty9 (6.8.7) trusty; urgency=low
 
   * Version bump

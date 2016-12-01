@@ -1,5 +1,9 @@
 # Change Log
 
+## 6.8.8 - 2016-10-30
+- CDATA parsing fix (XTE-262)
+- Converting PR-MESS to Markdown
+
 ## 6.8.7 - 2016-10-21
 - DOM parser replacement with SAX parser (XTE-262)
 
