@@ -36,6 +36,7 @@ import java.util.Stack;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.soap.SOAPException;
 
@@ -52,7 +53,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import org.xml.sax.helpers.DefaultHandler;
+import org.xml.sax.XMLReader;
+import org.xml.sax.ext.DefaultHandler2;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.CentralServiceId;
@@ -72,6 +74,9 @@ import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
  */
 @Slf4j
 public class SaxSoapParserImpl implements SoapParser {
+    private static final String LEXICAL_HANDLER_PROPERTY =
+            "http://xml.org/sax/properties/lexical-handler";
+
     private static final String URI_IDENTIFIERS =
             "http://x-road.eu/xsd/identifiers";
     private static final String URI_REPRESENTATION =
@@ -180,6 +185,9 @@ public class SaxSoapParserImpl implements SoapParser {
     private static final String MISSING_ENVELOPE_MESSAGE =
             "Malformed SOAP message: envelope missing";
 
+    private static final char[] CDATA_START = "<![CDATA[".toCharArray();
+    private static final char[] CDATA_END = "]]>".toCharArray();
+
     private static final SAXParserFactory PARSER_FACTORY =
             createSaxParserFactory();
 
@@ -230,8 +238,11 @@ public class SaxSoapParserImpl implements SoapParser {
             throws Exception {
         try (BufferedWriter out = new BufferedWriter(writer)) {
             XRoadSoapHandler handler = new XRoadSoapHandler(out);
-            PARSER_FACTORY.newSAXParser().parse(inputStream, handler);
+            SAXParser saxParser = PARSER_FACTORY.newSAXParser();
+            XMLReader xmlReader = saxParser.getXMLReader();
+            xmlReader.setProperty(LEXICAL_HANDLER_PROPERTY, handler);
 
+            saxParser.parse(inputStream, handler);
             return handler;
         } catch (SAXException ex) {
             throw new SOAPException(ex);
@@ -321,7 +332,7 @@ public class SaxSoapParserImpl implements SoapParser {
     }
 
     @RequiredArgsConstructor
-    private class XRoadSoapHandler extends DefaultHandler {
+    private class XRoadSoapHandler extends DefaultHandler2 {
         private static final String NAMESPACE_PREFIX_SEPARATOR = ":";
 
         private static final String XML_VERSION_ENCODING =
@@ -412,6 +423,20 @@ public class SaxSoapParserImpl implements SoapParser {
 
             if (isProcessedXmlRequired()) {
                 writeCharactersXml(ch, start, length, out);
+            }
+        }
+
+        @Override
+        public void startCDATA() {
+            if (isProcessedXmlRequired()) {
+                writeCharactersXml(CDATA_START, 0, CDATA_START.length, out);
+            }
+        }
+
+        @Override
+        public void endCDATA() {
+            if (isProcessedXmlRequired()) {
+                writeCharactersXml(CDATA_END, 0, CDATA_END.length, out);
             }
         }
 
