@@ -64,7 +64,7 @@ final class OpMonitorDaemon implements StartStop {
     // The start timestamp is saved once the server has been started.
     // This value is reported over JMX.
     @Getter(AccessLevel.PRIVATE)
-    private static long startTimestamp;
+    private long startTimestamp;
 
     private Server server = new Server();
 
@@ -152,6 +152,6 @@ final class OpMonitorDaemon implements StartStop {
 
     private void registerHealthMetrics() {
         HealthDataMetrics.registerInitialMetrics(healthMetricRegistry,
-                OpMonitorDaemon::getStartTimestamp);
+                this::getStartTimestamp);
     }
 }
