@@ -1,0 +1,31 @@
+package opmonitor.loadtesting;
+
+import io.gatling.core.Predef._ 
+import io.gatling.core.structure.PopulationBuilder
+import scala.concurrent.duration._
+
+// The sample simulation setup for the load tests of operational monitoring.
+// Copy the contents of this file to SimulationSetup.scala.
+// NOTE! The contents of SimulationSetup.scala will be overwritten by the wrapper script if
+// the environment variable SIMULATION_SETUP has been set.
+object SimulationSetup {
+
+  val Scenarios = List[PopulationBuilder] (
+
+    SimulationScenarios.SimpleRequestScenario.inject(
+      constantUsersPerSec(1) during(10 seconds)
+    //  constantUsersPerSec(5) during(30 seconds),
+    //  constantUsersPerSec(15) during(30 seconds),
+    //  constantUsersPerSec(20) during(300 seconds)
+    ),
+
+    //SimulationScenarios.RequestWith1MbBodyScenario.inject(
+    //  constantUsersPerSec(1) during(300 seconds)
+    //),
+
+    SimulationScenarios.RequestWithAttachmentScenario.inject(
+      constantUsersPerSec(1) during(10 seconds)
+    )
+  )
+
+}

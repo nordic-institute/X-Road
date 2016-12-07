@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.proxy;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -36,15 +33,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+
+import com.typesafe.config.ConfigFactory;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import scala.concurrent.Await;
+
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
@@ -61,11 +63,13 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Main program for the proxy server.
@@ -140,6 +144,7 @@ public final class ProxyMain {
         for (StartStop service: SERVICES) {
             service.join();
         }
+
     }
 
     private static void stopServices() throws Exception {
@@ -176,6 +181,7 @@ public final class ProxyMain {
         SignerClient.init(actorSystem);
         BatchSigner.init(actorSystem);
         MessageLog.init(actorSystem, jobManager);
+        OpMonitoring.init(actorSystem);
 
         SERVICES.add(jobManager);
         SERVICES.add(new ClientProxy());
@@ -260,7 +266,7 @@ public final class ProxyMain {
                     JsonUtils.getSerializer().toJson(result, getParams().response.getWriter());
 
                 } catch (Exception e) {
-                    log.error("Error getting timeout status {}", e);
+                    log.error("Error getting timeout status", e);
                 }
             }
         });

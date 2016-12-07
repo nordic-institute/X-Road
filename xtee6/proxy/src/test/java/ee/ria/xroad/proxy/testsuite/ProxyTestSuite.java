@@ -42,6 +42,7 @@ import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
@@ -102,6 +103,7 @@ public final class ProxyTestSuite {
 
         try {
             MessageLog.init(actorSystem, jobManager);
+            OpMonitoring.init(actorSystem);
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);

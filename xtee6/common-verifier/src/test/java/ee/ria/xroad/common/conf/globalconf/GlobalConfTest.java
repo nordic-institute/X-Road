@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
-import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +47,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
+import static java.util.Collections.singleton;
+import static org.junit.Assert.*;
 
 /**
  * Tests the global configuration functionality.
@@ -253,6 +249,27 @@ public class GlobalConfTest {
                         "fooServerCode");
         X509Certificate cert = TestCertUtil.getProducer().cert;
         assertEquals(server, GlobalConf.getServerId(cert));
+    }
+
+    /**
+     * Tests getting the owner of a security server.
+     * @throws Exception if an error occurs
+     */
+    @Test
+    public void getServerOwner() throws Exception {
+        SecurityServerId serverId =
+                SecurityServerId.create("EE", "BUSINESS", "producer",
+                        "producerServerCode");
+
+        ClientId owner = ClientId.create("EE", "BUSINESS", "producer");
+        ClientId ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
+        assertEquals(owner, ownerFromGlobalConf);
+
+        serverId = SecurityServerId.create("EE", "BUSINESS", "producer",
+                        "unknown");
+
+        ownerFromGlobalConf = GlobalConf.getServerOwner(serverId);
+        assertNull(ownerFromGlobalConf);
     }
 
     /**

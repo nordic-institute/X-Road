@@ -291,15 +291,17 @@ public class ConfigurationDirectory {
                     metadata = getMetadata(filepath);
                 } catch (Exception e) {
                     log.error("Could not open configuration file '{}'"
-                            + " metadata: {}", filepath, e);
+                            + " metadata", filepath, e);
                     throw e;
                 }
                 consumer.consume(metadata, is);
             } catch (RuntimeException e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}'",
+                        filepath, e);
                 throw e;
             } catch (Exception e) {
-                log.error("Error processing configuration file '{}': {}", filepath, e);
+                log.error("Error processing configuration file '{}'",
+                        filepath, e);
                 throw new RuntimeException(e);
             }
         });

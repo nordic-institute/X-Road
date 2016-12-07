@@ -22,30 +22,24 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
-import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
-import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
-import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
+import static ee.ria.xroad.common.request.ManagementRequests.*;
+
 /**
  * Parser for management requests.
  */
+@Slf4j
 public final class ManagementRequestParser {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ManagementRequestParser.class);
-
     private static final JAXBContext JAXB_CTX = initJaxbContext();
 
     private ManagementRequestParser() {
@@ -101,19 +95,24 @@ public final class ManagementRequestParser {
 
     private static <T> T parse(SoapMessageImpl message, String expectedNodeName)
             throws Exception {
-        LOG.debug("parse(expectedNodeName: {}, message: {})", expectedNodeName,
-                message.getXml());
+
+        if (log.isDebugEnabled()) {
+            log.debug("parse(expectedNodeName: {}, message: {})",
+                    expectedNodeName, message.getXml());
+        }
 
         Node node = message.getSoap().getSOAPBody().getFirstChild();
         if (node == null) {
-            LOG.error("Message is missing content node");
+            log.error("Message is missing content node");
+
             throw new RuntimeException("SoapMessage has no content");
         }
 
         String nodeName = node.getLocalName();
         if (!expectedNodeName.equalsIgnoreCase(nodeName)) {
-            LOG.error("Content node name ({}) does not match "
+            log.error("Content node name ({}) does not match "
                     + "expected name ({})", nodeName, expectedNodeName);
+
             throw new RuntimeException("Unexpected content: " + nodeName);
         }
 
@@ -125,7 +124,8 @@ public final class ManagementRequestParser {
         } catch (JAXBException e) {
             String m = String.format("Failed to parse '%s'", expectedNodeName);
 
-            LOG.error(m, e);
+            log.error(m, e);
+
             throw new RuntimeException(m, e);
         }
     }

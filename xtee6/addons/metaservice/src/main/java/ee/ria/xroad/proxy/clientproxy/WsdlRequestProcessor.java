@@ -153,7 +153,7 @@ class WsdlRequestProcessor {
                         subsystemCode, serviceCode, version);
             }
         } catch (Exception e) {
-            log.error("Coded exception {}", e);
+            log.error("Coded exception", e);
             throw new CodedException(X_INVALID_REQUEST, e.getMessage());
         }
     }
@@ -202,6 +202,7 @@ class WsdlRequestProcessor {
         @Override
         public void fault(SoapFault fault) throws Exception {
             log.error("Received fault {}", fault.getXml());
+
             throw fault.toCodedException();
         }
 
@@ -213,6 +214,7 @@ class WsdlRequestProcessor {
         @Override
         public void onError(Exception t) throws Exception {
             log.error("Error while reading response", t);
+
             throw t;
         }
 

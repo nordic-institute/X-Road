@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':common-op-monitoring')
+    compile project(':proxy')
+}

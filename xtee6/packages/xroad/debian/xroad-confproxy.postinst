@@ -2,8 +2,6 @@
 
 . /usr/share/debconf/confmodule
 
-
-
 case "$1" in
     configure)
 
@@ -35,6 +33,10 @@ esac
 #DEBHELPER#
 
 invoke-rc.d nginx restart
+
+# disable confclient start
+echo manual > /etc/init/xroad-confclient.override
+invoke-rc.d xroad-confclient stop
 
 db_stop
 

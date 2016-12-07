@@ -195,7 +195,7 @@ public final class BatchSignerIntegrationTest {
                                     + hash + ")", e);
                         }
                     } catch (Exception e) {
-                        log.error("Error: " + e);
+                        log.error("Error", e);
                     } finally {
                         latch.countDown();
                     }

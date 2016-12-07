@@ -25,13 +25,13 @@ package ee.ria.xroad.common.message;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPException;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
+
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -44,6 +44,7 @@ import ee.ria.xroad.common.util.MimeTypes;
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
+
 import static org.junit.Assert.*;
 
 /**
@@ -120,6 +121,23 @@ public class SoapMessageTest {
         assertEquals(expectedService, message.getService());
         assertEquals("EE37702211234", message.getUserId());
         assertEquals("1234567890", message.getQueryId());
+    }
+
+    /**
+     * Test that represented party header element is correctly parsed.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void simpleRepresentedPartyAndIssueInHeaderRequest()
+            throws Exception {
+        SoapMessageImpl message = createRequest(
+                "simple-representedparty.query");
+        RepresentedParty expectedRepresentedParty = new RepresentedParty("COM",
+                "MEMBER3");
+        String expectedIssue = "issue-1";
+
+        assertEquals(expectedRepresentedParty, message.getRepresentedParty());
+        assertEquals(expectedIssue, message.getIssue());
     }
 
     /**

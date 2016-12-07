@@ -22,18 +22,18 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.client.HttpClient;
+
 import org.eclipse.jetty.server.Request;
 
 import ee.ria.xroad.common.CodedException;
@@ -41,11 +41,16 @@ import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.CLIENT;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 /**
  * Base class for client proxy handlers.
@@ -56,9 +61,11 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     protected final HttpClient client;
 
+    protected final boolean storeOpMonitoringData;
+
     abstract MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response)
-                    throws Exception;
+            HttpServletRequest request, HttpServletResponse response,
+            OpMonitoringData opMonitoringData) throws Exception;
 
     @Override
     public void handle(String target, Request baseRequest,
@@ -70,6 +77,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         }
 
         boolean handled = false;
+        OpMonitoringData opMonitoringData = storeOpMonitoringData
+                ? new OpMonitoringData(CLIENT, getEpochMillisecond()) : null;
 
         long start = PerformanceLogger.log(log, "Received request from "
                 + request.getRemoteAddr());
@@ -78,7 +87,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         MessageProcessorBase processor = null;
 
         try {
-            processor = createRequestProcessor(target, request, response);
+            processor = createRequestProcessor(target, request, response,
+                    opMonitoringData);
 
             if (processor != null) {
                 handled = true;
@@ -98,6 +108,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
             log.error(errorMessage, ex);
 
+            updateOpMonitoring(opMonitoringData, ex);
+
             // Exceptions caused by incoming message and exceptions
             // derived from faults sent by serverproxy already contain
             // full error code. Thus, we must not attach additional
@@ -111,7 +123,8 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             log.error("Request processing error", ex);
 
             // Respond with HTTP status code and plain text error message
-            // instead of SOAP fault message.
+            // instead of SOAP fault message. No need to update operational
+            // monitoring fields here either.
 
             failure(response, ex);
         } catch (Exception ex) {
@@ -120,14 +133,21 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
             // All the other exceptions get prefix Server.ClientProxy...
             CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, ex);
 
-            log.error("Request processing error (" + cex.getFaultDetail() + ")",
-                    ex);
+            log.error("Request processing error ({})",
+                    cex.getFaultDetail(), ex);
+
+            updateOpMonitoring(opMonitoringData, cex);
 
             failure(processor, response, cex);
         } finally {
             baseRequest.setHandled(handled);
 
             if (handled) {
+                if (storeOpMonitoringData) {
+                    opMonitoringData.setResponseOutTs(getEpochMillisecond());
+                    OpMonitoring.store(opMonitoringData);
+                }
+
                 logPerformanceEnd(start);
             }
         }
@@ -205,5 +225,13 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
 
     private static void logPerformanceEnd(long start) {
         PerformanceLogger.log(log, start, "Request handled");
+    }
+
+    private void updateOpMonitoring(OpMonitoringData opMonitoringData,
+            CodedException e) {
+        if (opMonitoringData != null) {
+            opMonitoringData.setSucceeded(false);
+            opMonitoringData.setSoapFault(e);
+        }
     }
 }

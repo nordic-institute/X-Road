@@ -167,7 +167,7 @@ class InitController < ApplicationController
         owner = ClientType.new
         owner.identifier = owner_id
         owner.clientStatus = ClientType::STATUS_SAVED
-        owner.isAuthentication = "NOSSL"
+        owner.isAuthentication = "SSLAUTH"
         owner.conf = new_serverconf
 
         new_serverconf.client.add(owner)

@@ -114,5 +114,29 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
         return getHeader().getUserId();
     }
 
+    /**
+     * Gets the represented party from the SOAP message header.
+     * @return RepresentedParty
+     */
+    public RepresentedParty getRepresentedParty() {
+        return getHeader().getRepresentedParty();
+    }
+
+    /**
+     * Gets the issue from the SOAP message header.
+     * @return String
+     */
+    public String getIssue() {
+        return getHeader().getIssue();
+    }
+
+    /**
+     * Gets the protocol version from the SOAP message header.
+     * @return String
+     */
+    public String getProtocolVersion() {
+        return getHeader().getProtocolVersion().getVersion();
+    }
+
 }
 

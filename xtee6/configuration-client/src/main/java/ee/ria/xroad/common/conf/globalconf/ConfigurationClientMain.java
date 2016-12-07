@@ -205,6 +205,7 @@ public final class ConfigurationClientMain {
             return RETURN_SUCCESS;
         } catch (Exception e) {
             log.error("Error when downloading conf", e);
+        
             return ConfigurationClientUtils.getErrorCode(e);
         }
     }
@@ -283,7 +284,7 @@ public final class ConfigurationClientMain {
                     log.info("handler /status");
                     JsonUtils.getSerializer().toJson(listener.getStatus(), getParams().response.getWriter());
                 } catch (Exception e) {
-                    log.error("Error getting conf client status {}", e);
+                    log.error("Error getting conf client status", e);
                 }
             }
         });

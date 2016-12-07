@@ -28,8 +28,12 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
 
@@ -61,8 +65,11 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     private final String topBoundary;
     private final String attachmentBoundary;
 
-    private int attachmentNo = 1;
+    private int attachmentNo = 0;
     private boolean inAttachmentPart = false;
+
+    @Getter
+    private long attachmentsByteCount = 0;
 
     /**
      * Creates the encoder instance.
@@ -73,6 +80,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
     public ProxyMessageEncoder(OutputStream out, String hashAlgoId)
             throws IllegalArgumentException {
         this.hashAlgoId = hashAlgoId;
+
         if (hashAlgoId == null) {
             throw new IllegalArgumentException(
                     "Hash algorithm id cannot be null");
@@ -157,12 +165,16 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
 
         DigestCalculator calc = createDigestCalculator(hashAlgoId);
-        TeeInputStream proxyIs =
-                new TeeInputStream(content, calc.getOutputStream(), true);
+        CountingOutputStream cos = new CountingOutputStream(
+                calc.getOutputStream());
+        TeeInputStream proxyIs = new TeeInputStream(content, cos, true);
 
         mpEncoder.startPart(contentType, toHeaders(additionalHeaders));
         mpEncoder.write(proxyIs);
-        signer.addPart(MessageFileNames.attachment(attachmentNo++),
+
+        attachmentsByteCount += cos.getByteCount();
+
+        signer.addPart(MessageFileNames.attachment(++attachmentNo),
                 hashAlgoId, calc.getDigest());
     }
 
@@ -264,4 +276,7 @@ public class ProxyMessageEncoder implements ProxyMessageConsumer {
         }
     }
 
+    public int getAttachmentCount() {
+        return attachmentNo;
+    }
 }

@@ -1,6 +1,9 @@
 # Change Log
 
-## 6.8.8 - 2016-10-30
+## 6.8.9 - 2016-12-05
+- Operational data monitoring
+
+## 6.8.8 - 2016-12-01
 - CDATA parsing fix (XTE-262)
 - Converting PR-MESS to Markdown
 

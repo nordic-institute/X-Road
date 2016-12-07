@@ -162,18 +162,23 @@ public final class ManagementRequestSender {
 
         SoapMessageImpl requestMessage = req.getRequestMessage();
 
-        log.trace("Request SOAP:\n{}", requestMessage.getXml());
+        if (log.isTraceEnabled()) {
+            log.trace("Request SOAP:\n{}", requestMessage.getXml());
+        }
 
         SoapMessageImpl responseMessage =
                 getResponse(sender, req.getResponseContentType());
 
-        log.trace("Response SOAP:\n{}", responseMessage.getXml());
+        if (log.isTraceEnabled()) {
+            log.trace("Response SOAP:\n{}", responseMessage.getXml());
+        }
 
         SoapUtils.checkConsistency(requestMessage, responseMessage);
 
         Integer requestId = getRequestId(responseMessage);
 
         log.trace("Request ID in the central server database: {}", requestId);
+
         return requestId;
     }
 
