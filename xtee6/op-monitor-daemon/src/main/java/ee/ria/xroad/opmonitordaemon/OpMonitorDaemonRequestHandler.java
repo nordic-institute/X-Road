@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.codahale.metrics.MetricRegistry;
+
 import com.google.gson.Gson;
 
 import lombok.SneakyThrows;
@@ -42,10 +43,7 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints.STORE_DATA_PATH;
 
@@ -105,7 +103,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
             new QueryRequestProcessor(request, response,
                     healthMetricRegistry).process();
-        } catch (Throwable t) {
+        } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling query request", t);
 
             sendErrorResponse(response, translateWithPrefix(
@@ -134,7 +132,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
 
             new StoreRequestProcessor(
                     request, healthMetricRegistry).process();
-        } catch (Throwable t) {
+        } catch (Throwable t) { // We want to catch serious errors as well
             log.error("Error while handling data store request", t);
 
             sendJsonErrorResponse(response, t.getMessage());
@@ -145,26 +143,26 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         sendJsonOkResponse(response);
     }
 
-    private void handleBadRequest(HttpServletResponse response) {
+    private static void handleBadRequest(HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
-    private boolean isPostRequest(HttpServletRequest request) {
+    private static boolean isPostRequest(HttpServletRequest request) {
         return "POST".equalsIgnoreCase(request.getMethod());
     }
 
-    private String invalidMethodError(HttpServletRequest request) {
+    private static String invalidMethodError(HttpServletRequest request) {
         return "Must use POST request method instead of "
                 + request.getMethod();
     }
 
-    private String invalidContentTypeError(HttpServletRequest request,
+    private static String invalidContentTypeError(HttpServletRequest request,
             String expectedContentType) {
         return "Invalid content type " + request.getContentType()
                 + ", expecting " + expectedContentType;
     }
 
-    private void sendJsonErrorResponse(HttpServletResponse response,
+    private static void sendJsonErrorResponse(HttpServletResponse response,
             String errorMessage) throws IOException {
         byte[] messageBytes = GSON.toJson(
                 new StoreOpMonitoringDataResponse(errorMessage)).getBytes(
@@ -173,7 +171,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
         sendJsonResponse(response, messageBytes);
     }
 
-    private void sendJsonOkResponse(HttpServletResponse response)
+    private static void sendJsonOkResponse(HttpServletResponse response)
             throws IOException {
         sendJsonResponse(response, OK_RESPONSE_BYTES);
     }
@@ -184,7 +182,7 @@ class OpMonitorDaemonRequestHandler extends HandlerBase {
                 MimeUtils.UTF8);
     }
 
-    private void sendJsonResponse(HttpServletResponse response,
+    private static void sendJsonResponse(HttpServletResponse response,
             byte[] messageBytes) throws IOException {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MimeTypes.JSON);

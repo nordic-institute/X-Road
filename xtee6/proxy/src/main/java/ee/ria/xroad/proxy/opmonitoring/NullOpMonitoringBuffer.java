@@ -29,7 +29,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
  * A dummy implementation of operational monitoring buffer that does nothing.
  * Actual implementation can be provided by addon.
  */
-public class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+class NullOpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     @Override
     protected void store(OpMonitoringData data) throws Exception {

@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Shared functions for the integration and load testing scripts of
 # operational monitoring.
 
@@ -25,27 +46,62 @@ from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+# Allow operational data to be stored a couple of seconds later than the moment
+# the corresponding X-Road request was handled. Under normal load, longer delays
+# indicate an issue. Even after the operational monitoring daemon has been
+# restarted before the test, bootstrapping the internal components should not 
+# add more than a second. If an external operational monitoring daemon is used,
+# we expect the clocks to be in sync with the security server.
+WAIT_FOR_OPERATIONAL_DATA_SECONDS = 2
+
 def generate_message_id() -> str:
     """ Return a random string of 32 ASCII characters and digits. """
     return ''.join([
         random.choice(string.ascii_letters + string.digits) for n in range(32)])
 
-def generate_timestamp() -> int:
-    """ Return the integer part of the current Unix timestamp. """
-    return int(time.time())
+def generate_user_and_server(server_address, ssh_user) -> str:
+    """ Return user@server to be used with commands run over SSH.
 
-def get_remote_timestamp(server_address) -> int:
+    If ssh_user is not given, simply return the address of the server, assuming
+    that the current user is suitable for running the command.
+    """
+    if ssh_user is None:
+        return server_address
+    return ssh_user + '@' + server_address
+
+def get_remote_timestamp(server_address, ssh_user) -> int:
     """ Return the current Unix timestamp in seconds at the given server. """
+    user_and_server = generate_user_and_server(server_address, ssh_user)
     command = "date +%s"
-    return int(subprocess.check_output(["ssh", server_address, command, ]))
+    return int(subprocess.check_output(["ssh", user_and_server, command, ]))
 
-def get_opmonitor_restart_timestamp(server_address) -> int:
+def get_opmonitor_restart_timestamp(server_address, ssh_user) -> int:
     """ Return the startup timestamp of xroad-opmonitor in seconds at the given server. """
     # status opmonitor: xroad-opmonitor start/running, process 24939
     # ls: dr-xr-xr-x 9 xroad xroad 0 1479823227 /proc/24939
+    user_and_server = generate_user_and_server(server_address, ssh_user)
     command = "ls -l --time-style=+%s -d /proc/$(status xroad-opmonitor " \
             "| awk '{print $4}') | awk '{print $6}'"
-    return int(subprocess.check_output(["ssh", server_address, command, ]))
+    return int(subprocess.check_output(["ssh", user_and_server, command, ]))
+
+def restart_service(server_address: str, service: str, ssh_user: str):
+    """Restart the given service at the given server. """
+    if service == "opmonitor":
+        target = "operational monitoring daemon"
+    elif service == "proxy":
+        target = "proxy"
+    print("\nRestarting the %s in " \
+            "security server %s" % (target, server_address))
+    command = "sudo service xroad-%s restart" % (service)
+    user_and_server = generate_user_and_server(server_address, ssh_user)
+    try:
+        subprocess.check_call(["ssh", user_and_server, command, ])
+    except subprocess.CalledProcessError as e:
+        print(e)
+        sys.exit(1)
+
+def wait_for_operational_data():
+    time.sleep(WAIT_FOR_OPERATIONAL_DATA_SECONDS)
 
 def post_xml_request(
         request_path: str, data: str, get_raw_stream: bool=False) -> requests.Response:
@@ -173,6 +229,9 @@ def clean_whitespace(contents: str) -> str:
     lines = [line.strip(" \r\n") for line in contents.split('\n')]
     return ''.join(lines)
 
+def parse_and_clean_xml(xml_string: str) -> minidom.Document:
+    return minidom.parseString(clean_whitespace(xml_string))
+
 def get_multipart_soap_and_record_count(
         response_xml_part: bytes) -> Tuple[bytes, int]:
     """ Return the SOAP part and the record count in the query data response.
@@ -292,8 +351,10 @@ def assert_expected_timestamp_values(
         timestamp_after_request: int):
     """ Check if timestamp values are in expected range.
 
-    Otherwise, throw an exception -- the response was inconsistent with the
-    expectation.
+    Expecting the timestamps have been queried from the target host after
+    waiting for operational data to become available.
+
+    Throw an exception if the response was inconsistent with the expectation.
     """
     for rec in json_payload.get("records", []):
         timestamp_fields = ["monitoringDataTs","requestInTs", 
@@ -307,14 +368,13 @@ def assert_expected_timestamp_values(
         for field in timestamp_fields:
             if (field == "monitoringDataTs"):
                 timestamp = rec.get("monitoringDataTs")
-            else: 
-                timestamp = int(round(rec.get(field) / 1000))
-            # Assuming NTP is used in the testing environment, allow
-            # the host and target to be a couple of seconds out of sync anyway.
-            if not(timestamp_before_request - 5 <= timestamp 
-                   <= timestamp_after_request + 5):
+            else:
+                timestamp = int(rec.get(field) / 1000)
+            if not timestamp_before_request <= timestamp <= timestamp_after_request:
                 print("The actual value of the field '%s' (%s) is not in the " \
-                    "expected range" % (field, rec.get(field)))
+                    "expected range [%s - %s]" % (
+                        field, rec.get(field),
+                        timestamp_before_request, timestamp_after_request,))
                 raise Exception("Timestamp value is not in the expected range")
 
 def assert_equal_timestamp_values(json_payload: dict):
@@ -393,6 +453,13 @@ def assert_get_next_records_from_in_range(operational_data_response_soap: bytes,
 
     else:
         raise Exception("nextRecordsFrom was not found in the operational data response")
+
+def remove_key_from_list(key: str, list_of_expected_keys_and_values: list):
+    for expected_keys_and_values in list_of_expected_keys_and_values:
+        for i, (field, value) in enumerate(expected_keys_and_values):
+            if field == key:
+                del expected_keys_and_values[i]
+                break
 
 # Helpers
 

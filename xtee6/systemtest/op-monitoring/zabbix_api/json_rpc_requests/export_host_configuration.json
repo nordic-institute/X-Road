@@ -1,0 +1,14 @@
+{
+    "jsonrpc": "2.0",
+    "method": "configuration.export",
+    "params": {
+        "options": {
+            "hosts": [
+                "10141"
+            ]
+        },
+        "format": "json"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 1
+}

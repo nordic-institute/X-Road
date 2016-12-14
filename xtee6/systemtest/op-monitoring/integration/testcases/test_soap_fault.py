@@ -1,12 +1,31 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Test case for verifying that the operational monitoring related data of a
 # SOAP fault response are stored by the operational monitoring daemon.
 
 import os
 import sys
-import time
-import xml.dom.minidom as minidom
 
 sys.path.append('..')
 import python_common as common
@@ -33,7 +52,8 @@ def _expected_keys_and_values_of_unknown_service_query_rec(
         ("serviceVersion", "v1"),
         ("serviceXRoadInstance", "XTEE-CI-XM"),
         ("soapFaultCode", "Server.ServerProxy.UnknownService"),
-        ("soapFaultString", "Unknown service: SERVICE:XTEE-CI-XM/GOV/00000000/Center/xroadGetDate/v1"),
+        ("soapFaultString",
+            "Unknown service: SERVICE:XTEE-CI-XM/GOV/00000000/Center/xroadGetDate/v1"),
         ("succeeded", False),
     ]
 
@@ -89,7 +109,7 @@ def _expected_keys_and_values_of_soap_fault_query_rec(
     ]
 
 def run(client_security_server_address, producer_security_server_address,
-        request_template_dir):
+        ssh_user, request_template_dir):
     unknown_member_query_template_filename = os.path.join(
             request_template_dir, "unknown_member_query_template.xml")
     unknown_service_query_template_filename = os.path.join(
@@ -101,7 +121,10 @@ def run(client_security_server_address, producer_security_server_address,
     query_data_producer_template_filename = os.path.join(
             request_template_dir, "query_operational_data_producer_ss_owner_template.xml")
 
-    timestamp_before_request = common.generate_timestamp()
+    client_timestamp_before_requests = common.get_remote_timestamp(
+            client_security_server_address, ssh_user)
+    producer_timestamp_before_requests = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
 
     message_id_serverproxy = common.generate_message_id()
     print("\nGenerated message ID %s for X-Road request to unknown service" % (
@@ -121,7 +144,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.assert_soap_fault(xml)
@@ -142,7 +165,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.assert_soap_fault(xml)
@@ -163,14 +186,17 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.assert_soap_fault(xml)
 
-    # Wait a couple of seconds for the operational data to be stored with some certainty.
-    time.sleep(3)
-    timestamp_after_request = common.generate_timestamp()
+    common.wait_for_operational_data()
+
+    client_timestamp_after_requests = common.get_remote_timestamp(
+            client_security_server_address, ssh_user)
+    producer_timestamp_after_requests = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
     
     # Now make operational data requests to both security servers and check the
     # response payloads.
@@ -183,7 +209,7 @@ def run(client_security_server_address, producer_security_server_address,
 
     request_contents = common.format_query_operational_data_request_template(
             query_data_client_template_filename, message_id,
-            timestamp_before_request - 5, timestamp_after_request + 5)
+            client_timestamp_before_requests, client_timestamp_after_requests)
 
     print("Generated the following query data request for the client's security server: \n")
     print(request_contents)
@@ -218,7 +244,8 @@ def run(client_security_server_address, producer_security_server_address,
 
         # Check if the timestamps in the response are in the expected range.
         common.assert_expected_timestamp_values(
-                json_payload, timestamp_before_request, timestamp_after_request)
+                json_payload,
+                client_timestamp_before_requests, client_timestamp_after_requests)
 
         common.print_multipart_query_data_response(json_payload)
 
@@ -234,7 +261,7 @@ def run(client_security_server_address, producer_security_server_address,
 
     request_contents = common.format_query_operational_data_request_template(
             query_data_producer_template_filename, message_id,
-            timestamp_before_request - 5, timestamp_after_request + 5)
+            producer_timestamp_before_requests, producer_timestamp_after_requests)
     print("Generated the following query data request for the producer's " \
             "security server: \n")
     print(request_contents)
@@ -264,7 +291,8 @@ def run(client_security_server_address, producer_security_server_address,
 
         # Check timestamp values
         common.assert_expected_timestamp_values(
-                json_payload, timestamp_before_request, timestamp_after_request)
+                json_payload,
+                producer_timestamp_before_requests, producer_timestamp_after_requests)
  
         common.print_multipart_query_data_response(json_payload)
  

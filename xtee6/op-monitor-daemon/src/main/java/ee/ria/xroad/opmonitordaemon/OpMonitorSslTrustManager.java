@@ -37,13 +37,16 @@ import ee.ria.xroad.common.util.CryptoUtils;
 @Slf4j
 class OpMonitorSslTrustManager implements X509TrustManager {
 
-    private X509Certificate expectedClientCert;
+    private X509Certificate expectedClientCert = null;
 
     OpMonitorSslTrustManager() throws Exception {
-        String location = OpMonitoringSystemProperties.getOpMonitorClientCertificatePath();
+        String location = OpMonitoringSystemProperties
+                .getOpMonitorClientCertificatePath();
 
         try (InputStream fis = new FileInputStream(location)) {
             expectedClientCert = CryptoUtils.readCertificate(fis);
+        } catch (Exception e) {
+            log.error("Could not load client certificate '{}'", location, e);
         }
     }
 
@@ -51,12 +54,16 @@ class OpMonitorSslTrustManager implements X509TrustManager {
     public void checkClientTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
         if (chain.length == 0) {
-            log.warn("Client did not send TLS certificate");
-
-            return;
+            throw new CertificateException(
+                    "Client did not send TLS certificate");
         }
 
         log.trace("Received peer certificate {}", chain[0]);
+
+        if (expectedClientCert == null) {
+            throw new CertificateException("Expected client certificate not"
+                    + " loaded, cannot verify client");
+        }
 
         if (!expectedClientCert.equals(chain[0])) {
             throw new CertificateException(

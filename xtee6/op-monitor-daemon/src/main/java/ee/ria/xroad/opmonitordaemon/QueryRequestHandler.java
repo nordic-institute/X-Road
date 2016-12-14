@@ -75,11 +75,12 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODIN
  */
 @Slf4j
 abstract class QueryRequestHandler {
-    private static final Schema OP_MONITORING_SCHEMA = createSchema();
 
-    protected static final JAXBContext JAXB_CTX = initJaxbCtx();
-    protected static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
-    protected static final Gson GSON = JsonUtils.getSerializer();
+    static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
+    static final Gson GSON = JsonUtils.getSerializer();
+
+    private static final JAXBContext JAXB_CTX = initJaxbCtx();
+    private static final Schema OP_MONITORING_SCHEMA = createSchema();
 
     /**
      * Handle the given request and write the response in the provided output
@@ -89,7 +90,7 @@ abstract class QueryRequestHandler {
      * @param contentTypeCallback function to call when response content type
      * is available (before writing to output stream)
      */
-    public abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
+    abstract void handle(SoapMessageImpl requestSoap, OutputStream out,
             Consumer<String> contentTypeCallback) throws Exception;
 
     private static JAXBContext initJaxbCtx() {
@@ -110,7 +111,7 @@ abstract class QueryRequestHandler {
         }
     }
 
-    protected static Unmarshaller createUnmarshaller(Class<?> clazz)
+    private static Unmarshaller createUnmarshaller(Class<?> clazz)
             throws Exception {
         Unmarshaller unmarshaller = JaxbUtils.createUnmarshaller(clazz);
         unmarshaller.setEventHandler(QueryRequestHandler::validationFailed);
@@ -135,7 +136,7 @@ abstract class QueryRequestHandler {
     }
 
     @SuppressWarnings("unchecked")
-    protected static <T> T getRequestData(SoapMessageImpl requestSoap,
+    static <T> T getRequestData(SoapMessageImpl requestSoap,
             Class<?> clazz) throws Exception {
         Unmarshaller unmarshaller = createUnmarshaller(clazz);
 
@@ -148,13 +149,13 @@ abstract class QueryRequestHandler {
         }
     }
 
-    protected static SoapMessageImpl createResponse(
+    static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, JAXBElement<?> jaxbElement)
                     throws Exception {
         return createResponse(requestMessage, createMarshaller(), jaxbElement);
     }
 
-    protected static SoapMessageImpl createResponse(
+    static SoapMessageImpl createResponse(
             SoapMessageImpl requestMessage, Marshaller marshaller,
             JAXBElement<?> jaxbElement) throws Exception {
         return SoapUtils.toResponse(requestMessage,
@@ -164,11 +165,11 @@ abstract class QueryRequestHandler {
                 });
     }
 
-    protected static Marshaller createMarshaller() throws Exception {
+    private static Marshaller createMarshaller() throws Exception {
         return createMarshaller(null);
     }
 
-    protected static Marshaller createMarshaller(
+    static Marshaller createMarshaller(
             AttachmentMarshaller attachmentMarshaller) throws Exception {
         Marshaller marshaller = JAXB_CTX.createMarshaller();
 
@@ -179,7 +180,7 @@ abstract class QueryRequestHandler {
         return marshaller;
     }
 
-    protected static DataHandler createAttachmentDataSource(
+    static DataHandler createAttachmentDataSource(
             byte[] payload, String cid, String contentType) {
         return new DataHandler(new ByteArrayDataSource(payload, contentType)) {
             @Override
@@ -189,7 +190,7 @@ abstract class QueryRequestHandler {
         };
     }
 
-    protected static byte[] compress(String data) throws IOException {
+    static byte[] compress(String data) throws IOException {
         byte[] dataBytes = data.getBytes(StandardCharsets.UTF_8);
 
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream(
@@ -221,7 +222,7 @@ abstract class QueryRequestHandler {
 
         private final Map<String, DataHandler> attachments = new HashMap<>();
 
-        public void encodeAttachments() throws Exception {
+        void encodeAttachments() throws Exception {
             for (Entry<String, DataHandler> attach : attachments.entrySet()) {
                 responseEncoder.attachment(attach.getValue().getContentType(),
                         attach.getValue().getInputStream(),

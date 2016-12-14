@@ -36,4 +36,5 @@ packages/xroad/debian/xroad-monitor.xroad-monitor.upstart
 packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart
 systemtest/op-monitoring/load/SimulationSetup.scala
 systemtest/op-monitoring/load/opmonitor/
+systemtest/op-monitoring/zabbix_api/zabbix_hosts_and_services.json
 **/__pycache__/

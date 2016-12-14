@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Test case for verifying that invalid 'recordsFrom' and 'recordsTo'
 # values in operational monitoring request result in a SOAP fault and
 # 'recordsTo' value in the future results with 'nextRecordsFrom' element
@@ -7,13 +28,12 @@
 
 import os
 import sys
-import xml.dom.minidom as minidom
 
 sys.path.append('..')
 import python_common as common
 
 def run(client_security_server_address, producer_security_server_address,
-        request_template_dir):
+        ssh_user, request_template_dir):
     query_data_client_template_filename = os.path.join(
             request_template_dir, "query_operational_data_client_template.xml")
     query_data_client_missing_recordsfrom_template_filename = os.path.join(
@@ -46,7 +66,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Earlier recordsTo than recordsFrom in operational monitoring request must 
@@ -68,7 +88,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # recordsFrom >= (now - records-available-timestamp-offset-seconds) in operational 
@@ -90,7 +110,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Missing recordsFrom element in operational monitoring request must 
@@ -112,7 +132,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Missing recordsTo element in operational monitoring request must 
@@ -134,7 +154,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Missing recordsFrom and recordsTo elements in operational monitoring 
@@ -156,7 +176,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Missing searchCriteria element in operational monitoring 
@@ -177,7 +197,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Non-numeric recordsFrom value in operational monitoring request must 
@@ -199,7 +219,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Too large recordsTo value in operational monitoring request must 
@@ -221,7 +241,7 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     # Negative recordsFrom and recordsTo values in operational monitoring 
@@ -230,7 +250,7 @@ def run(client_security_server_address, producer_security_server_address,
 
     message_id = common.generate_message_id()
     timestamp_before_request = common.get_remote_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
     print("\n---- Sending an operational data request where " \
             "'recordsTo' is in the future to the client's security server ----\n")
 

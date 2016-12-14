@@ -42,8 +42,6 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.OUTPUT_FIELDS;
-import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordCleaner.cleanRecords;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.*;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.*;
 
@@ -129,37 +127,61 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
     @Test
     public void storeAndQueryDataCausingOverflow() throws Exception {
-        OperationalDataRecordManager.setMaxRecordsInPayload(10);
-
         storeFullOperationalDataRecords(8, 1474968980L);
         storeFullOperationalDataRecords(17, 1474968981L);
 
-        // Size overflow + additional records.
-        OperationalDataRecords result = queryRecords(1474968960L, 1474968990L);
+        // Less than max records.
+        OperationalDataRecordManager.setMaxRecordsInPayload(10);
+        OperationalDataRecords result = queryRecords(1474968980L, 1474968980L);
+        assertEquals(8, result.size());
+        assertNull(result.getNextRecordsFrom());
 
-        assertEquals(25, result.size());
-        assertNotNull(result.getNextRecordsFrom());
-        assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
-
-        // Size overflow + additional records.
-        result = queryRecords(1474968981L, 1474968990L);
-
-        assertEquals(17, result.size());
-        assertNotNull(result.getNextRecordsFrom());
-        assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
-
+        // Max records, no overflow indication since there are no records left.
         OperationalDataRecordManager.setMaxRecordsInPayload(8);
+        result = queryRecords(1474968980L, 1474968980L);
+        assertEquals(8, result.size());
+        assertNull(result.getNextRecordsFrom());
 
-        // Size overflow + no additional records.
-        result = queryRecords(1474968960L, 1474968985L);
+        // Additional records, no overflow indication since the last record
+        // timestamp equals to the timestamp recordsTo.
+        OperationalDataRecordManager.setMaxRecordsInPayload(5);
+        result = queryRecords(1474968980L, 1474968980L);
+        assertEquals(8, result.size());
+        assertNull(result.getNextRecordsFrom());
+
+        // Additional records, no overflow indication since the overflowing
+        // records are from the same second than the last ones that fit
+        // in the limit.
+        OperationalDataRecordManager.setMaxRecordsInPayload(10);
+        result = queryRecords(1474968980L, 1474968990L);
+        assertEquals(25, result.size());
+        assertNull(result.getNextRecordsFrom());
+
+        storeFullOperationalDataRecords(1, 1474968985L);
+
+        // Max records, overflow indication since there are records left
+        // than were stored later than the records that fit into the limit.
+        OperationalDataRecordManager.setMaxRecordsInPayload(8);
+        result = queryRecords(1474968960L, 1474968990L);
         assertEquals(8, result.size());
         assertNotNull(result.getNextRecordsFrom());
         assertEquals(1474968981, result.getNextRecordsFrom().longValue());
 
-        // No size overflow.
-        result = queryRecords(1474968980L, 1474968980L);
-        assertEquals(8, result.size());
-        assertNull(result.getNextRecordsFrom());
+        // Additional records, overflow indication since there is 1 record left
+        // that was stored later than the last record that fits into the limit.
+        OperationalDataRecordManager.setMaxRecordsInPayload(10);
+        result = queryRecords(1474968960L, 1474968990L);
+        assertEquals(25, result.size());
+        assertNotNull(result.getNextRecordsFrom());
+        assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
+
+        // Additional records, overflow indication since there is 1 record left
+        // that was stored later than the last record that fits into the limit.
+        OperationalDataRecordManager.setMaxRecordsInPayload(10);
+        result = queryRecords(1474968981L, 1474968990L);
+        assertEquals(17, result.size());
+        assertNotNull(result.getNextRecordsFrom());
+        assertEquals(1474968982L, result.getNextRecordsFrom().longValue());
     }
 
     @Test
@@ -210,7 +232,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
 
         final OperationalDataRecord r = result.getRecords().get(0);
 
-        OUTPUT_FIELDS.forEach(i -> {
+        OperationalDataOutputSpecFields.OUTPUT_FIELDS.forEach(i -> {
             try {
                 Field field = OperationalDataRecord.class.getDeclaredField(i);
                 field.setAccessible(true);
@@ -305,7 +327,7 @@ public class OperationalDataRecordManagerTest extends BaseTestUsingDB {
         storeFullOperationalDataRecords(1, 1474968970L);
         storeFullOperationalDataRecords(1, 1474968980L);
 
-        cleanRecords(new DateTime(1474968975000L));
+        OperationalDataRecordCleaner.cleanRecords(new DateTime(1474968975000L));
 
         OperationalDataRecords result = queryRecords(1474968960L, 1474968980L);
 

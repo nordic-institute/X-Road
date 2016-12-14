@@ -32,11 +32,15 @@ import java.util.concurrent.TimeUnit;
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 import akka.actor.Props;
+
 import com.google.gson.Gson;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
+
 import scala.concurrent.duration.FiniteDuration;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -58,6 +62,9 @@ import static java.util.Collections.list;
  */
 @Slf4j
 public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
+    public static final String OP_MONITORING_DAEMON_SENDER =
+            "OpMonitoringDaemonSender";
+
     private static final String NO_ADDRESS_FOUND =
             "No suitable IP address is bound to the network interface ";
     private static final String NO_INTERFACE_FOUND =
@@ -77,11 +84,11 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             TimeUtils.secondsToMillis(OpMonitoringSystemProperties
                     .getOpMonitorBufferConnectionTimeoutSeconds());
 
-    private Cancellable tick;
-
     private static final Gson GSON = JsonUtils.getSerializer();
 
-    private final Map<Long, OpMonitoringData> buffer =
+    private Cancellable tick;
+
+    final Map<Long, OpMonitoringData> buffer =
             new LinkedHashMap<Long, OpMonitoringData>() {
                 @Override
                 protected boolean removeEldestEntry(Map.Entry eldest) {
@@ -103,9 +110,6 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     private final CloseableHttpClient httpClient;
 
-    public static final String OP_MONITORING_DAEMON_SENDER =
-            "OpMonitoringDaemonSender";
-
     private final ActorRef sender;
 
     private static String ipAddress;
@@ -122,13 +126,21 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
             httpClient = null;
             sender = null;
         } else {
-            httpClient = OpMonitoringDaemonHttpClient.createHttpClient(
-                    ServerConf.getSSLKey(), 1, 1,
-                    CLIENT_CONNECTION_TIMEOUT_MILLISECONDS);
-            sender = getContext().system().actorOf(
-                    Props.create(OpMonitoringDaemonSender.class, httpClient),
-                    OP_MONITORING_DAEMON_SENDER);
+            httpClient = createHttpClient();
+            sender = createSender();
         }
+    }
+
+    CloseableHttpClient createHttpClient() throws Exception {
+        return OpMonitoringDaemonHttpClient.createHttpClient(
+                ServerConf.getSSLKey(), 1, 1,
+                CLIENT_CONNECTION_TIMEOUT_MILLISECONDS);
+    }
+
+    ActorRef createSender() {
+        return getContext().system().actorOf(
+                Props.create(OpMonitoringDaemonSender.class, httpClient),
+                OP_MONITORING_DAEMON_SENDER);
     }
 
     @Override
@@ -194,7 +206,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         // Do not worry, scheduled sending retries..
     }
 
-    private long getNextBufferIndex() {
+    long getNextBufferIndex() {
         bufferIndex = bufferIndex == Long.MAX_VALUE ? 0 : bufferIndex + 1;
 
         return bufferIndex;

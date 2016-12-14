@@ -37,7 +37,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
  * be converted to any values defined in SecurityServerType, instead of silently setting
  * the securityServerField to null.
  */
-public class SecurityServerTypeTypeAdapter extends TypeAdapter<String> {
+class SecurityServerTypeTypeAdapter extends TypeAdapter<String> {
 
     @Override
     public String read(final JsonReader in) throws IOException {

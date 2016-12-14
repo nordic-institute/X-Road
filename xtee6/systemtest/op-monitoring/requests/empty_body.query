@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd">
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
    <SOAP-ENV:Header>
     <xroad:client id:objectType="SUBSYSTEM">
          <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>

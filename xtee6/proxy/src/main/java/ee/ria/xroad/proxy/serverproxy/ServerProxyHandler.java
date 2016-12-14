@@ -89,14 +89,12 @@ class ServerProxyHandler extends HandlerBase {
             ServerMessageProcessor processor = createRequestProcessor(request,
                     response, start, opMonitoringData);
             processor.process();
-        } catch (Exception ex) {
-            CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
+        } catch (Throwable e) {
+            CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
-            log.error("Request processing error ({})",
-                    cex.getFaultDetail(), ex);
+            log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
             opMonitoringData.setSoapFault(cex);
-            opMonitoringData.setSucceeded(false);
 
             failure(response, cex);
         } finally {
@@ -119,6 +117,7 @@ class ServerProxyHandler extends HandlerBase {
             @Override
             protected void postprocess() throws Exception {
                 super.postprocess();
+
                 MessageInfo messageInfo = createRequestMessageInfo();
                 MonitorAgent.success(messageInfo, new Date(start), new Date());
             }
@@ -126,11 +125,11 @@ class ServerProxyHandler extends HandlerBase {
     }
 
     @Override
-    protected void failure(HttpServletResponse response, CodedException ex)
+    protected void failure(HttpServletResponse response, CodedException e)
             throws IOException {
-        MonitorAgent.failure(null, ex.getFaultCode(), ex.getFaultString());
+        MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
 
-        sendErrorResponse(response, ex);
+        sendErrorResponse(response, e);
     }
 
     private static void logProxyVersion(HttpServletRequest request) {

@@ -40,6 +40,7 @@ import javax.net.ssl.X509TrustManager;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -133,13 +134,8 @@ public final class OpMonitoringDaemonHttpClient {
 
     private static SSLConnectionSocketFactory createSSLSocketFactory(
             InternalSSLKey authKey) throws Exception {
-        if (authKey == null) {
-            throw new IllegalArgumentException("Cannot create a SSL socket"
-                    + " factory without an authentication key");
-        }
-
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new OpMonitorClientKeyManager(authKey)},
+        ctx.init(getKeyManager(authKey),
                 new TrustManager[] {new OpMonitorTrustManager()},
                 new SecureRandom());
 
@@ -148,6 +144,17 @@ public final class OpMonitoringDaemonHttpClient {
                 CryptoUtils.getINCLUDED_CIPHER_SUITES(),
                 // We don't need hostname verification
                 NoopHostnameVerifier.INSTANCE);
+    }
+
+    private static KeyManager[] getKeyManager(InternalSSLKey authKey) {
+        if (authKey == null) {
+            log.error("No internal TLS key required by operational monitoring"
+                    + " daemon HTTP client");
+
+            return null;
+        }
+
+        return new KeyManager[] {new OpMonitorClientKeyManager(authKey)};
     }
 
     private static final class OpMonitorTrustManager

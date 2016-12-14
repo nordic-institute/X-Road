@@ -39,9 +39,9 @@ public class StoreOpMonitoringDataResponse {
     public static final String STATUS_ERROR = "Error";
 
     @SerializedName("status")
-    String status;
+    private String status;
     @SerializedName("errorMessage")
-    String errorMessage;
+    private String errorMessage;
 
     public StoreOpMonitoringDataResponse() {
         this.status = STATUS_OK;

@@ -30,7 +30,7 @@ if [[ ! -f $(basename $JETTY) || "$md5a" != "$md5b" ]]; then
 fi
 cd ..
 rpmbuild \
-    --define "xroad_version 6.8.9" \
+    --define "xroad_version 6.8.10" \
     --define "jetty $JETTY" \
     --define "rel $RELEASE" \
     --define "snapshot .$SNAPSHOT" \

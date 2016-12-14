@@ -1,4 +1,12 @@
 dependencies {
     compile project(':common-op-monitoring')
     compile project(':proxy')
+
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.1'
+    testCompile 'commons-cli:commons-cli:1.2'
+}
+
+task runOpMonitoringBufferMemoryUsage(type: JavaExec) {
+   main = 'ee.ria.xroad.proxy.opmonitoring.OpMonitoringBufferMemoryUsage'
+   classpath = sourceSets.test.runtimeClasspath
 }

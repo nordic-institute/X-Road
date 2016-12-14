@@ -46,8 +46,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 @Slf4j
 public final class OpMonitorDaemonMain {
 
-    public static final String OP_MONITOR_DAEMON_NAME =
-            "OpMonitorDaemon";
+    public static final String OP_MONITOR_DAEMON_NAME = "OpMonitorDaemon";
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -58,6 +57,9 @@ public final class OpMonitorDaemonMain {
     private static ActorSystem actorSystem;
 
     private static final List<StartStop> SERVICES = new ArrayList<>();
+
+    private OpMonitorDaemonMain() {
+    }
 
     /**
      * Main entry point of the daemon.
@@ -76,9 +78,6 @@ public final class OpMonitorDaemonMain {
         } finally {
             shutdown();
         }
-    }
-
-    private OpMonitorDaemonMain() {
     }
 
     private static void startup() {
@@ -111,7 +110,7 @@ public final class OpMonitorDaemonMain {
                 service.start();
 
                 log.info("{} started", name);
-            } catch (Throwable e) {
+            } catch (Throwable e) { // We want to catch serious errors as well
                 log.error(name + " failed to start", e);
 
                 stopServices();

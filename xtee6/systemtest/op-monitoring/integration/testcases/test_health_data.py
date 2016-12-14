@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Test case for verifying that the health data gathered by the operational
 # monitoring daemon can be retrieved and is correct, within the configured
 # statistics period.
@@ -8,7 +29,6 @@ import os
 import sys
 import time
 import requests
-import xml.dom.minidom as minidom
 
 sys.path.append('..')
 import python_common as common
@@ -26,9 +46,9 @@ GET_HEALTH_DATA_SERVICE_XML = \
 LISTMETHODS_SERVICE_XML = \
 """<om:service id:objectType="SERVICE"><id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance><id:memberClass>GOV</id:memberClass><id:memberCode>00000001</id:memberCode><id:subsystemCode>System1</id:subsystemCode><id:serviceCode>listMethods</id:serviceCode><id:serviceVersion>v1</id:serviceVersion></om:service>"""
 
-# For most of the statistical values we expect that the fields are present but we cannot
-# expect much about the values. Even if we restart the servers before
-# the test, there is a chance that some other requests are made to the servers.
+# For statistical values related to request duration we expect that the fields are
+# present but we cannot expect much about the values -- these depend on network load and
+# capabilities as well as the load of the target hosts.
 # We can expect with some certainty that the SOAP size related data is stable for each
 # given service at a given type of server.
 # NOTE: health data are gathered only for the requests that have been served in
@@ -96,7 +116,7 @@ STATISTICS_FIELDS = (
 )
 
 def run(client_security_server_address, producer_security_server_address,
-        request_template_dir):
+        ssh_user, request_template_dir):
     xroad_request_template_filename = os.path.join(
             request_template_dir, "simple_xroad_query_template.xml")
     listmethods_query_template_filename = os.path.join(
@@ -118,11 +138,12 @@ def run(client_security_server_address, producer_security_server_address,
     producer_health_data_request = None
     client_health_data_request = None
 
-    initial_timestamp = common.generate_timestamp()
+    producer_initial_timestamp = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
     producer_opmonitor_restart_timestamp = common.get_opmonitor_restart_timestamp(
-            producer_security_server_address)
+            producer_security_server_address, ssh_user)
     client_opmonitor_restart_timestamp = common.get_opmonitor_restart_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
 
     ### First, send a regular X-Road request.
 
@@ -140,13 +161,12 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
     print("Received the following X-Road response: \n")
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
 
-    # Wait a sec for the request to be registered.
-    time.sleep(1)
+    common.wait_for_operational_data()
 
     ### Make a health check request to the producer.
 
@@ -167,23 +187,23 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             producer_security_server_address, request_contents)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
 
-    print("Looking for the xroadGetRandom service in the response")
-
     _assert_monitoring_daemon_start_timestamp_in_range(
             response, producer_opmonitor_restart_timestamp)
     _assert_stats_period(response, STATISTICS_PERIOD_SECONDS)
+
+    print("Looking for the xroadGetRandom service in the response")
 
     event_data = _find_health_data_events_for_service(response, GET_RANDOM_SERVICE_XML)
     if event_data is None:
         raise Exception("Health data about xroadGetRandom was not found in the response")
 
-    _assert_last_successful_event_timestamp_in_range(event_data, initial_timestamp)
+    _assert_last_successful_event_timestamp_in_range(event_data, producer_initial_timestamp)
     _assert_successful_events_count(event_data, 1)
     _assert_unsuccessful_events_count(event_data, 0)
 
@@ -217,12 +237,12 @@ def run(client_security_server_address, producer_security_server_address,
     else:
         common.parse_and_check_soap_response(raw_response)
 
-    # Wait a sec for the request to be registered.
-    time.sleep(1)
+    common.wait_for_operational_data()
 
     ### Send a health data request to the client.
 
-    pre_health_data_timestamp = common.generate_timestamp()
+    client_pre_health_data_timestamp = common.get_remote_timestamp(
+            client_security_server_address, ssh_user)
 
     message_id = common.generate_message_id()
     print("Generated message ID %s for health data request" % (message_id, ))
@@ -241,23 +261,24 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             client_security_server_address, request_contents)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
 
-    print("Looking for the listMethods service in the response")
-
     _assert_monitoring_daemon_start_timestamp_in_range(
             response, client_opmonitor_restart_timestamp)
     _assert_stats_period(response, STATISTICS_PERIOD_SECONDS)
+
+    print("Looking for the listMethods service in the response")
 
     event_data = _find_health_data_events_for_service(response, LISTMETHODS_SERVICE_XML)
     if event_data is None:
         raise Exception("Health data about listMethods was not found in the response")
 
-    _assert_last_successful_event_timestamp_in_range(event_data, pre_health_data_timestamp)
+    _assert_last_successful_event_timestamp_in_range(
+            event_data, client_pre_health_data_timestamp)
     _assert_successful_events_count(event_data, 1)
     _assert_unsuccessful_events_count(event_data, 0)
 
@@ -285,7 +306,7 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             client_security_server_address, request_contents)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
@@ -310,7 +331,7 @@ def run(client_security_server_address, producer_security_server_address,
 
     response = common.post_xml_request(client_security_server_address, request_contents)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
@@ -345,7 +366,7 @@ def run(client_security_server_address, producer_security_server_address,
     print(request_contents)
 
     response = common.post_xml_request(client_security_server_address, request_contents)
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
@@ -355,7 +376,7 @@ def run(client_security_server_address, producer_security_server_address,
     ### Sleep and expect that the health data will be reset.
 
     print("Waiting for the health metrics to be reset\n")
-    time.sleep(10)
+    time.sleep(STATISTICS_PERIOD_SECONDS)
 
     ### Repeat the health data requests and check if the health data has been reset.
 
@@ -363,7 +384,7 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             producer_security_server_address, producer_health_data_request)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
@@ -384,7 +405,7 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             client_security_server_address, client_health_data_request)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
@@ -403,7 +424,8 @@ def run(client_security_server_address, producer_security_server_address,
 
     ### Now make an unusuccessful request and check the relevant health data.
 
-    pre_unsuccessful_timestamp = common.generate_timestamp()
+    producer_pre_unsuccessful_timestamp = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
 
     message_id = common.generate_message_id()
     print("\nGenerated message ID %s for an X-Road request that will cause a SOAP fault" % (
@@ -417,17 +439,15 @@ def run(client_security_server_address, producer_security_server_address,
     print("Generated the following X-Road request: \n")
     print(request_contents)
  
-    response = common.post_xml_request(
-            client_security_server_address, request_contents)
+    response = common.post_xml_request(client_security_server_address, request_contents)
 
     print("\nReceived the following X-Road response: \n")
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.assert_soap_fault(xml)
 
-    # Wait a sec for the request to be registered.
-    time.sleep(1)
+    common.wait_for_operational_data()
 
     # Send a health check request to the producer.
 
@@ -447,7 +467,7 @@ def run(client_security_server_address, producer_security_server_address,
     response = common.post_xml_request(
             producer_security_server_address, request_contents)
 
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print("Received the following health data response:\n")
     print(xml.toprettyxml())
 
@@ -463,12 +483,12 @@ def run(client_security_server_address, producer_security_server_address,
     _assert_successful_events_count(event_data, 0)
     _assert_unsuccessful_events_count(event_data, 1)
     _assert_last_unsuccessful_event_timestamp_in_range(
-            event_data, pre_unsuccessful_timestamp)
+            event_data, producer_pre_unsuccessful_timestamp)
 
 ### Helpers
 
 def _parse_xml_for_health_data(health_data_response: requests.Response):
-    xml = minidom.parseString(common.clean_whitespace(health_data_response.text))
+    xml = common.parse_and_clean_xml(health_data_response.text)
     return xml.documentElement.getElementsByTagName(
             "om:getSecurityServerHealthDataResponse")[0]
 

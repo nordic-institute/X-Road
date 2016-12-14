@@ -32,6 +32,7 @@ dependencies {
 
     // Using HSQLDB for an in-memory database in tests.
     testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'commons-cli:commons-cli:1.2'
 
     xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
     xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
@@ -43,13 +44,13 @@ task createDirs() {
 
 task xjc() {
     doLast {
-        println '---- monitoring xjc @ configuration phase'
+        println '---- op-monitor-daemon xjc @ configuration phase'
         ant.taskdef(name: 'xjc',
                 classname: 'com.sun.tools.xjc.XJCTask',
                 classpath: configurations.xjc.asPath)
 
         // Generate classes for query operational data and health data messages.
-        println '---- monitoring xjc @ execution phase'
+        println '---- op-monitor-daemon xjc @ execution phase'
         ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.opmonitordaemon.message',
@@ -64,6 +65,16 @@ shadowJar {
     classifier = ''
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+    }
+}
+
+task testsJar(type: Jar, dependsOn: testClasses) {
+    classifier = 'tests'
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OperationalDataRecordsGenerator'
+    }
+    from {
+        sourceSets.test.output
     }
 }
 
@@ -86,7 +97,9 @@ task bugfixagentJar(type: Jar) {
 
 jar.enabled = false
 build.dependsOn shadowJar
+build.dependsOn testsJar
 buildall.dependsOn shadowJar
+buildall.dependsOn testsJar
 shadowJar.dependsOn bugfixagentJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
@@ -111,11 +124,25 @@ xjc.mustRunAfter processResources
 compileJava.dependsOn xjc
 compileJava.dependsOn processResources
 
-//test {
-//    testLogging {
-//        showStandardStreams = true;
-//    }
-//}
+test {
+    //testLogging {
+    //    showStandardStreams = true;
+    //}
+
+    jacoco {
+        append = false
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
+    }
+}
 
 idea.module {
     excludeDirs -= file(buildDir)

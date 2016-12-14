@@ -105,8 +105,7 @@ public class OperationalDataTest extends BaseTestUsingDB {
         expectedException.expect(RuntimeException.class);
         expectedException.expectMessage("Invalid value of securityServerType");
 
-        OperationalDataRecord rec = GSON.fromJson(
-                jsonRec, OperationalDataRecord.class);
+        GSON.fromJson(jsonRec, OperationalDataRecord.class);
     }
 
     @Test

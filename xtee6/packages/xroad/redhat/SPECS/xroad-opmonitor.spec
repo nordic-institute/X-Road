@@ -2,6 +2,9 @@
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
+# Ignore python bytecompile errors due to mismatching python versions.
+# This is to be able to provide sample scripts with the package with no hassle.
+%global _python_bytecompile_errors_terminate_build 0
 
 Name:               xroad-opmonitor
 Version:            %{xroad_version}
@@ -36,6 +39,7 @@ mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/usr/share/xroad/bin/
 mkdir -p %{buildroot}/etc/xroad/conf.d/
+mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
@@ -50,6 +54,7 @@ cp -p %{src}/op-monitor/usr/share/xroad/db/op-monitor-changelog.xml %{buildroot}
 cp -p %{src}/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
+cp -p %{src}/../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 ln -s /usr/share/uxp/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
@@ -77,6 +82,7 @@ rm -rf %{buildroot}
 
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/examples/zabbix/*
 
 %pre
 

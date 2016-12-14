@@ -10,8 +10,6 @@ Document ID: TEST-OPMONSTRAT
 
 In this document, we define the testing strategy for the development project of the operational monitoring components of the X-Road system.
 
-The testing strategy may be updated during the project according to the agreements between the parties.
-
 A detailed testing plan will be delivered as a separate document in [[TEST-OPMON]](#TEST-OPMON).
 
 ### 1.2 Terms and Abbreviations
@@ -54,11 +52,11 @@ Regular X-Road message exchange as well as monitoring data exchange via all the 
 
 ## 4. Types of Testing Used
 
-The required types of testing are defined in [[HD_4]](#HD_4). Additional types and levels of testing may be used if found necessary during the project. The additional types of testing, if any, will be documented in [[TEST-OPMON]](#TEST-OPMON).
+The required types of testing are defined in [[HD_4]](#HD_4). In the following sections, all the required types are covered.
 
 ### 4.1 Integration Testing
 
-The integration tests will be used for testing the required functionality of the security servers and the operational monitoring daemon working together, while regular X-Road requests as well as monitoring data requests are handled. The goal is to cover the main functionality with automated tests. Manual tests will be carried out by the development team as needed, as well as during acceptance testing if necessary. The descriptions of manual tests will be provided in [[TEST-OPMON]](#TEST-OPMON).
+The integration tests will be used for testing the required functionality of the security servers and the operational monitoring daemon working together, while regular X-Road requests as well as operational monitoring and health data requests are handled. The goal is to cover the main functionality with automated tests. Manual tests will be carried out by the development team as needed, as well as during acceptance testing if necessary. The descriptions of manual tests will be provided in [[TEST-OPMON]](#TEST-OPMON).
 
 ### 4.2 Load Requirements and the Scope of Load Tests
 
@@ -68,7 +66,7 @@ Due to the asynchronous nature of the operational monitoring system, the overhea
 
 Under a heavy load and if the operational monitoring database component is unavailable, the monitoring buffer may use a considerable amount of memory or drop the eldest operational data records before having forwarded these to the operational monitoring database component.
 
-Thus, the focus of load testing is to find the balance between memory usage and possible data loss.
+Thus, the focus of load testing is to find the balance between memory usage and possible data loss. Details of load testing are provided in [[TEST-OPMON]](#TEST-OPMON).
 
 ### 4.3 Unit Testing
 
@@ -86,7 +84,7 @@ The schedule of the project and the roles of the team are described in [[PP]](#p
 
 The testing activities and the programming of tests are carried out by testers and developers. The architecture and the tools of testing are reviewed by the architect of the project.
 
-Unit tests will be implemented by the developers in parallel with the functionality of the system. The scope of unit tests has been described (see [above](#4-3-unit-testing)). The build configuration of the project will set up to automatically run the unit tests at each build.
+Unit tests will be implemented by the developers in parallel with the functionality of the system. The scope of unit tests has been described ([above](#4-3-unit-testing)). The build configuration of the project will set up to automatically run the unit tests at each build.
 
 Integration and load testing will be carried out according to the following plan:
 - *Elaboration phase:* the tools for testing at the required levels will be chosen and an initial testing plan will be written.
@@ -99,7 +97,7 @@ The integration tests will be implemented in Python 3. During the Elaboration Ph
 
 The load tests will be programmed, and simulations will be described, in Scala and the Gatling DSL, with orchestration scripts programmed in Python 3.
 
-Unit tests will be programmed in Java 8, using the JUnit library.
+The unit tests will be programmed in Java 8, using the JUnit library.
 
 ## 7 Management and Source Control of Automated Tests
 
@@ -109,19 +107,93 @@ All the source code and the necessary data and configuration files (or samples w
 
 The testing environment and continuous integration setup during development will closely mimic the required target testing environment (as described in [[HD_4]](#HD_4)) with some additions. The relevant configuration files and documentation will be committed to the main Git development repository for simple migration to the target testing system.
 
-The main automated testing environment will consist of the following virtual machines, with the name of the corresponding machine at RIA given in parentheses:
+## 8.1 The Servers Used for Automated Testing
+The main automated testing environment consists of the following virtual machines, with the name of the corresponding machine at RIA given in parentheses:
 - Central server (*xtee7.ci.kit*)
-- Management security server with a local monitoring daemon and a local Zabbix (*xtee8.ci.kit*)
-- Security server with a local monitoring daemon and a local Zabbix (*xtee9.ci.kit*)
-- Security server using the external monitoring daemon of the testing environment and a local Zabbix (*xtee10.ci.kit*)
+- Management security server with a local operational monitoring daemon (*xtee8.ci.kit*)
+- Security server with a local operational monitoring daemon (*xtee9.ci.kit*)
+- Operational monitoring daemon (*xtee11.ci.kit*)
+- Security server (*xtee10.ci.kit*) using the external monitoring daemon above 
 - A mock SOAP server for providing X-Road services (*xtee2.ci.kit*)
 
 The CA/TSA server of RIA (*xtee1.ci.kit*) will be used for trust services, to enable simple migration of the additions to the system's configuration back to RIA-s environment. The configuration of local name resolution will enable the host names used in RIA's testing system to be used in the automated testing environment of Cybernetica.
 
 A SoapUI-based mock server will be used for providing the X-Road services necessary for testing the system. The configuration files of the mock services and the corresponding .war file will be committed to the main development repository.
 
+## 8.2 The X-Road Configuration Used for Automated Testing
+The X-Road configuration of the testing system at RIA (the instance XTEE-CI-XM) that was present at the beginning of the project, is used as the basis for the configuration of the system under test. The final required configuration of the system consists of the following items.
+
+### 8.2.1 X-Road Members
+
+The following X-Road members and member classes are required in the configuration.
+
+| Member Code | Member Class | Member Name |
+|---|---|---|
+| 00000000 | GOV | X-Road Center |
+| 00000001 | GOV | Test member 1 |
+| 00000002 | COM | Test member 2 |
+
+The management service provider must be `SUBSYSTEM:XTEE-CI-XM/GOV/00000000/Center`.
+
+In the central server, the central monitoring client must be configured with the following contents of `monitoring-params.xml`:
+
+```xml
+<tns:conf xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+  <monitoringClient>
+    <monitoringClientId id:objectType="SUBSYSTEM">
+      <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+      <id:memberClass>GOV</id:memberClass>
+      <id:memberCode>00000001</id:memberCode>
+      <id:subsystemCode>Central monitoring client</id:subsystemCode>
+    </monitoringClientId>
+  </monitoringClient>
+</tns:conf>
+```
+
+### 8.2.2 Security Servers, Clients and Services
+
+The following security servers are required in the configuration.
+
+| Server Code | Owner Code | Owner Class | Hostname |
+|---|---|---|---|---|
+| 00000000_1 | 00000000 | GOV | xtee8.ci.kit |
+| 00000001_1 | 00000001 | GOV | xtee9.ci.kit |
+| 00000002_1 | 00000002 | COM | xtee10.ci.kit |
+
+The following subsystems and service access rights are required in the configuration, grouped by security servers.
+
+**xtee8.ci.kit**
+
+| Subsystem ID | Services | Access Rights |
+|---|---|---|  
+| SUBSYSTEM:XTEE-CI-XM:COM:00000002:System2 | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | bodyMassIndex.v1  |-|
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000000:Center | bodyMassIndex.v1  | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                          | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                          | clientDeletion<br>clientReg<br>authCertDeletion | GLOBALGROUP:XTEE-CI-XM:security-server-owners |
+       
+**xtee9.ci.kit**
+
+| Subsystem ID | Services | Access Rights |
+|---|---|---|  
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 | exampleService.v1       | - |
+|                                           | exampleServiceMtom.v1   | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | exampleServiceSwaRef.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:Central monitoring client | - | - |
+
+**xtee10.ci.kit**
+
+| Subsystem ID | Services | Access Rights |
+|---|---|---|  
+| SUBSYSTEM:XTEE-CI-XM:COM:00000002:System2 | exampleService.v1       | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 | 
+|                                           | exampleServiceMtom.v1   |	SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | exampleServiceSwaRef.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | bodyMassIndex.v1        | - |
+|                                           | xroadGetRandom.v1       | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+
+## 8.3 The Results of the Tests
 The results of automatic integration tests and load tests will be browsable in the Continuous Integration system (Jenkins) at RIA after each run, once these have been implemented and the CI system has been configured.
 
-The results of manual integration testing will be observable by the participants and written to a log file.
+The results of manual integration testing will be observable by the participants and can be written to a log file.
 
 The results of unit tests will be browsable in the Continuous Integration system (Jenkins) at RIA after each build of the source tree, once the changes have been merged to the repository at RIA and the CI system has been configured.
