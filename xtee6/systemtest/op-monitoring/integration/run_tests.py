@@ -58,6 +58,8 @@ import python_common as common
 CLIENT_SECURITY_SERVER_ADDRESS = None
 PRODUCER_SECURITY_SERVER_ADDRESS = None
 SSH_USER = None
+SERVICE_RESTART_SLEEP_SECONDS = 2 # can be overridden on the command line
+
 REQUEST_TEMPLATE_DIR = "templates"
 
 LOCAL_INI_PATH = "/etc/xroad/conf.d/local.ini"
@@ -245,7 +247,9 @@ def _configure_ini_parameters(
     # In case any services were restarted, wait a bit so the requests to the 
     # operational monitoring daemon succeed again.
     if service_restarted:
-        time.sleep(2)
+        print("Sleeping for %d seconds after the restart of services" % (
+            SERVICE_RESTART_SLEEP_SECONDS, ))
+        time.sleep(SERVICE_RESTART_SLEEP_SECONDS)
 
 @contextmanager
 def configure_and_restart_opmonitor(
@@ -296,6 +300,8 @@ if __name__ == '__main__':
             dest="producer_security_server")
     argparser.add_argument("--ssh-user", required=False,
             dest="ssh_user")
+    argparser.add_argument("--service-restart-sleep-seconds",
+            type=int, dest="service_restart_sleep_seconds")
     # Capture the rest of the arguments for passing to unittest.
     argparser.add_argument('unittest_args', nargs='*')
     args = argparser.parse_args()
@@ -303,6 +309,8 @@ if __name__ == '__main__':
     CLIENT_SECURITY_SERVER_ADDRESS = _resolve_address(args.client_security_server)
     PRODUCER_SECURITY_SERVER_ADDRESS = _resolve_address(args.producer_security_server)
     SSH_USER = args.ssh_user
+    if args.service_restart_sleep_seconds:
+        SERVICE_RESTART_SLEEP_SECONDS = args.service_restart_sleep_seconds
 
     # Pass the rest of the command line arguments to unittest.
     unittest_args = [sys.argv[0]] + args.unittest_args
