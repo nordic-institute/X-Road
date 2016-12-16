@@ -190,7 +190,7 @@ public final class OpMonitoringSystemProperties {
 
     /**
      * @return the interval in seconds at which operational monitoring buffer
-     * additionally tries to send records to the operational monitoring buffer,
+     * additionally tries to send records to the operational monitoring daemon,
      * '5' by default.
      */
     public static long getOpMonitorBufferSendingIntervalSeconds() {

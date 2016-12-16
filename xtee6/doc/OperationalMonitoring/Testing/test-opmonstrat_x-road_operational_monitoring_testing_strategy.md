@@ -113,12 +113,12 @@ The main automated testing environment consists of the following virtual machine
 - Management security server with a local operational monitoring daemon (*xtee8.ci.kit*)
 - Security server with a local operational monitoring daemon (*xtee9.ci.kit*)
 - Operational monitoring daemon (*xtee11.ci.kit*)
-- Security server (*xtee10.ci.kit*) using the external monitoring daemon above 
+- Security server (*xtee10.ci.kit*) using the external monitoring daemon above
 - A mock SOAP server for providing X-Road services (*xtee2.ci.kit*)
 
 The CA/TSA server of RIA (*xtee1.ci.kit*) will be used for trust services, to enable simple migration of the additions to the system's configuration back to RIA-s environment. The configuration of local name resolution will enable the host names used in RIA's testing system to be used in the automated testing environment of Cybernetica.
 
-A SoapUI-based mock server will be used for providing the X-Road services necessary for testing the system. The configuration files of the mock services and the corresponding .war file will be committed to the main development repository.
+A SoapUI-based mock server will be used for providing the X-Road services necessary for testing the system. The configuration files of the mock services can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/mock`.
 
 ## 8.2 The X-Road Configuration Used for Automated Testing
 The X-Road configuration of the testing system at RIA (the instance XTEE-CI-XM) that was present at the beginning of the project, is used as the basis for the configuration of the system under test. The final required configuration of the system consists of the following items.

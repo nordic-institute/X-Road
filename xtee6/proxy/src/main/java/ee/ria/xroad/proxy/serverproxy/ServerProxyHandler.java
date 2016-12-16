@@ -89,7 +89,7 @@ class ServerProxyHandler extends HandlerBase {
             ServerMessageProcessor processor = createRequestProcessor(request,
                     response, start, opMonitoringData);
             processor.process();
-        } catch (Throwable e) {
+        } catch (Throwable e) { // We want to catch serious errors as well
             CodedException cex = translateWithPrefix(SERVER_SERVERPROXY_X, e);
 
             log.error("Request processing error ({})", cex.getFaultDetail(), e);
