@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 
@@ -101,18 +102,19 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
                         recordsTo, serviceProviderId, outputFields,
                         recordsAvailableBefore);
 
-        SoapMessageEncoder responseEncoder = new SoapMessageEncoder(out);
-        contentTypeCallback.accept(responseEncoder.getContentType());
+        try (SoapMessageEncoder responseEncoder = new SoapMessageEncoder(out)) {
+            contentTypeCallback.accept(responseEncoder.getContentType());
 
-        SoapEncoderAttachmentMarshaller attachmentMarshaller =
-                new SoapEncoderAttachmentMarshaller(responseEncoder);
-        Marshaller marshaller = createMarshaller(attachmentMarshaller);
+            SoapEncoderAttachmentMarshaller attachmentMarshaller =
+                    new SoapEncoderAttachmentMarshaller(responseEncoder);
+            Marshaller marshaller = createMarshaller(attachmentMarshaller);
 
-        SoapMessageImpl response = createResponse(requestSoap, marshaller,
-                createResponseElement(opDataResponse));
-        responseEncoder.soap(response, new HashMap<>());
+            SoapMessageImpl response = createResponse(requestSoap, marshaller,
+                    createResponseElement(opDataResponse));
+            responseEncoder.soap(response, new HashMap<>());
 
-        attachmentMarshaller.encodeAttachments();
+            attachmentMarshaller.encodeAttachments();
+        }
     }
 
     static void checkTimestamps(long recordsFrom, long recordsTo,
@@ -176,8 +178,14 @@ class OperationalDataRequestHandler extends QueryRequestHandler {
                 recordsFrom, recordsTo, filterByServiceProvider, outputFields);
 
         opDataResponse.setRecordsCount(responseRecords.size());
-        opDataResponse.setRecords(createAttachmentDataSource(compress(
-                responseRecords.getPayload(GSON)), CID, MimeTypes.GZIP));
+        String payload = responseRecords.getPayload(GSON);
+
+        // Optimize memory usage: release records memory before compressing
+        // operation.
+        responseRecords.getRecords().clear();
+
+        opDataResponse.setRecords(createAttachmentDataSource(compress(payload),
+                CID, MimeTypes.GZIP));
 
         if (responseRecords.getNextRecordsFrom() != null) {
             opDataResponse.setNextRecordsFrom(

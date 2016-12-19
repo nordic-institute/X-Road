@@ -41,7 +41,7 @@ import lombok.ToString;
 public class StoreOpMonitoringDataRequest {
 
     @SerializedName("records")
-    private List<Map<String, Object>> records = new ArrayList<>();
+    private final List<Map<String, Object>> records = new ArrayList<>();
 
     public StoreOpMonitoringDataRequest() {
     }

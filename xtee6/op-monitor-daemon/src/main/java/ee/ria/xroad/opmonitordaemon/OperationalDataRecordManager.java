@@ -184,7 +184,7 @@ final class OperationalDataRecordManager {
             records.removeRecordsByMonitoringDataTs(lastMonitoringDataTs);
             records.append(overflowRecords);
 
-            if (recordsOverflow(records.size(), session, lastMonitoringDataTs,
+            if (recordsOverflow(session, lastMonitoringDataTs,
                     recordsTo, clientFilter, serviceProviderFilter)) {
                 log.debug("Records overflow, set nextRecordsFrom to {}",
                         lastMonitoringDataTs + 1);
@@ -204,11 +204,12 @@ final class OperationalDataRecordManager {
         }
     }
 
-    private static boolean recordsOverflow(long records, Session session,
+    private static boolean recordsOverflow(Session session,
             long lastMonitoringDataTs, long recordsTo, ClientId clientFilter,
             ClientId serviceProviderFilter) {
-        return records > maxRecordsInPayload || hasRecordsLeft(
-                session, lastMonitoringDataTs, recordsTo, clientFilter,
+        // Indicate overflow only if some records are not included.
+        return lastMonitoringDataTs < recordsTo && hasRecordsLeft(session,
+                lastMonitoringDataTs, recordsTo, clientFilter,
                 serviceProviderFilter);
     }
 

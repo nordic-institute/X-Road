@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public abstract class AbstractOpMonitoringBuffer extends UntypedActor {
+
     public static final String SEND_MONITORING_DATA = "sendMonitoringData";
     public static final String SENDING_SUCCESS = "sendingSuccess";
     public static final String SENDING_FAILURE = "sendingFailure";

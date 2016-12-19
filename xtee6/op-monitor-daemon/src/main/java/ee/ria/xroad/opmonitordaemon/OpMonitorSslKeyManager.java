@@ -37,9 +37,8 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 @Slf4j
 class OpMonitorSslKeyManager extends X509ExtendedKeyManager {
 
+    private static final String MONITOR_KEY_ALIAS = "opmonitor";
     private static final String ALIAS = "OpMonitorSslKeyManager";
-
-    public static final String MONITOR_KEY_ALIAS = "opmonitor";
 
     private InternalSSLKey sslKey;
 

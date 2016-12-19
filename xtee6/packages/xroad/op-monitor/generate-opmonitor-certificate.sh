@@ -51,8 +51,8 @@ then
     echo
     if ! [[ $REPLY =~ ^[Yy]$ ]]
     then
-        SUCCESS_MSG="Success! Output written to '$PWD/$NAME.p12'. Copy this file to '$DIR'."
-        DIR=$PWD
+        SUCCESS_MSG="Success! Output written to '$HOME/$NAME.p12'. Copy this file to '$DIR'."
+        DIR=$HOME
     fi
 fi
 

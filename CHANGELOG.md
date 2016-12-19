@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.8.10 - 2016-12-12
+- Operational data monitoring improvements and bug fixes
+
 ## 6.8.9 - 2016-12-05
 - Operational data monitoring
 

@@ -1,12 +1,11 @@
 --jetty771207119h3h10dty
 Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
 Content-Transfer-Encoding: 8bit
-Content-ID:<rootpart@soapui.org>
+Content-ID:<rootpart>
 
-<?xml version="1.0" encoding="utf-8"?>
-<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd">
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
    <SOAP-ENV:Header>
-    <xroad:client id:objectType="SUBSYSTEM">
+      <xroad:client id:objectType="SUBSYSTEM">
          <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
          <id:memberClass>GOV</id:memberClass>
          <id:memberCode>00000001</id:memberCode>
@@ -20,15 +19,14 @@ Content-ID:<rootpart@soapui.org>
          <id:serviceCode>xroadGetRandom</id:serviceCode>
          <id:serviceVersion>v1</id:serviceVersion>
       </xroad:service>
-     <xroad:protocolVersion>4.0</xroad:protocolVersion>
-     <xroad:id>c60b7e66-1dc8-4203-a3c1-3235661f6a84</xroad:id>
-     <xroad:userId>EE37702211237</xroad:userId>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+      <xroad:id>c60b7e66-1dc8-4203-a3c1-3235661f6a84</xroad:id>
    </SOAP-ENV:Header>
    <SOAP-ENV:Body>
       <xroad:xroadGetRandom>
          <xroad:request>
             <xroad:seed>100</xroad:seed>
-             <xroad:XXX>cid:775797073252</xroad:XXX>
+            <xroad:XXX>cid:598833653015</xroad:XXX>
          </xroad:request>
       </xroad:xroadGetRandom>
    </SOAP-ENV:Body>
@@ -43,4 +41,4 @@ Content-Disposition: attachment; name="test.txt"; filename="test.txt"
 test test test test test test test test test test test test test test test test
 test test test test test test test test test test test test test test test test
 test
---jetty771207119h3h10dty
+--jetty771207119h3h10dty--

@@ -1,3 +1,9 @@
+xroad (6.8.10) trusty; urgency=low
+
+  * Operational data monitoring improvements and bug fixes
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 12 Dec 2016 13:01:33 +0200
+
 xroad (6.8.9) trusty; urgency=low
 
   * Operational data monitoring

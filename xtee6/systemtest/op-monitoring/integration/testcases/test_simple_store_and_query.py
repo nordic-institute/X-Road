@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Test case for verifying that the operational monitoring related data of a
 # simple correct X-Road request are stored by the operational monitoring daemon
 # and can be queried.
@@ -7,13 +28,12 @@
 import os
 import sys
 import time
-import xml.dom.minidom as minidom
 
 sys.path.append('..')
 import python_common as common
 
 def _expected_keys_and_values_of_simple_query_rec(
-        xroad_message_id, security_server_address, security_server_type):
+        xroad_message_id, security_server_type):
     return [
         ("clientMemberClass", "GOV"),
         ("clientMemberCode", "00000001"),
@@ -42,7 +62,7 @@ def _expected_keys_and_values_of_simple_query_rec(
     ]
 
 def _expected_keys_and_values_of_query_data_client_rec(
-        xroad_message_id, security_server_address, security_server_type):
+        xroad_message_id, security_server_type):
     return [
         ("clientMemberClass", "GOV"),
         ("clientMemberCode", "00000001"),
@@ -65,7 +85,7 @@ def _expected_keys_and_values_of_query_data_client_rec(
     ]
 
 def _expected_keys_and_values_of_query_data_producer_rec(
-        xroad_message_id, security_server_address, security_server_type):
+        xroad_message_id, security_server_type):
     return [
         ("clientMemberClass", "GOV"),
         ("clientMemberCode", "00000000"),
@@ -88,7 +108,7 @@ def _expected_keys_and_values_of_query_data_producer_rec(
     ]
 
 def run(client_security_server_address, producer_security_server_address,
-        request_template_dir):
+        ssh_user, request_template_dir):
 
     xroad_request_template_filename = os.path.join(
             request_template_dir, "simple_xroad_query_template.xml")
@@ -98,9 +118,9 @@ def run(client_security_server_address, producer_security_server_address,
             request_template_dir, "query_operational_data_producer_template.xml")
 
     client_timestamp_before_requests = common.get_remote_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
     producer_timestamp_before_requests = common.get_remote_timestamp(
-            producer_security_server_address)
+            producer_security_server_address, ssh_user)
 
     xroad_message_id = common.generate_message_id()
     print("\nGenerated message ID %s for X-Road request" % (xroad_message_id, ))
@@ -118,7 +138,7 @@ def run(client_security_server_address, producer_security_server_address,
     print("Generated the following X-Road request: \n")
     print(request_contents)
 
-    request_xml = minidom.parseString(common.clean_whitespace(request_contents))
+    request_xml = common.parse_and_clean_xml(request_contents)
     xroad_request_headers = request_xml.getElementsByTagName(
             "SOAP-ENV:Header")[0].toprettyxml()
 
@@ -126,19 +146,17 @@ def run(client_security_server_address, producer_security_server_address,
             client_security_server_address, request_contents)
 
     print("Received the following X-Road response: \n")
-    # For some reason our mock service returns a SOAP response with lots of
-    # whitespace
-    xml = minidom.parseString(common.clean_whitespace(response.text))
+    xml = common.parse_and_clean_xml(response.text)
     print(xml.toprettyxml())
 
     common.check_soap_fault(xml)
 
-    # Wait a couple of seconds for the operational data to be stored and made available.
-    time.sleep(1)
-    client_timestamp_after_request = common.get_remote_timestamp(
-            client_security_server_address)
-    producer_timestamp_after_request = common.get_remote_timestamp(
-            producer_security_server_address)
+    common.wait_for_operational_data()
+
+    client_timestamp_after_requests = common.get_remote_timestamp(
+            client_security_server_address, ssh_user)
+    producer_timestamp_after_requests = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
 
     # Now make operational data requests to both security servers and check the
     # response payloads.
@@ -151,7 +169,7 @@ def run(client_security_server_address, producer_security_server_address,
  
     request_contents = common.format_query_operational_data_request_template(
             query_data_client_template_filename, message_id,
-            client_timestamp_before_requests, client_timestamp_after_request)
+            client_timestamp_before_requests, client_timestamp_after_requests)
 
     print("Generated the following query data request for the client's security server: \n")
     print(request_contents)
@@ -170,7 +188,7 @@ def run(client_security_server_address, producer_security_server_address,
         # Check the presence of all the required fields in at least one JSON structure.
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_simple_query_rec(
-                    xroad_message_id, client_security_server_address, "Client"))
+                    xroad_message_id, "Client"))
 
         # As operational data is queried by regular client, the field
         # 'securityServerInternalIp' is not expected to be included 
@@ -180,7 +198,7 @@ def run(client_security_server_address, producer_security_server_address,
         # Check if the timestamps in the response are in the expected range.
         common.assert_expected_timestamp_values(
                 json_payload,
-                client_timestamp_before_requests, client_timestamp_after_request)
+                client_timestamp_before_requests, client_timestamp_after_requests)
 
         common.print_multipart_query_data_response(json_payload, xroad_message_id)
 
@@ -199,7 +217,7 @@ def run(client_security_server_address, producer_security_server_address,
 
     request_contents = common.format_query_operational_data_request_template(
             query_data_producer_template_filename, message_id,
-            producer_timestamp_before_requests, producer_timestamp_after_request)
+            producer_timestamp_before_requests, producer_timestamp_after_requests)
     print("Generated the following operational data request for the producer's " \
             "security server: \n")
     print(request_contents)
@@ -218,7 +236,7 @@ def run(client_security_server_address, producer_security_server_address,
         # Check the presence of all the required fields in at least one JSON structure.
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_simple_query_rec(
-                    xroad_message_id, producer_security_server_address, "Producer"))
+                    xroad_message_id, "Producer"))
 
         # As operational data is queried by regular client, the field
         # 'securityServerInternalIp' is not expected to be included 
@@ -228,7 +246,7 @@ def run(client_security_server_address, producer_security_server_address,
         # Check timestamp values
         common.assert_expected_timestamp_values(
                 json_payload,
-                producer_timestamp_before_requests, producer_timestamp_after_request)
+                producer_timestamp_before_requests, producer_timestamp_after_requests)
 
         common.print_multipart_query_data_response(
                 json_payload, xroad_message_id)
@@ -239,14 +257,16 @@ def run(client_security_server_address, producer_security_server_address,
     print("\nThe headers of the original request were: \n")
     print(xroad_request_headers)
  
-    # Repeat both query_data requests to ensure the initial attempts were also stored
-    # in the operational_data table.
+    # Repeat both query_data requests after a second, to ensure the initial attempts
+    # were also stored in the operational_data table.
     time.sleep(1)
 
     print("\n---- Repeating the query_data request to the client's security server ----\n")
 
     client_timestamp_after_requests = common.get_remote_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
+    producer_timestamp_after_requests = common.get_remote_timestamp(
+            producer_security_server_address, ssh_user)
 
     message_id = common.generate_message_id()
     print("\nGenerated message ID %s for operational data request" % (message_id, ))
@@ -273,19 +293,19 @@ def run(client_security_server_address, producer_security_server_address,
         # The record describing the original X-Road request
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_simple_query_rec(
-                    xroad_message_id, client_security_server_address, "Client"))
+                    xroad_message_id, "Client"))
 
         # The record describing the query data request at the client proxy side in the
         # client's security server
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_query_data_client_rec(
-                    message_id_client, client_security_server_address, "Client"))
+                    message_id_client, "Client"))
 
         # The record describing the query data request at the server proxy side in the
         # client's security server
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_query_data_client_rec(
-                    message_id_client, client_security_server_address, "Producer"))
+                    message_id_client, "Producer"))
 
         # Check if the value of "responseSoapSize" is in the expected range.
         common.assert_response_soap_size_in_range(
@@ -312,9 +332,6 @@ def run(client_security_server_address, producer_security_server_address,
 
     print("\n----- Repeating the query_data request to the producer's security server ----\n")
 
-    producer_timestamp_after_requests = common.get_remote_timestamp(
-            producer_security_server_address)
-
     message_id = common.generate_message_id()
     print("\nGenerated message ID %s for operational data request" % (message_id, ))
 
@@ -340,19 +357,19 @@ def run(client_security_server_address, producer_security_server_address,
         # The record describing the original X-Road request
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_simple_query_rec(
-                    xroad_message_id, producer_security_server_address, "Producer"))
+                    xroad_message_id, "Producer"))
 
         # The record describing the query data request at the client proxy side in the
         # producer's security server
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_query_data_producer_rec(
-                    message_id_producer, producer_security_server_address, "Client"))
+                    message_id_producer, "Client"))
 
         # The record describing the query data request at the server proxy side in the
         # producer's security server
         common.assert_present_in_json(
                 json_payload, _expected_keys_and_values_of_query_data_producer_rec(
-                    message_id_producer, producer_security_server_address, "Producer"))
+                    message_id_producer, "Producer"))
 
         # Check if the value of "responseSoapSize" is in the expected range.
         common.assert_response_soap_size_in_range(

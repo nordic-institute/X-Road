@@ -171,12 +171,12 @@ public final class OpMonitoringSystemProperties {
 
     /**
      * @return the size of the operational monitoring buffer,
-     * '100000' by default. In case buffer size < 1, operational monitoring data
+     * '20000' by default. In case buffer size < 1, operational monitoring data
      * is not stored.
      */
     public static int getOpMonitorBufferSize() {
         return Integer.parseInt(System.getProperty(OP_MONITOR_BUFFER_SIZE,
-                "100000"));
+                "20000"));
     }
 
     /**
@@ -190,7 +190,7 @@ public final class OpMonitoringSystemProperties {
 
     /**
      * @return the interval in seconds at which operational monitoring buffer
-     * additionally tries to send records to the operational monitoring buffer,
+     * additionally tries to send records to the operational monitoring daemon,
      * '5' by default.
      */
     public static long getOpMonitorBufferSendingIntervalSeconds() {

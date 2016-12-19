@@ -31,16 +31,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.namespace.QName;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -187,6 +186,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     @Override
     protected void postprocess() throws Exception {
+        opMonitoringData.setSucceeded(true);
     }
 
     private void loadServiceHandlers() {
@@ -534,20 +534,20 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void handleException(Exception ex) throws Exception {
-        log.error("handleException()", ex);
-
-        CodedException exception;
-
-        if (ex instanceof CodedException.Fault) {
-            exception = (CodedException.Fault) ex;
-        } else {
-            exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
-        }
-
-        opMonitoringData.setSucceeded(false);
-        opMonitoringData.setSoapFault(exception);
-
         if (encoder != null) {
+            CodedException exception;
+
+            if (ex instanceof CodedException.Fault) {
+                exception = (CodedException.Fault) ex;
+            } else {
+                exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
+            }
+
+            opMonitoringData.setSoapFault(exception);
+
+            log.error("Request processing error ({})",
+                    exception.getFaultDetail(), ex);
+
             monitorAgentNotifyFailure(exception);
 
             encoder.fault(SoapFault.createFaultXml(exception));

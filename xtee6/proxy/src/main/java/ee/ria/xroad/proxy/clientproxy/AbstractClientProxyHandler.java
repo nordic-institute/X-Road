@@ -94,49 +94,48 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 handled = true;
                 start = logPerformanceBegin(request);
                 processor.process();
-                success(processor, start);
+                success(processor, start, opMonitoringData);
 
                 log.info("Request successfully handled ({} ms)",
                         System.currentTimeMillis() - start);
             }
-        } catch (CodedException.Fault | ClientException ex) {
+        } catch (CodedException.Fault | ClientException e) {
             handled = true;
 
-            String errorMessage = ex instanceof ClientException
-                    ? "Request processing error (" + ex.getFaultDetail() + ")"
+            String errorMessage = e instanceof ClientException
+                    ? "Request processing error (" + e.getFaultDetail() + ")"
                     : "Request processing error";
 
-            log.error(errorMessage, ex);
+            log.error(errorMessage, e);
 
-            updateOpMonitoring(opMonitoringData, ex);
+            updateOpMonitoringSoapFault(opMonitoringData, e);
 
             // Exceptions caused by incoming message and exceptions
             // derived from faults sent by serverproxy already contain
             // full error code. Thus, we must not attach additional
             // error code prefixes to them.
 
-            failure(processor, response, ex);
-        } catch (CodedExceptionWithHttpStatus ex) {
+            failure(processor, response, e);
+        } catch (CodedExceptionWithHttpStatus e) {
             handled = true;
 
             // No need to log faultDetail hence not sent to client.
-            log.error("Request processing error", ex);
+            log.error("Request processing error", e);
 
             // Respond with HTTP status code and plain text error message
             // instead of SOAP fault message. No need to update operational
             // monitoring fields here either.
 
-            failure(response, ex);
-        } catch (Exception ex) {
+            failure(response, e);
+        } catch (Throwable e) { // We want to catch serious errors as well
             handled = true;
 
             // All the other exceptions get prefix Server.ClientProxy...
-            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, ex);
+            CodedException cex = translateWithPrefix(SERVER_CLIENTPROXY_X, e);
 
-            log.error("Request processing error ({})",
-                    cex.getFaultDetail(), ex);
+            updateOpMonitoringSoapFault(opMonitoringData, cex);
 
-            updateOpMonitoring(opMonitoringData, cex);
+            log.error("Request processing error ({})", cex.getFaultDetail(), e);
 
             failure(processor, response, cex);
         } finally {
@@ -153,7 +152,10 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         }
     }
 
-    protected void success(MessageProcessorBase processor, long start) {
+    protected static void success(MessageProcessorBase processor, long start,
+            OpMonitoringData opMonitoringData) {
+        updateOpMonitoringSucceeded(opMonitoringData);
+
         MonitorAgent.success(
             processor.createRequestMessageInfo(),
             new Date(start),
@@ -162,23 +164,23 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
     }
 
     protected void failure(MessageProcessorBase processor,
-            HttpServletResponse response, CodedException ex)
+            HttpServletResponse response, CodedException e)
             throws IOException {
         MessageInfo info = processor != null
                 ? processor.createRequestMessageInfo()
                 : null;
 
-        MonitorAgent.failure(info, ex.getFaultCode(), ex.getFaultString());
+        MonitorAgent.failure(info, e.getFaultCode(), e.getFaultString());
 
-        sendErrorResponse(response, ex);
+        sendErrorResponse(response, e);
     }
 
     @Override
-    protected void failure(HttpServletResponse response, CodedException ex)
+    protected void failure(HttpServletResponse response, CodedException e)
             throws IOException {
-        MonitorAgent.failure(null, ex.getFaultCode(), ex.getFaultString());
+        MonitorAgent.failure(null, e.getFaultCode(), e.getFaultString());
 
-        sendErrorResponse(response, ex);
+        sendErrorResponse(response, e);
     }
 
     protected void failure(HttpServletResponse response,
@@ -227,11 +229,17 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
         PerformanceLogger.log(log, start, "Request handled");
     }
 
-    private void updateOpMonitoring(OpMonitoringData opMonitoringData,
-            CodedException e) {
+    private static void updateOpMonitoringSoapFault(
+            OpMonitoringData opMonitoringData, CodedException e) {
         if (opMonitoringData != null) {
-            opMonitoringData.setSucceeded(false);
             opMonitoringData.setSoapFault(e);
+        }
+    }
+
+    private static void updateOpMonitoringSucceeded(
+            OpMonitoringData opMonitoringData) {
+        if (opMonitoringData != null) {
+            opMonitoringData.setSucceeded(true);
         }
     }
 }

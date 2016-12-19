@@ -75,7 +75,7 @@ public final class DropwizardBugfixAgent {
 
             classfileBytes = cc.toBytecode();
             cc.detach();
-        } catch (Throwable t) {
+        } catch (Throwable t) { // We want to catch serious errors as well
             throw new RuntimeException("Failed to modify the class", t);
         }
         return classfileBytes;

@@ -16,11 +16,9 @@
             <id:memberCode>00000000</id:memberCode>
             <id:subsystemCode>Center</id:subsystemCode>
             <id:serviceCode>listMethods</id:serviceCode>
-            <id:serviceVersion>v1</id:serviceVersion>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
         <xroad:protocolVersion>4.0</xroad:protocolVersion>
-        <xroad:userId>EE37702211230</xroad:userId>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <xroad:listMethods/>

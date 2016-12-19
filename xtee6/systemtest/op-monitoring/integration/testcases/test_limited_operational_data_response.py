@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
 
+# The MIT License
+# Copyright (c) 2016 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 # Test case for verifying that operational data is returned in correct batches
 # if the amount of relevant records exceeds the value of the
 # max-records-in-payload configuration property.
@@ -17,7 +38,7 @@ sys.path.append('..')
 import python_common as common
 
 def run(client_security_server_address, producer_security_server_address,
-        request_template_dir):
+        ssh_user, request_template_dir):
     xroad_request_template_filename = os.path.join(
             request_template_dir, "simple_xroad_query_template.xml")
     query_data_client_template_filename = os.path.join(
@@ -27,9 +48,9 @@ def run(client_security_server_address, producer_security_server_address,
 
     xroad_message_ids = []
     client_timestamp_before_requests = common.get_remote_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
     producer_timestamp_before_requests = common.get_remote_timestamp(
-            producer_security_server_address)
+            producer_security_server_address, ssh_user)
 
     ### Repeat a regular X-Road request with a different message ID.
 
@@ -48,10 +69,12 @@ def run(client_security_server_address, producer_security_server_address,
 
         time.sleep(1)
 
+    common.wait_for_operational_data()
+
     client_timestamp_after_requests = common.get_remote_timestamp(
-            client_security_server_address)
+            client_security_server_address, ssh_user)
     producer_timestamp_after_requests = common.get_remote_timestamp(
-            producer_security_server_address)
+            producer_security_server_address, ssh_user)
 
     ### Make operational data requests until all the records have been received or
     ### no more are offered.

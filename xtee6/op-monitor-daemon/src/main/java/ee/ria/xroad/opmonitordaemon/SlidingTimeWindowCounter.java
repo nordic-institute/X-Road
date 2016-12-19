@@ -37,7 +37,7 @@ import com.codahale.metrics.SlidingTimeWindowReservoir;
  * interfaces directly, in order to be able to register our metric objects with
  * the registry.
  */
-public class SlidingTimeWindowCounter extends Counter {
+class SlidingTimeWindowCounter extends Counter {
 
     private final Reservoir reservoir;
 
@@ -47,7 +47,7 @@ public class SlidingTimeWindowCounter extends Counter {
      * @param window     the window of time
      * @param windowUnit the unit of {@code window}
      */
-    public SlidingTimeWindowCounter(long window, TimeUnit windowUnit) {
+    SlidingTimeWindowCounter(long window, TimeUnit windowUnit) {
         reservoir = new SlidingTimeWindowReservoir(window, windowUnit);
     }
 

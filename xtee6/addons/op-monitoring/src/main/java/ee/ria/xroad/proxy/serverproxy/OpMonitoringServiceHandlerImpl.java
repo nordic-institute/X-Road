@@ -37,15 +37,15 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 /**
@@ -120,7 +120,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         return sender.getResponseContent();
     }
 
-    private HttpSender createHttpSender(HttpClient opMonitorClient) {
+    private static HttpSender createHttpSender(HttpClient opMonitorClient) {
         return new HttpSender(opMonitorClient);
     }
 
@@ -146,8 +146,9 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         try (InputStream in = proxyRequestMessage.getSoapContent()) {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-            sender.doPost(opMonitorUri, in, CHUNKED_LENGTH,
-                    servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
+            sender.doPost(opMonitorUri, in, AbstractHttpSender.CHUNKED_LENGTH,
+                    servletRequest.getHeader(
+                            MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
@@ -167,7 +168,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 
-    private URI getOpMonitorUri() throws URISyntaxException {
+    private static URI getOpMonitorUri() throws URISyntaxException {
         return new URI(OP_MONITOR_ADDRESS);
     }
 }

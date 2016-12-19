@@ -42,6 +42,65 @@ import ee.ria.xroad.common.message.RepresentedParty;
 @ToString
 public class OpMonitoringData {
 
+    // The following fields correspond to the schema defined in
+    // xtee6/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
+    // Refer to the schema for detailed documentation.
+
+    public static final String SECURITY_SERVER_INTERNAL_IP =
+            "securityServerInternalIp";
+
+    public static final String CLIENT_SECURITY_SERVER_ADDRESS =
+            "clientSecurityServerAddress";
+    public static final String SERVICE_SECURITY_SERVER_ADDRESS =
+            "serviceSecurityServerAddress";
+
+    public static final String CLIENT_XROAD_INSTANCE = "clientXRoadInstance";
+    public static final String CLIENT_MEMBER_CLASS = "clientMemberClass";
+    public static final String CLIENT_MEMBER_CODE = "clientMemberCode";
+    public static final String CLIENT_SUBSYSTEM_CODE = "clientSubsystemCode";
+
+    public static final String SERVICE_XROAD_INSTANCE = "serviceXRoadInstance";
+    public static final String SERVICE_MEMBER_CLASS = "serviceMemberClass";
+    public static final String SERVICE_MEMBER_CODE = "serviceMemberCode";
+    public static final String SERVICE_SUBSYSTEM_CODE = "serviceSubsystemCode";
+
+    private static final String SERVICE_CODE = "serviceCode";
+    private static final String SERVICE_VERSION = "serviceVersion";
+
+    private static final String SECURITY_SERVER_TYPE = "securityServerType";
+
+    // Unix timestamps in milliseconds.
+    private static final String REQUEST_IN_TIMESTAMP = "requestInTs";
+    private static final String REQUEST_OUT_TIMESTAMP = "requestOutTs";
+    private static final String RESPONSE_IN_TIMESTAMP = "responseInTs";
+    private static final String RESPONSE_OUT_TIMESTAMP = "responseOutTs";
+
+    private static final String REPRESENTED_PARTY_CLASS =
+            "representedPartyClass";
+    private static final String REPRESENTED_PARTY_CODE =
+            "representedPartyCode";
+
+    private static final String MESSAGE_ID = "messageId";
+    private static final String MESSAGE_USER_ID = "messageUserId";
+    private static final String MESSAGE_ISSUE = "messageIssue";
+    private static final String MESSAGE_PROTOCOL_VERSION =
+            "messageProtocolVersion";
+
+    private static final String REQUEST_SOAP_SIZE = "requestSoapSize";
+    private static final String REQUEST_MIME_SIZE = "requestMimeSize";
+    private static final String REQUEST_ATTACHMENT_COUNT =
+            "requestAttachmentCount";
+
+    private static final String RESPONSE_SOAP_SIZE = "responseSoapSize";
+    private static final String RESPONSE_MIME_SIZE = "responseMimeSize";
+    private static final String RESPONSE_ATTACHMENT_COUNT =
+            "responseAttachmentCount";
+
+    private static final String SUCCEEDED = "succeeded";
+
+    private static final String SOAP_FAULT_CODE = "soapFaultCode";
+    private static final String SOAP_FAULT_STRING = "soapFaultString";
+
     /**
      * The supported types of security servers in the context of operational
      * monitoring.
@@ -75,63 +134,6 @@ public class OpMonitoringData {
         }
     }
 
-    // The following fields correspond to the schema defined in
-    // xtee6/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
-    // Refer to the schema for detailed documentation.
-
-    public static final String SECURITY_SERVER_INTERNAL_IP =
-            "securityServerInternalIp";
-    public static final String SECURITY_SERVER_TYPE = "securityServerType";
-
-    // Unix timestamps in milliseconds.
-    public static final String REQUEST_IN_TIMESTAMP = "requestInTs";
-    public static final String REQUEST_OUT_TIMESTAMP = "requestOutTs";
-    public static final String RESPONSE_IN_TIMESTAMP = "responseInTs";
-    public static final String RESPONSE_OUT_TIMESTAMP = "responseOutTs";
-
-    public static final String CLIENT_XROAD_INSTANCE = "clientXRoadInstance";
-    public static final String CLIENT_MEMBER_CLASS = "clientMemberClass";
-    public static final String CLIENT_MEMBER_CODE = "clientMemberCode";
-    public static final String CLIENT_SUBSYSTEM_CODE = "clientSubsystemCode";
-
-    public static final String SERVICE_XROAD_INSTANCE = "serviceXRoadInstance";
-    public static final String SERVICE_MEMBER_CLASS = "serviceMemberClass";
-    public static final String SERVICE_MEMBER_CODE = "serviceMemberCode";
-    public static final String SERVICE_SUBSYSTEM_CODE = "serviceSubsystemCode";
-    public static final String SERVICE_CODE = "serviceCode";
-    public static final String SERVICE_VERSION = "serviceVersion";
-
-    public static final String REPRESENTED_PARTY_CLASS =
-            "representedPartyClass";
-    public static final String REPRESENTED_PARTY_CODE =
-            "representedPartyCode";
-
-    public static final String MESSAGE_ID = "messageId";
-    public static final String MESSAGE_USER_ID = "messageUserId";
-    public static final String MESSAGE_ISSUE = "messageIssue";
-    public static final String MESSAGE_PROTOCOL_VERSION =
-            "messageProtocolVersion";
-
-    public static final String CLIENT_SECURITY_SERVER_ADDRESS =
-            "clientSecurityServerAddress";
-    public static final String SERVICE_SECURITY_SERVER_ADDRESS =
-            "serviceSecurityServerAddress";
-
-    public static final String REQUEST_SOAP_SIZE = "requestSoapSize";
-    public static final String REQUEST_MIME_SIZE = "requestMimeSize";
-    public static final String REQUEST_ATTACHMENT_COUNT =
-            "requestAttachmentCount";
-
-    public static final String RESPONSE_SOAP_SIZE = "responseSoapSize";
-    public static final String RESPONSE_MIME_SIZE = "responseMimeSize";
-    public static final String RESPONSE_ATTACHMENT_COUNT =
-            "responseAttachmentCount";
-
-    public static final String SUCCEEDED = "succeeded";
-
-    public static final String SOAP_FAULT_CODE = "soapFaultCode";
-    public static final String SOAP_FAULT_STRING = "soapFaultString";
-
     @Setter
     /**
      * In case true, the same value as "response out" is assigned
@@ -151,7 +153,7 @@ public class OpMonitoringData {
     public OpMonitoringData(SecurityServerType type, long requestInTs) {
         setSecurityServerType(type);
         setRequestInTs(requestInTs);
-        setSucceeded(true);
+        setSucceeded(false);
     }
 
     /**
