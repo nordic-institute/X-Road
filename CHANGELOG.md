@@ -1,5 +1,9 @@
 # Change Log
 
+## 6.8.11 - 2016-12-20
+- Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR
+- Updated documents: ARC-G, ARC-SS, UC-OPMON, UG-SS, TEST_OPMON, TEST_OPMONSTRAT
+
 ## 6.8.10 - 2016-12-12
 - Operational data monitoring improvements and bug fixes
 

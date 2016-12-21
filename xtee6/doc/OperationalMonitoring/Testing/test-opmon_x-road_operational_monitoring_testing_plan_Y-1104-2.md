@@ -404,7 +404,7 @@ Test case for verifying that the secure connection between the security server a
     * Received fatal alert: certificate_unknown.
 
 2. Configure an incorrect operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
-  * Generate the monitoring daemon certificate in security server *xtee9.ci.kit* (use the script `/usr/share/xroad/scripts/generate-opmonitor-certificate`).
+  * Generate the monitoring daemon certificate in security server *xtee9.ci.kit* (use the command `generate-opmonitor-certificate`).
   * In security server *xtee10.ci.kit*, replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to the monitoring daemon certificate of security server *xtee9.ci.kit* generated in the previous step.
   * Restart the proxy (`sudo service xroad-proxy restart`).
   * Send a health data request to security server *xtee10.ci.kit*.

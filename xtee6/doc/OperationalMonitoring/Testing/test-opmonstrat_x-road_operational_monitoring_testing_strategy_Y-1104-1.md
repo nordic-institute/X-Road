@@ -33,6 +33,7 @@ CI -- Continuous Integration
 <a name="REC-OPMON">REC-OPMON</a> -- Cybernetica AS. X-Road Operational Monitoring: Requirements  
 <a name="UC-OPMON">UC-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model  
 <a name="TEST-OPMON">TEST-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan  
+<a name="IG-SS">IG-SS</a> -- Cybernetica AS. X-Road: Security Server Installation Guide
 
 ## 2 Requirements Relevant to Testing
 
@@ -60,7 +61,30 @@ The integration tests will be used for testing the required functionality of the
 
 ### 4.2 Load Requirements and the Scope of Load Tests
 
-A general test plan and the requirements for hardware for load testing was specified by RIA by e-mail (message ID CC0A4AA94EE060438CD300941B8EF1EED37D61@exc2a.ria.ee). 
+#### 4.2.1 Initial Requirements
+
+A general test plan and the requirements for hardware for load testing was specified by RIA by e-mail (message ID `CC0A4AA94EE060438CD300941B8EF1EED37D61@exc2a.ria.ee`), with the following contents:
+
+* As a result of load testing, the throughput of the system is noted. No comparable benchmarks are available. The format of the tests will be suggested by Cybernetica AS.
+* The security servers of the service provider and the service consumer are installed on separate hosts that conform to the minimum requirements defined in [[IG-SS]](#IG-SS).
+* Virtual machines can be used during testing -- both by the developers and at RIA's environment.
+* The operational monitoring application is installed at localhost at both security servers and TLS in not used.
+
+Load testing should be carried out using the following plan:
+* At first, X-Road requests are made by a single user without the operational monitoring software being used. The average round-trip time is calculated.  
+* The number of parallel requests by different users is increased until the average round-trip time becomes 5 times the initial average value. This number of parallel requests is noted.  
+* The operational monitoring software is installed and the test with a single user is repeated.  
+* The test is repeated with X parallel users.  
+* A load testing report is written, in which the following is stated:
+  * the additional latency in percents that the operational monitoring software adds  
+  * the additional latency in percents that the operational monitoring software adds when X parallel users make requests  
+
+Three types of requests should be used with the load testing plan:
+* a request with an empty body  
+* a request with a 1MB body  
+* a request with an empty body and a 1MB attachment  
+
+#### 4.2.2 Load Testing in the Context of the Implementation
 
 Due to the asynchronous nature of the operational monitoring system, the overhead of request exchange is minimal, when operational data is stored. Operational data about each request is written to an in-memory operational data buffer at the security server and forwarded to the operational monitoring daemon in an asynchronous manner. In such a situation, the host running the security server will mostly experience additional load due to the forwarding of the records, especially during high loads or if operational data cannot be forwarded for some time.
 
