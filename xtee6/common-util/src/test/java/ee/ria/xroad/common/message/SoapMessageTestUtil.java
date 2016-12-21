@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 
 import org.apache.commons.io.IOUtils;
 
+import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeTypes;
@@ -92,7 +93,11 @@ public final class SoapMessageTestUtil {
                     throws Exception {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
-        header.setService(receiver);
+        if (receiver instanceof CentralServiceId) {
+            header.setCentralService((CentralServiceId) receiver);
+        } else {
+            header.setService(receiver);
+        }
         header.setUserId(userId);
         header.setQueryId(queryId);
         header.setProtocolVersion(new ProtocolVersion());

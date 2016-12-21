@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="UNKNOWN" id="0-initial">
+        <createSequence sequenceName="hibernate_sequence"/>
+        <createTable tableName="operational_data">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="monitoring_data_ts" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="security_server_internal_ip" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="security_server_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_in_ts" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="request_out_ts" type="BIGINT"/>
+            <column name="response_in_ts" type="BIGINT"/>
+            <column name="response_out_ts" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="client_xroad_instance" type="VARCHAR(255)"/>
+            <column name="client_member_class" type="VARCHAR(255)"/>
+            <column name="client_member_code" type="VARCHAR(255)"/>
+            <column name="client_subsystem_code" type="VARCHAR(255)"/>
+            <column name="service_xroad_instance" type="VARCHAR(255)"/>
+            <column name="service_member_class" type="VARCHAR(255)"/>
+            <column name="service_member_code" type="VARCHAR(255)"/>
+            <column name="service_subsystem_code" type="VARCHAR(255)"/>
+            <column name="service_code" type="VARCHAR(255)"/>
+            <column name="service_version" type="VARCHAR(255)"/>
+            <column name="represented_party_class" type="VARCHAR(255)"/>
+            <column name="represented_party_code" type="VARCHAR(255)"/>
+            <column name="message_id" type="VARCHAR(255)"/>
+            <column name="message_user_id" type="VARCHAR(255)"/>
+            <column name="message_issue" type="VARCHAR(255)"/>
+            <column name="message_protocol_version" type="VARCHAR(255)"/>
+            <column name="client_security_server_address" type="VARCHAR(255)"/>
+            <column name="service_security_server_address" type="VARCHAR(255)"/>
+            <column name="request_soap_size" type="BIGINT"/>
+            <column name="request_mime_size" type="BIGINT"/>
+            <column name="request_attachment_count" type="INT4"/>
+            <column name="response_soap_size" type="BIGINT"/>
+            <column name="response_mime_size" type="BIGINT"/>
+            <column name="response_attachment_count" type="INT4"/>
+            <column name="succeeded" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="soap_fault_code" type="VARCHAR(255)"/>
+            <column name="soap_fault_string" type="VARCHAR(255)"/>
+        </createTable>
+        <addPrimaryKey columnNames="id" constraintName="operational_data_pkey" tableName="operational_data"/>
+        <createIndex indexName="idx_monitoring_data_ts" tableName="operational_data" unique="false">
+            <column name="monitoring_data_ts"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

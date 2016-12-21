@@ -47,6 +47,8 @@ public final class ErrorCodes {
     public static final String CLIENT_X = "Client";
     public static final String SERVER_CLIENTPROXY_X = "Server.ClientProxy";
     public static final String SIGNER_X = "Signer";
+    public static final String SERVER_SERVER_PROXY_OPMONITOR_X =
+            SERVER_SERVERPROXY_X + ".OpMonitor";
 
     // Generic errors.
 

@@ -104,7 +104,7 @@ public final class SystemMetrics {
             long used = memoryStats.getHeapMemoryUsage().getUsed();
             return ((double) used) / max;
         } catch (InternalError err) {
-            log.error("Error getting heap usage: {}", err);
+            log.error("Error getting heap usage", err);
             return -1;
         }
     }
@@ -159,7 +159,7 @@ public final class SystemMetrics {
 
             return new NetStats(bytesReceived, bytesTransmitted);
         } catch (IOException e) {
-            log.error("Did not manage to collect network statistics:", e);
+            log.error("Did not manage to collect network statistics", e);
             return null;
         }
     }
@@ -189,7 +189,7 @@ public final class SystemMetrics {
 
             return null;
         } catch (IOException e) {
-            log.error("Did not manage to collect CPU statistics:", e);
+            log.error("Did not manage to collect CPU statistics", e);
             return null;
         }
     }
@@ -204,7 +204,7 @@ public final class SystemMetrics {
             long open = getStats().getOpenFileDescriptorCount();
             return max - open;
         } catch (InternalError probablyOutOfFileHandles) {
-            log.error("Error getting free file descriptor count: {}",
+            log.error("Error getting free file descriptor count",
                     probablyOutOfFileHandles);
             return -1;
         }

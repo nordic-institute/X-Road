@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope 
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+    xmlns:id="http://x-road.eu/xsd/identifiers" 
+    xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:m="http://x-road.eu/xsd/monitoring">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
+        </xroad:service>
+        <xroad:securityServer id:objectType="SERVER">
+            <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+            <id:memberClass>GOV</id:memberClass>
+            <id:memberCode>00000001</id:memberCode>
+            <id:serverCode>00000001_1</id:serverCode>
+        </xroad:securityServer>
+        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+        <xroad:userId>EE37702211230</xroad:userId>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <m:getSecurityServerMetrics/>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

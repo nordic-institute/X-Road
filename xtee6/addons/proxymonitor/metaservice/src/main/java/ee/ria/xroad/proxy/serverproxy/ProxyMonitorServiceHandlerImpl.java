@@ -26,22 +26,27 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Collections;
-
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.http.client.HttpClient;
 
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
@@ -49,7 +54,6 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service handler for proxy monitoring
@@ -97,7 +101,16 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling() throws Exception {
+    public void startHandling(HttpServletRequest servletRequest,
+            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+            OpMonitoringData opMonitoringData) throws Exception {
+        // It's required that in case of proxy monitor service (where SOAP
+        // message is not forwarded) the requestOutTs must be equal with the
+        // requestInTs and the responseInTs must be equal with the
+        // responseOutTs.
+        opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
+        opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
+
         //mock implementation
         responseEncoder = new SoapMessageEncoder(responseOut);
         MonitorClient client = new MonitorClient();
@@ -133,31 +146,26 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     }
 
     private void verifyAccess() {
-
-        final SecurityServerId serverId = ServerConf.getIdentifier();
-        final SecurityServerId target = requestMessage.getSoap().getSecurityServer();
-        if (!serverId.equals(target)) {
-            throw new CodedException(ErrorCodes.X_INVALID_SECURITY_SERVER,
-                    "Invalid security server identifier %s, expected %s", target, serverId);
-        }
-
-        final ClientId owner = serverId.getOwner();
+        final ClientId owner = ServerConf.getIdentifier().getOwner();
         final ClientId client = requestMessage.getSoap().getClient();
 
         if (owner.equals(client)) {
             return;
         }
 
-        // grant access for confugured monitoring client (if any)
-        ClientId monitoringClient = MonitoringConf.getInstance().getMonitoringClient();
+        // Grant access for configured monitoring client (if any)
+        ClientId monitoringClient = MonitoringConf.getInstance()
+                .getMonitoringClient();
+
         if (monitoringClient != null && monitoringClient.equals(client)) {
             return;
         }
 
         throw new CodedException(ErrorCodes.X_ACCESS_DENIED,
-                "Request is not allowed: %s", requestMessage.getSoap().getService());
-
+                "Request is not allowed: %s",
+                requestMessage.getSoap().getService());
     }
+
     private static SoapMessageImpl createResponse(SoapMessageImpl requestMessage, Object response) throws Exception {
         SoapMessageImpl responseMessage = SoapUtils.toResponse(requestMessage,
                 soap -> {

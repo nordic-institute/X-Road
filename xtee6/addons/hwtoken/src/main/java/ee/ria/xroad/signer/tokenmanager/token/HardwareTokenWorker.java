@@ -123,7 +123,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
             setTokenAvailable(tokenId, true);
         } catch (Exception e) {
             setTokenAvailable(tokenId, false);
-            log.error("Error initializing token ({}): {}", getWorkerId(), e);
+            log.error("Error initializing token ({})", getWorkerId(), e);
             return;
         }
 
@@ -411,8 +411,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
                 }
             }
         } catch (Exception e) {
-            log.error("Failed to find keys from token '{}': {}",
-                    getWorkerId(), e);
+            log.error("Failed to find keys from token '{}'", getWorkerId(), e);
         }
     }
 
@@ -658,8 +657,8 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         try {
             activeSession.destroyObject(cert);
         } catch (Exception e) {
-            log.error("Failed to delete certificate on token '{}': {}",
-                    new Object[] {getWorkerId(), e});
+            log.error("Failed to delete certificate on token '{}'",
+                    getWorkerId(), e);
         }
     }
 

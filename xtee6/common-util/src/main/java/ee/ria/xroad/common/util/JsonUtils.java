@@ -22,14 +22,13 @@
  */
 package ee.ria.xroad.common.util;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Type;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -50,6 +49,18 @@ public final class JsonUtils {
         builder.disableHtmlEscaping();
         builder.registerTypeAdapter(ClientId.class, new ClientIdSerializer());
 
+        builder.setExclusionStrategies(new ExclusionStrategy() {
+            @Override
+            public boolean shouldSkipField(FieldAttributes f) {
+                return f.getAnnotation(Exclude.class) != null;
+            }
+
+            @Override
+            public boolean shouldSkipClass(Class<?> clazz) {
+                return false;
+            }
+        });
+
         return builder.create();
     }
 
@@ -69,4 +80,13 @@ public final class JsonUtils {
             return o;
         }
     }
+
+    /**
+     * Annotation to exclude fields from serialization/deserialization.
+     */
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    public @interface Exclude {
+    }
+
 }

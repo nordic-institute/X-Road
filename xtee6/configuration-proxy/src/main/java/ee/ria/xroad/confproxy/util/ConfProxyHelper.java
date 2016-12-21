@@ -107,10 +107,10 @@ public final class ConfProxyHelper {
             Process process = pb.start();
             exitCode = process.waitFor();
         } catch (IOException e) {
-            log.error("IOException: {}", e);
+            log.error("IOException", e);
             exitCode = 2;
         } catch (Exception e) {
-            log.error("Undetermined ConfigurationClient exitCode: {}", e);
+            log.error("Undetermined ConfigurationClient exitCode", e);
             //undetermined ConfigurationClient exitCode, fail in 'finally'
             return;
         } finally {

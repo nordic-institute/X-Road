@@ -10,6 +10,9 @@ dependencies {
 clean << {
     project.delete "vendor/engines/common-ui"
     project.delete "vendor/engines/center-common"
+    project.delete "Gemfile.lock"
+    project.delete "log/development.log"
+    project.delete "db"
 }
 
 task copyCommon(type: Copy) {

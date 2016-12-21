@@ -22,16 +22,18 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.http.client.HttpClient;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 
 /**
  * MetadataHandler
@@ -43,14 +45,17 @@ public class MetadataHandler extends AbstractClientProxyHandler {
      * Constructor
      */
     public MetadataHandler(HttpClient client) {
-        super(client);
+        super(client, false);
     }
 
     @Override
     MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response)
-                    throws Exception {
+            HttpServletRequest request, HttpServletResponse response,
+            OpMonitoringData opMonitoringData) throws Exception {
         log.trace("createRequestProcessor({})", target);
+
+        // opMonitoringData is null, do not use it.
+
         if (!isGetRequest(request)) {
             return null;
         }
@@ -62,6 +67,7 @@ public class MetadataHandler extends AbstractClientProxyHandler {
 
         MetadataClientRequestProcessor processor =
                 new MetadataClientRequestProcessor(target, request, response);
+
         if (processor.canProcess()) {
             log.trace("Processing with MetadataClientRequestProcessor");
             return processor;

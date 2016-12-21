@@ -96,7 +96,7 @@ public class SignatureManifest {
      * @param hashValue the hash value (digest value)
      */
     public void addReference(String name, String hashMethod, byte[] hashValue) {
-        addReference(new MessagePart(name, hashMethod, hashValue));
+        addReference(new MessagePart(name, hashMethod, hashValue, null));
     }
 
     /**

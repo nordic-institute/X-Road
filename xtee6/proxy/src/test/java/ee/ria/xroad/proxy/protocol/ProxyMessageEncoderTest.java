@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -41,12 +36,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+
+import static org.junit.Assert.*;
 
 /**
  * Tests to verify correct proxy message encoder behavior.
@@ -191,7 +188,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapMessageImpl createMessage(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
         }
@@ -201,7 +198,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
         }

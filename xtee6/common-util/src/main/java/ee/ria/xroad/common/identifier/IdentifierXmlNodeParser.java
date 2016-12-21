@@ -128,7 +128,7 @@ public final class IdentifierXmlNodeParser {
         try {
             return XRoadObjectType.valueOf(typeName);
         } catch (IllegalArgumentException e) {
-            log.error("Unknown objectType: {}", e);
+            log.error("Unknown objectType", e);
             throw new CodedException(X_INVALID_XML,
                     "Unknown objectType: %s", typeName);
         }

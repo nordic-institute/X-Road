@@ -107,7 +107,7 @@ public final class ModuleConf {
             try {
                 parseSection(uid, conf.getSection(uid));
             } catch (ConversionException e) {
-                log.error("Parse section failed with {}", e);
+                log.error("Parse section failed with", e);
             }
         }
     }

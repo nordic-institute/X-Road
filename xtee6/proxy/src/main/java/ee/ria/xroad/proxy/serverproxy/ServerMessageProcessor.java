@@ -22,31 +22,8 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_ACCESS_DENIED;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_DISABLED;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MALFORMED_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_MISSING_URL;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-
 import java.io.InputStream;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.X509Certificate;
@@ -54,16 +31,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPMessage;
+import javax.xml.namespace.QName;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -76,20 +54,19 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.RequestHash;
-import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
@@ -97,7 +74,14 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
@@ -119,12 +103,18 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private SigningCtx responseSigningCtx;
 
+    private HttpClient opMonitorHttpClient;
+    private OpMonitoringData opMonitoringData;
+
     ServerMessageProcessor(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, HttpClient httpClient,
-            X509Certificate[] clientSslCerts) {
+            X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
+            OpMonitoringData opMonitoringData) {
         super(servletRequest, servletResponse, httpClient);
 
         this.clientSslCerts = clientSslCerts;
+        this.opMonitorHttpClient = opMonitorHttpClient;
+        this.opMonitoringData = opMonitoringData;
 
         loadServiceHandlers();
     }
@@ -132,6 +122,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
     @Override
     public void process() throws Exception {
         log.info("process({})", servletRequest.getContentType());
+
+        updateOpMonitoringClientSecurityServerAddress();
+        updateOpMonitoringServiceSecurityServerAddress();
+
         try {
             readMessage();
 
@@ -153,17 +147,46 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    private void updateOpMonitoringClientSecurityServerAddress() {
+        try {
+            X509Certificate authCert = getClientAuthCert();
+
+            if (authCert != null) {
+                opMonitoringData.setClientSecurityServerAddress(
+                        GlobalConf.getSecurityServerAddress(
+                                GlobalConf.getServerId(authCert)));
+            }
+        } catch (Exception e) {
+            log.error(
+                    "Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
+        }
+    }
+
+    private void updateOpMonitoringServiceSecurityServerAddress() {
+        try {
+            opMonitoringData.setServiceSecurityServerAddress(
+                    getSecurityServerAddress());
+        } catch (Exception e) {
+            log.error(
+                    "Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
+        }
+    }
+
     @Override
     protected void preprocess() throws Exception {
         encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(),
-                getHashAlgoId());
+                SoapUtils.getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
-        servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
+        servletResponse.addHeader(HEADER_HASH_ALGO_ID,
+                SoapUtils.getHashAlgoId());
         servletResponse.addHeader("Connection", "close");
     }
 
     @Override
     protected void postprocess() throws Exception {
+        opMonitoringData.setSucceeded(true);
     }
 
     private void loadServiceHandlers() {
@@ -192,6 +215,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private void handleRequest() throws Exception {
         ServiceHandler handler = getServiceHandler(requestMessage);
+
         if (handler == null) {
             handler = new DefaultServiceHandlerImpl();
         }
@@ -209,7 +233,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            handler.startHandling();
+            handler.startHandling(servletRequest, requestMessage,
+                    opMonitorHttpClient, opMonitoringData);
             parseResponse(handler);
         } finally {
             handler.finishHandling();
@@ -226,8 +251,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
                     Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
 
+                updateOpMonitoringDataBySoapMessage(
+                        opMonitoringData, soapMessage);
+
                 requestServiceId = soapMessage.getService();
 
+                verifySecurityServer();
                 verifyClientStatus();
 
                 responseSigningCtx =
@@ -248,8 +277,23 @@ class ServerMessageProcessor extends MessageProcessorBase {
             throw e.withPrefix(X_SERVICE_FAILED_X);
         }
 
+        updateOpMonitoringDataByRequest();
+
         // Check if the input contained all the required bits.
         checkRequest();
+    }
+
+    private void updateOpMonitoringDataByRequest() {
+        if (requestMessage.getSoap() != null) {
+            opMonitoringData.setRequestAttachmentCount(
+                    decoder.getAttachmentCount());
+
+            if (decoder.getAttachmentCount() > 0) {
+                opMonitoringData.setRequestMimeSize(
+                        requestMessage.getSoap().getBytes().length
+                                + decoder.getAttachmentsByteCount());
+            }
+        }
     }
 
     private void checkRequest() throws Exception {
@@ -268,6 +312,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         ClientId client = requestServiceId.getClientId();
 
         String status = ServerConf.getMemberStatus(client);
+
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
                     client);
@@ -305,14 +350,23 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    private void verifySecurityServer() throws Exception {
+        final SecurityServerId requestServerId =
+                requestMessage.getSoap().getSecurityServer();
+
+        if (requestServerId != null) {
+            final SecurityServerId serverId = ServerConf.getIdentifier();
+
+            if (!requestServerId.equals(serverId)) {
+                throw new CodedException(X_INVALID_SECURITY_SERVER,
+                        "Invalid security server identifier '%s',"
+                                + " expected '%s'", requestServerId, serverId);
+            }
+        }
+    }
+
     private void verifyAccess() throws Exception {
         log.trace("verifyAccess()");
-
-        final SecurityServerId requestSecurityServer = requestMessage.getSoap().getSecurityServer();
-        if (requestSecurityServer != null && !ServerConf.getIdentifier().equals(requestSecurityServer)) {
-            throw new CodedException(X_INVALID_SECURITY_SERVER,
-                    "Invalid security server %s", requestSecurityServer);
-        }
 
         if (!ServerConf.serviceExists(requestServiceId)) {
             throw new CodedException(X_UNKNOWN_SERVICE,
@@ -387,20 +441,31 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("sendRequest({})", serviceAddress);
 
         URI uri;
+
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
-            log.error("Malformed service address:{}", e);
+            log.error("Malformed service address", e);
+
             throw new CodedException(X_SERVICE_MALFORMED_URL,
                     "Malformed service address '%s': %s", serviceAddress,
                     e.getMessage());
         }
 
         log.info("Sending request to {}", uri);
+
         try (InputStream in = requestMessage.getSoapContent()) {
+            opMonitoringData.setRequestOutTs(getEpochMillisecond());
+
             httpSender.doPost(uri, in, CHUNKED_LENGTH,
                     servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
+
+            opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
+            if (ex instanceof CodedException) {
+                opMonitoringData.setResponseInTs(getEpochMillisecond());
+            }
+
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
         }
     }
@@ -436,6 +501,18 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 "No response message received from service").withPrefix(
                         X_SERVICE_FAILED_X);
         }
+
+        updateOpMonitoringDataByResponse();
+    }
+
+    private void updateOpMonitoringDataByResponse() {
+        opMonitoringData.setResponseAttachmentCount(
+                encoder.getAttachmentCount());
+
+        if (encoder.getAttachmentCount() > 0) {
+            opMonitoringData.setResponseMimeSize(responseSoap.getBytes().length
+                    + encoder.getAttachmentsByteCount());
+        }
     }
 
     private void sign() throws Exception {
@@ -457,14 +534,20 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void handleException(Exception ex) throws Exception {
-        CodedException exception;
-        if (ex instanceof CodedException.Fault) {
-            exception = (CodedException.Fault) ex;
-        } else {
-            exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
-        }
-
         if (encoder != null) {
+            CodedException exception;
+
+            if (ex instanceof CodedException.Fault) {
+                exception = (CodedException.Fault) ex;
+            } else {
+                exception = translateWithPrefix(SERVER_SERVERPROXY_X, ex);
+            }
+
+            opMonitoringData.setSoapFault(exception);
+
+            log.error("Request processing error ({})",
+                    exception.getFaultDetail(), ex);
+
             monitorAgentNotifyFailure(exception);
 
             encoder.fault(SoapFault.createFaultXml(exception));
@@ -506,11 +589,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         return clientSslCerts != null ? clientSslCerts[0] : null;
     }
 
-    private static String getHashAlgoId() {
-        // FUTURE #2578 make hash function configurable
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-    }
-
     private static String getHashAlgoId(HttpServletRequest servletRequest) {
         String hashAlgoId = servletRequest.getHeader(HEADER_HASH_ALGO_ID);
         if (hashAlgoId == null) {
@@ -547,12 +625,15 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void startHandling() throws Exception {
+        public void startHandling(HttpServletRequest servletRequest,
+                ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                OpMonitoringData monitoringData) throws Exception {
             sender = createHttpSender();
 
             log.trace("processRequest({})", requestServiceId);
 
             String address = ServerConf.getServiceAddress(requestServiceId);
+
             if (address == null || address.isEmpty()) {
                 throw new CodedException(X_SERVICE_MISSING_URL,
                         "Service address not specified for '%s'",
@@ -561,7 +642,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
             int timeout = ServerConf.getServiceTimeout(requestServiceId);
 
-            sender.setTimeout((int) TimeUnit.SECONDS.toMillis(timeout));
+            sender.setTimeout(TimeUtils.secondsToMillis(timeout));
             sender.setAttribute(ServiceId.class.getName(), requestServiceId);
 
             sender.addHeader("accept-encoding", "");
@@ -592,6 +673,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 throws Exception {
             responseSoap = (SoapMessageImpl) message;
             encoder.soap(responseSoap, headers);
+
+            opMonitoringData.setResponseSoapSize(
+                    responseSoap.getBytes().length);
         }
 
         @Override
@@ -625,28 +709,134 @@ class ServerMessageProcessor extends MessageProcessorBase {
      * Soap parser that adds the request message hash to the response
      * message header.
      */
-    private class ResponseSoapParserImpl extends SoapParserImpl {
+    private class ResponseSoapParserImpl extends SaxSoapParserImpl {
+
+        private boolean inHeader;
+        private boolean inBody;
+        private boolean inExistingRequestHash;
+        private boolean bufferFlushed = true;
+
+        private char[] headerElementTabs;
+
+        private char[] bufferedChars;
+        private int bufferedOffset;
+        private int bufferedLength;
+
+        // force usage of processed XML since we need to write the request hash
+        @Override
+        protected boolean isProcessedXmlRequired() {
+            return true;
+        }
 
         @Override
-        protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                String charset, String originalContentType) throws Exception {
-            if (soap.getSOAPHeader() != null) {
-                String hash = encodeBase64(calculateDigest(getHashAlgoId(),
-                        requestMessage.getSoap().getBytes()));
+        protected SoapHeaderHandler getSoapHeaderHandler(SoapHeader header) {
+            return new SoapHeaderHandler(header) {
+                @Override
+                protected void openTag() {
+                    super.openTag();
+                    inHeader = true;
+                }
 
-                Marshaller m = JaxbUtils.createMarshaller(RequestHash.class);
-                m.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-                m.marshal(new RequestHash(
-                                getDigestAlgorithmURI(getHashAlgoId()), hash),
-                        soap.getSOAPHeader());
+                @Override
+                protected void closeTag() {
+                    super.closeTag();
+                    inHeader = false;
+                }
+            };
+        }
 
-                byte[] newRawXml = SoapUtils.getBytes(soap);
-                return super.createMessage(newRawXml, soap, charset,
-                        originalContentType);
+        @Override
+        protected void writeEndElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
+                inExistingRequestHash = false;
             } else {
-                return super.createMessage(rawXml, soap, charset,
-                        originalContentType);
+                writeBufferedCharacters(writer);
+                super.writeEndElementXml(prefix, element, attributes, writer);
             }
+            if (inHeader && element.equals(QNAME_XROAD_QUERY_ID)) {
+                try {
+                    byte[] hashBytes = requestMessage.getSoap().getHash();
+                    String hash = encodeBase64(hashBytes);
+
+                    AttributesImpl hashAttrs = new AttributesImpl(attributes);
+                    String algoId = getDigestAlgorithmURI(
+                            SoapUtils.getHashAlgoId());
+                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID,
+                            "xs:string", algoId);
+
+                    char[] tabs = headerElementTabs != null
+                            ? headerElementTabs : new char[0];
+                    super.writeCharactersXml(tabs, 0, tabs.length, writer);
+                    super.writeStartElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
+                            hashAttrs, writer);
+                    super.writeCharactersXml(hash.toCharArray(), 0,
+                            hash.length(), writer);
+                    super.writeEndElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
+                            hashAttrs, writer);
+                } catch (Exception e) {
+                    throw translateException(e);
+                }
+            }
+        }
+
+        @Override
+        protected void writeStartElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
+                inExistingRequestHash = true;
+            } else {
+                if (!inBody && element.equals(QNAME_SOAP_BODY)) {
+                    inBody = true;
+                }
+
+                writeBufferedCharacters(writer);
+                super.writeStartElementXml(prefix, element, attributes, writer);
+            }
+        }
+
+        private void writeBufferedCharacters(Writer writer) {
+            // Write the characters we ignored at the last characters event
+            if (!bufferFlushed) {
+                super.writeCharactersXml(bufferedChars, bufferedOffset,
+                        bufferedLength, writer);
+                bufferFlushed = true;
+            }
+        }
+
+        @Override
+        protected void writeCharactersXml(char[] characters, int start,
+                int length, Writer writer) {
+            if (inHeader && headerElementTabs == null) {
+                String value = new String(characters, start, length);
+                if (value.trim().isEmpty()) {
+                    headerElementTabs = value.toCharArray();
+                }
+            }
+
+            // When writing characters outside of the SOAP body, delay this
+            // operation until the next event, sometimes we don't want to write
+            // these characters, like when we're discarding a header
+            if (!inBody && bufferFlushed) {
+                bufferCharacters(characters, start, length);
+            } else if (!inExistingRequestHash) {
+                writeBufferedCharacters(writer);
+                super.writeCharactersXml(characters, start, length, writer);
+            }
+        }
+
+        private void bufferCharacters(char[] characters, int start,
+                int length) {
+            if (bufferedChars == null
+                    || bufferedChars.length < characters.length) {
+                bufferedChars = ArrayUtils.clone(characters);
+            } else {
+                System.arraycopy(characters, start, bufferedChars, start,
+                        length);
+            }
+            bufferedOffset = start;
+            bufferedLength = length;
+            bufferFlushed = false;
         }
     }
 }

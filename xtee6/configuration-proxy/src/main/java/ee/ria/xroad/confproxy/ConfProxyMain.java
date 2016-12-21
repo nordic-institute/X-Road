@@ -104,7 +104,7 @@ public final class ConfProxyMain {
                 ConfProxy proxy = new ConfProxy(instance);
                 proxy.execute();
             } catch (Exception ex) {
-                log.error("Error when executing configuration-proxy '{}': {}",
+                log.error("Error when executing configuration-proxy '{}'",
                         instance, ex);
             }
         }

@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions targetNamespace="http://op-monitor.x-road.eu/"
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:opm="http://x-road.eu/xsd/op-monitoring.xsd"
+        xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/"
+        xmlns:tns="http://op-monitor.x-road.eu/">
+    <wsdl:types>
+        <xs:schema elementFormDefault="qualified"
+                targetNamespace="http://x-road.eu/xsd/identifiers"
+                xmlns="http://x-road.eu/xsd/identifiers"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:complexType name="XRoadIdentifierType">
+                <xs:annotation>
+                    <xs:documentation>Globally unique identifier in the X-Road
+                        system. Identifier consists of object type specifier and
+                        list of hierarchical codes (starting with code that
+                        identifiers the X-Road instance).
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element minOccurs="0" ref="xRoadInstance"/>
+                    <xs:element minOccurs="0" ref="memberClass"/>
+                    <xs:element minOccurs="0" ref="memberCode"/>
+                    <xs:element minOccurs="0" ref="subsystemCode"/>
+                    <xs:element minOccurs="0" ref="groupCode"/>
+                    <xs:element minOccurs="0" ref="serviceCode"/>
+                    <xs:element minOccurs="0" ref="serviceVersion"/>
+                    <xs:element minOccurs="0" ref="securityCategoryCode"/>
+                    <xs:element minOccurs="0" ref="serverCode"/>
+                </xs:sequence>
+                <xs:attribute ref="objectType" use="required"/>
+            </xs:complexType>
+            <xs:simpleType name="XRoadObjectType">
+                <xs:annotation>
+                    <xs:documentation>Enumeration for X-Road identifier types.
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="MEMBER"/>
+                    <xs:enumeration value="SUBSYSTEM"/>
+                    <xs:enumeration value="SERVER"/>
+                    <xs:enumeration value="GLOBALGROUP"/>
+                    <xs:enumeration value="LOCALGROUP"/>
+                    <xs:enumeration value="SECURITYCATEGORY"/>
+                    <xs:enumeration value="SERVICE"/>
+                    <xs:enumeration value="CENTRALSERVICE"/>
+                </xs:restriction>
+            </xs:simpleType>
+            <xs:element name="xRoadInstance" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Identifies the X-Road instance. This field
+                        is applicable to all identifier types.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="memberClass" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Type of the member (company, government
+                        institution, private person, etc.)
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="memberCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies a member of
+                        given member type.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="subsystemCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies a subsystem
+                        of given X-Road member.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="groupCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies a global
+                        group in
+                        given X-Road instance.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="serviceCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies a service
+                        offered by given X-Road member or subsystem.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="serviceVersion" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Version of the service.</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="securityCategoryCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies security
+                        category in a given X-Road instance.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="serverCode" type="xs:string">
+                <xs:annotation>
+                    <xs:documentation>Code that uniquely identifies security
+                        server offered by a given X-Road member or subsystem.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:attribute name="objectType" type="XRoadObjectType"/>
+            <xs:complexType name="XRoadClientIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="memberClass"/>
+                            <xs:element ref="memberCode"/>
+                            <xs:element minOccurs="0" ref="subsystemCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadServiceIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="memberClass"/>
+                            <xs:element ref="memberCode"/>
+                            <xs:element minOccurs="0" ref="subsystemCode"/>
+                            <xs:element ref="serviceCode"/>
+                            <xs:element minOccurs="0" ref="serviceVersion"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="SERVICE"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadSecurityCategoryIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="securityCategoryCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="SECURITYCATEGORY"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadCentralServiceIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="serviceCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="CENTRALSERVICE"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadSecurityServerIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="memberClass"/>
+                            <xs:element ref="memberCode"/>
+                            <xs:element ref="serverCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="SERVER"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadGlobalGroupIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="xRoadInstance"/>
+                            <xs:element ref="groupCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="GLOBALGROUP"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+            <xs:complexType name="XRoadLocalGroupIdentifierType">
+                <xs:complexContent>
+                    <xs:restriction base="XRoadIdentifierType">
+                        <xs:sequence>
+                            <xs:element ref="groupCode"/>
+                        </xs:sequence>
+                        <xs:attribute ref="objectType" use="required"
+                                fixed="LOCALGROUP"/>
+                    </xs:restriction>
+                </xs:complexContent>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema elementFormDefault="qualified"
+                targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+                xmlns="http://x-road.eu/xsd/xroad.xsd"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:element name="version" type="xs:string"/>
+
+            <!-- Header elements -->
+            <xs:element name="client" type="id:XRoadClientIdentifierType"/>
+            <xs:element name="service" type="id:XRoadServiceIdentifierType"/>
+            <xs:element name="securityServer"
+                    type="id:XRoadSecurityServerIdentifierType"/>
+            <xs:element name="userId" type="xs:string"/>
+            <xs:element fixed="4.0" name="protocolVersion" type="xs:string"/>
+            <xs:element name="id" type="xs:string"/>
+
+            <!-- Elements describing other elements and operations-->
+            <xs:element name="title">
+                <xs:annotation>
+                    <xs:documentation>Title</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute default="en" ref="xml:lang"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="notes">
+                <xs:annotation>
+                    <xs:documentation>Notes for user</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:simpleContent>
+                        <xs:extension base="xs:string">
+                            <xs:attribute default="en" ref="xml:lang"/>
+                        </xs:extension>
+                    </xs:simpleContent>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+        <xs:schema elementFormDefault="qualified"
+                targetNamespace="http://x-road.eu/xsd/op-monitoring.xsd"
+                xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                xmlns="http://x-road.eu/xsd/op-monitoring.xsd"
+                xmlns:id="http://x-road.eu/xsd/identifiers"
+                xmlns:ref="http://ws-i.org/profiles/basic/1.1/xsd">
+            <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd"
+                    schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd"
+                    id="ref"/>
+            <xs:complexType name="GetSecurityServerOperationalDataType">
+                <xs:annotation>
+                    <xs:documentation>Security server operational data request
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element name="searchCriteria" type="SearchCriteriaType">
+                        <xs:annotation>
+                            <xs:documentation>Search criteria</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="outputSpec" type="OutputSpecType"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The set of the requested
+                                operational data fields
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="SearchCriteriaType">
+                <xs:sequence>
+                    <xs:element name="recordsFrom" type="xs:long">
+                        <xs:annotation>
+                            <xs:documentation>The beginning of the time interval
+                                of requested operational data (Unix timestamp in
+                                seconds)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="recordsTo" type="xs:long">
+                        <xs:annotation>
+                            <xs:documentation>The end of the time interval of
+                                requested operational data (Unix timestamp in
+                                seconds)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="client"
+                            type="id:XRoadClientIdentifierType"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Client identifier of data exchange
+                                partner to use for filtering out records
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="OutputSpecType">
+                <xs:sequence>
+                    <xs:element name="outputField" type="xs:string"
+                            minOccurs="0" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Name of the operational data
+                                field
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="GetSecurityServerOperationalDataResponseType">
+                <xs:annotation>
+                    <xs:documentation>Security server operational data
+                        response
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element name="recordsCount" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>The number of records included in
+                                the response
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="records" type="ref:swaRef">
+                        <xs:annotation>
+                            <xs:documentation>The reference to the attachment
+                                containing the records
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="nextRecordsFrom" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Unix timestamp in seconds to use
+                                for field recordsFrom of the next query. This
+                                element is present in case the size of the
+                                response has been limited or the timestamp of
+                                the field recordsTo was in the future.
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="FilterCriteriaType">
+                <xs:sequence>
+                    <xs:element name="client"
+                            type="id:XRoadClientIdentifierType"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Client identifier of data exchange
+                                partner to use for filtering out services
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="GetSecurityServerHealthDataType">
+                <xs:annotation>
+                    <xs:documentation>Security server health data request
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element name="filterCriteria" type="FilterCriteriaType"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>Filter criteria</xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="GetSecurityServerHealthDataResponseType">
+                <xs:annotation>
+                    <xs:documentation>Security server health data response
+                    </xs:documentation>
+                </xs:annotation>
+                <xs:sequence>
+                    <xs:element name="monitoringStartupTimestamp"
+                            type="xs:long">
+                        <xs:annotation>
+                            <xs:documentation>The Unix timestamp in milliseconds
+                                when the operational monitoring daemon was
+                                started
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="statisticsPeriodSeconds" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>Duration of the statistics period
+                                in seconds
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="servicesEvents" type="ServicesEventsType">
+                        <xs:annotation>
+                            <xs:documentation>Health data of all services
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ServicesEventsType">
+                <xs:sequence>
+                    <xs:element name="serviceEvents" type="ServiceEventsType"
+                            minOccurs="0" maxOccurs="unbounded">
+                        <xs:annotation>
+                            <xs:documentation>Health data of one service
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="ServiceEventsType">
+                <xs:sequence>
+                    <xs:element name="service"
+                            type="id:XRoadServiceIdentifierType">
+                        <xs:annotation>
+                            <xs:documentation>The service identifier
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="lastSuccessfulRequestTimestamp"
+                            type="xs:long" minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The timestamp of the last
+                                successful request (Unix timestamp in
+                                milliseconds)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="lastUnsuccessfulRequestTimestamp"
+                            type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The timestamp of the last
+                                unsuccessful request (Unix timestamp in
+                                milliseconds)
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="lastPeriodStatistics"
+                            type="LastPeriodStatisticsType">
+                        <xs:annotation>
+                            <xs:documentation>The statistics of the requests
+                                occurred during the last period
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="LastPeriodStatisticsType">
+                <xs:sequence>
+                    <xs:element name="successfulRequestCount" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>The number of successful requests
+                                occurred during the last period
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="unsuccessfulRequestCount" type="xs:int">
+                        <xs:annotation>
+                            <xs:documentation>The number of unsuccessful
+                                requests occurred during the last period
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestMinDuration" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The minimum duration of the
+                                request in milliseconds
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestAverageDuration" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The average duration of the
+                                request in milliseconds
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestMaxDuration" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The maximum duration of the
+                                request in milliseconds
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestDurationStdDev" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The standard deviation of the
+                                duration of the requests
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestMinSoapSize" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The minimum SOAP message size of
+                                the request in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestAverageSoapSize" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The average SOAP message size of
+                                the request in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestMaxSoapSize" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The maximum SOAP message size of
+                                the request in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="requestSoapSizeStdDev" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The standard deviation of the SOAP
+                                message size of the requests
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="responseMinSoapSize" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The minimum SOAP message size of
+                                the response in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="responseAverageSoapSize" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The average SOAP message size of
+                                the response in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="responseMaxSoapSize" type="xs:long"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The maximum SOAP message size of
+                                the response in bytes
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="responseSoapSizeStdDev" type="xs:double"
+                            minOccurs="0">
+                        <xs:annotation>
+                            <xs:documentation>The standard deviation of the SOAP
+                                message size of the responses
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="getSecurityServerOperationalData"
+                    type="GetSecurityServerOperationalDataType"/>
+            <xs:element name="getSecurityServerOperationalDataResponse"
+                    type="GetSecurityServerOperationalDataResponseType"/>
+            <xs:element name="getSecurityServerHealthData"
+                    type="GetSecurityServerHealthDataType"/>
+            <xs:element name="getSecurityServerHealthDataResponse"
+                    type="GetSecurityServerHealthDataResponseType"/>
+        </xs:schema>
+    </wsdl:types>
+
+    <wsdl:message name="getSecurityServerOperationalDataResponse">
+        <wsdl:part name="getSecurityServerOperationalDataResponse"
+                element="opm:getSecurityServerOperationalDataResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="getSecurityServerOperationalData">
+        <wsdl:part name="getSecurityServerOperationalData"
+                element="opm:getSecurityServerOperationalData"/>
+    </wsdl:message>
+
+    <wsdl:message name="getSecurityServerHealthDataResponse">
+        <wsdl:part name="getSecurityServerHealthDataResponse"
+                element="opm:getSecurityServerHealthDataResponse"/>
+    </wsdl:message>
+
+    <wsdl:message name="getSecurityServerHealthData">
+        <wsdl:part name="getSecurityServerHealthData"
+                element="opm:getSecurityServerHealthData"/>
+    </wsdl:message>
+
+    <wsdl:message name="requestheader">
+        <wsdl:part name="client" element="xrd:client"/>
+        <wsdl:part name="service" element="xrd:service"/>
+        <wsdl:part name="securityServer" element="xrd:securityServer"/>
+        <wsdl:part name="id" element="xrd:id"/>
+        <wsdl:part name="protocolVersion" element="xrd:protocolVersion"/>
+    </wsdl:message>
+
+    <wsdl:portType name="opmServicePortType">
+        <wsdl:operation name="getSecurityServerHealthData">
+            <wsdl:documentation>
+                <xrd:title>Security server health data</xrd:title>
+            </wsdl:documentation>
+            <wsdl:input name="getSecurityServerHealthData"
+                    message="tns:getSecurityServerHealthData"/>
+            <wsdl:output name="getSecurityServerHealthDataResponse"
+                    message="tns:getSecurityServerHealthDataResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="getSecurityServerOperationalData">
+            <wsdl:documentation>
+                <xrd:title>Security server operational data</xrd:title>
+            </wsdl:documentation>
+            <wsdl:input name="getSecurityServerOperationalData"
+                    message="tns:getSecurityServerOperationalData"/>
+            <wsdl:output name="getSecurityServerOperationalDataResponse"
+                    message="tns:getSecurityServerOperationalDataResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+
+    <wsdl:binding name="opmSoap11Binding" type="tns:opmServicePortType">
+        <soap:binding style="document"
+                transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="getSecurityServerOperationalData">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="getSecurityServerOperationalData">
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="getSecurityServerOperationalDataResponse">
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+                <mime:multipartRelated>
+                    <mime:part>
+                        <soap:body use="literal"/>
+                    </mime:part>
+                </mime:multipartRelated>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="getSecurityServerHealthData">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="getSecurityServerHealthData">
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="getSecurityServerHealthDataResponse">
+                <soap:body use="literal"/>
+                <soap:header message="tns:requestheader" part="client" use="literal"/>
+                <soap:header message="tns:requestheader" part="service" use="literal"/>
+                <soap:header message="tns:requestheader" part="securityServer" use="literal"/>
+                <soap:header message="tns:requestheader" part="id" use="literal"/>
+                <soap:header message="tns:requestheader" part="protocolVersion" use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+
+    <wsdl:service name="opmService">
+        <wsdl:port name="opmServiceSoap11Port" binding="tns:opmSoap11Binding">
+            <soap:address location="https://SECURITYSERVER/"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

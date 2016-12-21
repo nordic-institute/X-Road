@@ -22,28 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
-import static ee.ria.xroad.common.util.CryptoUtils.certHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -54,14 +40,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.ApprovedTSAType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.CentralServiceType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.GlobalGroupType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberClassType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.MemberType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.OcspInfoType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.SecurityServerType;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.SubsystemType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -70,8 +49,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 @Slf4j
 class GlobalConfImpl implements GlobalConfProvider {
@@ -304,7 +285,7 @@ class GlobalConfImpl implements GlobalConfProvider {
                 }
             }
         } catch (Exception e) {
-            log.error("Error while getting OCSP responder certificates: ", e);
+            log.error("Error while getting OCSP responder certificates", e);
             return Collections.emptyList();
         }
 
@@ -405,6 +386,19 @@ class GlobalConfImpl implements GlobalConfProvider {
                         owner.getMemberClass().getCode(),
                         owner.getMemberCode(),
                         serverType.getServerCode());
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public ClientId getServerOwner(SecurityServerId serverId) {
+        for (SharedParameters p : getSharedParameters()) {
+            SecurityServerType server = p.getSecurityServersById()
+                    .get(serverId);
+            if (server != null) {
+                return p.createMemberId((MemberType) server.getOwner());
             }
         }
 

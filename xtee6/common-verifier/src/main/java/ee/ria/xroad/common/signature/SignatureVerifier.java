@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +35,7 @@ import java.util.Map;
 
 import javax.xml.transform.dom.DOMSource;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
@@ -65,7 +58,9 @@ import ee.ria.xroad.common.hashchain.HashChainVerifier;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class verifies the
@@ -355,16 +350,7 @@ public class SignatureVerifier {
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
-            byte[] data = null;
-
-            // We assume message is not hashed, so we hash it here
-            if (MessageFileNames.MESSAGE.equals(part.getName())) {
-                data = calculateDigest(part.getHashAlgoId(), part.getData());
-            } else {
-                data = part.getData(); // attachment hash
-            }
-
-            return new DigestValue(part.getHashAlgorithmURI(), data);
+            return new DigestValue(part.getHashAlgorithmURI(), part.getData());
         }
 
         return null;
@@ -389,8 +375,8 @@ public class SignatureVerifier {
             switch (uri.getValue()) {
                 case MessageFileNames.MESSAGE:
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
-                    if (part != null && part.getData() != null) {
-                        return new XMLSignatureInput(part.getData());
+                    if (part != null && part.getSoap() != null) {
+                        return new XMLSignatureInput(part.getSoap());
                     }
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:

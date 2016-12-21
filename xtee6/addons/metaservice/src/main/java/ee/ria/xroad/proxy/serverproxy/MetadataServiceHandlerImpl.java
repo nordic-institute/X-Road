@@ -22,19 +22,13 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
-
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -42,7 +36,12 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPMessage;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.CodedException;
@@ -54,14 +53,19 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.JaxbUtils;
 import ee.ria.xroad.common.message.SoapMessageEncoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
+import static ee.ria.xroad.common.metadata.MetadataRequests.*;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -91,14 +95,18 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
+    @SneakyThrows
     public boolean canHandle(ServiceId requestServiceId,
             ProxyMessage requestProxyMessage) {
         requestMessage = requestProxyMessage.getSoap();
 
-        switch (requestMessage.getService().getServiceCode()) {
+        switch (requestServiceId.getServiceCode()) {
             case LIST_METHODS: // $FALL-THROUGH$
             case ALLOWED_METHODS: // $FALL-THROUGH$
             case GET_WSDL:
+                requestMessage = (SoapMessageImpl) new SoapParserImpl().parse(
+                        requestProxyMessage.getSoapContentType(),
+                        requestProxyMessage.getSoapContent());
                 return true;
             default:
                 return false;
@@ -106,8 +114,16 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     @Override
-    public void startHandling() throws Exception {
+    public void startHandling(HttpServletRequest servletRequest,
+            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+            OpMonitoringData opMonitoringData) throws Exception {
         responseEncoder = new SoapMessageEncoder(responseOut);
+
+        // It's required that in case of metadata service (where SOAP message is
+        // not forwarded) the requestOutTs must be equal with the requestInTs
+        // and the responseInTs must be equal with the responseOutTs.
+        opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
+        opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
 
         switch (requestMessage.getService().getServiceCode()) {
             case LIST_METHODS:
@@ -177,6 +193,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         WsdlRequestData requestData = um.unmarshal(
                 SoapUtils.getFirstChild(request.getSoap().getSOAPBody()),
                 WsdlRequestData.class).getValue();
+
         if (StringUtils.isBlank(requestData.getServiceCode())) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Missing serviceCode in message body");
@@ -184,6 +201,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         String url = getWsdlUrl(requestData.toServiceId(
                 request.getService().getClientId()));
+
         if (url == null) {
             throw new CodedException(X_UNKNOWN_SERVICE,
                     "Could not find wsdl URL for service %s",
@@ -192,6 +210,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
 
         log.info("Downloading WSDL from URL: {}", url);
+
         try (InputStream in = getWsdl(url)) {
             responseEncoder.soap(SoapUtils.toResponse(request),
                     new HashMap<>());

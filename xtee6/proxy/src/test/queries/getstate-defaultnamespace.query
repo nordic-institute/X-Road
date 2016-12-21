@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers"
+        xmlns="http://x-road.eu/xsd/xroad.xsd">
+    <SOAP-ENV:Header>
+        <xroad:client xmlns="http://x-road.eu/xsd/identifiers" id:objectType="MEMBER">
+            <xRoadInstance>EE</xRoadInstance>
+            <memberClass>BUSINESS</memberClass>
+            <memberCode>consumer</memberCode>
+        </xroad:client>
+        <service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>getState</id:serviceCode>
+        </service>
+        <userId>EE:PIN:abc4567</userId>
+        <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
+        <issue/>
+        <protocolVersion>4.0</protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+        <getState>aäõ</getState>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
