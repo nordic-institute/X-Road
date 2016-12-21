@@ -1,3 +1,9 @@
+xroad-jetty9 (6.8.11) trusty; urgency=low
+
+  * Version bump
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 20 Dec 2016 00:40:15 +0200
+
 xroad-jetty9 (6.8.10) trusty; urgency=low
 
   * Version bump

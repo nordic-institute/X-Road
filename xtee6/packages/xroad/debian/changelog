@@ -1,3 +1,9 @@
+xroad (6.8.11) trusty; urgency=low
+  * Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR 
+  * Updated documents: ARC-G, ARC-SS, UC-OPMON, UG-SS, TEST_OPMON, TEST_OPMONSTRAT
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 20 Dec 2016 00:40:15 +0200
+
 xroad (6.8.10) trusty; urgency=low
 
   * Operational data monitoring improvements and bug fixes
