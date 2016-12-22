@@ -22,15 +22,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
-import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
-import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
-import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
-import static ee.ria.xroad.common.message.SoapUtils.RPC_ATTR;
-import static ee.ria.xroad.common.message.SoapUtils.RPC_ENCODING;
-import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
-import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
-
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPBody;
@@ -38,6 +29,8 @@ import javax.xml.soap.SOAPEnvelope;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +38,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
-import lombok.Getter;
-import lombok.Setter;
+
+import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
+import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.PREFIX_IDENTIFIERS;
+import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
+import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
+import static ee.ria.xroad.common.message.SoapUtils.*;
 
 /**
  * Builds SOAP messages from the provided header.
@@ -97,10 +95,10 @@ public class SoapBuilder {
         assembleMessageBody(soap);
 
         String serviceName = getServiceName(soap.getSOAPBody());
-        validateServiceName(header.getService().getServiceCode(), serviceName);
+        validateServiceName(getService().getServiceCode(), serviceName);
 
         return new SoapMessageImpl(SoapUtils.getBytes(soap), charset, header,
-                soap, serviceName, MimeTypes.TEXT_XML_UTF_8);
+                soap, serviceName, isRpcMessage(soap), MimeTypes.TEXT_XML_UTF_8);
     }
 
     protected void addNamespaces(SOAPMessage soapMessage, boolean rpcEncoded)
@@ -115,10 +113,15 @@ public class SoapBuilder {
         }
     }
 
+    private ServiceId getService() {
+        return header.getService() != null ? header.getService()
+                : header.getCentralService();
+    }
+
     private void assembleMessageBody(SOAPMessage soap) throws Exception {
         SoapBodyCallback cb = createBodyCallback;
         if (cb == null) {
-            final String bodyNodeName = header.getService().getServiceCode();
+            final String bodyNodeName = getService().getServiceCode();
             cb = new SoapBodyCallback() {
                 @Override
                 public void create(SOAPBody soapBody) throws Exception {

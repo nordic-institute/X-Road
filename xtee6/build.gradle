@@ -24,7 +24,7 @@ subprojects {
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.7.5.201505241946"
+        toolVersion = "0.7.7.201606060606"
     }
 
     repositories {
@@ -170,3 +170,16 @@ repositories {
     jcenter()
 }
 
+task clean(type: Delete) {
+    delete "${rootDir}/packages/xroad-jetty9/jetty9/"
+    delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
+    delete "${rootDir}/packages/xroad/debian/xroad-common.xroad-signer.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-confclient.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
+    delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
+
+    ant.delete {
+        fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
+    }
+}

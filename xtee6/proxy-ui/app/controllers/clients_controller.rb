@@ -442,7 +442,7 @@ class ClientsController < ApplicationController
       :can_view_client_acl_subjects =>
           can?(:view_client_acl_subjects) && is_subsystem,
       :can_view_client_internal_certs =>
-          can?(:view_client_internal_certs) && is_subsystem
+          can?(:view_client_internal_certs)
     }
   end
 

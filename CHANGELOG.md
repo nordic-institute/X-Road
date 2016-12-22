@@ -1,5 +1,22 @@
 # Change Log
 
+## 6.8.11 - 2016-12-20
+- Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR
+- Updated documents: ARC-G, ARC-SS, UC-OPMON, UG-SS, TEST_OPMON, TEST_OPMONSTRAT
+
+## 6.8.10 - 2016-12-12
+- Operational data monitoring improvements and bug fixes
+
+## 6.8.9 - 2016-12-05
+- Operational data monitoring
+
+## 6.8.8 - 2016-12-01
+- CDATA parsing fix (XTE-262)
+- Converting PR-MESS to Markdown
+
+## 6.8.7 - 2016-10-21
+- DOM parser replacement with SAX parser (XTE-262)
+
 ## 6.8.6 - 2016-09-30
 - Fixed: security server processes MIME message incorrectly if there is a "\t" symbol before boundary parameter (XTE-265)
 - Documentation update: apt-get upgrade does not upgrade security server from 6.8.3 to 6.8.5 (XTE-278)

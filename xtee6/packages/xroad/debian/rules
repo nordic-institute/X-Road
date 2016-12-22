@@ -9,29 +9,23 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-lucid=
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
 
-ifneq (,$(findstring lucid,$(DEB_BUILD_OPTIONS)))
-lucid = true
+
+#if DEB_BUILD_OPTIONS has release value set, use package names without git hash
+ifneq (,$(findstring release,$(DEB_BUILD_OPTIONS)))
+rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')
 endif
 
-rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
 
 %:
 	dh  $@
 
 build:
-ifdef lucid
-	echo "PREPARE LUCID"
-	cp debian/lucid/*upstart debian/
-	cp debian/lucid/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh
-	cp debian/lucid/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh
-else
 	echo "PREPARE TRUSTY"
 	cp debian/trusty/*upstart debian/
 	cp debian/trusty/proxy_restore_db.sh proxy/usr/share/xroad/scripts/restore_db.sh
 	cp debian/trusty/center_restore_db.sh center/usr/share/xroad/scripts/restore_db.sh
-endif
 
 
 override_dh_installinit:
@@ -39,13 +33,16 @@ override_dh_installinit:
 	dh_installinit --name=xroad-proxy
 	dh_installinit --name=xroad-confclient
 	dh_installinit --name=xroad-monitor
+	dh_installinit --name=xroad-opmonitor
 
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip -z1
 
 override_dh_gencontrol:
-ifdef lucid
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)~lucid0
-else
 	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
-endif
+
+# By default, dh_compress compresses files that Debian policy mandates
+# should be compressed. Example files are more user-friendly if these remain
+# uncompressed.
+override_dh_compress:
+	dh_compress --exclude=examples

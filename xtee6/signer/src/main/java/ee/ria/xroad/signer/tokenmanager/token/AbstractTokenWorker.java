@@ -144,7 +144,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         try {
             deleteKey(message.getKeyId());
         } catch (Exception e) {
-            log.error("Failed to delete key '{}': {}", message.getKeyId(), e);
+            log.error("Failed to delete key '{}'", message.getKeyId(), e);
             throw translateError(customizeException(e));
         }
 
@@ -157,7 +157,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         try {
             deleteCert(message.getCertId());
         } catch (Exception e) {
-            log.error("Failed to delete cert '{}': {}", message.getCertId(), e);
+            log.error("Failed to delete cert '{}'", message.getCertId(), e);
             throw translateError(customizeException(e));
         }
 
@@ -171,7 +171,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
                     sign(signRequest.getKeyId(), signRequest.getData());
             sendResponse(new CalculatedSignature(signRequest, signature, null));
         } catch (Exception e) { // catch-log-rethrow
-            log.error("Error while signing with key '{}': {}",
+            log.error("Error while signing with key '{}'",
                     signRequest.getKeyId(), e);
             CodedException tr = translateError(
                     customizeException(e)).withPrefix(X_CANNOT_SIGN);

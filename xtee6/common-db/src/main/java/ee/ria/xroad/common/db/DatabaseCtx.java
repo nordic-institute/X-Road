@@ -22,17 +22,19 @@
  */
 package ee.ria.xroad.common.db;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
-import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
 import org.hibernate.JDBCException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import ee.ria.xroad.common.CodedException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
+import static ee.ria.xroad.common.db.HibernateUtil.getSessionFactory;
 
 /**
  * Database context manages database connections for a specific session
@@ -40,9 +42,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
+@AllArgsConstructor
 public class DatabaseCtx {
 
     private final String sessionFactoryName;
+
+    private Interceptor interceptor = null;
 
     /**
      * Gets called within a transactional context. Begins a transaction,
@@ -91,7 +96,8 @@ public class DatabaseCtx {
      * @return the current session
      */
     public Session getSession() {
-        return getSessionFactory(sessionFactoryName).getCurrentSession();
+        return getSessionFactory(sessionFactoryName, interceptor)
+                .getCurrentSession();
     }
 
     /**

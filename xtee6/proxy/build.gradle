@@ -6,6 +6,7 @@ dependencies {
     compile project(':serverconf')
     compile project(':signer-protocol')
     compile project(':common-messagelog')
+    compile project(':common-op-monitoring')
 
     testCompile project(':common-test')
     testCompile 'org.hsqldb:hsqldb:2.3.2'
@@ -36,6 +37,9 @@ fatJar {
 jar.enabled = false
 build.dependsOn fatJar
 buildall.dependsOn fatJar
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
 
 task runProxyMain(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.sslEnabled=false',

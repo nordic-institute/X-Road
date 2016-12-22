@@ -1,0 +1,17 @@
+{
+    "jsonrpc": "2.0",
+    "method": "item.create",
+    "params": {
+        "name": "Last successful request timestamp: XTEE-CI-XM/GOV/00000001/getSecurityServerOperationalData/красивая родина",
+        "key_": "jmx[metrics:name=lastSuccessfulRequestTimestamp(XTEE-CI-XM/GOV/00000001/getSecurityServerOperationalData/красивая родина), Value]",
+        "hostid": "10137",
+        "type": 16,
+        "value_type": 3,
+        "interfaceid": "37",
+        "delay": 10,
+        "username": "monitorRole",
+        "password": "Vaarikas456"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 3
+}

@@ -158,6 +158,7 @@ public class SoapMessageDecoder {
 
         if (!(soap instanceof SoapMessage)) {
             log.error("Expected SoapMessage, but got: {}", soap.getXml());
+
             throw new CodedException(
                     X_INTERNAL_ERROR, "Unexpected SOAP message");
         }

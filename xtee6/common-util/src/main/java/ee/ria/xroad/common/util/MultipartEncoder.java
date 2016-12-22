@@ -203,7 +203,7 @@ public class MultipartEncoder implements AutoCloseable {
             out.flush();
         } catch (IOException ignored) {
             //ignore
-            log.error("Error flushing multipart encoder stream: {}", ignored);
+            log.error("Error flushing multipart encoder stream", ignored);
         }
         out.close();
     }

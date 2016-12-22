@@ -1,0 +1,33 @@
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <SOAP-ENV:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System1</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>COM</id:memberClass>
+         <id:memberCode>00000002</id:memberCode>
+         <id:subsystemCode>System2</id:subsystemCode>
+         <id:serviceCode>xroadGetRandom</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+      <xroad:securityServer id:objectType="SERVER">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>COM</id:memberClass>
+         <id:memberCode>00000002</id:memberCode>
+         <id:serverCode>00000002_1</id:serverCode>
+      </xroad:securityServer>
+      <xroad:id>abc</xroad:id>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+   </SOAP-ENV:Header>
+   <SOAP-ENV:Body>
+      <xroad:xroadGetRandom>
+         <xroad:request>
+            <xroad:seed>100</xroad:seed>
+         </xroad:request>
+      </xroad:xroadGetRandom>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

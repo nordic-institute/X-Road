@@ -309,11 +309,17 @@
 
         if (client.subsystem_code) {
             $("#client_details_tabs").tabs("option", "disabled", []);
-            $("#client_details_tabs .ui-tabs-nav").show();
+            for (var index = 0; index < 5; ++index) {
+            	$($("#client_details_tabs").find("li")[index]).show();
+            }
         } else {
-            $("#client_details_tabs").tabs("option", "disabled", [1, 2, 3, 4]);
-            $("#client_details_tabs .ui-tabs-nav").hide();
+            var disabled = [1, 2, 4];
+            $("#client_details_tabs").tabs("option", "disabled", disabled);
+            for (var index = 0; index < disabled.length; ++index) {
+            	$($("#client_details_tabs").find("li")[disabled[index]]).hide();
+            }
         }
+        $("#client_details_tabs .ui-tabs-nav").show();
 
         $("#client_details_tabs").tabs("option", "active", newTabIndex);
 

@@ -1,0 +1,25 @@
+
+description "X-Road opmonitor daemon"
+
+start on runlevel [2345]
+stop on runlevel [!2345]
+
+respawn
+respawn limit 10 5
+umask 007
+setuid xroad
+setgid xroad
+console log
+
+pre-start script
+    mkdir -p -m0755 /var/run/xroad
+    chown xroad:xroad /var/run/xroad
+    chown xroad:xroad /etc/xroad
+end script
+
+script
+    set -x
+    . /etc/xroad/services/opmonitor.conf
+    exec ${JAVA_HOME}/bin/java ${OPMON_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain
+end script
+

@@ -32,13 +32,14 @@ Description: X-Road central server
 Package: xroad-common
 Architecture: amd64
 Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java, ntp, crudini, adduser
+Replaces: xroad-proxy (<< 6.8.9)
 Description: X-Road shared components
  X-Road shared components and utilities
 
 Package: xroad-securityserver
-Conflicts: xroad-centralserver, uxp-addon-monitoring (<=6.4.0)
+Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version})
+Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version}), xroad-addon-opmonitoring (>=${source:Upstream-Version}), xroad-opmonitor (>=${source:Upstream-Version}), xroad-securityserver (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server
  This is meta-package of X-Road security server.
@@ -96,6 +97,12 @@ Depends: ${misc:Depends}, xroad-proxy (>=6.8.1)
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
+Package: xroad-addon-opmonitoring
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version})
+Description: X-Road AddOn: operations monitoring service
+ AddOn for operations monitoring.
+
 Package: xroad-center-clusterhelper
 Architecture: all
 Depends: ${misc:Depends}, openssh-client, openssl, crudini, python3-requests
@@ -109,4 +116,13 @@ Depends: xroad-securityserver (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
+
+Package: xroad-opmonitor
+Conflicts: xroad-center
+Architecture: all
+Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
+Pre-depends: postgresql, postgresql-contrib
+Description: X-Road operations monitoring daemon
+ X-Road operations monitoring daemon
+
 

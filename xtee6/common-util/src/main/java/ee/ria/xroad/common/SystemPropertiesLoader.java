@@ -229,8 +229,7 @@ public class SystemPropertiesLoader {
                             load(new FileWithSections(path.toString()));
                         });
             } catch (IOException e) {
-                log.error("Cannot load addon configuration: {}",
-                        e);
+                log.error("Cannot load addon configuration", e);
             }
         }
 
@@ -240,7 +239,7 @@ public class SystemPropertiesLoader {
                         SystemProperties.getConfPath(), "conf.d"), "override-*.ini")
                         .forEach(path -> load(new FileWithSections(path.toString())));
             } catch (IOException e) {
-                log.error("Cannot load override configuration: {}", e);
+                log.error("Cannot load override configuration", e);
             }
         }
 
