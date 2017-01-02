@@ -22,30 +22,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_RESPONSE;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SECURITY_SERVER;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
-import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
-import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
-
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,19 +33,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPMessage;
+import javax.xml.namespace.QName;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.util.Arrays;
-import org.w3c.dom.Node;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -75,24 +62,15 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.RequestHash;
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapHeader;
-import ee.ria.xroad.common.message.SoapMessage;
-import ee.ria.xroad.common.message.SoapMessageDecoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapNamespacePrefixMapper;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.ProxyMain;
@@ -102,7 +80,16 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
+import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.MimeUtils.*;
+import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
+import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 @Slf4j
 class ClientMessageProcessor extends MessageProcessorBase {
@@ -151,11 +138,30 @@ class ClientMessageProcessor extends MessageProcessorBase {
     /** Holds the response from server proxy. */
     private ProxyMessage response;
 
+    //** Holds operational monitoring data. */
+    private volatile OpMonitoringData opMonitoringData;
+
+    private static final ExecutorService SOAP_HANDLER_EXECUTOR =
+            createSoapHandlerExecutor();
+
+    private static ExecutorService createSoapHandlerExecutor() {
+        return Executors.newCachedThreadPool(new ThreadFactory() {
+            @Override
+            public Thread newThread(Runnable r) {
+                Thread handlerThread = new Thread(r);
+                handlerThread.setName(Thread.currentThread().getName() + "-soap");
+                return handlerThread;
+            }
+        });
+    }
+
     ClientMessageProcessor(HttpServletRequest servletRequest,
             HttpServletResponse servletResponse, HttpClient httpClient,
-            IsAuthenticationData clientCert) throws Exception {
+            IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+            throws Exception {
         super(servletRequest, servletResponse, httpClient);
         this.clientCert = clientCert;
+        this.opMonitoringData = opMonitoringData;
         this.reqIns = new PipedInputStream();
         this.reqOuts = new PipedOutputStream(reqIns);
     }
@@ -164,10 +170,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
     public void process() throws Exception {
         log.trace("process()");
 
-        HandlerThread handlerThread = new HandlerThread();
-        handlerThread.setName(Thread.currentThread().getName() + "-soap");
+        updateOpMonitoringClientSecurityServerAddress();
 
-        handlerThread.start();
+        Future<?> soapHandler = SOAP_HANDLER_EXECUTOR.submit(this::handleSoap);
+
         try {
             // Wait for the request SOAP message to be parsed before we can
             // start sending stuff.
@@ -194,14 +200,24 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             // Let's interrupt the handler thread so that it won't
             // block forever waiting for us to do something.
-            handlerThread.interrupt();
+            soapHandler.cancel(true);
+
             throw e;
         } finally {
-            handlerThread.join();
-
             if (response != null) {
                 response.consume();
             }
+        }
+    }
+
+    private void updateOpMonitoringClientSecurityServerAddress() {
+        try {
+            opMonitoringData.setClientSecurityServerAddress(
+                    getSecurityServerAddress());
+        } catch (Exception e) {
+            log.error(
+                    "Failed to assign operational monitoring data field {}",
+                    OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
@@ -225,6 +241,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void sendRequest(HttpSender httpSender) throws Exception {
         log.trace("sendRequest()");
+
         try {
             // If we're using SSL, we need to include the provider name in
             // the HTTP request so that server proxy could verify the SSL
@@ -239,11 +256,16 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // (socket that connects first) from the provided addresses.
             // Dummy service address is only needed so that host name resolving
             // could do its thing and start the ssl connection.
-            URI[] addresses = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
+            URI[] addresses = getServiceAddresses(requestServiceId,
+                    requestSoap.getSecurityServer());
+
+            updateOpMonitoringServiceSecurityServerAddress(addresses,
+                    httpSender);
+
             httpSender.setAttribute(ID_TARGETS, addresses);
             httpSender.setTimeout(SystemProperties.getClientProxyTimeout());
 
-            httpSender.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
+            httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
             httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
 
             // Preserve the original content type in the "x-original-content-type"
@@ -253,8 +275,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     servletRequest.getContentType());
 
             try {
+                opMonitoringData.setRequestOutTs(getEpochMillisecond());
+
                 httpSender.doPost(getDummyServiceAddress(addresses), reqIns,
                         CHUNKED_LENGTH, outputContentType);
+
+                opMonitoringData.setResponseInTs(getEpochMillisecond());
             } catch (Exception e) {
                 // Failed to connect to server proxy
                 MonitorAgent.serverProxyFailed(createRequestMessageInfo());
@@ -271,9 +297,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(
-                httpSender.getResponseHeaders().get(
-                        HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(
+                HEADER_ORIGINAL_CONTENT_TYPE));
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
                 httpSender.getResponseContentType(),
@@ -281,14 +306,47 @@ class ClientMessageProcessor extends MessageProcessorBase {
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (CodedException ex) {
-            log.error("Coded exception: {}", ex);
+            log.error("Coded exception", ex);
+
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
+
+        updateOpMonitoringDataByResponse(decoder);
 
         // Ensure we have the required parts.
         checkResponse();
 
         decoder.verify(requestServiceId.getClientId(), response.getSignature());
+    }
+
+    private void updateOpMonitoringServiceSecurityServerAddress(
+            URI addresses[], HttpSender httpSender) {
+        if (addresses.length == 1) {
+            opMonitoringData.setServiceSecurityServerAddress(
+                    addresses[0].getHost());
+        } else {
+            // In case multiple addresses the service security server
+            // address will be founded by received TLS authentication
+            // certificate in AuthTrustVerifier class.
+
+            httpSender.setAttribute(OpMonitoringData.class.getName(),
+                    opMonitoringData);
+        }
+    }
+
+    private void updateOpMonitoringDataByResponse(ProxyMessageDecoder decoder) {
+        if (response.getSoap() != null) {
+            long responseSoapSize = response.getSoap().getBytes().length;
+
+            opMonitoringData.setResponseSoapSize(responseSoapSize);
+            opMonitoringData.setResponseAttachmentCount(
+                    decoder.getAttachmentCount());
+
+            if (decoder.getAttachmentCount() > 0) {
+                opMonitoringData.setResponseMimeSize(responseSoapSize
+                        + decoder.getAttachmentsByteCount());
+            }
+        }
     }
 
     private void checkResponse() throws Exception {
@@ -329,10 +387,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         RequestHash requestHashFromResponse =
                 response.getSoap().getHeader().getRequestHash();
         if (requestHashFromResponse != null) {
-            byte[] requestHash = calculateDigest(
-                getAlgorithmId(requestHashFromResponse.getAlgorithmId()),
-                requestSoap.getBytes()
-            );
+            byte[] requestHash = requestSoap.getHash();
 
             if (log.isTraceEnabled()) {
                 log.trace("Calculated request message hash: {}\n"
@@ -365,8 +420,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         servletResponse.setStatus(HttpServletResponse.SC_OK);
         servletResponse.setHeader("SOAPAction", "");
         servletResponse.setCharacterEncoding(MimeUtils.UTF8);
-
         servletResponse.setContentType(response.getSoapContentType());
+
         try (InputStream is = response.getSoapContent()) {
             IOUtils.copy(is, servletResponse.getOutputStream());
         }
@@ -382,6 +437,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             }
         } catch (InterruptedException e) {
             log.error("waitForSoapMessage interrupted", e);
+        
             Thread.currentThread().interrupt();
         }
     }
@@ -392,6 +448,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             httpSenderGate.await();
         } catch (InterruptedException e) {
             log.error("waitForRequestSent interrupted", e);
+        
             Thread.currentThread().interrupt();
         }
     }
@@ -437,8 +494,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     protected void verifyClientStatus() throws Exception {
         ClientId client = requestSoap.getClient();
-
         String status = ServerConf.getMemberStatus(client);
+
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
             throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
                     client);
@@ -467,9 +524,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 null, null);
     }
 
-    private static URI[] getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
-            throws Exception {
-        log.trace("getServiceAddresses({})", serviceProvider);
+    private static URI[] getServiceAddresses(ServiceId serviceProvider,
+            SecurityServerId serverId) throws Exception {
+        log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
         Collection<String> hostNames =
                 GlobalConf.getProviderAddress(serviceProvider.getClientId());
@@ -480,7 +537,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
+            final String securityServerAddress =
+                    GlobalConf.getSecurityServerAddress(serverId);
+
+            log.trace("securityServerAddress: {}", securityServerAddress);
+
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
                         "Could not find security server \"%s\"",
@@ -507,48 +568,45 @@ class ClientMessageProcessor extends MessageProcessorBase {
         return addresses.toArray(new URI[addresses.size()]);
     }
 
-    private static String getHashAlgoId() {
-        // FUTURE #2578 make hash function configurable
-        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-    }
-
     private static String getHashAlgoId(HttpSender httpSender) {
         return httpSender.getResponseHeaders().get(HEADER_HASH_ALGO_ID);
     }
 
-    private class HandlerThread extends Thread {
-        @Override
-        public void run() {
-            try (SoapMessageHandler handler = new SoapMessageHandler()) {
-                SoapMessageDecoder soapMessageDecoder =
-                        new SoapMessageDecoder(servletRequest.getContentType(),
-                                handler, new RequestSoapParserImpl());
-                try {
-                    soapMessageDecoder.parse(servletRequest.getInputStream());
-                } catch (Exception ex) {
-                    throw new ClientException(translateException(ex));
-                }
+    public void handleSoap() {
+        try (SoapMessageHandler handler = new SoapMessageHandler()) {
+            SoapMessageDecoder soapMessageDecoder =
+                    new SoapMessageDecoder(servletRequest.getContentType(),
+                            handler, new RequestSoapParserImpl());
+            try {
+                soapMessageDecoder.parse(servletRequest.getInputStream());
             } catch (Exception ex) {
-                setError(ex);
-            } finally {
-                continueProcessing();
-                continueReadingResponse();
+                throw new ClientException(translateException(ex));
             }
+        } catch (Throwable ex) {
+            setError(ex);
+        } finally {
+            continueProcessing();
+            continueReadingResponse();
         }
     }
+
 
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
         @Override
         public void soap(SoapMessage message, Map<String, String> headers)
                 throws Exception {
-            log.trace("soap({})", message.getXml());
+            if (log.isTraceEnabled()) {
+                log.trace("soap({})", message.getXml());
+            }
 
             requestSoap = (SoapMessageImpl) message;
             requestServiceId = requestSoap.getService();
 
+            updateOpMonitoringDataBySoapMessage(opMonitoringData, requestSoap);
+
             if (request == null) {
-                request = new ProxyMessageEncoder(reqOuts, getHashAlgoId());
+                request = new ProxyMessageEncoder(reqOuts, SoapUtils.getHashAlgoId());
                 outputContentType = request.getContentType();
             }
 
@@ -587,12 +645,25 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 return;
             }
 
+            updateOpMonitoringData();
+
             try {
                 request.sign(KeyConf.getSigningCtx(requestSoap.getClient()));
                 logRequestMessage();
                 request.writeSignature();
             } catch (Exception ex) {
                 setError(ex);
+            }
+        }
+
+        private void updateOpMonitoringData() {
+            opMonitoringData.setRequestAttachmentCount(
+                    request.getAttachmentCount());
+
+            if (request.getAttachmentCount() > 0) {
+                opMonitoringData.setRequestMimeSize(
+                        requestSoap.getBytes().length
+                                + request.getAttachmentsByteCount());
             }
         }
 
@@ -604,7 +675,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void onError(Exception e) throws Exception {
-            log.error("onError(): ", e);
+            log.error("onError()", e);
 
             // Simply re-throw
             throw e;
@@ -614,6 +685,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             CertChain chain = KeyConf.getAuthKey().getCertChain();
             List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot()); // exclude TopCA
+
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);
             }
@@ -635,45 +707,163 @@ class ClientMessageProcessor extends MessageProcessorBase {
      * Soap parser that changes the CentralServiceId to ServiceId in message
      * header.
      */
-    private class RequestSoapParserImpl extends SoapParserImpl {
+    private class RequestSoapParserImpl extends SaxSoapParserImpl {
+
+        private ServiceId serviceId;
+
+        private String nestedPrefix;
+
+        private AttributesImpl wrapperElementAttributes;
+        private Attributes nestedElementAttributes;
+
+        private char[] nestedTabs;
+        private char[] wrapperTabs;
+
+        private boolean inServiceElement;
+        private boolean inHeader;
+
+        private SoapHeaderHandler headerHandler;
+
+        // do not write processed XML beyond the header if not a central
+        // service request, use raw request XML instead
+        @Override
+        protected boolean isProcessedXmlRequired() {
+            boolean headerNotProcessed = headerHandler == null
+                    || !headerHandler.isFinished();
+            return headerNotProcessed
+                    || headerHandler.getHeader().getCentralService() != null;
+        }
 
         @Override
-        protected Soap createMessage(byte[] rawXml, SOAPMessage soap,
-                String charset, String originalContentType) throws Exception {
-            if (soap.getSOAPHeader() != null) {
-                SoapHeader header =
-                        unmarshalHeader(SoapHeader.class, soap.getSOAPHeader());
-                if (header.getCentralService() != null) {
-                    if (header.getService() != null) {
-                        throw new CodedException(X_MALFORMED_SOAP,
-                                "Message header must contain either service id"
-                                        + " or central service id");
+        protected void writeStartElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader && element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
+                beginServiceElementSubstitution(attributes);
+                inServiceElement = true;
+            } else if (!inServiceElement) {
+                super.writeStartElementXml(prefix, element, attributes, writer);
+            }
+        }
+
+        @Override
+        protected void writeEndElementXml(String prefix, QName element,
+                Attributes attributes, Writer writer) {
+            if (inHeader) {
+                if (element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
+                    if (serviceId != null) {
+                        finishServiceElementSubstitution(prefix, writer);
                     }
+                    inServiceElement = false;
+                } else if (!inServiceElement) {
+                    super.writeEndElementXml(prefix, element, attributes,
+                            writer);
+                }
 
-                    ServiceId serviceId =
-                            GlobalConf.getServiceId(header.getCentralService());
+                if (inServiceElement && element.equals(QNAME_ID_SERVICE_CODE)) {
+                    nestedPrefix = prefix;
+                    nestedElementAttributes = attributes;
+                }
+            } else {
+                super.writeEndElementXml(prefix, element, attributes, writer);
+            }
+        }
+
+        @Override
+        protected void writeCharactersXml(char[] characters, int start,
+                int length, Writer writer) {
+            if (inServiceElement) {
+                String value = new String(characters, start, length);
+                char[] chars = value.toCharArray();
+                if (value.trim().isEmpty()) {
+                    if (nestedTabs == null) {
+                        nestedTabs = chars;
+                    }
+                    wrapperTabs = chars;
+                }
+            } else {
+                super.writeCharactersXml(characters, start, length, writer);
+            }
+        }
+
+        @Override
+        protected SoapHeaderHandler getSoapHeaderHandler(SoapHeader header) {
+            headerHandler = new SoapHeaderHandler(header) {
+                @Override
+                protected void openTag() {
+                    super.openTag();
+                    inHeader = true;
+                }
+
+                @Override
+                protected void onCentralService(
+                        CentralServiceId centralServiceId) {
+                    super.onCentralService(centralServiceId);
+                    header.setCentralService(centralServiceId);
+                    serviceId = GlobalConf.getServiceId(centralServiceId);
                     header.setService(serviceId);
+                }
 
-                    SOAPEnvelope envelope = soap.getSOAPPart().getEnvelope();
-                    envelope.removeChild(soap.getSOAPHeader());
+                @Override
+                protected void closeTag() {
+                    super.closeTag();
+                    inHeader = false;
+                }
+            };
+            return headerHandler;
+        }
 
-                    Node soapBody = envelope.removeChild(soap.getSOAPBody());
-                    envelope.removeContents(); // removes newlines etc.
-
-                    Marshaller marshaller =
-                            JaxbUtils.createMarshaller(SoapHeader.class,
-                                    new SoapNamespacePrefixMapper());
-                    marshaller.marshal(header, envelope);
-
-                    envelope.appendChild(soapBody);
-
-                    byte[] newRawXml = SoapUtils.getBytes(soap);
-                    return super.createMessage(newRawXml, soap, charset,
-                            originalContentType);
+        private void beginServiceElementSubstitution(Attributes attributes) {
+            wrapperElementAttributes = new AttributesImpl(attributes);
+            for (int i = 0; i < wrapperElementAttributes.getLength(); i++) {
+                if (wrapperElementAttributes.getValue(i)
+                        .endsWith("CENTRALSERVICE")) {
+                    wrapperElementAttributes.setValue(i, "SERVICE");
+                    break;
                 }
             }
-            return super.createMessage(rawXml, soap, charset,
-                    originalContentType);
+        }
+
+        private void finishServiceElementSubstitution(String prefix,
+                Writer writer) {
+            super.writeStartElementXml(prefix, QNAME_XROAD_SERVICE,
+                    wrapperElementAttributes, writer);
+
+            writeElement(writer, QNAME_ID_INSTANCE,
+                    serviceId.getXRoadInstance());
+            writeElement(writer, QNAME_ID_MEMBER_CLASS,
+                    serviceId.getMemberClass());
+            writeElement(writer, QNAME_ID_MEMBER_CODE,
+                    serviceId.getMemberCode());
+
+            if (serviceId.getSubsystemCode() != null) {
+                String subsystemCode = serviceId.getSubsystemCode();
+                writeElement(writer, QNAME_ID_SUBSYSTEM_CODE, subsystemCode);
+            }
+
+            writeElement(writer, QNAME_ID_SERVICE_CODE,
+                    serviceId.getServiceCode());
+
+            if (serviceId.getServiceVersion() != null) {
+                String serviceVersion = serviceId.getServiceVersion();
+                writeElement(writer, QNAME_ID_SERVICE_VERSION, serviceVersion);
+            }
+
+            char[] tabs = wrapperTabs != null ? wrapperTabs : new char[0];
+            super.writeCharactersXml(tabs, 0, tabs.length, writer);
+            super.writeEndElementXml(prefix, QNAME_XROAD_SERVICE,
+                    wrapperElementAttributes, writer);
+        }
+
+        @SneakyThrows
+        private void writeElement(Writer writer, QName element, String value) {
+            char[] tabs = nestedTabs != null ? nestedTabs : new char[0];
+            super.writeCharactersXml(tabs, 0, tabs.length, writer);
+            super.writeStartElementXml(nestedPrefix, element,
+                    nestedElementAttributes, writer);
+            super.writeCharactersXml(value.toCharArray(), 0, value.length(),
+                    writer);
+            super.writeEndElementXml(nestedPrefix, element,
+                    nestedElementAttributes, writer);
         }
     }
 }

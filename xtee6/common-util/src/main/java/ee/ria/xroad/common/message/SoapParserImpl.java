@@ -22,20 +22,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.message.SoapUtils.createSOAPMessage;
-import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
-import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
-import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
-import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
-import static ee.ria.xroad.common.util.MimeUtils.UTF8;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -51,17 +37,20 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
+import com.sun.xml.bind.api.AccessorException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import com.sun.xml.bind.api.AccessorException;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.message.SoapUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.UTF8;
+import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
 
 /**
  * Default Soap parser implementation for reading Soap messages from an
@@ -69,8 +58,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class SoapParserImpl implements SoapParser {
-
-    private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
 
     @Override
     public Soap parse(String contentType, InputStream is) {
@@ -162,7 +149,7 @@ public class SoapParserImpl implements SoapParser {
         validateServiceName(service.getServiceCode(), serviceName);
 
         return new SoapMessageImpl(rawXml, charset, header, soap,
-                serviceName, originalContentType);
+                serviceName, isRpcMessage(soap), originalContentType);
     }
 
     /**
@@ -228,13 +215,6 @@ public class SoapParserImpl implements SoapParser {
         JAXBElement<T> jaxbElement =
                 (JAXBElement<T>) unmarshaller.unmarshal(soapHeader, clazz);
         return jaxbElement.getValue();
-    }
-
-    static void validateMimeType(String mimeType) {
-        if (!ArrayUtils.contains(ALLOWED_MIMETYPES, mimeType.toLowerCase())) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", mimeType);
-        }
     }
 }
 

@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
@@ -42,6 +39,9 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestSecurityUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test to verify correct signature builder behavior.
@@ -78,7 +78,7 @@ public class SignatureBuilderTest {
     @Test
     public void buildSuccessfullyNoExtraCerts() throws Exception {
         MessagePart hash = new MessagePart(MessageFileNames.MESSAGE,
-                CryptoUtils.SHA512_ID, hash("xxx"));
+                CryptoUtils.SHA512_ID, hash("xxx"), hash("xxx"));
 
         SignatureBuilder builder = new SignatureBuilder();
         builder.addPart(hash);

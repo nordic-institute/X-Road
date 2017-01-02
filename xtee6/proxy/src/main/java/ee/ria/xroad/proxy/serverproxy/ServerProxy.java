@@ -31,11 +31,14 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
+import ch.qos.logback.access.jetty.RequestLogImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
@@ -50,18 +53,19 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import ch.qos.logback.access.jetty.RequestLogImpl;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.antidos.AntiDosSslConnector;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -91,6 +95,8 @@ public class ServerProxy implements StartStop {
 
     private String listenAddress;
 
+    private CloseableHttpClient opMonitorClient;
+
     /**
      * Constructs and configures a new server proxy.
      * @throws Exception in case of any errors
@@ -110,6 +116,7 @@ public class ServerProxy implements StartStop {
         configureServer();
 
         createClient();
+        createOpMonitorClient();
         createConnectors();
         createHandlers();
     }
@@ -161,6 +168,13 @@ public class ServerProxy implements StartStop {
         client = cb.build();
     }
 
+    private void createOpMonitorClient() throws Exception {
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                ServerConf.getSSLKey(), TimeUtils.secondsToMillis(
+                        OpMonitoringSystemProperties
+                                .getOpMonitorServiceConnectionTimeoutSeconds()));
+    }
+
     private static SSLConnectionSocketFactory createSSLSocketFactory()
             throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
@@ -173,7 +187,7 @@ public class ServerProxy implements StartStop {
         return new CustomSSLSocketFactory(ctx,
                 SystemProperties.getProxyClientTLSProtocols(),
                 SystemProperties.getProxyClientTLSCipherSuites(),
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+                NoopHostnameVerifier.INSTANCE);
     }
 
     private void createConnectors() throws Exception {
@@ -197,8 +211,7 @@ public class ServerProxy implements StartStop {
         server.setSendServerVersion(false);
 
         log.info("ClientProxy {} created ({}:{})",
-                new Object[] {connector.getClass().getSimpleName(),
-                    listenAddress, port});
+                connector.getClass().getSimpleName(), listenAddress, port);
     }
 
     private void createHandlers() {
@@ -210,7 +223,8 @@ public class ServerProxy implements StartStop {
         reqLog.setQuiet(true);
         logHandler.setRequestLog(reqLog);
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(client);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(client,
+                opMonitorClient);
 
         HandlerCollection handler = new HandlerCollection();
         handler.addHandler(logHandler);
@@ -242,6 +256,7 @@ public class ServerProxy implements StartStop {
 
         connMonitor.shutdown();
         client.close();
+        opMonitorClient.close();
         server.stop();
 
         HibernateUtil.closeSessionFactories();

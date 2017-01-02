@@ -1,5 +1,7 @@
 common/etc/*  etc/
 common/usr/*  usr/
+../../common-db/build/libs/common-db-1.0.jar usr/share/xroad/jlib/
+../../proxy-ui/build/libs/postgresql-9.4.1207.jre6.jar usr/share/xroad/jlib/
 ../default-configuration/common.ini etc/xroad/conf.d/
 ../default-configuration/signer.ini etc/xroad/conf.d/
 ../default-configuration/signer-logback.xml etc/xroad/conf.d/

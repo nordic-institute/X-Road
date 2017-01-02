@@ -244,6 +244,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public ClientId getServerOwner(SecurityServerId serverId) {
+        return null;
+    }
+
+    @Override
     public boolean isValid() {
         return true;
     }

@@ -22,9 +22,11 @@
  */
 package ee.ria.xroad.proxy.signedmessage;
 
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.MessagePart;
 import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 
 /**
@@ -44,7 +46,18 @@ public class Signer {
      * @param data the data.
      */
     public void addPart(String name, String hashMethod, byte[] data) {
-        builder.addPart(new MessagePart(name, hashMethod, data));
+        builder.addPart(new MessagePart(name, hashMethod, data, null));
+
+    }
+
+    /**
+     * Adds the message part to be signed.
+     * @param hashMethod identifier of the algorithm used to calculate the hash
+     * @param soap the message to be signed
+     */
+    public void addMessagePart(String hashMethod, SoapMessageImpl soap) {
+        builder.addPart(new MessagePart(MessageFileNames.MESSAGE, hashMethod,
+                soap.getHash(), soap.getBytes()));
     }
 
     /**

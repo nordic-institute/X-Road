@@ -1,0 +1,12 @@
+title: Store Operational Data Response Schema
+type: object
+properties:
+  status:
+    description: Request processing status
+    type: string
+    enum: OK, Error
+  errorMessage:
+    description: Error message
+    type: string
+required:
+- status

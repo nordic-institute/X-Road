@@ -23,8 +23,6 @@
 package ee.ria.xroad.common.db;
 
 
-import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
-
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -33,7 +31,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
@@ -42,8 +43,8 @@ import org.hibernate.cfg.Configuration;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PrefixedProperties;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 
 /**
  * Hibernate utility methods.
@@ -72,11 +73,25 @@ public final class HibernateUtil {
      */
     public static synchronized SessionFactory getSessionFactory(
             String name) {
+        return getSessionFactory(name, null);
+    }
+
+    /**
+     * Returns the session factory for the given session factory name.
+     * If the session factory has not been already created, it is created
+     * and stored in the cache.
+     * @param name the name of the session factory
+     * @param interceptor the interceptor to use on sessions created with this factory
+     * @return the session factory
+     */
+    public static synchronized SessionFactory getSessionFactory(
+            String name, Interceptor interceptor) {
         if (sessionFactoryCache.containsKey(name)) {
             return sessionFactoryCache.get(name).getSessionFactory();
         } else {
             try {
-                SessionFactoryCtx ctx = createSessionFactoryCtx(name);
+                SessionFactoryCtx ctx = createSessionFactoryCtx(name,
+                        interceptor);
                 sessionFactoryCache.put(name, ctx);
                 return ctx.getSessionFactory();
             } catch (Exception e) {
@@ -131,11 +146,12 @@ public final class HibernateUtil {
         StandardServiceRegistryBuilder.destroy(ctx.getServiceRegistry());
     }
 
-    private static SessionFactoryCtx createSessionFactoryCtx(String name)
-            throws Exception {
+    private static SessionFactoryCtx createSessionFactoryCtx(String name,
+            Interceptor interceptor) throws Exception {
         log.trace("Creating session factory for '{}'...", name);
 
-        Configuration configuration = getDefaultConfiguration(name);
+        Configuration configuration = getDefaultConfiguration(name,
+                interceptor);
         configuration.configure("hibernate.cfg.xml");
         configuration.configure(name + ".hibernate.cfg.xml");
 
@@ -149,8 +165,8 @@ public final class HibernateUtil {
         return new SessionFactoryCtx(sessionFactory, serviceRegistry);
     }
 
-    private static Configuration getDefaultConfiguration(String name)
-            throws Exception {
+    private static Configuration getDefaultConfiguration(String name,
+            Interceptor interceptor) throws Exception {
         String databaseProps = SystemProperties.getDatabasePropertiesFile();
 
         Properties extraProperties = new PrefixedProperties(name + ".");
@@ -160,6 +176,9 @@ public final class HibernateUtil {
         }
 
         Configuration configuration = new Configuration();
+        if (interceptor != null) {
+            configuration.setInterceptor(interceptor);
+        }
         configuration.addProperties(extraProperties);
         return configuration;
     }

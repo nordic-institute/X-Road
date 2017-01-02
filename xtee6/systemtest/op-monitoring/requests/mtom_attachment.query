@@ -1,0 +1,44 @@
+------=_Part_10_1777426800.1476273281168
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
+Content-Transfer-Encoding: 8bit
+Content-ID: <rootpart>
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <soapenv:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System1</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000000</id:memberCode>
+         <id:subsystemCode>Center</id:subsystemCode>
+         <id:serviceCode>bodyMassIndex</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+      <xroad:id>6VYUw5JftV11DkzXiUJZgYKculKET1as</xroad:id>
+      <xroad:userId>EE37702211asd</xroad:userId>
+      <xroad:issue>456456</xroad:issue>
+   </soapenv:Header>
+   <soapenv:Body>
+      <xroad:bodyMassIndex>
+         <xroad:request>
+            <xroad:height>170</xroad:height>
+            <xroad:weight>62</xroad:weight>
+         </xroad:request>
+      </xroad:bodyMassIndex>
+   </soapenv:Body>
+</soapenv:Envelope>
+
+------=_Part_10_1777426800.1476273281168
+Content-Type: text/xml; charset=UTF-8; name=test
+Content-Transfer-Encoding: quoted-printable
+Content-ID: <test>
+Content-Disposition: attachment; name="test"; filename="test"
+
+some data to send
+------=_Part_10_1777426800.1476273281168--

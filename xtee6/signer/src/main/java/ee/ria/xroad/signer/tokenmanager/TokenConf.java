@@ -263,7 +263,9 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
             try {
                  return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
-                log.error("Failed to calculate certificate hash for {}. {}",  type, e);
+                log.error("Failed to calculate certificate hash for {}",
+                         type, e);
+
                 return SignerUtil.randomId();
             }
         }

@@ -117,7 +117,7 @@ public final class SignerMain {
                 try {
                     signer.execute();
                 } catch (Exception ex) {
-                    log.error("error occurred in execute handler: {}", ex);
+                    log.error("error occurred in execute handler", ex);
                 }
             }
         });

@@ -66,6 +66,10 @@ Please fix this and reinstall this package." >&2
     test -d /etc/xroad/conf.d || mkdir -p /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
     test -d /etc/xroad/ssl || mkdir /etc/xroad/ssl
     test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+    # if xroad-proxy is not installed then this directory should be created for signer
+    test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
+    # if xroad-proxy is not installed then this directory should be created for signer
+    test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad /etc/xroad/globalconf
 
     chmod 0440 /etc/sudoers.d/xroad-restore
 
@@ -79,5 +83,6 @@ Please fix this and reinstall this package." >&2
 fi
 
 invoke-rc.d xroad-signer restart
+invoke-rc.d xroad-confclient restart
 
 exit 0

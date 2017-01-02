@@ -79,6 +79,9 @@ public final class DefaultFilepaths {
     static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
             "jetty/clientproxy.xml";
 
+    static final String OP_MONITOR_DAEMON_CONFIGURATION_FILE =
+            "op-monitor-daemon.ini";
+
     private static FileAttribute<Set<PosixFilePermission>> permissions =
             PosixFilePermissions.asFileAttribute(EnumSet.of(
                     OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));

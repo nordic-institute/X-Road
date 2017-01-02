@@ -1,0 +1,18 @@
+{
+    "jsonrpc": "2.0",
+    "method": "item.create",
+    "params": {
+        "name": "Request duration (mean)",
+        "key_": "jmx[metrics:name=requestDuration(XTEE-CI-XM/GOV/00000000/Center/getWsdl/v1), Mean]",
+        "hostid": "10141",
+        "applications": ["766"],
+        "type": 16,
+        "value_type": 0,
+        "interfaceid": "44",
+        "delay": 10,
+        "username": "monitorRole",
+        "password": "Vaarikas456"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 3
+}

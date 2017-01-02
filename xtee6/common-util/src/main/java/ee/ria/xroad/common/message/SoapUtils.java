@@ -22,12 +22,6 @@
  */
 package ee.ria.xroad.common.message;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -49,13 +43,22 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 /**
  * Contains utility methods for working with SOAP messages.
  */
 public final class SoapUtils {
+
+    private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
 
     public static final String PREFIX_SOAPENV = "SOAP-ENV";
 
@@ -111,6 +114,14 @@ public final class SoapUtils {
     }
 
     /**
+     * @return ID of the digest algorithm used to calculate SOAP message hashes
+     */
+    public static String getHashAlgoId() {
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    }
+
+    /**
+
      * Returns namespace URIs from a SOAPMessage.
      * @param soap soap message from which to retrieve namespace URIs
      * @return a List of namespace URI Strings
@@ -414,4 +425,10 @@ public final class SoapUtils {
         }
     }
 
+    static void validateMimeType(String mimeType) {
+        if (!ArrayUtils.contains(ALLOWED_MIMETYPES, mimeType.toLowerCase())) {
+            throw new CodedException(X_INVALID_CONTENT_TYPE,
+                    "Invalid content type: %s", mimeType);
+        }
+    }
 }
