@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 ./compile_code.sh "$@"
 
 XROAD=`pwd`
