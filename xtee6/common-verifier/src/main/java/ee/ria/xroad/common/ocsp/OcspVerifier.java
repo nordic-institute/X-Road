@@ -22,14 +22,21 @@
  */
 package ee.ria.xroad.common.ocsp;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
-import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.TimeBasedObjectCache;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.ocsp.ResponderID;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.ocsp.*;
+import org.bouncycastle.operator.ContentVerifierProvider;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.joda.time.DateTime;
 
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
@@ -37,24 +44,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
-import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.ocsp.ResponderID;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.cert.ocsp.RevokedStatus;
-import org.bouncycastle.cert.ocsp.SingleResp;
-import org.bouncycastle.cert.ocsp.UnknownStatus;
-import org.bouncycastle.operator.ContentVerifierProvider;
-import org.bouncycastle.operator.DigestCalculator;
-import org.joda.time.DateTime;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /** Helper class for verifying OCSP responses. */
 @Slf4j
@@ -62,15 +54,23 @@ public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
 
+    private static final String SINGLE_RESP = "single_resp";
+    private static final String SIGNATURE = "signature";
+    private static final String CERTIFICATE = "certificate";
+
     private final int ocspFreshnessSeconds;
 
     private final OcspVerifierOptions options;
+
+    private static final TimeBasedObjectCache CACHE = new TimeBasedObjectCache(SystemProperties
+            .getOcspVerifierCachePeriod());;
 
     /**
      * Constructor
      */
     public OcspVerifier(int ocspFreshnessSeconds, OcspVerifierOptions options) {
         this.ocspFreshnessSeconds = ocspFreshnessSeconds;
+
         if (options == null) {
             this.options = new OcspVerifierOptions(true);
         } else {
@@ -134,10 +134,53 @@ public final class OcspVerifier {
      */
     public void verifyValidity(OCSPResp response, X509Certificate subject,
             X509Certificate issuer, Date atDate) throws Exception {
-        log.trace("verifyValidity(subject: {}, issuer: {}, atDate: {})",
+        log.debug("verifyValidity(subject: {}, issuer: {}, atDate: {})",
                 new Object[] {subject.getSubjectX500Principal().getName(),
                     issuer.getSubjectX500Principal().getName(), atDate});
 
+        SingleResp singleResp = verifyResponseValidityCached(response, subject, issuer);
+        verifyValidityAt(atDate, singleResp);
+    }
+
+    private void verifyValidityAt(Date atDate, SingleResp singleResp) {
+        // 5. The time at which the status being indicated is known
+        // to be correct (thisUpdate) is sufficiently recent.
+        if (isExpired(singleResp, atDate)) {
+            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+                    "OCSP response is too old (thisUpdate: %s)",
+                    singleResp.getThisUpdate());
+        }
+
+        if (options.isVerifyNextUpdate()) {
+            // 6. When available, the time at or before which newer information will
+            // be available about the status of the certificate (nextUpdate) is
+            // greater than the current time.
+            log.debug("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
+            if (singleResp.getNextUpdate() != null
+                    && singleResp.getNextUpdate().before(atDate)) {
+                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+                throw new CodedException(X_INCORRECT_VALIDATION_INFO,
+                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
+                                fmt.format(singleResp.getNextUpdate())));
+            }
+        } else {
+            log.debug("OCSP nextUpdate verification is turned off");
+        }
+    }
+
+    private synchronized SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
+                                                                 X509Certificate issuer)
+            throws Exception {
+        String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
+        if (!CACHE.isValid(key)) {
+            CACHE.setValue(key, verifyResponseValidity(response, subject, issuer));
+        }
+
+        return (SingleResp) CACHE.getValue(key);
+    }
+
+    private SingleResp verifyResponseValidity(OCSPResp response, X509Certificate subject, X509Certificate issuer)
+            throws Exception {
         BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
         SingleResp singleResp = basicResp.getResponses()[0];
 
@@ -155,17 +198,13 @@ public final class OcspVerifier {
                     subject.getSerialNumber());
         }
 
-        // 2. The signature on the response is valid.
         X509Certificate ocspCert = getOcspCert(basicResp);
         if (ocspCert == null) {
             throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "Could not find OCSP certificate for responder ID");
         }
 
-        ContentVerifierProvider verifier =
-                createDefaultContentVerifier(ocspCert.getPublicKey());
-
-        if (!basicResp.isSignatureValid(verifier)) {
+        if (!verifySignature(basicResp, ocspCert)) {
             throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "Signature on OCSP response is not valid");
         }
@@ -179,30 +218,15 @@ public final class OcspVerifier {
             throw new CodedException(X_INCORRECT_VALIDATION_INFO,
                     "OCSP responder is not authorized for given CA");
         }
+        return singleResp;
+    }
 
-        // 5. The time at which the status being indicated is known
-        // to be correct (thisUpdate) is sufficiently recent.
-        if (isExpired(singleResp, atDate)) {
-            throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                    "OCSP response is too old (thisUpdate: %s)",
-                    singleResp.getThisUpdate());
-        }
+    private boolean verifySignature(BasicOCSPResp basicResp, X509Certificate ocspCert) throws OperatorCreationException,
+            OCSPException {
+        ContentVerifierProvider verifier =
+                createDefaultContentVerifier(ocspCert.getPublicKey());
 
-        if (options.isVerifyNextUpdate()) {
-            // 6. When available, the time at or before which newer information will
-            // be available about the status of the certificate (nextUpdate) is
-            // greater than the current time.
-            log.trace("Verify OCSP nextUpdate, atDate: {} nextUpdate: {}", atDate, singleResp.getNextUpdate());
-            if (singleResp.getNextUpdate() != null
-                    && singleResp.getNextUpdate().before(atDate)) {
-                SimpleDateFormat fmt = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
-                throw new CodedException(X_INCORRECT_VALIDATION_INFO,
-                        String.format("OCSP nextUpdate is too old, atDate: %s nextUpdate: %s", fmt.format(atDate),
-                                fmt.format(singleResp.getNextUpdate())));
-            }
-        } else {
-            log.trace("OCSP nextUpdate verification is turned off");
-        }
+        return basicResp.isSignatureValid(verifier);
     }
 
     /**
@@ -274,7 +298,7 @@ public final class OcspVerifier {
     public static X509Certificate getOcspCert(BasicOCSPResp response)
             throws Exception {
         List<X509Certificate> knownCerts = getOcspCerts(response);
-        ResponderID respId = response.getResponderId().toASN1Object();
+        ResponderID respId = response.getResponderId().toASN1Primitive();
 
         // We can search either by key hash or by name, depending which
         // one is provided in the responder ID.

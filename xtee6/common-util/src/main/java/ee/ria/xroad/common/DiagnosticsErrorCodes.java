@@ -31,6 +31,10 @@ public final class DiagnosticsErrorCodes {
     }
 
     public static final int RETURN_SUCCESS = 0;
+    public static final int ERROR_CODE_OCSP_UNINITIALIZED = 131;
+    public static final int ERROR_CODE_OCSP_RESPONSE_INVALID = 130;
+    public static final int ERROR_CODE_OCSP_CONNECTION_ERROR = 129;
+    public static final int ERROR_CODE_OCSP_FAILED = 128;
     public static final int ERROR_CODE_TIMESTAMP_UNINITIALIZED = 127;
     public static final int ERROR_CODE_UNINITIALIZED = 126;
     public static final int ERROR_CODE_INTERNAL = 125;

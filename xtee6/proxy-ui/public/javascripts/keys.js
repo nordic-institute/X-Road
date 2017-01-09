@@ -531,6 +531,15 @@ function deleteCert(row) {
     });
 }
 
+function initTestability() {
+    // add data-name attributes to improve testability
+    $("#generate_csr_dialog").parent().attr("data-name", "generate_csr_dialog");
+    $("#generate_key_dialog").parent().attr("data-name", "generate_key_dialog");
+    $("#subject_dn_dialog").parent().attr("data-name", "subject_dn_dialog");
+    $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+    $("button span:contains('OK')").parent().attr("data-name", "ok");
+}
+
 $(document).ready(function() {
     $("#addkey_form, #loadcert_form").hide();
 
@@ -808,14 +817,14 @@ $(document).ready(function() {
                 url: action("unregister"),
                 data: params,
                 success: function(response) {
-                    oKeys.fnReplaceData(response.data);
+                    oKeys.fnReplaceData(response.data.tokens);
                     enableActions();
                 },
                 complete: function(xhr, textStatus) {
                     if (textStatus == "error") {
                         warning("keys.delreq_failed", null, function() {
                             $.post(action("skip_unregister"), params, function(response) {
-                                oKeys.fnReplaceData(response.data);
+                                oKeys.fnReplaceData(response.data.tokens);
                                 enableActions();
                             }, "json");
                         });
@@ -829,4 +838,6 @@ $(document).ready(function() {
     $("#details").click(function() {
         $(oKeys.getFocus()).dblclick();
     });
+
+    initTestability();
 });

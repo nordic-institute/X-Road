@@ -38,7 +38,7 @@ public final class MonitoringConf {
     // Instance per thread, same way as in GlobalGonf/GlobalConfImpl.
     // This way thread safety handling is same as in GlobalConf.
     // Instance methods (getMonitoringClient, getMonitoringParameters) however are not synchronized
-    // (in comparison to GlobalGonf/GlobalConfImpl/ConfigurationDirectory)
+    // (in comparison to GlobalGonf/GlobalConfImpl/ConfigurationDirectoryV2)
     // since there is no need to (INSTANCE per thread).
     private static final ThreadLocal<MonitoringConf> INSTANCE
             = new ThreadLocal<MonitoringConf>() {

@@ -1,3 +1,26 @@
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
 class PrivateParametersGenerator
 
   def initialize
@@ -5,7 +28,7 @@ class PrivateParametersGenerator
         get_object_factory(), get_root_type_creator())
 
     Rails.logger.debug(
-      "Initialized private parameters generator: #{self.inspect()}")
+        "Initialized private parameters generator: #{self.inspect()}")
   end
 
   def generate
@@ -21,7 +44,7 @@ class PrivateParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.privateparameters.v1.ObjectFactory
   end
 
   def get_root_type_creator
@@ -87,7 +110,7 @@ class PrivateParametersGenerator
         SystemParameter.management_service_provider_subsystem)
 
     management_service_type.managementRequestServiceProviderId =
-      provider_id_type
+        provider_id_type
 
     @marshaller.root.managementService = management_service_type
   end

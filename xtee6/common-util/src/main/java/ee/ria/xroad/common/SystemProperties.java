@@ -50,6 +50,24 @@ public final class SystemProperties {
     public static final String DEFAULT_SIGNATURE_ALGORITHM =
             PREFIX + "common.default-signature-algorithm";
 
+    /** Current version number of the global configuration **/
+    public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
+
+    /** Default minimum supported global conf version on central server */
+    public static final String DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
+
+    /** Default minimum supported global conf version on configuration proxy */
+    public static final String DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION = "2";
+
+    /** Minimum supported global conf version on central server **/
+    private static final String MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION =
+            PREFIX + "center.minimum-global-configuration-version";
+
+    /** Minimum supported global conf version on configuration proxy **/
+    private static final String MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION =
+            PREFIX + "configuration-proxy.minimum-global-configuration-version";
+
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -117,18 +135,109 @@ public final class SystemProperties {
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
 
 
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy
-     * HTTP client supported TLS protocols */
+    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PREFIX + "proxy.client-tls-protocols";
 
-    /** Property name of the ClientProxy HTTPS connector and ServerProxy
-     *  HTTP client supported TLS cipher suites */
+    /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS cipher suites */
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PREFIX + "proxy.client-tls-ciphers";
 
     private static final String PROXY_ENFORCE_TOKEN_PIN_POLICY =
             PREFIX + "proxy.enforce-token-pin-policy";
+
+    public static final String SERVER_CONF_CACHE_PERIOD =
+            PREFIX + "proxy.server-conf-cache-period";
+
+    /** Property name of the idle time that connections to the ServerProxy Connector are allowed, in milliseconds */
+    private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
+            PREFIX + "proxy.server-connector-max-idle-time";
+
+    /** Property name of the server Connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
+            PREFIX + "proxy.server-connector-so-linger";
+
+    /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
+    private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
+            PREFIX + "proxy.client-connector-max-idle-time";
+
+    /** Property name of the client connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
+            PREFIX + "proxy.client-connector-so-linger";
+
+    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient */
+    private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
+            PREFIX + "proxy.client-httpclient-timeout";
+
+    /** Property name for the so_linger value that should be set for client proxy apache HttpClient */
+    private static final String CLIENTPROXY_HTTPCLIENT_SO_LINGER =
+            PREFIX + "proxy.client-httpclient-so-linger";
+
+    private static final String CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL =
+            PREFIX + "proxy.client-idle-connection-monitor-interval";
+
+    private static final String CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME =
+            PREFIX + "proxy.client-idle-connection-monitor-timeout";
+
+    private static final String CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR =
+            PREFIX + "proxy.client-use-idle-connection-monitor";
+
+    private static final String CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS =
+            PREFIX + "proxy.pool-total-max-connections";
+
+    private static final String CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE =
+            PREFIX + "proxy.pool-total-default-max-connections-per-route";
+
+    private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
+            PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
+
+    private static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE =
+            PREFIX + "proxy.client-fastest-connecting-ssl-use-uri-cache";
+
+    private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
+            PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
+
+    private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
+            PREFIX + "proxy.pool-enable-connection-reuse";
+
+
+    private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
+
+    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
+
+    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
+
+    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "0";
+
+    private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
+
+    private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER = "-1";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL = "30000";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = "false";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
+
+    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "false";
+
+    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
+
+    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "-1";
+
+    /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
+     * for the ClientProxy can be actually reused **/
+    private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = "false";
+
+
+    private static final String OCSP_VERIFIER_CACHE_PERIOD =
+            PREFIX + "proxy.ocsp-verifier-cache-period";
+
+    private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
 
     // Signer -----------------------------------------------------------------
@@ -144,6 +253,10 @@ public final class SystemProperties {
     /** Property name of the Signer's port number. */
     public static final String SIGNER_PORT =
             PREFIX + "signer.port";
+
+    /** Property name of the Signer's admin port number. */
+    public static final String SIGNER_ADMIN_PORT =
+            PREFIX + "signer.admin-port";
 
     /** Property name of the SignerClient's timeout. */
     public static final String SIGNER_CLIENT_TIMEOUT =
@@ -430,7 +543,7 @@ public final class SystemProperties {
     public static String getJettyClientProxyConfFile() {
         return System.getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
                 getConfPath()
-                    + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
+                        + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
     }
 
     /**
@@ -440,7 +553,7 @@ public final class SystemProperties {
     public static String getJettyServerProxyConfFile() {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
                 getConfPath()
-                    + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+                        + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
     }
 
     /**
@@ -568,6 +681,14 @@ public final class SystemProperties {
     }
 
     /**
+     * @return the port on which the signer admin listens for requests
+     */
+    public static int getSignerAdminPort() {
+        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT,
+                Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
+    }
+
+    /**
      * @return the signer connection timeout in milliseconds,
      * '60000' by default.
      */
@@ -585,8 +706,9 @@ public final class SystemProperties {
     }
 
     /**
-     * Get CSR signature algorithm.
-     * @return algorithm.
+     * Get CSR signature algorithm
+     *
+     * @return algorithm
      */
     public static String getSignerCsrSignatureAlgorithm() {
         return System.getProperty(SIGNER_CSR_SIGNATURE_ALGORITHM, getDefaultSignatureAlgorithm());
@@ -599,7 +721,7 @@ public final class SystemProperties {
     public static int getConfigurationClientPort() {
         return Integer.parseInt(
                 System.getProperty(CONFIGURATION_CLIENT_PORT,
-                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
+                        Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
     }
 
     /**
@@ -620,7 +742,7 @@ public final class SystemProperties {
     public static int getConfigurationClientUpdateIntervalSeconds() {
         return Integer.parseInt(
                 System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS,
-                "60")); // default time in seconds
+                        "60")); // default time in seconds
     }
 
     /**
@@ -834,6 +956,7 @@ public final class SystemProperties {
      * This parameter may be set to false for cases where an external
      * component has already verified the certificate before sending the
      * request to client proxy.
+     *
      * @return whether the client proxy should verify client's SSL certificate,
      * 'true' by default.
      */
@@ -900,6 +1023,7 @@ public final class SystemProperties {
 
     /**
      * Global default digital signature algorithm.
+     *
      * @return algorithm.
      */
     public static String getDefaultSignatureAlgorithm() {
@@ -908,6 +1032,7 @@ public final class SystemProperties {
 
     /**
      * Get proxy client's TLS protocols.
+     *
      * @return protocols.
      */
     public static String[] getProxyClientTLSProtocols() {
@@ -915,20 +1040,21 @@ public final class SystemProperties {
     }
 
     private static final String DEFAULT_CLIENT_SSL_CIPHER_SUITES = "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,"
-                            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
-                            + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
-                            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
-                            + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
-                            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
-                            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
-                            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,"
-                            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,"
-                            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA,"
-                            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,"
-                            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA";
+            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,"
+            + "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,"
+            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,"
+            + "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,"
+            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,"
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,"
+            + "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,"
+            + "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,"
+            + "TLS_DHE_RSA_WITH_AES_128_CBC_SHA,"
+            + "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,"
+            + "TLS_DHE_RSA_WITH_AES_256_CBC_SHA";
 
     /**
      * Get proxy client's TLS cipher suites.
+     *
      * @return cipher suites.
      */
     public static String[] getProxyClientTLSCipherSuites() {
@@ -937,9 +1063,180 @@ public final class SystemProperties {
 
     /**
      * Tell whether token PIN policy should be enforced.
+     *
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
         return Boolean.valueOf(System.getProperty(PROXY_ENFORCE_TOKEN_PIN_POLICY, "false"));
+    }
+
+    /**
+     *
+     * @return the update interval in seconds at which server conf in cached '60' by default
+     */
+    public static int getServerConfCachePeriod() {
+        return Integer.parseInt(
+                System.getProperty(SERVER_CONF_CACHE_PERIOD,
+                        "60")); // default time in seconds
+    }
+
+    /**
+     *
+     * @return the interval in seconds at which verifier caches results.
+     * Max value is 180 seconds and cannot be exceeded in configuration.
+     * Default is 60 s.
+     */
+    public static int getOcspVerifierCachePeriod() {
+        int period = Integer.parseInt(System.getProperty(OCSP_VERIFIER_CACHE_PERIOD, "60"));
+        return period < OCSP_VERIFIER_CACHE_PERIOD_MAX ? period : OCSP_VERIFIER_CACHE_PERIOD_MAX;
+    }
+
+    /**
+     * @return the connection maximum idle time that should be set for server proxy connector
+     */
+    public static int getServerProxyConnectorMaxIdleTime() {
+        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_MAX_IDLE_TIME,
+                DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME));
+
+    }
+
+    /**
+     * @return the so_linger value that should be set for server proxy connector
+     */
+    public static int getServerProxyConnectorSoLinger() {
+        return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
+                DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER));
+    }
+
+    /**
+     * @return the connection maximum idle time that should be set for client proxy apache HttpClient
+     */
+    public static int getClientProxyHttpClientTimeout() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_HTTPCLIENT_TIMEOUT,
+                DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT));
+
+    }
+
+    /**
+     * @return the so_linger value that should be set for client proxy apache HttpClient
+     */
+    public static int getClientProxyHttpClientSoLinger() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
+                DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
+    }
+
+
+    /**
+     * @return the so_linger value that should be set for client proxy connector
+     */
+    public static int getClientProxyConnectorSoLinger() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
+                DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER));
+    }
+
+    /**
+     * @return the connection maximum idle time that should be set for client proxy connector
+     */
+    public static int getClientProxyConnectorMaxIdleTime() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME,
+                DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME));
+
+    }
+
+    /**
+     * @return true if the idle connection monitor thread should be used for client proxy
+     */
+    public static boolean isClientUseIdleConnectionMonitor() {
+        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR,
+                DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR));
+    }
+
+    /**
+     * @return the interval at which pooled idle connections should be cleaned up by the connection monitor
+     */
+    public static int getClientProxyIdleConnectionMonitorInterval() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL,
+                DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_INTERVAL));
+    }
+
+    /**
+     * @return the idle time after which pooled connections should be discarded
+     */
+    public static int getClientProxyIdleConnectionMonitorIdleTime() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME,
+                DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME));
+    }
+
+    public static boolean isEnableClientProxyPooledConnectionReuse() {
+        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_POOL_REUSE_CONNECTIONS,
+                DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
+    }
+
+    public static int getClientProxyPoolTotalMaxConnections() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS,
+                DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS));
+    }
+
+    public static int getClientProxyPoolDefaultMaxConnectionsPerRoute() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE,
+                DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE));
+    }
+
+    /**
+     * @return true if SSL sockets should close the underlying socket layer when the SSL socket is closed
+     */
+    public static boolean isUseSslSocketAutoClose() {
+        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE,
+                DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE));
+    }
+
+    /**
+     * @return true if the URI of the fastest responder should be cached.
+     * fastest responder
+     */
+    public static boolean isUseCachedSSLSessionHostUri() {
+        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE,
+                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE));
+    }
+
+    /**
+     * @return the time in milliseconds, after which connections in a pool should be check for validity, ie.
+     * after this time, check if pooled connections are still alive, don't just assume they are.
+     */
+    public static int getClientProxyValidatePoolConnectionsAfterInactivityMs() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
+                DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS));
+    }
+
+    /**
+     *
+     * @return minimum central server global configuration version or default
+     */
+    public static int getMinimumCentralServerGlobalConfigurationVersion() {
+        int version = Integer.parseInt(System.getProperty(MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION,
+                DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
+        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+                DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
+        return version;
+    }
+
+    /**
+     *
+     * @return minimum configuration proxy global configuration version or default
+     */
+    public static int getMinimumConfigurationProxyGlobalConfigurationVersion() {
+        int version = Integer.parseInt(System.getProperty(
+                MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION,
+                DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
+        checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
+                DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
+        return version;
+    }
+
+    private static void checkVersionValidity(int version, int current, String defaultVersion) {
+        if (version > current || version < 1) {
+            throw new IllegalArgumentException("Illegal minimum global configuration version in "
+                    + "system parameters");
+        }
     }
 }

@@ -45,6 +45,7 @@ public final class GlobalConfExtensions {
     };
 
     private OcspNextUpdate ocspNextUpdate;
+    private OcspFetchInterval ocspFetchInterval;
 
     /**
      * @return instance
@@ -74,9 +75,24 @@ public final class GlobalConfExtensions {
         }
     }
 
+  /**
+   * @return OCSP fetch interval in seconds
+   */
+  public int getOcspFetchInterval() {
+        OcspFetchInterval update = getFetchInterval();
+        if (update != null) {
+            log.trace("getOcspFetchInterval: {}", update.getOcspFetchInterval());
+            return update.getOcspFetchInterval();
+        } else {
+            log.trace("update is null, returning default value {}", OcspFetchInterval.OCSP_FETCH_INTERVAL_DEFAULT);
+            return OcspFetchInterval.OCSP_FETCH_INTERVAL_DEFAULT;
+        }
+    }
+
     private OcspNextUpdate getOcspNextUpdate() {
         try {
             if (ocspNextUpdate != null && ocspNextUpdate.hasChanged()) {
+                log.trace("reload");
                 ocspNextUpdate.reload();
             } else if (ocspNextUpdate == null) {
                 Path ocspNextUpdatePath = getOcspNextUpdateConfigurationPath();
@@ -86,6 +102,7 @@ public final class GlobalConfExtensions {
                             ocspNextUpdatePath);
                     ocspNextUpdate = new OcspNextUpdate();
                     ocspNextUpdate.load(getOcspNextUpdateConfigurationPath().toString());
+                    log.trace("Parameters were loaded, value: {}", ocspNextUpdate.shouldVerifyOcspNextUpdate());
                 } else {
                     log.trace("Not loading ocsp next update from {}, "
                             + "file does not exist", ocspNextUpdatePath);
@@ -101,4 +118,32 @@ public final class GlobalConfExtensions {
         return GlobalConf.getInstanceFile(OcspNextUpdate.FILE_NAME_OCSP_NEXT_UPDATE_PARAMETERS);
     }
 
+    private OcspFetchInterval getFetchInterval() {
+        try {
+            if (ocspFetchInterval != null && ocspFetchInterval.hasChanged()) {
+                log.trace("reload");
+                ocspFetchInterval.reload();
+            } else if (ocspFetchInterval == null) {
+                Path ocspFetchIntervalPath = getOcspFetchIntervalConfigurationPath();
+
+                if (Files.exists(ocspFetchIntervalPath)) {
+                    log.trace("Loading private parameters from {}",
+                        ocspFetchIntervalPath);
+                    ocspFetchInterval = new OcspFetchInterval();
+                    ocspFetchInterval.load(getOcspFetchIntervalConfigurationPath().toString());
+                    log.trace("Parameters were loaded, value: {}", ocspFetchInterval.getOcspFetchInterval());
+                } else {
+                    log.trace("Not loading ocsp fetch interval from {}, "
+                        + "file does not exist", ocspFetchIntervalPath);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Exception while fetching ocsp fetch interval configuration", e);
+        }
+        return ocspFetchInterval;
+    }
+
+    private Path getOcspFetchIntervalConfigurationPath() {
+        return GlobalConf.getInstanceFile(OcspFetchInterval.FILE_NAME_OCSP_FETCH_INTERVAL_PARAMETERS);
+    }
 }

@@ -22,15 +22,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -42,8 +33,18 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Global configuration.
@@ -104,9 +105,17 @@ public final class GlobalConf {
      * Reloads the configuration.
      */
     public static synchronized void reload() {
-        log.trace("reload()");
-
-        instance = instanceFactory.createInstance(true);
+        if (instance != null) {
+            try {
+                log.trace("reload called");
+                instance.load(null);
+            } catch (Exception e) {
+                throw translateException(e);
+            }
+        } else {
+            log.trace("reload called, create new GlobalConfImpl");
+            instance = instanceFactory.createInstance(true);
+        }
     }
 
     /**
@@ -114,8 +123,7 @@ public final class GlobalConf {
      * @param conf the configuration provider instance
      */
     public static void reload(GlobalConfProvider conf) {
-        log.trace("reload({})", conf.getClass());
-
+        log.trace("reload called with parameter class {}", conf.getClass());
         instance = conf;
     }
 
@@ -124,11 +132,10 @@ public final class GlobalConf {
      * file has changed.
      */
     public static synchronized void reloadIfChanged() {
-        log.trace("reloadIfChanged()");
-
+        log.trace("reloadIfChanged called");
         if (instance != null) {
             try {
-                instance.load(null /* ignored */);
+                instance.load(null);
             } catch (Exception e) {
                 throw translateException(e);
             }
@@ -321,6 +328,20 @@ public final class GlobalConf {
                 ? member.getSubjectX500Principal().getName() : "null");
 
         return getInstance().getOcspResponderAddresses(member);
+    }
+
+    /**
+     * Returns a list of OCSP responder addresses for the given CA certificate.
+     * @param caCertificate the CA certificate
+     * @return list of OCSP responder addresses
+     * @throws Exception if an error occurs
+     */
+    public static List<String> getOcspResponderAddressesForCaCertificate(
+            X509Certificate caCertificate) throws Exception {
+        log.trace("getOcspResponderAddressesForCaCertificate({})", caCertificate != null
+                ? caCertificate.getSubjectX500Principal().getName() : "null");
+
+        return getInstance().getOcspResponderAddressesForCaCertificate(caCertificate);
     }
 
     /**

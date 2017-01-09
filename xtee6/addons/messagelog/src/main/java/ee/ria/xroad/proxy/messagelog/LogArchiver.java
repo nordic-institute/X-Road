@@ -22,27 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
-import org.hibernate.Session;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-
 import akka.actor.UntypedActor;
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
@@ -53,6 +35,24 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 
 /**
@@ -64,6 +64,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
+    private static final int MAX_RECORDS_IN_PATCHS = 360;
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -98,8 +99,7 @@ public class LogArchiver extends UntypedActor {
             long start = System.currentTimeMillis();
             int recordsArchived = 0;
 
-            try (LogArchiveWriter archiveWriter =
-                    createLogArchiveWriter(session)) {
+            try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 while (!records.isEmpty()) {
                     archive(archiveWriter, records);
                     runTransferCommand(getArchiveTransferCommand());
@@ -113,7 +113,7 @@ public class LogArchiver extends UntypedActor {
                     records = getRecordsToBeArchived(session);
                 }
             } catch (Exception e) {
-                throw new CodedException(X_INTERNAL_ERROR, e);
+                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
             }
 
             log.info("Archived {} log records in {} ms", recordsArchived,
@@ -170,7 +170,7 @@ public class LogArchiver extends UntypedActor {
         List<LogRecord> recordsToArchive = new ArrayList<>();
 
         int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
-        for (TimestampRecord ts : getNonArchivedTimestampRecords(session)) {
+        for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_PATCHS)) {
             List<MessageRecord> messages =
                     getNonArchivedMessageRecords(session, ts.getId(),
                             allowedInArchiveCount);
@@ -195,11 +195,11 @@ public class LogArchiver extends UntypedActor {
 
     @SuppressWarnings("unchecked")
     protected List<TimestampRecord> getNonArchivedTimestampRecords(
-            Session session) {
-        return session
-                .createCriteria(TimestampRecord.class)
-                .add(Restrictions.eq("archived", false))
-                .list();
+            Session session, int maxRecordsToGet) {
+        Criteria criteria = session.createCriteria(TimestampRecord.class);
+        criteria.add(Restrictions.eq("archived", false));
+        criteria.setMaxResults(maxRecordsToGet);
+        return criteria.list();
     }
 
     @SuppressWarnings("unchecked")
@@ -248,13 +248,9 @@ public class LogArchiver extends UntypedActor {
         log.info("Transferring archives with shell command: \t{}",
                 transferCommand);
 
-        String[] command = new String[] {
-                "/bin/bash",
-                "-c",
-                transferCommand
-            };
-
         try {
+            String[] command = new String[] {"/bin/bash", "-c", transferCommand};
+
             Process process = new ProcessBuilder(command).start();
 
             StandardErrorCollector standardErrorCollector =
@@ -274,7 +270,9 @@ public class LogArchiver extends UntypedActor {
                         + "exited with status '%d'",
                         transferCommand,
                         exitCode);
-                log.error("{}\n -- STANDARD ERROR START\n{}\n"
+
+                log.error(
+                        "{}\n -- STANDARD ERROR START\n{}\n"
                         + " -- STANDARD ERROR END",
                         errorMsg,
                         standardErrorCollector.getStandardError());

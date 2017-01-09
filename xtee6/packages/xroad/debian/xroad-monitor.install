@@ -1,5 +1,5 @@
 monitor/etc/*  etc/
-../default-configuration/monitor.ini etc/xroad/conf.d/
-../default-configuration/monitor-logback.xml etc/xroad/conf.d/
+../default-configuration/addons/monitor.ini etc/xroad/conf.d/addons
+../default-configuration/addons/monitor-logback.xml etc/xroad/conf.d/addons
 ../../monitor/build/libs/monitor-1.0.jar usr/share/xroad/jlib/
 

@@ -36,6 +36,6 @@ public class DnFieldDescriptionImpl implements DnFieldDescription {
     private final String id;
     private final String label;
     private final String defaultValue;
-    private boolean isReadOnly;
-    private boolean isRequired = true;
+    private boolean readOnly;
+    private boolean required = true;
 }

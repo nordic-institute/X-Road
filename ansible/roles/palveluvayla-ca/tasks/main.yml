@@ -1,0 +1,128 @@
+- name: show OS version
+  debug:
+    msg: "OS = {{ ansible_os_family }} "
+
+- name: check that OS = Redhat
+  fail:
+    msg: "This playbook only supports Ubuntu"
+  when: ansible_os_family != "Debian"
+
+- name: nginx-light
+  apt: name=nginx-light state=present
+
+- name: group ca
+  group:
+    name: "ca"
+    system: "yes"
+
+- name: ca user
+  user:
+    name: "ca"
+    group: "ca"
+    comment: "CA user"
+    createhome: "yes"
+    system: "yes"
+
+- name: ocsp user
+  user:
+    name: "ocsp"
+    group: "ca"
+    comment: "OCSP user"
+    createhome: "yes"
+    system: "yes"
+
+- name: copy root user directories
+  copy:
+    src: files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+    - "etc"
+    - "usr"
+
+- name: copy ca group directories
+  copy:
+    src: files/{{ item }}
+    dest: /home
+    group: "ca"
+    owner: "ca"
+  with_items:
+    - "home/ca"
+
+- name: set file permissions
+  file:
+    mode: 0755
+    path: "/usr/local/bin/{{ item }}"
+  with_items:
+    - "sign"
+    - "sign-auth"
+    - "sign-sign"
+
+- name: set file permissions 2
+  file:
+    mode: 0740
+    path: "/home/ca/CA/{{ item }}"
+  with_items:
+    - "ocsp.sh"
+    - "revoke.sh"
+    - "sign.sh"
+    - "intermediate.sh"
+
+- name: set file permissions 3
+  file:
+    mode: 0664
+    path: "/home/ca/TSA/{{ item }}"
+  with_items:
+    - "TSA.cnf"
+    - "tsa_server.py"
+
+- name: init.sh template
+  template:
+    src: "init.sh"
+    dest: "/home/ca/CA/init.sh"
+    owner: "ca"
+    group: "ca"
+    mode: 0700
+
+- name: check if ocsp.log exists
+  stat:
+    path: /var/log/ocsp.log
+  register: stat_result
+
+- name: create ocsp.log
+  file:
+    path: /var/log/ocsp.log
+    state: touch
+    group: "ca"
+    owner: "ca"
+    mode: 0664
+  when: stat_result.stat.exists == False
+
+- name: check if .init exists
+  stat:
+    path: /home/ca/CA/.init
+  register: stat_result
+
+- name: run init.sh
+  shell: ./init.sh > init.log 2>&1
+  args:
+    chdir: "/home/ca/CA"
+  become: true
+  become_user: ca
+  when: stat_result.stat.exists == False
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart ocsp
+  service:
+    name: ocsp
+    state: restarted
+
+- name: restart tsa
+  service:
+    name: tsa
+    state: restarted

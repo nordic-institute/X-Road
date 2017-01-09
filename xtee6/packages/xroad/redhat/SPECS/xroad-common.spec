@@ -74,7 +74,8 @@ cp -p %{src}/../../libs/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
 cp -p %{src}/../../lib/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
 cp -p %{src}/../../configuration-client/build/libs/configuration-client-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/confclient-logback.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.txt
+cp -p %{src}/../default-configuration/confclient-logback-service.xml %{buildroot}/etc/xroad/conf.d
+cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase-3.5.1.jar %{buildroot}/usr/share/xroad/db/liquibase-3.5.1.jar
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
@@ -97,6 +98,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/signer-logback.xml
 %config /etc/xroad/conf.d/signer-console-logback.xml
 %config /etc/xroad/conf.d/confclient-logback.xml
+%config /etc/xroad/conf.d/confclient-logback-service.xml
 %config /etc/xroad/ssl/openssl.cnf
 %config /etc/xroad/ssl/rfc3526group15.pem
 /etc/nginx/conf.d/xroad-securing.conf
@@ -124,7 +126,7 @@ rm -rf %{buildroot}
 %attr(664,root,root) %{_unitdir}/xroad-signer.service
 %attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+%doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
 %pre
@@ -144,6 +146,8 @@ exit 1
 fi
 
 %post
+umask 007
+
 # ensure home directory ownership
 mkdir -p /var/lib/xroad/backup
 su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
@@ -157,15 +161,18 @@ chown xroad:adm /var/log/xroad
 
 # test and fix config folder
 su - xroad -c "test -O /etc/xroad && test -G /etc/xroad" || chown xroad:xroad /etc/xroad
-chmod 0770 /etc/xroad
+chmod 0750 /etc/xroad
 
 #tmp folder
 mkdir -p /var/tmp/xroad
-chmod 1770 /var/tmp/xroad
+chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
 
-chmod 770 /etc/xroad/ssl
+chmod 0750 /etc/xroad/ssl
 chown xroad:xroad /etc/xroad/ssl
+
+chmod 0750 /etc/xroad/services
+chown xroad:xroad /etc/xroad/services
 
 # create socket directory
 [ -d /var/run/xroad ] || install -d -m 2770 -o xroad -g xroad /var/run/xroad
@@ -177,6 +184,9 @@ test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 test -d /etc/xroad/signer || mkdir -p -m0700 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
 test -d /etc/xroad/conf.d || mkdir -p /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
 test -d /etc/xroad/ssl || mkdir /etc/xroad/ssl
+
+chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
+chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset

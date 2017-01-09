@@ -9,7 +9,7 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: opmonitoring
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-proxy >= %version
+Requires:   xroad-proxy >= %version, xroad-opmonitor >= %version
 
 %define src %{_topdir}/..
 
@@ -26,7 +26,7 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 
 cp -p %{src}/addon/proxy/opmonitoring.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{src}/../../addons/op-monitoring/build/libs/op-monitoring-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
+cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 
 %clean
@@ -36,11 +36,11 @@ rm -rf %{buildroot}
 %defattr(-,xroad,xroad,-)
 /usr/share/xroad/jlib/addon/proxy/op-monitoring-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+%doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
-%post
-%systemd_post xroad-proxy.service
+%postun
+%systemd_postun_with_restart xroad-proxy.service
 
 %changelog
 

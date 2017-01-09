@@ -56,8 +56,8 @@ cp -aP * %{buildroot}/usr/share/xroad/jetty9
 cp -aP %{_topdir}/../etc %{buildroot}/etc
 cp %{SOURCE2} %{buildroot}%{_bindir}
 cp %{SOURCE3} %{buildroot}%{_unitdir}
-mkdir -p %{buildroot}/etc/tmpfiles.d
-cp %{SOURCE4} %{buildroot}/etc/tmpfiles.d/
+mkdir -p %{buildroot}/usr/lib/tmpfiles.d
+cp %{SOURCE4} %{buildroot}/usr/lib/tmpfiles.d/
 
 %clean
 rm -rf %{buildroot}
@@ -66,7 +66,7 @@ rm -rf %{buildroot}
 %defattr(-,xroad,xroad,-)
 %config /etc/xroad/jetty
 %config /etc/xroad/conf.d/jetty-logback.xml
-%config %attr(664,root,root) /etc/tmpfiles.d/%{name}.conf
+%attr(664,root,root) /usr/lib/tmpfiles.d/%{name}.conf
 
 /usr/share/xroad/jetty9
 %dir /var/log/xroad/jetty

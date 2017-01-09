@@ -77,6 +77,11 @@ var XROAD_MEMBERS = function() {
         }, "json");
     }
 
+    function initTestability() {
+        // add data-name attributes to improve testability
+        $("#member_add_dialog").parent().attr("data-name", "member_add_dialog");
+    }
+
     $(document).ready(function() {
         $("#add_form").hide();
 
@@ -136,6 +141,7 @@ var XROAD_MEMBERS = function() {
         $("#member_details").click(function() {
             XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
         });
+        initTestability();
     });
 
     return {

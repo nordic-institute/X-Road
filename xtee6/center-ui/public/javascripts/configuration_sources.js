@@ -134,6 +134,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         opts.aoColumns = [
             { "mData": "file_name" },
             { "mData": "content_identifier" },
+            { "mData": "version" },
             { "mData": "updated_at" }
         ];
 
@@ -304,7 +305,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
             var confPart = oConfParts.getFocusData();
 
             window.location = action("download_conf_part") +
-                "?content_identifier=" + confPart.content_identifier;
+                "?content_identifier=" + confPart.content_identifier + "&version=" + confPart.version;
         });
     }
 

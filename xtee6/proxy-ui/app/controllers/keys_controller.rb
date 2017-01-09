@@ -155,7 +155,7 @@ class KeysController < ApplicationController
         :id => field.id,
         :label => field.label,
         :default_value => field.defaultValue,
-        :read_only => !field.defaultValue.nil?,
+        :read_only => field.isReadOnly,
         :required => field.isRequired
       }
     end if profile.subjectFields
@@ -180,7 +180,7 @@ class KeysController < ApplicationController
     field_params = {}
     profile.subjectFields.each do |field|
       field_params[field.id.to_sym] =
-        field.isRequired && !field.isReadOnly ? [:required] : []
+        field.required? && !field.read_only? ? [:required] : []
     end
 
     validate_params({
@@ -204,7 +204,11 @@ class KeysController < ApplicationController
 
     field_values = []
     profile.subjectFields.each do |field|
-      value = field.defaultValue || params[field.id.to_sym]
+      if field.read_only? || params[field.id.to_sym].blank?
+        value = field.default_value
+      else
+        value = params[field.id.to_sym]
+      end
 
       if value
         field_values << "#{field.id}=#{value}"
@@ -788,7 +792,7 @@ class KeysController < ApplicationController
       end
 
       profile.getSignCertProfile(
-        SignCertificateProfileInfoParameters.new(client_id, member_name))
+        SignCertificateProfileInfoParameters.new(@server_id, client_id, member_name))
     end
   end
 end

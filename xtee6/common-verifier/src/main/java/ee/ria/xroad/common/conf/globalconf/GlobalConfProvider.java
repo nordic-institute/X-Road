@@ -22,22 +22,17 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.ConfProvider;
+import ee.ria.xroad.common.identifier.*;
+
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
-import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.ConfProvider;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 /**
  * API for implementing global configuration providers.
@@ -134,6 +129,15 @@ public interface GlobalConfProvider extends ConfProvider {
      * @throws Exception if an error occurs
      */
     List<String> getOcspResponderAddresses(X509Certificate member)
+            throws Exception;
+
+
+    /** Returns a list of OCSP responder addresses for the given CA certificate
+     * @param caCert the CA certificate
+     * @return list of OCSP responder addresses
+     * @throws Exception if an error occurs
+     */
+    List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert)
             throws Exception;
 
     /**

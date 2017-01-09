@@ -8,7 +8,7 @@
  */
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
 }
 
 // Apply the java plugin to add support for Java
@@ -43,7 +43,7 @@ dependencies {
     // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
     // 'test.useTestNG()' to your build script.
     testCompile 'junit:junit:4.12'
-    testCompile 'com.typesafe.akka:akka-testkit_2.10:2.2.1'
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.8'
 }
 
 jar {
