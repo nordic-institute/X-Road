@@ -5,7 +5,7 @@
     xmlns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers">
     <xs:import schemaLocation="identifiers.xsd" id="id"
-        namespace="http://x-road.eu/xsd/identifiers"/>
+               namespace="http://x-road.eu/xsd/identifiers"/>
     <xs:complexType name="ClientListType">
         <xs:sequence>
             <xs:element maxOccurs="unbounded" minOccurs="0"

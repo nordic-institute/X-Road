@@ -24,6 +24,7 @@
 
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.Data;
 
 /**
@@ -33,7 +34,30 @@ import lombok.Data;
 public class SignCertificateProfileInfoParameters
         implements SignCertificateProfileInfo.Parameters {
 
+    private final SecurityServerId serverId;
     private final ClientId clientId;
     private final String memberName;
 
+    /**
+     *
+     * @param serverId
+     * @param clientId
+     * @param memberName
+     */
+    public SignCertificateProfileInfoParameters(SecurityServerId serverId, ClientId clientId, String memberName) {
+        this.serverId = serverId;
+        this.clientId = clientId;
+        this.memberName = memberName;
+    }
+
+    /**
+     *
+     * @param clientId
+     * @param memberName
+     */
+    public SignCertificateProfileInfoParameters(ClientId clientId, String memberName) {
+        this.clientId = clientId;
+        this.memberName = memberName;
+        this.serverId = SecurityServerId.create(clientId, "dummy");
+    }
 }

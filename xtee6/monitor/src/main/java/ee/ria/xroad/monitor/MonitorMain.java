@@ -22,18 +22,17 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.util.concurrent.TimeUnit;
-
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
-import akka.actor.ActorSystem;
-import akka.actor.Props;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import lombok.extern.java.Log;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Main class for monitor application
@@ -41,7 +40,7 @@ import lombok.extern.java.Log;
 @Log
 public final class MonitorMain {
 
-    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/monitor.ini";
+    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/addons/monitor.ini";
     private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
     private static final String CONFIG_SECTION = "monitor";
     private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
@@ -56,7 +55,7 @@ public final class MonitorMain {
     public static void main(String args[]) {
 
         registerShutdownHook();
-        
+
         loadConfiguration();
 
         initAkka();

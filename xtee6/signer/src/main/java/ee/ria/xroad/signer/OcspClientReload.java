@@ -32,7 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
 
 /**
- * Periodically calls OcspClient reload
+ * Periodically executes the Global Configuration reload by
+ * sending {@link ee.ria.xroad.signer.certmanager.OcspClientWorker} the message {@value OcspClientWorker#RELOAD}
  */
 @Slf4j
 public class OcspClientReload extends VariableIntervalPeriodicJob {

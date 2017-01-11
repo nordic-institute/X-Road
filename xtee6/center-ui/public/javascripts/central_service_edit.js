@@ -309,12 +309,16 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
                   }
                 },
                 { text: _("common.cancel"),
+                  id: "central_service_cancel",
                   click: function() {
                       $(this).dialog("close");
                   }
                 }
             ]
         }).dialog("open");
+        $("#central_service_details_dialog").parent().attr("data-name", "central_service_details_dialog");
+        $("#central_service_save_ok").attr("data-name", "central_service_save_ok");
+        $("#central_service_cancel").attr("data-name", "central_service_cancel");
     }
 
     /* -- DIALOGS - END -- */

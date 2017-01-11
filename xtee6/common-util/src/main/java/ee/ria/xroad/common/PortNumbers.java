@@ -45,6 +45,9 @@ public final class PortNumbers {
     /** Signer listens for HTTP queries. */
     public static final int SIGNER_PORT = 5558;
 
+    /** Signer Admin port. */
+    public static final int SIGNER_ADMIN_PORT = 5559;
+
     /** Center-Service HTTP port. */
     public static final int CENTER_SERVICE_HTTP_PORT = 3333;
 

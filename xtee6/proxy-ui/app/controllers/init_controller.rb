@@ -24,7 +24,7 @@
 require 'net/http'
 
 java_import Java::ee.ria.xroad.common.SystemProperties
-java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServerConfType
 java_import Java::ee.ria.xroad.common.identifier.ClientId

@@ -22,8 +22,18 @@
  */
 package ee.ria.xroad.common.conf;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import ee.ria.xroad.common.util.AtomicSave;
+import ee.ria.xroad.common.util.FileContentChangeChecker;
+import ee.ria.xroad.common.util.ResourceUtils;
+import ee.ria.xroad.common.util.SchemaValidator;
+import lombok.extern.slf4j.Slf4j;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -32,18 +42,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.StandardCopyOption;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-
-import ee.ria.xroad.common.util.AtomicSave;
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.ResourceUtils;
-import ee.ria.xroad.common.util.SchemaValidator;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Base class for XML-based configurations, where underlying classes are
@@ -200,11 +199,9 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
             try {
                 validateMethod.invoke(null, new StreamSource(in));
             } catch (InvocationTargetException e) {
-                log.warn("Validate schema failed: {},", e);
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            log.warn("SchemaValidator: {},", e);
             throw new RuntimeException("SchemaValidator '"
                     + schemaValidator.getName() + "' must implement static "
                         + "method 'void validate(Source)'");

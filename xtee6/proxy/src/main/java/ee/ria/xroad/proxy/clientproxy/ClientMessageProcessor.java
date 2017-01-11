@@ -22,38 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.Writer;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -66,7 +34,14 @@ import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -80,6 +55,38 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.io.Writer;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
@@ -87,7 +94,9 @@ import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.MimeUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -263,6 +272,12 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     httpSender);
 
             httpSender.setAttribute(ID_TARGETS, addresses);
+
+            if (SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+                // set the servers with this subsystem as the user token, this will pool the connections per groups of
+                // security servers.
+                httpSender.setAttribute(HttpClientContext.USER_TOKEN, new TargetHostsUserToken(addresses));
+            }
             httpSender.setTimeout(SystemProperties.getClientProxyTimeout());
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
@@ -294,11 +309,37 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
     }
 
+    @EqualsAndHashCode
+    public static class TargetHostsUserToken {
+        private final Set<URI> targetHosts;
+
+        TargetHostsUserToken(Set<URI> targetHosts) {
+            if (targetHosts != null) {
+                this.targetHosts = targetHosts;
+            } else {
+                this.targetHosts = new HashSet<>();
+            }
+        }
+
+        TargetHostsUserToken(URI[] uris) {
+            if (uris == null || uris.length == 0) {
+                this.targetHosts = Collections.emptySet();
+            } else {
+                if (uris.length == 1) {
+                    this.targetHosts = Collections.singleton(uris[0]);
+                } else {
+                    this.targetHosts = new HashSet<>(java.util.Arrays.asList(uris));
+                }
+            }
+        }
+    }
+
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(httpSender.getResponseHeaders().get(
-                HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(
+                httpSender.getResponseHeaders().get(
+                        HEADER_ORIGINAL_CONTENT_TYPE));
 
         ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
                 httpSender.getResponseContentType(),
@@ -306,8 +347,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (CodedException ex) {
-            log.error("Coded exception", ex);
-
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
 
@@ -437,7 +476,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
             }
         } catch (InterruptedException e) {
             log.error("waitForSoapMessage interrupted", e);
-        
             Thread.currentThread().interrupt();
         }
     }
@@ -448,7 +486,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
             httpSenderGate.await();
         } catch (InterruptedException e) {
             log.error("waitForRequestSent interrupted", e);
-        
             Thread.currentThread().interrupt();
         }
     }
@@ -537,11 +574,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (serverId != null) {
-            final String securityServerAddress =
-                    GlobalConf.getSecurityServerAddress(serverId);
-
-            log.trace("securityServerAddress: {}", securityServerAddress);
-
+            final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
             if (securityServerAddress == null) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
                         "Could not find security server \"%s\"",
@@ -624,7 +657,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) throws Exception {
             log.trace("attachment()");
 
             request.attachment(contentType, content, additionalHeaders);

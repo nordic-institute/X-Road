@@ -23,6 +23,7 @@
 
 require "management_request_helper"
 
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.globalconf.GlobalConf
 java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
@@ -352,7 +353,7 @@ class ApplicationController < BaseController
 
   def get_temp_anchor_details
     begin
-      anchor = ConfigurationAnchor.new(temp_anchor_file)
+      anchor = ConfigurationAnchorV2.new(temp_anchor_file)
       generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
       instance_id = anchor.getInstanceIdentifier
     rescue

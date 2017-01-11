@@ -131,7 +131,12 @@
 
         enableActions(prefix);
 
-        $("#" + prefix + "_url_and_cert_dialog").dialog("open")
+        $("#" + prefix + "_url_and_cert_dialog").dialog("open");
+
+        // for testability
+        $("#" + prefix + "_url_and_cert_dialog").parent().attr("data-name", prefix + "_url_and_cert_dialog");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('OK')").parent().attr("data-name", "ok");
     };
 
     XROAD_URL_AND_CERT_DIALOG.closeDialog = function(prefix) {

@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 
 import javax.security.auth.x500.X500Principal;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -77,6 +78,10 @@ public class SkEsteidCertificateProfileInfoProviderTest {
                 @Override
                 public String getMemberName() {
                     return "foo";
+                }
+                @Override
+                public SecurityServerId getServerId() {
+                    return null;
                 }
             }
         ).getSubjectIdentifier(mockCert);

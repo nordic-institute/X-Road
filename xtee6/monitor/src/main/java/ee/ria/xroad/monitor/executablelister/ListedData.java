@@ -24,7 +24,6 @@ package ee.ria.xroad.monitor.executablelister;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +35,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ListedData<T> implements Serializable {
-    Collection<T> parsedData;
+    ArrayList<T> parsedData;
     ArrayList<String> jmxData;
 }

@@ -313,7 +313,6 @@ public class SignatureVerifier {
                                     + manifest.getId());
                 }
             } catch (MissingResourceFailureException e) {
-                log.warn("Could not find resource: {}", e);
                 throw new CodedException(X_INVALID_REFERENCE,
                         "Could not find " + e.getReference().getURI());
             }

@@ -91,6 +91,10 @@
                 initMemberSearchTable(securityServerCode, subsystemsOnly, onSuccess);
             }
         });
+
+        $("#member_search_dialog").parent().attr("data-name", "member_search_dialog");
+        $("#member_search_select").attr("data-name", "member_search_select");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
     }
 
 }(window.MEMBER_SEARCH_DIALOG = window.MEMBER_SEARCH_DIALOG || {}, jQuery));

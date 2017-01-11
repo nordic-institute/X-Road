@@ -14,7 +14,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           net-tools, policycoreutils-python
+Requires:           net-tools, policycoreutils-python, tar
 Requires:           xroad-common >= %version, xroad-jetty9 >= %version, rsyslog, postgresql-server, postgresql-contrib
 
 %define src %{_topdir}/..
@@ -61,7 +61,7 @@ cp -p %{src}/../default-configuration/proxy-ui-jetty-logback-context-name.xml %{
 cp -p %{src}/../default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{src}/debian/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
 cp -p %{src}/debian/trusty/proxy_restore_db.sh %{buildroot}/usr/share/xroad/scripts/restore_db.sh
-cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.txt
+cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
@@ -110,7 +110,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/verify_internal_configuration.sh
 /usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+%doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
 %pre
@@ -123,6 +123,10 @@ if [ $1 -gt 1 ] ; then
     if [ -x /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh ]; then
         /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh disable
     fi
+
+    mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+    rpm -q xroad-proxy --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version
+
 fi
 
 %post
@@ -147,7 +151,16 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-sh /usr/share/xroad/scripts/xroad-proxy-setup.sh
+sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
+
+if [ $1 -gt 1 ]; then
+    # upgrade
+    if grep -q "^6\.7\." %{_localstatedir}/lib/rpm-state/%{name}/prev-version; then
+        # 6.7.x -> 6.8 specific migration
+        bash /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh >>/var/log/xroad/proxy-install.log
+    fi
+    rm -rf %{_localstatedir}/lib/rpm-state/%{name}
+fi
 
 %preun
 %systemd_preun xroad-proxy.service

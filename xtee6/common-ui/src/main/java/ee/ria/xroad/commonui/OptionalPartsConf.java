@@ -22,29 +22,20 @@
  */
 package ee.ria.xroad.commonui;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.StringUtils;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
 
 /**
  * Encapsulates optional parts configuration of central server.
@@ -64,11 +55,11 @@ public class OptionalPartsConf {
         KEY_VALIDATION_PROGRAM = "validation-program";
 
         RESERVED_FILE_NAMES = Arrays.asList(
-                PrivateParameters.FILE_NAME_PRIVATE_PARAMETERS,
-                SharedParameters.FILE_NAME_SHARED_PARAMETERS);
+            ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
+            ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         RESERVED_CONTENT_IDENTIFIERS = Arrays.asList(
-                PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS,
-                SharedParameters.CONTENT_ID_SHARED_PARAMETERS);
+            ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS,
+            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
     }
 
     private final Map<String, String> partFileNameToValidationProgram =
@@ -184,7 +175,7 @@ public class OptionalPartsConf {
         } catch (IOException e) {
             log.error("Loading optional parts from file '"
                     + confFile.getAbsolutePath() + "' failed: {}",
-                    e.getMessage());
+                    e.getMessage(), e); // throwable as last object param should work as of SLF4J 1.6.0
 
             errors.add(e.getMessage());
         }

@@ -8,10 +8,9 @@ die () {
 }
 
 
-[ "$#" -eq 2 ] || die "trust anchor filename and configuration path required, $# provided"
+[ "$#" -eq 3 ] || [ "$#" -eq 2 ] || die "trust anchor filename, configuration path and version required, $# provided"
 
 CP="../configuration-client/build/libs/configuration-client-1.0.jar"
-
 
 XROAD_LOG_LEVEL="INFO"
 

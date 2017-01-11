@@ -22,34 +22,13 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
-import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
-import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
-
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+import ee.ria.xroad.common.conf.globalconf.*;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -61,6 +40,23 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import static ee.ria.xroad.common.metadata.MetadataRequests.ASIC;
+import static ee.ria.xroad.common.metadata.MetadataRequests.VERIFICATIONCONF;
+import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAuthenticationData;
 
 @Slf4j
 class AsicContainerClientRequestProcessor extends MessageProcessorBase {
@@ -138,11 +134,9 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         } catch (CodedExceptionWithHttpStatus ex) {
             throw ex;
         } catch (CodedException ex) {
-            log.error("Coded exception", ex);
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex);
         } catch (Exception ex) {
-            log.error("Internal server error", ex);
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     ErrorCodes.X_INTERNAL_ERROR,
@@ -153,7 +147,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void handleVerificationConfRequest() throws Exception {
         // GlobalConf.verifyValidity() is not necessary here.
 
-        ConfigurationDirectory confDir = new ConfigurationDirectory(
+        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
                 SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
@@ -409,7 +403,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH);
     }
 
-    private static class VerificationConfWriter implements ConfigurationDirectory.FileConsumer, Closeable {
+    private static class VerificationConfWriter implements FileConsumer, Closeable {
 
         private static final String PREFIX = "verificationconf/";
 
@@ -426,7 +420,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         public void consume(ConfigurationPartMetadata metadata,
                 InputStream contents) throws Exception {
             if (metadata.getContentIdentifier()
-                    .equals(SharedParameters.CONTENT_ID_SHARED_PARAMETERS)) {
+                    .equals(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)) {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);
                 zos.closeEntry();
@@ -435,7 +429,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         private String buildPath(ConfigurationPartMetadata metadata) {
             return PREFIX + metadata.getInstanceIdentifier() + "/"
-                    + SharedParameters.FILE_NAME_SHARED_PARAMETERS;
+                    + ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
         }
 
         @Override

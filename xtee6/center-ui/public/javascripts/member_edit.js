@@ -123,6 +123,10 @@ var XROAD_MEMBER_EDIT = function() {
                 // function uploadCallbackOwnedServerAuthCert manages
                 // post-submission activities on UI part
             });
+        // for testability
+        $("#owned_server_add_dialog").parent().attr("data-name", "owned_server_add_dialog");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('Submit')").parent().attr("data-name", "submit");
     }
 
     function uploadCallbackOwnedServerAuthCert(response) {

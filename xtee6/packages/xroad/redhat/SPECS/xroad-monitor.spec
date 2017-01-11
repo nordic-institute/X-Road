@@ -27,7 +27,7 @@ X-Road monitoring component
 %install
 mkdir -p %{buildroot}%{jlib}
 mkdir -p %{buildroot}%{_sysconfdir}
-mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d
+mkdir -p %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/share/xroad/bin
 
@@ -35,8 +35,8 @@ cp -p %{src}/../../monitor/build/libs/monitor-1.0.jar %{buildroot}%{jlib}
 cp -a %{src}/monitor/etc/* %{buildroot}%{_sysconfdir}
 cp -p %{src}/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{src}/monitor/systemd/%{name}  %{buildroot}/usr/share/xroad/bin
-cp -p %{src}/../default-configuration/monitor.ini %{buildroot}%{_sysconfdir}/xroad/conf.d/
-cp -p %{src}/../default-configuration/monitor-logback.xml %{buildroot}%{_sysconfdir}/xroad/conf.d/
+cp -p %{src}/../default-configuration/addons/monitor.ini %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
+cp -p %{src}/../default-configuration/addons/monitor-logback.xml %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 ln -s %{jlib}/monitor-1.0.jar %{buildroot}%{jlib}/monitor.jar
 
 %clean
@@ -45,8 +45,8 @@ rm -rf %{buildroot}
 %files
 %defattr(-,xroad,xroad,-)
 %config %{_sysconfdir}/xroad/services/monitor.conf
-%config %{_sysconfdir}/xroad/conf.d/monitor.ini
-%config %{_sysconfdir}/xroad/conf.d/monitor-logback.xml
+%config %{_sysconfdir}/xroad/conf.d/addons/monitor.ini
+%config %{_sysconfdir}/xroad/conf.d/addons/monitor-logback.xml
 %attr(644,root,root) %{_unitdir}/xroad-monitor.service
 %{jlib}/monitor-1.0.jar
 %{jlib}/monitor.jar

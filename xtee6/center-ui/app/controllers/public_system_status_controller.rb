@@ -1,5 +1,27 @@
-java_import Java::ee.ria.xroad.common.conf.globalconf.PrivateParameters
-java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParameters
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationConstants
 
 # This controller contains actions for public requests for the status of
 # the system. No authentication is required for making the requests.
@@ -65,12 +87,12 @@ class PublicSystemStatusController < BaseController
 
   def private_params_update_timestamp(node_name)
     return params_last_update_timestamp(
-      node_name, PrivateParameters::FILE_NAME_PRIVATE_PARAMETERS)
+      node_name, ConfigurationConstants::FILE_NAME_PRIVATE_PARAMETERS)
   end
 
   def shared_params_update_timestamp(node_name)
     return params_last_update_timestamp(
-      node_name, SharedParameters::FILE_NAME_SHARED_PARAMETERS)
+      node_name, ConfigurationConstants::FILE_NAME_SHARED_PARAMETERS)
   end
 
   def params_last_update_timestamp(node_name, file_name)

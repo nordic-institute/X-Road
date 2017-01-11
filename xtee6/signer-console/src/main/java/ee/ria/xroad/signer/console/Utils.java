@@ -63,7 +63,7 @@ final class Utils {
             System.out.println("TokenInfo:");
 
             token.getTokenInfo().forEach(
-                    (k, v) -> System.out.format("\t%-32s %s\n", k, v));
+                    (k, v) -> System.out.format("\t%-32s %s%n", k, v));
         } else {
             String format = "Token: %s (%s, %s, %s, %s)";
 

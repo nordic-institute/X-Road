@@ -1,21 +1,22 @@
 #!/bin/bash
-
 filename="/var/lib/xroad/conf_backup_`date +%Y%m%d-%H%M%S`_presubsystem.tar"
 instance=`cat /etc/xroad/globalconf/instance-identifier`
 hostname=`hostname -f`
 
-echo -e "Creating backup before removing non-subsystem accessrights related objects.\nBackup can be found: $filename"
-
-su - xroad -c sh << EOS
-/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh  -i "${instance}" -s "${hostname}" -f "${filename}"
-EOS
-
-if [[ $? -ne 0 ]] 
+if [[ "$instance" == "" ]]
 then
-  echo -e "Backup failed\n"
-  exit 1
-fi
+    #Special case, upgrading an unconfigured system. Skip backup.
+    echo -e "No instance identifier found, skipping backup"
+else
+    echo -e "Creating backup before removing non-subsystem accessrights related objects.\nBackup can be found: $filename"
+    su - xroad -c sh -c "/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh -s \"${instance}\" -f \"${filename}\""
 
+    if [[ $? -ne 0 ]] 
+    then
+        echo -e "Backup failed\n"
+    exit 1
+    fi
+fi
 
 echo -e "Cleaning non-subsystem relations\n"
 

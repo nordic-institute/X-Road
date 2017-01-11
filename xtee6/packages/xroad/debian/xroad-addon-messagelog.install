@@ -12,5 +12,5 @@ addon/proxy/messagelog/ usr/share/xroad/db/
 ../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 
 ../../asicverifier/build/libs/asicverifier-1.0.jar usr/share/xroad/jlib/
-../../securityserver-LICENSE.txt usr/share/doc/xroad-addon-messagelog/
+../../LICENSE.txt usr/share/doc/xroad-addon-messagelog/
 ../../securityserver-LICENSE.info usr/share/doc/xroad-addon-messagelog/
