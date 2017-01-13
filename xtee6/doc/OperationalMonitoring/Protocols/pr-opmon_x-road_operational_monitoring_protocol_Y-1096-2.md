@@ -2,7 +2,7 @@
 
 Technical Specification
 
-Version: 0.1
+Version: 0.2
 
 Document ID: PR-OPMON
 
@@ -28,19 +28,23 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ### 1.1 References
 
-<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: PR-MESS.  
+<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol_v4.0_4.0.17.md).  
 <a name="WSDL"></a>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
 <a name="SWAREF"></a>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
 <a name="RFC1952"></a>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
 <a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt
 
 # 2 Retrieving Operational Data of Security Server
+
 Security server clients can retrieve operational data of the specified time period of the security server. Method is invoked as regular X-Road service.
 
 The *service* SOAP header MUST contain the identifier of the target service provider (owner of the security server) and the value of the *serviceCode* element MUST be *"getSecurityServerOperationalData"*. Additionally *securityServer* SOAP header SHOULD be used to identify the security server that is the target of the request. This is needed to uniquely determine the target security server in a clustered security server configuration. The SOAP header *securityServer* MUST be used in case the sender of the request is the owner of target security server. This header is used to perform correct authentication of the sender.  
 
 The body of the request MUST contain an XML element *getSecurityServerOperationalData* which contains the following XML elements.
-* *searchCriteria* (mandatory) -- Determines the search criteria of the requested monitoring data records. This element MUST contain timestamp (Unix timestamp seconds) fields *recordsFrom* and *recordsTo* to determine the beginning and the end (inclusively) of the time period, and MAY contain the field *client* to determine a client identifier of the service provider of the monitoring data records.
+* *searchCriteria* (mandatory) -- Determines the search criteria of the requested monitoring data records. This element contains the following XML elements.
+ * *recordsFrom* (mandatory) -- Unix timestamp in seconds to determine the beginning of the time period of the monitoring data records. The beginning timestamp MUST be less than the system value of *current time - configured offset seconds* (all of the operational data before that system timestamp SHOULD be committed. By default 60 seconds are used for the offset).
+ * *recordsTo* (mandatory) -- Unix timestamp in seconds to determine the end (inclusively) of the time period of the monitoring data records. If the end timestamp is bigger or equal to the system value of *current time - configured offset seconds* then *recordsTo* value is shifted to the value of *current time - configured offset seconds - 1* (it is allowed to subtract a bigger time buffer to ensure that all the operational data of the specified time period are committed. By default 60 seconds are used for the offset).  
+ * *client* (optional) -- Determines the client identifier of the service provider in the monitoring data records.  
 * *outputSpec* (optional) -- A sequence of optional *outputField* elements that determines the set of the requested operational data record fields in the response payload. If omitted or empty sequence, all record fields MUST be included into the response payload. The possible output field values are the following:
 
  * *monitoringDataTs*
@@ -111,7 +115,7 @@ The response MUST be MIME multipart message with attachment using swaRef [[SWARE
 1. X-Road SOAP response message. The message MUST contain the regular X-Road headers and the body MUST contain the following elements.
  * *recordsCount* (mandatory) -- Number of records in the payload.
  * *records* (mandatory) -- The reference (CID URI) to the attachment (MIME part) containing the operational data records.
- * *nextRecordsFrom* (optional) -- This element MUST be included in case operational data records do not fit into the response (size limitation) and/or in case the *recordsFrom* timestamp in the search criteria was actually shifted earlier. The value MUST be the proper (UNIX) timestamp in seconds for the search criteria element *recordsFrom* of the next sequential query.
+ * *nextRecordsFrom* (optional) -- This element MUST be included in case operational data records do not fit into the response (size limitation) and/or in case the *recordsTo* timestamp in the search criteria was actually shifted earlier. The value MUST be the proper Unix timestamp in seconds for the search criteria element *recordsFrom* of the next sequential query.
 
  The content type of this part MUST be *text/xml*.
 

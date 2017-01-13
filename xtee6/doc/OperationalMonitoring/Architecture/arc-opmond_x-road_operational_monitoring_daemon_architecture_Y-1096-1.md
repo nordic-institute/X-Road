@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture
 
-Version: 0.4
+Version: 0.5
 
 Document ID: ARC-OPMOND
 
@@ -29,11 +29,11 @@ TLS -- Transport Layer security
 
 ### 1.3 References
 
-<a name="ARC-G"></a>**ARC-G** -- Cybernetica AS. X-Road Architecture. Document ID: ARC-G.  
-<a name="PR-GCONF"></a>**PR-GCONF** -- Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: PR-GCONF.  
-<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: PR-MESS.  
-<a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: PR-OPMON.  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: PR-OPMONJMX.  
+<a name="ARC-G"></a>**ARC-G** -- Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](../../Architecture/arc-g_x-road_arhitecture_1.4_Y-879-3.docx).  
+<a name="PR-GCONF"></a>**PR-GCONF** -- Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration_2.4_Y-743-15.docx).  
+<a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol_v4.0_4.0.17.md).  
+<a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
 
 ## 2 Component View

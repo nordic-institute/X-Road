@@ -1,5 +1,9 @@
 # Change Log
 
+## 6.9.1 - 2017-01-13
+- Updated documents: ARC-OPMOND, UG-OPMONSYSPAR, UG-SS, PR-OPMON, PR-OPMONJMX, TEST_OPMON, TEST_OPMONSTRAT, UC-OPMON
+- Updated example Zabbix related scripts and configuration files
+
 ## 6.9.0 - 2017-01-06
 
 - PVAYLADEV-505: Fixed a bug in Security Server's UI that was causing the text in the pop-window to be messed with HTML code in some cases when "Remove selected" button was clicked.
