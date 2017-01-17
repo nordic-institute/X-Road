@@ -11,8 +11,8 @@ This document describes the system parameters of the X-Road operational monitori
 
 ### 1.1 References
 
-<a name="UG-SYSPAR"></a>**UG-SYSPAR** -- Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters_2.10_Y-881-1.docx).  
-<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.13_Y-883-32.docx).  
+<a name="UG-SYSPAR"></a>**UG-SYSPAR** -- Cybernetica AS. X-Road: System Parameters. Document ID: [UG-SYSPAR](../../Manuals/ug-syspar_x-road_v6_system_parameters.md).  
+<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx).  
 <a name="CRON"></a>**CRON** -- Quartz Scheduler Cron Trigger Tutorial,  http://www.quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger.html
 
 ## 2 Operational Monitoring System Parameters

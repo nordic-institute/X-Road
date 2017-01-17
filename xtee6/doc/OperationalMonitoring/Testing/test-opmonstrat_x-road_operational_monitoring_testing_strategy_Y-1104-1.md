@@ -33,7 +33,7 @@ CI -- Continuous Integration
 <a name="REC-OPMON"></a>**REC-OPMON** -- Cybernetica AS. X-Road Operational Monitoring: Requirements. Document ID: REC-OPMON. Location: project *XTEE6* repository *docs* directory *Service monitoring/Requirements*.  
 <a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
 <a name="TEST-OPMON"></a>**TEST-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
-<a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide_2.6_Y-883-24.docx).  
+<a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
 
 ## 2 Requirements Relevant to Testing
 
