@@ -1,3 +1,10 @@
+xroad (6.9.1) trusty; urgency=low
+
+  * Updated documents: ARC-OPMOND, UG-OPMONSYSPAR, UG-SS, PR-OPMON, PR-OPMONJMX, TEST_OPMON, TEST_OPMONSTRAT, UC-OPMON
+  * Updated example Zabbix related scripts and configuration files 
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 13 Jan 2017 17:43:07 +0200
+
 xroad (6.9.0-1) trusty; urgency=medium
 
   * PVAYLADEV-505: Fixed a bug in Security Server's UI that was causing the text in the pop-window to be messed with HTML code in some cases when "Remove selected" button was clicked.

@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Testing Strategy
 
-Version: 0.4
+Version: 0.5
 
 Document ID: TEST-OPMONSTRAT
 
@@ -25,20 +25,20 @@ CI -- Continuous Integration
 
 ### 1.3 References
 
-<a name="HD_1">HD_1</a> -- Hanke lisa 1: X-tee monitooringu tehniline kirjeldus  
-<a name="HD_2">HD_2</a> -- Hanke lisa 2: Mittefunktsionaalsed nõuded  
-<a name="HD_4">HD_4</a> -- Hanke lisa 4: testimise korraldus  
-<a name="ARC-OPMON">ARC-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture  
-<a name="PP">PP</a> -- Cybernetica AS. Tööde kirjeldus koos ajakavaga  
-<a name="REC-OPMON">REC-OPMON</a> -- Cybernetica AS. X-Road Operational Monitoring: Requirements  
-<a name="UC-OPMON">UC-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model  
-<a name="TEST-OPMON">TEST-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan  
-<a name="IG-SS">IG-SS</a> -- Cybernetica AS. X-Road: Security Server Installation Guide
+<a name="HD_1"></a>**HD_1** -- Hanke Lisa 1: X-tee monitooringu tehniline kirjeldus, https://riigihanked.riik.ee/register/hange/173409  
+<a name="HD_2"></a>**HD_2** -- Hanke Lisa 2: Mittefunktsionaalsed nõuded, https://riigihanked.riik.ee/register/hange/173409  
+<a name="HD_4"></a>**HD_4** -- Hanke Lisa 4: Testimise korraldus, https://riigihanked.riik.ee/register/hange/173409  
+<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
+<a name="PP"></a>**PP** -- Cybernetica AS. Tööde kirjeldus koos ajakavaga, https://riigihanked.riik.ee/register/hange/173409  
+<a name="REC-OPMON"></a>**REC-OPMON** -- Cybernetica AS. X-Road Operational Monitoring: Requirements. Document ID: REC-OPMON. Location: project *XTEE6* repository *docs* directory *Service monitoring/Requirements*.  
+<a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
+<a name="TEST-OPMON"></a>**TEST-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
+<a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
 
 ## 2 Requirements Relevant to Testing
 
 The functional requirements of the monitoring system are described in [[REC-OPMON]](#REC-OPMON).  
-The architecture of the system is described in [[ARC-OPMON]](#ARC-OPMON).  
+The architecture of the system is described in [[ARC-OPMOND]](#ARC-OPMOND).  
 The items of data that are collected and forwarded by the monitoring system, are defined in [[HD_1]](#HD_1).  
 The required paths of data exchange are defined in [[HD_1]](#HD_1).  
 The requirements of access control are defined in [[HD_1]](#HD_1).  
@@ -151,11 +151,11 @@ The X-Road configuration of the testing system at RIA (the instance XTEE-CI-XM) 
 
 The following X-Road members and member classes are required in the configuration.
 
-| Member Code | Member Class | Member Name |
-|---|---|---|
-| 00000000 | GOV | X-Road Center |
-| 00000001 | GOV | Test member 1 |
-| 00000002 | COM | Test member 2 |
+| Member Code | Member Class | Member Name   |
+|-------------|--------------|---------------|
+| 00000000    | GOV          | X-Road Center |
+| 00000001    | GOV          | Test member 1 |
+| 00000002    | COM          | Test member 2 |
 
 The management service provider must be `SUBSYSTEM:XTEE-CI-XM/GOV/00000000/Center`.
 
@@ -178,42 +178,42 @@ In the central server, the central monitoring client must be configured with the
 
 The following security servers are required in the configuration.
 
-| Server Code | Owner Code | Owner Class | Hostname |
-|---|---|---|---|---|
-| 00000000_1 | 00000000 | GOV | xtee8.ci.kit |
-| 00000001_1 | 00000001 | GOV | xtee9.ci.kit |
-| 00000002_1 | 00000002 | COM | xtee10.ci.kit |
+| Server Code | Owner Code | Owner Class | Hostname      |
+|-------------|------------|-------------|---------------|
+| 00000000_1  | 00000000   | GOV         | xtee8.ci.kit  |
+| 00000001_1  | 00000001   | GOV         | xtee9.ci.kit  |
+| 00000002_1  | 00000002   | COM         | xtee10.ci.kit |
 
 The following subsystems and service access rights are required in the configuration, grouped by security servers.
 
 **xtee8.ci.kit**
 
-| Subsystem ID | Services | Access Rights |
-|---|---|---|  
+| Subsystem ID                              | Services          | Access Rights |
+|-------------------------------------------|-------------------|---------------|
 | SUBSYSTEM:XTEE-CI-XM:COM:00000002:System2 | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
-|                                           | bodyMassIndex.v1  |-|
-| SUBSYSTEM:XTEE-CI-XM:GOV:00000000:Center | bodyMassIndex.v1  | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
-|                                          | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
-|                                          | clientDeletion<br>clientReg<br>authCertDeletion | GLOBALGROUP:XTEE-CI-XM:security-server-owners |
-       
+|                                           | bodyMassIndex.v1  | -             |
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000000:Center  | bodyMassIndex.v1  | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | clientDeletion<br>clientReg<br>authCertDeletion | GLOBALGROUP:XTEE-CI-XM:security-server-owners |
+
 **xtee9.ci.kit**
 
-| Subsystem ID | Services | Access Rights |
-|---|---|---|  
-| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 | exampleService.v1       | - |
-|                                           | exampleServiceMtom.v1   | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
-|                                           | exampleServiceSwaRef.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1
-| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:Central monitoring client | - | - |
+| Subsystem ID                              | Services          | Access Rights |
+|-------------------------------------------|-------------------|---------------|  
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 | exampleService.v1 | -             |
+|                                           | exampleServiceMtom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | exampleServiceSwaRef.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+| SUBSYSTEM:XTEE-CI-XM:GOV:00000001:Central monitoring client | - | -           |
 
 **xtee10.ci.kit**
 
-| Subsystem ID | Services | Access Rights |
-|---|---|---|  
-| SUBSYSTEM:XTEE-CI-XM:COM:00000002:System2 | exampleService.v1       | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 | 
-|                                           | exampleServiceMtom.v1   |	SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+| Subsystem ID                              | Services          | Access Rights |
+|-------------------------------------------|-------------------|---------------|  
+| SUBSYSTEM:XTEE-CI-XM:COM:00000002:System2 | exampleService.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | exampleServiceMtom.v1 |	SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
 |                                           | exampleServiceSwaRef.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
-|                                           | bodyMassIndex.v1        | - |
-|                                           | xroadGetRandom.v1       | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
+|                                           | bodyMassIndex.v1  | -             |
+|                                           | xroadGetRandom.v1 | SUBSYSTEM:XTEE-CI-XM:GOV:00000001:System1 |
 
 ## 8.3 The Results of the Tests
 The results of automatic integration tests and load tests will be browsable in the Continuous Integration system (Jenkins) at RIA after each run, once these have been implemented and the CI system has been configured.

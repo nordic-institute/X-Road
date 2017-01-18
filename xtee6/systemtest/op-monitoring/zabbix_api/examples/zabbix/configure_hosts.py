@@ -101,7 +101,7 @@ def _format_create_application_request(service, host_id, auth_key):
                 "hostid": host_id,
             },
             "auth": auth_key,
-            "id": random.randint(1,100),
+            "id": random.randint(1, 100),
         }
     )
 
@@ -117,7 +117,7 @@ def _format_get_application_request(service, host_id, auth_key):
                 },
             },
             "auth": auth_key,
-            "id": random.randint(1,100),
+            "id": random.randint(1, 100),
         }
     )
 
@@ -134,7 +134,7 @@ def _format_get_jmx_interface_request(host_id, auth_key):
                 }
              },
             "auth": auth_key,
-            "id": random.randint(1,100),
+            "id": random.randint(1, 100),
         }
     )
 
@@ -160,15 +160,15 @@ def _format_create_item_request(
                 "password": jmx_password,
                 },
             "auth": auth_key,
-            "id": random.randint(1,100),
+            "id": random.randint(1, 100),
         }
     )
 
-def _post_json_rpc_request(host_address, data):
+def _post_json_rpc_request(zabbix_api_url, data):
     response = requests.post(
-            "http://" + host_address + "/zabbix/api_jsonrpc.php",
-            headers={"Content-type": "application/json"},
-            data=data)
+            zabbix_api_url, headers={"Content-type": "application/json"}, data=data,
+            # Support self-signed certificates in Zabbix instances
+            verify=False)
     response_json = json.loads(response.text)
 
     if response_json.get("error"):
@@ -186,15 +186,15 @@ try:
     with open(HOST_DATA_FILE, "r") as host_data_file:
         monitored_hosts = json.loads(host_data_file.read())
 except Exception as e:
-    print "Failed to read the host data file '%s': %s" % (HOST_DATA_FILE, e,)
+    print "Failed to read the host data file '%s': %s" % (HOST_DATA_FILE, e, )
     print "Please copy '%s' and edit it to your needs" % (HOST_DATA_SAMPLE_FILE, )
     sys.exit(1)
 
 for host in monitored_hosts:
     # First get the ID of the JMX interface.
-    data = _format_get_jmx_interface_request(
+    _data = _format_get_jmx_interface_request(
             host.get("zabbix_host_id"), host.get("zabbix_auth_key"))
-    result = _post_json_rpc_request(host.get("target_zabbix_address"), data)
+    result = _post_json_rpc_request(host.get("target_zabbix_api_url"), _data)
 
     if result.get("error"):
         print "Failed to query the JMX interface for host '%s'" % (
@@ -213,47 +213,47 @@ for host in monitored_hosts:
 
     # Create the items that are not specific to a service.
     for item in HEALTH_DATA_ITEMS_PER_HOST:
-        item_name = item[1]
-        item_key = JMX_HOST_WIDE_ITEM_KEY_TEMPLATE % (item[0], item[2],)
-        value_type = item[3]
-        data = _format_create_item_request(
-                item_name, item_key, host.get("zabbix_host_id"),
-                [""], value_type, jmx_interface_id,
+        _item_name = item[1]
+        _item_key = JMX_HOST_WIDE_ITEM_KEY_TEMPLATE % (item[0], item[2],)
+        _value_type = item[3]
+        _data = _format_create_item_request(
+                _item_name, _item_key, host.get("zabbix_host_id"),
+                [], _value_type, jmx_interface_id,
                 host.get("zabbix_auth_key"),
                 host.get("jmx_username"), host.get("jmx_password"))
-        result = _post_json_rpc_request(host.get("target_zabbix_address"), data)
+        result = _post_json_rpc_request(host.get("target_zabbix_api_url"), _data)
 
     # Create the configured applications and service-specific items.
-    for service in host.get("services"):
+    for _service in host.get("services"):
         target_application_id = None
 
-        print"Trying to add an application for service '%s'" % (service, )
+        print"Trying to add an application for service '%s'" % (_service, )
         # Application names must be unique within a host only, so we can safely add
         # applications named by the same service to several hosts.
-        data = _format_create_application_request(
-                service, host.get("zabbix_host_id"), host.get("zabbix_auth_key"))
-        result = _post_json_rpc_request(host.get("target_zabbix_address"), data)
+        _data = _format_create_application_request(
+                _service, host.get("zabbix_host_id"), host.get("zabbix_auth_key"))
+        result = _post_json_rpc_request(host.get("target_zabbix_api_url"), _data)
 
         if result.get("error", {}).get("code") == ZABBIX_API_ERROR_INVALID_PARAMS:
             # Check if the application has been created already.
-            data = _format_get_application_request(
-                    service, host.get("zabbix_host_id"), host.get("zabbix_auth_key"))
-            result = _post_json_rpc_request(host.get("target_zabbix_address"), data)
+            _data = _format_get_application_request(
+                    _service, host.get("zabbix_host_id"), host.get("zabbix_auth_key"))
+            result = _post_json_rpc_request(host.get("target_zabbix_api_url"), _data)
             target_application_id = result.get("result")[0].get("applicationid")
         else:
             target_application_id = result.get("result").get("applicationids")[0]
 
         if target_application_id is None:
-            print "Failed to get the application ID for service '%s'" % (service_id, )
+            print "Failed to get the application ID for service '%s'" % (_service, )
             sys.exit(1)
 
         for item in HEALTH_DATA_ITEMS_PER_SERVICE:
-            item_name = item[1]
-            item_key = JMX_SERVICE_ITEM_KEY_TEMPLATE % (item[0], service, item[2],)
-            value_type = item[3]
-            data = _format_create_item_request(
-                    item_name, item_key, host.get("zabbix_host_id"),
-                    [target_application_id], value_type, jmx_interface_id,
+            _item_name = item[1]
+            _item_key = JMX_SERVICE_ITEM_KEY_TEMPLATE % (item[0], _service, item[2],)
+            _value_type = item[3]
+            _data = _format_create_item_request(
+                    _item_name, _item_key, host.get("zabbix_host_id"),
+                    [target_application_id], _value_type, jmx_interface_id,
                     host.get("zabbix_auth_key"),
                     host.get("jmx_username"), host.get("jmx_password"))
-            result = _post_json_rpc_request(host.get("target_zabbix_address"), data)
+            result = _post_json_rpc_request(host.get("target_zabbix_api_url"), _data)
