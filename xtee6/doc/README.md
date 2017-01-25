@@ -19,7 +19,7 @@ Index of X-Road Documentation
 
 ### Manuals
 
-- [Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide_2.12_Y-883-32.docx)
+- [Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx)
 - [Central Server User Guide](Manuals/ug-cs_x-road_6_central_server_user_guide.md)
 - [Signer Console Users Guide](Manuals/ug-sc_x-road_signer-console_users_guide_2.5_Y-883-20.docx)
 - [Security Server Installation Guide](Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
@@ -46,7 +46,7 @@ Index of X-Road Documentation
 
 - [Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration._data_model_1.2_Y-883-12.docx)
 - [Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration._data_model_1.3_Y-883-10.docx)
-- [Message Log](DataModels/dm-ml_x-road_message_log._data_model_1.2_Y-878-8.docx)
+- [Message Log](DataModels/dm-ml_x-road_message_log_data_model.md)
 
 ### Monitoring
 - [Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)

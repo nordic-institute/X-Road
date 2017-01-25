@@ -5,7 +5,8 @@ sudo apt-get install -y curl software-properties-common
 sudo apt-add-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 
-sudo apt-get install -y openjdk-8-jdk build-essential git unzip debhelper
+sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper
+sudo update-ca-certificates -f
 
 cd ~
 

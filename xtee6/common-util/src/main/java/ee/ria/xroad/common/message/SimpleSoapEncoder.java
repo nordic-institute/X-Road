@@ -22,26 +22,47 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.Closeable;
+import ee.ria.xroad.common.util.MimeUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 /**
- * Interface for encoding SOAP with attachments.
+ * Simple SOAP encoder that does not support attachments or additional headers.
  */
-public interface SoapMessageEncoder extends SoapMessageConsumer, Closeable {
+public class SimpleSoapEncoder implements SoapMessageEncoder {
 
-    String getContentType();
+    private final OutputStream outputStream;
 
-    @Override
-    void close() throws IOException;
 
-    @Override
-    void soap(SoapMessage soapMessage,
-              Map<String, String> additionalHeaders) throws Exception;
+    public SimpleSoapEncoder(OutputStream outputStream) {
+        this.outputStream = outputStream;
+    }
 
     @Override
-    void attachment(String contentType, InputStream content,
-                    Map<String, String> additionalHeaders) throws Exception;
+    public String getContentType() {
+        return MimeUtils.TEXT_XML_UTF8;
+    }
+
+    @Override
+    public void close() throws IOException {
+        outputStream.close();
+    }
+
+    @Override
+    public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
+        if (additionalHeaders != null && additionalHeaders.size() > 0) {
+            throw new IllegalArgumentException("Additional headers not supported!");
+        }
+        outputStream.write(message.getBytes());
+    }
+
+    @Override
+    public void attachment(String contentType, InputStream content,
+                           Map<String, String> additionalHeaders) throws Exception {
+        throw new UnsupportedOperationException("Attachments are not supported!");
+    }
+
 }
