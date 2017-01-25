@@ -28,11 +28,7 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
@@ -55,10 +51,7 @@ import org.w3c.dom.Node;
 import javax.xml.bind.*;
 import javax.xml.soap.SOAPMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -119,7 +112,13 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     public void startHandling(HttpServletRequest servletRequest,
             ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
             OpMonitoringData opMonitoringData) throws Exception {
-        responseEncoder = new SoapMessageEncoder(responseOut);
+
+        final String serviceCode = requestMessage.getService().getServiceCode();
+
+        // Only get wsdl needs to be a multipart message
+        responseEncoder = GET_WSDL.equals(serviceCode)
+                ? new MultipartSoapMessageEncoder(responseOut)
+                : new SimpleSoapEncoder(responseOut);
 
         // It's required that in case of metadata service (where SOAP message is
         // not forwarded) the requestOutTs must be equal with the requestInTs
@@ -127,7 +126,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         opMonitoringData.setRequestOutTs(opMonitoringData.getRequestInTs());
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
 
-        switch (requestMessage.getService().getServiceCode()) {
+
+        switch (serviceCode) {
             case LIST_METHODS:
                 handleListMethods(requestMessage);
                 return;

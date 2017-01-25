@@ -56,6 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 public final class OcspClient {
 
     private static final int CONNECT_TIMEOUT_MS = 20000;
+    private static final int READ_TIMEOUT_MS = 60000;
 
     private OcspClient() {
     }
@@ -177,6 +178,7 @@ public final class OcspClient {
         connection.setRequestProperty("Accept", MimeTypes.OCSP_RESPONSE);
         connection.setDoOutput(true);
         connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
         connection.connect();
         return connection;
     }

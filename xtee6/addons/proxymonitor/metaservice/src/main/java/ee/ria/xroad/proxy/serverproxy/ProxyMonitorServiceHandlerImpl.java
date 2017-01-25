@@ -28,9 +28,7 @@ import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -112,7 +110,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
 
         //mock implementation
-        responseEncoder = new SoapMessageEncoder(responseOut);
+        responseEncoder = new SimpleSoapEncoder(responseOut);
         final MonitorClient client = MonitorClientHolder.INSTANCE;
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();

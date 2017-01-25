@@ -1,5 +1,14 @@
 # Change Log
 
+## 6.9.2 - 2017-01-23
+- PVAYLADEV-662: Fixed proxy memory parameters
+- PVAYLADEV-662: Altered OCSP fetch interval default value from 3600 to 1200 seconds
+- PVAYLADEV-662: Converted DM-ML document to markdown format
+- PVAYLADEV-662: Fixed bug in handling HW token's PIN code
+- PVAYLADEV-662: Fixed bug in prepare_buildhost.sh script that caused build to fail on a clean machine
+- PVAYLADEV-656: Added a reading timeout of 60 seconds for OcspClient connections
+- PVAYLADEV-666: Fixed bug that caused metaservices and environmental monitoring replies to be returned in multipart format
+
 ## 6.9.1 - 2017-01-13
 - Updated documents: ARC-OPMOND, UG-OPMONSYSPAR, UG-SS, PR-OPMON, PR-OPMONJMX, TEST_OPMON, TEST_OPMONSTRAT, UC-OPMON
 - Updated example Zabbix related scripts and configuration files
