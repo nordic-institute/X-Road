@@ -1,8 +1,45 @@
 # X-Road: Operational Monitoring Daemon Architecture
 
-Version: 0.5
-
+Version: 0.6
 Document ID: ARC-OPMOND
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.5       | Initial version               |          |
+| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Overview](#11-overview)
+  * [1.2 Terms and Abbrevations](#12-terms-and-abbrevations)
+  * [1.3 References](#13-references)
+- [2 Component View](#2-component-view)
+  * [2.1 Operational Monitoring Daemon Main](#21-operational-monitoring-daemon-main)
+    + [2.1.1 Operational Monitoring Database](#211-operational-monitoring-database)
+    + [2.1.2 Operational Monitoring Service](#212-operational-monitoring-service)
+  * [2.2 Configuration Client](#22-configuration-client)
+- [3 Protocols and Interfaces](#3-protocols-and-interfaces)
+  * [3.1 Store Operational Monitoring Data](#31-store-operational-monitoring-data)
+  * [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
+  * [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
+  * [3.4 Download Configuration](#34-download-configuration)
+- [4 Technology Matrix](#4-technology-matrix)
+- [5 Deployment View](#5-deployment-view)
+- [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
+  * [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
+  * [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
+  * [A.3 JSON-Schema for Store Operational Monitoring Data Response](#a3-json-schema-for-store-operational-monitoring-data-response)
+  * [A.4 Example Store Operational Monitoring Data Responses](#a4-example-store-operational-monitoring-data-responses)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 ## 1 Introduction
 

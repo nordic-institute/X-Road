@@ -1,8 +1,45 @@
 # X-Road: Operational Monitoring Testing Strategy
 
-Version: 0.5
-
+Version: 0.6
 Document ID: TEST-OPMONSTRAT
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.5       | Initial version               |          |
+| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+- [2 Requirements Relevant to Testing](#2-requirements-relevant-to-testing)
+- [3 Testability of the System](#3-testability-of-the-system)
+- [4. Types of Testing Used](#4-types-of-testing-used)
+  * [4.1 Integration Testing](#41-integration-testing)
+  * [4.2 Load Requirements and the Scope of Load Tests](#42-load-requirements-and-the-scope-of-load-tests)
+    + [4.2.1 Initial Requirements](#421-initial-requirements)
+    + [4.2.2 Load Testing in the Context of the Implementation](#422-load-testing-in-the-context-of-the-implementation)
+  * [4.3 Unit Testing](#43-unit-testing)
+- [5 The Team and the Workflow](#5-the-team-and-the-workflow)
+- [6 Tools, Languages and Libraries](#6-tools-languages-and-libraries)
+- [7 Management and Source Control of Automated Tests](#7-management-and-source-control-of-automated-tests)
+- [8 Setup and Management of the Testing Environment. Continuous Integration](#8-setup-and-management-of-the-testing-environment-continuous-integration)
+- [8.1 The Servers Used for Automated Testing](#81-the-servers-used-for-automated-testing)
+- [8.2 The X-Road Configuration Used for Automated Testing](#82-the-x-road-configuration-used-for-automated-testing)
+  * [8.2.1 X-Road Members](#821-x-road-members)
+  * [8.2.2 Security Servers, Clients and Services](#822-security-servers-clients-and-services)
+- [8.3 The Results of the Tests](#83-the-results-of-the-tests)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 ## 1 Introduction
 

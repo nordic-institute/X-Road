@@ -1,3 +1,9 @@
+xroad (6.10.0-1) trusty; urgency=medium
+
+  * TBD
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 12 Jan 2017 16:37:12 +0300
+
 xroad (6.9.2) trusty; urgency=low
 
 * PVAYLADEV-662: Fixed proxy memory parameters
@@ -13,7 +19,7 @@ xroad (6.9.2) trusty; urgency=low
 xroad (6.9.1) trusty; urgency=low
 
   * Updated documents: ARC-OPMOND, UG-OPMONSYSPAR, UG-SS, PR-OPMON, PR-OPMONJMX, TEST_OPMON, TEST_OPMONSTRAT, UC-OPMON
-  * Updated example Zabbix related scripts and configuration files 
+  * Updated example Zabbix related scripts and configuration files
 
  -- Cybernetica AS <xroad-support@cyber.ee>  Fri, 13 Jan 2017 17:43:07 +0200
 
@@ -46,7 +52,7 @@ xroad (6.9.0-1) trusty; urgency=medium
 
 xroad (6.8.11) trusty; urgency=low
 
-  * Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR 
+  * Added documents: PR-OPMON, PR-OPMONJMX, ARC-OPMOND, UG-OPMONSYSPAR
   * Updated documents: ARC-G, ARC-SS, UC-OPMON, UG-SS, TEST_OPMON, TEST_OPMONSTRAT
 
  -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 20 Dec 2016 00:40:15 +0200
@@ -370,4 +376,3 @@ xroad (6.0-2) trusty; urgency=low
   * package for 14.04
 
  -- Tarmo Oja <tarmo.oja@cyber.ee>  Wed, 25 June 2014 14:58:20 +0200
-

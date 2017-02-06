@@ -1,98 +1,129 @@
+# X-Road: Central Server User Guide
+
+Version: 2.4 
+Doc. ID: UG-CS
 
 
-|                           |
-|---------------------------|
-| X-Road: Central Server    |
-| User Guide                |
-|							              |
-| Doc. ID: UG-CS            |
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------||
+| Date       | Version | Description ||
+| 28.08.2014 | 0.1     | Initial version ||
+| 28.09.2014 | 0.2     | Translation to English  ||
+| 09.10.2014 | 0.3     | Minor updates and corrections. Security Categories removed. ||
+| 09.10.2014 | 0.4     | Add service CA OCSP responder changed to Add top CA OCSP responder ||
+| 14.10.2014 | 0.5     | Title page, header, footer modified ||
+| 28.11.2014 | 0.6     | Logback information added (Chapter 17). Introduction added (Chapter 1). Security Officer user role added (Section 2.1). System Settings added (Chapter 4). Configuration Management added (Chapter 5). Database Management Chapter deleted. ||
+| 1.12.2014  | 1.0     | Minor corrections  ||
+| 23.01.2015 | 1.1     | License information. Certification services management and time stamping services management chapters updated (Chapters 11 and 12). ||
+| 30.04.2015 | 1.2     | “sdsb” changed to “xroad” ||
+| 30.06.2015 | 1.3     | Minor corrections done ||
+| 3.07.2015  | 1.4     | Audit Log chapter added (Chapter 14) ||
+| 31.08.2015 | 1.5     | Information about high availability added (Chapter 3) ||
+| 15.09.2015 | 1.6     | Reference to the audit log events added         ||
+| 17.09.2015 | 1.7     | Corrections related to high availability added ||
+| 18.09.2015 | 1.8     | Minor corrections done ||
+| 21.09.2015 | 1.9     | References fixed ||
+| 22.10.2015 | 1.10    | Corrections in Chapter 17 ||
+| 04.11.2015 | 1.11    | Updates related to backup and restore (Chapter 13) ||
+| 30.11.2015 | 2.0     | Management service provider configuration updated (Section 4.2); management requests system updated (Chapter 6); key label added to configuration signing key generation (Section 5.4.1); section about adding a subsystem to an X-Road member added (Section 7.3); only subsystems can be registered as security server clients or be members of global groups; certification service settings updated (11.1). Editorial changes made. ||
+| 17.12.2015 | 2.1     | Added user instructions for monitoring. ||
+| 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
+| 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
+| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+
+## Table of Contents
+<!-- toc -->
+
+  * [License](#license)
+- [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 References](#12-references)
+- [2. User Management](#2-user-management)
+  * [2.1 User Roles](#21-user-roles)
+  * [2.2 Managing the Users](#22-managing-the-users)
+- [3. Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
+  * [3.1 Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
+  * [3.2 Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
+- [4. System Settings](#4-system-settings)
+  * [4.1 Managing the Member Classes](#41-managing-the-member-classes)
+  * [4.2 Configuring the Management Service Provider](#42-configuring-the-management-service-provider)
+    + [4.2.1 Appointing the Management Service Provider](#421-appointing-the-management-service-provider)
+    + [4.2.2 Registering the Management Service Provider as a Security Server Client](#422-registering-the-management-service-provider-as-a-security-server-client)
+    + [4.2.3 Configuring the Management Services in the Management Services’ Security Server](#423-configuring-the-management-services-in-the-management-services-security-server)
+  * [4.3 Configuring the Central Server Address](#43-configuring-the-central-server-address)
+    + [4.3.1 Notes on HA Setup](#431-notes-on-ha-setup)
+    + [4.3.2 Changing the Central Server Address](#432-changing-the-central-server-address)
+- [5. Configuration Management](#5-configuration-management)
+  * [5.1 Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
+  * [5.2 Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
+  * [5.3 Re-Creating the Configuration Anchor](#53-re-creating-the-configuration-anchor)
+  * [5.4 Changing the Configuration Signing Keys](#54-changing-the-configuration-signing-keys)
+    + [5.4.1 Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key)
+    + [5.4.2 Activating a Configuration Signing Key](#542-activating-a-configuration-signing-key)
+    + [5.4.3 Deleting a Configuration Signing Key](#543-deleting-a-configuration-signing-key)
+  * [5.5 Viewing the Contents of a Configuration Part](#55-viewing-the-contents-of-a-configuration-part)
+  * [5.6 Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
+  * [5.7 Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
+  * [5.8 Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
+- [6. The Management Requests System](#6-the-management-requests-system)
+  * [6.1 Registration Requests](#61-registration-requests)
+    + [6.1.1 State Machine Model for Registration Requests](#611-state-machine-model-for-registration-requests)
+  * [6.2 Deletion Requests](#62-deletion-requests)
+  * [6.3 Viewing the Management Request Details](#63-viewing-the-management-request-details)
+- [7 Managing the X-Road Members](#7-managing-the-x-road-members)
+  * [7.1 Adding a Member](#71-adding-a-member)
+  * [7.2 Viewing the Member Details](#72-viewing-the-member-details)
+  * [7.3 Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
+  * [7.4 Registering a Member's Security Server](#74-registering-a-members-security-server)
+  * [7.5 Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
+  * [7.6 Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
+  * [7.7 Changing the Global Group Membership of an X-Road Member’s Subsystem](#77-changing-the-global-group-membership-of-an-x-road-members-subsystem)
+  * [7.8 Deleting a Subsystem](#78-deleting-a-subsystem)
+  * [7.9 Deleting an X-Road Member](#79-deleting-an-x-road-member)
+- [8. Managing the Security Servers](#8-managing-the-security-servers)
+  * [8.1 Viewing the Security Server Details](#81-viewing-the-security-server-details)
+  * [8.2 Changing the Security Server Address](#82-changing-the-security-server-address)
+  * [8.3 Registering a Security Server's Authentication Certificate](#83-registering-a-security-servers-authentication-certificate)
+  * [8.4 Deleting a Security Server's Authentication Certificate](#84-deleting-a-security-servers-authentication-certificate)
+  * [8.5 Deleting a Security Server](#85-deleting-a-security-server)
+- [9. Managing the Central Services](#9-managing-the-central-services)
+  * [9.1 Adding a Central Service](#91-adding-a-central-service)
+  * [9.2 Changing the Service implementing a Central Service](#92-changing-the-service-implementing-a-central-service)
+  * [9.3 Deleting a Central Service](#93-deleting-a-central-service)
+- [10. Managing the Global Groups](#10-managing-the-global-groups)
+  * [10.1 Adding a Global Group](#101-adding-a-global-group)
+  * [10.2 Viewing the Global Group Details](#102-viewing-the-global-group-details)
+  * [10.3 Changing the Description of a Global Group](#103-changing-the-description-of-a-global-group)
+  * [10.4 Changing the Members of a Global Group](#104-changing-the-members-of-a-global-group)
+  * [10.5 Deleting a Global Group](#105-deleting-a-global-group)
+- [11. Managing the Approved Certification Services](#11-managing-the-approved-certification-services)
+  * [11.1 Adding an Approved Certification Service](#111-adding-an-approved-certification-service)
+  * [11.2 Changing an Approved Certification Service](#112-changing-an-approved-certification-service)
+  * [11.3 Deleting an Approved Certification Service](#113-deleting-an-approved-certification-service)
+- [12. Managing the Approved Timestamping Services](#12-managing-the-approved-timestamping-services)
+  * [12.1 Adding an Approved Timestamping Service](#121-adding-an-approved-timestamping-service)
+  * [12.2 Changing the URL of an Approved Timestamping Service](#122-changing-the-url-of-an-approved-timestamping-service)
+  * [12.3 Deleting an Approved Timestamping Service](#123-deleting-an-approved-timestamping-service)
+- [13. Configuration Backup and Restore](#13-configuration-backup-and-restore)
+  * [13.1 Backing Up the System Configuration](#131-backing-up-the-system-configuration)
+  * [13.2 Restoring the System Configuration in the User Interface](#132-restoring-the-system-configuration-in-the-user-interface)
+  * [13.3 Restoring the Configuration from the Command Line](#133-restoring-the-configuration-from-the-command-line)
+  * [13.4 Downloading, Uploading and Deleting Configuration Backup Files](#134-downloading-uploading-and-deleting-configuration-backup-files)
+- [14. Audit Log](#14-audit-log)
+  * [14.1 Changing the Configuration of the Audit Log](#141-changing-the-configuration-of-the-audit-log)
+  * [14.2 Archiving the Audit Log](#142-archiving-the-audit-log)
+- [15. Monitoring](#15-monitoring)
+- [16. Additional configuration options](#16-additional-configuration-options)
+  * [16.1 Verify next update](#161-verify-next-update)
+  * [16.2 OCSP fetch interval](#162-ocsp-fetch-interval)
+- [17. Logs and System Services](#17-logs-and-system-services)
+
+<!-- tocstop -->
 
 
+## License
 
-##Table of Contents
-
-- [Introduction](#1-introduction)
-  - [Target Audience](#11-target-audience)
-  - [References](#12-references)
-- [User Management](#2-user-management)
-  - [User Roles](#21-user-roles)
-  - [Managing the Users](#22-managing-the-users)
-- [Standalone and High-Availability Systems](#3-standalone-and-high-availability-systems)
-  - [Detecting the Type of Deployment in the User Interface](#31-detecting-the-type-of-deployment-in-the-user-interface)
-  - [Checking the Status of the Nodes of the Cluster](#32-checking-the-status-of-the-nodes-of-the-cluster)
-- [System Settings](#4-system-settings)
-  - [Managing the Member Classes](#41-managing-the-member-classes)
-  - [Configuring the Management Service Provider](#42-configuring-the-management-service-provider)
-    - [Appointing the Management Service Provider](#421-appointing-the-management-service-provider)
-    - [Registering the Management Service Provider as a Security Server Client](#422-registering-the-management-service-provider-as-a-security-server-client)
-    - [Configuring the Management Services in the Management Services’ Security Server](#423-configuring-the-management-services-in-the-management-services-security-server)
-  - [Configuring the Central Server Address](#43-configuring-the-central-server-address)
-    - [Notes on HA Setup](#431-notes-on-ha-setup)
-    - [Changing the Central Server Address](#432-changing-the-central-server-address)
-- [Configuration Management](#5-configuration-management)
-  - [Viewing the Configuration Settings](#51-viewing-the-configuration-settings)
-  - [Downloading the Configuration Anchor](#52-downloading-the-configuration-anchor)
-  - [Re-Creating the Configuration Anchor](#53-re-creating-the-configuration-anchor)
-  - [Changing the Configuration Signing Keys](#54-changing-the-configuration-signing-keys)
-    - [Generating a Configuration Signing Key](#541-generating-a-configuration-signing-key)
-    - [Activating a Configuration Signing Key](#542-activating-a-configuration-signing-key)
-    - [Deleting a Configuration Signing Key](#543-deleting-a-configuration-signing-key)
-  - [Viewing the Contents of a Configuration Part](#55-viewing-the-contents-of-a-configuration-part)
-  - [Uploading a Trusted Anchor](#56-uploading-a-trusted-anchor)
-  - [Viewing the Contents of a Trusted Anchor](#57-viewing-the-contents-of-a-trusted-anchor)
-  - [Deleting a Trusted Anchor](#58-deleting-a-trusted-anchor)
-- [The Management Requests System](#6-the-management-requests-system)
-  - [Registration Requests](#61-registration-requests)
-    - [State Machine Model for Registration Requests](#611-state-machine-model-for-registration-requests)
-  - [Deletion Requests](#62-deletion-requests)
-  - [Viewing the Management Request Details](#63-viewing-the-management-request-details)
-- [Managing the X-Road Members](#7-managing-the-x-road-members)
-  - [Adding a Member](#71-adding-a-member)
-  - [Viewing the Member Details](#72-viewing-the-member-details)
-  - [Adding a Subsystem to an X-Road Member](#73-adding-a-subsystem-to-an-x-road-member)
-  - [Registering a Member's Security Server](#74-registering-a-members-security-server)
-  - [Registering a Client to a Security Server](#75-registering-a-client-to-a-security-server)
-  - [Removing a Client from a Security Server](#76-removing-a-client-from-a-security-server)
-  - [Changing the Global Group Membership of an X-Road Member’s Subsystem](#77-changing-the-global-group-membership-of-an-x-road-members-subsystem)
-  - [Deleting a Subsystem](#78-deleting-a-subsystem)
-  - [Deleting an X-Road Member](#79-deleting-an-x-road-member)
-- [Managing the Security Servers](#8-managing-the-security-servers)
-  - [Viewing the Security Server Details](#81-viewing-the-security-server-details)
-  - [Changing the Security Server Address](#82-changing-the-security-server-address)
-  - [Registering a Security Server's Authentication Certificate](#83-registering-a-security-servers-authentication-certificate)
-  - [Deleting a Security Server's Authentication Certificate](#84-deleting-a-security-servers-authentication-certificate)
-  - [Deleting a Security Server](#85-deleting-a-security-server)
-- [Managing the Central Services](#9-managing-the-central-services)
-  - [Adding a Central Service](#91-adding-a-central-service)
-  - [Changing the Service implementing a Central Service](#92-changing-the-service-implementing-a-central-service)
-  - [Deleting a Central Service](#93-deleting-a-central-service)
-- [Managing the Global Groups](#10-managing-the-global-groups)
-  - [Adding a Global Group](#101-adding-a-global-group)
-  - [Viewing the Global Group Details](#102-viewing-the-global-group-details)
-  - [Changing the Description of a Global Group](#103-changing-the-description-of-a-global-group)
-  - [Changing the Members of a Global Group](#104-changing-the-members-of-a-global-group)
-  - [Deleting a Global Group](#105-deleting-a-global-group)
-- [Managing the Approved Certification Services](#11-managing-the-approved-certification-services)
-  - [Adding an Approved Certification Service](#111-adding-an-approved-certification-service)
-  - [Changing an Approved Certification Service](#112-changing-an-approved-certification-service)
-  - [Deleting an Approved Certification Service](#113-deleting-an-approved-certification-service)
-- [Managing the Approved Timestamping Services](#12-managing-the-approved-timestamping-services)
-  - [Adding an Approved Timestamping Service](#121-adding-an-approved-timestamping-service)
-  - [Changing the URL of an Approved Timestamping Service](#122-changing-the-url-of-an-approved-timestamping-service)
-  - [Deleting an Approved Timestamping Service](#123-deleting-an-approved-timestamping-service)
-- [Configuration Backup and Restore](#13-configuration-backup-and-restore)
-  - [Backing Up the System Configuration](#131-backing-up-the-system-configuration)
-  - [Restoring the System Configuration in the User Interface](#132-restoring-the-system-configuration-in-the-user-interface)
-  - [Restoring the Configuration from the Command Line](#133-restoring-the-configuration-from-the-command-line)
-  - [Downloading, Uploading and Deleting Configuration Backup Files](#134-downloading-uploading-and-deleting-configuration-backup-files)
-- [Audit Log](#14-audit-log)
-  - [Changing the Configuration of the Audit Log](#141-changing-the-configuration-of-the-audit-log)
-  - [Archiving the Audit Log](#142-archiving-the-audit-log)
-- [Monitoring](#15-monitoring)
-- [Additional configuration options](#16-additional-configuration-options)
-  - [Verify next update](#161-verify-next-update)
-  - [OCSP fetch interval](#162-ocsp-fetch-interval)
-- [Logs and System Services](#17-logs-and-system-services)
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 # 1. Introduction
 

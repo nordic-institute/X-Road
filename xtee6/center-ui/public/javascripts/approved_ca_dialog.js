@@ -23,7 +23,10 @@ var XROAD_APPROVED_CA_DIALOG = function() {
                       $(this).dialog("close");
                   }
                 }
-            ]
+            ],
+            close: function() {
+                $("#ca_cert").val("");
+            }
         });
 
         $(document).on("change", "#ca_cert", function() {

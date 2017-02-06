@@ -2,9 +2,21 @@
 
 **Technical Specification**
 
-Version: 2.6 (26.10.2016)
-
+Version: 2.7 
 Doc. ID: PR-GCONF
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| 04.09.2015 | 1.4       | Minor fixes               | Siim Annuk         |
+| 09.09.2015 | 2.0       | Editorial changes made    | Imbi Nõgisto         |
+| 23.10.2015 | 2.1       | Shared-parameters chema updated | Siim Annuk         |
+| 28.10.2015 | 2.2       | Typos fixed | Siim Annuk           |
+| 09.11.2015 | 2.3       | More typos | Margus Freudenthal         |
+| 17.12.2015 | 2.4       | Added description of monitoring paramters  | Janne Mattila |
+| 05.09.2016 | 2.5       | Added description of optional configuration parts | Janne Mattila |
+|            | 2.6       | Converted to markdown format |  |
+| 20.01.2017 | 2.7       | Added version history | Sami Kallio |
+
 
 ## Table of Contents
 
@@ -43,7 +55,7 @@ Doc. ID: PR-GCONF
 
 ## License
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 ## 1 Introduction
 

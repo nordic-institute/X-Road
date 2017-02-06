@@ -1,38 +1,60 @@
+# X-Road: Central Server Installation Guide
+
+Version: 2.4 
+Doc. ID: IG-CS
 
 
-|                           |
-|---------------------------|
-| X-Road: Central Server    |
-| Installation Guide        |
-|							              |
-| Doc. ID: IG-CS            |
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------||
+| 01.12.2014 | 1.0     | Initial version                                         ||
+| 19.01.2015 | 1.1     | License information added                               ||
+| 02.02.2015 | 1.2     | References fixed                                        ||
+| 18.03.2015 | 1.3     | Meta-package for central server                         ||
+| 02.04.2015 | 1.4     | „sdsb” changed to „xroad”                               ||
+| 30.06.2015 | 1.5     | Minor corrections done                                  ||
+| 06.07.2015 | 1.6     | New repository address                                  ||
+| 17.09.2015 | 1.7     | Notes about high availability added, references updated ||
+| 18.09.2015 | 1.8     | Minor corrections done                                  ||
+| 18.09.2015 | 2.0     | Editorial changes made                                  ||
+| 16.12.2015 | 2.1     | Added installation instructions for monitoring          ||
+| 09.12.2016 | 2.2     | Converted to markdown format          | Ilkka Seppälä |
+| 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual          | Ilkka Seppälä |
+| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+  * [License](#license)
+- [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 References](#12-references)
+- [2. Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Installation](#25-installation)
+  * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
+  * [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+- [3 Initial Configuration](#3-initial-configuration)
+  * [3.1 Reference Data](#31-reference-data)
+  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+- [4 Additional configuration](#4-additional-configuration)
+  * [4.1 Adding support for V1 global configuration](#41-adding-support-for-v1-global-configuration)
+- [5 Installation Error Handling](#5-installation-error-handling)
+  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+
+<!-- tocstop -->
 
 
+## License
 
-##Table of Contents
-
-- [Introduction](#1-introduction)
-	- [Target Audience](#11-target-audience)
-	- [References](#12-references)
-- [Installation](#2-installation)
-	- [Prerequisites to Installation](#21-prerequisites-to-installation)
-	- [Reference Data](#22-reference-data)
-	- [Requirements to the Central Server](#23-requirements-to-the-central-server)
-	- [Preparing OS](#24-preparing-os)
-	- [Installation](#25-installation)
-	- [Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-	- [Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
-- [Initial Configuration](#3-initial-configuration)
-	- [Reference Data](#31-reference-data)
-	- [Initializing the Central Server](#32-initializing-the-central-server)
-	- [Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-- [Additional configuration](#4-additional-configuration)
-  - [Adding support for V1 global configuration](#41-additional-configuration)
-- [Installation Error Handling](#5-installation-error-handling)
-	- [Cannot Set LC_ALL to Default Locale](#51-cannot-set-lcall-to-default-locale)
-	- [PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-	- [Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-	- [Is Postgres Running On Port 5432?](#54-is-postgres-running-on-port-5432)
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 # 1. Introduction
 

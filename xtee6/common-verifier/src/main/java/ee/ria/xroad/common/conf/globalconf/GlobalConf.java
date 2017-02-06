@@ -185,6 +185,8 @@ public final class GlobalConf {
      * @return true if the global configuration is valid
      */
     public static boolean isValid() {
+
+        //TODO Null pointer exception if old global conf
         return getInstance().isValid();
     }
 
@@ -428,6 +430,23 @@ public final class GlobalConf {
         log.trace("getServerId({})", cert.getSubjectDN());
 
         return getInstance().getServerId(cert);
+    }
+
+    /**
+     * Checks if the authentication certificate belongs to registered
+     * security server
+     * @param cert the authentication certificate
+     * @return true if the authentication certificate belongs to registered
+     * security server
+     */
+    public static boolean isSecurityServerAuthCert(X509Certificate cert) {
+        log.trace("isSecurityServerAuthCert({})", cert.getSubjectDN());
+        try {
+            return getInstance().getServerId(cert) != null;
+        } catch (Exception e) {
+            log.error("Error occurred while getting server id", e);
+            return false;
+        }
     }
 
     /**

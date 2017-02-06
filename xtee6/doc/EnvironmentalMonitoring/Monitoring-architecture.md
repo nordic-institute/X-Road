@@ -1,4 +1,39 @@
-# Overview
+# X-Road: Environmental Monitoring Architecture
+
+Version: 1.2
+Doc. ID: ARC-ENVMON
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
+| 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
+| 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+<!-- toc -->
+
+  * [License](#license)
+  * [Overview](#overview)
+  * [References](#references)
+- [Components](#components)
+  * [Monitoring metaservice (proxymonitor add-on)](#monitoring-metaservice-proxymonitor-add-on)
+  * [Monitoring service (xroad-monitor)](#monitoring-service-xroad-monitor)
+  * [Central monitoring client](#central-monitoring-client)
+  * [Central monitoring data collector](#central-monitoring-data-collector)
+  * [Central server admin user interface](#central-server-admin-user-interface)
+- [Monitoring in action](#monitoring-in-action)
+  * [Pull messaging model](#pull-messaging-model)
+  * [Modified X-Road message protocol](#modified-x-road-message-protocol)
+  * [Access control](#access-control)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+
+
+## Overview
 
 X-Road monitoring is conceptually split into two parts: _environmental_ and _operational_ monitoring:
 

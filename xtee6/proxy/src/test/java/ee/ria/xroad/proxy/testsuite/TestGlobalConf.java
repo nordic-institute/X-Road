@@ -37,10 +37,7 @@ import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.impl.EjbcaSignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.*;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
@@ -150,5 +147,12 @@ public class TestGlobalConf extends EmptyGlobalConf {
             AuthCertificateProfileInfo.Parameters parameters,
             X509Certificate cert) throws Exception {
         return null;
+    }
+
+    @Override
+    public SecurityServerId getServerId(X509Certificate cert) throws Exception {
+        // For SSL connections AuthTrustManager checks that client certificate
+        // belongs to some X-Road member
+        return SecurityServerId.create("FI", "COM", "1111", "SS1");
     }
 }

@@ -11,7 +11,7 @@ Index of X-Road Documentation
 - [Audit Log Events](Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
 
 ### Protocols
-- [Message Protocol](Protocols/pr-mess_x-road_message_protocol_v4.0_4.0.17.md)
+- [Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
 - [Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx)
 - [Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services_1.9_Y-883-29-1.docx)
 - [Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol_2.1.5_Y-743-14.docx)

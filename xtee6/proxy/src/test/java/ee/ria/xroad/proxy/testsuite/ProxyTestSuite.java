@@ -22,18 +22,8 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -45,6 +35,15 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Proxy test suite program.
@@ -91,8 +90,12 @@ public final class ProxyTestSuite {
 
         List<MessageTestCase> normalTestCases = new ArrayList<>();
         List<MessageTestCase> sslTestCases = new ArrayList<>();
+        List<MessageTestCase> isolatedSslTestCases = new ArrayList<>();
+
         for (MessageTestCase tc : testCasesToRun) {
-            if (tc instanceof SslMessageTestCase) {
+            if (tc instanceof IsolatedSslMessageTestCase) {
+                isolatedSslTestCases.add(tc);
+            } else if (tc instanceof SslMessageTestCase) {
                 sslTestCases.add(tc);
             } else {
                 normalTestCases.add(tc);
@@ -107,9 +110,11 @@ public final class ProxyTestSuite {
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);
+            runIsolatedSslTestCases(isolatedSslTestCases);
+
         } finally {
             jobManager.stop();
-            actorSystem.shutdown();
+            actorSystem.terminate();
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
             LOG.info("COMPLETE, passed {} - failed {}",
@@ -183,6 +188,26 @@ public final class ProxyTestSuite {
         services.add(new DummySslServerProxy());
 
         runTestSuite(services, tc);
+    }
+
+    private static void runIsolatedSslTestCases(List<MessageTestCase> tc)
+            throws Exception {
+        if (tc.isEmpty()) {
+            return;
+        }
+
+        LOG.info("=========================");
+        LOG.info("Running Isolated SSL test cases...");
+        LOG.info("=========================");
+
+        // Make sure SSL is enabled
+        System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
+
+        for (MessageTestCase c : tc) {
+            List<StartStop> services = getDefaultServices();
+            services.add(new DummySslServerProxy());
+            runTestSuite(services, Collections.singletonList(c));
+        }
     }
 
     private static void runTestSuite(List<StartStop> services,

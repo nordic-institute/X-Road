@@ -30,7 +30,7 @@ sonarqube {
         property "sonar.projectKey", "xtee6"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "National Data Exchange Layer"
-        property "sonar.projectVersion", "6.9.2"    }
+        property "sonar.projectVersion", "6.10.0"    }
 }
 
 allprojects {

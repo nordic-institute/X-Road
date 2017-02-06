@@ -1,0 +1,79 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+file_to_disk = './tmp/large_disk.vdi'
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/xenial64"
+  config.vm.network "private_network", :ip => '10.122.151.3', :adapter => 2
+
+  config.vm.provider "virtualbox" do |vb|
+     # Display the VirtualBox GUI when booting the machine
+     vb.gui = false
+  
+     # Minimun what development environment will need.
+     # Customize the amount of memory on the VM:
+     vb.memory = "6144"
+     unless File.exist?(file_to_disk)
+       vb.customize [
+         'createhd',
+         '--filename', file_to_disk,
+         '--size', 10 * 1024
+       ]
+       vb.customize [
+       	 'storageattach', :id,
+         '--storagectl', 'SCSI',
+         '--port', 2, '--device', 0,
+         '--type', 'hdd', '--medium',
+         file_to_disk
+       ]
+     end
+  end
+
+  config.vm.provision "mount-lxd-storage", type: "shell", inline: <<-SHELL
+    DISK=$(readlink -f /dev/disk/by-path/*-scsi-0:0:2:0)
+      if [ ! -b "${DISK}" ]; then
+        echo "$DISK does not exist"
+        exit 1
+      fi
+      if [ ! -b ${DISK}1 ]; then
+        echo "Creating ${DISK}1..."
+        parted $DISK -s -a optimal mklabel gpt mkpart primary ext4 0% 100%
+        mkfs.ext4 ${DISK}1
+        blkid -g
+        echo -e "UUID=$(blkid -s UUID -o value ${DISK}1)\t/var/lib/lxd\text4\tdefaults\t0 0" >>/etc/fstab
+        systemctl stop lxd.socket
+        mount -a
+        systemctl start lxd.socket
+      else
+        echo "Device ${DISK}1 exists, skipping"
+      fi
+  SHELL
+
+  config.vm.provision "debconfChange", type: "shell", inline: <<-SHELL
+     echo "set lxd/bridge-ipv4-address 10.122.150.1" | debconf-communicate
+     echo "set lxd/bridge-ipv4-dhcp-leases 252" | debconf-communicate
+     echo "set lxd/bridge-ipv4-netmask 24" | debconf-communicate
+     echo "set lxd/bridge-ipv4 true" | debconf-communicate
+     echo "set lxd/bridge-ipv4-nat true" | debconf-communicate
+     echo "set lxd/bridge-ipv4-dhcp-first 10.122.150.2" | debconf-communicate
+     echo "set lxd/bridge-ipv4-dhcp-last 10.122.150.254" | debconf-communicate
+     echo "set lxd/setup-bridge true" | debconf-communicate
+     echo "set lxd/bridge-name lxdbr0" | debconf-communicate
+     rm /etc/default/lxd-bridge
+     dpkg-reconfigure -p medium lxd -fnoninteractive
+  SHELL
+
+  config.vm.provision "apt", type: "shell", inline: <<-SHELL
+     apt-add-repository ppa:ansible/ansible
+     apt-get update
+     apt-get install -y git gitk git-gui kdiff3 software-properties-common ansible python-pip
+     pip install docker-py
+     lxd init --auto --storage-backend=dir
+     echo net.ipv4.ip_forward=1 >>/etc/sysctl.conf
+     sysctl -p
+  SHELL
+
+  config.vm.provision "prepare_buildhost", type: "shell", path: "prepare_buildhost.sh", privileged: false
+
+end

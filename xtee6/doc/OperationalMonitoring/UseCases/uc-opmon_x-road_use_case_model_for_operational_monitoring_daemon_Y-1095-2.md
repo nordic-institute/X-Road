@@ -1,9 +1,34 @@
 # X-Road: Use Case Model for Operational Monitoring Daemon
 
-Version: 0.5
-
+Version: 0.6
 Document ID: UC-OPMON
 
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.5       | Initial version               |          |
+| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+- [2 Overview](#2-overview)
+- [3 Use Case Model](#3-use-case-model)
+  * [3.1 Actors](#31-actors)
+  * [3.2 UC OPMON_01: Store the Operational Data in the Operational Monitoring Database](#32-uc-opmon_01-store-the-operational-data-in-the-operational-monitoring-database)
+  * [3.3 UC OPMON_02: Query Operational Data](#33-uc-opmon_02-query-operational-data)
+  * [3.5 UC OPMON_03: Query Security Server Health Data](#35-uc-opmon_03-query-security-server-health-data)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 ## 1 Introduction
 

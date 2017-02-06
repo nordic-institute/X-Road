@@ -22,12 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.X509TrustManager;
-
-import lombok.extern.slf4j.Slf4j;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * This trust manager is used for connections between the security servers.
@@ -47,8 +46,21 @@ public class AuthTrustManager implements X509TrustManager {
     }
 
     @Override
-    public void checkClientTrusted(X509Certificate[] certs, String authType)
+    public void checkClientTrusted(X509Certificate[] chain, String authType)
             throws CertificateException {
+        if (chain.length == 0) {
+            log.error("Server did not send TLS certificate");
+            throw new CertificateException(
+                "Server did not send TLS certificate");
+        }
+
+        log.trace("Received {} server certificates {}", chain.length, chain);
+
+        if (!GlobalConf.isSecurityServerAuthCert(chain[0])) {
+            log.error("The server's authentication certificate is not trusted");
+            throw new CertificateException(
+                "The server's authentication certificate is not trusted");
+        }
     }
 
     @Override
@@ -56,5 +68,4 @@ public class AuthTrustManager implements X509TrustManager {
             throws CertificateException {
         // Check for the certificates later in AuthTrustVerifier
     }
-
 }

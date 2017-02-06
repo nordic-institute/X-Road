@@ -1,38 +1,55 @@
+# X-Road: Security Server Installation Guide
 
+Version: 2.4 
+Doc. ID: IG-SS
 
-|                           |
-|---------------------------|
-| X-Road: Security Server   |
-| Installation Guide        |
-|							              |
-| Doc. ID: IG-SS            |
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------||
+| 01.12.2014 | 1.0     | Initial version                   |                                      |
+| 19.01.2015 | 1.1     | License information added          |                                     |
+| 18.03.2015 | 1.2     | Meta-package for security server added. Legacy securelog module removed ||
+| 02.04.2015 | 1.3     | “sdsb” change to “xroad”         |                                       |
+| 27.05.2015 | 1.4     | Some typos fixed                 |                                       |
+| 30.06.2015 | 1.5     | Minor corrections done           |                                       |
+| 06.07.2015 | 1.6     | New repository address           |                                       |
+| 18.09.2015 | 1.7     | Reference data in 3.2 updated      |                                     |
+| 18.09.2015 | 2.0     | Editorial changes made            |                                      |
+| 16.12.2015 | 2.2     | Added installation instructions for monitoring                          |
+| 03.01.2017 | 2.3     | Converted to markodown format          | Ilkka Seppälä |
+| 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
 
+## Table of Contents
+<!-- toc -->
 
+  * [License](#license)
+- [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 References](#12-references)
+- [2. Installation](#2-installation)
+  * [2.1 Supported Platforms](#21-supported-platforms)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Installation](#25-installation)
+  * [2.6 Post-Installation Checks](#26-post-installation-checks)
+  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  * [2.8 Installing the Support for Operational Monitoring](#28-installing-the-support-for-operational-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  * [3.1 Prerequisites](#31-prerequisites)
+  * [3.2 Reference Data](#32-reference-data)
+  * [3.3 Configuration](#33-configuration)
+- [4 Installation Error Handling](#4-installation-error-handling)
+  * [4.1 Cannot Set LC_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  * [4.4 Is Postgres Running on Port 5432?](#44-is-postgres-running-on-port-5432)
+- [4.5 Different Versions of xroad-* Packages After Successful Upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
 
-##Table of Contents
+<!-- tocstop -->
 
-- [Introduction](#1-introduction)
-	- [Target Audience](#11-target-audience)
-	- [References](#12-references)
-- [Installation](#2-installation)
-	- [Supported Platforms](#21-supported-platforms)
-	- [Reference Data](#22-reference-data)
-  - [Requirements for the Security Server](#23-requirements-for-the-security-server)
-  - [Preparing OS](#24-preparing-os)
-  - [Installation](#25-installation)
-  - [Post-Installation Checks](#26-post-installation-checks)
-  - [Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-	- [Installing the Support for Operational Monitoring](#28-installing-the-support-for-operational-monitoring)
-- [Security Server Initial Configuration](#3-security-server-initial-configuration)
-	- [Prerequisites](#31-prerequisites)
-	- [Reference Data](#32-reference-data)
-  - [Configuration](#33-configuration)
-- [Installation Error Handling](#4-installation-error-handling)
-	- [Cannot Set LC_ALL to Default Locale](#41-cannot-set-lcall-to-default-locale)
-	- [PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-UTF8-compatible)
-  - [Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  - [Is PostgreSQL Running On Port 5432](#44-is-postgresql-running-on-port-5432)
-  - [Different Versions of xroad-* Packages After Successful Upgrade](#45-different-versions-of-xroad-*-packages-after-successful-upgrade)
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 # 1. Introduction
 

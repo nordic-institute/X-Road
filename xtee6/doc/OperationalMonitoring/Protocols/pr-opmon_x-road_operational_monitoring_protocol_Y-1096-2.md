@@ -1,10 +1,36 @@
 # X-Road: Operational Monitoring Protocol
 
-Technical Specification
-
-Version: 0.2
-
+**Technical Specification**
+Version: 0.3
 Document ID: PR-OPMON
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.2       | Initial version               |          |
+| 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [1 Introduction](#1-introduction)
+    + [1.1 References](#11-references)
+- [2 Retrieving Operational Data of Security Server](#2-retrieving-operational-data-of-security-server)
+- [3 Retrieving Health Data of Security Server](#3-retrieving-health-data-of-security-server)
+- [Annex A WSDL for Operational Monitoring Messages](#annex-a-wsdl-for-operational-monitoring-messages)
+- [Annex B JSON-Schema for Payload of getSecurityServerOperationalData Response](#annex-b-json-schema-for-payload-of-getsecurityserveroperationaldata-response)
+- [Annex C Example Messages](#annex-c-example-messages)
+  * [C.1 getSecurityServerOperationalData Request](#c1-getsecurityserveroperationaldata-request)
+  * [C.2 getSecurityServerOperationalData Response](#c2-getsecurityserveroperationaldata-response)
+    + [C.2.1 Example JSON-Payload of getSecurityServerOperationalData Response](#c21-example-json-payload-of-getsecurityserveroperationaldata-response)
+  * [C.3 getSecurityServerHealthData Request](#c3-getsecurityserverhealthdata-request)
+  * [C.4 getSecurityServerHealthData Response](#c4-getsecurityserverhealthdata-response)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 # 1 Introduction
 

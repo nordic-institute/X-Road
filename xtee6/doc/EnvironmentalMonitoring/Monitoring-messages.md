@@ -1,3 +1,30 @@
+# X-Road: Environmental Monitoring Messages
+
+Version: 1.2 
+Doc. ID: PR-ENVMONMES
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
+| 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
+| 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [Fetching security server metrics](#fetching-security-server-metrics)
+  * [Request](#request)
+  * [Response](#response)
+  * [Response Schema](#response-schema)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+
 ## Fetching security server metrics
 
 ### Request

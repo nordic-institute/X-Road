@@ -1169,6 +1169,7 @@ function initFileUploadDialog() {
         close: function() {
             $("input.extra", this).remove();
             $("input.selected_file", this).val("");
+            $("#file_upload").val("");
         }
     });
 

@@ -1,34 +1,56 @@
+# X-Road: System Parameters User Guide 
+
+Version: 2.14 
+Doc. ID: UG-SYSPAR
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------||
+| 29.05.2015 | 1.0     | First draft                                                                                                                        | Siim Annuk                 |
+| 01.06.2015 | 1.1     | Some corrections done, typos fixed                                                                                                 | Siim Annuk                 |
+| 30.06.2015 | 1.2     | Minor corrections done                                                                                                             | Vello Hansen, Imbi Nõgisto |
+| 26.08.2015 | 1.3     | Corrections regarding SQL done                                                                                                     | Marju Ignatjeva            |
+| 09.09.2015 | 2.0     | Editorial changes made                                                                                                             | Imbi Nõgisto               |
+| 11.09.2015 | 2.1     | Global configuration generation interval added                                                                                     | Martin Lind                |
+| 20.09.2015 | 2.2     | Editorial changes made                                                                                                             | Imbi Nõgisto               |
+| 23.09.2015 | 2.3     | Warning added about changing system parameters                                                                                     | Siim Annuk                 |
+| 24.09.2015 | 2.4     | Note added about setting the *timeStampingIntervalSeconds* system parameter                                                        | Siim Annuk                 |
+| 07.10.2015 | 2.5     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400                                                  | Kristo Heero               |
+| 8.12.2015  | 2.6     | New parameters for configuring signature algorithms and key length, proxy client-side TLS protocols, and software token pin policy | Jarkko Hyöty               |
+| 8.12.2015  | 2.7     | Added parameters for toggling SOAP body logging on/off                                                                             | Janne Mattila              |
+| 17.12.2015 | 2.8     | Added monitoring parameters                                                                                                        | Ilkka Seppälä              |
+| 28.1.2016  | 2.9     | Added configuration client admin port                                                                                              | Ilkka Seppälä              |
+| 04.10.2016 | 2.10       | Converted to markdown format | Sami Kallio |
+| 05.10.2016 | 2.11       | Added options for proxy client and server connections. Clarified client-timeout option. | Olli Lindgren |
+| 02.11.2016 | 2.12       | Fix ocspFreshnessSeconds description in system parameters document. | Ilkka Seppälä |
+| 01.12.2017 | 2.13       | Added documentation for minimum global conf version | Sami Kallio |
+| 20.01.2017 | 2.14       | Added license text and version history | Sami Kallio |
 
 
-|                           |
-|---------------------------|
-| X-Road: System Parameters |
-| User Guide                |
-|							|
-| Doc. ID: UG-SYSPAR        |
 
+## Table of Contents
 
+<!-- toc -->
 
-##Table of Contents
-
-- [Introduction](#Introduction)
-	- [References](#references)
+  * [License](#license)
+- [Introduction](#introduction)
+  * [References](#references)
 - [Changing the System Parameter Values](#changing-the-system-parameter-values)
-	- [Changing the System Parameter Values in Configuration Files](#changing-the-system-parameter-values-in-configuration-files)
-	- [Changing the System Parameter Values in the Central Server Database](#changing-the-system-parameter-values-in-the-central-server-database)
-	- [Changing the Global Configuration Generation Interval in the Central Server](#changing-the-global-configuration-generation-interval-in-the-central-server)
+  * [Changing the System Parameter Values in Configuration Files](#changing-the-system-parameter-values-in-configuration-files)
+  * [Changing the System Parameter Values in the Central Server Database](#changing-the-system-parameter-values-in-the-central-server-database)
+  * [Changing the Global Configuration Generation Interval in the Central Server](#changing-the-global-configuration-generation-interval-in-the-central-server)
 - [Security Server System Parameters](#security-server-system-parameters)
 - [Central Server System Parameters](#central-server-system-parameters)
-	- [System Parameters in the Configuration File](#system-parameters-in-the-configuration-file)
-	- [System Parameters in the Database](#system-parameters-in-the-database)
-	- [Global Configuration Generation Interval Parameter](#global-configuration-generation-interval-parameter)
+  * [System Parameters in the Configuration File](#system-parameters-in-the-configuration-file)
+  * [System Parameters in the Database](#system-parameters-in-the-database)
+  * [Global Configuration Generation Interval Parameter](#global-configuration-generation-interval-parameter)
 - [Configuration Proxy System Parameters](#configuration-proxy-system-parameters)
 
+<!-- tocstop -->
 
 
 ## License
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 Introduction
 ==========================================================================================================================

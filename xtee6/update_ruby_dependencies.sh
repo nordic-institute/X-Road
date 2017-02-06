@@ -2,13 +2,14 @@
 
 set -e
 
-if [ "x$XROAD_HOME" = "x" ]
+if [ -z "$XROAD_HOME" ]
 then
-  XROAD_HOME=`pwd`
+    XROAD_HOME=$(cd "$(dirname "$0")"; pwd)
 fi
 
+JRUBY_VERSION=$(cat $XROAD_HOME/.jruby-version)
 source ~/.rvm/scripts/rvm
-rvm use jruby-1.7.25
+rvm use jruby-$JRUBY_VERSION
 
 RUBY_PROJECTS="center-service common-ui center-common proxy-ui center-ui"
 

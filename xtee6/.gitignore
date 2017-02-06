@@ -38,3 +38,5 @@ systemtest/op-monitoring/load/SimulationSetup.scala
 systemtest/op-monitoring/load/opmonitor/
 systemtest/op-monitoring/zabbix_api/zabbix_hosts_and_services.json
 **/__pycache__/
+tmp/
+ubuntu-xenial-16.04-cloudimg-console.log

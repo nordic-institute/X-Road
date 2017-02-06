@@ -1,10 +1,33 @@
 # X-Road: Operational Monitoring JMX Protocol
 
 Technical Specification
-
-Version: 0.2
-
+Version: 0.3
 Document ID: PR-OPMONJMX
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.2       | Initial version               |          |
+| 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+  * [License](#license)
+  * [1 Introduction](#1-introduction)
+    + [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
+    + [1.2 References](#12-references)
+- [2 Encoding X-Road Service Identifiers in Object Names](#2-encoding-x-road-service-identifiers-in-object-names)
+- [3 Objects, Attributes and Operations Exposed over JMXMP](#3-objects-attributes-and-operations-exposed-over-jmxmp)
+- [3.1 Gauge Metrics](#31-gauge-metrics)
+- [3.2 Counter Metrics](#32-counter-metrics)
+- [3.3 Histogram Metrics](#33-histogram-metrics)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
 
 ## 1 Introduction
 

@@ -68,6 +68,9 @@
                   }
                 }
             ],
+            close: function() {
+                $("#" + prefix + "_cert").val("");
+            },
             open: function() {
                 $("#" + prefix + "_url_and_cert_submit").disable();
             },

@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -30,9 +33,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 final class TestcaseLoader {
     private static final Logger LOG = LoggerFactory.getLogger(
@@ -102,6 +102,8 @@ final class TestcaseLoader {
         if (SORT_ALPHABETICALLY) {
             // Ensure the testcases are run in the same order each time.
             Collections.sort(classes, new SortTestCasesAlphabetically());
+        } else {
+            Collections.shuffle(classes);
         }
 
         return classes;

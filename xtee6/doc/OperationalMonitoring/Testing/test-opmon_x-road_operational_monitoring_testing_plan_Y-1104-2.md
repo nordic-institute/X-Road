@@ -1,8 +1,49 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.5
-
+Version: 0.6
 Document ID: TEST-OPMON
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.5       | Initial version               |          |
+| 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+<!-- toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+- [2 Components of the Operational Monitoring System in the Context of Testing](#2-components-of-the-operational-monitoring-system-in-the-context-of-testing)
+  * [2.1 Testing the Operational Monitoring Database](#21-testing-the-operational-monitoring-database)
+  * [2.2 Testing the Operational Monitoring Service](#22-testing-the-operational-monitoring-service)
+- [3 The Protocols and Interfaces used in the Operational Monitoring System in the Context of Testing](#3-the-protocols-and-interfaces-used-in-the-operational-monitoring-system-in-the-context-of-testing)
+- [4 The Use Cases of the Operational Monitoring Daemon in the Context of Testing](#4-the-use-cases-of-the-operational-monitoring-daemon-in-the-context-of-testing)
+- [5 Automated Integration Testing in Detail](#5-automated-integration-testing-in-detail)
+- [6 Load Testing](#6-load-testing)
+  * [6.1 Limitations of the System](#61-limitations-of-the-system)
+  * [6.2 Setup of the Simulations](#62-setup-of-the-simulations)
+  * [6.2.1 A Sample Load Simulation for Observing the Dropping of Records](#621-a-sample-load-simulation-for-observing-the-dropping-of-records)
+- [6.3 The Effect of the Operational Monitoring System on Request Throughput](#63-the-effect-of-the-operational-monitoring-system-on-request-throughput)
+  * [6.3.1 A Sample Set of Simulations and Results](#631-a-sample-set-of-simulations-and-results)
+- [7 Testing the JMXMP Interface](#7-testing-the-jmxmp-interface)
+  * [7.1 Testing the JMXMP Interface Using jconsole](#71-testing-the-jmxmp-interface-using-jconsole)
+- [8 Manual Integration Testing in Detail](#8-manual-integration-testing-in-detail)
+  * [8.1 Test Helpers](#81-test-helpers)
+  * [8.2 Send a Request to a Non-operational Service Cluster](#82-send-a-request-to-a-non-operational-service-cluster)
+  * [8.3 Run Operational Monitoring Data Cleanup](#83-run-operational-monitoring-data-cleanup)
+  * [8.4 Receive Operational Data in Multiple Batches](#84-receive-operational-data-in-multiple-batches)
+  * [8.5 Configure an External Monitoring Daemon](#85-configure-an-external-monitoring-daemon)
+  * [8.6 Use Invalid Certificates for TLS Connection](#86-use-invalid-certificates-for-tls-connection)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+
 
 ## 1 Introduction
 

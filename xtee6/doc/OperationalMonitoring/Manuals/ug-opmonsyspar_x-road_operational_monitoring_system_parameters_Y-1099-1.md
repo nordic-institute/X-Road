@@ -1,9 +1,29 @@
 # X-Road: Operational Monitoring System Parameters
 # User Guide
 
-Version 0.2
-
+Version 0.3
 Document ID: UG-OPMONSYSPAR
+
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+|  | 0.2       | Initial version               |          |
+| 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 References](#11-references)
+- [2 Operational Monitoring System Parameters](#2-operational-monitoring-system-parameters)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+
 
 ## 1 Introduction
 
