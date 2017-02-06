@@ -178,7 +178,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 SoapUtils.getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
         servletResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-        if (!SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             servletResponse.addHeader("Connection", "close");
         }

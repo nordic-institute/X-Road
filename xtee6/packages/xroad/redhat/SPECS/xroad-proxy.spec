@@ -72,7 +72,7 @@ ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-ad
 rm -rf %{buildroot}
 
 %files
-%defattr(-,xroad,xroad,-)
+%defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy.conf
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/proxy-ui.ini
@@ -83,7 +83,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/contexts-admin/proxy-ui.xml
 %config /etc/xroad/jetty/serverproxy.xml
 %config /etc/xroad/services/jetty.conf
-%config(noreplace) /etc/pam.d/xroad
+%config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
 
@@ -98,8 +98,8 @@ rm -rf %{buildroot}
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh
 %attr(544,root,xroad) /usr/share/xroad/bin/xroad-add-admin-user.sh
 
+%defattr(-,root,root,-)
 /usr/bin/xroad-add-admin-user
-/usr/lib/systemd/system/xroad-async.service
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
 /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh

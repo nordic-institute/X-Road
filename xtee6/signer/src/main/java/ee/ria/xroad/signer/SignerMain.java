@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
@@ -49,10 +50,12 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 public final class SignerMain {
 
     static {
-        SystemPropertiesLoader.create().withCommonAndLocal()
-            .with(CONF_FILE_PROXY)
-            .with(CONF_FILE_SIGNER)
-            .load();
+        SystemPropertiesLoader.create()
+                .withCommonAndLocal()
+                .withLocalOptional(CONF_FILE_NODE)
+                .with(CONF_FILE_PROXY)
+                .with(CONF_FILE_SIGNER)
+                .load();
         diagnosticsDefault = new CertificationServiceDiagnostics();
     }
 

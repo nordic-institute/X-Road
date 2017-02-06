@@ -1,0 +1,6 @@
+XROAD_USER={{ xroad_slave_ssh_user }}
+MASTER={{ master_host }}
+PATH=/bin:/usr/bin
+
+* * * * * xroad rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/globalconf" --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/ || logger -t xroad-slave-sync -p 2 "ERROR: Syncing /etc/xroad failed"
+

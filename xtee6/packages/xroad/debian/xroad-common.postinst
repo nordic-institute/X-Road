@@ -38,7 +38,7 @@ Please fix this and reinstall this package." >&2
 
     # test and fix config folder
     su - xroad -c "test -O /etc/xroad && test -G /etc/xroad" || chown xroad:xroad /etc/xroad
-    chmod 0750 /etc/xroad
+    chmod 0751 /etc/xroad
 
     #tmp folder
     mkdir -p /var/tmp/xroad
@@ -58,7 +58,7 @@ Please fix this and reinstall this package." >&2
 
     test -d /etc/xroad/signer || mkdir -p -m 0750 /etc/xroad/signer && chown xroad:xroad /etc/xroad/signer
     test -d /etc/xroad/conf.d || mkdir -p -m 0750 /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d
-    test -d /etc/xroad/ssl    || mkdir -p /etc/xroad/ssl
+    test -d /etc/xroad/ssl || mkdir -p -m 0750 /etc/xroad/ssl && chown xroad:xroad /etc/xroad/ssl
     test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
     # if xroad-proxy is not installed then this directory should be created for signer
     test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad

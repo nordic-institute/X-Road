@@ -50,6 +50,7 @@ rm -rf %{buildroot}
 %files
 %defattr(-,xroad,xroad,-)
 %config /etc/xroad/conf.d/addons/message-log.ini
+%defattr(-,root,root,-)
 /usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 /usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/archive-hashchain-verifier.rb
 /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl
