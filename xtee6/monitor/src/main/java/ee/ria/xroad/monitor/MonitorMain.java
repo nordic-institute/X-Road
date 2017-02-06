@@ -28,21 +28,29 @@ import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
 
 /**
  * Main class for monitor application
  */
-@Log
+@Slf4j
 public final class MonitorMain {
 
-    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/addons/monitor.ini";
+    static {
+        SystemPropertiesLoader.create()
+                .withCommonAndLocal()
+                .with(CONF_FILE_ENV_MONITOR)
+                .load();
+    }
+
     private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
-    private static final String CONFIG_SECTION = "monitor";
     private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
 
     private static ActorSystem actorSystem;
@@ -54,9 +62,8 @@ public final class MonitorMain {
      */
     public static void main(String args[]) {
 
+        log.info("Starting X-Road Environmental Monitoring");
         registerShutdownHook();
-
-        loadConfiguration();
 
         initAkka();
 
@@ -64,10 +71,6 @@ public final class MonitorMain {
     }
 
     private MonitorMain() {
-    }
-
-    private static void loadConfiguration() {
-        SystemPropertiesLoader.create().with(CONFIG_FILENAME, CONFIG_SECTION).load();
     }
 
     private static void registerShutdownHook() {
@@ -95,14 +98,10 @@ public final class MonitorMain {
     }
 
     private static Config loadAkkaConfiguration() {
+        log.info("loadAkkaConfiguration");
         Config externalConfig = ConfigFactory.empty();
-        try {
-            int port = Integer.parseUnsignedInt(System.getProperty(CONFIG_PROPERTY_PORT));
-            externalConfig = ConfigFactory.parseString(String.format("%s = %d", AKKA_PORT, port));
-        } catch (NumberFormatException e) {
-            log.warning(String.format("Could not load configuration property %s - using the default port",
-                    CONFIG_PROPERTY_PORT));
-        }
+        int port = SystemProperties.getMonitorPort();
+        externalConfig = ConfigFactory.parseString(String.format("%s = %d", AKKA_PORT, port));
         Config defaultConfig = ConfigFactory.load();
         Config mergedConfig = externalConfig.withFallback(defaultConfig);
         return ConfigFactory.load(mergedConfig);

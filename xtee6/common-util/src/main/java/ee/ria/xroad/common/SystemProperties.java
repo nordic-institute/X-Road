@@ -427,6 +427,24 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PROXY_ADDRESS =
             PREFIX + "configuration-proxy.address";
 
+    // Environmental Monitoring  -------------------------- //
+
+    /** Property name of environmental monitor port. */
+    public static final String MONITOR_PORT =
+            PREFIX + "monitor.port";
+
+    /** Property name of system metrics sensor interval. */
+    public static final String MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL =
+            PREFIX + "monitor.system-metrics-sensor-interval";
+
+    /** Property name of disk space sensor interval. */
+    public static final String MONITOR_DISK_SPACE_SENSOR_INTERVAL =
+            PREFIX + "monitor.disk-space-sensor-interval";
+
+    /** Property name of system metrics sensor interval. */
+    public static final String MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
+            PREFIX + "monitor.exec-listing-sensor-interval";
+
     // Configuration file names and section names -------------------------- //
 
     public static final String CONF_FILE_COMMON =
@@ -450,11 +468,15 @@ public final class SystemProperties {
     public static final String CONF_FILE_OP_MONITOR =
             getConfPath() + "conf.d/op-monitor.ini";
 
+    public static final String CONF_FILE_ENV_MONITOR =
+            getConfPath() + "conf.d/monitor.ini";
+
     public static final String CONF_FILE_USER_LOCAL =
             getConfPath() + "conf.d/local.ini";
 
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
+
 
     // --------------------------------------------------------------------- //
 
@@ -942,6 +964,47 @@ public final class SystemProperties {
     public static int getProxyParamsCollectingInterval() {
         return Integer.parseInt(System.getProperty(
                 PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
+    }
+
+    /**
+     * @return environmental monitoring port,
+     * '2552' by default.
+     */
+    public static int getMonitorPort() {
+        return Integer.parseInt(System.getProperty(
+                MONITOR_PORT,
+                "2552")); // Default port
+    }
+
+    /**
+     * @return system metrics sensor interval in seconds,
+     * '5' by default.
+     */
+    public static int getMonitorSystemMetricsSensorInterval() {
+        return Integer.parseInt(System.getProperty(
+                MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL,
+                "5")); // Default interval in seconds.
+    }
+
+    /**
+     * @return disk space sensor interval in seconds,
+     * '60' by default.
+     */
+    public static int getMonitorDiskSpaceSensorInterval() {
+        return Integer.parseInt(System.getProperty(
+                MONITOR_DISK_SPACE_SENSOR_INTERVAL,
+                "60")); // Default interval in seconds.
+    }
+
+
+    /**
+     * @return exec listing sensor interval in seconds,
+     * '60' by default.
+     */
+    public static int getMonitorExecListingSensorInterval() {
+        return Integer.parseInt(System.getProperty(
+                MONITOR_EXEC_LISTING_SENSOR_INTERVAL,
+                "60")); // Default interval in seconds.
     }
 
     /**

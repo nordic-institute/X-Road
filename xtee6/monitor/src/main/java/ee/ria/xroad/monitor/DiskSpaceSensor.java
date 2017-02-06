@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.MetricRegistry;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -45,6 +46,7 @@ public class DiskSpaceSensor extends AbstractSensor {
     private Map<String, SensorPair> drives = new HashMap<>();
 
     public DiskSpaceSensor() {
+        log.info("Creating sensor, measurement interval: {}", getInterval());
         scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
     }
 
@@ -74,6 +76,7 @@ public class DiskSpaceSensor extends AbstractSensor {
     @Override
     public void onReceive(Object o) throws Exception {
         if (o instanceof DiskSpaceMeasure) {
+            log.debug("Updating metrics");
             updateMetrics();
             scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
         }
@@ -81,7 +84,7 @@ public class DiskSpaceSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(1, TimeUnit.MINUTES);
+        return Duration.create(SystemProperties.getMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class DiskSpaceMeasure { }
