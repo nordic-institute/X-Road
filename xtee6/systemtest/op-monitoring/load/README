@@ -8,7 +8,7 @@ The gatling.sh script must be added to the PATH variable of the user
 running the simulations.
 
 We assume the corresponding environment has been set up based on the
-documentation in xtee6/doc/OperationalMonitoring/Testing/ .
+documentation in doc/OperationalMonitoring/Testing/ .
 
 The simulation setup can be described in two ways:
 * Copy SimulationSetup.scala_sample to SimulationSetup.scala and edit it to your needs

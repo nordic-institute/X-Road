@@ -1,5 +1,5 @@
 This catalogue contains example requests for the pre-configured testing system of operational monitoring,
-as documented in 'xtee6/doc/OperationalMonitoring/Testing/test-opmonstrat_x-road_operational_monitoring_testing_strategy.md'.
+as documented in 'doc/OperationalMonitoring/Testing/test-opmonstrat_x-road_operational_monitoring_testing_strategy.md'.
 
 To send regular X-Road requests, the value of the Content-Type header must be set to 'text/xml'.
 

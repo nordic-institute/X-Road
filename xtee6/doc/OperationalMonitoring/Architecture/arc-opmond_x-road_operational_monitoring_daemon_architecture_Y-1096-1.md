@@ -167,7 +167,7 @@ Figure 2 shows the deployment diagram.
 
 ### A.1 JSON-Schema for Store Operational Monitoring Data Request
 
-The schema is located in the file *xtee6/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml* of the X-Road source code.
 
 ### A.2 Example Store Operational Monitoring Data Request
 
@@ -242,7 +242,7 @@ The first record of the store request reflects successfully mediated request, th
 
 ### A.3 JSON-Schema for Store Operational Monitoring Data Response
 
-The schema is located in the file *xtee6/op-monitor-daemon/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
+The schema is located in the file *src/op-monitor-daemon/src/main/resources/store_operational_data_response_schema.yaml* of the X-Road source code.
 
 ### A.4 Example Store Operational Monitoring Data Responses
 

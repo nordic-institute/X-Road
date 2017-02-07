@@ -19,7 +19,7 @@ data and health data using the respective SOAP requests. Direct database access
 is not used for checking the results of requests.
 
 The tests assume the corresponding environment has been set up based on the
-documentation in xtee6/doc/OperationalMonitoring/Testing/ .
+documentation in doc/OperationalMonitoring/Testing/ .
 
 Sample usage:
 

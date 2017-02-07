@@ -7,7 +7,7 @@ subdirectory (integration and load).
 Unit tests are integrated into the build system of the respective
 source code modules and are not covered here.
 
-Please read the docs in xtee6/doc/OperationalMonitoring/Testing/ for an
+Please read the docs in doc/OperationalMonitoring/Testing/ for an
 overview of the testing strategy and the expected environment.
 
 The contents of this directory:

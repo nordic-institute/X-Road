@@ -128,7 +128,7 @@ The testcases are listed in alphabetical order. They can be run in an arbitrary 
 
 **NOTE** The test cases require specific values for some configuration parameters of the security servers or the operational monitoring daemon. If such values are not present, the services are reconfigured and restarted automatically. After each test case, the initial configuration is restored, and the services are restarted.
 
-The test scripts and their input files can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/integration`. Please refer to `xtee6/systemtest/op-monitoring/integration/README` for instructions on running the tests.
+The test scripts and their input files can be found in the source repository of the project at `src/systemtest/op-monitoring/integration`. Please refer to `src/systemtest/op-monitoring/integration/README` for instructions on running the tests.
 
 The following test cases have been automated at integration testing level:
 1. `test_attachments`, verifying that information about attachments in X-Road requests and responses is stored and returned as required.
@@ -165,9 +165,9 @@ During general load testing of the operational monitoring system, it was observe
 
 Load simulations can be run automatically, provided the testing environment has been set up as described in [[TEST-OPMONSTRAT]](#TEST-OPMONSTRAT). The reports of the simulation should be analyzed for information about the behaviour of the system under the simulated load.
 
-The load test runner and the related source code can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/load`.
+The load test runner and the related source code can be found in the source repository of the project at `src/systemtest/op-monitoring/load`.
 
-The setup of the simulations is configurable using the Gatling DSL. A sample simulation has been provided in `xtee6/systemtest/op-monitoring/load/SimulationSetup.scala_sample` . This file can be used as documented in `xtee6/systemtest/op-monitoring/load/README`.
+The setup of the simulations is configurable using the Gatling DSL. A sample simulation has been provided in `src/systemtest/op-monitoring/load/SimulationSetup.scala_sample` . This file can be used as documented in `src/systemtest/op-monitoring/load/README`.
 
 The following predefined request types can be used in load simulations in the desired combination:
 * A request with an empty body
@@ -283,7 +283,7 @@ The health metrics of the operational monitoring daemon will appear on the `MBea
 
 The items appearing under this subtree can be observed as the automated integration tests are run. Please refer to [[PR-OPMONJMX]](#PR-OPMONJMX) for the exact set of items required for each mediated request. Note that a separate `jconsole` session should be opened for the producer and the consumer security servers, to gain access to all the metrics made available.
 
-**NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `xtee6/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
+**NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `src/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
 
 ## 8 Manual Integration Testing in Detail
 
@@ -308,7 +308,7 @@ Test case for verifying that the value of the operational monitoring data field 
 
 **Main scenario:**
 * Stop the proxy in both security servers of the service cluster (`sudo service xroad-proxy stop`).
-* Send an X-Road request from the service client in security server *xtee9.ci.kit* to the clustered service. The example request can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests/service_cluster.query`.
+* Send an X-Road request from the service client in security server *xtee9.ci.kit* to the clustered service. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/service_cluster.query`.
 * Wait for the response - it takes up to 5 minutes before receiving a response stating that any target hosts could not be connected.
 
 **Expected output:**
@@ -377,7 +377,7 @@ All test steps are executed in security server *xtee9.ci.kit*.
   * wait for a couple of seconds;
   * send another X-Road request;
 
- The example requests can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests`. Use `simple.query` for an X-Road request and `operational_data.query` for an operational data request.
+ The example requests can be found in the source repository of the project at `src/systemtest/op-monitoring/requests`. Use `simple.query` for an X-Road request and `operational_data.query` for an operational data request.
 * Log in to the operational monitoring database (see [logging in to operational monitoring database](#log_in_db)) and view the timestamps of the most recent operational data records. SQL example:
    ```sql
    SELECT monitoring_data_ts, message_id, service_code, security_server_type
@@ -409,15 +409,15 @@ Test case for verifying that it is possible to configure a secure connection bet
 **Test scenario:**
 * Install an external operational monitoring daemon according to the instructions in [[UG-SS]](#UG-SS).
 * Configure security server *xtee10.ci.kit* to use the external operational monitoring daemon installed in the previous step over a secure connection. Follow the instructions in [[UG-SS]](#UG-SS).
-* Send an X-Road request to a service provider in security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests/service_in_ss2.query` (the request endpoint is security server *xtee9.ci.kit*).
+* Send an X-Road request to a service provider in security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/service_in_ss2.query` (the request endpoint is security server *xtee9.ci.kit*).
 * Log in to the operational monitoring database in the external monitoring daemon (see [logging in to operational monitoring database](#log_in_db)) and ascertain that the operational monitoring data of the request sent in the previous step has been saved in the database. SQL example:
   ```sql
   SELECT * FROM operational_data WHERE message_id='abc';
   ```
-* Send an operational data request to security server *xtee10.ci.kit*. Fill both 'recordsFrom' and 'recordsTo' value in with the 'monitoring_data_ts' value of the X-Road request that was sent to a service provider in security server xtee10.ci.kit. The example request can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests/operational_data_ss2.query`.
+* Send an operational data request to security server *xtee10.ci.kit*. Fill both 'recordsFrom' and 'recordsTo' value in with the 'monitoring_data_ts' value of the X-Road request that was sent to a service provider in security server xtee10.ci.kit. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/operational_data_ss2.query`.
 
   **Expected output:** An operational data response is received. The operational data response contains the record of the X-Road request that was sent to a service provider in security server *xtee10.ci.kit*.
-* Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests/health_data_ss2.query`.
+* Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/health_data_ss2.query`.
 
   **Expected output:** A health data response is received. The health data response contains the health data about the service that was queried in the first X-Road request as well as the health data about the service 'getSecurityServerOperationalData'.
 
@@ -429,9 +429,9 @@ Test case for verifying that the secure connection between the security server a
 
 **Test scenarios:**
 1. Configure an invalid operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
-  * Replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/misc/invalid_certificate.crt`.
+  * Replace the value of the parameter `tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `src/systemtest/op-monitoring/misc/invalid_certificate.crt`.
   * Restart the proxy (`sudo service xroad-proxy restart`).
-  * Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/requests/health_data_ss2.query`.
+  * Send a health data request to security server *xtee10.ci.kit*. The example request can be found in the source repository of the project at `src/systemtest/op-monitoring/requests/health_data_ss2.query`.
 
   **Expected output:**
   * A SOAP fault is received as a health data query response (faultstring: java.security.cert.CertificateException: Operational monitoring daemon certificate not loaded, cannot verify server).
@@ -480,7 +480,7 @@ Test case for verifying that the secure connection between the security server a
     * Restart the proxy (`sudo service xroad-proxy restart`).
 
 4. Configure an invalid security server TLS certificate in operational monitoring daemon *xtee11.ci.kit*.
-  * Replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/misc/invalid_certificate.crt`.
+  * Replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `src/systemtest/op-monitoring/misc/invalid_certificate.crt`.
   * Restart the monitoring daemon (`sudo service xroad-opmonitor restart`).
   * Send a health data request to security server *xtee10.ci.kit*.
 

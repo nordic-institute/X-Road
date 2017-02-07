@@ -43,7 +43,7 @@ import ee.ria.xroad.common.message.RepresentedParty;
 public class OpMonitoringData {
 
     // The following fields correspond to the schema defined in
-    // xtee6/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
+    // src/op-monitor-daemon/src/main/resources/store_operational_data_request_schema.yaml .
     // Refer to the schema for detailed documentation.
 
     public static final String SECURITY_SERVER_INTERNAL_IP =
