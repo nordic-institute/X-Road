@@ -37,8 +37,8 @@ cp -p %{src}/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/d
 cp -p %{src}/addon/proxy/messagelog/* %{buildroot}/usr/share/xroad/db/messagelog
 
 cp -p %{src}/../../addons/messagelog/scripts/demo-upload.pl %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server/
-cp -p %{src}/../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-cp -p %{src}/../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
+cp -p %{src}/../../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+cp -p %{src}/../../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 cp -p %{src}/../../asicverifier/build/libs/asicverifier-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 ln -s /usr/share/xroad/jlib/asicverifier-1.0.jar %{buildroot}/usr/share/xroad/jlib/asicverifier.jar
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/

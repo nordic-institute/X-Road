@@ -455,7 +455,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     private void assertArchiveHashChain() {
         String archiveFilePath = getArchiveFilePath();
 
-        String scriptFile = "../../doc/archive-hashchain-verifier.rb";
+        String scriptFile = "../../../doc/archive-hashchain-verifier.rb";
         String command = String.format("%s %s %s",
                 scriptFile, archiveFilePath, LAST_DIGEST);
 

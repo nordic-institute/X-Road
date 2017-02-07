@@ -8,8 +8,8 @@ addon/proxy/messagelog-changelog.xml usr/share/xroad/db/
 addon/proxy/messagelog/ usr/share/xroad/db/
 
 ../../addons/messagelog/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
-../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
-../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
+../../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
+../../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 
 ../../asicverifier/build/libs/asicverifier-1.0.jar usr/share/xroad/jlib/
 ../../LICENSE.txt usr/share/doc/xroad-addon-messagelog/
