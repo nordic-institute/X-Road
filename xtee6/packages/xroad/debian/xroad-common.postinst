@@ -66,12 +66,12 @@ Please fix this and reinstall this package." >&2
     test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad /etc/xroad/globalconf
 
     chmod 0750 /etc/xroad/ssl
-    chown xroad:xroad /etc/xroad/ssl
+    chown -R xroad:xroad /etc/xroad/ssl
 
     chmod 0750 /etc/xroad/services
-    chown xroad:xroad /etc/xroad/services
+    chown -R xroad:xroad /etc/xroad/services
 
-    chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
+    chown -R xroad:xroad /etc/xroad/conf.d
     chmod -R u=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
     chmod 0440 /etc/sudoers.d/xroad-restore

@@ -8,3 +8,6 @@ serverconf_db_port: 5433
 # ssh user for configuration replication
 xroad_slave_ssh_user: xroad-slave
 
+# proxy health check interface port (0 disables)
+xroad_proxy_health_check_port: 5588
+

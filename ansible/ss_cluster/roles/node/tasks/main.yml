@@ -4,7 +4,7 @@
           - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','centos'] }}"
 
 - name: ensure that acl utilities is installed
-  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user for more info
+  # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user 
   package:
       name: acl
       state: present
@@ -59,10 +59,18 @@
   include: "{{ ansible_distribution | lower }}.yml"
 
 - name: disable connection keep-alives
-  ini_file: dest=/etc/xroad/conf.d/local.ini
-            section=proxy
-            option=server-support-clients-pooled-connections
-            value=false
+  ini_file:
+      dest: /etc/xroad/conf.d/local.ini
+      section: proxy
+      option: server-support-clients-pooled-connections
+      value: false
+
+- name: enable health check
+  ini_file:
+      dest: /etc/xroad/conf.d/local.ini
+      section: proxy
+      option: health-check-port
+      value: "{{ xroad_proxy_health_check_port }}"
 
 - name: configure db properties
   ini_file:
@@ -71,11 +79,10 @@
       option: "{{ item.option }}"
       value: "{{ item.value }}"
   with_items:
-      - { option: 'serverconf.hibernate.connection.url', value: 'jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf' }
-      - { option: 'serverconf.hibernate.connection.password', value: '{{ serverconf_password }}' }
+      - {option: 'serverconf.hibernate.connection.url', value: 'jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf'}
+      - {option: 'serverconf.hibernate.connection.password', value: '{{ serverconf_password }}'}
 
 - name: ensure that rsync is installed
   package:
       name: rsync
       state: present
-
