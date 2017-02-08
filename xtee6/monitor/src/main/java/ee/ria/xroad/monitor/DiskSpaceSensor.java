@@ -84,7 +84,7 @@ public class DiskSpaceSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
+        return Duration.create(SystemProperties.getEnvMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class DiskSpaceMeasure { }

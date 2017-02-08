@@ -101,7 +101,7 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
+        return Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class SystemMetricsMeasure { }

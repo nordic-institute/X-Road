@@ -100,7 +100,7 @@ public final class MonitorMain {
     private static Config loadAkkaConfiguration() {
         log.info("loadAkkaConfiguration");
         Config externalConfig = ConfigFactory.empty();
-        int port = SystemProperties.getMonitorPort();
+        int port = SystemProperties.getEnvMonitorPort();
         externalConfig = ConfigFactory.parseString(String.format("%s = %d", AKKA_PORT, port));
         Config defaultConfig = ConfigFactory.load();
         Config mergedConfig = externalConfig.withFallback(defaultConfig);

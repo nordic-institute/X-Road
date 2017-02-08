@@ -118,7 +118,7 @@ public class ExecListingSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getMonitorExecListingSensorInterval(), TimeUnit.SECONDS);
+        return Duration.create(SystemProperties.getEnvMonitorExecListingSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class ProcessMeasure { }
