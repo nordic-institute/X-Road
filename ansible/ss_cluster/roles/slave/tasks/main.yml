@@ -7,14 +7,12 @@
   become: yes
   command: rsync -e "ssh -o StrictHostKeyChecking=no" -aqz --delete-delay --exclude "/db.properties" --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" "{{ xroad_slave_ssh_user }}@{{ master_host }}":/etc/xroad/ /etc/xroad/
 
-- name: install sync cron job
-  template: 
-      src: "xroad_slave_sync.j2" 
-      dest: "/etc/cron.d/xroad-slave-sync"
+- name: install configuration sync
+  include: "{{ ansible_distribution | lower }}.yml"
 
-- name: rotate sync logs
-  copy: 
-      src: "xroad-slave-sync.logrotate" 
+- name: setup sync log rotation
+  copy:
+      src: "xroad-slave-sync.logrotate"
       dest: "/etc/logrotate.d/xroad-slave-sync"
 
 - name: enable slave role for node

@@ -70,7 +70,7 @@ The playbook does the following operations
 * creates ssh keys for the xroad user on the slave hosts
 * creates an user account (xroad-slave) on the master host and allows ssh
   access from slaves using public key authentication
-* installs an cron job on the slaves that replicates /etc/xroad from the master
+* installs upstart/systemd tasks on the slaves that replicates /etc/xroad from the master
   to slaves (using rsync over ssh)
 * installs /etc/xroad/conf.d/node.ini file and sets slave or master mode on each
   node
