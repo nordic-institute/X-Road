@@ -4,7 +4,7 @@
 - name: Copy to security server
   copy: src={{item}} dest=/xroad/ force=no
   with_fileglob:
-    - ../xtee6/packages/xroad-*deb 
+    - ../src/packages/xroad-*deb 
 
 - name: Ensure dpkg-dev
   become: yes

@@ -1,0 +1,17 @@
+This catalogue contains example requests for the pre-configured testing system of operational monitoring,
+as documented in 'doc/OperationalMonitoring/Testing/test-opmonstrat_x-road_operational_monitoring_testing_strategy.md'.
+
+To send regular X-Road requests, the value of the Content-Type header must be set to 'text/xml'.
+
+A curl example for sending a simple X-Road request:
+curl --data-binary @simple.query -H "Content-type: text/xml; charset=UTF-8" http://<SECURITY_SERVER_ADDRESS>
+
+To send X-Road requests with attachments, the value of the Content-Type header must be set to 'multipart/related'.
+
+The following curl examples can be used for sending requests with attachments:
+
+curl --data-binary @mtom_attachment.query -H "Content-Type: multipart/related; start=\"<rootpart>\"; boundary=\"----=_Part_10_1777426800.1476273281168\"" http://<SECURITY_SERVER_ADDRESS>
+
+curl --data-binary @swa_ref_attachment.query -H "Content-Type: multipart/related; start=\"<rootpart>\"; boundary=\"jetty771207119h3h10dty\"" http://<SECURITY_SERVER_ADDRESS>
+
+curl --data-binary @multiple_attachments.query -H "Content-Type: multipart/related; start=\"<rootpart>\"; boundary=\"jetty771207119h3h10dty\"" http://<SECURITY_SERVER_ADDRESS>

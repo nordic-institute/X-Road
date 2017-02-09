@@ -1,7 +1,7 @@
 - name: build docker image for building deb packages 
   docker_image:
     name: docker-debbuild 
-    path: ../xtee6/packages/docker-debbuild
+    path: ../src/packages/docker-debbuild
 
 - name: build deb packages in docker
   docker_container:
@@ -13,7 +13,7 @@
     cleanup: yes
     user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
     env:
-        HOME: "/workspace/xtee6/packages"
+        HOME: "/workspace/src/packages"
     volumes: 
       - ../:/workspace
       - /etc/passwd:/etc/passwd:ro
