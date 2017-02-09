@@ -2,7 +2,7 @@
 - name: compile xroad code
   command: ./compile_code.sh
   args:
-    chdir: ../xtee6
+    chdir: ../src
     
 
 

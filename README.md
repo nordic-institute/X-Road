@@ -4,7 +4,7 @@ This repository contains the source code, documentation and installation scripts
 
 ## Build
 
-See instructions in [xtee6/BUILD.md](xtee6/BUILD.md)
+See instructions in [src/BUILD.md](src/BUILD.md)
 
 ## Install
 
@@ -12,4 +12,4 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 ## Documentation
 
-[Documentation table of contents](xtee6/doc/README.md)
+[Documentation table of contents](src/doc/README.md)
