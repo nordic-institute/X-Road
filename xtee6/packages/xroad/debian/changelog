@@ -2,8 +2,7 @@ xroad (6.9.3) trusty; urgency=low
 
 * PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
 
--- Sami Kallio <sami.kallio@gofore.com> Fri, 10 FebJan 2017 14:05:11 +0200
-
+ -- Sami Kallio <sami.kallio@gofore.com>  Fri, 10 Feb 2017 14:05:11 +0200
 
 xroad (6.9.2) trusty; urgency=low
 
