@@ -22,27 +22,28 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.util.concurrent.TimeUnit;
-
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
 import com.sun.management.UnixOperatingSystemMXBean;
-
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * System metrics sensor collects information such as
  * memory, cpu, swap and file descriptors.
  */
+@Slf4j
 public class SystemMetricsSensor extends AbstractSensor {
 
     public static final int MINUTES_IN_HOUR = 60;
     public static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
-    public static final int MEASUREMENT_INTERVAL_SECONDS = 5;
     private final SimpleSensor<Long> totalPhysicalMemorySize = new SimpleSensor<>();
     private final SimpleSensor<Long> totalSwapSpaceSize = new SimpleSensor<>();
     private final SimpleSensor<Long> maxFileDescriptorCount = new SimpleSensor<>();
@@ -51,6 +52,7 @@ public class SystemMetricsSensor extends AbstractSensor {
      * Constructor
      */
     public SystemMetricsSensor() {
+        log.info("Creating sensor, measurement interval: {}", getInterval());
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
         metricRegistry.register(SystemMetricNames.SYSTEM_CPU_LOAD, createDefaultHistogram());
         metricRegistry.register(SystemMetricNames.FREE_PHYSICAL_MEMORY, createDefaultHistogram());
@@ -91,6 +93,7 @@ public class SystemMetricsSensor extends AbstractSensor {
     @Override
     public void onReceive(Object o) throws Exception {
         if (o instanceof SystemMetricsMeasure) {
+            log.debug("Updating metrics");
             updateMetrics();
             scheduleSingleMeasurement(getInterval(), new SystemMetricsMeasure());
         }
@@ -98,7 +101,7 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(MEASUREMENT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        return Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class SystemMetricsMeasure { }

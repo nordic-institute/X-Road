@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide 
 
-Version: 2.14 
+Version: 2.15
 Doc. ID: UG-SYSPAR
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -24,6 +24,7 @@ Doc. ID: UG-SYSPAR
 | 02.11.2016 | 2.12       | Fix ocspFreshnessSeconds description in system parameters document. | Ilkka Seppälä |
 | 01.12.2017 | 2.13       | Added documentation for minimum global conf version | Sami Kallio |
 | 20.01.2017 | 2.14       | Added license text and version history | Sami Kallio |
+| 08.02.2017 | 2.15       | Updated documentation with new environmental monitoring parameters describing sensor intervals | Sami Kallio |
 
 
 
@@ -216,7 +217,11 @@ This chapter describes the system parameters used by the components of the X-Roa
 | message-log          | keep-records-for                                 | 30                                                 | Number of days to keep time-stamped and archived records in the database of the security server. If a time-stamped and archived message record is older than this value, the record is deleted from the database.                                                                                                                                                                                                                            |
 | message-log          | timestamp-immediately                            | false                                              | If true, the time-stamp is created synchronously for each request message. This is a security policy requirement to guarantee the time-stamp at the time of logging the message.                                                                                                                                                                                                                                                             |
 | message-log          | timestamp-records-limit                          | 10000                                              | Maximum number of message records to time-stamp in one batch.                                                                                                                                                                                                                                                                                                                                                                                |
-| monitor              | port                                             | 2552                                               | TCP port number used in communications with xroad-proxy and xroad-monitor components.                                                                                                                                                                                                                                                                                                                                                        |
+| env-monitor              | port                                             | 2552                                               | TCP port number used in communications with xroad-proxy and xroad-monitor components.                                                                                                                                                                                                                                                                                                                                                        |
+| env-monitor              | system-metrics-sensor-interval                                             | 5                                               | Interval of systems metrics sensor in seconds. How often system metrics data is collected.|
+| env-monitor              | disk-space-sensor-interval                                             | 5                                               | Interval of disk space sensor in seconds. How often disk space data is collected.|
+| env-monitor              | exec-listing-sensor-interval                                             | 60                                               | Interval of exec listing sensor in seconds. How often sensor data using external command are collected.|
+
 
 Central Server System Parameters
 ==============================================================================================================================================
