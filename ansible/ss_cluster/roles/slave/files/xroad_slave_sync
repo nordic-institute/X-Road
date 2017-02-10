@@ -1,2 +1,2 @@
-* * * * * root start xroad-sync &>/dev/null
+* * * * * root /sbin/initctl start xroad-sync &>/dev/null
 
