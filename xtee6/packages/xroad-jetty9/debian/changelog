@@ -1,4 +1,10 @@
-xroad-jetty9 (6.9.2-1) trusty; urgency=medium
+xroad-jetty9 (6.9.3) trusty; urgency=medium
+
+  * Version bump
+
+ -- Sami Kallio <sami.kallio@gofore.com> Fri, 10 FebJan 2017 14:05:11 +0200
+
+ xroad-jetty9 (6.9.2-1) trusty; urgency=medium
 
   * Version bump
 
