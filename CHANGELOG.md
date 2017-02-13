@@ -1,5 +1,10 @@
 # Change Log
 
+## 6.9.4 - 2017-02-13
+- XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
+- XTE-319: Security Server UI bugfix: WSDL deletion caused incorrect ACL removal
+- XTE-322: Security Server bugfix: a typo in the configuration file proxy.ini (client-timeout)
+
 ## 6.9.3 - 2017-02-10
 - PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
 
