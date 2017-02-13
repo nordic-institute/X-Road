@@ -2,7 +2,7 @@
 
 set -e
 
-./compile_code.sh "$@"
+#./compile_code.sh "$@"
 
 XROAD=`pwd`
 
