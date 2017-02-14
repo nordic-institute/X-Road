@@ -1,3 +1,11 @@
+xroad (6.9.4) trusty; urgency=low
+  
+  * XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
+  * XTE-319: Security Server UI bugfix: WSDL deletion caused incorrect ACL removal
+  * XTE-322: Security Server bugfix: a typo in the configuration file proxy.ini (client-timeout)
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 13 Feb 2017 18:36:28 +0200
+
 xroad (6.9.3) trusty; urgency=low
 
   * PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
