@@ -12,4 +12,4 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 ## Documentation
 
-[Documentation table of contents](src/doc/README.md)
+[Documentation table of contents](doc/README.md)

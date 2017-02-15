@@ -22,23 +22,17 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
-
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.monitor.executablelister.ListedData;
-import ee.ria.xroad.monitor.executablelister.OsInfoLister;
-import ee.ria.xroad.monitor.executablelister.PackageInfo;
-import ee.ria.xroad.monitor.executablelister.PackageLister;
-import ee.ria.xroad.monitor.executablelister.ProcessInfo;
-import ee.ria.xroad.monitor.executablelister.ProcessLister;
-import ee.ria.xroad.monitor.executablelister.XroadProcessLister;
+import ee.ria.xroad.monitor.executablelister.*;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Sensor which collects data by running external commands and
@@ -51,6 +45,7 @@ public class ExecListingSensor extends AbstractSensor {
      * Constructor
      */
     public <T extends Metric> ExecListingSensor() {
+        log.info("Creating sensor, measurement interval: {}", getInterval());
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
         ListedData<ProcessInfo> processes = new ProcessLister().list();
         ListedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
@@ -63,6 +58,7 @@ public class ExecListingSensor extends AbstractSensor {
         metricRegistry.register(SystemMetricNames.PACKAGES, createParsedMetric(packages));
         metricRegistry.register(SystemMetricNames.PACKAGE_STRINGS, createJmxMetric(packages));
         metricRegistry.register(SystemMetricNames.OS_INFO, createOsStringMetric(operatingSystemInfo));
+        scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
     }
 
     private Metric createParsedMetric(ListedData data) {
@@ -107,6 +103,7 @@ public class ExecListingSensor extends AbstractSensor {
     @Override
     public void onReceive(Object o) throws Exception {
         if (o instanceof ProcessMeasure) {
+            log.debug("Updating metrics");
             updateMetrics();
             scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
         }
@@ -114,7 +111,7 @@ public class ExecListingSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(1, TimeUnit.MINUTES);
+        return Duration.create(SystemProperties.getEnvMonitorExecListingSensorInterval(), TimeUnit.SECONDS);
     }
 
     private static class ProcessMeasure { }

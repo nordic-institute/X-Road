@@ -34,6 +34,8 @@ class ClientsController < ApplicationController
   include Clients::Services
   include Clients::AclSubjects
 
+  @@lock_client_add = Mutex.new
+
   def index
     authorize!(:view_clients)
 
@@ -154,6 +156,8 @@ class ClientsController < ApplicationController
       :member_name => member_name
     })
   end
+
+  synchronize :client_add, :with => :@@lock_client_add
 
   def client_certs
     authorize!(:view_client_details)
