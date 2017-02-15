@@ -1,7 +1,15 @@
 # Change Log
 
-## 6.10.0
-- TBD
+## 6.10.0 - 2017-02-15
+- PVAYLADEV-684: Change source code directory structure so that doc folder moves to root level and xtee6 folder is renamed to src. Checkstyle configuration moves to src from doc.
+- PVAYLADEV-670: The document DM-CS central server data model was converted to markdown format and the included ER diagram was done with draw.io tool.
+- PVAYLADEV-253: Serverproxy ensures that client certificate belongs to registered security server before reading the SOAP message.
+- PVAYLADEV-369: Environmental monitoring port configuration system property group monitor has been renamed to env-monitor. If the system property monitor.port was previously configured, it has to be done again using env-monitor.port. Monitor sensor intervals are now also configurable as system properties.
+- PVAYLADEV-657: Added version history table and license text to markdown documentation.
+- PVAYLADEV-661: Packaging the software is done in Docker container. This includes both deb and rpm packaging.
+- PVAYLADEV-675: Fixed problem in central server and security server user interface's file upload component. The problem caused the component not to clear properly on close.
+- PVAYLADEV-680: Fixed problem in Debian changelog that caused warnings on packaging.
+- PVAYLADEV-682: Added Ansible scripts to create test automation environment.
 
 ## 6.9.4 - 2017-02-13
 - XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
