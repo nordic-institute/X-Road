@@ -10,6 +10,7 @@
 - PVAYLADEV-675: Fixed problem in central server and security server user interface's file upload component. The problem caused the component not to clear properly on close.
 - PVAYLADEV-680: Fixed problem in Debian changelog that caused warnings on packaging.
 - PVAYLADEV-682: Added Ansible scripts to create test automation environment.
+- PVAYLADEV-547: Added Vagrantfile for creating X-Road development boxes. It is possible to run X-Road servers in LXD containers inside the development box.
 
 ## 6.9.4 - 2017-02-13
 - XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
