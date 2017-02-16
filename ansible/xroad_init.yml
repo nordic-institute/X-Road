@@ -5,28 +5,36 @@
 - hosts: lxd-servers
   roles:
     - role: init-lxd
-
-- hosts: ss-servers, cs-servers, cp-servers
+  tags:
+    - init
+    
+- hosts: ss-servers, cs-servers, cp-servers, ca-servers
   become: yes
   become_user: root
   gather_facts: no
   pre_tasks:
     - name: 'Install python2'
       raw: apt-get -y install python
+  tags:
+    - init
     
 - hosts: cs-servers
   become: yes
   become_user: root
   roles:
     - palveluvayla-cs
+  tags:
+    cs
 
 - hosts: cp-servers
   become: yes
   become_user: root
   roles:
     - palveluvayla-cp
+  tags:
+    - cp
 
-- hosts: ss-servers, cs-servers, cp-servers
+- hosts: ss-servers, cs-servers, cp-servers, ca-servers
   become: yes
   become_user: root
   gather_facts: no
@@ -38,10 +46,14 @@
   become_user: root
   roles:
     - palveluvayla-ss
+  tags:
+    - ss
     
 - hosts: ca-servers
   become: yes
   become_user: root
+  pre_tasks:
+    - raw: apt install openssl
   roles:
     - role: palveluvayla-ca
       tags: [ 'ca' ]
