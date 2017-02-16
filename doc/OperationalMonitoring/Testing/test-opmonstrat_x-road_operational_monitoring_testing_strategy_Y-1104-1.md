@@ -1,7 +1,7 @@
 # X-Road: Operational Monitoring Testing Strategy
 
-Version: 0.6
-Document ID: TEST-OPMONSTRAT
+Version: 0.6  
+Doc. ID: TEST-OPMONSTRAT
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|

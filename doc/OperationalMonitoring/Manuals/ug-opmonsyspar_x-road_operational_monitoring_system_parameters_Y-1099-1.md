@@ -1,8 +1,8 @@
 # X-Road: Operational Monitoring System Parameters
 # User Guide
 
-Version 0.3
-Document ID: UG-OPMONSYSPAR
+Version: 0.3  
+Doc ID: UG-OPMONSYSPAR
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|

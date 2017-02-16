@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.4
+Version: 1.4  
 Doc. ID: DM-CS
 
 | Date       | Version     | Description                                                                  | Author             |

@@ -1,6 +1,6 @@
 # X-Road: Security Server Installation Guide
 
-Version: 2.4 
+Version: 2.4  
 Doc. ID: IG-SS
 
 | Date       | Version     | Description                                                                  | Author             |

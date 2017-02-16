@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.4 
+Version: 2.4  
 Doc. ID: UG-CS
 
 

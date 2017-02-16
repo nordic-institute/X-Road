@@ -1,6 +1,6 @@
-# X-Road: System Parameters User Guide 
+# X-Road: System Parameters User Guide
 
-Version: 2.15
+Version: 2.15  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -101,7 +101,7 @@ Multiple parameters can be configured under the same section:
 	[proxy]
 	client-http-port=1234
 	server-listen-port=20000
-    
+
 **NB! Changing the parameter values in the configuration files requires restarting of the server.**
 
 **WARNING! The value of the parameter is not validated, thus care must be taken when changing the value. For example, setting the port number to a non-numeric value in the configuration will cause the system to crash.**
@@ -306,4 +306,3 @@ This chapter describes the system parameters used by the X-Road configuration pr
 [3] See also [*http://linux.die.net/man/8/cron*](http://linux.die.net/man/8/cron).
 
 [4] For exact format specification see also [*https://help.ubuntu.com/community/CronHowto*](https://help.ubuntu.com/community/CronHowto).
-
