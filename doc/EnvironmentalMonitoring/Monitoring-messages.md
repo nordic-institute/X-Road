@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Messages
 
-Version: 1.2 
+Version: 1.2  
 Doc. ID: PR-ENVMONMES
 
 | Date       | Version     | Description                                                                  | Author             |

@@ -210,12 +210,12 @@ module Clients::Services
     deleted.each do |wsdl|
       audit_log_data[:wsdlUrls] << wsdl.url
 
+      clean_acls(client, wsdl)
+
       wsdl.client = nil
       client.wsdl.remove(wsdl)
       @session.delete(wsdl)
     end
-
-    clean_acls(client)
 
     serverconf_save
 
@@ -701,16 +701,28 @@ module Clients::Services
     format_service_id(service.serviceCode, service.serviceVersion)
   end
 
-  def clean_acls(client)
+  def get_service_codes(wsdl)
     service_codes = Set.new
 
-    client.wsdl.each do |wsdl|
-      wsdl.service.each do |service|
-        service_codes << service.serviceCode
+    wsdl.service.each do |service|
+      service_codes << service.serviceCode
+    end
+
+    service_codes
+  end
+
+  def clean_acls(client, wsdl)
+    service_codes = get_service_codes(wsdl)
+
+    # exclude services existing with different version
+    client.wsdl.each do |w|
+
+      if w.id != wsdl.id
+        service_codes.subtract(get_service_codes(w))
       end
     end
 
-    remove_access_rights(client.acl, nil, service_codes)
+    remove_access_rights(client.acl, nil, service_codes) if !service_codes.empty?
   end
 
   def check_internal_server_certs(client, url)

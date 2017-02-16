@@ -1,7 +1,27 @@
 # Change Log
 
-## 6.10.0
+## 6.11.0
 - TBD
+
+## 6.10.0 - 2017-02-15
+- PVAYLADEV-684: Change source code directory structure so that doc folder moves to root level and xtee6 folder is renamed to src. Checkstyle configuration moves to src from doc.
+- PVAYLADEV-670: The document DM-CS central server data model was converted to markdown format and the included ER diagram was done with draw.io tool.
+- PVAYLADEV-253: Serverproxy ensures that client certificate belongs to registered security server before reading the SOAP message.
+- PVAYLADEV-369: Environmental monitoring port configuration system property group monitor has been renamed to env-monitor. If the system property monitor.port was previously configured, it has to be done again using env-monitor.port. Monitor sensor intervals are now also configurable as system properties.
+- PVAYLADEV-657: Added version history table and license text to markdown documentation.
+- PVAYLADEV-661: Packaging the software is done in Docker container. This includes both deb and rpm packaging.
+- PVAYLADEV-675: Fixed problem in central server and security server user interface's file upload component. The problem caused the component not to clear properly on close.
+- PVAYLADEV-680: Fixed problem in Debian changelog that caused warnings on packaging.
+- PVAYLADEV-682: Added Ansible scripts to create test automation environment.
+- PVAYLADEV-547: Added Vagrantfile for creating X-Road development boxes. It is possible to run X-Road servers in LXD containers inside the development box.
+
+## 6.9.4 - 2017-02-13
+- XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
+- XTE-319: Security Server UI bugfix: WSDL deletion caused incorrect ACL removal
+- XTE-322: Security Server bugfix: a typo in the configuration file proxy.ini (client-timeout)
+
+## 6.9.3 - 2017-02-10
+- PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
 
 ## 6.9.2 - 2017-01-23
 - PVAYLADEV-662: Fixed proxy memory parameters
