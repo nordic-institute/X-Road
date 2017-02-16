@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Daemon Architecture
 
-Version: 0.6
+Version: 0.6  
 Document ID: ARC-OPMOND
 
 | Date       | Version     | Description                                                                  | Author             |

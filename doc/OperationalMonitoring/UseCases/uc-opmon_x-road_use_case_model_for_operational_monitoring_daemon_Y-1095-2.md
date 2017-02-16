@@ -1,7 +1,7 @@
 # X-Road: Use Case Model for Operational Monitoring Daemon
 
-Version: 0.6
-Document ID: UC-OPMON
+Version: 0.6  
+Doc. ID: UC-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
