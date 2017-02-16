@@ -16,6 +16,7 @@ Doc. ID: DM-ML
 | 19.10.2015 | 1.1         | Indexes added                                   | Martin Lind        |
 | 16.12.2016 | 1.2         | Described index added to message log            | Martin Lind        |
 | 16.02.2017 | 1.3         | Converted to markdown                           | Ilkka Seppälä      |
+| 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
 
 ##Table of Contents
 
