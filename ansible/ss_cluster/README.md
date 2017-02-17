@@ -18,6 +18,7 @@ The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 14.04 AMIs
     * The control host can be one of the cluster servers (e.g. the master node), but a separate control host is recommended.
 * Decide names for the cluster members and configure the nodes in the ansible inventory. 
     * See hosts/cluster-example.txt for an example (nodename parameter)
+    * Node names are related to certificate DN's, see "Set up SSL keys" for specifics
 * Change the serverconf_password in group_vars/all and preferably encrypt the file using ansible vault. 
     * The serverconf_password is used to authenticate the local connections to the serverconf database. The default is 'serverconf'.
 
