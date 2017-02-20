@@ -14,7 +14,7 @@ Doc. ID: ARC-G
 # Version history
 
  Date       | Version | Description                                                                                                   | Author             
------------ | ------- | ------------------------------------------------------------------------------------------------------------- | -------------------
+----------- | ---- | ------------------------------------------------------------------------------------------------------------- | -------------------
  02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal 
  03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal 
  08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson       
@@ -149,7 +149,6 @@ The following list contains main design goals and design decisions of the X-Road
 
 <div id="Logical_structure_of_X_Road" class="anchor"></div>
 <a id="Logical_structure_of_X_Road" class="anchor"></a>
-
 ![](img/arc-g_logical_structure_of_x_road.png)
 
 Figure 1. Logical structure of X-Road
@@ -355,11 +354,10 @@ The environmental monitoring JMX service publishes environmental monitoring data
 
 <div id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></div>
 <a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
-
 Table 1. Technology matrix of the X-Road
 
  **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon** 
-------------------- | ------------------- | ------------------ | ----------------------- | ----------------------------------
+----------------------- | ------------------- | ------------------ | ------------------- | -------------------
  Java 8             | X                   | X                  | X                       | X                                 
  C                  | X                   | X                  |                         |                                   
  Logback            | X                   | X                  | X                       | X                                 
@@ -376,10 +374,12 @@ Table 1. Technology matrix of the X-Road
  PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |                                   
  Dropwizard Metrics | X                   |                    |                         | X                                 
 
-<div id="Ref_1" class="anchor"></div><a id="Ref_1" class="anchor"></a>
+<div id="Ref_1" class="anchor"></div>
+<a id="Ref_1" class="anchor"></a>
 \[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
 
-<div id="Ref_2" class="anchor"></div><a id="Ref_2" class="anchor"></a>
+<div id="Ref_2" class="anchor"></div>
+<a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 <div id="5-deployment-view" class="anchor"></div>
