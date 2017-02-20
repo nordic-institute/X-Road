@@ -4,7 +4,7 @@ Index of X-Road Documentation
 
 ### Architecture
 
-- [X-Road Architecture](Architecture/arc-g_x-road_arhitecture_1.4_Y-879-3.docx)
+- [X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
 - [Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture_1.3_Y-879-5.docx)
 - [Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture_1.2.1_Y-879-6.docx)
 - [Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture_2.1.2_Y-879-4.docx)
@@ -19,12 +19,12 @@ Index of X-Road Documentation
 
 ### Manuals
 
-- [Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx)
+- [Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide.md)
 - [Central Server User Guide](Manuals/ug-cs_x-road_6_central_server_user_guide.md)
 - [Signer Console Users Guide](Manuals/ug-sc_x-road_signer-console_users_guide_2.5_Y-883-20.docx)
 - [Security Server Installation Guide](Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
 - [Central Server Installation Guide](Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
-- [HA Installation Guide](Manuals/ig-csha_x-road_6_ha_installation_guide_1.3.1_Y-883-19-1.docx)
+- [HA Installation Guide](Manuals/ig-csha_x-road_6_ha_installation_guide.md)
 - [Signed Document Download and Verification Manual](Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx)
 - [Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual_2.0_Y-745-10.docx)
 - [System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
