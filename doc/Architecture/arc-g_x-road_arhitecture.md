@@ -11,6 +11,7 @@ Doc. ID: ARC-G
 
 ---
 
+<div id="version-history" class="anchor"></div>
 # Version history
 
  Date          | Version | Description                                                                                                   | Author             
@@ -27,6 +28,7 @@ Doc. ID: ARC-G
  20.12.2016    | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       
  20.02.2017    | 1.5     | Converted to Markdown, added license text                                                                     | Toomas Mölder      
 
+<div id="table-of-contents" class="anchor"></div>
 # Table of Contents
 
 [1 Introduction](#1-introduction)  
