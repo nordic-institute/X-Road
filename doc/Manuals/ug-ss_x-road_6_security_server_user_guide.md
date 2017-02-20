@@ -4,8 +4,8 @@
 
 <div id="security-server-user-guide" class="anchor"></div>
 # SECURITY SERVER USER GUIDE
+**X-ROAD 6**
 
-X-ROAD 6  
 Version: 2.15  
 20.02.2017   
 Doc. ID: UG-SS 
