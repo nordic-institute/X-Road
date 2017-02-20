@@ -510,31 +510,31 @@ The registration of the security server's owner does not extend to the owner's s
 
 The security server distinguishes between the following client states.
 
-![](img/UG-SS_saved.png) **Saved** – the client's information has been entered and saved into the security server's configuration (see [4.2](#42-adding-a-security-server-client)), but the association between the client and the security server is not registered in the X-Road governing authority. (If the association is registered in the central server prior to the entry of data, the client will move to the "Registered" state upon data entry.) From this state, the client can move to the following states:
+![](img/ug-ss_saved.png) **Saved** – the client's information has been entered and saved into the security server's configuration (see [4.2](#42-adding-a-security-server-client)), but the association between the client and the security server is not registered in the X-Road governing authority. (If the association is registered in the central server prior to the entry of data, the client will move to the "Registered" state upon data entry.) From this state, the client can move to the following states:
 
 -   “Registration in progress”, if a registration request for the client is submitted from the security server (see [4.4.1](#441-registering-a-security-server-client));
 
 -   “Deleted”, if the client's information is deleted from the security server configuration (see [4.5.2](#452-deleting-a-client)).
 
-![](img/UG-SS_registration_in_progress.png) **Registration in progress** – a registration request for the client is submitted from the security server to the central server, but the association between the client and the security server is not yet approved by the X-Road governing authority. From this state, the client can move to the following states:
+![](img/ug-ss_registration_in_progress.png) **Registration in progress** – a registration request for the client is submitted from the security server to the central server, but the association between the client and the security server is not yet approved by the X-Road governing authority. From this state, the client can move to the following states:
 
 -   "Registered", if the association between the client and the security server is approved by the X-Road governing authority (see [4.4.1](#441-registering-a-security-server-client));
 
 -   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
 
-![](img/UG-SS_registered.png) **Registered** – the association between the client and the security server has been approved in the X-Road governing authority. In this state, the client can provide and use X-Road services (assuming all other prerequisites are fulfilled). From this state, the client can move to the following states:
+![](img/ug-ss_registered.png) **Registered** – the association between the client and the security server has been approved in the X-Road governing authority. In this state, the client can provide and use X-Road services (assuming all other prerequisites are fulfilled). From this state, the client can move to the following states:
 
 -   "Global error", if the association between the client and the security server has been revoked by the X-Road governing authority;
 
 -   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
 
-![](img/UG-SS_global_error.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
+![](img/ug-ss_global_error.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
 
 -   "Registered", if the association between the client and the security server has been restored in the central server (e.g., the association between the client and the security server was lost due to an error);
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
-![](img/UG-SS_deletion_in_progress.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
+![](img/ug-ss_deletion_in_progress.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
 
 -   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
 
