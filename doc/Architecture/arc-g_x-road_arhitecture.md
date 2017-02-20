@@ -13,19 +13,19 @@ Doc. ID: ARC-G
 
 # Version history
 
- Date       | Version | Description                                                                                                   | Author             
------------ | ---- | ------------------------------------------------------------------------------------------------------------- | -------------------
- 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal 
- 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal 
- 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson       
- 08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal 
- 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal 
- 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto       
- 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov      
- 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk         
- 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä      
- 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       
- 20.02.2017 | 1.5     | Converted to Markdown, added license text                                                                     | Toomas Mölder      
+ Date          | Version | Description                                                                                                   | Author             
+-------------- | ------- | ------------------------------------------------------------------------------------------------------------- | -------------------
+ 02.06.2015    | 0.1     | Initial version                                                                                               | Margus Freudenthal 
+ 03.07.2015    | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal 
+ 08.09.2015    | 0.3     | Made editorial changes                                                                                        | Vello Hanson       
+ 08.09.2015    | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal 
+ 17.09.2015    | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal 
+ 18.09.2015    | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto       
+ 13.10.2015    | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov      
+ 28.10.2015    | 1.2     | Typos fixed                                                                                                   | Siim Annuk         
+ 16.12.2015    | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä      
+ 20.12.2016    | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       
+ 20.02.2017    | 1.5     | Converted to Markdown, added license text                                                                     | Toomas Mölder      
 
 # Table of Contents
 
