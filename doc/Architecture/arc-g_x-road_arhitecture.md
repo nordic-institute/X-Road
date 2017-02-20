@@ -13,19 +13,19 @@ Doc. ID: ARC-G
 
 # Version history
 
-| Date       | Version | Description                                                                                                   | Author             |
-|------------|---------|---------------------------------------------------------------------------------------------------------------|--------------------|
-| 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal |
-| 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal |
-| 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson       |
-| 08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal |
-| 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal |
-| 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto       |
-| 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov      |
-| 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk         |
-| 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä      |
-| 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       |
-| 20.02.2017 | 1.5     | Converted to Markdown, added license text                                                                     | Toomas Mölder      |
+ Date       | Version | Description                                                                                                   | Author             
+----------- | ------- | ------------------------------------------------------------------------------------------------------------- | -------------------
+ 02.06.2015 | 0.1     | Initial version                                                                                               | Margus Freudenthal 
+ 03.07.2015 | 0.2     | Updated component diagram, added technology matrix, updated interface descriptions, added references          | Margus Freudenthal 
+ 08.09.2015 | 0.3     | Made editorial changes                                                                                        | Vello Hanson       
+ 08.09.2015 | 0.4     | Added signed document download interface and UIs to component diagram, added components to deployment diagram | Margus Freudenthal 
+ 17.09.2015 | 0.5     | Incorporated feedback from Vitali                                                                             | Margus Freudenthal 
+ 18.09.2015 | 1.0     | Editorial changes made                                                                                        | Imbi Nõgisto       
+ 13.10.2015 | 1.1     | Incorporated feedback from Vitali                                                                             | Ilja Kromonov      
+ 28.10.2015 | 1.2     | Typos fixed                                                                                                   | Siim Annuk         
+ 16.12.2015 | 1.3     | Add environmental monitoring                                                                                  | Ilkka Seppälä      
+ 20.12.2016 | 1.4     | Added operational monitoring                                                                                  | Kristo Heero       
+ 20.02.2017 | 1.5     | Converted to Markdown, added license text                                                                     | Toomas Mölder      
 
 # Table of Contents
 
@@ -147,7 +147,9 @@ The following list contains main design goals and design decisions of the X-Road
 
 [Figure 1](#Logical_structure_of_X_Road) shows the main components and interfaces of the X-Road system. The components that are not part of the X-Road core are shown on grey background. The components and the interfaces are described in detail in the following sections.
 
-<div id="Logical_structure_of_X_Road" class="anchor"></div><a id="Logical_structure_of_X_Road" class="anchor"></a>
+<div id="Logical_structure_of_X_Road" class="anchor"></div>
+<a id="Logical_structure_of_X_Road" class="anchor"></a>
+
 ![](img/arc-g_logical_structure_of_x_road.png)
 
 Figure 1. Logical structure of X-Road
@@ -349,29 +351,30 @@ The environmental monitoring JMX service publishes environmental monitoring data
 <div id="4-technology-matrix" class="anchor"></div>
 # 4 Technology Matrix
 
-Table 1 presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
+[Table 1](#Ref_Technology_matrix_of_the_X_Road) presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
 
-<div id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></div><a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
+<div id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></div>
+<a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
+
 Table 1. Technology matrix of the X-Road
 
-|                    |                     |                    |                         |                                   |
-|--------------------|---------------------|--------------------|-------------------------|-----------------------------------|
-| **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon** |
-| Java 8             | X                   | X                  | X                       | X                                 |
-| C                  | X                   | X                  |                         |                                   |
-| Logback            | X                   | X                  | X                       | X                                 |
-| Akka 2.X           | X                   | X                  |                         | X                                 |
-| Jetty 9            | X                   | X                  |                         |                                   |
-| JRuby 1.7          | X                   | X                  |                         |                                   |
-| Ubuntu 14.04       | X                   | X                  | X                       | X                                 |
-| PostgreSQL 9.3     | X                   | X                  |                         | X                                 |
-| PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |                                   |
-| nginx              | X                   | X                  | X                       |                                   |
-| PAM                | X                   | X                  |                         |                                   |
-| Liquibase          | X                   |                    |                         | X                                 |
-| upstart            | X                   | X                  | X                       | X                                 |
-| PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |                                   |
-| Dropwizard Metrics | X                   |                    |                         | X                                 |
+ **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon** 
+------------------- | ------------------- | ------------------ | ----------------------- | ----------------------------------
+ Java 8             | X                   | X                  | X                       | X                                 
+ C                  | X                   | X                  |                         |                                   
+ Logback            | X                   | X                  | X                       | X                                 
+ Akka 2.X           | X                   | X                  |                         | X                                 
+ Jetty 9            | X                   | X                  |                         |                                   
+ JRuby 1.7          | X                   | X                  |                         |                                   
+ Ubuntu 14.04       | X                   | X                  | X                       | X                                 
+ PostgreSQL 9.3     | X                   | X                  |                         | X                                 
+ PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |                                   
+ nginx              | X                   | X                  | X                       |                                   
+ PAM                | X                   | X                  |                         |                                   
+ Liquibase          | X                   |                    |                         | X                                 
+ upstart            | X                   | X                  | X                       | X                                 
+ PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |                                   
+ Dropwizard Metrics | X                   |                    |                         | X                                 
 
 <div id="Ref_1" class="anchor"></div><a id="Ref_1" class="anchor"></a>
 \[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
@@ -386,7 +389,8 @@ Table 1. Technology matrix of the X-Road
 
 The diagram also shows what components are installed and hosted by any given organization. The governing authority installs and maintains central server and central security server. The configuration proxy is an optional component that is typically used for distributing configuration to federated X-Road instances. The service client and service provider organizations host their information system and security server that connects the information system to the X-Road.
 
-<div id="Deployment_view_of_X_Road" class="anchor"></div><a id="Deployment_view_of_X_Road" class="anchor"></a>
+<div id="Deployment_view_of_X_Road" class="anchor"></div>
+<a id="Deployment_view_of_X_Road" class="anchor"></a>
 ![](img/arc-g_deployment_view_of_x_road.png)
 
 Figure 2. Deployment view of X-Road
