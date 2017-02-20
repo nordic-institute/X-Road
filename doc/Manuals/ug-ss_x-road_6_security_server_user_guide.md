@@ -2,49 +2,53 @@
 
 ---
 
+<div id="security-server-user-guide" class="anchor"></div>
+# SECURITY SERVER USER GUIDE
+
 X-ROAD 6  
-**SECURITY SERVER USER GUIDE**  
-2.15  
+Version: 2.15  
+20.02.2017   
+Doc. ID: UG-SS 
 
 ---
 
 <div id="version-history" class="anchor"></div>
 # Version history
 
- Date          | Version | Description 
- ------------- | ------- | -----------------------------------------------------------------------------------
- 05.09.2014    | 0.1     | Initial draft  
- 24.09.2014    | 0.2     | Translation to English  
- 10.10.2014    | 0.3     | Update  
- 14.10.2014    | 0.4     | Title page, header, footer added  
- 16.10.2014    | 0.5     | Minor corrections done  
- 12.11.2014    | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#16-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)). 
- 1.12.2014     | 1.0     | Minor corrections done 
- 19.01.2015    | 1.1     | License information added 
- 27.01.2015    | 1.2     | Minor corrections done 
- 30.04.2015    | 1.3     | “sdsb” changed to “xroad” 
- 29.05.2015    | 1.4     | Message Log chapter added (Chapter [11](#11-message-log)) 
- 30.06.2015    | 1.5     | Minor corrections done 
- 3.07.2015     | 1.6     | Audit Log chapter added (Chapter [12](#12-audit-log)) 
- 7.09.2015     | 1.7     | Message Log – how to use remote database (Section [11.3](#113-using-a-remote-database)) 
- 14.09.2015    | 1.8     | Reference to the audit log events added 
- 18.09.2015    | 1.9     | Minor corrections done 
- 21.09.2015    | 2.0     | References fixed 
- 07.10.2015    | 2.1     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400 
- 14.10.2015    | 2.2     | Instructions for using an external database for the message log corrected 
- 05.11.2015    | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore)) 
- 30.11.2015    | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made. 
- 09.12.2015    | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made. 
- 14.12.2015    | 2.6     | Message log updated (Chapter [11](#11-message-log))  
- 14.01.2016    | 2.7     | Logs updated (Chapter [16](#16-logs-and-system-services))  
- 08.02.2016    | 2.8     | Corrections in chapter [16](#16-logs-and-system-services)  
- 20.05.2016    | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate. 
- 29.11.2016    | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)). |
- 19.12.2016    | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring  
- 20.12.2016    | 2.12    | Minor corrections in Chapter [15](#15-operational-monitoring) 
- 22.12.2016    | 2.13    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server) 
- 04.01.2016    | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server) 
- 20.02.2017    | 2.15    | Converted to Github flavoured Markdown, added license text 
+ Date       | Version | Description                                                     | Author             
+ ---------- | ------- | --------------------------------------------------------------- | --------------------
+ 05.09.2014 | 0.1     | Initial draft  
+ 24.09.2014 | 0.2     | Translation to English  
+ 10.10.2014 | 0.3     | Update  
+ 14.10.2014 | 0.4     | Title page, header, footer added  
+ 16.10.2014 | 0.5     | Minor corrections done  
+ 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#16-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)). 
+ 1.12.2014  | 1.0     | Minor corrections done 
+ 19.01.2015 | 1.1     | License information added 
+ 27.01.2015 | 1.2     | Minor corrections done 
+ 30.04.2015 | 1.3     | “sdsb” changed to “xroad” 
+ 29.05.2015 | 1.4     | Message Log chapter added (Chapter [11](#11-message-log)) 
+ 30.06.2015 | 1.5     | Minor corrections done 
+ 3.07.2015  | 1.6     | Audit Log chapter added (Chapter [12](#12-audit-log)) 
+ 7.09.2015  | 1.7     | Message Log – how to use remote database (Section [11.3](#113-using-a-remote-database)) 
+ 14.09.2015 | 1.8     | Reference to the audit log events added 
+ 18.09.2015 | 1.9     | Minor corrections done 
+ 21.09.2015 | 2.0     | References fixed 
+ 07.10.2015 | 2.1     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400 
+ 14.10.2015 | 2.2     | Instructions for using an external database for the message log corrected 
+ 05.11.2015 | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore)) 
+ 30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made. 
+ 09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made. 
+ 14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))  
+ 14.01.2016 | 2.7     | Logs updated (Chapter [16](#16-logs-and-system-services))  
+ 08.02.2016 | 2.8     | Corrections in chapter [16](#16-logs-and-system-services)  
+ 20.05.2016 | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate. 
+ 29.11.2016 | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)). |
+ 19.12.2016 | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring  
+ 20.12.2016 | 2.12    | Minor corrections in Chapter [15](#15-operational-monitoring) 
+ 22.12.2016 | 2.13    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server) 
+ 04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server) 
+ 20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder  
 
 
 <div id="table-of-contents" class="anchor"></div>
