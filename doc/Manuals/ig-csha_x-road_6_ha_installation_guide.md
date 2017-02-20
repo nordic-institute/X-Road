@@ -4,8 +4,8 @@
 
 <div id="central-server-high-availability-installation-guide" class="anchor"></div>
 # Central Server High Availability Installation Guide
+**X-ROAD 6**
 
-X-ROAD 6  
 Version: 1.4  
 20.02.2017  
 Doc. ID: IG-CSHA  
