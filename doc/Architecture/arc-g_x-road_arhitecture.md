@@ -4,8 +4,8 @@
 
 <div id="technical-specification" class="anchor"></div>
 # Technical Specification
+**X-Road Architecture**
 
-X-Road Architecture  
 Version: 1.5  
 20.02.2017  
 <!-- 16 pages -->  
@@ -28,7 +28,7 @@ Doc. ID: ARC-G
  28.10.2015 | 1.2     | Typos fixed                                                     | Siim Annuk         
  16.12.2015 | 1.3     | Add environmental monitoring                                    | Ilkka Seppälä      
  20.12.2016 | 1.4     | Added operational monitoring                                    | Kristo Heero       
- 20.02.2017 | 1.5     | Converted to Markdown, added license text                       | Toomas Mölder      
+  20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      
 
 <div id="table-of-contents" class="anchor"></div>
 # Table of Contents
