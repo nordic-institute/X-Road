@@ -2,23 +2,27 @@
 
 ---
 
+<div id="central-server-high-availability-installation-guide" class="anchor"></div>
+# Central Server High Availability Installation Guide
+
 X-ROAD 6  
-**Central Server High Availability Installation Guide**  
-1.4  
+Version: 1.4  
+20.02.2017  
+Doc. ID: IG-CSHA  
 
 ---
 
 <div id="version-history" class="anchor"></div>
 # Version HISTORY
 
- Date          | Version | Description                
- ------------- | ------- | ---------------------------
- 31.08.2015    | 0.1     | Initial version created.   
- 15.09.2015    | 1.0     | Minor fixes done.          
- 20.09.2015    | 1.1     | Editorial changes made     
- 16.12.2015    | 1.2     | Added recovery information 
- 17.12.2015    | 1.3     | Editorial changes made     
- 20.02.2017    | 1.4     | Converted to Markdown, added license text
+ Date       | Version | Description                                                     | Author             
+ ---------- | ------- | --------------------------------------------------------------- | --------------------
+ 31.08.2015 | 0.1     | Initial version created.   
+ 15.09.2015 | 1.0     | Minor fixes done.          
+ 20.09.2015 | 1.1     | Editorial changes made     
+ 16.12.2015 | 1.2     | Added recovery information 
+ 17.12.2015 | 1.3     | Editorial changes made     
+ 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      
 
 
 <div id="table-of-contents" class="anchor"></div>
