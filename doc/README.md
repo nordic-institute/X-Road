@@ -28,8 +28,6 @@ Index of X-Road Documentation
 - [\[UG-SIGDOC\] Signed Document Download and Verification Manual](Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx)
 - [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual_2.0_Y-745-10.docx)
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
-- [\[UG-CMON\] Central Monitoring Agent Manual](Manuals/central_monitoring_agent_manual_1.1_Y-745-12.pdf)
-- [\[UG-PMON\] Proxy Monitoring Agent Manual](Manuals/proxy_monitoring_agent_manual_1.1_Y-745-13.pdf)
 
 ### Use Cases
 - [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.docx)
