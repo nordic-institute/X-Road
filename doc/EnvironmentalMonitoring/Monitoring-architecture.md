@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Architecture
 
-Version: 1.2  
+Version: 1.3  
 Doc. ID: ARC-ENVMON
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -8,6 +8,7 @@ Doc. ID: ARC-ENVMON
 | 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
 | 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
 | 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
+| 1.3.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
 
 ## Table of Contents
 <!-- toc -->
@@ -50,6 +51,7 @@ This document describes environmental monitoring architecture.
 | PR-GCONF      | Cybernetica AS. X-Road: Protocol for Downloading Configuration |
 | UC-GCONF      | Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution|
 | PR-MESS | Cybernetica AS.X-Road: Message Protocol v4.0      |
+| PR-TARGETSS | Security Server targeting extension for the X-Road message protocol |
 
 # Components
 
@@ -161,9 +163,9 @@ An alternative to this would be model where security servers periodically _push_
 
 To support clustered configurations, monitoring queries use an extended X-Road message protocol.
 
-## Modified X-Road message protocol
+## Using an extension of the X-Road message protocol
 
-Fetching security server metrics uses the X-Road protocol. The original X-Road 6.0 message protocol (described in [PR-MESS](#refsanchor)) had header element `service` to define the recipient of a message.
+Fetching security server metrics uses the X-Road protocol. The original X-Road message protocol version 4.0  (described in [PR-MESS](#refsanchor)) had header element `service` to define the recipient of a message.
 
 ```xml
 <SOAP-ENV:Envelope
@@ -194,7 +196,7 @@ xmlns:prod="http://vrk-test.x-road.fi/producer">
 </SOAP-ENV:Envelope>
 ```
 
-For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data frin a specific security server in a cluster. To make this possible, a new element `securityServer` has been added. Using this element, called identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.palveluvayla.com`). To execute a query, we call service `getSecurityServerMetrics`:
+For monitoring queries this is not enough. In a clustered security server configuration, one service can be served from multiple security servers. When X-Road routes the message, it picks one candidate based on which one answers the quickest. When executing monitoring queries, we need to be able to fetch monitoring data from a specific security server in a cluster. To make this possible the Security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#refsanchor)\] is used, which adds a new SOAP header element `securityServer`. Using this element, the caller identifies which security server should respond with the monitoring data (`servercode` = `fdev-ss1.i.palveluvayla.com`). To execute a query, we call service `getSecurityServerMetrics`:
 
 ```xml
 <SOAP-ENV:Envelope

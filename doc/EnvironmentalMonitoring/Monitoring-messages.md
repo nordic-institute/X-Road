@@ -1,6 +1,6 @@
 # X-Road: Environmental Monitoring Messages
 
-Version: 1.2  
+Version: 1.3  
 Doc. ID: PR-ENVMONMES
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -8,6 +8,7 @@ Doc. ID: PR-ENVMONMES
 | 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
 | 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
 | 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
+| 1.3.2017   | 1.3       | Added reference to security server targeting extension | Olli Lindgren|
 
 ## Table of Contents
 
@@ -18,6 +19,7 @@ Doc. ID: PR-ENVMONMES
   * [Request](#request)
   * [Response](#response)
   * [Response Schema](#response-schema)
+- [References](#references)
 
 <!-- tocstop -->
 
@@ -29,7 +31,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### Request
 
-Fetching security server metrics uses the X-Road protocol. The `getSecurityServerMetrics` request requires a `securityServer` header element so that the request can be routed to a specific security server.
+Fetching security server metrics uses the X-Road protocol. The `getSecurityServerMetrics` request requires a `securityServer` header element as specified by the security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\] so that the request can be routed to a specific security server.
 
 ```xml
 <SOAP-ENV:Envelope
@@ -67,7 +69,7 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
         <m:getSecurityServerMetrics/>
     </SOAP-ENV:Body>
 
-</SOAP-ENV:Envelope
+</SOAP-ENV:Envelope>
 ```
 
 ### Response
@@ -204,3 +206,8 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
     <xs:element name="getSecurityServerMetrics" type="tns:getSecurityServerMetricsType"/>
 </schema>
 ```
+## References
+
+| Code||
+| ------------- |-------------|
+| <a name="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] | Security server targeting extension for the X-Road message protocol  |
