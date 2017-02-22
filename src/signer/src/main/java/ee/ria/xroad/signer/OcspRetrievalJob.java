@@ -22,37 +22,29 @@
  */
 package ee.ria.xroad.signer;
 
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
-
-import java.util.concurrent.TimeUnit;
-
-import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.signer.util.VariableIntervalPeriodicJob;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.duration.FiniteDuration;
 
 /**
- * Periodically executes the Global Configuration reload by
- * sending {@link ee.ria.xroad.signer.certmanager.OcspClientWorker} the message {@value OcspClientWorker#RELOAD}
+ * Base class for variable interval periodic jobs relating to OCSP-retrieval. Automatic preStart scheduling can be
+ * disabled based on the signer configuration to prevent unnecessary OCSP-retrieval attempts on central server or
+ * configuration proxy signers.
  */
 @Slf4j
-public class OcspClientReload extends OcspRetrievalJob {
+public abstract class OcspRetrievalJob extends VariableIntervalPeriodicJob {
 
-    private static final int INTERVAL_SECONDS = 60;
-
-    private static final FiniteDuration INITIAL_DELAY =
-            FiniteDuration.create(100, TimeUnit.MILLISECONDS);
-
-    OcspClientReload() {
-        super(OCSP_CLIENT, OcspClientWorker.RELOAD);
+    OcspRetrievalJob(String actor, Object message) {
+        super(actor, message);
     }
 
     @Override
-    protected FiniteDuration getInitialDelay() {
-        return INITIAL_DELAY;
+    public void preStart() throws Exception {
+        if (SystemProperties.isOcspResponseRetrievalActive()) {
+            super.preStart();
+        } else {
+            log.info("OCSP-retrieval configured to be inactive, job auto-scheduling disabled");
+        }
     }
 
-    @Override
-    protected FiniteDuration getNextDelay() {
-        return FiniteDuration.create(INTERVAL_SECONDS, TimeUnit.SECONDS);
-    }
 }
