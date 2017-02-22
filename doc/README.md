@@ -37,7 +37,7 @@ Index of X-Road Documentation
 - [\[UC-MEMBER\] Member Management](UseCases/uc-member_x-road_use_case_model_for_member_management_1.4_Y-883-1.docx)
 - [\[UC-GCONF\] Global Configuration Distribution](UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.docx)
 - [\[UC-TRUST\] Trust Service Management](UseCases/uc-trust_x-road_use_case_model_for_trust_service_management_1.1.1_Y-883-9.docx)
-- [\[UC-MESS\] Member Communication](UseCases/uc-mess_x-road_member_communication_use_case_model_1.5_Y-883-2.docx)
+- [\[UC-MESS\] Member Communication](UseCases/uc-mess_x-road_member_communication_use_case_model.md)
 - [\[UC-SERVICE\] Service Management](UseCases/uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.docx)
 
 ### Data Models
