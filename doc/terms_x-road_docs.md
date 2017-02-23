@@ -146,7 +146,11 @@
 
 > **Metaandmete teenus** (*metadata service*) – X-tee keskuse realiseeritud liikmetevahelised teenused, mis võimaldavad X-tee liikmetel ja X-tee kasutajatel saada ülevaate X-teest (nt võimaldavad saada teenuste tarbimiseks vajaliku ülevaate realiseeritud teenuste ja pääsuõiguste kohta).
 
-**Monitoring service** (*seireteenus*) – .
+**Monitoring service** (*seireteenus*) – The X-Road monitoring solution is conceptually split into two parts: environmental and operational monitoring. 
+
+- **Environmental monitoring** is the monitoring of the X-Road environment: details of the security servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
+
+- **Operational monitoring** is the monitoring of operational statistics such as which services have been called, how many times, what is the average response time, etc.
 
 **Management service** (*haldusteenus*) – services provided by the X-Road governing organization to manage security servers and security server clients. Management services are implemented as standard X-Road services following X-Road message protocol.
 
