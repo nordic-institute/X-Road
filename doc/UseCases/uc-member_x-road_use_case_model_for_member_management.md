@@ -2729,19 +2729,19 @@ Figure 1. Use case diagram for member management
 
     -   The X-Road identifier of the client.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   add a client: [2.4.4](#244-uc-member_47-add-a-client-to-the-security-server);
+    -   add a client: [2.4.4](#244-uc-member_47-add-a-client-to-the-security-server);
 
--   view the details of a client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
+    -   view the details of a client: [2.4.2](#242-uc-member_45-view-the-details-of-a-security-server-client);
 
--   view the service clients of a client: see UC SERVICE\_01 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
+    -   view the service clients of a client: see UC SERVICE\_01 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
 
--   view the services of a client: see UC SERVICE\_07 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
+    -   view the services of a client: see UC SERVICE\_07 \[[UC-SERVICE](#Ref_UC-SERVICE)\];
 
--   view the configuration for communicating with the internal servers of a client: [2.4.3](#243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client);
+    -   view the configuration for communicating with the internal servers of a client: [2.4.3](#243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client);
 
--   view the local groups of a client: see UC SERVICE\_23 \[[UC-SERVICE](#Ref_UC-SERVICE)\].
+    -   view the local groups of a client: see UC SERVICE\_23 \[[UC-SERVICE](#Ref_UC-SERVICE)\].
 
 **Extensions**: -
 
