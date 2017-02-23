@@ -75,7 +75,7 @@ The purpose of this document is to describe the events and verifications that ta
 <div id="12-terms-and-abbreviations" class="anchor"></div>
 ## 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
+The definitions for general X-Road terms can be found at [Terms of X-Road](../terms_x-road_docs.md).
 
 The following terms are used in this document in addition to the general terms:
 
