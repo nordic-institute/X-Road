@@ -100,15 +100,15 @@ The security server also depends on a central server, which provides the global 
 <div id="12-terms-and-abbreviations" class="anchor"></div>
 ## 1.2 Terms and Abbreviations
 
-MIME - Multipurpose Internet Mail Extensions
+**MIME** - Multipurpose Internet Mail Extensions
 
-OCSP - Online Certificate Status Protocol
+**OCSP** - Online Certificate Status Protocol
 
-SOAP - Simple Object Access Protocol
+**SOAP** - Simple Object Access Protocol
 
-TLS - Transport Layer Security
+**TLS** - Transport Layer Security
 
-TSP - Time Stamp Provider
+**TSP** - Time Stamp Provider
 
 <div id="13-references" class="anchor"></div>
 ## 1.3 References
@@ -117,7 +117,7 @@ TSP - Time Stamp Provider
 
 2. <div id="Ref_ARC_OPMOND" class="anchor"></div><a id="Ref_ARC_OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture.
 
-3. \[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
+3. <div id="Ref_BATCH-TS" class="anchor"></div><a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
 4. <div id="Ref_DM-SS" class="anchor"></div><a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration.
 
@@ -141,11 +141,11 @@ TSP - Time Stamp Provider
 
 14. <div id="Ref_TSP" class="anchor"></div><a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-15. \[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual.
+15. <div id="Ref_UG-SIGDOC" class="anchor"></div><a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual.
 
 16. <div id="Ref_UC-MESS" class="anchor"></div><a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model.
 
-17. \[ARC-MA\] X-Road: Monitoring Architecture
+17. <div id="Ref_ARC-MA" class="anchor"></div><a id="Ref_ARC-MA" class="anchor"></a>\[ARC-MA\] X-Road: Monitoring Architecture
 
 <div id="2-component-view" class="anchor"></div>
 # 2. Component View
