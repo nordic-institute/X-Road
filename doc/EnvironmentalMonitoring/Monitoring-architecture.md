@@ -8,7 +8,7 @@ Doc. ID: ARC-ENVMON
 | 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
 | 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
 | 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
-| 1.3.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
+| 23.2.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
 
 ## Table of Contents
 <!-- toc -->

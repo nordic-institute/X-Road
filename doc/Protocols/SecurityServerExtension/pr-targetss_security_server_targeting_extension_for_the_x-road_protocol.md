@@ -5,7 +5,7 @@ Doc. ID: PR-TARGETSS
 
 | Date      | Version  | Description                                                                  | Author             |
 |-----------|----------|------------------------------------------------------------------------------|--------------------|
-| 1.3.2017 | 1.0       | Initial version                                                              | Olli Lindgren     |
+| 23.2.2017 | 1.0       | Initial version                                                              | Olli Lindgren     |
 
 
 ## Table of Contents

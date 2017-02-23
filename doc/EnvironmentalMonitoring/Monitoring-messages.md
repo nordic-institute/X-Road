@@ -8,7 +8,7 @@ Doc. ID: PR-ENVMONMES
 | 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
 | 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
 | 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
-| 1.3.2017   | 1.3       | Added reference to security server targeting extension | Olli Lindgren|
+| 23.2.2017   | 1.3       | Added reference to security server targeting extension | Olli Lindgren|
 
 ## Table of Contents
 
