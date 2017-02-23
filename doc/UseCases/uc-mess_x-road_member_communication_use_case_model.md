@@ -106,7 +106,7 @@ The following terms are used in this document in addition to the general terms:
 
 8.  <div id="Ref_UC-SS" class="anchor"></div><a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
 
-9.  <div id="UC-OPMON" class="anchor"></div><a id="UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: UC-OPMON.
+9.  <div id="Ref_UC-OPMON" class="anchor"></div><a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: UC-OPMON.
 
 <div id="2-overview" class="anchor"></div>
 # 2. Overview
