@@ -1335,8 +1335,7 @@ The archive file has been successfully transferred when the archiving server ret
 Override the configuration parameter archive-transfer-command (create or edit the file `etc/xroad/conf.d/local.ini`) to set up a transferring script. For example:
 
     [message-log]  
-    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r \  
-	  http://my-archiving-server/cgi-bin/upload  
+    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload  
 
 The message log package contains the CGI script /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl for a demo archiving server for the purpose of testing or development.
 
@@ -1368,13 +1367,12 @@ The message log database can be located outside of the security server. The foll
 
         root@security_server:~ # service xroad-proxy stop
 
-5.  Configure the database connection parameters to achieve encrypted connections, in /etc/xroad/db.properties:
+5.  Configure the database connection parameters to achieve encrypted connections, in `/etc/xroad/db.properties`:
 
         messagelog.hibernate.jdbc.use_streams_for_binary = true  
         messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect  
         messagelog.hibernate.connection.driver_class = org.postgresql.Driver  
-        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?\  
-		  ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory  
+        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory  
         messagelog.hibernate.connection.username = messagelog_user  
         messagelog.hibernate.connection.password = messagelog_password  
 
@@ -1631,7 +1629,7 @@ As advised, the scheme parameter should be set to “https”. For communication
 
 **NOTE:** If an external operational monitoring daemon is used, the host, scheme (and optionally, port) parameters must be changed at both hosts.
 
-The internal TLS certificate of the security server is used for authenticating the security server to the operational monitoring daemon. This certificate has been generated beforehand, during the installation process of the security server, and is available in PEM format in the file /etc/xroad/ssl/internal.crt. Please refer to Section [10.3](#103-changing-the-internal-tls-key-and-certificate) for the instructions on exporting the internal TLS certificate from UI. The file must be copied to the host running the operational monitoring daemon. The system user xroad must have permissions to read this file.
+The internal TLS certificate of the security server is used for authenticating the security server to the operational monitoring daemon. This certificate has been generated beforehand, during the installation process of the security server, and is available in PEM format in the file `/etc/xroad/ssl/internal.crt`. Please refer to Section [10.3](#103-changing-the-internal-tls-key-and-certificate) for the instructions on exporting the internal TLS certificate from UI. The file must be copied to the host running the operational monitoring daemon. The system user xroad must have permissions to read this file.
 
 In the configuration of the external daemon, the corresponding path must be set in `/etc/xroad/conf.d/local.ini`:
 
