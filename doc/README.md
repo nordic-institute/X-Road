@@ -34,7 +34,7 @@ Index of X-Road Documentation
 - [\[UC-CP\] Configuration Proxy](UseCases/uc-cp_x-road_configuration_proxy_use_case_model_1.2_Y-883-5.docx)
 - [\[UC-CS\] Central Server Management](UseCases/uc-cs_x-road_use_case_model_for_central_server_management_1.2_Y-883-6.docx)
 - [\[UC-FED\] Federation](UseCases/uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.docx)
-- [\[UC-MEMBER\] Member Management](UseCases/uc-member_x-road_use_case_model_for_member_management_1.4_Y-883-1.docx)
+- [\[UC-MEMBER\] Member Management](UseCases/uc-member_x-road_use_case_model_for_member_management.md)
 - [\[UC-GCONF\] Global Configuration Distribution](UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.docx)
 - [\[UC-TRUST\] Trust Service Management](UseCases/uc-trust_x-road_use_case_model_for_trust_service_management_1.1.1_Y-883-9.docx)
 - [\[UC-MESS\] Member Communication](UseCases/uc-mess_x-road_member_communication_use_case_model.md)
@@ -43,7 +43,7 @@ Index of X-Road Documentation
 ### Data Models
 
 - [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration._data_model_1.2_Y-883-12.docx)
-- [\[DM-CS\] Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration._data_model_1.3_Y-883-10.docx)
+- [\[DM-CS\] Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration_data_model.md)
 - [\[DM-ML\] Message Log](DataModels/dm-ml_x-road_message_log_data_model.md)
 
 ### Monitoring
