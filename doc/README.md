@@ -5,9 +5,9 @@ Index of X-Road Documentation
 ### Architecture
 
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
-- [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture_1.3_Y-879-5.docx)
+- [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture_1.2.1_Y-879-6.docx)
-- [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture.md)
+- [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture_2.1.2_Y-879-4.docx)
 - [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
 
 ### Protocols
