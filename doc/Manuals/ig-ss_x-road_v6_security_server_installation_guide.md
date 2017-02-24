@@ -2,7 +2,7 @@
 
 ---
 
-<div id="technical-specification" class="anchor"></div>
+<div id="security-server-installation-guide" class="anchor"></div>
 # Security Server Installation Guide
 **X-ROAD 6**
 
