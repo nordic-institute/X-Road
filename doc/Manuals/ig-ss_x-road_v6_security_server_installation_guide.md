@@ -150,13 +150,13 @@ Requirements to software and settings:
 
 -   Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
-            sudo adduser username
+        sudo adduser username
 
     User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 -   Set the operating system locale. Add following line to the `/etc/environment` file.
 
-            LC_ALL=en_US.UTF-8
+        LC_ALL=en_US.UTF-8
 
 <div id="25-installation" class="anchor"></div>
 ## 2.5 Installation
@@ -165,20 +165,20 @@ To install the X-Road security server software, follow these steps.
 
 1.  Add to `/etc/apt/sources.list.d/xroad.list` the address of X-Road package repository (**reference data: 1.1**) and the nginx repository:
 
-            deb http://x-road.eu/packages trusty main  
-            deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main  
-            deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main  
+        deb http://x-road.eu/packages trusty main  
+        deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main  
+        deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main  
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-            curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -  
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C  
-            sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A  
+        curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -  
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C  
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A  
 
 3.  Issue the following commands to install the security server packages:
 
-            sudo apt-get update  
-            sudo apt-get install xroad-securityserver  
+        sudo apt-get update  
+        sudo apt-get install xroad-securityserver  
 
 Upon the first installation of the packages, the system asks for the following information.
 
@@ -189,22 +189,22 @@ Upon the first installation of the packages, the system asks for the following i
 
     -   The *Subject DN* must be entered in the format:
 
-                /CN=server.domain.tld
+            /CN=server.domain.tld
 
     -   All IP addresses and domain names in use must be entered as alternative names in the format:
 
-                IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+            IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
 -   The Distinguished Name of the owner of the TLS certificate that is used for securing the HTTPS access point of information systems (**reference data: 1.8; 1.11**).
     The name and IP addresses detected from the system are suggested as default values.
 
     -   The *Subject DN* must be entered in the format:
 
-                /CN=server.domain.tld
+            /CN=server.domain.tld
 
     -   All IP addresses and domain names in use must be entered as alternative names in the format:
 
-                IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
+            IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog`, operational data monitoring module `xroad-addon-opmonitoring` and WSDL validator module `xroad-addon-wsdlvalidator`.
 
@@ -215,13 +215,13 @@ The installation is successful if system services are started and the user inter
 
 -   Ensure from the command line that X-Road services are in the `start/running` state (example output follows):
 
-            sudo initctl list | grep "^xroad-"  
+        sudo initctl list | grep "^xroad-"  
 		  
-            xroad-jetty start/running, process 19796  
-            xroad-confclient start/running, process 19563  
-            xroad-signer start/running, process 19393  
-            xroad-opmonitor start/running, process 20669  
-            xroad-proxy start/running, process 19580  
+        xroad-jetty start/running, process 19796  
+        xroad-confclient start/running, process 19563  
+        xroad-signer start/running, process 19393  
+        xroad-opmonitor start/running, process 20669  
+        xroad-proxy start/running, process 19580  
 
 -   Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
@@ -232,7 +232,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-            sudo apt-get install xroad-addon-hwtokens
+        sudo apt-get install xroad-addon-hwtokens
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -240,14 +240,14 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 4.  After installing and configuring the driver, the `xroad-signer` service must be restarted:
 
-            sudo service xroad-signer restart
+        sudo service xroad-signer restart
 
 <div id="28-installing-support-for-monitoring" class="anchor"></div>
 ## 2.8 Installing Support for Monitoring
 
 Enabling the monitoring functionality on a security server requires installation of one additional package:
 
-        sudo apt-get install xroad-monitor
+    sudo apt-get install xroad-monitor
 
 This installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
@@ -281,7 +281,7 @@ The security server code and the software token’s PIN will be determined durin
 
 To perform the initial configuration, open the address
 
-        https://SECURITYSERVER:4000/
+    https://SECURITYSERVER:4000/
 
 in a Web browser (**reference data: 1.8; 1.6**). To log in, use the account name chosen during the installation (**reference data: 1.3).**
 
@@ -310,16 +310,16 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 If running the locale command results in the error message
 
-        locale: Cannot set LC_ALL to default locale: No such file or directory,
+    locale: Cannot set LC_ALL to default locale: No such file or directory,
 
 then the support for this particular language has not been installed. To install it, run the command (the example uses the English language):
 
-        sudo apt-get install language-pack-en
+    sudo apt-get install language-pack-en
 
 Then, to update the system’s locale files, run the following commands (the example uses the US locale):
 
-        sudo locale-gen en_US.UTF-8  
-        sudo update-locale en_US.UTF-8  
+    sudo locale-gen en_US.UTF-8  
+    sudo update-locale en_US.UTF-8  
 
 Set operating system locale. Add following line to `/etc/environment` file:
 
@@ -332,42 +332,42 @@ After updating the system’s locale settings, it is recommended to restart the 
 
 If the security server installation is aborted with the error message
 
-        postgreSQL is not UTF8 compatible,
+    postgreSQL is not UTF8 compatible,
 
 then the PostgreSQL package is installed with a wrong locale. One way to resolve it is to remove the data store created upon the PostgreSQL installation and recreate it with the correct encoding.
 
 **WARNING**: All data in the database will be erased!
 
-        sudo pg_dropcluster --stop 9.3 main  
-        LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main  
+    sudo pg_dropcluster --stop 9.3 main  
+    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main  
 
 To complete the interrupted installation, run the command
 
-        sudo apt-get -f install
+    sudo apt-get -f install
 
 <div id="43-could-not-create-default-cluster" class="anchor"></div>
 ## 4.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation:
 
-        Error: The locale requested by the environment is invalid.  
-        Error: could not create default cluster. Please create it manually with pg_createcluster 9.3 main –start,  
+    Error: The locale requested by the environment is invalid.  
+    Error: could not create default cluster. Please create it manually with pg_createcluster 9.3 main –start,  
 
 use the following command to create the PostgreSQL data cluster:
 
-        LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main
+    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main
 
 The interrupted installation can be finished using
 
-        sudo apt-get -f install
+    sudo apt-get -f install
 
 <div id="44-is-postgres-running-on-port-5432" class="anchor"></div>
 ## 4.4 Is Postgres Running On Port 5432?
 
 If the following error message appears during installation
 
-        Is postgres running on port 5432 ?  
-        Aborting installation! please fix issues and rerun with apt-get -f install,  
+    Is postgres running on port 5432 ?  
+    Aborting installation! please fix issues and rerun with apt-get -f install,  
 
 check if any of the following errors occurred during the installation of PostgreSQL.
 
@@ -377,21 +377,21 @@ check if any of the following errors occurred during the installation of Postgre
 
 The interrupted installation can be finished using
 
-        sudo apt-get -f install
+    sudo apt-get -f install
 
 <div id="45-different-versions-of-xroad--packages-after-successful-upgrade" class="anchor"></div>
 ## 4.5 Different versions of xroad-\* packages after successful upgrade
 
 Sometimes, after using `sudo apt-get upgrade` command, some of the packages are not upgraded. In the following example `xroad-securityserver` package version is still 6.8.3 although other packages are upgraded to 6.8.5:
 
-        # sudo dpkg -l | grep xroad-
-        ii xroad-addon-messagelog 6.8.5.20160929134539gitfe60f90
-        ii xroad-addon-metaservices 6.8.5.20160929134539gitfe60f90
-        ii xroad-addon-wsdlvalidator 6.8.5.20160929134539gitfe60f90
-        ii xroad-common 6.8.5.20160929134539gitfe60f90
-        ii xroad-jetty9 6.8.5.20160929134539gitfe60f90
-        ii xroad-proxy 6.8.5.20160929134539gitfe60f90
-        ii xroad-securityserver 6.8.3-3-201605131138
+    # sudo dpkg -l | grep xroad-
+    ii xroad-addon-messagelog 6.8.5.20160929134539gitfe60f90
+    ii xroad-addon-metaservices 6.8.5.20160929134539gitfe60f90
+    ii xroad-addon-wsdlvalidator 6.8.5.20160929134539gitfe60f90
+    ii xroad-common 6.8.5.20160929134539gitfe60f90
+    ii xroad-jetty9 6.8.5.20160929134539gitfe60f90
+    ii xroad-proxy 6.8.5.20160929134539gitfe60f90
+    ii xroad-securityserver 6.8.3-3-201605131138
 
 `Apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
 
