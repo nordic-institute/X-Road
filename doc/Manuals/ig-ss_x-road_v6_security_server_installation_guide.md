@@ -86,7 +86,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 <div id="21-supported-platforms" class="anchor"></div>
 ## 2.1 Supported Platforms
 
-The security server runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at http://x-road.eu
+The security server runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at http://x-road.eu/packages/
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -270,7 +270,7 @@ The security server code and the software token’s PIN will be determined durin
 
  Ref  |                                                   | Explanation 
  ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | <https://www.x-road.eu/packages/>&lt;anchor file&gt;<br> ee-dev - development environment<br> ee-test - test environment<br> ee - production environment | Global configuration anchor file          
+ 2.1  | <http://x-road.eu/packages/>&lt;anchor file&gt;<br> ee-dev - development environment<br> ee-test - test environment<br> EE - production environment | Global configuration anchor file          
  2.2  | GOV - government<br> COM - commercial             | Member class of the security server's owner 
  2.3  | &lt;security server owner register code&gt;       | Member code of the security server's owner 
  2.4  | &lt;choose security server identificator name&gt; | Security server's code 
@@ -393,7 +393,7 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
     ii xroad-proxy 6.8.5.20160929134539gitfe60f90
     ii xroad-securityserver 6.8.3-3-201605131138
 
-`Apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
+`apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt-get dist-upgrade` commands.
 
