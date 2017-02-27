@@ -377,24 +377,22 @@ Monitor JMX interface publishes local security server environmental monitoring d
 <a id="Ref_Technology_matrix_of_the_security_server" class="anchor"></a>
 Table 1. Technology matrix of the security server
 
-![](img/arc-ss_technology_matrix_of_the_security_server.png)
-<!-- 
+<!-- ![](img/arc-ss_technology_matrix_of_the_security_server.png) -->
  **Technology**     | **Signer**   | **Proxy**   | **Password Store**   | **Message Log**   | **Metadata Services**   | **Database**   | **Configuration Client**   | **User Interface**   | **Servlet Engine**   | **Monitor**   | **Environmental Monitoring Service**   | **Operational Monitoring Buffer**   | **Operational Monitoring Services**   
-------------------- | ------------ | ----------- | -------------------- | ----------------- | ----------------------- | -------------- | -------------------------- | -------------------- | -------------------- | ------------- | -------------------------------------- | ----------------------------------- | --------------------------------------|
- Java 8             | X            | X           |                      | X                 | X                       |                | X                          | X                    | X                    | X             | X                                      | X                                   | X                                     
- C                  |              |             | X                    |                   |                         |                |                            |                      |                      |               |                                        |                                     |                                       
- Logback            | X            | X           |                      | X                 | X                       |                | X                          | X                    |                      |               | X                                      | X                                   | X                                     
- Akka 2.X           | X            | X           |                      | X                 |                         |                |                            | X                    |                      | X             | X                                      | X                                   |                                       
- Jetty 9            |              |             |                      |                   |                         |                |                            |                      | X                    |               |                                        |                                     |                                       
- JRuby 1.7          |              |             |                      |                   |                         |                |                            | X                    |                      |               |                                        |                                     |                                       
- Javascript         |              |             |                      |                   |                         |                |                            | X                    |                      |               |                                        |                                     |                                       
- PostgreSQL 9.3     |              |             |                      |                   |                         | X              |                            |                      |                      |               |                                        |                                     |                                       
- PAM                |              |             |                      |                   |                         |                |                            |                      | X                    |               |                                        |                                     |                                       
- Liquibase          |              |             |                      |                   |                         | X              |                            |                      |                      |               |                                        |                                     |                                       
- upstart            | X            | X           |                      |                   |                         |                | X                          |                      | X                    |               |                                        |                                     |                                       
- PKCS \#11\[[3](#Ref_3)\]       | X            |             |                      |                   |                         |                |                            |                      |                      |               |                                        |                                     |                                       
- Dropwizard Metrics |              |             |                      |                   |                         |                |                            |                      |                      | X             |                                        |                                     |                                       
--->
+------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+ Java 8             | X   | X   |     | X   | X   |     | X   | X   | X   | X   | X   | X   | X                                     
+ C                  |     |     | X   |     |     |     |     |     |     |     |     |     |                                       
+ Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X                                     
+ Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |                                       
+ Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |                                       
+ JRuby 1.7          |     |     |     |     |     |     |     | X   |     |     |     |     |                                       
+ Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |                                       
+ PostgreSQL 9.3     |     |     |     |     |     | X   |     |     |     |     |     |     |                                       
+ PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |                                       
+ Liquibase          |     |     |     |     |     | X   |     |     |     |     |     |     |                                       
+ upstart            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |                                       
+ PKCS \#11\[[3](#Ref_3)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |                                       
+ Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |                                       
 
 <div id="Ref_3" class="anchor"></div>
 <a id="Ref_3" class="anchor"></a>
