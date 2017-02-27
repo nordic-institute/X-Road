@@ -23,10 +23,8 @@
 package ee.ria.xroad.signer;
 
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
-import ee.ria.xroad.signer.util.VariableIntervalPeriodicJob;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
-
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.signer.certmanager.OcspClientWorker.GLOBAL_CONF_INVALIDATED;
@@ -38,7 +36,7 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
  * based on the status of the last refresh.
  */
 @Slf4j
-public class OcspClientJob extends VariableIntervalPeriodicJob {
+public class OcspClientJob extends OcspRetrievalJob {
 
     public static final String CANCEL = "Cancel";
     public static final String FAILED = "Failed";
