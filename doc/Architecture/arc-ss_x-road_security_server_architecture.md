@@ -115,7 +115,7 @@ The security server also depends on a central server, which provides the global 
 
 1. <div id="Ref_ARC-G" class="anchor"></div><a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture.
 
-2. <div id="Ref_ARC_OPMOND" class="anchor"></div><a id="Ref_ARC_OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture.
+2. <div id="Ref_ARC-OPMOND" class="anchor"></div><a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture.
 
 3. <div id="Ref_BATCH-TS" class="anchor"></div><a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
