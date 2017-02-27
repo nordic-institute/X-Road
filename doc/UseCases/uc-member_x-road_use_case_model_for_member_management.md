@@ -133,7 +133,7 @@ The use cases including a human actor (the *level* of the use case is *user task
 <div id="12-terms-and-abbreviations" class="anchor"></div>
 ## 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
+The definitions for general X-Road terms can be found at <[Terms of X-Road](../terms_x-road_docs.md)>.
 
 This section defines the terms that are not defined in the aforementioned document or that have contextual meaning specific to this document in addition to the general definition.
 
@@ -152,7 +152,7 @@ This section defines the terms that are not defined in the aforementioned docume
 
 4.  <div id="Ref_SPEC-AL" class="anchor"></div><a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: SPEC-AL.
 
-5.  <div id="Ref_UC-CONF" class="anchor"></div><a id="Ref_UC-CONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF.
+5.  <div id="Ref_UC-GCONF" class="anchor"></div><a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF.
 
 6.  <div id="Ref_UC-MESS" class="anchor"></div><a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for Member Communication. Document ID: UC-MESS.
 
