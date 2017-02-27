@@ -152,11 +152,11 @@ This section describes XML-based data formats for expressing the identifiers des
 The following listing shows the header of the schema definition.
 
 ```xml
-    <?xml version="1.0" encoding="UTF-8"?>
-    <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-        elementFormDefault="qualified"
-        targetNamespace="http://x-road.eu/xsd/identifiers"
-        xmlns="http://x-road.eu/xsd/identifiers">
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified"
+    targetNamespace="http://x-road.eu/xsd/identifiers"
+    xmlns="http://x-road.eu/xsd/identifiers">
 ```
 
 The `XRoadIdentifierType` complex type serves as the base for all other identifier types (derived by restriction). It contains a union of all fields that can be present in different identifiers. The attribute `objectType` contains the type of the identifier and can be used, for example, to distinguish between X-Road member and subsystem identifiers without resorting to conditions that check for presence of individual fields.
