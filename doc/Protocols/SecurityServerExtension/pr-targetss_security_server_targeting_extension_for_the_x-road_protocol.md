@@ -49,7 +49,7 @@ structures and elements defined in this section are in the namespace `http://x-r
 This is the same namespace as defined by the X-Road Message Protocol 4.0 \[[PR-MESS](#Ref_PR-MESS)\] Annex B, XML Schema for Messages.
 
 Note that at the moment, there is no unifying schema that would combine the message protocol and this extension under
-the same namespace. That means there is no single schema that would validates an X-Road message with this extension in use.
+the same namespace. That means there is no single schema that would validate an X-Road message with this extension in use.
 
 However, this extension is a candidate for inclusion in the next version of the X-Road message protocol and would then
 be part of the actual [`http://x-road.eu/xsd/xroad.xsd`](http://x-road.eu/xsd/xroad.xsd) schema as well as the namespace.
