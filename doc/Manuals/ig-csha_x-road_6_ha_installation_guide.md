@@ -202,9 +202,9 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
     Sample contents of the nodes file:
 
-        $ cat /etc/xroad/cluster/nodes  
-        192.168.56.201  
-        192.168.56.202  
+        $ cat /etc/xroad/cluster/nodes
+        192.168.56.201
+        192.168.56.202
 
 3.  Execute the cluster setup script and follow the output:
 
@@ -244,37 +244,37 @@ A script for checking cluster health is available on every node with the `xroad-
 
 Sample output is similar to the following (emphasizing the important values):
 
-    $ /usr/share/xroad/scripts/check_ha_cluster_status.py  
-  
-    SUMMARY OF CLUSTER STATUS:  
-        All nodes: OK  
-        Configuration: OK  
-  
-    DETAILED CLUSTER STATUS INFORMATION:  
-    {  
-        "all_nodes_ok": true,  
-        "configuration_ok": true,  
-        "ha_configured": true,  
-        "nodes": {  
-            "node_0": {  
-                "external_anchor_update_timestamp": "2015-08-28T14:08:31Z",  
-                "internal_anchor_update_timestamp": "2015-08-28T14:08:29Z",  
-                "node_status": "ready",  
-                "private_params_update_timestamp": "2015-08-31T13:34:01Z",  
-                "shared_params_update_timestamp": "2015-08-31T13:34:01Z"  
-            },  
-            "node_1": {  
-                "external_anchor_update_timestamp": "2015-08-28T14:08:31Z",  
-                "internal_anchor_update_timestamp": "2015-08-28T14:08:29Z",  
-                "node_status": "ready",  
-                "private_params_update_timestamp": "2015-08-31T13:34:02Z",  
-                "replication_client_address": "192.168.8.96",  
-                "replication_lag_bytes": "0",  
-                "replication_state": "streaming",  
-                "shared_params_update_timestamp": "2015-08-31T13:34:02Z"  
-            }  
-        }  
-    }  
+    $ /usr/share/xroad/scripts/check_ha_cluster_status.py
+
+    SUMMARY OF CLUSTER STATUS:
+        All nodes: OK
+        Configuration: OK
+
+    DETAILED CLUSTER STATUS INFORMATION:
+    {
+        "all_nodes_ok": true,
+        "configuration_ok": true,
+        "ha_configured": true,
+        "nodes": {
+            "node_0": {
+                "external_anchor_update_timestamp": "2015-08-28T14:08:31Z",
+                "internal_anchor_update_timestamp": "2015-08-28T14:08:29Z",
+                "node_status": "ready",
+                "private_params_update_timestamp": "2015-08-31T13:34:01Z",
+                "shared_params_update_timestamp": "2015-08-31T13:34:01Z"
+            },
+            "node_1": {
+                "external_anchor_update_timestamp": "2015-08-28T14:08:31Z",
+                "internal_anchor_update_timestamp": "2015-08-28T14:08:29Z",
+                "node_status": "ready",
+                "private_params_update_timestamp": "2015-08-31T13:34:02Z",
+                "replication_client_address": "192.168.8.96",
+                "replication_lag_bytes": "0",
+                "replication_state": "streaming",
+                "shared_params_update_timestamp": "2015-08-31T13:34:02Z"
+            }
+        }
+    }
 
 The timestamps of the generated private and shared parameter files on different nodes must be within a reasonable time window. The timestamps of the internal and external anchors must be equal.
 
