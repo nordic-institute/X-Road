@@ -165,20 +165,20 @@ To install the X-Road security server software, follow these steps.
 
 1.  Add to `/etc/apt/sources.list.d/xroad.list` the address of X-Road package repository (**reference data: 1.1**) and the nginx repository:
 
-        deb http://x-road.eu/packages trusty main  
-        deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main  
-        deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main  
+        deb http://x-road.eu/packages trusty main
+        deb http://ppa.launchpad.net/nginx/stable/ubuntu trusty main
+        deb http://ppa.launchpad.net/openjdk-r/ppa/ubuntu trusty main
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -  
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C  
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A  
+        curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 
 3.  Issue the following commands to install the security server packages:
 
-        sudo apt-get update  
-        sudo apt-get install xroad-securityserver  
+        sudo apt-get update
+        sudo apt-get install xroad-securityserver
 
 Upon the first installation of the packages, the system asks for the following information.
 
@@ -215,13 +215,13 @@ The installation is successful if system services are started and the user inter
 
 -   Ensure from the command line that X-Road services are in the `start/running` state (example output follows):
 
-        sudo initctl list | grep "^xroad-"  
-		  
-        xroad-jetty start/running, process 19796  
-        xroad-confclient start/running, process 19563  
-        xroad-signer start/running, process 19393  
-        xroad-opmonitor start/running, process 20669  
-        xroad-proxy start/running, process 19580  
+        sudo initctl list | grep "^xroad-"
+		
+        xroad-jetty start/running, process 19796
+        xroad-confclient start/running, process 19563
+        xroad-signer start/running, process 19393
+        xroad-opmonitor start/running, process 20669
+        xroad-proxy start/running, process 19580
 
 -   Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
@@ -318,8 +318,8 @@ then the support for this particular language has not been installed. To install
 
 Then, to update the system’s locale files, run the following commands (the example uses the US locale):
 
-    sudo locale-gen en_US.UTF-8  
-    sudo update-locale en_US.UTF-8  
+    sudo locale-gen en_US.UTF-8
+    sudo update-locale en_US.UTF-8
 
 Set operating system locale. Add following line to `/etc/environment` file:
 
@@ -338,8 +338,8 @@ then the PostgreSQL package is installed with a wrong locale. One way to resolve
 
 **WARNING**: All data in the database will be erased!
 
-    sudo pg_dropcluster --stop 9.3 main  
-    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main  
+    sudo pg_dropcluster --stop 9.3 main
+    LC_ALL="en_US.UTF-8" sudo pg_createcluster --start 9.3 main
 
 To complete the interrupted installation, run the command
 
@@ -350,8 +350,8 @@ To complete the interrupted installation, run the command
 
 If the following error message is displayed during PostgreSQL installation:
 
-    Error: The locale requested by the environment is invalid.  
-    Error: could not create default cluster. Please create it manually with pg_createcluster 9.3 main –start,  
+    Error: The locale requested by the environment is invalid.
+    Error: could not create default cluster. Please create it manually with pg_createcluster 9.3 main –start,
 
 use the following command to create the PostgreSQL data cluster:
 
@@ -366,8 +366,8 @@ The interrupted installation can be finished using
 
 If the following error message appears during installation
 
-    Is postgres running on port 5432 ?  
-    Aborting installation! please fix issues and rerun with apt-get -f install,  
+    Is postgres running on port 5432 ?
+    Aborting installation! please fix issues and rerun with apt-get -f install,
 
 check if any of the following errors occurred during the installation of PostgreSQL.
 
