@@ -301,10 +301,10 @@ To add a new user, enter the command:
 
 To grant permissions to the user you created, add it to the corresponding system groups, for example:
 
-    adduser username xroad-security-officer  
-    adduser username xroad-registration-officer  
-    adduser username xroad-service-administrator  
-    adduser username xroad-system-administrator  
+    adduser username xroad-security-officer
+    adduser username xroad-registration-officer
+    adduser username xroad-service-administrator
+    adduser username xroad-system-administrator
 
 To remove a user permission, remove the user from the corresponding system group, for example:
 
@@ -1274,9 +1274,9 @@ Create the `[message-log]` section (if not present) in the file. Below the start
 
 For example, to configure the parameters `archive-path` and `archive-max-filesize`, the following lines must be added to the configuration file:
 
-    [message-log]  
-    archive-path=/my/arhcive/path/  
-    archive-max-filesize=67108864  
+    [message-log]
+    archive-path=/my/arhcive/path/
+    archive-max-filesize=67108864
 
 <div id="1111-common-parameters" class="anchor"></div>
 ### 11.1.1 Common parameters
@@ -1320,22 +1320,21 @@ The message log package provides a helper script `/usr/share/xroad/scripts/archi
 
 Usage of the script:
 
-|                |                                                                                                   |  
----------------- | -------------------------------------------------------------------------------------------------  
- Options:        |                                                                                                  
- -d, --dir DIR   | Archive directory. Defaults to '/var/lib/xroad'  
- -r, --remove    | Remove successfully transported files form the archive directory.  
- -k, --key KEY   | Private key file name in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.key'  
- -c, --cert CERT | Client certificate file in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.crt'  
- -cacert FILE    | CA certificate file to verify the peer (TLS). The file may contain multiple CA certificates. The certificate(s) must be in PEM format.  
- -h, --help      | This help text.  
+ Options:          | &nbsp;                                                                                            
+------------------ | -----------------------------------------------------------------------------------------------  
+ `-d, --dir DIR`   | Archive directory. Defaults to '/var/lib/xroad'  
+ `-r, --remove`    | Remove successfully transported files form the archive directory.  
+ `-k, --key KEY`   | Private key file name in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.key'  
+ `-c, --cert CERT` | Client certificate file in PEM format (TLS). Defaults to '/etc/xroad/ssl/internal.crt'  
+ `-cacert FILE`    | CA certificate file to verify the peer (TLS). The file may contain multiple CA certificates. The certificate(s) must be in PEM format.  
+ `-h, --help`      | This help text.  
 
 The archive file has been successfully transferred when the archiving server returns the HTTP status code `200`.
 
 Override the configuration parameter archive-transfer-command (create or edit the file `etc/xroad/conf.d/local.ini`) to set up a transferring script. For example:
 
-    [message-log]  
-    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload  
+    [message-log]
+    archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
 
 The message log package contains the CGI script /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl for a demo archiving server for the purpose of testing or development.
 
@@ -1346,9 +1345,9 @@ The message log database can be located outside of the security server. The foll
 
 1.  Create a database user at remote database host:
 
-        postgres@db_host:~$ createuser -P messagelog_user  
-        Enter password for new role: <messagelog_password>  
-        Enter it again: <messagelog_password>  
+        postgres@db_host:~$ createuser -P messagelog_user
+        Enter password for new role: <messagelog_password>
+        Enter it again: <messagelog_password>
 
 2.  Create a database owned by the message log user at remote database host:
 
@@ -1356,12 +1355,12 @@ The message log database can be located outside of the security server. The foll
 
 3.  Verify connectivity from security server to the remote database:
 
-        user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname  
-        Password for user messagelog_user: <messagelog_password>  
-        psql (9.3.9)  
-        SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)  
-        Type "help" for help.  
-        messagelog_dbname=>  
+        user@security_server:~$ psql -h db_host -U messagelog_user messagelog_dbname
+        Password for user messagelog_user: <messagelog_password>
+        psql (9.3.9)
+        SSL connection (cipher: DHE-RSA-AES256-GCM-SHA384, bits: 256)
+        Type "help" for help.
+        messagelog_dbname=>
 
 4.  Stop xroad-proxy service for reconfiguration:
 
@@ -1369,12 +1368,12 @@ The message log database can be located outside of the security server. The foll
 
 5.  Configure the database connection parameters to achieve encrypted connections, in `/etc/xroad/db.properties`:
 
-        messagelog.hibernate.jdbc.use_streams_for_binary = true  
-        messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect  
-        messagelog.hibernate.connection.driver_class = org.postgresql.Driver  
-        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory  
-        messagelog.hibernate.connection.username = messagelog_user  
-        messagelog.hibernate.connection.password = messagelog_password  
+        messagelog.hibernate.jdbc.use_streams_for_binary = true
+        messagelog.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
+        messagelog.hibernate.connection.driver_class = org.postgresql.Driver
+        messagelog.hibernate.connection.url = jdbc:postgresql://db_host:5432/messagelog_dbname?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+        messagelog.hibernate.connection.username = messagelog_user
+        messagelog.hibernate.connection.password = messagelog_password
 
 6.  Populate database schema by reinstalling messagelog addon package (it will start xroad-proxy service also):
 
@@ -1478,19 +1477,19 @@ It is expected that the restore command is run by the xroad user.
 
 In order to restore configuration, the following command should be used:
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \  
-    -s <security server ID> -f <path + filename>  
+    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+    -s <security server ID> -f <path + filename>
 
 For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \  
-    -s AA/GOV/TS1OWNER/TS1 \  
-    –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar  
+    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+    -s AA/GOV/TS1OWNER/TS1 \
+    –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
 
 If it is absolutely necessary to restore the system from a backup made on a different security server, the forced mode of the restore command can be used with the –F option. For example (all on one line):
 
-    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \  
-    -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar  
+    /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
+    -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
 
 <div id="14-diagnostics" class="anchor"></div>
 # 14 Diagnostics
@@ -1542,8 +1541,8 @@ All overrides to the default configuration values must be made in the file `/etc
 
 If, for any reason, operational data should not be collected and forwarded to the operational monitoring daemon, the parameter size can be set to 0:
 
-    [op-monitor-buffer]  
-    size = 0  
+    [op-monitor-buffer]
+    size = 0
 
 After the configuration change, the xroad-proxy service must be restarted:
 
@@ -1598,8 +1597,8 @@ For configuring the endpoint of the operational monitoring daemon, the following
 
 If any of these values are changed, both the proxy and the operational monitoring daemon services must be restarted:
 
-    service xroad-proxy restart  
-    service xroad-opmonitor restart  
+    service xroad-proxy restart
+    service xroad-opmonitor restart
 
 <div id="1524-installing-an-external-operational-monitoring-daemon" class="anchor"></div>
 ### 15.2.4 Installing an External Operational Monitoring Daemon
@@ -1614,9 +1613,9 @@ For running a separate operational monitoring daemon, the xroad-opmonitor packag
 
 As a result of installation, the following services will be running:
 
-    xroad-confclient  
-    xroad-signer  
-    xroad-opmonitor  
+    xroad-confclient
+    xroad-signer
+    xroad-opmonitor
 
 <div id="1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server" class="anchor"></div>
 ### 15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server
@@ -1633,8 +1632,8 @@ The internal TLS certificate of the security server is used for authenticating t
 
 In the configuration of the external daemon, the corresponding path must be set in `/etc/xroad/conf.d/local.ini`:
 
-    [op-monitor]  
-    client-tls-certificate = <path/to/security/server/internal/cert>  
+    [op-monitor]
+    client-tls-certificate = <path/to/security/server/internal/cert>
 
 Next, a TLS key and the corresponding certificate must be generated on the host of the external monitoring daemon as well, using the command
 
@@ -1644,8 +1643,8 @@ The script will prompt you for standard fields for input to TLS certificates and
 
 The generated certificate, in the file `opmonitor.crt`, must be copied to the corresponding security server. The system user `xroad` must have permissions to read this file. Its path at the security server must be written to the configuration (note the name of the section, although it is the proxy service that will read the configuration):
 
-    [op-monitor]  
-    tls-certificate = <path/to/external/daemon/tls/cert>  
+    [op-monitor]
+    tls-certificate = <path/to/external/daemon/tls/cert>
 
 For the external operational daemon to be used, the proxy service at the security server must be restarted:
 
