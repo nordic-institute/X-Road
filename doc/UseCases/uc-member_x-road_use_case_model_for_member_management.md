@@ -148,7 +148,7 @@ This section defines the terms that are not defined in the aforementioned docume
 
 2.  <div id="Ref_IG-SS" class="anchor"></div><a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
 
-3.  <div id="Ref_PR_MSERV" class="anchor"></div><a id="Ref_PR_MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: PR-MSERV.
+3.  <div id="Ref_PR-MSERV" class="anchor"></div><a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: PR-MSERV.
 
 4.  <div id="Ref_SPEC-AL" class="anchor"></div><a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: SPEC-AL.
 
