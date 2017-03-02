@@ -5,7 +5,7 @@
            xmlns:id="http://x-road.eu/xsd/identifiers"
            xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-             schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+             schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
   <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers"
              schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
 
