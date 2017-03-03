@@ -61,9 +61,6 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     protected final Class<? extends SchemaValidator> schemaValidator;
 
-    // breaking checkstyle validation for testing
-    public int NImETtY_HUONOSTI = 1;
-
     protected String confFileName;
 
     protected JAXBElement<T> root;
