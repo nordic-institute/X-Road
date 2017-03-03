@@ -61,9 +61,6 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     protected final Class<? extends SchemaValidator> schemaValidator;
 
-    // breaking the build for testing
-    dskdjasdaskjh
-
     // breaking checkstyle validation for testing
     public int NImETtY_HUONOSTI = 1;
 
