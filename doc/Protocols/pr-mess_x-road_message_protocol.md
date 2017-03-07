@@ -2,71 +2,76 @@
 
 ---
 
-<div id="x-road-message-protocol-v40" class="anchor"></div>
-# X-Road: Message Protocol v4.0
-**Technical Specification**    
 
-Version: 4.0.18  
-20.02.2017  
-Doc. ID: PR-MESS  
+# X-Road: Message Protocol v4.0
+**Technical Specification**
+
+Version: 4.0.18
+20.02.2017
+Doc. ID: PR-MESS
 
 ---
 
-<div id="version-history" class="anchor"></div>
-# Version history
 
- Date       | Version | Description                                                     | Author             
+## Version history
+
+ Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 04.09.2015 | 4.0.2   | Converted to ODT                                                | Siim Annuk         
- 08.09.2015 | 4.0.3   | Minor fixes                                                     | Siim Annuk         
- 10.09.2015 | 4.0.4   | Fixed some typos                                                | Siim Annuk         
- 16.09.2015 | 4.0.5   | Editorial changes made                                          | Imbi Nõgisto       
- 30.09.2015 | 4.0.6   | Additional information added about requestHash header field and HTTP headers | Siim Annuk         
+ 04.09.2015 | 4.0.2   | Converted to ODT                                                | Siim Annuk
+ 08.09.2015 | 4.0.3   | Minor fixes                                                     | Siim Annuk
+ 10.09.2015 | 4.0.4   | Fixed some typos                                                | Siim Annuk
+ 16.09.2015 | 4.0.5   | Editorial changes made                                          | Imbi Nõgisto
+ 30.09.2015 | 4.0.6   | Additional information added about requestHash header field and HTTP headers | Siim Annuk
  14.10.2015 | 4.0.7   | Note added about supported attachment encodings. Updated examples | Siim Annuk, Ilja Kromonov
- 17.10.2015 | 4.0.8   | Clarified must/MUST language                                    | Margus Freudenthal 
- 28.10.2015 | 4.0.9   | Better example messages added                                   | Siim Annuk         
- 28.10.2015 | 4.0.10  | Complete X-Road identifiers schema added                        | Siim Annuk         
- 20.11.2015 | 4.0.11  | Minor enhancements, example messages fixed                      | Siim Annuk         
- 02.12.2015 | 4.0.12  | Minor fixes added                                               | Siim Annuk         
- 08.12.2015 | 4.0.13  | Typo fixed                                                      | Siim Annuk         
- 25.01.2016 | 4.0.14  | Minor fixes                                                     | Kristo Heero       
- 10.05.2016 | 4.0.15  | Added section about character encoding                          | Kristo Heero       
- 16.05.2016 | 4.0.16  | Editorial changes made                                          | Margus Freudenthal 
- 10.11.2016 | 4.0.17  | Converted to Markdown                                           | Vitali Stupin      
- 20.02.2016 | 4.0.18  | Adjusted tables and internal links for better output in PDF     | Toomas Mölder      
+ 17.10.2015 | 4.0.8   | Clarified must/MUST language                                    | Margus Freudenthal
+ 28.10.2015 | 4.0.9   | Better example messages added                                   | Siim Annuk
+ 28.10.2015 | 4.0.10  | Complete X-Road identifiers schema added                        | Siim Annuk
+ 20.11.2015 | 4.0.11  | Minor enhancements, example messages fixed                      | Siim Annuk
+ 02.12.2015 | 4.0.12  | Minor fixes added                                               | Siim Annuk
+ 08.12.2015 | 4.0.13  | Typo fixed                                                      | Siim Annuk
+ 25.01.2016 | 4.0.14  | Minor fixes                                                     | Kristo Heero
+ 10.05.2016 | 4.0.15  | Added section about character encoding                          | Kristo Heero
+ 16.05.2016 | 4.0.16  | Editorial changes made                                          | Margus Freudenthal
+ 10.11.2016 | 4.0.17  | Converted to Markdown                                           | Vitali Stupin
+ 20.02.2016 | 4.0.18  | Adjusted tables and internal links for better output in PDF     | Toomas Mölder
 
-<div id="table-of-contents" class="anchor"></div>
 ## Table of Contents
 
-[License](#license)  
-[1 Introduction](#1-introduction)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.1 Terms and Abbreviations](#11-terms-and-abbreviations)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.2 References](#12-references)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3 Identifying Entities](#13-identifying-entities)  
-[2 Format of Messages](#2-format-of-messages)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.1 Identifiers](#21-identifiers)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.2 Message Headers](#22-message-headers)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.3 Message Body](#23-message-body)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.4 Attachments](#24-attachments)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.5 Fault Messages](#25-fault-messages)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.6 Character Encoding](#26-character-encoding)  
-[3 Describing Services](#3-describing-services)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.1 General](#31-general)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.2 Describing Services with WSDL](#32-describing-services-with-wsdl)  
-[Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)  
-[Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)  
-[Annex C Example WSDL](#annex-c-example-wsdl)  
-[Annex D Example Fault Messages](#annex-d-example-fault-messages)  
-[Annex E Example Messages](#annex-e-example-messages)  
-[Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)  
-[Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)  
+<!-- toc -->
 
-<div id="license" class="anchor"></div>
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
+  * [1.3 Identifying Entities](#13-identifying-entities)
+- [2 Format of Messages](#2-format-of-messages)
+  * [2.1 Identifiers](#21-identifiers)
+  * [2.2 Message Headers](#22-message-headers)
+  * [2.3 Message Body](#23-message-body)
+  * [2.4 Attachments](#24-attachments)
+  * [2.5 Fault Messages](#25-fault-messages)
+  * [2.6 Character Encoding](#26-character-encoding)
+- [3 Describing Services](#3-describing-services)
+  * [3.1 General](#31-general)
+  * [3.2 Describing Services with WSDL](#32-describing-services-with-wsdl)
+- [Annex A XML Schema for Identifiers](#annex-a-xml-schema-for-identifiers)
+- [Annex B XML Schema for Messages](#annex-b-xml-schema-for-messages)
+- [Annex C Example WSDL](#annex-c-example-wsdl)
+- [Annex D Example Fault Messages](#annex-d-example-fault-messages)
+  * [D.1 Technical](#d1-technical)
+  * [D.2 Non-technical](#d2-non-technical)
+- [Annex E Example Messages](#annex-e-example-messages)
+  * [E.1 Request](#e1-request)
+  * [E.2 Response](#e2-response)
+- [Annex F Example Request with Attachment](#annex-f-example-request-with-attachment)
+- [Annex G Example Request with MTOM Attachment](#annex-g-example-request-with-mtom-attachment)
+
+<!-- tocstop -->
+
 ## License
 
-This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-<div id="1-introduction" class="anchor"></div>
 ## 1 Introduction
 
 This specification describes the X-Road message protocol version 4.0. This protocol is used between information systems and security servers in the X-Road system. The protocol is implemented as a profile of the SOAP 1.1 protocol \[[SOAP](#Ref_SOAP)\]. Because this protocol inherits the general model, the transport mechanism, and the error handling mechanism of the base SOAP protocol, these issues are not discussed separately in this specification.
@@ -77,7 +82,7 @@ This specification does not include option for partially implementing the protoc
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document (in uppercase, as shown) are to be interpreted as described in \[[RFC2119](#Ref_RFC2119)\].
 
-<div id="11-terms-and-abbreviations" class="anchor"></div>
+
 ### 1.1 Terms and Abbreviations
 
 -   **X-Road member** – natural or legal person who uses functionality offered by X-Road
@@ -88,30 +93,30 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 -   **X-Road service** – SOAP-based web service that is offered by an X-Road member or by a subsystem and that can be used by other X-Road members or subsystems.
 
-<div id="12-references" class="anchor"></div>
+
 ### 1.2 References
 
-1. <div id="Ref_SOAP" class="anchor"></div><a name="Ref_SOAP" class="anchor"></a>\[SOAP\] Simple Object Access Protocol (SOAP) 1.1, 2000.
+1. <a name="Ref_SOAP" class="anchor"></a>\[SOAP\] Simple Object Access Protocol (SOAP) 1.1, 2000.
 
-2. <div id="Ref_RFC2119" class="anchor"></div><a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997.
+2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997.
 
-3. <div id="Ref_DSIG" class="anchor"></div><a name="Ref_DSIG" class="anchor"></a>\[DSIG\] XML Signature Syntax and Processing Version 2.0, 2013.
+3. <a name="Ref_DSIG" class="anchor"></a>\[DSIG\] XML Signature Syntax and Processing Version 2.0, 2013.
 
-4. <div id="Ref_SOAPATT" class="anchor"></div><a name="Ref_SOAPATT" class="anchor"></a>\[SOAPATT\] SOAP Messages with Attachments, 2000.
+4. <a name="Ref_SOAPATT" class="anchor"></a>\[SOAPATT\] SOAP Messages with Attachments, 2000.
 
-5. <div id="Ref_WSDL" class="anchor"></div><a name="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
+5. <a name="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
 
-6. <div id="Ref_XSD1" class="anchor"></div><a name="Ref_XSD1" class="anchor"></a>\[XSD1\] XML Schema Part 1: Structures Second Edition, 2004.
+6. <a name="Ref_XSD1" class="anchor"></a>\[XSD1\] XML Schema Part 1: Structures Second Edition, 2004.
 
-7. <div id="Ref_XSD2" class="anchor"></div><a name="Ref_XSD2" class="anchor"></a>\[XSD2\] XML Schema Part 2: Datatypes Second Edition, 2004.
+7. <a name="Ref_XSD2" class="anchor"></a>\[XSD2\] XML Schema Part 2: Datatypes Second Edition, 2004.
 
-8. <div id="Ref_MTOM" class="anchor"></div><a name="Ref_MTOM" class="anchor"></a>\[MTOM\] SOAP 1.1 Binding for MTOM 1.0, 2006.
+8. <a name="Ref_MTOM" class="anchor"></a>\[MTOM\] SOAP 1.1 Binding for MTOM 1.0, 2006.
 
-9. <div id="Ref_SWAREF" class="anchor"></div><a name="Ref_SWAREF" class="anchor"></a>\[SWAREF\] Attachments Profile Version 1.0, 2004.
+9. <a name="Ref_SWAREF" class="anchor"></a>\[SWAREF\] Attachments Profile Version 1.0, 2004.
 
-10. <div id="Ref_WRAPPED" class="anchor"></div><a name="Ref_WRAPPED" class="anchor"></a>\[WRAPPED\] Usage of document/literal wrapped pattern in WSDL design, [http://www.ibm.com/developerworks/library/ws-usagewsdl/](http://www.ibm.com/developerworks/library/ws-usagewsdl/).
+10. <a name="Ref_WRAPPED" class="anchor"></a>\[WRAPPED\] Usage of document/literal wrapped pattern in WSDL design, [http://www.ibm.com/developerworks/library/ws-usagewsdl/](http://www.ibm.com/developerworks/library/ws-usagewsdl/).
 
-<div id="13-identifying-entities" class="anchor"></div>
+
 ### 1.3 Identifying Entities
 
 Significant entities in the X-Road system have globally unique identifiers. Identifiers consist of an object type and a sequence of hierarchical codes.
@@ -139,12 +144,12 @@ Next, we will describe how globally unique identifiers are constructed for vario
 -   **Central service** – *CENTRALSERVICE:/\[X-Road instance\]/\[service code\]*. The list of central services is managed by the X-Road governing agency who also assigns unique codes for these services.
     Example: CENTRALSERVICE:EE/populationRegister\_personData identifies a central service that returns person data from the national Population Register.
 
-<div id="2-format-of-messages" class="anchor"></div>
+
 ## 2 Format of Messages
 
 The messages in this protocol are based on SOAP 1.1 format \[[SOAP](#Ref_SOAP)\].
 
-<div id="21-identifiers" class="anchor"></div>
+
 ### 2.1 Identifiers
 
 This section describes XML-based data formats for expressing the identifiers described informally in [Section 1.3](#13-identifying-entities). The data structures and elements defined in this section will be located under namespace `http://x-road.eu/xsd/identifiers`. The complete XML Schema is shown in [Annex A](#annex-a-xml-schema-for-identifiers).
@@ -251,16 +256,16 @@ The `XRoadCentralServiceIdentifierType` can be used to represent identifiers of 
     </xs:complexType>
 ```
 
-<div id="22-message-headers" class="anchor"></div>
+
 ### 2.2 Message Headers
 
 This section describes additional SOAP headers that are used by the X-Road system. It makes use of data types specified in [Section 2.1](#21-identifiers). The header fields are described in [Table 1](#Ref_Supported_header_fields).
 
-<div id="Ref_Supported_header_fields" class="anchor"></div>
+
 <a name="Ref_Supported_header_fields" class="anchor"></a>
 Table 1. Supported header fields
 
- Field           | Type                                      | Mandatory /Optional | Description                                             
+ Field           | Type                                      | Mandatory /Optional | Description
 ---------------- | ----------------------------------------- | ----------- | --------------------------------------------------------
  client          | XRoadClientIdentifierType                 | M           | Identifies a service client – an entity that initiates the service call.
  service         | XRoadServiceIdentifierType                | O           | Identifies the service that is invoked by the request.
@@ -294,24 +299,24 @@ Content-type HTTP header of the service response message is preserved in the sec
 
 Starting with X-Road message protocol version 4.0 any protocols with the same major version number are compatible. Minor versions are used to describe backwards compatible changes, such as addition of optional headers.
 
-<div id="23-message-body" class="anchor"></div>
+
 ### 2.3 Message Body
 
 The message body MUST use Document/Literal-Wrapped SOAP encoding convention. According to this convention, both the body of the request and the response must be wrapped in an element. The element names of the request and response are correlated – if the request element is named `foo` then the response element is named `fooResponse`. Additionally, the name of the wrapper element of the request must match the `serviceCode` element of the `service` header field.
 
-<div id="24-attachments" class="anchor"></div>
+
 ### 2.4 Attachments
 
 In case the message has attachments, it MUST be formatted as a multipart MIME message, with the SOAP request and its attachments being separate parts of the message. The SOAP request must be the first part. The resulting MIME message MUST be structured in accordance with the specification for SOAP messages with attachments \[[SOAPATT](#Ref_SOAPATT)\] and the request SOAP part's *Content-Transfer-Encoding* MIME header value MUST be "8bit". MIME headers of each part of the message are preserved without modification in the security server. For an example request that contains attachments see [Annex F](#annex-f-example-request-with-attachment).
 
 Additionally, MTOM-encoded \[[MTOM](#Ref_MTOM)\] messages are supported in the security server – the security server accepts MIME multipart messages where the content-type of the SOAP part is "application/xop+xml".
 
-<div id="25-fault-messages" class="anchor"></div>
+
 ### 2.5 Fault Messages
 
 For technical errors the security server must return a SOAP Fault message \[[SOAP](#Ref_SOAP)\]. The SOAP Fault message contains the information about the error, such as error code, error message etc. The SOAP Fault MAY contain X-Road Headers and it MAY be described in the service WSDL.
 
-<div id="26-character-encoding" class="anchor"></div>
+
 ### 2.6 Character Encoding
 
 All parties SHOULD indicate the character encoding of XML messages. The preferred way of specifying the character encoding is by using the *charset* parameter the of *Content-Type* header.
@@ -320,10 +325,10 @@ In case the *charset* parameter is not determined in the HTTP *Content-Type* hea
 
 With UTF-8 encoding BOM (Byte Order Mark) bytes MAY be used in the beginning of XML message. Security servers MAY remove the BOM bytes when processing the message.
 
-<div id="3-describing-services" class="anchor"></div>
+
 ## 3 Describing Services
 
-<div id="31-general" class="anchor"></div>
+
 ### 3.1 General
 
 Services are described using the Web Services Description Language (WSDL) 1.1 \[[WSDL](#Ref_WSDL)\].
@@ -332,29 +337,29 @@ X-Road supports versioned services. Different versions of the service represent 
 
 In the context of service provision contracts, services are considered without version, meaning that all versions of the same service are considered to be equivalent. This also applies to access control restrictions applied in security servers – i.e., access control restrictions are specified for a service code without version. In order for this to work, all versions of the same service must implement the same contract.
 
-<div id="32-describing-services-with-wsdl" class="anchor"></div>
+
 ### 3.2 Describing Services with WSDL
 
 Service descriptions are written in the WSDL language, subject to the following restrictions and extensions.
 
 The combination of WSDL binding style/use MUST be document/literal wrapped (binding *style="document"; use="literal"*). The WSDL must conform to the following rules \[[WRAPPED](#Ref_WRAPPED)\]:
 
-> 1. **Only "One" Part Definition in the Input & Output Messages in WSDL**  
+> 1. **Only "One" Part Definition in the Input & Output Messages in WSDL**
 >    "Wrapped" is a form of document/literal. When defining a WS-I compliant document/literal service, there can be at most one body part in your input message and at most one body part in your output message. You do \*not\* define each method parameter as a separate part in the message definition. (The parameters are defined in the WSDL "types" section, instead).
 >
-> 2. **"Part" Definitions are wrapper elements**  
+> 2. **"Part" Definitions are wrapper elements**
 >    Each part definition must reference an element (not a type, type is used in RPC) defined to make it document style of messaging. This element definition can be imported, or included in the types section of the WSDL document. These element definitions are "wrapper" elements (hence the name of this convention). Define the input and output parameters as element structures within these wrapper elements.
 >
-> 3. **Child Elements of "Part" Element Type will be SEI Method parameter**  
+> 3. **Child Elements of "Part" Element Type will be SEI Method parameter**
 >    An input wrapper element must be defined as a complex type that is a sequence of elements. Each child element-type in that sequence will be generated (while using code generation tool on WSDL) as a parameter of the operation in the service interface.
 >
-> 4. **Input Wrapper Element name should match with Operation name**  
+> 4. **Input Wrapper Element name should match with Operation name**
 >    The name of the input wrapper element must be the same as the web service operation name in WSDL.
 >
 > 5. **&lt;Output Wrapper Element Name&gt; = &lt;Operation Name&gt; + "Response"**
 >    The name of the output wrapper element could be (but doesn't have to be) the operation name appended with "Response" (e.g., if the operation name is "add", the output wrapper element should be called "addResponse").
 >
-> 6. **In the WSDL Binding section, soap:binding style = "document"**  
+> 6. **In the WSDL Binding section, soap:binding style = "document"**
 >    Since, the style is document/literal for this wrapped pattern, hence in the binding definition, the soap:binding should specify style="document" (although this is the default value, so the attribute may be omitted), and the soap:body definitions must specify use="literal" and nothing else. You must not specify the namespace or encodingStyle attributes in the soap:body definition.
 
 The input and output parameters of the services are described using XML Schema 1.1 \[[XSD1](#Ref_XSD1), [XSD2](#Ref_XSD2)\].
@@ -369,11 +374,11 @@ For example of swaRef and MTOM on-the-wire messages with attachments see [Annex 
 
 [Table 2](#Ref_WSDL_elements_for_X_Road_services) lists elements that can be added to a WSDL description to transfer information specific to X-Road. The namespace prefix `xrd` is bound to namespace `http://x-road.eu/xsd/xroad.xsd`.
 
-<div id="Ref_WSDL_elements_for_X_Road_services" class="anchor"></div>
+
 <a name="Ref_WSDL_elements_for_X_Road_services" class="anchor"></a>
 Table 2. WSDL elements for X-Road services
 
- Field                                                                  | Description                                          
+ Field                                                                  | Description
 ----------------------------------------------------------------------- | -----------------------------------------------------
  /definitions/binding/operation/@name                                   | Code of the service
  /definitions/binding/operation/xrd:version                             | Version of the service
@@ -381,7 +386,7 @@ Table 2. WSDL elements for X-Road services
  /definitions/portType/operation/documentation/xrd:notes                | Description of the service (for displaying to users)
  /definitions/portType/operation/documentation/xrd:techNotes            | Description of the service (for developers)
 
-<div id="annex-a-xml-schema-for-identifiers" class="anchor"></div>
+
 ## Annex A XML Schema for Identifiers
 
 ```xml
@@ -573,7 +578,7 @@ Table 2. WSDL elements for X-Road services
 </xs:schema>
 ```
 
-<div id="annex-b-xml-schema-for-mMessages" class="anchor"></div>
+
 ## Annex B XML Schema for Messages
 
 ```xml
@@ -585,7 +590,7 @@ Table 2. WSDL elements for X-Road services
         xmlns:id="http://x-road.eu/xsd/identifiers"
         xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-            schemaLocation="http://www.w3.org/2009/01/xml.xsd"/> 
+            schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
     <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers"
             schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
 
@@ -696,7 +701,7 @@ Table 2. WSDL elements for X-Road services
 </xs:schema>
 ```
 
-<div id="annex-c-example-wsdl" class="anchor"></div>
+
 ## Annex C Example WSDL
 
 ```xml
@@ -964,7 +969,7 @@ Table 2. WSDL elements for X-Road services
                      message using SOAP with Attachments if the corresponding
                      wsdl:input or wsdl:output element in the wsdl:binding does
                      not specify the WSDL MIME Binding.
-                     
+
                      The WSDL 1.1 specification does not specify whether the
                      soap:header element is permitted as a child of the
                      mime:part element along with the soap:body element. But
@@ -1054,12 +1059,12 @@ Table 2. WSDL elements for X-Road services
 </wsdl:definitions>
 ```
 
-<div id="annex-d-example-fault-messages" class="anchor"></div>
+
 ## Annex D Example Fault Messages
 
 This section contains example SOAP Fault messages.
 
-<div id="d1-technical" class="anchor"></div>
+
 ### D.1 Technical
 
 ```xml
@@ -1078,7 +1083,7 @@ This section contains example SOAP Fault messages.
 </SOAP-ENV:Envelope>
 ```
 
-<div id="d2-non-technical" class="anchor"></div>
+
 ### D.2 Non-technical
 
 ```xml
@@ -1125,17 +1130,17 @@ This section contains example SOAP Fault messages.
 </SOAP-ENV:Envelope>
 ```
 
-<div id="annex-e-example-messages" class="anchor"></div>
+
 ## Annex E Example Messages
 
 This section contains example request and example response messages for an example service.
 
-<div id="e1-request" class="anchor"></div>
+
 ### E.1 Request
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope 
+<SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:ns1="http://producer.x-road.eu"
         xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
@@ -1168,13 +1173,13 @@ This section contains example request and example response messages for an examp
 </SOAP-ENV:Envelope>
 ```
 
-<div id="e1-response" class="anchor"></div>
+
 ### E.2 Response
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope
-        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" 
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:ns1="http://producer.x-road.eu"
         xmlns:id="http://x-road.eu/xsd/identifiers"
         xmlns:xrd="http://x-road.eu/xsd/xroad.xsd">
@@ -1211,7 +1216,7 @@ This section contains example request and example response messages for an examp
 </SOAP-ENV:Envelope>
 ```
 
-<div id="annex-f-example-request-with-attachment" class="anchor"></div>
+
 ## Annex F Example Request with Attachment
 
 ```xml
@@ -1225,7 +1230,7 @@ Content-Transfer-Encoding: 8bit
 Content-ID: <rootpart>
 
 <?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope 
+<SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:ns1="http://producer.x-road.eu"
         xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
@@ -1268,12 +1273,12 @@ VGhpcyBpcyBhdHRhY2htZW50Lg0K
 --MIME_boundary--
 ```
 
-<div id="annex-g-example-request-with-mtom-attachment" class="anchor"></div>
+
 ## Annex G Example Request with MTOM Attachment
 
 ```xml
 ... other transport headers ... The following HTTP header is wrapped for readability:
-Content-Type: multipart/related; type="application/xop+xml"; start="<rootpart>"; 
+Content-Type: multipart/related; type="application/xop+xml"; start="<rootpart>";
     start-info="text/xml"; boundary="MIME_boundary"
 MIME-Version: 1.0
 
@@ -1283,7 +1288,7 @@ Content-Transfer-Encoding: 8bit
 Content-ID: <rootpart>
 
 <?xml version="1.0" encoding="UTF-8"?>
-<SOAP-ENV:Envelope 
+<SOAP-ENV:Envelope
         xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
         xmlns:ns1="http://producer.x-road.eu"
         xmlns:xrd="http://x-road.eu/xsd/xroad.xsd"
@@ -1328,3 +1333,4 @@ Content-Disposition: attachment; name="data.bin"; filename="data.bin"
 VGhpcyBpcyBhdHRhY2htZW50Lg0K
 --MIME_boundary--
 ```
+
