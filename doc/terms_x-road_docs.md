@@ -1,6 +1,42 @@
 # Terms of X-Road
 
-## 1. X-Road and X-Road Instance
+## Version history
+
+ Date       | Version | Description                                                     | Author
+ ---------- | ------- | --------------------------------------------------------------- | --------------------
+ 06.07.2015 | 0.1     | Initial draft                                                   |
+ 23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
+
+## Table of Contents
+
+<!-- toc -->
+
+- [License](#license)
+- [1 X-Road and X-Road Instance](#1-x-road-and-x-road-instance)
+- [2 Participants of X-Road](#2-participants-of-x-road)
+- [3 Trust services](#3-trust-services)
+- [4 Roles of X-Road member](#4-roles-of-x-road-member)
+  * [4.1 In terms of dataservice](#41-in-terms-of-dataservice)
+  * [4.2 In terms of management of security server](#42-in-terms-of-management-of-security-server)
+- [5 X-Road interfacing steps](#5-x-road-interfacing-steps)
+- [6 Elements of X-Road technology](#6-elements-of-x-road-technology)
+  * [6.1 Technology in general](#61-technology-in-general)
+  * [6.2 X-Road internal components](#62-x-road-internal-components)
+  * [6.3 X-Road external components](#63-x-road-external-components)
+  * [6.4 Elements of X-Road software](#64-elements-of-x-road-software)
+    + [6.4.1 Service and message](#641-service-and-message)
+    + [6.4.2 Subsystems and access rights](#642-subsystems-and-access-rights)
+  * [6.5 X-Road protocols](#65-x-road-protocols)
+  * [6.6 Logging and security](#66-logging-and-security)
+  * [6.7 Identificators and codes](#67-identificators-and-codes)
+
+<!-- tocstop -->
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
+## 1 X-Road and X-Road Instance
 
 **X-Road instance** (*X-tee keskkond*)– legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of X-Road and limited to the participants administered by one governing authority.
 
@@ -14,7 +50,7 @@
 
 **External X-Road instance** (*väline X-tee keskkond*)
 
-## 2. Participants of X-Road
+## 2 Participants of X-Road
 
 **X-Road governing authority** (*X-teed haldav asutus*) – authority, that sets the requirements for using X-road and establishing the procedure for using X-Road, managing and regulating participants of X-Road.
 
@@ -34,7 +70,7 @@
 
 **Approved trust service provider** (*tunnustatud usaldusteenuse osutaja*) – participant of X-Road, who meets the requirements established by X-Road governing authority and has passed the process of recognition of X-Road trust service provider.
 
-## 3. Trust services
+## 3 Trust services
 
 **Approved certification service provider** (*tunnustatud sertifitseerimisteenuse osutaja*) – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and sertificate validation service (OCSP).
 
@@ -56,9 +92,9 @@
 
 > **Ajatempel** - elektroonilised andmed, mis seovad muud elektroonilised andmed kindla ajahetkega ja tõendavad, et need andmed olid sel ajahetkel olemas on.
 
-## 4. Roles of X-Road member
+## 4 Roles of X-Road member
 
-### 4.1. In terms of dataservice
+### 4.1 In terms of dataservice
 
 **Dataservice provider** (*andmeteenuse osutaja*) – member of X-Road responsible for dataservice provision, incl. granting the service SLA, managing the agreements with dataservice clients, granting access rights etc. Technically, dataservice provider is a party of interaction sending the response.
 
@@ -72,7 +108,7 @@
 
 > **Andmeteenuse vahendaja** on X-tee liige, kes võimaldab enda organisatsioonivälistele füüsilistele või juriidilistele isikutele juurdepääsu andmeteenusele oma infosüsteemi vahendusel.
 
-### 4.1. In terms of management of security server
+### 4.2 In terms of management of security server
 
 **Security server owner** (*turvaserveri omanik*) – a member responsible for security server and creation of a secure data exchange channel.
 
@@ -84,7 +120,7 @@
 
 **Security server host** (*turvaserveri majutaja*) – Member who provides security server hosting services to third parties and other members.
 
-## 5. X-Road interfacing steps
+## 5 X-Road interfacing steps
 
 **Affiliation of membership** (*X-teega liitumine*) – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
 
@@ -98,7 +134,7 @@
 
 **Interaction** (*interaktsioon*) – activation procedure of dataservice (single use), bilateral information exchange through dataservice, i.e. request of dataservice by the service client by sending a request, to which the service provider will send a response.
 
-## 6. Elements of X-Road technology
+## 6 Elements of X-Road technology
 
 ### 6.1 Technology in general
 
@@ -229,3 +265,4 @@ Secure log?
 **Global access group identifier** (*globaalse pääsuõiguste grupi identifikaator*) – identifier, that uniquely identifies access group in X-Road Network. Global access group identifier consists of X-Road instance identifier and global group code.
 
 **Local access group identifier** (*lokaalse pääsuõiguste grupi identifikaator*) – identifier, that uniquely identifies access group for a security server client. Global access group identifier consists of X-Road instance identifier and global group code.
+
