@@ -2,115 +2,117 @@
 
 ---
 
-<div id="x-road-use-case-model-for-member-management" class="anchor"></div>
+
 # X-Road: Use Case Model for Member Management
 **Analysis**
 
-Version: 1.5                                 
-23.02.2017                                    
+Version: 1.5
+23.02.2017
 <!--  63 pages -->
 Doc. ID: UC-MEMBER
 
 
 ---
 
-<div id="version-history" class="anchor"></div>
-# Version history
 
- Date       | Version | Description                                                     | Author             
+## Version history
+
+ Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 06.07.2015 | 0.1     | Initial draft                                                   | Anna Laaneväli 
- 18.08.2015 | 0.2     | Initial version                                                 | Anna Laaneväli 
- 31.08.2015 | 0.3     | Additions done                                                  | Anna Laaneväli 
- 21.09.2015 | 0.4     | Rewrite                                                         | Riin Saarmäe   
- 21.09.2015 | 1.0     | Editorial changes made                                          | Riin Saarmäe   
- 27.09.2015 | 1.1     | Summary use cases added; member class management use cases added; internal TLS certificate use cases added; global group use cases moved to [UC-SERVICE](#Ref_UC-SERVICE); use cases for management services updated. | Riin Saarmäe   
- 08.11.2015 | 1.2     | Minor corrections done                                          | Riin Saarmäe   
- 16.12.2015 | 1.3     | [UC MEMBER\_56](#2311-uc-member_56-add-a-subsystem-to-an-x-road-member) and [UC MEMBER\_57](#2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client) added. Only subsystems (and not members) can be added and registered as security server clients. [UC MEMBER\_32](#2330-uc-member_32-view-the-configuration-for-management-services) and [UC MEMBER\_28](#2326-uc-member_28-handle-an-authentication-certificate-registration-request) updated. Minor corrections done.  | Riin Saarmäe   
- 24.11.2016 | 1.4     | XTE-297: Internal Servers tab is displayed to security server owner | Meril Vaht     
- 23.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF | Toomas Mölder         
+ 06.07.2015 | 0.1     | Initial draft                                                   | Anna Laaneväli
+ 18.08.2015 | 0.2     | Initial version                                                 | Anna Laaneväli
+ 31.08.2015 | 0.3     | Additions done                                                  | Anna Laaneväli
+ 21.09.2015 | 0.4     | Rewrite                                                         | Riin Saarmäe
+ 21.09.2015 | 1.0     | Editorial changes made                                          | Riin Saarmäe
+ 27.09.2015 | 1.1     | Summary use cases added; member class management use cases added; internal TLS certificate use cases added; global group use cases moved to [UC-SERVICE](#Ref_UC-SERVICE); use cases for management services updated. | Riin Saarmäe
+ 08.11.2015 | 1.2     | Minor corrections done                                          | Riin Saarmäe
+ 16.12.2015 | 1.3     | [UC MEMBER\_56](#2311-uc-member_56-add-a-subsystem-to-an-x-road-member) and [UC MEMBER\_57](#2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client) added. Only subsystems (and not members) can be added and registered as security server clients. [UC MEMBER\_32](#2330-uc-member_32-view-the-configuration-for-management-services) and [UC MEMBER\_28](#2326-uc-member_28-handle-an-authentication-certificate-registration-request) updated. Minor corrections done.  | Riin Saarmäe
+ 24.11.2016 | 1.4     | XTE-297: Internal Servers tab is displayed to security server owner | Meril Vaht
+ 23.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF | Toomas Mölder 
 
-<div id="table-of-contents" class="anchor"></div>
-# Table of Contents
+## Table of Contents
 
-[1 Introduction](#1-introduction)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.1 Purpose](#11-purpose)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.2 Terms and Abbreviations](#12-terms-and-abbreviations)  
-[&nbsp;&nbsp;&nbsp;&nbsp;1.3 References](#13-references)  
-[2 Use Case Model](#2-use-case-model)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.1 Summary Use Cases](#21-summary-use-cases)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.1.1 UC MEMBER\_01: Configure and Register a Security Server](#211-uc-member_01-configure-and-register-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.1.2 UC MEMBER\_02: Configure and Register a Subsystem of the Security Server Owner as a Security Server Client](#212-uc-member_02-configure-and-register-a-subsystem-of-the-security-server-owner-as-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.1.3 UC MEMBER\_03: Interface an Organization with the X-Road System](#213-uc-member_03-interface-an-organization-with-the-x-road-system)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.2 Actors](#22-actors)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.3 Central Server Use Cases](#23-central-server-use-cases)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.1 UC MEMBER\_04: View X-Road Members](#231-uc-member_04-view-x-road-members)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.2 UC MEMBER\_05: View the Details of an X-Road Member](#232-uc-member_05-view-the-details-of-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.3 UC MEMBER\_06: View the Security Servers Owned by an X-Road Member](#233-uc-member_06-view-the-security-servers-owned-by-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.4 UC MEMBER\_07: View the Subsystems of an X-Road Member](#234-uc-member_07-view-the-subsystems-of-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.5 UC MEMBER\_08: View the Security Servers Used by an X-Road Member](#235-uc-member_08-view-the-security-servers-used-by-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.6 UC MEMBER\_09: View the Management Requests Associated with an X-Road Member](#236-uc-member_09-view-the-management-requests-associated-with-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.7 UC MEMBER\_10: Add an X-Road Member](#237-uc-member_10-add-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.8 UC MEMBER\_11: Edit the Name of an X-Road Member](#238-uc-member_11-edit-the-name-of-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.9 UC MEMBER\_12: Add an Owned Security Server to an X-Road Member](#239-uc-member_12-add-an-owned-security-server-to-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.10 UC MEMBER\_13: Set Registration Request Status](#2310-uc-member_13-set-registration-request-status)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.11 UC MEMBER\_56: Add a Subsystem to an X-Road Member](#2311-uc-member_56-add-a-subsystem-to-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.12 UC MEMBER\_14: Delete an X-Road Member's Subsystem](#2312-uc-member_14-delete-an-x-road-members-subsystem)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.13 UC MEMBER\_15: Create a Security Server Client Registration Request](#2313-uc-member_15-create-a-security-server-client-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.14 UC MEMBER\_16: Create a Security Server Client Deletion Request](#2314-uc-member_16-create-a-security-server-client-deletion-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.15 UC MEMBER\_17: View Security Servers](#2315-uc-member_17-view-security-servers)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.16 UC MEMBER\_18: View the Details of a Security Server](#2316-uc-member_18-view-the-details-of-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.17 UC MEMBER\_19: View the Clients of a Security Server](#2317-uc-member_19-view-the-clients-of-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.18 UC MEMBER\_20: View the Authentication Certificates of a Security Server](#2318-uc-member_20-view-the-authentication-certificates-of-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.19 UC MEMBER\_21: View the Management Requests of a Security Server](#2319-uc-member_21-view-the-management-requests-of-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.20 UC MEMBER\_22: Edit the Address of a Security Server](#2320-uc-member_22-edit-the-address-of-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.21 UC MEMBER\_23: Create an Authentication Certificate Registration Request](#2321-uc-member_23-create-an-authentication-certificate-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.22 UC MEMBER\_24: Create an Authentication Certificate Deletion Request](#2322-uc-member_24-create-an-authentication-certificate-deletion-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.23 UC MEMBER\_25: Delete a Security Server](#2323-uc-member_25-delete-a-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.24 UC MEMBER\_26: Delete an X-Road Member](#2324-uc-member_26-delete-an-x-road-member)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.25 UC MEMBER\_27: Serve a Management Service Request](#2325-uc-member_27-serve-a-management-service-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.26 UC MEMBER\_28: Handle an Authentication Certificate Registration Request](#2326-uc-member_28-handle-an-authentication-certificate-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.27 UC MEMBER\_29: Handle an Authentication Certificate Deletion Request](#2327-uc-member_29-handle-an-authentication-certificate-deletion-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.28 UC MEMBER\_30: Handle a Security Server Client Registration Request](#2328-uc-member_30-handle-a-security-server-client-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.29 UC MEMBER\_31: Handle a Security Server Client Deletion Request](#2329-uc-member_31-handle-a-security-server-client-deletion-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.30 UC MEMBER\_32: View the Configuration for Management Services](#2330-uc-member_32-view-the-configuration-for-management-services)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.31 UC MEMBER\_33: Change the Management Service Provider](#2331-uc-member_33-change-the-management-service-provider)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.32 UC MEMBER\_57: Register the Management Service Provider as a Security Server Client](#2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.33 UC MEMBER\_34: View Management Requests](#2333-uc-member_34-view-management-requests)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.34 UC MEMBER\_35: View the Details of a Management Request](#2334-uc-member_35-view-the-details-of-a-management-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.35 UC MEMBER\_36: Approve an Authentication Certificate Registration Request](#2335-uc-member_36-approve-an-authentication-certificate-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.36 UC MEMBER\_37: Approve a Security Server Client Registration Request](#2336-uc-member_37-approve-a-security-server-client-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.37 UC MEMBER\_38: Decline a Registration Request](#2337-uc-member_38-decline-a-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.38 UC MEMBER\_39: Revoke a Registration Request](#2338-uc-member_39-revoke-a-registration-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.39 UC MEMBER\_40: View Member Classes](#2339-uc-member_40-view-member-classes)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.40 UC MEMBER\_41: Add a Member Class](#2340-uc-member_41-add-a-member-class)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.41 UC MEMBER\_42: Edit the Description of a Member Class](#2341-uc-member_42-edit-the-description-of-a-member-class)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.3.42 UC MEMBER\_43: Delete a Member Class](#2342-uc-member_43-delete-a-member-class)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.4 Security Server Use Cases](#24-security-server-use-cases)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.1 UC MEMBER\_44: View Security Server Clients](#241-uc-member_44-view-security-server-clients)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.2 UC MEMBER\_45: View the Details of a Security Server Client](#242-uc-member_45-view-the-details-of-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.3 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client](#243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.4 UC MEMBER\_47: Add a Client to the Security Server](#244-uc-member_47-add-a-client-to-the-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.5 UC MEMBER\_48: Register a Security Server Client](#245-uc-member_48-register-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.6 UC MEMBER\_49: Change a Security Server Client's Internal Server Connection Type](#246-uc-member_49-change-a-security-server-clients-internal-server-connection-type)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.7 UC MEMBER\_50: Add a Security Server Client's Internal TLS Certificate](#247-uc-member_50-add-a-security-server-clients-internal-tls-certificate)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.8 UC MEMBER\_51: Delete a Security Server Client's Internal TLS Certificate](#248-uc-member_51-delete-a-security-server-clients-internal-tls-certificate)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.9 UC MEMBER\_52: Unregister a Security Server Client](#249-uc-member_52-unregister-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.4.10 UC MEMBER\_53: Delete a Security Server Client](#2410-uc-member_53-delete-a-security-server-client)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.5 Common Use Cases](#25-common-use-cases)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.5.1 UC MEMBER\_54: Parse User Input](#251-uc-member_54-parse-user-input)  
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[2.5.2 UC MEMBER\_55: View Certificate Details](#252-uc-member_55-view-certificate-details)  
+<!-- toc -->
 
-<div id="license" class="anchor"></div>
-# License
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+- [2 Use Case Model](#2-use-case-model)
+  * [2.1 Summary Use Cases](#21-summary-use-cases)
+    + [2.1.1 UC MEMBER\_01: Configure and Register a Security Server](#211-uc-member_01-configure-and-register-a-security-server)
+    + [2.1.2 UC MEMBER\_02: Configure and Register a Subsystem of the Security Server Owner as a Security Server Client](#212-uc-member_02-configure-and-register-a-subsystem-of-the-security-server-owner-as-a-security-server-client)
+    + [2.1.3 UC MEMBER\_03: Interface an Organization with the X-Road System](#213-uc-member_03-interface-an-organization-with-the-x-road-system)
+  * [2.2 Actors](#22-actors)
+  * [2.3 Central Server Use Cases](#23-central-server-use-cases)
+    + [2.3.1 UC MEMBER\_04: View X-Road Members](#231-uc-member_04-view-x-road-members)
+    + [2.3.2 UC MEMBER\_05: View the Details of an X-Road Member](#232-uc-member_05-view-the-details-of-an-x-road-member)
+    + [2.3.3 UC MEMBER\_06: View the Security Servers Owned by an X-Road Member](#233-uc-member_06-view-the-security-servers-owned-by-an-x-road-member)
+    + [2.3.4 UC MEMBER\_07: View the Subsystems of an X-Road Member](#234-uc-member_07-view-the-subsystems-of-an-x-road-member)
+    + [2.3.5 UC MEMBER\_08: View the Security Servers Used by an X-Road Member](#235-uc-member_08-view-the-security-servers-used-by-an-x-road-member)
+    + [2.3.6 UC MEMBER\_09: View the Management Requests Associated with an X-Road Member](#236-uc-member_09-view-the-management-requests-associated-with-an-x-road-member)
+    + [2.3.7 UC MEMBER\_10: Add an X-Road Member](#237-uc-member_10-add-an-x-road-member)
+    + [2.3.8 UC MEMBER\_11: Edit the Name of an X-Road Member](#238-uc-member_11-edit-the-name-of-an-x-road-member)
+    + [2.3.9 UC MEMBER\_12: Add an Owned Security Server to an X-Road Member](#239-uc-member_12-add-an-owned-security-server-to-an-x-road-member)
+    + [2.3.10 UC MEMBER\_13: Set Registration Request Status](#2310-uc-member_13-set-registration-request-status)
+    + [2.3.11 UC MEMBER\_56: Add a Subsystem to an X-Road Member](#2311-uc-member_56-add-a-subsystem-to-an-x-road-member)
+    + [2.3.12 UC MEMBER\_14: Delete an X-Road Member's Subsystem](#2312-uc-member_14-delete-an-x-road-members-subsystem)
+    + [2.3.13 UC MEMBER\_15: Create a Security Server Client Registration Request](#2313-uc-member_15-create-a-security-server-client-registration-request)
+    + [2.3.14 UC MEMBER\_16: Create a Security Server Client Deletion Request](#2314-uc-member_16-create-a-security-server-client-deletion-request)
+    + [2.3.15 UC MEMBER\_17: View Security Servers](#2315-uc-member_17-view-security-servers)
+    + [2.3.16 UC MEMBER\_18: View the Details of a Security Server](#2316-uc-member_18-view-the-details-of-a-security-server)
+    + [2.3.17 UC MEMBER\_19: View the Clients of a Security Server](#2317-uc-member_19-view-the-clients-of-a-security-server)
+    + [2.3.18 UC MEMBER\_20: View the Authentication Certificates of a Security Server](#2318-uc-member_20-view-the-authentication-certificates-of-a-security-server)
+    + [2.3.19 UC MEMBER\_21: View the Management Requests of a Security Server](#2319-uc-member_21-view-the-management-requests-of-a-security-server)
+    + [2.3.20 UC MEMBER\_22: Edit the Address of a Security Server](#2320-uc-member_22-edit-the-address-of-a-security-server)
+    + [2.3.21 UC MEMBER\_23: Create an Authentication Certificate Registration Request](#2321-uc-member_23-create-an-authentication-certificate-registration-request)
+    + [2.3.22 UC MEMBER\_24: Create an Authentication Certificate Deletion Request](#2322-uc-member_24-create-an-authentication-certificate-deletion-request)
+    + [2.3.23 UC MEMBER\_25: Delete a Security Server](#2323-uc-member_25-delete-a-security-server)
+    + [2.3.24 UC MEMBER\_26: Delete an X-Road Member](#2324-uc-member_26-delete-an-x-road-member)
+    + [2.3.25 UC MEMBER\_27: Serve a Management Service Request](#2325-uc-member_27-serve-a-management-service-request)
+    + [2.3.26 UC MEMBER\_28: Handle an Authentication Certificate Registration Request](#2326-uc-member_28-handle-an-authentication-certificate-registration-request)
+    + [2.3.27 UC MEMBER\_29: Handle an Authentication Certificate Deletion Request](#2327-uc-member_29-handle-an-authentication-certificate-deletion-request)
+    + [2.3.28 UC MEMBER\_30: Handle a Security Server Client Registration Request](#2328-uc-member_30-handle-a-security-server-client-registration-request)
+    + [2.3.29 UC MEMBER\_31: Handle a Security Server Client Deletion Request](#2329-uc-member_31-handle-a-security-server-client-deletion-request)
+    + [2.3.30 UC MEMBER\_32: View the Configuration for Management Services](#2330-uc-member_32-view-the-configuration-for-management-services)
+    + [2.3.31 UC MEMBER\_33: Change the Management Service Provider](#2331-uc-member_33-change-the-management-service-provider)
+    + [2.3.32 UC MEMBER\_57: Register the Management Service Provider as a Security Server Client](#2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client)
+    + [2.3.33 UC MEMBER\_34: View Management Requests](#2333-uc-member_34-view-management-requests)
+    + [2.3.34 UC MEMBER\_35: View the Details of a Management Request](#2334-uc-member_35-view-the-details-of-a-management-request)
+    + [2.3.35 UC MEMBER\_36: Approve an Authentication Certificate Registration Request](#2335-uc-member_36-approve-an-authentication-certificate-registration-request)
+    + [2.3.36 UC MEMBER\_37: Approve a Security Server Client Registration Request](#2336-uc-member_37-approve-a-security-server-client-registration-request)
+    + [2.3.37 UC MEMBER\_38: Decline a Registration Request](#2337-uc-member_38-decline-a-registration-request)
+    + [2.3.38 UC MEMBER\_39: Revoke a Registration Request](#2338-uc-member_39-revoke-a-registration-request)
+    + [2.3.39 UC MEMBER\_40: View Member Classes](#2339-uc-member_40-view-member-classes)
+    + [2.3.40 UC MEMBER\_41: Add a Member Class](#2340-uc-member_41-add-a-member-class)
+    + [2.3.41 UC MEMBER\_42: Edit the Description of a Member Class](#2341-uc-member_42-edit-the-description-of-a-member-class)
+    + [2.3.42 UC MEMBER\_43: Delete a Member Class](#2342-uc-member_43-delete-a-member-class)
+  * [2.4 Security Server Use Cases](#24-security-server-use-cases)
+    + [2.4.1 UC MEMBER\_44: View Security Server Clients](#241-uc-member_44-view-security-server-clients)
+    + [2.4.2 UC MEMBER\_45: View the Details of a Security Server Client](#242-uc-member_45-view-the-details-of-a-security-server-client)
+    + [2.4.3 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client](#243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client)
+    + [2.4.4 UC MEMBER\_47: Add a Client to the Security Server](#244-uc-member_47-add-a-client-to-the-security-server)
+    + [2.4.5 UC MEMBER\_48: Register a Security Server Client](#245-uc-member_48-register-a-security-server-client)
+    + [2.4.6 UC MEMBER\_49: Change a Security Server Client's Internal Server Connection Type](#246-uc-member_49-change-a-security-server-clients-internal-server-connection-type)
+    + [2.4.7 UC MEMBER\_50: Add a Security Server Client's Internal TLS Certificate](#247-uc-member_50-add-a-security-server-clients-internal-tls-certificate)
+    + [2.4.8 UC MEMBER\_51: Delete a Security Server Client's Internal TLS Certificate](#248-uc-member_51-delete-a-security-server-clients-internal-tls-certificate)
+    + [2.4.9 UC MEMBER\_52: Unregister a Security Server Client](#249-uc-member_52-unregister-a-security-server-client)
+    + [2.4.10 UC MEMBER\_53: Delete a Security Server Client](#2410-uc-member_53-delete-a-security-server-client)
+  * [2.5 Common Use Cases](#25-common-use-cases)
+    + [2.5.1 UC MEMBER\_54: Parse User Input](#251-uc-member_54-parse-user-input)
+    + [2.5.2 UC MEMBER\_55: View Certificate Details](#252-uc-member_55-view-certificate-details)
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+<!-- tocstop -->
 
-<div id="1-introduction" class="anchor"></div>
-# 1. Introduction
+## License
 
-<div id="11-purpose" class="anchor"></div>
-## 1.1 Purpose
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
+## 1 Introduction
+
+
+### 1.1 Purpose
 
 The purpose of this document is to describe:
 
@@ -130,8 +132,8 @@ The use cases assume that the X-Road software components involved in the use cas
 
 The use cases including a human actor (the *level* of the use case is *user task*) assume that the actor is logged in to the system and has the access rights required to carry out the use case.
 
-<div id="12-terms-and-abbreviations" class="anchor"></div>
-## 1.2 Terms and Abbreviations
+
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at <[Terms of X-Road](../terms_x-road_docs.md)>.
 
@@ -141,34 +143,34 @@ This section defines the terms that are not defined in the aforementioned docume
 
 -   **System configuration** consists of data stored in the database and in the various configuration files held in the file system of an X-Road component.
 
-<div id="13-references" class="anchor"></div>
-## 1.3 References
 
-1.  <div id="Ref_IG-CS" class="anchor"></div><a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+### 1.3 References
 
-2.  <div id="Ref_IG-SS" class="anchor"></div><a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
-3.  <div id="Ref_PR-MSERV" class="anchor"></div><a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: PR-MSERV.
+2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
 
-4.  <div id="Ref_SPEC-AL" class="anchor"></div><a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: SPEC-AL.
+3.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: PR-MSERV.
 
-5.  <div id="Ref_UC-GCONF" class="anchor"></div><a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF.
+4.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events. Document ID: SPEC-AL.
 
-6.  <div id="Ref_UC-MESS" class="anchor"></div><a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for Member Communication. Document ID: UC-MESS.
+5.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF.
 
-7.  <div id="Ref_UC-SERVICE" class="anchor"></div><a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for Service Management. Document ID: UC-SERVICE.
+6.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for Member Communication. Document ID: UC-MESS.
 
-8.  <div id="Ref_UC-SS" class="anchor"></div><a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
+7.  <a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for Service Management. Document ID: UC-SERVICE.
 
-9.  <div id="Ref_UG-SS" class="anchor"></div><a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: UG-SS.
+8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
 
-10. <div id="Ref_X509" class="anchor"></div><a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile, Internet Engineering Task Force, 2008.
+9.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: UG-SS.
 
-<div id="2-use-case-model" class="anchor"></div>
-# 2. Use Case Model
+10. <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile, Internet Engineering Task Force, 2008.
 
-<div id="21-summary-use-cases" class="anchor"></div>
-## 2.1 Summary Use Cases
+
+## 2 Use Case Model
+
+
+### 2.1 Summary Use Cases
 
 The use cases in this section summarize the minimal set of actions that need to be performed to achieve the following goals:
 
@@ -180,8 +182,8 @@ The use cases in this section summarize the minimal set of actions that need to 
 
 The use cases do not describe the organizational aspects of these processes.
 
-<div id="211-uc-member_01-configure-and-register-a-security-server" class="anchor"></div>
-### 2.1.1 UC MEMBER\_01: Configure and Register a Security Server
+
+#### 2.1.1 UC MEMBER\_01: Configure and Register a Security Server
 
 **System**: X-Road system
 
@@ -243,8 +245,8 @@ The use cases do not describe the organizational aspects of these processes.
 
 **Related information**: -
 
-<div id="212-uc-member_02-configure-and-register-a-subsystem-of-the-security-server-owner-as-a-security-server-client" class="anchor"></div>
-### 2.1.2 UC MEMBER\_02: Configure and Register a Subsystem of the Security Server Owner as a Security Server Client
+
+#### 2.1.2 UC MEMBER\_02: Configure and Register a Subsystem of the Security Server Owner as a Security Server Client
 
 **System**: X-Road system
 
@@ -298,8 +300,8 @@ The use cases do not describe the organizational aspects of these processes.
 
 **Related information**: -
 
-<div id="213-uc-member_03-interface-an-organization-with-the-x-road-system" class="anchor"></div>
-### 2.1.3 UC MEMBER\_03: Interface an Organization with the X-Road System
+
+#### 2.1.3 UC MEMBER\_03: Interface an Organization with the X-Road System
 
 **System**: X-Road system
 
@@ -369,8 +371,8 @@ The use cases do not describe the organizational aspects of these processes.
 
 **Related information**: -
 
-<div id="22-actors" class="anchor"></div>
-## 2.2 Actors
+
+### 2.2 Actors
 
 The use case model for X-Road member management includes the following actors.
 
@@ -384,17 +386,17 @@ The use case model for X-Road member management includes the following actors.
 
 Relationships between the actors, systems and use cases are described in [Figure 1](#Ref_Use_case_diagram_for_member_management).
 
-<div id="Ref_Use_case_diagram_for_member_management" class="anchor"></div>
+
 <a id="Ref_Use_case_diagram_for_member_management" class="anchor"></a>
 ![](img/uc-member_use_case_diagram_for_member_management.png)
 
 Figure 1. Use case diagram for member management
 
-<div id="23-central-server-use-cases" class="anchor"></div>
-## 2.3 Central Server Use Cases
 
-<div id="231-uc-member_04-view-x-road-members" class="anchor"></div>
-### 2.3.1 UC MEMBER\_04: View X-Road Members
+### 2.3 Central Server Use Cases
+
+
+#### 2.3.1 UC MEMBER\_04: View X-Road Members
 
 **System**: Central server
 
@@ -434,8 +436,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="232-uc-member_05-view-the-details-of-an-x-road-member" class="anchor"></div>
-### 2.3.2 UC MEMBER\_05: View the Details of an X-Road Member
+
+#### 2.3.2 UC MEMBER\_05: View the Details of an X-Road Member
 
 **System**: Central server
 
@@ -485,8 +487,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="233-uc-member_06-view-the-security-servers-owned-by-an-x-road-member" class="anchor"></div>
-### 2.3.3 UC MEMBER\_06: View the Security Servers Owned by an X-Road Member
+
+#### 2.3.3 UC MEMBER\_06: View the Security Servers Owned by an X-Road Member
 
 **System**: Central server
 
@@ -518,8 +520,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="234-uc-member_07-view-the-subsystems-of-an-x-road-member" class="anchor"></div>
-### 2.3.4 UC MEMBER\_07: View the Subsystems of an X-Road Member
+
+#### 2.3.4 UC MEMBER\_07: View the Subsystems of an X-Road Member
 
 **System**: Central server
 
@@ -557,8 +559,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="235-uc-member_08-view-the-security-servers-used-by-an-x-road-member" class="anchor"></div>
-### 2.3.5 UC MEMBER\_08: View the Security Servers Used by an X-Road Member
+
+#### 2.3.5 UC MEMBER\_08: View the Security Servers Used by an X-Road Member
 
 **System**: Central server
 
@@ -602,8 +604,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="236-uc-member_09-view-the-management-requests-associated-with-an-x-road-member" class="anchor"></div>
-### 2.3.6 UC MEMBER\_09: View the Management Requests Associated with an X-Road Member
+
+#### 2.3.6 UC MEMBER\_09: View the Management Requests Associated with an X-Road Member
 
 **System**: Central server
 
@@ -645,8 +647,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="237-uc-member_10-add-an-x-road-member" class="anchor"></div>
-### 2.3.7 UC MEMBER\_10: Add an X-Road Member
+
+#### 2.3.7 UC MEMBER\_10: Add an X-Road Member
 
 **System**: Central server
 
@@ -716,8 +718,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="238-uc-member_11-edit-the-name-of-an-x-road-member" class="anchor"></div>
-### 2.3.8 UC MEMBER\_11: Edit the Name of an X-Road Member
+
+#### 2.3.8 UC MEMBER\_11: Edit the Name of an X-Road Member
 
 **System**: Central server
 
@@ -763,8 +765,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="239-uc-member_12-add-an-owned-security-server-to-an-x-road-member" class="anchor"></div>
-### 2.3.9 UC MEMBER\_12: Add an Owned Security Server to an X-Road Member
+
+#### 2.3.9 UC MEMBER\_12: Add an Owned Security Server to an X-Road Member
 
 **System**: Central server
 
@@ -864,8 +866,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2310-uc-member_13-set-registration-request-status" class="anchor"></div>
-### 2.3.10 UC MEMBER\_13: Set Registration Request Status
+
+#### 2.3.10 UC MEMBER\_13: Set Registration Request Status
 
 **System**: Central server
 
@@ -911,8 +913,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2311-uc-member_56-add-a-subsystem-to-an-x-road-member" class="anchor"></div>
-### 2.3.11 UC MEMBER\_56: Add a Subsystem to an X-Road Member
+
+#### 2.3.11 UC MEMBER\_56: Add a Subsystem to an X-Road Member
 
 **System**: Central server
 
@@ -970,8 +972,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2312-uc-member_14-delete-an-x-road-members-subsystem" class="anchor"></div>
-### 2.3.12 UC MEMBER\_14: Delete an X-Road Member's Subsystem
+
+#### 2.3.12 UC MEMBER\_14: Delete an X-Road Member's Subsystem
 
 **System**: Central server
 
@@ -1015,8 +1017,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2313-uc-member_15-create-a-security-server-client-registration-request" class="anchor"></div>
-### 2.3.13 UC MEMBER\_15: Create a Security Server Client Registration Request
+
+#### 2.3.13 UC MEMBER\_15: Create a Security Server Client Registration Request
 
 **System**: Central server
 
@@ -1108,8 +1110,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2314-uc-member_16-create-a-security-server-client-deletion-request" class="anchor"></div>
-### 2.3.14 UC MEMBER\_16: Create a Security Server Client Deletion Request
+
+#### 2.3.14 UC MEMBER\_16: Create a Security Server Client Deletion Request
 
 **System**: Central server
 
@@ -1151,8 +1153,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2315-uc-member_17-view-security-servers" class="anchor"></div>
-### 2.3.15 UC MEMBER\_17: View Security Servers
+
+#### 2.3.15 UC MEMBER\_17: View Security Servers
 
 **System**: Central server
 
@@ -1188,8 +1190,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2316-uc-member_18-view-the-details-of-a-security-server" class="anchor"></div>
-### 2.3.16 UC MEMBER\_18: View the Details of a Security Server
+
+#### 2.3.16 UC MEMBER\_18: View the Details of a Security Server
 
 **System**: Central server
 
@@ -1237,8 +1239,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2317-uc-member_19-view-the-clients-of-a-security-server" class="anchor"></div>
-### 2.3.17 UC MEMBER\_19: View the Clients of a Security Server
+
+#### 2.3.17 UC MEMBER\_19: View the Clients of a Security Server
 
 **System**: Central server
 
@@ -1282,8 +1284,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2318-uc-member_20-view-the-authentication-certificates-of-a-security-server" class="anchor"></div>
-### 2.3.18 UC MEMBER\_20: View the Authentication Certificates of a Security Server
+
+#### 2.3.18 UC MEMBER\_20: View the Authentication Certificates of a Security Server
 
 **System**: Central server
 
@@ -1327,8 +1329,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2319-uc-member_21-view-the-management-requests-of-a-security-server" class="anchor"></div>
-### 2.3.19 UC MEMBER\_21: View the Management Requests of a Security Server
+
+#### 2.3.19 UC MEMBER\_21: View the Management Requests of a Security Server
 
 **System**: Central server
 
@@ -1368,8 +1370,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2320-uc-member_22-edit-the-address-of-a-security-server" class="anchor"></div>
-### 2.3.20 UC MEMBER\_22: Edit the Address of a Security Server
+
+#### 2.3.20 UC MEMBER\_22: Edit the Address of a Security Server
 
 **System**: Central server
 
@@ -1427,8 +1429,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2321-uc-member_23-create-an-authentication-certificate-registration-request" class="anchor"></div>
-### 2.3.21 UC MEMBER\_23: Create an Authentication Certificate Registration Request
+
+#### 2.3.21 UC MEMBER\_23: Create an Authentication Certificate Registration Request
 
 **System**: Central server
 
@@ -1492,8 +1494,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2322-uc-member_24-create-an-authentication-certificate-deletion-request" class="anchor"></div>
-### 2.3.22 UC MEMBER\_24: Create an Authentication Certificate Deletion Request
+
+#### 2.3.22 UC MEMBER\_24: Create an Authentication Certificate Deletion Request
 
 **System**: Central server
 
@@ -1535,8 +1537,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2323-uc-member_25-delete-a-security-server" class="anchor"></div>
-### 2.3.23 UC MEMBER\_25: Delete a Security Server
+
+#### 2.3.23 UC MEMBER\_25: Delete a Security Server
 
 **System**: Central server
 
@@ -1600,8 +1602,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2324-uc-member_26-delete-an-x-road-member" class="anchor"></div>
-### 2.3.24 UC MEMBER\_26: Delete an X-Road Member
+
+#### 2.3.24 UC MEMBER\_26: Delete an X-Road Member
 
 **System**: Central server
 
@@ -1667,8 +1669,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2325-uc-member_27-serve-a-management-service-request" class="anchor"></div>
-### 2.3.25 UC MEMBER\_27: Serve a Management Service Request
+
+#### 2.3.25 UC MEMBER\_27: Serve a Management Service Request
 
 **System**: Central server
 
@@ -1716,8 +1718,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2326-uc-member_28-handle-an-authentication-certificate-registration-request" class="anchor"></div>
-### 2.3.26 UC MEMBER\_28: Handle an Authentication Certificate Registration Request
+
+#### 2.3.26 UC MEMBER\_28: Handle an Authentication Certificate Registration Request
 
 **System**: Central server
 
@@ -1837,8 +1839,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2327-uc-member_29-handle-an-authentication-certificate-deletion-request" class="anchor"></div>
-### 2.3.27 UC MEMBER\_29: Handle an Authentication Certificate Deletion Request
+
+#### 2.3.27 UC MEMBER\_29: Handle an Authentication Certificate Deletion Request
 
 **System**: Central server
 
@@ -1898,8 +1900,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2328-uc-member_30-handle-a-security-server-client-registration-request" class="anchor"></div>
-### 2.3.28 UC MEMBER\_30: Handle a Security Server Client Registration Request
+
+#### 2.3.28 UC MEMBER\_30: Handle a Security Server Client Registration Request
 
 **System**: Central server
 
@@ -1965,8 +1967,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2329-uc-member_31-handle-a-security-server-client-deletion-request" class="anchor"></div>
-### 2.3.29 UC MEMBER\_31: Handle a Security Server Client Deletion Request
+
+#### 2.3.29 UC MEMBER\_31: Handle a Security Server Client Deletion Request
 
 **System**: Central server
 
@@ -2032,8 +2034,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2330-uc-member_32-view-the-configuration-for-management-services" class="anchor"></div>
-### 2.3.30 UC MEMBER\_32: View the Configuration for Management Services
+
+#### 2.3.30 UC MEMBER\_32: View the Configuration for Management Services
 
 **System**: Central server
 
@@ -2079,8 +2081,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2331-uc-member_33-change-the-management-service-provider" class="anchor"></div>
-### 2.3.31 UC MEMBER\_33: Change the Management Service Provider
+
+#### 2.3.31 UC MEMBER\_33: Change the Management Service Provider
 
 **System**: Central server
 
@@ -2118,8 +2120,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2332-uc-member_57-register-the-management-service-provider-as-a-security-server-client" class="anchor"></div>
-### 2.3.32 UC MEMBER\_57: Register the Management Service Provider as a Security Server Client
+
+#### 2.3.32 UC MEMBER\_57: Register the Management Service Provider as a Security Server Client
 
 **System**: Central server
 
@@ -2165,8 +2167,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2333-uc-member_34-view-management-requests" class="anchor"></div>
-### 2.3.33 UC MEMBER\_34: View Management Requests
+
+#### 2.3.33 UC MEMBER\_34: View Management Requests
 
 **System**: Central server
 
@@ -2226,8 +2228,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2334-uc-member_35-view-the-details-of-a-management-request" class="anchor"></div>
-### 2.3.34 UC MEMBER\_35: View the Details of a Management Request
+
+#### 2.3.34 UC MEMBER\_35: View the Details of a Management Request
 
 **System**: Central server
 
@@ -2301,8 +2303,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2335-uc-member_36-approve-an-authentication-certificate-registration-request" class="anchor"></div>
-### 2.3.35 UC MEMBER\_36: Approve an Authentication Certificate Registration Request
+
+#### 2.3.35 UC MEMBER\_36: Approve an Authentication Certificate Registration Request
 
 **System**: Central server
 
@@ -2352,8 +2354,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2336-uc-member_37-approve-a-security-server-client-registration-request" class="anchor"></div>
-### 2.3.36 UC MEMBER\_37: Approve a Security Server Client Registration Request
+
+#### 2.3.36 UC MEMBER\_37: Approve a Security Server Client Registration Request
 
 **System**: Central server
 
@@ -2395,8 +2397,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2337-uc-member_38-decline-a-registration-request" class="anchor"></div>
-### 2.3.37 UC MEMBER\_38: Decline a Registration Request
+
+#### 2.3.37 UC MEMBER\_38: Decline a Registration Request
 
 **System**: Central server
 
@@ -2438,8 +2440,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2338-uc-member_39-revoke-a-registration-request" class="anchor"></div>
-### 2.3.38 UC MEMBER\_39: Revoke a Registration Request
+
+#### 2.3.38 UC MEMBER\_39: Revoke a Registration Request
 
 **System**: Central server
 
@@ -2483,8 +2485,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for management services is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2339-uc-member_40-view-member-classes" class="anchor"></div>
-### 2.3.39 UC MEMBER\_40: View Member Classes
+
+#### 2.3.39 UC MEMBER\_40: View Member Classes
 
 **System**: Central server
 
@@ -2524,8 +2526,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="2340-uc-member_41-add-a-member-class" class="anchor"></div>
-### 2.3.40 UC MEMBER\_41: Add a Member Class
+
+#### 2.3.40 UC MEMBER\_41: Add a Member Class
 
 **System**: Central server
 
@@ -2593,8 +2595,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2341-uc-member_42-edit-the-description-of-a-member-class" class="anchor"></div>
-### 2.3.41 UC MEMBER\_42: Edit the Description of a Member Class
+
+#### 2.3.41 UC MEMBER\_42: Edit the Description of a Member Class
 
 **System**: Central server
 
@@ -2652,8 +2654,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="2342-uc-member_43-delete-a-member-class" class="anchor"></div>
-### 2.3.42 UC MEMBER\_43: Delete a Member Class
+
+#### 2.3.42 UC MEMBER\_43: Delete a Member Class
 
 **System**: Central server
 
@@ -2695,11 +2697,11 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="24-security-server-use-cases" class="anchor"></div>
-## 2.4 Security Server Use Cases
 
-<div id="241-uc-member_44-view-security-server-clients" class="anchor"></div>
-### 2.4.1 UC MEMBER\_44: View Security Server Clients
+### 2.4 Security Server Use Cases
+
+
+#### 2.4.1 UC MEMBER\_44: View Security Server Clients
 
 **System**: Security server
 
@@ -2749,8 +2751,8 @@ Figure 1. Use case diagram for member management
 
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
 
-<div id="242-uc-member_45-view-the-details-of-a-security-server-client" class="anchor"></div>
-### 2.4.2 UC MEMBER\_45: View the Details of a Security Server Client
+
+#### 2.4.2 UC MEMBER\_45: View the Details of a Security Server Client
 
 **System**: Security server
 
@@ -2800,8 +2802,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="243-uc-member_46-view-the-internal-server-settings-of-a-security-server-client" class="anchor"></div>
-### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client
+
+#### 2.4.3 UC MEMBER\_46: View the Internal Server Settings of a Security Server Client
 
 **System**: Security server
 
@@ -2843,8 +2845,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="244-uc-member_47-add-a-client-to-the-security-server" class="anchor"></div>
-### 2.4.4 UC MEMBER\_47: Add a Client to the Security Server
+
+#### 2.4.4 UC MEMBER\_47: Add a Client to the Security Server
 
 **System**: Security server
 
@@ -2916,8 +2918,8 @@ Figure 1. Use case diagram for member management
 
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
 
-<div id="245-uc-member_48-register-a-security-server-client" class="anchor"></div>
-### 2.4.5 UC MEMBER\_48: Register a Security Server Client
+
+#### 2.4.5 UC MEMBER\_48: Register a Security Server Client
 
 **System**: Security server
 
@@ -2985,8 +2987,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for sending management requests is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="246-uc-member_49-change-a-security-server-clients-internal-server-connection-type" class="anchor"></div>
-### 2.4.6 UC MEMBER\_49: Change a Security Server Client's Internal Server Connection Type
+
+#### 2.4.6 UC MEMBER\_49: Change a Security Server Client's Internal Server Connection Type
 
 **System**: Security server
 
@@ -3024,8 +3026,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="247-uc-member_50-add-a-security-server-clients-internal-tls-certificate" class="anchor"></div>
-### 2.4.7 UC MEMBER\_50: Add a Security Server Client's Internal TLS Certificate
+
+#### 2.4.7 UC MEMBER\_50: Add a Security Server Client's Internal TLS Certificate
 
 **System**: Security server
 
@@ -3083,8 +3085,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="248-uc-member_51-delete-a-security-server-clients-internal-tls-certificate" class="anchor"></div>
-### 2.4.8 UC MEMBER\_51: Delete a Security Server Client's Internal TLS Certificate
+
+#### 2.4.8 UC MEMBER\_51: Delete a Security Server Client's Internal TLS Certificate
 
 **System**: Security server
 
@@ -3122,8 +3124,8 @@ Figure 1. Use case diagram for member management
 
 -   The audit log is located at `/var/log/xroad/audit.log`. The data set of audit log records is described in the document “X-Road: Audit Log Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-<div id="249-uc-member_52-unregister-a-security-server-client" class="anchor"></div>
-### 2.4.9 UC MEMBER\_52: Unregister a Security Server Client
+
+#### 2.4.9 UC MEMBER\_52: Unregister a Security Server Client
 
 **System**: Security server
 
@@ -3187,8 +3189,8 @@ Figure 1. Use case diagram for member management
 
 -   The protocol for sending management requests is described the document “X-Road: Protocol for Management Services” \[[PR-MSERV](#Ref_PR-MSERV)\].
 
-<div id="2410-uc-member_53-delete-a-security-server-client" class="anchor"></div>
-### 2.4.10 UC MEMBER\_53: Delete a Security Server Client
+
+#### 2.4.10 UC MEMBER\_53: Delete a Security Server Client
 
 **System**: Security server
 
@@ -3242,11 +3244,11 @@ Figure 1. Use case diagram for member management
 
 -   The security server client state machine model is described in the document “Security Server User Guide” \[[UG-SS](#Ref_UG-SS)\].
 
-<div id="25-common-use-cases" class="anchor"></div>
-## 2.5 Common Use Cases
 
-<div id="251-uc-member_54-parse-user-input" class="anchor"></div>
-### 2.5.1 UC MEMBER\_54: Parse User Input
+### 2.5 Common Use Cases
+
+
+#### 2.5.1 UC MEMBER\_54: Parse User Input
 
 **System**: Security server, Central server
 
@@ -3302,8 +3304,8 @@ Figure 1. Use case diagram for member management
 
 **Related information**: -
 
-<div id="252-uc-member_55-view-certificate-details" class="anchor"></div>
-### 2.5.2 UC MEMBER\_55: View Certificate Details
+
+#### 2.5.2 UC MEMBER\_55: View Certificate Details
 
 **System**: Central server or security server
 
@@ -3336,3 +3338,4 @@ Figure 1. Use case diagram for member management
 **Related information**:
 
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of the certificate.
+
