@@ -1,5 +1,4 @@
 node {
-    echo 'Hello World from Jenkinsfile'
     stage("SCM") {
         echo 'SCM'
         checkout scm
