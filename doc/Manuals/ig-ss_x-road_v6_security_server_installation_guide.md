@@ -2,20 +2,20 @@
 
 ---
 
-<div id="security-server-installation-guide" class="anchor"></div>
+
 # Security Server Installation Guide
 **X-ROAD 6**
 
-Version: 2.7  
-23.02.2017  
-Doc. ID: IG-SS  
+Version: 2.7
+23.02.2017
+Doc. ID: IG-SS
 
 ---
 
-<div id="version-history" class="anchor"></div>
-# Version history
 
- Date       | Version | Description                                                     | Author             
+## Version history
+
+ Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  01.12.2014 | 1.0     | Initial version                                                 |
  19.01.2015 | 1.1     | License information added                                       |
@@ -32,73 +32,75 @@ Doc. ID: IG-SS
  19.05.2016 | 2.4     | Merged changes from xtee6-doc repo. Updated table [2.2](#22-reference-data) with p 1.12, added chapter [2.8](#28-installing-support-for-monitoring) and updated [3.2](#32-reference-data). |
  30.09.2016 | 2.5     | Added chapter „[Different versions of xroad-\* package after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)“. |
  07.12.2016 | 2.6     | Added operational data monitoring packages. 2 GB RAM -&gt; 3 GB RAM |
- 23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      
+ 23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
 
-<div id="table-of-contents" class="anchor"></div>
-# Table of Contents
+## Table of Contents
 
-[1 Introduction](#1-introduction)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.1 Target Audience](#11-target-audience)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.2 References](#12-references)  
-[2 Installation](#2-installation)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.1 Supported Platforms](#21-supported-platforms)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.2 Reference Data](#22-reference-data)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.4 Preparing OS](#24-preparing-os)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.5 Installation](#25-installation)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.6 Post-Installation Checks](#26-post-installation-checks)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)  
-&nbsp;&nbsp;&nbsp;&nbsp;[2.8 Installing Support for Monitoring](#28-installing-support-for-monitoring)  
-[3 Security Server Initial Configuration](#3-security-server-initial-configuration)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.1 Prerequisites](#31-prerequisites)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.2 Reference Data](#32-reference-data)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.3 Configuration](#33-configuration)  
-[4 Installation Error handling](#4-installation-error-handling)  
-&nbsp;&nbsp;&nbsp;&nbsp;[4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)  
-&nbsp;&nbsp;&nbsp;&nbsp;[4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)  
-&nbsp;&nbsp;&nbsp;&nbsp;[4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)  
-&nbsp;&nbsp;&nbsp;&nbsp;[4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)  
-&nbsp;&nbsp;&nbsp;&nbsp;[4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)  
+<!-- toc -->
 
-<div id="license" class="anchor"></div>
-# License
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 References](#12-references)
+- [2 Installation](#2-installation)
+  * [2.1 Supported Platforms](#21-supported-platforms)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Installation](#25-installation)
+  * [2.6 Post-Installation Checks](#26-post-installation-checks)
+  * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
+  * [2.8 Installing Support for Monitoring](#28-installing-support-for-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  * [3.1 Prerequisites](#31-prerequisites)
+  * [3.2 Reference Data](#32-reference-data)
+  * [3.3 Configuration](#33-configuration)
+- [4 Installation Error handling](#4-installation-error-handling)
+  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+<!-- tocstop -->
 
-<div id="1-introduction" class="anchor"></div>
-# 1. Introduction
+## License
 
-<div id="11-target-audience" class="anchor"></div>
-## 1.1 Target Audience
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
+## 1 Introduction
+
+
+### 1.1 Target Audience
 
 The intended audience of this Installation Guide are X-Road Security server system administrators responsible for installing and using X-Road software. The daily operation and maintenance of the security server is covered by its User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
-<div id="12-references" class="anchor"></div>
-## 1.2 References
 
-1.  <div id="Ref_UG-SS" class="anchor"></div><a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID UG-SS
+### 1.2 References
 
-<div id="2-installation" class="anchor"></div>
-# 2. Installation
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID UG-SS
 
-<div id="21-supported-platforms" class="anchor"></div>
-## 2.1 Supported Platforms
+
+## 2 Installation
+
+
+### 2.1 Supported Platforms
 
 The security server runs on the *Ubuntu Server 14.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The security server software is distributed as .deb packages through the official X-Road repository at http://x-road.eu/packages/
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
-<div id="22-reference-data" class="anchor"></div>
-## 2.2 Reference Data
+
+### 2.2 Reference Data
 
 *Note*: The information in empty cells should be determined before the server’s installation, by the person performing the installation.
 
 **Caution**: Data necessary for the functioning of the operating system is not included.
 
 
- **Ref** |                                        | **Explanation**                                    
+ **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
  1.0    | Ubuntu 14.04, 64-bit<br>3 GB RAM, 3 GB free disk space | Minimum requirements
  1.1    | http://x-road.eu/packages               | X-Road package repository
@@ -106,14 +108,14 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.3    |                                         | Account name in the user interface
  1.4    | TCP 5500                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Port for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
- &nbsp; | TCP 2080                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost) 
+ &nbsp; | TCP 2080                                | Port for inbound connections (from the external network to the security server)<br> Message exchange between security server and operational data monitoring daemon (by default on localhost)
  &nbsp; | TCP 9011                                | Port for inbound connections (from the external network to the security server)<br> Operational data monitoring daemon JMX listening port
  1.5  | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
  &nbsp; | TCP 5577                                | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
  &nbsp; | TCP 4001                                | Ports for outbound connections (from the security server to the external network)<br> Communication with the central server
  &nbsp; | TCP 80                                  | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
  &nbsp; | TCP 80,443                              | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP and time-stamping services
- 1.6  | TCP 4000                                  | User interface (local network) 
+ 1.6  | TCP 4000                                  | User interface (local network)
  1.7  | TCP 80                                    | Information system access points (in the local network)<br> Connections from information systems
  &nbsp; | TCP 443                                 | Information system access points (in the local network)<br> Connections from information systems
  1.8  |                                           | Security server internal IP address(es) and hostname(s)
@@ -122,8 +124,8 @@ The software can be installed both on physical and virtualized hardware (of the 
  1.11 | &lt;by default, the server’s IP addresses and names are added to the certificate’s Distinguished Name (DN) field&gt; | Information about the services TLS certificate
  1.12 | TCP 2552                                  | Port for communications between `xroad-proxy` and `xroad-monitoring` processes
 
-<div id="23-requirements-for-the-security-server" class="anchor"></div>
-## 2.3 Requirements for the Security Server
+
+### 2.3 Requirements for the Security Server
 
 Minimum recommended hardware parameters:
 
@@ -145,8 +147,8 @@ Requirements to software and settings:
 
 -   if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
-<div id="24-preparing-os" class="anchor"></div>
-## 2.4 Preparing OS
+
+### 2.4 Preparing OS
 
 -   Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
@@ -158,8 +160,8 @@ Requirements to software and settings:
 
         LC_ALL=en_US.UTF-8
 
-<div id="25-installation" class="anchor"></div>
-## 2.5 Installation
+
+### 2.5 Installation
 
 To install the X-Road security server software, follow these steps.
 
@@ -208,15 +210,15 @@ Upon the first installation of the packages, the system asks for the following i
 
 The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog`, operational data monitoring module `xroad-addon-opmonitoring` and WSDL validator module `xroad-addon-wsdlvalidator`.
 
-<div id="26-post-installation-checks" class="anchor"></div>
-## 2.6 Post-Installation Checks
+
+### 2.6 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
 -   Ensure from the command line that X-Road services are in the `start/running` state (example output follows):
 
         sudo initctl list | grep "^xroad-"
-		
+
         xroad-jetty start/running, process 19796
         xroad-confclient start/running, process 19563
         xroad-signer start/running, process 19393
@@ -225,8 +227,8 @@ The installation is successful if system services are started and the user inter
 
 -   Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
 
-<div id="27-installing-the-support-for-hardware-tokens" class="anchor"></div>
-## 2.7 Installing the Support for Hardware Tokens
+
+### 2.7 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -242,8 +244,8 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
         sudo service xroad-signer restart
 
-<div id="28-installing-support-for-monitoring" class="anchor"></div>
-## 2.8 Installing Support for Monitoring
+
+### 2.8 Installing Support for Monitoring
 
 Enabling the monitoring functionality on a security server requires installation of one additional package:
 
@@ -251,33 +253,33 @@ Enabling the monitoring functionality on a security server requires installation
 
 This installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
-<div id="3-security-server-initial-configuration" class="anchor"></div>
-# 3. Security Server Initial Configuration
+
+## 3 Security Server Initial Configuration
 
 During the security server initial configuration, the server’s X-Road membership information and the software token’s PIN are set.
 
-<div id="31-prerequisites" class="anchor"></div>
-## 3.1 Prerequisites
+
+### 3.1 Prerequisites
 
 Configuring the security server assumes that the security server owner is a member of the X-Road.
 
-<div id="32-reference-data" class="anchor"></div>
-## 3.2  Reference Data
+
+### 3.2 Reference Data
 
 ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the security server owner by the X-Road central’s administrator.
 
 The security server code and the software token’s PIN will be determined during the installation at the latest, by the person performing the installation.
 
- Ref  |                                                   | Explanation 
+ Ref  |                                                   | Explanation
  ---- | ------------------------------------------------- | --------------------------------------------------
- 2.1  | <http://x-road.eu/packages/>&lt;anchor file&gt;<br> ee-dev - development environment<br> ee-test - test environment<br> EE - production environment | Global configuration anchor file          
- 2.2  | GOV - government<br> COM - commercial             | Member class of the security server's owner 
- 2.3  | &lt;security server owner register code&gt;       | Member code of the security server's owner 
- 2.4  | &lt;choose security server identificator name&gt; | Security server's code 
- 2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN  
+ 2.1  | <http://x-road.eu/packages/>&lt;anchor file&gt;<br> ee-dev - development environment<br> ee-test - test environment<br> EE - production environment | Global configuration anchor file
+ 2.2  | GOV - government<br> COM - commercial             | Member class of the security server's owner
+ 2.3  | &lt;security server owner register code&gt;       | Member code of the security server's owner
+ 2.4  | &lt;choose security server identificator name&gt; | Security server's code
+ 2.5  | &lt;choose PIN for software token&gt;             | Software token’s PIN
 
-<div id="33-configuration" class="anchor"></div>
-## 3.3 Configuration
+
+### 3.3 Configuration
 
 To perform the initial configuration, open the address
 
@@ -302,11 +304,11 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 -   Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-<div id="4-installation-error-handling" class="anchor"></div>
-# 4. Installation Error handling
 
-<div id="41-cannot-set-lc_all-to-default-locale" class="anchor"></div>
-## 4.1 Cannot Set LC\_ALL to Default Locale
+## 4 Installation Error handling
+
+
+### 4.1 Cannot Set LC\_ALL to Default Locale
 
 If running the locale command results in the error message
 
@@ -327,8 +329,8 @@ Set operating system locale. Add following line to `/etc/environment` file:
 
 After updating the system’s locale settings, it is recommended to restart the operating system.
 
-<div id="42-postgresql-is-not-utf8-compatible" class="anchor"></div>
-## 4.2 PostgreSQL Is Not UTF8 Compatible
+
+### 4.2 PostgreSQL Is Not UTF8 Compatible
 
 If the security server installation is aborted with the error message
 
@@ -345,8 +347,8 @@ To complete the interrupted installation, run the command
 
     sudo apt-get -f install
 
-<div id="43-could-not-create-default-cluster" class="anchor"></div>
-## 4.3 Could Not Create Default Cluster
+
+### 4.3 Could Not Create Default Cluster
 
 If the following error message is displayed during PostgreSQL installation:
 
@@ -361,8 +363,8 @@ The interrupted installation can be finished using
 
     sudo apt-get -f install
 
-<div id="44-is-postgres-running-on-port-5432" class="anchor"></div>
-## 4.4 Is Postgres Running On Port 5432?
+
+### 4.4 Is Postgres Running On Port 5432?
 
 If the following error message appears during installation
 
@@ -379,8 +381,8 @@ The interrupted installation can be finished using
 
     sudo apt-get -f install
 
-<div id="45-different-versions-of-xroad--packages-after-successful-upgrade" class="anchor"></div>
-## 4.5 Different versions of xroad-\* packages after successful upgrade
+
+### 4.5 Different versions of xroad-\* packages after successful upgrade
 
 Sometimes, after using `sudo apt-get upgrade` command, some of the packages are not upgraded. In the following example `xroad-securityserver` package version is still 6.8.3 although other packages are upgraded to 6.8.5:
 
@@ -398,3 +400,4 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt-get dist-upgrade` commands.
 
 Please note that `xroad-jetty9 package` version can be different from other packages’ versions.
+
