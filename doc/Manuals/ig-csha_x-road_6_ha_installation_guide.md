@@ -2,57 +2,59 @@
 
 ---
 
-<div id="central-server-high-availability-installation-guide" class="anchor"></div>
+
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.4  
-20.02.2017  
-Doc. ID: IG-CSHA  
+Version: 1.4
+20.02.2017
+Doc. ID: IG-CSHA
 
 ---
 
-<div id="version-history" class="anchor"></div>
-# Version HISTORY
 
- Date       | Version | Description                                                     | Author             
+## Version history
+
+ Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 31.08.2015 | 0.1     | Initial version created.   
- 15.09.2015 | 1.0     | Minor fixes done.          
- 20.09.2015 | 1.1     | Editorial changes made     
- 16.12.2015 | 1.2     | Added recovery information 
- 17.12.2015 | 1.3     | Editorial changes made     
- 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder      
+ 31.08.2015 | 0.1     | Initial version created.
+ 15.09.2015 | 1.0     | Minor fixes done.
+ 20.09.2015 | 1.1     | Editorial changes made
+ 16.12.2015 | 1.2     | Added recovery information
+ 17.12.2015 | 1.3     | Editorial changes made
+ 20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
 
 
-<div id="table-of-contents" class="anchor"></div>
-# Table of Contents
+## Table of Contents
 
-[1. Introduction](#1-introduction)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.2 Target Audience](#12-target-audience)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3 References](#13-references)  
-[2. Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)  
-[3. Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.1 Requirements](#31-requirements)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.5 Post-Configuration Steps](#35-post-configuration-steps)  
-[4. General Installation of HA Support](#4-general-installation-of-ha-support)  
-[5. Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)  
-[6. Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)  
+<!-- toc -->
 
-<div id="license" class="anchor"></div>
-# License
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
+  * [1.2 Target Audience](#12-target-audience)
+  * [1.3 References](#13-references)
+- [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
+- [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
+  * [3.1 Requirements](#31-requirements)
+  * [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
+  * [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
+  * [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+  * [3.5 Post-Configuration Steps](#35-post-configuration-steps)
+- [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+- [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
+- [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+<!-- tocstop -->
 
-<div id="1-introduction" class="anchor"></div>
-# 1. Introduction
+## License
 
-<div id="11-high-availability-for-x-road-central-server" class="anchor"></div>
-## 1.1 High Availability for X-Road Central Server
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
+## 1 Introduction
+
+
+### 1.1 High Availability for X-Road Central Server
 
 The High Availability (HA) solution for the X-Road central server relies on database replication between nodes. Clustering works as an active-active asynchronous shared-nothing database. This enables every node to work as a standalone central server which receives data updates from all other nodes.
 
@@ -76,22 +78,22 @@ The technology used:
 
 The minimum X-Road central server version is 6.6.
 
-<div id="12-target-audience" class="anchor"></div>
-## 1.2 Target Audience
+
+### 1.2 Target Audience
 
 The intended audience of this installation guide are X-Road central server administrators responsible for installing and configuring the X-Road central server software.
 
 The document is intended for readers with a good knowledge of Linux server management, computer networks, and the X-Road functioning principles.
 
-<div id="13-references" class="anchor"></div>
-## 1.3 References
 
-1.  <div id="Ref_IG-CS" class="anchor"></div><a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+### 1.3 References
 
-2.  <div id="Ref_UG-CS" class="anchor"></div><a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: UG-CS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
-<div id="2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment" class="anchor"></div>
-# 2. Key Points and Known Limitations for X-Road Central Server HA Deployment
+2.  <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: UG-CS.
+
+
+## 2 Key Points and Known Limitations for X-Road Central Server HA Deployment
 
 1.  Correct timekeeping is crucial.
 
@@ -117,15 +119,15 @@ The document is intended for readers with a good knowledge of Linux server manag
 
 8.  Configuration files (located in `/etc/xroad/`) are not synchronized between nodes. It is the responsibility of the system administrator to change them in all nodes if required or stated by the user manual.
 
-<div id="Ref_1"></div>
+
 <a id="Ref_1"></a>
 \[1\] http://bdr-project.org/docs/next/global-sequence-voting.html
 
-<div id="3-requirements-and-workflows-for-ha-configuration" class="anchor"></div>
-# 3. Requirements and Workflows for HA Configuration
 
-<div id="31-requirements" class="anchor"></div>
-## 3.1 Requirements
+## 3 Requirements and Workflows for HA Configuration
+
+
+### 3.1 Requirements
 
 The nodes must meet all the requirements listed in the X-Road Central Server Installation Guide (see \[[IG-CS](#Ref_IG-CS)\]). Additionally, creating an HA setup requires the following.
 
@@ -139,15 +141,15 @@ The nodes must meet all the requirements listed in the X-Road Central Server Ins
 
     -   TCP 22 (SSH for configuring the cluster)
 
-<div id="32-workflow-for-a-new-x-road-instance-setup" class="anchor"></div>
-## 3.2 Workflow for a New X-Road Instance Setup
+
+### 3.2 Workflow for a New X-Road Instance Setup
 
 1.  Install HA support according to steps listed in section [4](#4-general-installation-of-ha-support).
 
 2.  Install the X-Road central server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on each node.
 
-<div id="33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration" class="anchor"></div>
-## 3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration
+
+### 3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration
 
 1.  Upgrade the existing X-Road central server software to the latest release available, verify system health.
 
@@ -159,8 +161,8 @@ The nodes must meet all the requirements listed in the X-Road Central Server Ins
 
 5.  After installing and configuring all the X-Road central server nodes, retrieve new internal and external configuration anchor files from one of the nodes and distribute the files to all security servers and configuration proxies.
 
-<div id="34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration" class="anchor"></div>
-## 3.4 Workflow for Adding New Nodes to an Existing HA Configuration
+
+### 3.4 Workflow for Adding New Nodes to an Existing HA Configuration
 
 Referencing steps in section [4](#4-general-installation-of-ha-support).
 
@@ -178,15 +180,15 @@ Referencing steps in section [4](#4-general-installation-of-ha-support).
 
 After installing and configuring all the X-Road central server nodes, retrieve new internal end external configuration anchor files from one of the nodes and distribute the files to all security servers and configuration proxies.
 
-<div id="35-post-configuration-steps" class="anchor"></div>
-## 3.5 Post-Configuration Steps
+
+### 3.5 Post-Configuration Steps
 
 After the database cluster has been configured and the X-Road Central Server packages have been installed, it is advisable to delete the keys generated during cluster setup.
 
 If key-based SSH access to the nodes by the root user was disabled before enabling it for cluster setup, the respective configuration of the SSH server should be restored.
 
-<div id="4-general-installation-of-ha-support" class="anchor"></div>
-# 4. General Installation of HA Support
+
+## 4 General Installation of HA Support
 
 1.  Install the cluster management package on one node (from the X-Road repository which is configured as described in the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\]):
 
@@ -220,7 +222,7 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
     4.  PostgreSQL 9.4 with BDR plugin is installed and configured to establish database connections between nodes.
 
-    5.  An X-Road specific database role with the needed features is created.  
+    5.  An X-Road specific database role with the needed features is created.
         If the first node contains an older database with the X-Road database schema then the old database schema will be migrated to the new database.
 
     **NOTE 1**: The location of the log file with detailed information about initialization progress is displayed when you start the cluster initialization script. Logs are named as
@@ -235,8 +237,8 @@ If key-based SSH access to the nodes by the root user was disabled before enabli
 
     In addition to the cluster setup script, the package provides tools for monitoring the status of the cluster.
 
-<div id="5-monitoring-ha-state-on-a-node" class="anchor"></div>
-# 5. Monitoring HA State on a Node
+
+## 5 Monitoring HA State on a Node
 
 A script for checking cluster health is available on every node with the `xroad-center-clusterhelper` package. To view cluster status run the following command:
 
@@ -278,8 +280,8 @@ Sample output is similar to the following (emphasizing the important values):
 
 The timestamps of the generated private and shared parameter files on different nodes must be within a reasonable time window. The timestamps of the internal and external anchors must be equal.
 
-<div id="6-recovery-of-the-ha-cluster" class="anchor"></div>
-# 6. Recovery of the HA cluster
+
+## 6 Recovery of the HA cluster
 
 This section describes the steps that are required to recover from system failure which has resulted in a loss of all cluster nodes.
 
@@ -310,3 +312,4 @@ This section describes the steps that are required to recover from system failur
 8.  For other nodes repeat steps 6. and 7. changing the cluster node identifier.
 
 9.  If configuration keys or central system addresses were modified during recovery – a new configuration anchor file must be distributed to members. See the Central Server User Guide \[[UG-CS](#Ref_UG-CS)\].
+
