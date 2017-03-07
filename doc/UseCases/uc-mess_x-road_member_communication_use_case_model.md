@@ -2,80 +2,81 @@
 
 ---
 
-<div id="x-road-use-case-model-for-member-communication" class="anchor"></div>
+
 # X-Road: Use Case Model for Member Communication
 **Analysis**
 
-Version: 1.6  
-22.02.2017  
-<!-- 38 pages -->  
-Doc. ID: UC-MESS  
+Version: 1.6
+22.02.2017
+<!-- 38 pages -->
+Doc. ID: UC-MESS
 
 ---
 
-<div id="version-history" class="anchor"></div>
-# Version history
 
- Date       | Version | Description                                                     | Author             
+## Version history
+
+ Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 02.06.2015 | 0.1     | Initial                                                         | Riin Saarmäe       
- 17.08.2015 | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated. | Riin Saarmäe       
- 31.08.2015 | 0.3     | Added comments and editorial changes                            | Margus Freudenthal 
- 14.09.2015 | 0.4     | Minor corrections                                               | Riin Saarmäe       
- 20.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto       
- 23.09.2015 | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated | Riin Saarmäe       
- 08.11.2015 | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done. | Riin Saarmäe       
- 26.11.2015 | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.    | Riin Saarmäe       
- 05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                            | Meril Vaht         
- 14.12.2016 | 1.5     | Operational monitoring functionality added                      | Meril Vaht         
- 22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)| Toomas Mölder         
+ 02.06.2015 | 0.1     | Initial                                                         | Riin Saarmäe
+ 17.08.2015 | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated. | Riin Saarmäe
+ 31.08.2015 | 0.3     | Added comments and editorial changes                            | Margus Freudenthal
+ 14.09.2015 | 0.4     | Minor corrections                                               | Riin Saarmäe
+ 20.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
+ 23.09.2015 | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated | Riin Saarmäe
+ 08.11.2015 | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done. | Riin Saarmäe
+ 26.11.2015 | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.    | Riin Saarmäe
+ 05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                            | Meril Vaht
+ 14.12.2016 | 1.5     | Operational monitoring functionality added                      | Meril Vaht
+ 22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)| Toomas Mölder
 
-<div id="table-of-contents" class="anchor"></div>
-# Table of Contents
+## Table of Contents
 
-[License](#license)  
-[1 Introduction](#1-introduction)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.1 Purpose](#11-purpose)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.2 Terms and Abbreviations](#12-terms-and-abbreviations)  
-&nbsp;&nbsp;&nbsp;&nbsp;[1.3 References](#13-references)  
-[2 Overview](#2-overview)  
-[3 Use Case Model](#3-use-case-model)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.1 Actors](#31-actors)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.2 UC MESS\_01: X-Road Service Call](#32-uc-mess_01-x-road-service-call)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.3 UC MESS\_02: Process X-Road SOAP Request](#33-uc-mess_02-process-x-road-soap-request)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.4 UC MESS\_03: Process X-Road Request Message](#34-uc-mess_03-process-x-road-request-message)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.5 UC MESS\_04: Verify SOAP Message](#35-uc-mess_04-verify-soap-message)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.6 UC MESS\_05: Initiate a Secure Connection](#36-uc-mess_05-initiate-a-secure-connection)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.7 UC MESS\_06: Establish the Secure Connection](#37-uc-mess_06-establish-the-secure-connection)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.8 UC MESS\_07: Verify Authentication Certificate](#38-uc-mess_07-verify-authentication-certificate)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.9 UC MESS\_08: Create Signature](#39-uc-mess_08-create-signature)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.10 UC MESS\_09: Log Message and Signature to Message Log](#310-uc-mess_09-log-message-and-signature-to-message-log)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.11 UC MESS\_10: Timestamp Message Log Records](#311-uc-mess_10-timestamp-message-log-records)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.12 UC MESS\_11: Verify Signature](#312-uc-mess_11-verify-signature)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.13 UC MESS\_12: Verify Certificate Chain](#313-uc-mess_12-verify-certificate-chain)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.14 UC MESS\_13: Validate an OCSP Response](#314-uc-mess_13-validate-an-ocsp-response)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.15 UC MESS\_14: Get OCSP Responses](#315-uc-mess_14-get-ocsp-responses)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.16 UC MESS\_15: Get and Verify OCSP Response](#316-uc-mess_15-get-and-verify-ocsp-response)  
-&nbsp;&nbsp;&nbsp;&nbsp;[3.17 UC MESS\_16: Store Operational Monitoring Data and Forward the Data to Operational Monitoring Daemon](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)  
-[Annex A Sequence Diagram for Messaging](#annex-a-sequence-diagram-for-messaging)  
+<!-- toc -->
 
-<div id="license" class="anchor"></div>
-# License
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  * [1.1 Purpose](#11-purpose)
+  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+- [2 Overview](#2-overview)
+- [3 Use Case Model](#3-use-case-model)
+  * [3.1 Actors](#31-actors)
+  * [3.2 UC MESS\_01: X-Road Service Call](#32-uc-mess_01-x-road-service-call)
+  * [3.3 UC MESS\_02: Process X-Road SOAP Request](#33-uc-mess_02-process-x-road-soap-request)
+  * [3.4 UC MESS\_03: Process X-Road Request Message](#34-uc-mess_03-process-x-road-request-message)
+  * [3.5 UC MESS\_04: Verify SOAP Message](#35-uc-mess_04-verify-soap-message)
+  * [3.6 UC MESS\_05: Initiate a Secure Connection](#36-uc-mess_05-initiate-a-secure-connection)
+  * [3.7 UC MESS\_06: Establish the Secure Connection](#37-uc-mess_06-establish-the-secure-connection)
+  * [3.8 UC MESS\_07: Verify Authentication Certificate](#38-uc-mess_07-verify-authentication-certificate)
+  * [3.9 UC MESS\_08: Create Signature](#39-uc-mess_08-create-signature)
+  * [3.10 UC MESS\_09: Log Message and Signature to Message Log](#310-uc-mess_09-log-message-and-signature-to-message-log)
+  * [3.11 UC MESS\_10: Timestamp Message Log Records](#311-uc-mess_10-timestamp-message-log-records)
+  * [3.12 UC MESS\_11: Verify Signature](#312-uc-mess_11-verify-signature)
+  * [3.13 UC MESS\_12: Verify Certificate Chain](#313-uc-mess_12-verify-certificate-chain)
+  * [3.14 UC MESS\_13: Validate an OCSP Response](#314-uc-mess_13-validate-an-ocsp-response)
+  * [3.15 UC MESS\_14: Get OCSP Responses](#315-uc-mess_14-get-ocsp-responses)
+  * [3.16 UC MESS\_15: Get and Verify OCSP Response](#316-uc-mess_15-get-and-verify-ocsp-response)
+  * [3.17 UC MESS\_16: Store Operational Monitoring Data and Forward the Data to Operational Monitoring Daemon](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)
+- [Annex A Sequence Diagram for Messaging](#annex-a-sequence-diagram-for-messaging)
 
-This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/.
+<!-- tocstop -->
 
-<div id="1-introduction" class="anchor"></div>
-# 1. Introduction
+## License
 
-<div id="11-purpose" class="anchor"></div>
-## 1.1 Purpose
+This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
+
+## 1 Introduction
+
+
+### 1.1 Purpose
 
 The purpose of this document is to describe the events and verifications that take place in the security servers during the communication between an X-Road service client and an X‑Road service provider.
 
-<div id="12-terms-and-abbreviations" class="anchor"></div>
-## 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at [Terms of X-Road](../terms_x-road_docs.md).
+### 1.2 Terms and Abbreviations
+
+The definitions for general X-Road terms can be found at <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
 
 The following terms are used in this document in addition to the general terms:
 
@@ -87,29 +88,29 @@ The following terms are used in this document in addition to the general terms:
 
 -   **Operational monitoring daemon** collects and shares operational monitoring data of the X-Road security server(s), calculates and shares health data of the X-Road security server(s) that is based on collected operational monitoring data.
 
-<div id="13-references" class="anchor"></div>
-## 1.3 References
 
-1.  <div id="Ref_BATCH" class="anchor"></div><a id="Ref_BATCH" class="anchor"></a>\[BATCH\] Freudenthal, M. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013. <http://cyber.ee/en/research/publications/research-reports/>
+### 1.3 References
 
-2.  <div id="Ref_HPDS" class="anchor"></div><a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <http://cyber.ee/en/research/publications/research-reports/>
+1.  <a id="Ref_BATCH" class="anchor"></a>\[BATCH\] Freudenthal, M. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013. <http://cyber.ee/en/research/publications/research-reports/>
 
-3.  <div id="Ref_PR-MESS" class="anchor"></div><a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS.
+2.  <a id="Ref_HPDS" class="anchor"></a>\[HPDS\] Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <http://cyber.ee/en/research/publications/research-reports/>
 
-4.  <div id="Ref_PR-MESSTRANSP" class="anchor"></div><a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: PR-MESSTRANSP.
+3.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS.
 
-5.  <div id="Ref_UG-GCONF" class="anchor"></div><a id="Ref_UG-GCONF" class="anchor"></a>\[UG-GCONF\] Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution. Document ID: UG-GCONF.
+4.  <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: PR-MESSTRANSP.
 
-6.  <div id="Ref_UG-SYSPAR" class="anchor"></div><a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] Cybernetica AS. X-Road: System Parameters. Document ID: UG-SYSPAR.
+5.  <a id="Ref_UG-GCONF" class="anchor"></a>\[UG-GCONF\] Cybernetica AS. X-Road: Use Case Model for Global Configuration Distribution. Document ID: UG-GCONF.
 
-7.  <div id="Ref_XAdES" class="anchor"></div><a id="Ref_XAdES" class="anchor"></a>\[XAdES\] XML Advanced Electronic Signatures (XadES). ETSI TS 101 903 V1.3.2.
+6.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] Cybernetica AS. X-Road: System Parameters. Document ID: UG-SYSPAR.
 
-8.  <div id="Ref_UC-SS" class="anchor"></div><a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
+7.  <a id="Ref_XAdES" class="anchor"></a>\[XAdES\] XML Advanced Electronic Signatures (XadES). ETSI TS 101 903 V1.3.2.
 
-9.  <div id="Ref_UC-OPMON" class="anchor"></div><a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: UC-OPMON.
+8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: UC-SS.
 
-<div id="2-overview" class="anchor"></div>
-# 2. Overview
+9.  <a id="Ref_UC-OPMON" class="anchor"></a>\[UC-OPMON\] Cybernetica AS. X-Road Operational Monitoring Daemon: Use Case Model. Document ID: UC-OPMON.
+
+
+## 2 Overview
 
 X-Road services are used by X-Road members communicating directly with each other via security servers, using synchronous request-response messaging pattern.
 
@@ -125,11 +126,11 @@ The communication process between an X-Road service client and an X-Road service
 
 The general steps of the communication process, excluding actions that are asynchronous to the message exchange process, are depicted as a sequence diagram in [Annex A](#annex-a-sequence-diagram-for-messaging).
 
-<div id="3-use-case-model" class="anchor"></div>
-# 3. Use Case Model
 
-<div id="31-actors" class="anchor"></div>
-## 3.1 Actors
+## 3 Use Case Model
+
+
+### 3.1 Actors
 
 The X-Road member communication use case model includes the following actors.
 
@@ -147,14 +148,14 @@ The X-Road member communication use case model includes the following actors.
 
 Relationships between actors, systems and use cases are described in [Figure 1](#Ref_Communication_use_case_diagram).
 
-<div id="Ref_Communication_use_case_diagram" class="anchor"></div>
+
 <a id="Ref_Communication_use_case_diagram" class="anchor"></a>
 ![](img/uc-mess_communication_use_case_diagram.png)
 
 Figure 1. Communication use case diagram
 
-<div id="32-uc-mess_01-x-road-service-call" class="anchor"></div>
-## 3.2 UC MESS\_01: X-Road Service Call
+
+### 3.2 UC MESS\_01: X-Road Service Call
 
 **System**: X-Road
 
@@ -214,8 +215,8 @@ Figure 1. Communication use case diagram
 
 -   Messaging between security servers conforms to the protocol described in document “X-Road: Message Transport Protocol” \[[PR-MESSTRANSP](#Ref_PR-MESSTRANSP)\].
 
-<div id="33-uc-mess_02-process-x-road-soap-request" class="anchor"></div>
-## 3.3 UC MESS\_02: Process X-Road SOAP Request
+
+### 3.3 UC MESS\_02: Process X-Road SOAP Request
 
 **System**: Service client's security server
 
@@ -433,8 +434,8 @@ Figure 1. Communication use case diagram
 
 -   The system parameters are described in document “X-Road: System Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
 
-<div id="34-uc-mess_03-process-x-road-request-message" class="anchor"></div>
-## 3.4 UC MESS\_03: Process X-Road Request Message
+
+### 3.4 UC MESS\_03: Process X-Road Request Message
 
 **System**: Service provider's security server
 
@@ -666,8 +667,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 -   The system parameters are described in document “X-Road: System Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-<div id="35-uc-mess_04-verify-soap-message" class="anchor"></div>
-## 3.5 UC MESS\_04: Verify SOAP Message
+
+### 3.5 UC MESS\_04: Verify SOAP Message
 
 **System**: Security server
 
@@ -739,8 +740,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="36-uc-mess_05-initiate-a-secure-connection" class="anchor"></div>
-## 3.6 UC MESS\_05: Initiate a Secure Connection
+
+### 3.6 UC MESS\_05: Initiate a Secure Connection
 
 **System**: Service client's security server
 
@@ -804,8 +805,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="37-uc-mess_06-establish-the-secure-connection" class="anchor"></div>
-## 3.7 UC MESS\_06: Establish the Secure Connection
+
+### 3.7 UC MESS\_06: Establish the Secure Connection
 
 **System**: Service provider's security server
 
@@ -847,8 +848,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="38-uc-mess_07-verify-authentication-certificate" class="anchor"></div>
-## 3.8 UC MESS\_07: Verify Authentication Certificate
+
+### 3.8 UC MESS\_07: Verify Authentication Certificate
 
 **System**: Security server
 
@@ -908,8 +909,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="39-uc-mess_08-create-signature" class="anchor"></div>
-## 3.9 UC MESS\_08: Create Signature
+
+### 3.9 UC MESS\_08: Create Signature
 
 **System**: Security server
 
@@ -957,8 +958,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="310-uc-mess_09-log-message-and-signature-to-message-log" class="anchor"></div>
-## 3.10 UC MESS\_09: Log Message and Signature to Message Log
+
+### 3.10 UC MESS\_09: Log Message and Signature to Message Log
 
 **System**: Security server
 
@@ -1016,8 +1017,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="311-uc-mess_10-timestamp-message-log-records" class="anchor"></div>
-## 3.11 UC MESS\_10: Timestamp Message Log Records
+
+### 3.11 UC MESS\_10: Timestamp Message Log Records
 
 **System**: Security server
 
@@ -1113,8 +1114,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 -   Information about timestamping in X-Road system can be found in documents “Profile for High-Perfomance Digital Signature” \[[HPDS](#Ref_HPDS)\] and “Using Batch Hashing for Signing and Time-Stamping” \[[BATCH](#Ref_BATCH)\].
 
-<div id="312-uc-mess_11-verify-signature" class="anchor"></div>
-## 3.12 UC MESS\_11: Verify Signature
+
+### 3.12 UC MESS\_11: Verify Signature
 
 **System**: Security server
 
@@ -1196,8 +1197,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="313-uc-mess_12-verify-certificate-chain" class="anchor"></div>
-## 3.13 UC MESS\_12: Verify Certificate Chain
+
+### 3.13 UC MESS\_12: Verify Certificate Chain
 
 **System**: Security server
 
@@ -1243,8 +1244,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="314-uc-mess_13-validate-an-ocsp-response" class="anchor"></div>
-## 3.14 UC MESS\_13: Validate an OCSP Response
+
+### 3.14 UC MESS\_13: Validate an OCSP Response
 
 **System**: Security server
 
@@ -1308,8 +1309,8 @@ The system receives a communication request from Client SS; verifies that the sy
 
 **Related information**: -
 
-<div id="315-uc-mess_14-get-ocsp-responses" class="anchor"></div>
-## 3.15 UC MESS\_14: Get OCSP Responses
+
+### 3.15 UC MESS\_14: Get OCSP Responses
 
 **System**: Security server
 
@@ -1353,8 +1354,8 @@ In federated X-Road systems, each federation partner defines the *ocspFreshnessS
 
 **Related information**: -
 
-<div id="316-uc-mess_15-get-and-verify-ocsp-response" class="anchor"></div>
-## 3.16 UC MESS\_15: Get and Verify OCSP Response
+
+### 3.16 UC MESS\_15: Get and Verify OCSP Response
 
 **System**: Security server
 
@@ -1414,8 +1415,8 @@ In federated X-Road systems, each federation partner defines the *ocspFreshnessS
 
 **Related information**: -
 
-<div id="317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon" class="anchor"></div>
-## 3.17 UC MESS\_16: Store Operational Monitoring Data and Forward the Data to Operational Monitoring Daemon
+
+### 3.17 UC MESS\_16: Store Operational Monitoring Data and Forward the Data to Operational Monitoring Daemon
 
 **System**: Security server
 
@@ -1575,7 +1576,8 @@ In federated X-Road systems, each federation partner defines the *ocspFreshnessS
 
 **Related information**: The functionality of operational monitoring daemon is described in \[[UC-OPMON](#Ref_UC-OPMON)\].
 
-<div id="annex-a-sequence-diagram-for-messaging" class="anchor"></div>
-# Annex A Sequence Diagram for Messaging
+
+## Annex A Sequence Diagram for Messaging
 
 ![](img/uc-mess_annex_a_sequence_diagram_for_messaging.png)
+
