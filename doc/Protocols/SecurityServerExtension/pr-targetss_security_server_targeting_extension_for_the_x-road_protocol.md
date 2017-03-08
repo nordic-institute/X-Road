@@ -53,7 +53,7 @@ Using the `securityServer` element makes this possible.
 This section describes the XML format for expressing the target security server. The data
 structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/xroad.xsd`. This is the same
 namespace as defined by the X-Road Message Protocol 4.0 \[[PR-MESS](#Ref_PR-MESS)\] Annex B, XML Schema for Messages. The
-and the schema file can be found at [`http://x-road.eu/xsd/xroad-securityserver.xsd`](http://x-road.eu/xsd/xroad-securityserver.xsd). 
+schema file can be found at [`http://x-road.eu/xsd/xroad-securityserver.xsd`](http://x-road.eu/xsd/xroad-securityserver.xsd).
 
 Note that at the moment, there is no unifying schema that would combine the message protocol and this extension under
 the same namespace. That means there is no single schema that would validate an X-Road message with this extension in use.
