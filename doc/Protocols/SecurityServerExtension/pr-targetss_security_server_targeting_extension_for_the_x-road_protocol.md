@@ -5,7 +5,7 @@ Doc. ID: PR-TARGETSS
 
 | Date      | Version  | Description                                                                  | Author             |
 |-----------|----------|------------------------------------------------------------------------------|--------------------|
-| 23.2.2017 | 1.0       | Initial version                                                              | Olli Lindgren     |
+| 2.3.2017 | 1.0       | Initial version                                                              | Olli Lindgren     |
 
 
 ## Table of Contents
@@ -13,6 +13,7 @@ Doc. ID: PR-TARGETSS
 
 - [License](#license)
 - [Introduction](#introduction)
+- [References](#references)
 - [Format of messages](#format-of-messages)
   * [Schema header](#schema-header)
   * [Added `securityServer` element](#added-securityserver-element)
@@ -21,8 +22,6 @@ Doc. ID: PR-TARGETSS
 - [Examples](#examples)
   *  [Request](#request)
   * [Response](#response)
-- [References](#references)
-
 
 <!-- tocstop -->
 
@@ -42,16 +41,25 @@ There is no guarantee about the actual target server &mdash; it can be any of th
 like environmental monitoring \[[ARC-ENVMON](#Ref_ARC-ENVMON)\], where targeting messages to a specific security server is needed.
 Using the `securityServer` element makes this possible.
 
+## References
+
+| Code||
+| ------------- |-------------|
+| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | Cybernetica AS.X-Road: Message Protocol v4.0      |
+| <a name="Ref_ARC-ENVMON"></a>\[ARC-ENVMON\] | X-Road: Environmental Monitoring Architecture |
+
 ## Format of messages
 
 This section describes the XML format for expressing the target security server. The data
-structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/xroad.xsd`.
-This is the same namespace as defined by the X-Road Message Protocol 4.0 \[[PR-MESS](#Ref_PR-MESS)\] Annex B, XML Schema for Messages.
+structures and elements defined in this section are in the namespace `http://x-road.eu/xsd/xroad.xsd`. This is the same
+namespace as defined by the X-Road Message Protocol 4.0 \[[PR-MESS](#Ref_PR-MESS)\] Annex B, XML Schema for Messages. The
+schema file can be found at [`http://x-road.eu/xsd/xroad-securityserver.xsd`](http://x-road.eu/xsd/xroad-securityserver.xsd).
 
 Note that at the moment, there is no unifying schema that would combine the message protocol and this extension under
 the same namespace. That means there is no single schema that would validate an X-Road message with this extension in use.
+It should be possible to validate the messages using a validator that accepts multiple schemas from the same namespace.
 
-However, this extension is a candidate for inclusion in the next version of the X-Road message protocol and would then
+In addition, this extension is a candidate for inclusion in the next version of the X-Road message protocol and would then
 be part of the actual [`http://x-road.eu/xsd/xroad.xsd`](http://x-road.eu/xsd/xroad.xsd) schema as well as the namespace.
 
 The XML Schema for this extension is listed in the section [XML Schema for the extension](#xml-schema-for-the-extension).
@@ -69,7 +77,7 @@ The following listing shows the header of the schema definition
         xmlns:id="http://x-road.eu/xsd/identifiers"
         xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-            schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+            schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
     <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers"
             schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
 </xs:schema>
@@ -123,7 +131,7 @@ A new `securityServer` element was added to identify the specific target securit
         xmlns:id="http://x-road.eu/xsd/identifiers"
         xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:import namespace="http://www.w3.org/XML/1998/namespace"
-            schemaLocation="http://www.w3.org/2001/xml.xsd"/>
+            schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
     <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers"
             schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
 
@@ -232,10 +240,4 @@ Below are examples from a request and response related to the Environmental Moni
 </SOAP-ENV:Envelope>
 ```
 
-## References
-
-| Code||
-| ------------- |-------------|
-| <a name="Ref_PR-MESS"></a>\[PR-MESS\] | Cybernetica AS.X-Road: Message Protocol v4.0      |
-| <a name="Ref_ARC-ENVMON"></a>\[ARC-ENVMON\] | X-Road: Environmental Monitoring Architecture |
 
