@@ -71,7 +71,7 @@ functioning principles.
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
 
 
-## 2. Overview 
+## 2. Overview
 
 This document describes the external load balancing support features implemented by X-Road and the steps necessary to
 configure security servers to run as a cluster where each node has an identical configuration, including their keys and
@@ -97,8 +97,8 @@ __Basic Assumptions about the load balanced environment:__
   time.
 * Configuration changes are relatively infrequent and some downtime in ability to change configuration can be tolerated.
   (The cluster uses a master-slave model and the configuration master is not replicated.)
-  
-__Consequences of the selected implementation model:__  
+
+__Consequences of the selected implementation model:__
 * Changes to the `serverconf` database, authorization and signing keys are applied via the configuration master, which is
   a member of the cluster. The replication is one-way from master to slaves and the slaves should treat the configuration
   as read-only.
@@ -134,7 +134,7 @@ as needed.
 
 ![alt-text](load_balancing_state_replication.png)
 
-                                                                                                
+
 #### 2.3.1 `serverconf` database replication
 | Data            | Replication          | Replication method                                 |
 | ------------------- | -------------------- | -------------------------------------------------- |
@@ -234,7 +234,7 @@ In order to properly set up the data replication, the slave nodes must be able t
    required for slave nodes, but the admin graphical user interface (which requires these packages) can be handy for
    diagnostics. It should be noted that changing a slave's configuration via the admin gui is not possible.
 2. Stop the xroad services.
-3. Create a separate PostgreSQL instance for the serverconf database (see section 
+3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)
   * Change `/etc/db.properties` to point to the separate database instance and change password to match the one defined in the master database.
 4. Set up SSH between the master and the slave (the slave must be able to access `/etc/xroad` via ssh)
@@ -413,7 +413,7 @@ systemctl enable postgresql-serverconf
 sudo -u postgres pg_createcluster -p 5433 9.3 serverconf
 ```
 In the above command, `9.3` is the postgresql version. Use `pg_lsclusters` to find out what version(s) are available.
- 
+
 
 **PostgreSQL configuration location:**
 > On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
@@ -428,7 +428,7 @@ Edit `postgresql.conf` and set the following options:
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/master.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
-ssl_key_file  = '/etc/xroad/postgresql/server.key'       
+ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
 listen_addresses = *    # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
 wal_level = hot_standby
@@ -436,7 +436,7 @@ max_wal_senders   = 3   # should be ~ number of slaves plus some small number. H
 wal_keep_segments = 8   # keep some wal segments so that slaves that are offline can catch up.
 ```
 
-Edit `pg_hba.conf` and enable connections to the replication pseudo database using client certificates. See chapter 
+Edit `pg_hba.conf` and enable connections to the replication pseudo database using client certificates. See chapter
 [4.1](#41-setting-up-tls-certificates-for-database-authentication) for the authentication setup.
 
 ```
@@ -475,20 +475,20 @@ sudo -u postgres pg_dump -C serverconf | sudo -u postgres psql -p 5433 -f -
 
 Prerequisites:
 * A separate postgresql instance has been created.
-* TLS keys and certificates have been configured in `/etc/xroad/postgresql` as described in section 
+* TLS keys and certificates have been configured in `/etc/xroad/postgresql` as described in section
 [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
 
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
  * Ubuntu: `/var/lib/postgresql/9.3/serverconf`
- 
+
 Clear the data directory:
 
  ```bash
  rm -rf *
  ```
- 
+
 Do a base backup with `pg_basebackup`:
 ```bash
 sudo -u postgres PGSSLMODE=verify-ca PGSSLROOTCERT=/etc/xroad/postgresql/master.crt PGSSLCERT=/etc/xroad/postgresql/server.crt PGSSLKEY=/etc/xroad/postgresql/server.key pg_basebackup -h <master> -p 5433 -U <nodename> -D .
@@ -509,20 +509,20 @@ ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/master.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
 ssl_key_file  = '/etc/xroad/postgresql/server.key'
- 
+
 listen_addresses = localhost
- 
+
 # no need to send WAL logs
 # wal_level = minimal
 # max_wal_senders = 0
 # wal_keep_segments = 0
- 
+
 hot_standby = on
 hot_standby_feedback = on
 ```
 Notice that on RHEL, during `pg_basebackup` the `postgresql.conf` was copied from the master node so the WAL sender
 parameters should be disabled. Also check that `listen_addresses` is localhost-only.
- 
+
 Start the database instance
 
 **RHEL:**
@@ -534,7 +534,7 @@ systemctl start postgresql-serverconf
 /etc/init.d/postgresql start
 ```
 Note that on Ubuntu, the command starts all configured database instances.
- 
+
 ## 5. Configuring data replication with rsync over SSH
 
 ### 5.1 Set up SSH between slaves and the master
