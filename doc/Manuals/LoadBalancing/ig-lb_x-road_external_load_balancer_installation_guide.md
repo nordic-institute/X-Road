@@ -69,6 +69,7 @@ functioning principles.
 |:--------------:|:-----------------------------------------------------------------------------------------|
 | \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](../../../ansible/ss_cluster/README.md) |
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
+| \[UG-SS\] | [X-Road 6 Security Server User Guide](../) |
 
 
 ## 2. Overview
@@ -687,3 +688,51 @@ Create a new file `/etc/logrotate.d/xroad-slave-sync`:
 }
 ```
 
+
+## 6. Verifying the setup
+
+This chapter briefly describes how to check that the replication works. Message delivery is difficult to test without a
+connection to an X-Road instance test environment.
+
+
+### 6.1 Verifying rsync+ssh replication
+[WIP]
+* canary file
+* logs
+
+### 6.2 Verifying database replication
+[WIP]
+* from master, see if connected
+
+### 6.3 Verifying replication from the admin user interface
+
+Verifying the cluster setup via the admin interface requires the cluster to be part of an existing X-Road instance like
+`FI-DEV` or `FI-TEST` or using a custom, configured X-Road environment with at least a central server and the security
+server cluster.
+
+To test the configuration file replication from the admin user interface, a key can be created in the admin interface of the
+master node. In addition, a certificate signing request can be created for the key in the UI, downloaded, signed by an
+external CA and then uploaded back to the admin UI. For help on these tasks, see the  Security Server User Guide
+\[[UG-SS](#12-references)\].
+
+The keys and certificate changes should be propagated to the slave nodes in a few minutes.
+
+The `serverconf` database replication can also be tested on the admin UI once the basic configuration, as mentioned in
+[3. X-Road Installation and configuration](#3-x-road-installation-and-configuration) is done. A new subsystem can be added
+to the master node. A registration request can be sent to the central server, but it is not required. The added subsystem
+should appear on the slave nodes in a few minutes.
+
+### 6.4 Verifying the cluster setup by sending messages
+
+Verifying the cluster setup via sending messages requires the cluster to be part of an existing X-Road instance like
+`FI-DEV` or `FI-TEST` or using a custom, configured X-Road environment with a central server, a client security server
+and a service provider security server cluster with existing services to be able to send and receive messages.
+
+Once the cluster is set up, start sending messages via a client security server and check that the cluster responds. Check
+which nodes are receiving the messages from your load balancer or the proxy logs on the nodes, located in `/var/xroad/proxy.log`.
+Shut down the `xroad-signer` service or postgresql on a node that was receiving messages and see if the messages are routed to other
+security servers after awhile. It should take a maximum of 5 seconds for the health check to start responding with failures
+for that node, plus any delay in how of then the load balancer checks the status.
+
+Alternatively, shut down the `xroad-proxy` service which also shuts down the health check and make sure the routing works
+on the load balancer end.
