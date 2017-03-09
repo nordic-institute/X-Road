@@ -103,7 +103,7 @@ __Consequences of the selected implementation model:__
   a member of the cluster. The replication is one-way from master to slaves and the slaves should treat the configuration
   as read-only.
 * The cluster nodes can continue operation if the master fails but the configuration can not be changed until:
-  - the master becomes back online, or
+  - the master comes back online, or
   - some other node is manually promoted to be the master.
 * If a node fails, the messages being processed by that node are lost.
   - It is the responsibility of the load balancer component to detect the failure and route further messages to other nodes.
@@ -125,7 +125,7 @@ to making a request to a single security server.
 When a security server makes a request to an external server (security server, OCSP, TSA or a central server), the
 external server sees only the public IP address. Note that depending on the configuration, the public IP address
 might be different from the one used in the previous scenario. It should also be noted that the security servers will
-independently make requests to OCSP and TSA services as well as the and central server to fetch the global configuration
+independently make requests to OCSP and TSA services as well as to the central server to fetch the global configuration
 as needed.
 
 ![alt-text](load_balancing_traffic-2.png)
@@ -142,7 +142,7 @@ as needed.
 | serverconf database | **replication required** | PostgreSQL streaming replication (Hot standby) |
 
 The serverconf database replication is done using streaming replication with hot standby. Note that PostgreSQL replication
-is all-or-nothing, it is not possible exclude databases from the replication. This is why the replicated serverconf and
+is all-or-nothing: it is not possible to exclude databases from the replication. This is why the replicated serverconf and
 non-replicated messagelog databases need to be separated to different instances.
 
 ###### 2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`
@@ -159,8 +159,8 @@ clustered environment. A small delay should usually cause no problems as new key
 immediately for X-Road messaging. Changes to the configuration are also usually relatively infrequent. These were one of
 the [basic assumptions](#basic_assumptions) about the environment. Users should make sure this holds true for them.
 
-The slave nodes use the `keyconf.xml` in read-only mode, no changes are persisted to disk. Slaves reload the configuration
-from disk periodically and apply the changes to their running in-memory configuration.
+The slave nodes use the `keyconf.xml` in read-only mode: no changes made from the admin UI are persisted to disk. Slaves
+reload the configuration from disk periodically and apply the changes to their running in-memory configuration.
 
 
 ###### 2.3.1.3 Other server configuration parameters from `/etc/xroad/*`
@@ -182,7 +182,7 @@ The following configurations are excluded from replication:
 The messagelog database is not replicated. Each node has its own separate messagelog database. **However**, in order to
 support PostgreSQL streaming replication (hot standby mode) for the serverconf data, the serverconf and messagelog
 databases must be separated. This requires modifications to the installation (a separate PostgreSQL instance is needed
-for the messagelog database) and has some implications on the security server resource requirements as since a separate
+for the messagelog database) and has some implications on the security server resource requirements as a separate
 instance uses some memory.
 
 
@@ -295,13 +295,13 @@ failure or possible reboot before the status is queried again.
 
 
 #### 3.4.1 Known check result inconsistencies vs. actual state
-There is a known but rarely and not naturally occurring issue where the health check will report and OK condition for a
+There is a known but rarely and not naturally occurring issue where the health check will report an OK condition for a
 limited time but sending some messages might not be possible. This happens when an admin user logs out of the keys.
 
 The health check will detect if the tokens (the key containers) have not been signed into after `xroad-signer` startup.
 It will however, not detect immediately when the tokens are manually logged out of. The keys are cached by the `xroad-proxy`
-process for a short while. As long as the authentication key is still cached, the health check will return OK. The necessary
-signing context values for sending a message might no longer be cached though. This means messages might fail to be sent
+process for a short while. As long as the authentication key is still cached, the health check will return OK, even though
+the necessary signing context values for sending a message might no longer be cached. This means messages might fail to be sent
 even if the health check returns OK. As the authentication key expires from the cache (after a maximum of 5 minutes), the
 health check will start returning failures. This is a feature of caching and not a bug per se. In addition, logging out
 of a security server's keys should not occur by accident so it should not be a surprise that the node cannot send messages
