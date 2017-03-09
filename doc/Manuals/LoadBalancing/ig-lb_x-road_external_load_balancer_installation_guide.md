@@ -95,8 +95,8 @@ Carefully consider these assumptions before deciding if the supported features a
 __Basic Assumptions about the load balanced environment:__
 * Adding or removing nodes to or from the cluster is infrequent. New nodes need to be added manually and this takes some
   time.
-* Configuration changes are relatively infrequent and some downtime in ability to change configuration can be tolerated.
-  (The cluster uses a master-slave model and the configuration master is not replicated.)
+* Changes to the configuration files are relatively infrequent and some downtime in ability to propagate the changes can
+  be tolerated. The cluster uses a master-slave model and the configuration master is not replicated.
 
 __Consequences of the selected implementation model:__
 * Changes to the `serverconf` database, authorization and signing keys are applied via the configuration master, which is
@@ -134,8 +134,9 @@ as needed.
 
 ![alt-text](load_balancing_state_replication.png)
 
+#### 2.3.1 Replicated state
 
-#### 2.3.1 `serverconf` database replication
+###### 2.3.1.1 `serverconf` database replication
 | Data            | Replication          | Replication method                                 |
 | ------------------- | -------------------- | -------------------------------------------------- |
 | serverconf database | **replication required** | PostgreSQL streaming replication (Hot standby) |
@@ -144,19 +145,7 @@ The serverconf database replication is done using streaming replication with hot
 is all-or-nothing, it is not possible exclude databases from the replication. This is why the replicated serverconf and
 non-replicated messagelog databases need to be separated to different instances.
 
-
-#### 2.3.2 `messagelog` database replication
-| Data               | Replication          | Replication method                                 |
-| ------------------- | -------------------- | -------------------------------------------------- |
-| messagelog database | **not replicated** |                                                      |
-
-The messagelog database is not replicated. Each node has its own separate messagelog database. **However**, in order to
-support PostgreSQL streaming replication (hot standby mode) for the serverconf data, the serverconf and messagelog
-databases must be separated. This requires modifications to the installation (a separate PostgreSQL instance is needed
-for the messagelog database) and has some implications on the security server resource requirements as since a separate
-instance uses some memory.
-
-#### 2.3.3 Key configuration and software token replication from `/etc/xroad/signer/*`
+###### 2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`
 | Data                           | Replication          | Replication method                                 |
 | ------------------------------- | -------------------- | -------------------------------------------------- |
 | keyconf and the software token  | **replicated**       |  `rsync+ssh`  (scheduled)                          |
@@ -174,7 +163,7 @@ The slave nodes use the `keyconf.xml` in read-only mode, no changes are persiste
 from disk periodically and apply the changes to their running in-memory configuration.
 
 
-#### 2.3.4 Other server configuration parameters from `/etc/xroad/*`
+###### 2.3.1.3 Other server configuration parameters from `/etc/xroad/*`
 | Data                                 | Replication          | Replication method                                 |
 | ------------------------------------- | -------------------- | -------------------------------------------------- |
 | other server configuration parameters | **replicated**       |  `rsync+ssh`  (scheduled)                          |
@@ -185,10 +174,19 @@ The following configurations are excluded from replication:
 * `globalconf/` (syncing globalconf could conflict with `confclient`)
 * `conf.d/node.ini` (specifies node type: master or slave)
 
-#### 2.3.5 OCSP response replication from `/var/cache/xroad/`
-| State                                 | Replication          | Replication method                                 |
-| ------------------------------------- | -------------------- | -------------------------------------------------- |
-| other server configuration parameters | **not replicated**   |                   |
+
+#### 2.3.2 Non-replicated state
+
+###### 2.3.2.1 `messagelog` database: not replicated
+
+The messagelog database is not replicated. Each node has its own separate messagelog database. **However**, in order to
+support PostgreSQL streaming replication (hot standby mode) for the serverconf data, the serverconf and messagelog
+databases must be separated. This requires modifications to the installation (a separate PostgreSQL instance is needed
+for the messagelog database) and has some implications on the security server resource requirements as since a separate
+instance uses some memory.
+
+
+###### 2.3.2.2 OCSP responses from `/var/cache/xroad/`: not replicated
 
 The OCSP responses are currently not replicated. Replicating them could make the cluster more fault tolerant but the
 replication cannot simultaneously create a single point of failure. A distributed cache could be used for the responses.
@@ -213,11 +211,11 @@ In order to properly set up the data replication, the slave nodes must be able t
 3. Create a separate PostgreSQL instance for the `serverconf` database (see section
    [4. Database replication setup](#4-database-replication-setup) for details).
    * Change `/etc/db.properties` to point to the separate database instance
-4. If you are using an already configured server as the master, you can copy over the `serverconf` database data. Otherwise,
-   proceed to configure the master server: install the configuration anchor, set up basic information, create authentication
-   and signing keys and so on. See the security server installation guide \[[IG-SS](#12-references)\] for help with the basic
-   setup.
-5. Set up and configure the data replication, see section
+4. If you are using an already configured server as the master, the existing configuration was replicated to the slaves
+   in step 3. Otherwise, proceed to configure the master server: install the configuration anchor, set up basic information,
+   create authentication and signing keys and so on. See the security server installation guide \[[IG-SS](#12-references)\]
+   for help with the basic setup.
+5. Set up the configuration file replication, see section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Additionally, `rssh` shell can be used to to restrict slave access further, but note that it is not available on RHEL.
 
@@ -548,9 +546,9 @@ adduser --system --ingroup xroad xroad-slave
 ```
 **RHEL:**
 
-``bash
+```bash
 useradd -r -m -g xroad xroad-slave
-``
+```
 
 
 Create an `.ssh` folder and the authorized keys file:
