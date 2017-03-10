@@ -747,7 +747,7 @@ A successful replication with two slave nodes could look like this:
 | 1890 |    16719 | hdev-ss3 | walreceiver      | 172.31.128.151 |                 |       45275 | 2017-03-10 06:30:50.470084+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
 | 1891 |    16718 | hdev-ss2 | walreceiver      | 172.31.128.82  |                 |       50174 | 2017-03-10 06:30:50.918481+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
 
-
+For more information on the `pg_stat_replication` view, see the [PostgreSQL documentation](https://www.postgresql.org/docs/9.2/static/monitoring-stats.html#PG-STAT-REPLICATION-VIEW).
 
 ### 6.3 Verifying replication from the admin user interface
 
