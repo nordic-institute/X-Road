@@ -47,7 +47,7 @@ Doc. ID: IG-XLB
   * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
     + [5.2.1 RHEL: Use `systemd` for configuration synchronization](#521-rhel-use-systemd-for-configuration-synchronization)
     + [5.2.2 Ubuntu: Use upstart and cron for configuration synchronization](#522-ubuntu-use-upstart-and-cron-for-configuration-synchronization)
-    + [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
+  * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
 - [6. Verifying the setup](#6-verifying-the-setup)
   * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
   * [6.2 Verifying database replication](#62-verifying-database-replication)
@@ -693,7 +693,7 @@ Create a new file `/etc/cron.d/xroad-state-sync`:
 > a network connection fails.
 
 
-#### 5.3 Set up log rotation for the sync log on the slave nodes
+### 5.3 Set up log rotation for the sync log on the slave nodes
 
 The following configuration example rotates logs daily and keeps logs for 7 days which should be enough for troubleshooting.
 
