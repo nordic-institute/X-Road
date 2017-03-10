@@ -753,7 +753,7 @@ A successful replication with two slave nodes could look like this:
 
 Verifying the cluster setup via the admin interface requires the cluster to be part of an existing X-Road instance like
 `FI-DEV` or `FI-TEST` or using a custom, configured X-Road environment with at least a central server and the security
-server cluster.
+server cluster behind a load balancer.
 
 To test the configuration file replication from the admin user interface, a key can be created in the admin interface of the
 master node. In addition, a certificate signing request can be created for the key in the UI, downloaded, signed by an
@@ -771,13 +771,14 @@ should appear on the slave nodes in a few minutes.
 
 Verifying the cluster setup via sending messages requires the cluster to be part of an existing X-Road instance like
 `FI-DEV` or `FI-TEST` or using a custom, configured X-Road environment with a central server, a client security server
-and a service provider security server cluster with existing services to be able to send and receive messages.
+and a service provider security server cluster behind a load balancer with existing services to be able to send and receive
+messages.
 
 Once the cluster is set up, start sending messages via a client security server and check that the cluster responds. Check
 which nodes are receiving the messages from your load balancer or the proxy logs on the nodes, located in `/var/xroad/proxy.log`.
 Shut down the `xroad-signer` service or postgresql on a node that was receiving messages and see if the messages are routed to other
 security servers after awhile. It should take a maximum of 5 seconds for the health check to start responding with failures
-for that node, plus any delay in how of then the load balancer checks the status.
+for that node, plus any delay in how often the load balancer checks the status.
 
 Alternatively, shut down the `xroad-proxy` service which also shuts down the health check and make sure the routing works
 on the load balancer end.
