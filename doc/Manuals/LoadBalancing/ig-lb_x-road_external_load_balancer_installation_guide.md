@@ -449,8 +449,16 @@ The `samenet` above assumes that the slaves will be in the same subnet as the ma
 
 Start the master instance:
 
+**Ubuntu:**
+
 ```bash
-systemctl start postgresql-serverconf | /etc/init.d/postgresql start
+/etc/init.d/postgresql start
+```
+
+**RHEL:**
+
+```bash
+systemctl start postgresql-serverconf
 ```
 
 Create the replication user(s) with password authentication disabled:
