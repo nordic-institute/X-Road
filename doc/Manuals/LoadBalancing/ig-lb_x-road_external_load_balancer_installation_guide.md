@@ -86,7 +86,7 @@ A clustered environment increases fault tolerance but some X-Road messages can s
 
 The implementation does not include a load balancer component. It should be possible to use any external load balancer
 component that supports HTTP-based health checks for the nodes and load balancing at the TCP level (eg. haproxy, nginx,
-AWS ELB or Classic Load Balancing, or a hardware appliance). A health check service is provided for monitoring a node's
+AWS ALB or Classic Load Balancer, or a hardware appliance). A health check service is provided for monitoring a node's
 status, this is described in more detail in section [3.4 Health check service configuration](#34-health-check-service-configuration)
 
 The load balancing support is implemented with a few assumptions about the environment that users should be aware of.
@@ -97,7 +97,8 @@ __Basic Assumptions about the load balanced environment:__
 * Adding or removing nodes to or from the cluster is infrequent. New nodes need to be added manually and this takes some
   time.
 * Changes to the configuration files are relatively infrequent and some downtime in ability to propagate the changes can
-  be tolerated. The cluster uses a master-slave model and the configuration master is not replicated.
+  be tolerated.
+* The cluster uses a master-slave model and the configuration master is not replicated.
 
 __Consequences of the selected implementation model:__
 * Changes to the `serverconf` database, authorization and signing keys are applied via the configuration master, which is
@@ -109,7 +110,7 @@ __Consequences of the selected implementation model:__
 * If a node fails, the messages being processed by that node are lost.
   - It is the responsibility of the load balancer component to detect the failure and route further messages to other nodes.
     Because there potentially is some delay before the failure is noticed, some messages might be lost due to the delay.
-  - Recovering lost messages is not supported by the load balancing support.
+  - Recovering lost messages is not supported.
 * Configuration updates are asynchronous and the cluster state is eventually consistent.
 * If the master node fails or communication is interrupted during a configuration update, each slave should have a valid
   configuration, but the cluster state can be inconsistent (some members might have the old configuration while some might
