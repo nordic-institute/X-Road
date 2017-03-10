@@ -479,6 +479,12 @@ Copy the `serverconf` database from the default instance to the new instance:
 sudo -u postgres pg_dump -C serverconf | sudo -u postgres psql -p 5433 -f -
 ```
 
+To avoid confusion, the *old* `serverconf` database on the master should be renamed, or even deleted.
+```bash
+sudo -u postgres psql -p 5432 -c "ALTER DATABASE serverconf RENAME TO serverconf_old";
+```
+
+
 ### 4.5 Configuring the slave instance for replication
 
 Prerequisites:
@@ -721,8 +727,20 @@ transfers. A transfer of an added test file called `sync.testfile` to `/etc/xroa
 ```
 
 ### 6.2 Verifying database replication
-[WIP]
-* from master, see if connected
+
+To see if the database replication is working, connect to the new `serverconf` instance on the master node and verify
+that the slave nodes are listed.
+```bash
+sudo -u postgres psql -p 5433 -c "select * from pg_stat_replication;"
+```
+A successful replication with two slave nodes could look like this:
+
+| pid  | usesysid | usename  | application_name |  client_addr   | client_hostname | client_port |         backend_start         |   state   | sent_location | write_location | flush_location | replay_location | sync_priority | sync_state |
+|------|----------|----------|------------------|----------------|-----------------|-------------|-------------------------------|-----------|---------------|----------------|----------------|-----------------|---------------|------------|
+| 1890 |    16719 | hdev-ss3 | walreceiver      | 172.31.128.151 |                 |       45275 | 2017-03-10 06:30:50.470084+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
+| 1891 |    16718 | hdev-ss2 | walreceiver      | 172.31.128.82  |                 |       50174 | 2017-03-10 06:30:50.918481+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
+
+
 
 ### 6.3 Verifying replication from the admin user interface
 
