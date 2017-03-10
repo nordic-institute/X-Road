@@ -442,6 +442,10 @@ max_wal_senders   = 3   # should be ~ number of slaves plus some small number. H
 wal_keep_segments = 8   # keep some wal segments so that slaves that are offline can catch up.
 ```
 
+For more information about the streaming replication configuration options,
+see the [PostgreSQL documentation](https://www.postgresql.org/docs/9.2/static/runtime-config-replication.html).
+
+
 Edit `pg_hba.conf` and enable connections to the replication pseudo database using client certificates. See chapter
 [4.1](#41-setting-up-tls-certificates-for-database-authentication) for the authentication setup.
 
