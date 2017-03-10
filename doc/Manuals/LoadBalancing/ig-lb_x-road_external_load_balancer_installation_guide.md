@@ -52,7 +52,6 @@ Doc. ID: IG-XLB
   * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
   * [6.2 Verifying database replication](#62-verifying-database-replication)
   * [6.3 Verifying replication from the admin user interface](#63-verifying-replication-from-the-admin-user-interface)
-  * [6.4 Verifying the cluster setup by sending messages](#64-verifying-the-cluster-setup-by-sending-messages)
 
 <!-- tocstop -->
 
@@ -720,7 +719,8 @@ connection to an X-Road instance test environment.
 ### 6.1 Verifying rsync+ssh replication
 
 To test the configuration file replication, a new file can be added to `/etc/xroad/` or `/etc/xroad/signer/` on the
-master node and verify it has been replicated to the slave nodes in a few minutes.
+master node and verify it has been replicated to the slave nodes in a few minutes. Make sure the file is owned by
+the group `xroad`.
 
 Alternatively, check the sync log `/var/log/xroad/slave-sync.log` on the slave nodes and verify it lists successful
 transfers. A transfer of an added test file called `sync.testfile` to `/etc/xroad/signer/` might look like this:
@@ -765,20 +765,5 @@ The keys and certificate changes should be propagated to the slave nodes in a fe
 The `serverconf` database replication can also be tested on the admin UI once the basic configuration, as mentioned in
 [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration) is done. A new subsystem can be added
 to the master node. A registration request can be sent to the central server, but it is not required. The added subsystem
-should appear on the slave nodes in a few minutes.
+should appear on the slave nodes immediately.
 
-### 6.4 Verifying the cluster setup by sending messages
-
-Verifying the cluster setup via sending messages requires the cluster to be part of an existing X-Road instance like
-`FI-DEV` or `FI-TEST` or using a custom, configured X-Road environment with a central server, a client security server
-and a service provider security server cluster behind a load balancer with existing services to be able to send and receive
-messages.
-
-Once the cluster is set up, start sending messages via a client security server and check that the cluster responds. Check
-which nodes are receiving the messages from your load balancer or the proxy logs on the nodes, located in `/var/xroad/proxy.log`.
-Shut down the `xroad-signer` service or postgresql on a node that was receiving messages and see if the messages are routed to other
-security servers after awhile. It should take a maximum of 5 seconds for the health check to start responding with failures
-for that node, plus any delay in how often the load balancer checks the status.
-
-Alternatively, shut down the `xroad-proxy` service which also shuts down the health check and make sure the routing works
-on the load balancer end.
