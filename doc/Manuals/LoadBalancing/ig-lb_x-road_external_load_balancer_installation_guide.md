@@ -563,12 +563,12 @@ On the slave nodes, create an ssh key (`ssh-keygen`) without a passphrase for th
 the `/home/xroad-slave/.ssh/authorized_keys` of the master node. To finish, from slave nodes, connect to the master host
 using `ssh` and accept the host key.
 
-### 5.2 Set up periodic configuration synchronization
+### 5.2 Set up periodic configuration synchronization on the slave nodes
 
-The following configuration will synchronize the configuration in `/etc/xroad` periodically (once per minute) and before
-the services are started. That means that during boot, if the master server is available, the configuration will be
-synchronized before the `xroad-proxy` service is started. If the master node is down, there will be a small delay before
-the services are started.
+The following configuration, which will be set up on the slave nodes will synchronize the configuration in `/etc/xroad`
+periodically (once per minute) and before the services are started. That means that during boot, if the master server is
+available, the configuration will be synchronized before the `xroad-proxy` service is started. If the master node is down,
+there will be a small delay before the services are started.
 
 > Note that only modifications to the signer keyconf will be applied when the system is running. Other configuration changes
 > require restarting the services, which is not automatic.
@@ -641,7 +641,7 @@ end script
 
 Create a helper task that ensures that the sync task is executed before the services are started.
 
-Create a new file `/etc/init/xroad-sync-wait`:
+Create a new file `/etc/init/xroad-sync-wait.conf`:
 ```
 # wait for xroad-sync to complete before starting services
 start on starting xroad-proxy or starting xroad-jetty or starting xroad-signer or starting xroad-confclient
@@ -672,7 +672,7 @@ Create a new file `/etc/cron.d/xroad-state-sync`:
 > a network connection fails.
 
 
-#### 5.3 Set up log rotation for the sync log
+#### 5.3 Set up log rotation for the sync log on the slave nodes
 
 The following configuration example rotates logs daily and keeps logs for 7 days which should be enough for troubleshooting.
 
@@ -697,9 +697,20 @@ connection to an X-Road instance test environment.
 
 
 ### 6.1 Verifying rsync+ssh replication
-[WIP]
-* canary file
-* logs
+
+To test the configuration file replication, a new file can be added to `/etc/xroad/` or `/etc/xroad/signer/` on the
+master node and verify it has been replicated to the slave nodes in a few minutes.
+
+Alternatively, check the sync log `/var/log/xroad/slave-sync.log` on the slave nodes and verify it lists successful
+transfers. A transfer of an added test file called `sync.testfile` to `/etc/xroad/signer/` might look like this:
+
+```
+2017/03/10 11:42:01 [10505] receiving file list
+2017/03/10 11:42:01 [10507] .d..t...... signer/
+2017/03/10 11:42:01 [10507] >f..t...... signer/keyconf.xml
+2017/03/10 11:42:01 [10507] >f+++++++++ signer/sync.testfile
+2017/03/10 11:42:01 [10505] sent 264 bytes  received 1,886 bytes  total size 65,346
+```
 
 ### 6.2 Verifying database replication
 [WIP]
