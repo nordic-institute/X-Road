@@ -65,6 +65,7 @@ public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_PATCHS = 360;
+    private static final int MAX_TRANSACTION_PATCH = 300;
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -104,6 +105,12 @@ public class LogArchiver extends UntypedActor {
                     archive(archiveWriter, records);
                     runTransferCommand(getArchiveTransferCommand());
                     recordsArchived += records.size();
+
+                    if (recordsArchived >= MAX_TRANSACTION_PATCH) {
+                        log.info("Archived {} log records in {} ms", recordsArchived,
+                                System.currentTimeMillis() - start);
+                        return "Some";
+                    }
 
                     //flush changes (records marked as archived) and free memory
                     //used up by cached records retrieved previously in the session

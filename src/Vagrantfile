@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   
      # Minimun what development environment will need.
      # Customize the amount of memory on the VM:
-     vb.memory = "6144"
+     vb.memory = "8192"
      unless File.exist?(file_to_disk)
        vb.customize [
          'createhd',
