@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.0  
+Version: 1.0
 Doc. ID: IG-XLB
 
 
@@ -121,7 +121,7 @@ __Consequences of the selected implementation model:__
 * If the master node fails or communication is interrupted during a configuration update, each slave should have a valid
   configuration, but the cluster state can be inconsistent (some members might have the old configuration while some might
   have received all the changes).
-  
+
 ### 2.2 Communication with external servers and services: The cluster from the point of view of a client or service
 
 When external security servers communicate with the cluster, they see only the public IP address of the cluster which is
@@ -357,9 +357,9 @@ For further details on the certificate authentication, see the
 1. Generate the Certificate Authority key and a self-signed certificate for the root-of-trust:
 
    ```
-   openssl req -new -x509 -days 7300 -nodes -sha256 -out master.crt -keyout master.key -subj '/O=cluster/CN=master'
+   openssl req -new -x509 -days 7300 -nodes -sha256 -out ca.crt -keyout ca.key -subj '/O=cluster/CN=CA'
    ```
-   The subject name does not really matter here. Remember to keep the `master.key` file in a safe place.
+   The subject name does not really matter here. Remember to keep the `ca.key` file in a safe place.
 
 2. Generate keys and certificates signed by the CA for each postgresql instance, including the master. Do not use the CA
    certificate and key as the database certificate and key.
@@ -371,10 +371,10 @@ For further details on the certificate authentication, see the
    **Note:** The `<nodename>` must match a replication user name; otherwise the subject name does not matter
 
    ```
-   openssl x509 -req -in server.csr -CAcreateserial -CA master.crt -CAkey master.key -days 7300 -out server.crt
+   openssl x509 -req -in server.csr -CAcreateserial -CA ca.crt -CAkey ca.key -days 7300 -out server.crt
    ```
 
-3. Copy the certificates to `/etc/xroad/postgresql` on each cluster instance:
+3. Copy the certificates (ca.crt, and the instance's server.crt and server.key) to `/etc/xroad/postgresql` on each cluster instance:
 
    ```bash
    sudo mkdir -p -m 0755 /etc/xroad/postgresql
@@ -383,8 +383,8 @@ For further details on the certificate authentication, see the
    Copy the certificates, then copy one server key per instance so that each instance has a unique key:
 
    ```bash
-   sudo chown postgres /etc/xroad/postgresql/server.key
-   sudo chmod 400 /etc/xroad/postgresql/server.key
+   sudo chown postgres /etc/xroad/postgresql/*
+   sudo chmod 400 /etc/xroad/postgresql/*
    ```
 
 > Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the
@@ -432,13 +432,13 @@ Edit `postgresql.conf` and set the following options:
 
 ```
 ssl = on
-ssl_ca_file   = '/etc/xroad/postgresql/master.crt'
+ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
 ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
 listen_addresses = *    # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
 wal_level = hot_standby
-max_wal_senders   = 3   # should be ~ number of slaves plus some small number. Here, we assume there two slaves.
+max_wal_senders   = 3   # should be ~ number of slaves plus some small number. Here, we assume there are two slaves.
 wal_keep_segments = 8   # keep some wal segments so that slaves that are offline can catch up.
 ```
 
@@ -474,7 +474,7 @@ systemctl start postgresql-serverconf
 Create the replication user(s) with password authentication disabled:
 ```bash
 sudo -u postgres psql -p 5433 -c "CREATE ROLE slavenode NOLOGIN";
-sudo -u postgres psql -p 5433 -c "CREATE USER <nodename> REPLICATION PASSWORD NULL IN ROLE slavenode";
+sudo -u postgres psql -p 5433 -c "CREATE USER "<nodename>" REPLICATION PASSWORD NULL IN ROLE slavenode";
 ```
 
 Create a user named `serverconf` for local `serverconf` database access:
@@ -515,13 +515,13 @@ Clear the data directory:
 
 Do a base backup with `pg_basebackup`:
 ```bash
-sudo -u postgres PGSSLMODE=verify-ca PGSSLROOTCERT=/etc/xroad/postgresql/master.crt PGSSLCERT=/etc/xroad/postgresql/server.crt PGSSLKEY=/etc/xroad/postgresql/server.key pg_basebackup -h <master> -p 5433 -U <nodename> -D .
+sudo -u postgres PGSSLMODE=verify-ca PGSSLROOTCERT=/etc/xroad/postgresql/ca.crt PGSSLCERT=/etc/xroad/postgresql/server.crt PGSSLKEY=/etc/xroad/postgresql/server.key pg_basebackup -h <master> -p 5433 -U <nodename> -D .
 ```
 Add the following `recovery.conf` to the data directory:
 
 ```
 standby_mode = 'on'
-primary_conninfo = 'host=<master> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/master.crt'
+primary_conninfo = 'host=<master> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 trigger_file = '/var/lib/xroad/postgresql.trigger'
 ```
 Set owner of the `recovery.conf` to `postgres:postgres`, mode `0600`
@@ -530,7 +530,7 @@ Modify `postgresql.conf`:
 
 ```
 ssl = on
-ssl_ca_file   = '/etc/xroad/postgresql/master.crt'
+ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
 ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
