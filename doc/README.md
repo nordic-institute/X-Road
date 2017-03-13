@@ -3,7 +3,6 @@
 Index of X-Road Documentation
 
 ### Architecture
-
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)

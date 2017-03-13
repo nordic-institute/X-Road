@@ -16,6 +16,7 @@ Doc. ID: DM-ML
 | 19.10.2015 | 1.1         | Indexes added                                   | Martin Lind        |
 | 16.12.2016 | 1.2         | Described index added to message log            | Martin Lind        |
 | 16.02.2017 | 1.3         | Converted to markdown                           | Ilkka Seppälä      |
+| 16.02.2017 | 1.4         | Added index to logrecord, fixed earlier logrecord index name  | Olli Lindgren      |
 
 ##Table of Contents
 
@@ -84,7 +85,8 @@ Log record can either be a message record or a timestamp record. A message recor
 | Name        | Columns           | Partial index details  |
 | ----------- |:-----------------:| ----------------------:|
 | LOGRECORD_TIMESTAMPRECORD_fkey | timestamprecord | N/A |
-| ix_logrecord_not_archived | id | where discriminator = 't' and archived = false |
+| IX_NOT_ARCHIVED_LOGRECORD | id | where discriminator = 't' and archived = false |
+| IX_NOT_TIMESTAMPED_LOGRECORD | id, discriminator, signaturehash | where discriminator = 'm' and signaturehash is not null |
 
 ### 2.1.2 Attributes
 
