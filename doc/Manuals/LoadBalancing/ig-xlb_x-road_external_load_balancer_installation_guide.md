@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.0
+Version: 1.0  
 Doc. ID: IG-XLB
 
 
@@ -361,41 +361,53 @@ For further details on the certificate authentication, see the
    ```
    The subject name does not really matter here. Remember to keep the `ca.key` file in a safe place.
 
+   > Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the
+   > database cluster root-of-trust and use that for issuing the slave and master certificates.
+
 2. Generate keys and certificates signed by the CA for each postgresql instance, including the master. Do not use the CA
    certificate and key as the database certificate and key.
 
+   Generate a key and the Certificate Signing Request for it:
    ```
    openssl req -new -nodes -days 7300 -keyout server.key -out server.csr -subj "/O=cluster/CN=<nodename>"
    ```
 
-   **Note:** The `<nodename>` must match a replication user name; otherwise the subject name does not matter
+   **Note:** The `<nodename>` must match both the replication user name added to the master database in step
+   [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication) and
+   the username specified in `recovery.conf` on the slave node (see step
+   [4.5 Configuring the slave instance for replication](#45-configuring-the-slave-instance-for-replication));
+   otherwise the subject name does not matter.
+
+   Sign the CSR with the CA, creating a certificate:
 
    ```
    openssl x509 -req -in server.csr -CAcreateserial -CA ca.crt -CAkey ca.key -days 7300 -out server.crt
    ```
+   Repeat the above steps for each node.
 
-3. Copy the certificates (ca.crt, and the instance's server.crt and server.key) to `/etc/xroad/postgresql` on each cluster instance:
+3. Copy the certificates and keys to the nodes:
+
+   First, prepare a directory for them:
 
    ```bash
    sudo mkdir -p -m 0755 /etc/xroad/postgresql
    sudo chmod o+x /etc/xroad
    ```
-   Copy the certificates, then copy one server key per instance so that each instance has a unique key:
+   Then, copy the certificates (ca.crt, and the instance's server.crt and server.key) to `/etc/xroad/postgresql` on each
+   cluster instance.
+
+   Finally, set the owner and access rights for the key and certificates:
 
    ```bash
    sudo chown postgres /etc/xroad/postgresql/*
    sudo chmod 400 /etc/xroad/postgresql/*
    ```
 
-> Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the
-> database cluster root-of-trust and use that for issuing the slave and master certificates.
-
-
 ### 4.2 Creating a separate PostgreSQL instance for the `serverconf` database
 
 #### 4.2.1 on RHEL
 
-Create a new `systemctl` service unit for the new database. As root, execute the following scripts:
+Create a new `systemctl` service unit for the new database. As root, execute the following command:
 
 ```
 cat <<EOF >/etc/systemd/system/postgresql-serverconf.service
