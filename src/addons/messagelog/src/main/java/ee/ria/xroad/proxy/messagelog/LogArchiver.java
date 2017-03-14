@@ -65,7 +65,7 @@ public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_PATCHS = 360;
-    private static final int MAX_TRANSACTION_PATCH = 300;
+    private static final int MAX_TRANSACTION_PATCH = 10000;
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -78,7 +78,7 @@ public class LogArchiver extends UntypedActor {
 
         if (START_ARCHIVING.equals(message)) {
             try {
-                handleArchive();
+                while(handleArchive());
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
             }
@@ -87,12 +87,12 @@ public class LogArchiver extends UntypedActor {
         }
     }
 
-    private void handleArchive() throws Exception {
-        doInTransaction(session -> {
+    private boolean handleArchive() throws Exception {
+        return doInTransaction(session -> {
             List<LogRecord> records = getRecordsToBeArchived(session);
             if (records == null || records.isEmpty()) {
                 log.info("No records to be archived at this time");
-                return null;
+                return false;
             }
 
             log.info("Archiving log records...");
@@ -106,16 +106,16 @@ public class LogArchiver extends UntypedActor {
                     runTransferCommand(getArchiveTransferCommand());
                     recordsArchived += records.size();
 
-                    if (recordsArchived >= MAX_TRANSACTION_PATCH) {
-                        log.info("Archived {} log records in {} ms", recordsArchived,
-                                System.currentTimeMillis() - start);
-                        return "Some";
-                    }
-
                     //flush changes (records marked as archived) and free memory
                     //used up by cached records retrieved previously in the session
                     session.flush();
                     session.clear();
+
+                    if (recordsArchived >= MAX_TRANSACTION_PATCH) {
+                        log.info("Archived {} log records in {} ms", recordsArchived,
+                                System.currentTimeMillis() - start);
+                        return true;
+                    }
 
                     records = getRecordsToBeArchived(session);
                 }
@@ -126,7 +126,7 @@ public class LogArchiver extends UntypedActor {
             log.info("Archived {} log records in {} ms", recordsArchived,
                     System.currentTimeMillis() - start);
 
-            return null;
+            return false;
         });
     }
 
