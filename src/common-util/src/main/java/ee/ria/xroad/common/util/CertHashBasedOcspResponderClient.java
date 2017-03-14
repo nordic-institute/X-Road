@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.MimeException;
@@ -38,75 +40,64 @@ import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.MimeConfig;
+
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.eclipse.jetty.http.HttpSchemes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
 
 /**
  * Contains utility methods for getting OCSP responses for certificates.
  */
+@Slf4j
 public final class CertHashBasedOcspResponderClient {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(CertHashBasedOcspResponderClient.class);
 
     private static final String METHOD = "GET";
     private static final String CERT_PARAM = "cert";
 
-    private static final int DEFAULT_CONNECT_TIMEOUT = 20000;
-
     private static final List<Integer> VALID_RESPONSE_CODES = Arrays.asList(
-        200, 201, 202, 203, 204, 205, 206, 207, 208, 226);
+            200, 201, 202, 203, 204, 205, 206, 207, 208, 226);
 
     private CertHashBasedOcspResponderClient() {
     }
 
     /**
-     * Creates an GET request to the internal cert hash based OCSP responder
-     * and expects an OCSP responses.
+     * Creates an GET request to the internal cert hash based OCSP responder and expects an OCSP responses.
      * @param providerAddress URL of the OCSP response provider
      * @param hashes certificate hashes for which to get the responses
      * @return list of OCSP response objects
      * @throws IOException if I/O errors occurred
      * @throws OCSPException if the response could not be parsed
      */
-    public static List<OCSPResp> getOcspResponsesFromServer(
-            String providerAddress, String[] hashes)
-                    throws IOException, OCSPException {
+    public static List<OCSPResp> getOcspResponsesFromServer(String providerAddress, String[] hashes)
+            throws IOException, OCSPException {
         URL url = createUrl(providerAddress, hashes);
 
-        LOG.debug("Getting OCSP responses for hashes ({}) from: {}",
-                Arrays.toString(hashes), url.getHost());
+        log.debug("Getting OCSP responses for hashes ({}) from: {}", Arrays.toString(hashes), url.getHost());
 
         return getOcspResponsesFromServer(url);
     }
 
     /**
-     * Creates a GET request to the internal cert hash based OCSP responder
-     * and expects OCSP responses.
+     * Creates a GET request to the internal cert hash based OCSP responder and expects OCSP responses.
      * @param destination URL of the OCSP response provider
      * @return list of OCSP response objects
      * @throws IOException if I/O errors occurred
      * @throws OCSPException if the response could not be parsed
      */
-    public static List<OCSPResp> getOcspResponsesFromServer(URL destination)
-            throws IOException, OCSPException {
-        HttpURLConnection connection =
-                (HttpURLConnection) destination.openConnection();
+    public static List<OCSPResp> getOcspResponsesFromServer(URL destination) throws IOException, OCSPException {
+        HttpURLConnection connection = (HttpURLConnection) destination.openConnection();
         connection.setRequestProperty("Accept", MimeTypes.MULTIPART_RELATED);
         connection.setDoOutput(true);
-        connection.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
+        connection.setConnectTimeout(SystemProperties.getOcspResponderClientConnectTimeout());
+        connection.setReadTimeout(SystemProperties.getOcspResponderClientReadTimeout());
         connection.setRequestMethod(METHOD);
         connection.connect();
 
         if (!VALID_RESPONSE_CODES.contains(connection.getResponseCode())) {
-            LOG.error("Invalid HTTP response ({}) from responder: {}",
-                    connection.getResponseCode(),
+            log.error("Invalid HTTP response ({}) from responder: {}", connection.getResponseCode(),
                     connection.getResponseMessage());
+
             throw new IOException(connection.getResponseMessage());
         }
 
@@ -115,16 +106,16 @@ public final class CertHashBasedOcspResponderClient {
 
         final List<OCSPResp> responses = new ArrayList<>();
         final MimeStreamParser parser = new MimeStreamParser(config);
+
         parser.setContentHandler(new AbstractContentHandler() {
             @Override
             public void startMultipart(BodyDescriptor bd) {
                 parser.setFlat();
             }
+
             @Override
-            public void body(BodyDescriptor bd, InputStream is)
-                    throws MimeException, IOException {
-                if (bd.getMimeType().equalsIgnoreCase(
-                        MimeTypes.OCSP_RESPONSE)) {
+            public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
+                if (bd.getMimeType().equalsIgnoreCase(MimeTypes.OCSP_RESPONSE)) {
                     responses.add(new OCSPResp(IOUtils.toByteArray(is)));
                 }
             }
@@ -139,10 +130,8 @@ public final class CertHashBasedOcspResponderClient {
         return responses;
     }
 
-    static URL createUrl(String providerAddress, String[] hashes)
-            throws MalformedURLException {
-        return new URL(HttpSchemes.HTTP, providerAddress,
-                PortNumbers.PROXY_OCSP_PORT, "/?" + CERT_PARAM + "="
-                        + StringUtils.join(hashes, "&" + CERT_PARAM + "="));
+    private static URL createUrl(String providerAddress, String[] hashes) throws MalformedURLException {
+        return new URL("http", providerAddress, SystemProperties.getOcspResponderPort(), "/?" + CERT_PARAM + "="
+                + StringUtils.join(hashes, "&" + CERT_PARAM + "="));
     }
 }

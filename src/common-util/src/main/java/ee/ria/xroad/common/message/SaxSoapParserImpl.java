@@ -45,11 +45,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.lang3.StringUtils;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -187,6 +185,8 @@ public class SaxSoapParserImpl implements SoapParser {
 
     private static final char[] CDATA_START = "<![CDATA[".toCharArray();
     private static final char[] CDATA_END = "]]>".toCharArray();
+    private static final char[] ENTITY_START = {'&'};
+    private static final char[] ENTITY_END = {';'};
 
     private static final SAXParserFactory PARSER_FACTORY =
             createSaxParserFactory();
@@ -241,6 +241,9 @@ public class SaxSoapParserImpl implements SoapParser {
             SAXParser saxParser = PARSER_FACTORY.newSAXParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setProperty(LEXICAL_HANDLER_PROPERTY, handler);
+            // ensure both builtin entities and character entities are reported to the parser
+            xmlReader.setFeature("http://apache.org/xml/features/scanner/notify-char-refs", true);
+            xmlReader.setFeature("http://apache.org/xml/features/scanner/notify-builtin-refs", true);
 
             saxParser.parse(inputStream, handler);
             return handler;
@@ -266,17 +269,12 @@ public class SaxSoapParserImpl implements SoapParser {
     private static SAXParserFactory createSaxParserFactory() {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
-        factory.setFeature("http://xml.org/sax/features/namespace-prefixes",
-                true);
+        factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         // disable external entity parsing to avoid DOS attacks
         factory.setValidating(false);
-        factory.setFeature(
-                "http://apache.org/xml/features/disallow-doctype-decl", true);
-        factory.setFeature(
-                "http://xml.org/sax/features/external-general-entities", false);
-        factory.setFeature(
-                "http://xml.org/sax/features/external-parameter-entities",
-                false);
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         return factory;
     }
 
@@ -339,6 +337,8 @@ public class SaxSoapParserImpl implements SoapParser {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
         private final BufferedWriter out;
+
+        private char[] xmlEntity;
 
         private Stack<XmlElementHandler> elementHandlers = new Stack<>();
 
@@ -418,11 +418,27 @@ public class SaxSoapParserImpl implements SoapParser {
 
         @Override
         public void characters(char[] ch, int start, int length) {
+
             XmlElementHandler elementParser = elementHandlers.peek();
             elementParser.characters(ch, start, length);
 
             if (isProcessedXmlRequired()) {
-                writeCharactersXml(ch, start, length, out);
+                // Make sure XML entities are not resolved in processed XML
+                if (xmlEntity != null) {
+                    writeCharactersXml(ENTITY_START, 0, 1, out);
+                    writeCharactersXml(xmlEntity, 0, xmlEntity.length, out);
+                    writeCharactersXml(ENTITY_END, 0, 1, out);
+                    xmlEntity = null;
+                } else {
+                    writeCharactersXml(ch, start, length, out);
+                }
+            }
+        }
+
+        @Override
+        public void startEntity(String name) {
+            if (isProcessedXmlRequired()) {
+                xmlEntity = name.toCharArray();
             }
         }
 

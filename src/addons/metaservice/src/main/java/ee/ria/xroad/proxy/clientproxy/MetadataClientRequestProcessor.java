@@ -22,10 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
-import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
-import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
-
 import java.io.OutputStream;
 import java.util.stream.Collectors;
 
@@ -35,8 +31,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.http.MimeTypes;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.metadata.CentralServiceListType;
@@ -44,8 +40,10 @@ import ee.ria.xroad.common.metadata.ClientListType;
 import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.metadata.MetadataRequests.*;
 
 @Slf4j
 class MetadataClientRequestProcessor extends MessageProcessorBase {
@@ -134,7 +132,7 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     }
 
     private void writeResponseXml(Object object) throws Exception {
-        servletResponse.setContentType(MimeTypes.TEXT_XML_UTF_8);
+        servletResponse.setContentType(MimeTypes.TEXT_XML_UTF8);
         marshal(object, servletResponse.getOutputStream());
     }
 

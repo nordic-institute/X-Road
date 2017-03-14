@@ -154,7 +154,7 @@ public final class SoapMessageTestUtil {
      */
     public static Soap createSoapMessage(String queryDir, String fileName)
             throws Exception {
-        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, newQueryInputStream(queryDir, fileName));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, newQueryInputStream(queryDir, fileName));
     }
 
     /**
@@ -165,7 +165,7 @@ public final class SoapMessageTestUtil {
      */
     public static Soap createSoapMessage(byte[] data)
             throws Exception {
-        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8,
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(data));
     }
 

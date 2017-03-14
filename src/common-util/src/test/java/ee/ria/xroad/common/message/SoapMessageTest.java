@@ -25,11 +25,13 @@ package ee.ria.xroad.common.message;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.List;
+
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPException;
 
 import org.apache.commons.io.IOUtils;
+
 import org.bouncycastle.util.Arrays;
 
 import org.junit.Rule;
@@ -44,12 +46,10 @@ import ee.ria.xroad.common.util.MimeTypes;
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
-
 import static org.junit.Assert.*;
 
 /**
- * This class tests the basic functionality (parsing the soap message etc.)
- * of the SoapMessage class.
+ * This class tests the basic functionality (parsing the soap message etc.) of the SoapMessage class.
  */
 public class SoapMessageTest {
 
@@ -57,19 +57,15 @@ public class SoapMessageTest {
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
     /**
-     * Test that reading a normal request message is successful and that
-     * header and body are correctly parsed.
+     * Test that reading a normal request message is successful and that header and body are correctly parsed.
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void simpleRequest() throws Exception {
         SoapMessageImpl message = createRequest("simple.query");
 
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "testQuery");
+        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isRequest());
         assertEquals(expectedClient, message.getClient());
@@ -87,11 +83,8 @@ public class SoapMessageTest {
     public void simpleRpcRequest() throws Exception {
         SoapMessageImpl message = createRequest("simple-rpc.query");
 
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "testQuery");
+        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isRpcEncoded());
         assertTrue(message.isRequest());
@@ -102,19 +95,15 @@ public class SoapMessageTest {
     }
 
     /**
-     * Test that reading a normal response message is successful and that
-     * header and body are correctly parsed.
+     * Test that reading a normal response message is successful and that header and body are correctly parsed.
      * @throws Exception in case of any unexpected errors
      */
     @Test
     public void simpleResponse() throws Exception {
         SoapMessageImpl message = createResponse("simple.answer");
 
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "testQuery");
+        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
+        ServiceId expectedService = ServiceId.create("EE", "BUSINESS", "producer", null, "testQuery");
 
         assertTrue(message.isResponse());
         assertEquals(expectedClient, message.getClient());
@@ -128,12 +117,9 @@ public class SoapMessageTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void simpleRepresentedPartyAndIssueInHeaderRequest()
-            throws Exception {
-        SoapMessageImpl message = createRequest(
-                "simple-representedparty.query");
-        RepresentedParty expectedRepresentedParty = new RepresentedParty("COM",
-                "MEMBER3");
+    public void simpleRepresentedPartyAndIssueInHeaderRequest() throws Exception {
+        SoapMessageImpl message = createRequest("simple-representedparty.query");
+        RepresentedParty expectedRepresentedParty = new RepresentedParty("COM", "MEMBER3");
         String expectedIssue = "issue-1";
 
         assertEquals(expectedRepresentedParty, message.getRepresentedParty());
@@ -216,9 +202,9 @@ public class SoapMessageTest {
     @Test
     public void invalidContentType() throws Exception {
         thrown.expectError(X_INVALID_CONTENT_TYPE);
-        try (FileInputStream in =
-                new FileInputStream(QUERY_DIR + "simple.query")) {
-            new SaxSoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF_8, in);
+
+        try (FileInputStream in = new FileInputStream(QUERY_DIR + "simple.query")) {
+            new SaxSoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF8, in);
         }
     }
 
@@ -228,10 +214,8 @@ public class SoapMessageTest {
      */
     @Test
     public void faultMessage() throws Exception {
-        String soapFaultXml = SoapFault.createFaultXml(
-                "foo.bar", "baz", "xxx", "yyy");
-        Soap message = new SaxSoapParserImpl().parse(
-                MimeTypes.TEXT_XML_UTF_8,
+        String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
+        Soap message = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
@@ -295,8 +279,7 @@ public class SoapMessageTest {
     }
 
     private QName getResponseChild(SoapMessageImpl response) throws SOAPException {
-        List<SOAPElement> bodyChildren =
-                getChildElements(response.getSoap().getSOAPBody());
+        List<SOAPElement> bodyChildren = getChildElements(response.getSoap().getSOAPBody());
         return bodyChildren.get(0).getElementQName();
     }
 
@@ -307,10 +290,8 @@ public class SoapMessageTest {
     @Test
     public void shouldParseBuiltMessage() throws Exception {
         ClientId client = ClientId.create("EE", "BUSINESS", "producer");
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer",
-                null, "test");
-        CentralServiceId centralService =
-                CentralServiceId.create("EE", "central");
+        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
+        CentralServiceId centralService = CentralServiceId.create("EE", "central");
         String userId = "foobar";
         String queryId = "barbaz";
 
@@ -321,8 +302,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        Soap parsedSoap = new SaxSoapParserImpl().parse(
-                built.getContentType(),
+        Soap parsedSoap = new SaxSoapParserImpl().parse(built.getContentType(),
                 new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
@@ -341,9 +321,7 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(centralService, built.getCentralService());
 
-        parsedSoap = new SaxSoapParserImpl().parse(
-                built.getContentType(),
-                IOUtils.toInputStream(built.getXml()));
+        parsedSoap = new SaxSoapParserImpl().parse(built.getContentType(), IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -360,12 +338,12 @@ public class SoapMessageTest {
     @Test
     public void shouldBuildRpcMessage() throws Exception {
         ClientId client = ClientId.create("EE", "BUSINESS", "producer");
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer",
-                null, "test");
+        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
         String queryId = "barbaz";
 
         SoapMessageImpl built = build(true, client, service, userId, queryId);
+
         assertNotNull(built);
         assertTrue(built.isRpcEncoded());
         assertEquals(userId, built.getUserId());
@@ -383,8 +361,7 @@ public class SoapMessageTest {
         thrown.expectError(X_MISSING_HEADER_FIELD);
 
         ClientId client = null;
-        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer",
-                null, "test");
+        ServiceId service = ServiceId.create("EE", "BUSINESS", "consumer", null, "test");
         String userId = "foobar";
         String queryId = "barbaz";
 
@@ -399,6 +376,7 @@ public class SoapMessageTest {
     public void shouldNotReencodeInputMessage() throws Exception {
         byte[] in = fileToBytes("simple.query");
         byte[] out = messageToBytes(createSoapMessage(in));
+
         assertTrue(Arrays.areEqual(in, out));
     }
 
@@ -410,11 +388,9 @@ public class SoapMessageTest {
     public void centralServiceMessage() throws Exception {
         SoapMessageImpl message = createRequest("simple-centralservice.query");
 
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
+        ClientId expectedClient = ClientId.create("EE", "BUSINESS", "consumer");
 
-        CentralServiceId expectedService =
-                CentralServiceId.create("EE", "centralservice");
+        CentralServiceId expectedService = CentralServiceId.create("EE", "centralservice");
 
         assertTrue(message.isRequest());
         assertEquals(expectedClient, message.getClient());

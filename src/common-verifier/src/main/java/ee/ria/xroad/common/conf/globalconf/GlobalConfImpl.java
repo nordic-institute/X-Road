@@ -561,6 +561,14 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public boolean existsSecurityServer(SecurityServerId securityServerId) {
+        SharedParametersV2 p = getSharedParameters(securityServerId
+                .getXRoadInstance());
+
+        return p.getSecurityServersById().containsKey(securityServerId);
+    }
+
+    @Override
     public List<X509Certificate> getVerificationCaCerts() {
         return getSharedParameters().stream()
                 .flatMap(p -> p.getVerificationCaCerts().stream())

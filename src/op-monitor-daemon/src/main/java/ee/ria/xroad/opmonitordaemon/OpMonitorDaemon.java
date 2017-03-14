@@ -23,24 +23,23 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import java.security.SecureRandom;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
@@ -107,27 +106,31 @@ final class OpMonitorDaemon implements StartStop {
         String listenAddress = OpMonitoringSystemProperties.getOpMonitorHost();
         int port = OpMonitoringSystemProperties.getOpMonitorPort();
 
-        SelectChannelConnector connector = "https".equalsIgnoreCase(
-                OpMonitoringSystemProperties.getOpMonitorDaemonScheme())
-                ? createDaemonSslConnector() : createDaemonConnector();
+        String scheme = OpMonitoringSystemProperties.getOpMonitorDaemonScheme();
+        ServerConnector connector = "https".equalsIgnoreCase(scheme)
+                ? createDaemonSslConnector(server)
+                : createDaemonConnector(server);
 
         connector.setName(CLIENT_CONNECTOR_NAME);
         connector.setHost(listenAddress);
         connector.setPort(port);
+        connector.getConnectionFactories().stream()
+                .filter(cf -> cf instanceof HttpConnectionFactory)
+                .forEach(httpCf -> ((HttpConnectionFactory) httpCf)
+                        .getHttpConfiguration().setSendServerVersion(false));
 
         server.addConnector(connector);
-        server.setSendServerVersion(false);
 
         log.info("OpMonitorDaemon {} created ({}:{})",
                 connector.getClass().getSimpleName(), listenAddress, port);
     }
 
-    private static SelectChannelConnector createDaemonConnector() {
-        return new SelectChannelConnector();
+    private static ServerConnector createDaemonConnector(Server server) {
+        return new ServerConnector(server);
     }
 
     @SneakyThrows
-    private static SslSelectChannelConnector createDaemonSslConnector() {
+    private static ServerConnector createDaemonSslConnector(Server server) {
         SslContextFactory cf = new SslContextFactory(false);
         cf.setNeedClientAuth(true);
         cf.setSessionCachingEnabled(true);
@@ -142,7 +145,7 @@ final class OpMonitorDaemon implements StartStop {
 
         cf.setSslContext(ctx);
 
-        return new SslSelectChannelConnector(cf);
+        return new ServerConnector(server, cf);
     }
 
     private void createHandler() {

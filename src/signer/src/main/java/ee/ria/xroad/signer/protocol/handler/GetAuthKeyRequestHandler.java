@@ -123,12 +123,14 @@ public class GetAuthKeyRequestHandler
         if (!certInfo.isActive()) {
             log.trace("Ignoring inactive authentication certificate {}",
                     CertUtils.identify(cert));
+
             return false;
         }
 
         if (!isRegistered(certInfo.getStatus())) {
             log.trace("Ignoring non-registered ({}) authentication certificate"
                     + " {}", certInfo.getStatus(), CertUtils.identify(cert));
+
             return false;
         }
 
@@ -137,13 +139,17 @@ public class GetAuthKeyRequestHandler
             cert.checkValidity();
 
             if (securityServer.equals(serverIdFromConf)) {
-                verifyOcspResponse(securityServer.getXRoadInstance(), cert, certInfo.getOcspBytes(),
-                        new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
+                verifyOcspResponse(securityServer.getXRoadInstance(), cert,
+                        certInfo.getOcspBytes(), new OcspVerifierOptions(
+                                GlobalConfExtensions.getInstance()
+                                        .shouldVerifyOcspNextUpdate()));
+
                 return true;
             }
         } catch (Exception e) {
             log.warn("Ignoring authentication certificate '{}' because: ",
                     cert.getSubjectX500Principal().getName(), e);
+
             return false;
         }
 
@@ -152,6 +158,7 @@ public class GetAuthKeyRequestHandler
                 + "(server id from global conf: {})", new Object[] {
                         CertUtils.identify(cert),
                         securityServer, serverIdFromConf});
+        
         return false;
     }
 

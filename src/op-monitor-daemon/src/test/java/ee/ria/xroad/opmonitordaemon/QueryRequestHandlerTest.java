@@ -33,13 +33,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.codahale.metrics.MetricRegistry;
-
 import lombok.SneakyThrows;
-
 import org.apache.commons.io.IOUtils;
-
 import org.junit.Test;
-
 import org.w3c.dom.Element;
 
 import ee.ria.xroad.common.identifier.ClientId;
@@ -85,7 +81,7 @@ public class QueryRequestHandlerTest {
         InputStream is = new FileInputStream(OPERATIONAL_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
-                MimeUtils.TEXT_XML_UTF8, is);
+                MimeTypes.TEXT_XML_UTF8, is);
 
         QueryRequestHandler handler = new OperationalDataRequestHandler() {
             @Override
@@ -164,7 +160,7 @@ public class QueryRequestHandlerTest {
         InputStream is = new FileInputStream(HEALTH_DATA_REQUEST);
         SoapParser parser = new SoapParserImpl();
         SoapMessageImpl request = (SoapMessageImpl) parser.parse(
-                MimeUtils.TEXT_XML_UTF8, is);
+                MimeTypes.TEXT_XML_UTF8, is);
 
         QueryRequestHandler handler = new HealthDataRequestHandler(
                 new TestMetricsRegistry());
