@@ -78,7 +78,7 @@ public class LogArchiver extends UntypedActor {
 
         if (START_ARCHIVING.equals(message)) {
             try {
-                while(handleArchive());
+                while (handleArchive()) { }
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
             }
