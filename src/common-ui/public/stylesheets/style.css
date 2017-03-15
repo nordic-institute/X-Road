@@ -829,8 +829,8 @@ p:not(.input) {
 	padding: 0;
 	border: 1px solid #ddd;
 	background: #fff;
-	display: table;
-	margin: 0 auto;
+	display: inline-block;
+	margin: 0;
 }
 
 .ui-tabs .ui-tabs-nav li {
@@ -880,6 +880,10 @@ p:not(.input) {
 
 .ui-tabs.search_tabs .ui-tabs-panel table.details {
 	width: 66%;
+}
+
+.ui-tabs .ui-tabs-nav li.ui-tabs-last-visible {
+	border: none;
 }
 
 .ui-tabs-panel-actions {
@@ -1286,6 +1290,10 @@ pre {
 	display: block;
 }
 
+#tabs_wrapper {
+	text-align: center;
+}
+
 .alerts {
 	position: fixed;
 	width: 100%;
@@ -1453,3 +1461,5 @@ iframe {
 body.wait *, body.wait {
 	cursor: wait !important;
 }
+
+
