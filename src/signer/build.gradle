@@ -30,7 +30,7 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile project(':common-verifier').sourceSets.test.output
-    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.8'
+    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
 
     xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
     xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'

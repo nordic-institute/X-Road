@@ -66,6 +66,11 @@ allprojects {
 }
 
 subprojects {
+
+    ext {
+        akkaVersion = "2.4.8"
+    }
+
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'maven'
