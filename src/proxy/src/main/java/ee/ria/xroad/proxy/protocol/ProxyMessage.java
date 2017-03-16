@@ -112,8 +112,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
      */
     public String getSoapContentType() {
         return isMimeEncodedSoap() || hasAttachments()
-                ? originalContentType != null
-                    ? originalContentType : encoder.getContentType()
+                ? (originalContentType != null ? originalContentType : encoder.getContentType())
                 : MimeTypes.TEXT_XML_UTF8;
     }
 
@@ -124,10 +123,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public InputStream getSoapContent() throws Exception {
         if (isMimeEncodedSoap()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            MultipartEncoder mp =
-                    new MultipartEncoder(out, originalMimeBoundary);
-            mp.startPart(getSoap().getContentType(),
-                    MimeUtils.toHeaders(soapPartHeaders));
+            MultipartEncoder mp = new MultipartEncoder(out, originalMimeBoundary);
+            mp.startPart(getSoap().getContentType(), MimeUtils.toHeaders(soapPartHeaders));
             mp.write(getSoap().getBytes());
             mp.close();
 
@@ -178,8 +175,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void soap(SoapMessageImpl soap,
-            Map<String, String> additionalHeaders) throws Exception {
+    public void soap(SoapMessageImpl soap, Map<String, String> additionalHeaders) throws Exception {
         log.trace("Read SOAP message");
 
         this.soapMessage = soap;
@@ -187,8 +183,8 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void attachment(String contentType, InputStream content,
-            Map<String, String> additionalHeaders) throws Exception {
+    public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+            throws Exception {
         log.trace("Attachment: {}", contentType);
 
         if (!hasAttachments()) {
@@ -214,15 +210,13 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     protected SoapMessageEncoder createEncoder() {
-        return new MultipartSoapMessageEncoder(attachmentCache,
-                originalMimeBoundary);
+        return new MultipartSoapMessageEncoder(attachmentCache, originalMimeBoundary);
     }
 
     // Returns true, if this the original message was a MIME-encoded SOAP
     // message without any attachments (special case).
     private boolean isMimeEncodedSoap() {
-        return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(
-                MimeUtils.getBaseContentType(originalContentType))
+        return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(MimeUtils.getBaseContentType(originalContentType))
                 && !hasAttachments();
     }
 }
