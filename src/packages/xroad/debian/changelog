@@ -1,4 +1,4 @@
-xroad (6.11.1) trusty; urgency=low
+xroad (6.12.0) trusty; urgency=low
 
   * XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness
     check of the entered security server code when initializing the server.
