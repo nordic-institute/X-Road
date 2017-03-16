@@ -26,6 +26,7 @@ import akka.actor.UntypedActor;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
@@ -65,7 +66,6 @@ public class LogArchiver extends UntypedActor {
 
     private static final int MAX_RECORDS_IN_ARCHIVE = 10;
     private static final int MAX_RECORDS_IN_PATCHS = 360;
-    private static final int MAX_TRANSACTION_PATCH = 10000;
 
     public static final String START_ARCHIVING = "doArchive";
 
@@ -111,7 +111,7 @@ public class LogArchiver extends UntypedActor {
                     session.flush();
                     session.clear();
 
-                    if (recordsArchived >= MAX_TRANSACTION_PATCH) {
+                    if (recordsArchived >= MessageLogProperties.getArchiveTransactionPatchSize()) {
                         log.info("Archived {} log records in {} ms", recordsArchived,
                                 System.currentTimeMillis() - start);
                         return true;
