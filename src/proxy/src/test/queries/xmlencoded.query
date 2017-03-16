@@ -15,11 +15,11 @@
         </xroad:centralService>
         <xroad:userId>&lt;&#34;EE37702211234&quot; &amp; &apos;xml encoded&#39;&#62;</xroad:userId>
         <xroad:id>1234567890</xroad:id>
-        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+        <xroad:protocolVersion test="&#35;">4.0</xroad:protocolVersion>
     </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <ns1:testQuery xmlns:ns1="http://cosumer.ee.xroad.net">
-            <request>&gt;foo&lt;</request>
+            <request foo="&amp;">&gt;foo&lt;</request>
         </ns1:testQuery>
     </SOAP-ENV:Body>
 </SOAP-ENV:Envelope>
