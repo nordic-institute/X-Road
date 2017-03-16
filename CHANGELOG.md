@@ -2,7 +2,7 @@
 
 ## 6.12.0 - 2017-03-13
 - XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness check of the entered security server code when initializing the server.
-- XTE-252 / Joint development issue #53: Security Server: Upgraded embedded Jetty to the version 9.4.2.
+- XTE-252 / Joint development issue #53: Security Server: Upgraded embedded Jetty to the version 9.4.2. Due to upgrade SHA1 ciphers are no longer supported for communication between security server and client.
 - XTE-293: Security Server: A field set used to generate the token ID of the SSCD has been made configurable.
 - XTE-294 / Joint development issue #84: Security Server: Added configuration file for the OCSP responder Jetty server (and increased max threads size of the thread pool).
 - XTE-307 / Joint development issue #131: Security Server bugfix: Added missing HTTP header "Connection: close" into the server proxy response in cases error occurs before parsing a service provider's response.
