@@ -96,6 +96,7 @@ public class LogArchiver extends UntypedActor {
             }
 
             log.info("Archiving log records...");
+            log.info("Patch size {}", MessageLogProperties.getArchiveTransactionPatchSize());
 
             long start = System.currentTimeMillis();
             int recordsArchived = 0;
