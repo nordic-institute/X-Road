@@ -147,7 +147,8 @@ public final class MessageLogProperties {
     /**
      * @return number of archived item in one transaction.
      */
-    public static int getArchiveTransactionPatchSize(){ return getInt(System.getProperty(ARCHIVE_TRANSACTION_PATCH),
+    public static int getArchiveTransactionPatchSize() {
+        return getInt(System.getProperty(ARCHIVE_TRANSACTION_PATCH),
             DEFAULT_ARCHIVE_TRANSACTION_PATCH_SIZE);
     }
 
