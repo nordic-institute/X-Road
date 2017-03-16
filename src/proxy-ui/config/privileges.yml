@@ -9,8 +9,7 @@
 #   - xroad-securityserver-observer
 
 - init_config: [xroad-system-administrator]
-- view_clients: [xroad-security-officer, xroad-registration-officer, xroad-service-administrator,
-                 xroad-securityserver-observer]
+- view_clients: [xroad-security-officer, xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
 -   add_client: [xroad-registration-officer]
 -   send_client_reg_req: [xroad-registration-officer]
 -   view_client_details_dialog: [xroad-registration-officer, xroad-service-administrator, xroad-securityserver-observer]
@@ -37,17 +36,14 @@
 -       view_acl_subject_open_services: [xroad-service-administrator, xroad-securityserver-observer]
 -         edit_acl_subject_open_services: [xroad-service-administrator]
 -     view_client_internal_certs: [xroad-service-administrator, xroad-registration-officer, xroad-securityserver-observer]
--       view_client_internal_cert_details: [xroad-service-administrator, xroad-registration-officer,
-                                          xroad-securityserver-observer]
+-       view_client_internal_cert_details: [xroad-service-administrator, xroad-registration-officer, xroad-securityserver-observer]
 -       add_client_internal_cert: [xroad-service-administrator, xroad-registration-officer]
 -       delete_client_internal_cert: [xroad-service-administrator, xroad-registration-officer]
--       view_client_internal_connection_type: [xroad-service-administrator, xroad-registration-officer,
-                                             xroad-securityserver-observer]
+-       view_client_internal_connection_type: [xroad-service-administrator, xroad-registration-officer, xroad-securityserver-observer]
 -       edit_client_internal_connection_type: [xroad-service-administrator, xroad-registration-officer]
 -       view_proxy_internal_cert: [xroad-service-administrator, xroad-registration-officer, xroad-securityserver-observer]
 -       export_proxy_internal_cert: [xroad-service-administrator, xroad-registration-officer]
-- view_keys: [xroad-security-officer, xroad-registration-officer, xroad-system-administrator,
-              xroad-securityserver-observer]
+- view_keys: [xroad-security-officer, xroad-registration-officer, xroad-system-administrator, xroad-securityserver-observer]
 -   activate_token: [xroad-security-officer, xroad-system-administrator]
 -   deactivate_token: [xroad-security-officer, xroad-system-administrator]
 -   generate_key: [xroad-security-officer, xroad-registration-officer]
