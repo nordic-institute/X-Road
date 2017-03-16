@@ -174,7 +174,7 @@ To install the X-Road security server software, follow these steps.
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -
+        curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add -
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 
