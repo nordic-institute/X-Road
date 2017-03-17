@@ -285,6 +285,7 @@ Security servers support the following user roles:
 
 -   <a id="xroad-securityserver-observer" class="anchor"></a>**Security Server Observer** (`xroad-securityserver-observer`) can view the status of the security server without having access rights to edit the configuration. This role can be used to offer users read-only access to the security server admin user interface.
 
+One user can have multiple roles and multiple users can be in the same role. Each role has a corresponding system group, created upon the installation of the system.
 
 Henceforth each applicable section of the guide indicates, which user role is required to perform a particular action. For example:
 
