@@ -283,7 +283,7 @@ Security servers support the following user roles:
 
 -   <a id="xroad-system-administrator" class="anchor"></a>**System Administrator** (`xroad-system-administrator`) is responsible for the installation, configuration, and maintenance of the security server.
 
--   <a id="xroad-securityserver-observer" class="anchor"></a>**Security server observer** (`xroad-securityserver-observer`) can view the status of the security server without having access rights to edit the configuration. This role can be used to offer users read-only access to the security server admin user interface.
+-   <a id="xroad-securityserver-observer" class="anchor"></a>**Security Server Observer** (`xroad-securityserver-observer`) can view the status of the security server without having access rights to edit the configuration. This role can be used to offer users read-only access to the security server admin user interface.
 
 
 Henceforth each applicable section of the guide indicates, which user role is required to perform a particular action. For example:
