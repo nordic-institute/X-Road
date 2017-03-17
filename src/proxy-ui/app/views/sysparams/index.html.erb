@@ -59,7 +59,7 @@
       <button id="import_internal_ssl_cert"><%= t 'common.import' %></button>
       <% end %>
       <% if can?(:generate_internal_ssl_csr) %>
-      <button id="generate_internal_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
+      <button id="generate_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
       <% end %>
       <% if can?(:generate_internal_ssl) %>
       <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
