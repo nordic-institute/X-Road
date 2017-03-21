@@ -6,7 +6,7 @@ Doc. ID: IG-XLB
 
 | Date        | Version     | Description                                             | Author                       |
 |-------------|-------------|---------------------------------------------------------|------------------------------|
-| 10.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
+| 21.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
 
 
 ## Table of Contents
