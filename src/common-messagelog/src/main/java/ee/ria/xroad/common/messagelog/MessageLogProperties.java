@@ -45,7 +45,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_TIMESTAMP_RECORDS_LIMIT = 10000;
 
-    private static final int DEFAULT_ARCHIVE_TRANSACTION_PATCH_SIZE = 10000;
+    private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
     private static final String PREFIX = "xroad.message-log.";
 
@@ -70,8 +70,8 @@ public final class MessageLogProperties {
     public static final String ARCHIVE_PATH =
             PREFIX + "archive-path";
 
-    public static final String ARCHIVE_TRANSACTION_PATCH =
-            PREFIX + "archive-transaction-patch";
+    public static final String ARCHIVE_TRANSACTION_BATCH =
+            PREFIX + "archive-transaction-batch";
 
     public static final String CLEAN_INTERVAL =
             PREFIX + "clean-interval";
@@ -148,8 +148,8 @@ public final class MessageLogProperties {
      * @return number of archived item in one transaction.
      */
     public static int getArchiveTransactionBatchSize() {
-        return getInt(System.getProperty(ARCHIVE_TRANSACTION_PATCH),
-            DEFAULT_ARCHIVE_TRANSACTION_PATCH_SIZE);
+        return getInt(System.getProperty(ARCHIVE_TRANSACTION_BATCH),
+                DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE);
     }
 
     /**
