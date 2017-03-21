@@ -113,7 +113,8 @@ public class LogArchiver extends UntypedActor {
                     session.flush();
                     session.clear();
 
-                    if (safeTransactionBatch && recordsArchived >= MessageLogProperties.getArchiveTransactionBatchSize()) {
+                    if (safeTransactionBatch
+                            && recordsArchived >= MessageLogProperties.getArchiveTransactionBatchSize()) {
                         log.info("Archived {} log records in {} ms", recordsArchived,
                                 System.currentTimeMillis() - start);
                         return true;
