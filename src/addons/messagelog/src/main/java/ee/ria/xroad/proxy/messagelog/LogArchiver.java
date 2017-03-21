@@ -40,6 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
@@ -71,6 +72,7 @@ public class LogArchiver extends UntypedActor {
 
     private final Path archivePath;
     private final Path workingPath;
+    private boolean safeTransactionBatch;
 
     @Override
     public void onReceive(Object message) throws Exception {
@@ -111,7 +113,7 @@ public class LogArchiver extends UntypedActor {
                     session.flush();
                     session.clear();
 
-                    if (recordsArchived >= MessageLogProperties.getArchiveTransactionPatchSize()) {
+                    if (safeTransactionBatch && recordsArchived >= MessageLogProperties.getArchiveTransactionBatchSize()) {
                         log.info("Archived {} log records in {} ms", recordsArchived,
                                 System.currentTimeMillis() - start);
                         return true;
@@ -175,7 +177,7 @@ public class LogArchiver extends UntypedActor {
 
     protected List<LogRecord> getRecordsToBeArchived(Session session) {
         List<LogRecord> recordsToArchive = new ArrayList<>();
-
+        safeTransactionBatch = false;
         int allowedInArchiveCount = MAX_RECORDS_IN_ARCHIVE;
         for (TimestampRecord ts : getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_PATCHS)) {
             List<MessageRecord> messages =
@@ -185,6 +187,7 @@ public class LogArchiver extends UntypedActor {
                 log.trace("Timestamp record #{} will be archived",
                         ts.getId());
                 recordsToArchive.add(ts);
+                safeTransactionBatch = true;
             } else {
                 log.trace("Timestamp record #{} still related to"
                                 + " non-archived message records",
@@ -206,6 +209,7 @@ public class LogArchiver extends UntypedActor {
         Criteria criteria = session.createCriteria(TimestampRecord.class);
         criteria.add(Restrictions.eq("archived", false));
         criteria.setMaxResults(maxRecordsToGet);
+        criteria.addOrder(Order.asc("id"));
         return criteria.list();
     }
 
