@@ -153,6 +153,8 @@ public class SaxSoapParserImpl implements SoapParser {
 
     private static final char[] CDATA_START = "<![CDATA[".toCharArray();
     private static final char[] CDATA_END = "]]>".toCharArray();
+    private static final char[] COMMENT_START = "<!--".toCharArray();
+    private static final char[] COMMENT_END = "-->".toCharArray();
     private static final char[] ENTITY_START = {'&'};
     private static final char[] ENTITY_END = {';'};
 
@@ -383,6 +385,15 @@ public class SaxSoapParserImpl implements SoapParser {
                 } else {
                     writeCharactersXml(ch, start, length, out);
                 }
+            }
+        }
+
+        @Override
+        public void comment(char[] ch, int start, int length) {
+            if (isProcessedXmlRequired()) {
+                writeCharactersXml(COMMENT_START, 0, COMMENT_START.length, out);
+                writeCharactersXml(ch, start, length, out);
+                writeCharactersXml(COMMENT_END, 0, COMMENT_END.length, out);
             }
         }
 
