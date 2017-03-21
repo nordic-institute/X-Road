@@ -41,7 +41,7 @@ Doc. ID: IG-XLB
     + [4.2.1 on RHEL](#421-on-rhel)
     + [4.2.2 on Ubuntu](#422-on-ubuntu)
   * [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication)
-  * [4.5 Configuring the slave instance for replication](#45-configuring-the-slave-instance-for-replication)
+  * [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)
 - [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
   * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
   * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
