@@ -85,6 +85,10 @@ configure security servers to run as a cluster where each node has an identical 
 certificates. X-Road security server configuration changes are handled by a single master server and one or more slave
 servers.
 
+Chapter [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration) describes the installation
+on a high level and as a whole. The later chapters cover the details of the different parts of the installation and configuration.
+The last chapter briefly describes how the configuration can be verified.
+
 ### 2.1 Goals and assumptions
 
 The primary goal of the load balancing support is, as the name suggests, load balancing, not fault tolerance.
@@ -202,6 +206,8 @@ replication cannot simultaneously create a single point of failure. A distribute
 
 ## 3. X-Road Installation and configuration
 
+This chapter details the complete installation on a high level, with links to other chapters that go into the details.
+
 You can set up the cluster manually, or use the provided Ansible playbook \[[SS-CLUSTER](#12-references)\] if it suits
 your purposes.
 
@@ -218,12 +224,13 @@ In order to properly set up the data replication, the slave nodes must be able t
 2. Stop the xroad services.
 3. Create a separate PostgreSQL instance for the `serverconf` database (see section
    [4. Database replication setup](#4-database-replication-setup) for details).
-   * Change `/etc/db.properties` to point to the separate database instance
-4. If you are using an already configured server as the master, the existing configuration was replicated to the slaves
+4. Change `/etc/xroad/db.properties` to point to the separate database instance:
+   * `serverconf.hibernate.connection.url` : Change the url port number from `5432` to `5433` (or the port you specified)
+5. If you are using an already configured server as the master, the existing configuration was replicated to the slaves
    in step 3. Otherwise, proceed to configure the master server: install the configuration anchor, set up basic information,
    create authentication and signing keys and so on. See the security server installation guide \[[IG-SS](#12-references)\]
    for help with the basic setup.
-5. Set up the configuration file replication, see section
+6. Set up the configuration file replication, see section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Additionally, `rssh` shell can be used to to restrict slave access further, but note that it is not available on RHEL.
 
@@ -232,6 +239,7 @@ In order to properly set up the data replication, the slave nodes must be able t
       [Node]
       type=master
       ```
+      Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Start the X-Road services.
 
 
@@ -242,24 +250,28 @@ In order to properly set up the data replication, the slave nodes must be able t
 2. Stop the xroad services.
 3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)
-  * Change `/etc/db.properties` to point to the separate database instance and change password to match the one defined in the master database.
-4. Set up SSH between the master and the slave (the slave must be able to access `/etc/xroad` via ssh)
+4. Change `/etc/xroad/db.properties` to point to the separate database instance and change password to match the one
+   defined in the master database (the password is part of the data that is replicated to the slaves).
+    * `serverconf.hibernate.connection.url` : Change the url port number from `5432` to `5433` (or the port you specified)
+    * `serverconf.hibernate.connection.password`: Change to match the master db's password (in plaintext).
+5. Set up SSH between the master and the slave (the slave must be able to access `/etc/xroad` via ssh)
    * Create an SSH keypair for `xroad` user and copy the public key to authorized keys of the master node
    (`/home/xroad-slave/.ssh/authorized_keys`)
-5. Set up state synchronization using rsync+ssh. See section
+6. Set up state synchronization using rsync+ssh. See section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the inital synchronization between the master and the slave.
    ```bash
    rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" xroad-slave@<master>:/etc/xroad/ /etc/xroad/
    ```
-   Where `<master>` is the master server.
-6. Configure the node type as `slave` in `/etc/xroad/node.ini`:
+   Where `<master>` is the master server's DNS or IP address.
+7. Configure the node type as `slave` in `/etc/xroad/node.ini`.
 
       ```bash
       [Node]
       type=slave
       ```
-7. Start the X-Road services.
+      Change the owner and group of the file to `xroad:xroad` if it is not already.
+8. Start the X-Road services.
 
 
 ### 3.4 Health check service configuration
@@ -372,11 +384,16 @@ For further details on the certificate authentication, see the
    openssl req -new -nodes -days 7300 -keyout server.key -out server.csr -subj "/O=cluster/CN=<nodename>"
    ```
 
-   **Note:** The `<nodename>` must match both the replication user name added to the master database in step
-   [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication) and
-   the username specified in `recovery.conf` on the slave node (see step
-   [4.5 Configuring the slave instance for replication](#45-configuring-the-slave-instance-for-replication));
-   otherwise the subject name does not matter.
+    **Note:** The `<nodename>` (the subject common name) will be used for identifying the cluster nodes. For slave nodes,
+    it needs to match the replication user name that is added to the master database and the username that the slave node
+    database uses to connect to the master. For example, in a system with one master and two slaves, the names of the nodes
+    could be `master`, `slave1` and `slave2`. Other parts of the subject name do not matter and can be named as is
+    convenient.
+
+    For more information on adding the replication user name to the master database, see chapter
+   [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication).
+    Configuring the username into `recovery.conf` on the slave nodes is detailed in chapter
+   [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)).
 
    Sign the CSR with the CA, creating a certificate:
 
@@ -448,7 +465,7 @@ ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
 ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
-listen_addresses = *    # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
+listen_addresses = '*'    # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
 wal_level = hot_standby
 max_wal_senders   = 3   # should be ~ number of slaves plus some small number. Here, we assume there are two slaves.
 wal_keep_segments = 8   # keep some wal segments so that slaves that are offline can catch up.
@@ -507,7 +524,7 @@ sudo -u postgres psql -p 5432 -c "ALTER DATABASE serverconf RENAME TO serverconf
 ```
 
 
-### 4.5 Configuring the slave instance for replication
+### 4.4 Configuring the slave instance for replication
 
 Prerequisites:
 * A separate postgresql instance has been created.
@@ -525,20 +542,29 @@ Clear the data directory:
  rm -rf *
  ```
 
-Do a base backup with `pg_basebackup`:
+Then, do a base backup with `pg_basebackup`:
 ```bash
 sudo -u postgres PGSSLMODE=verify-ca PGSSLROOTCERT=/etc/xroad/postgresql/ca.crt PGSSLCERT=/etc/xroad/postgresql/server.crt PGSSLKEY=/etc/xroad/postgresql/server.key pg_basebackup -h <master> -p 5433 -U <nodename> -D .
 ```
-Add the following `recovery.conf` to the data directory:
+Where `<master>` is the DNS or IP address of the master node and `<nodename>` is the node name (the replication user name added to the master database).
+
+**Note:** This warning by `pg_basebackup` can be ignored:
+```
+NOTICE: WAL archiving is not enabled; you must ensure that all required WAL segments are copied through other means to complete the backup
+```
+
+Next, add the following `recovery.conf` to the data directory:
 
 ```
 standby_mode = 'on'
 primary_conninfo = 'host=<master> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 trigger_file = '/var/lib/xroad/postgresql.trigger'
 ```
-Set owner of the `recovery.conf` to `postgres:postgres`, mode `0600`
+Where, as above, `<master>` is the DNS or IP address of the master node and `<nodename>` is the node name (the replication user name added to the master database).
 
-Modify `postgresql.conf`:
+Then set the owner of the `recovery.conf` to `postgres:postgres`, mode `0600`.
+
+Next, modify `postgresql.conf`:
 
 ```
 ssl = on
@@ -559,7 +585,7 @@ hot_standby_feedback = on
 Notice that on RHEL, during `pg_basebackup` the `postgresql.conf` was copied from the master node so the WAL sender
 parameters should be disabled. Also check that `listen_addresses` is localhost-only.
 
-Start the database instance
+Finally, start the database instance
 
 **RHEL:**
 ```bash
@@ -591,7 +617,7 @@ useradd -r -m -g xroad xroad-slave
 
 Create an `.ssh` folder and the authorized keys file:
 ```bash
-sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/authorized_keys
+sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys
  ```
 **Warning:**  The owner of the file should be `root` and `xroad-slave` should not have write permission to the file.
 
@@ -606,12 +632,12 @@ periodically (once per minute) and before the services are started. That means t
 available, the configuration will be synchronized before the `xroad-proxy` service is started. If the master node is down,
 there will be a small delay before the services are started.
 
-> Note that only modifications to the signer keyconf will be applied when the system is running. Other configuration changes
-> require restarting the services, which is not automatic.
+> Note that only modifications to the signer keyconf will be applied when the system is running. Changes to any other
+configuration files,  like `local.ini`, require restarting the services, which is not automatic.
 
 #### 5.2.1 RHEL: Use `systemd` for configuration synchronization
 
-Add `xroad-sync` as a `systemd` service.
+First, add `xroad-sync` as a `systemd` service.
 
 Create a new file `/etc/systemd/system/xroad-sync.service`:
 ```
@@ -626,17 +652,20 @@ Before=xroad-jetty.service
 User=xroad
 Group=xroad
 Type=oneshot
-Environment=XROAD_USER={{ xroad_slave_ssh_user }}
-Environment=MASTER={{ master_host }}
+Environment=XROAD_USER=xroad-slave
+Environment=MASTER=<master_host>
 ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
 WantedBy=xroad-proxy.service
 ```
+Where `<master_host>` is the DNS name or IP address of the master node.
 
-Add a timer for periodic updates.
+The service will log `rsync` events to `/var/log/xroad/slave-sync.log`.
 
-Create a new file `/etc/systemd/xroad-sync.timer`:
+Then, add a timer for periodic updates.
+
+Create a new file `/etc/systemd/system/xroad-sync.timer`:
 
 ```
 [Unit]
@@ -648,13 +677,13 @@ OnUnitActiveSec=60
 WantedBy=timers.target
 ```
 
-Configure SELinux to allow `rsync` to be run as a `systemd` service
+Next, configure SELinux to allow `rsync` to be run as a `systemd` service
 
 ```
 setsebool -P rsync_client 1
 setsebool -P rsync_full_access 1
 ```
-Enable the services:
+Finally, enable the services:
 ```
 systemctl enable xroad-sync.timer xroad-sync.service
 systemctl start xroad-sync.timer
@@ -662,20 +691,23 @@ systemctl start xroad-sync.timer
 
 #### 5.2.2 Ubuntu: Use upstart and cron for configuration synchronization
 
-Create the main upstart task for syncing.
+First, create the main upstart task for syncing.
 
 Create a new file: `/etc/init/xroad-sync.conf`:
 ```
 # xroad-sync
-env XROAD_USER={{ xroad_slave_ssh_user }}
-env MASTER={{ master_host }}
+env XROAD_USER=xroad-slave
+env MASTER=<master_host>
 task
 script
   su -s /bin/sh -c 'exec "$0" "$@"' xroad -- rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 end script
 ```
+Where `<master_host>` is the DNS name or IP address of the master node.
 
-Create a helper task that ensures that the sync task is executed before the services are started.
+The task will log `rsync` events to `/var/log/xroad/slave-sync.log`.
+
+Then, create a helper task that ensures that the sync task is executed before the services are started.
 
 Create a new file `/etc/init/xroad-sync-wait.conf`:
 ```
@@ -692,7 +724,7 @@ script
 end script
 ```
 
-Add a cron job to periodically start the sync task as upstart does not have a timer facility.
+Next, add a cron job to periodically start the sync task as upstart does not have a timer facility.
 
 Create a new file `/etc/cron.d/xroad-state-sync`:
 ```
@@ -710,9 +742,10 @@ Create a new file `/etc/cron.d/xroad-state-sync`:
 
 ### 5.3 Set up log rotation for the sync log on the slave nodes
 
-The following configuration example rotates logs daily and keeps logs for 7 days which should be enough for troubleshooting.
+The configuration synchronization will log events to `/var/log/xroad/slave-sync.log` on the slave nodes. The following
+configuration example rotates those logs daily and keeps them for 7 days which should be enough for troubleshooting.
 
-Create a new file `/etc/logrotate.d/xroad-slave-sync`:
+Create a new file `/etc/logrotate.d/xroad-slave-sync` on the slave nodes:
 
 ```
 /var/log/xroad/slave-sync.log {
