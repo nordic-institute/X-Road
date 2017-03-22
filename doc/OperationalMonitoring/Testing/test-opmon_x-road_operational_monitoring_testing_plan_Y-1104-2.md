@@ -1,7 +1,7 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.6
-Document ID: TEST-OPMON
+Version: 0.6  
+Doc ID: TEST-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
@@ -425,7 +425,7 @@ Test case for verifying that it is possible to configure a secure connection bet
 Test case for verifying that the secure connection between the security server and the external operational monitoring daemon fails in case invalid certificates are configured for the TLS connection.
 
 **Preconditions:**
-* A secure connection has been configured between security server *xtee10.ci.kit* and external monitoring daemon *xtee11.ci.kit*. Note that the correct operational monitoring TLS certificate should be kept in security server *xtee10.ci.kit* for use after scenarios 1, 2 and 3 have been carried out. 
+* A secure connection has been configured between security server *xtee10.ci.kit* and external monitoring daemon *xtee11.ci.kit*. Note that the correct operational monitoring TLS certificate should be kept in security server *xtee10.ci.kit* for use after scenarios 1, 2 and 3 have been carried out.
 
 **Test scenarios:**
 1. Configure an invalid operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.

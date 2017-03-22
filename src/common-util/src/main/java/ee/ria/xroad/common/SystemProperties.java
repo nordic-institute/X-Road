@@ -288,6 +288,9 @@ public final class SystemProperties {
     public static final String SIGNER_CSR_SIGNATURE_ALGORITHM =
             PREFIX + "signer.csr-signature-algorithm";
 
+    public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
+            PREFIX + "signer.ocsp-response-retrieval-active";
+
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -775,6 +778,14 @@ public final class SystemProperties {
      */
     public static String getSignerCsrSignatureAlgorithm() {
         return System.getProperty(SIGNER_CSR_SIGNATURE_ALGORITHM, getDefaultSignatureAlgorithm());
+    }
+
+    /**
+     * @return whether OCSP-response retrieval loop should be activated
+     */
+    public static boolean isOcspResponseRetrievalActive() {
+        return "true".equalsIgnoreCase(
+                System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
     }
 
     /**

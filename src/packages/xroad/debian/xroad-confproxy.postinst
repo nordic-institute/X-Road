@@ -33,6 +33,7 @@ esac
 #DEBHELPER#
 
 invoke-rc.d nginx restart
+invoke-rc.d xroad-signer restart
 
 # disable confclient start
 echo manual > /etc/init/xroad-confclient.override
