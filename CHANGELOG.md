@@ -1,7 +1,7 @@
 # Change Log
 
 ## 6.12.0 - 2017-03-01
-- TBD
+- PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and enable logging of akka error events.
 
 ## 6.11.0 - 2017-03-01
 - PVAYLADEV-609 / PVAYLADEV-703 / Joint development issue #120: Added a partial index to the messagelog database to speed up retrieval of messages requiring timestamping. This should increase proxy performance in cases where the logrecord table is large.
