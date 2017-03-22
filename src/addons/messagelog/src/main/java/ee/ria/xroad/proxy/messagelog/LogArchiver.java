@@ -210,7 +210,7 @@ public class LogArchiver extends UntypedActor {
             Session session, int maxRecordsToGet, long maxTimestampId) {
         Criteria criteria = session.createCriteria(TimestampRecord.class);
         criteria.add(Restrictions.eq("archived", false));
-        //criteria.add(Restrictions.le("id", maxTimestampId));
+        criteria.add(Restrictions.le("id", maxTimestampId));
         criteria.setMaxResults(maxRecordsToGet);
         criteria.addOrder(Order.asc("id"));
         return criteria.list();
@@ -221,7 +221,6 @@ public class LogArchiver extends UntypedActor {
             Session session) {
         Criteria criteria = session.createCriteria(TimestampRecord.class);
         criteria.setProjection(Projections.max("id"));
-        criteria.addOrder(Order.asc("id"));
         return (long)criteria.uniqueResult();
     }
 
