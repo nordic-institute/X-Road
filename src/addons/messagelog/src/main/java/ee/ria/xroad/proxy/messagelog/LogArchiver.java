@@ -81,7 +81,6 @@ public class LogArchiver extends UntypedActor {
         if (START_ARCHIVING.equals(message)) {
             try {
                 long maxTimestampId = doInTransaction(session -> getMaxTimestampId(session));
-                log.info("testing");
                 while (handleArchive(maxTimestampId)) { }
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
@@ -211,7 +210,7 @@ public class LogArchiver extends UntypedActor {
             Session session, int maxRecordsToGet, long maxTimestampId) {
         Criteria criteria = session.createCriteria(TimestampRecord.class);
         criteria.add(Restrictions.eq("archived", false));
-        criteria.add(Restrictions.lt("id", maxTimestampId));
+        criteria.add(Restrictions.le("id", maxTimestampId));
         criteria.setMaxResults(maxRecordsToGet);
         criteria.addOrder(Order.asc("id"));
         return criteria.list();
