@@ -234,9 +234,9 @@ In order to properly set up the data replication, the slave nodes must be able t
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Additionally, `rssh` shell can be used to to restrict slave access further, but note that it is not available on RHEL.
 
-7. Configure the node type as `master` in `/etc/xroad/node.ini`:
+7. Configure the node type as `master` in `/etc/xroad/conf.d/node.ini`:
       ```bash
-      [Node]
+      [node]
       type=master
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
@@ -261,18 +261,21 @@ In order to properly set up the data replication, the slave nodes must be able t
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the inital synchronization between the master and the slave.
    ```bash
-   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" xroad-slave@<master>:/etc/xroad/ /etc/xroad/
+   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/nginx" xroad-slave@<master>:/etc/xroad/ /etc/xroad/
    ```
    Where `<master>` is the master server's DNS or IP address.
-7. Configure the node type as `slave` in `/etc/xroad/node.ini`.
+7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
 
       ```bash
-      [Node]
+      [node]
       type=slave
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Start the X-Road services.
 
+
+The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
+ to verify the setup.
 
 ### 3.4 Health check service configuration
 The load balance support includes a health check service that can be used to ping the security server using HTTP to see if
@@ -290,7 +293,7 @@ service on all the nodes once the configuration has been replicated. Changes to 
 port 5588.
 
 ```
-[Proxy]
+[proxy]
 health-check-interface=0.0.0.0
 health-check-port=5588
 ```
@@ -350,6 +353,7 @@ Server: Jetty(8.y.z-SNAPSHOT)
 Fetching health check response timed out for: Authentication key OCSP status
 ```
 
+Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 ## 4. Database replication setup
 
