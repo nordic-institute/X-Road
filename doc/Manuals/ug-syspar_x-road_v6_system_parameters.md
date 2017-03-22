@@ -1,10 +1,10 @@
-# X-Road: System Parameters User Guide 
+# X-Road: System Parameters User Guide
 
-Version: 2.15
+Version: 2.15  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------||
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
 | 29.05.2015 | 1.0     | First draft                                                                                                                        | Siim Annuk                 |
 | 01.06.2015 | 1.1     | Some corrections done, typos fixed                                                                                                 | Siim Annuk                 |
 | 30.06.2015 | 1.2     | Minor corrections done                                                                                                             | Vello Hansen, Imbi Nõgisto |
@@ -25,7 +25,7 @@ Doc. ID: UG-SYSPAR
 | 01.12.2017 | 2.13       | Added documentation for minimum global conf version | Sami Kallio |
 | 20.01.2017 | 2.14       | Added license text and version history | Sami Kallio |
 | 08.02.2017 | 2.15       | Updated documentation with new environmental monitoring parameters describing sensor intervals | Sami Kallio |
-
+| 23.02.2017 | 2.16       | Added documentation for OCSP-response retrieval deactivation parameter | Tatu Repo |
 
 
 ## Table of Contents
@@ -101,7 +101,7 @@ Multiple parameters can be configured under the same section:
 	[proxy]
 	client-http-port=1234
 	server-listen-port=20000
-    
+
 **NB! Changing the parameter values in the configuration files requires restarting of the server.**
 
 **WARNING! The value of the parameter is not validated, thus care must be taken when changing the value. For example, setting the port number to a non-numeric value in the configuration will cause the system to crash.**
@@ -249,6 +249,7 @@ For instructions on how to change the parameter values, see section [Changing th
 | center               | internal-directory      | internalconf             | Name of the signed internal configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this X-Road instance.                |
 | center               | trusted-anchors-allowed | false                    | True if federation is allowed for this X-Road instance.                                                                                                                                      |
 | center               | minimum-global-configuration-version | 2                    | Minimum supported global configuration version on central server. Change this if old global configuration versions need to be supported.                                                                                                                                       |
+| signer               | ocsp-response-retrieval-active | false <br/> _(see Description for more information)_               | This property is used as an override to deactivate periodic OCSP-response retrieval for components that don't need that functionality, but still use signer. <br/><br/> Values: <br/> `false` - OCSP-response retrieval jobs are never scheduled <br/> `true` - periodic OCSP-response retrieval is active based on ocspFetchInterval. **Note that if the entire property is missing, it is interpreted as true.** <br/><br/>  This property is delivered as an override and only for the components where the OCSP-response retrieval jobs need to be deactivated. The property is missing for components that require OCSP-response retrieval to be activated.|
 
 System Parameters in the Database
 ---------------------------------------------------------------------------------------------------------------------------------------------
@@ -294,7 +295,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 | configuration-proxy  | hash-algorithm-uri     | http://www.w3.org/2001/04/xmlenc#sha512                      | URI that identifies the algorithm the configuration proxy uses when calculating hash values for the global configuration files.<br/>The possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512                                                                                                                   |
 | configuration-proxy  | download-script        | /usr/share/xroad/scripts/download\_instance\_configuration.sh | Absolute path to the location of the script that initializes the global configuration download procedure.                                                     |
 | configuration-proxy               | minimum-global-configuration-version | 2                    | Minimum supported global configuration version on configuration proxy. Change this if old global configuration versions need to be supported.                                                                                                                                       |
-
+| signer               | ocsp-response-retrieval-active | false <br/> _(see Description for more information)_               | This property is used as an override to deactivate periodic OCSP-response retrieval for components that don't need that functionality, but still use signer. <br/><br/> Values: <br/> `false` - OCSP-response retrieval jobs are never scheduled <br/> `true` - periodic OCSP-response retrieval is active based on ocspFetchInterval. **Note that if the entire property is missing, it is interpreted as true.** <br/><br/>  This property is delivered as an override and only for the components where the OCSP-response retrieval jobs need to be deactivated. The property is missing for components that require OCSP-response retrieval to be activated.|
 
 [1] See also [*http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger*](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger).
 
@@ -309,4 +310,3 @@ This chapter describes the system parameters used by the X-Road configuration pr
 [3] See also [*http://linux.die.net/man/8/cron*](http://linux.die.net/man/8/cron).
 
 [4] For exact format specification see also [*https://help.ubuntu.com/community/CronHowto*](https://help.ubuntu.com/community/CronHowto).
-

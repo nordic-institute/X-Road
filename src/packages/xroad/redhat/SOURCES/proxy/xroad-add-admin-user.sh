@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-XG="xroad-security-officer,xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-system-auditor,xroad-users-administrator"
+XG="xroad-security-officer,xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-system-auditor,xroad-users-administrator,xroad-securityserver-observer"
 
 if [ "$1x" = "x" ]
 then

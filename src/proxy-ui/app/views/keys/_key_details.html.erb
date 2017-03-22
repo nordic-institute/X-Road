@@ -10,7 +10,7 @@
         <input id="key_id" name="key_id" type="hidden" value="<%= @key.id %>"/>
         <input id="friendly_name" name="friendly_name" type="text"
                style="float: right;" value="<%= @key.friendlyName || @key.id %>"
-               <%= "disabled" unless key_saved_to_configuration?(@key) %>/>
+               <%= "disabled" unless key_saved_to_configuration?(@key) && can?(:edit_keytable_friendly_names) %>/>
       </form>
     </td>
   </tr>
