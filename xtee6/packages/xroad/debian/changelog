@@ -1,3 +1,9 @@
+xroad (6.9.3-1) trusty; urgency=low
+
+* XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing & or < entities.
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 22 Mar 2017 14:32:32 +0200
+
 xroad (6.9.2) trusty; urgency=low
 
 * PVAYLADEV-662: Fixed proxy memory parameters

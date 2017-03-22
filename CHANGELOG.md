@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.9.3 - 2017-03-22
+- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing & or < entities.
+
 ## 6.9.2 - 2017-01-23
 - PVAYLADEV-662: Fixed proxy memory parameters
 - PVAYLADEV-662: Altered OCSP fetch interval default value from 3600 to 1200 seconds
