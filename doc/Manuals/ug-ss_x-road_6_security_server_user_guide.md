@@ -6,8 +6,8 @@
 # SECURITY SERVER USER GUIDE
 **X-ROAD 6**
 
-Version: 2.15
-20.02.2017
+Version: 2.16
+20.03.2017  
 Doc. ID: UG-SS
 
 ---
@@ -49,7 +49,7 @@ Doc. ID: UG-SS
  22.12.2016 | 2.13    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
  04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
  20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
-
+ 16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
 
 ## Table of Contents
 
@@ -283,6 +283,8 @@ Security servers support the following user roles:
 
 -   <a id="xroad-system-administrator" class="anchor"></a>**System Administrator** (`xroad-system-administrator`) is responsible for the installation, configuration, and maintenance of the security server.
 
+-   <a id="xroad-securityserver-observer" class="anchor"></a>**Security Server Observer** (`xroad-securityserver-observer`) can view the status of the security server without having access rights to edit the configuration. This role can be used to offer users read-only access to the security server admin user interface.
+
 One user can have multiple roles and multiple users can be in the same role. Each role has a corresponding system group, created upon the installation of the system.
 
 Henceforth each applicable section of the guide indicates, which user role is required to perform a particular action. For example:
@@ -306,6 +308,7 @@ To grant permissions to the user you created, add it to the corresponding system
     adduser username xroad-registration-officer
     adduser username xroad-service-administrator
     adduser username xroad-system-administrator
+    adduser username xroad-securityserver-observer
 
 To remove a user permission, remove the user from the corresponding system group, for example:
 
