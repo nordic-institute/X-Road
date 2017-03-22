@@ -6,7 +6,7 @@ Doc. ID: IG-XLB
 
 | Date        | Version     | Description                                             | Author                       |
 |-------------|-------------|---------------------------------------------------------|------------------------------|
-| 21.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
+| 22.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
 
 
 ## Table of Contents
@@ -335,7 +335,8 @@ after not having access to it's keys.
 
 Before testing with an actual load balancer, you can test the health check service with `curl`, for example.
 
-Health check service response when everything is up and running and messages should go through.
+Below is an example response from the Health check service when everything is up and running and messages should go through
+this node:
 ```
 $ curl -i localhost:5588
    HTTP/1.1 200 OK
@@ -343,7 +344,7 @@ $ curl -i localhost:5588
    Server: Jetty(8.y.z-SNAPSHOT)
 ```
 
-Health check service response when the service `xroad-signer` is not running.
+And a health check service response on the same node when the service `xroad-signer` is not running:
 ```
 $ curl -i localhost:5588
 HTTP/1.1 500 Server Error
