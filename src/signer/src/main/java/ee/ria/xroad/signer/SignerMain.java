@@ -62,8 +62,6 @@ public final class SignerMain {
     private static AdminPort adminPort;
     private static CertificationServiceDiagnostics diagnosticsDefault;
 
-    private static boolean diagnosticsBusy = false;
-
     private SignerMain() {
     }
 
