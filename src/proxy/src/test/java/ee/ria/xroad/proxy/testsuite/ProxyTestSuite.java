@@ -1,17 +1,17 @@
 /**
  * The MIT License
  * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -22,30 +22,23 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import akka.actor.ActorSystem;
-
 import com.typesafe.config.ConfigFactory;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
 
 /**
  * Proxy test suite program.
@@ -72,12 +65,8 @@ public final class ProxyTestSuite {
      * @throws Exception in case of any errors
      */
     public static void main(String[] args) throws Exception {
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
-        System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
-        System.setProperty(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
-        System.setProperty(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
-        System.setProperty(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
+
+        setPropsIfNotSet();
 
         setUp();
 
@@ -137,6 +126,28 @@ public final class ProxyTestSuite {
         }
     }
 
+    private static void setPropsIfNotSet() {
+
+        PropsSolver solver = new PropsSolver();
+
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
+        solver.setIfNotSet(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+        solver.setIfNotSet(SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE, "src/test/clientproxy.xml");
+        solver.setIfNotSet(SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE, "src/test/serverproxy.xml");
+        solver.setIfNotSet(SystemProperties.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE, "src/test/ocsp-responder.xml");
+        solver.setIfNotSet(SystemProperties.TEMP_FILES_PATH, "build/");
+    }
+
+    private static class PropsSolver {
+        private final Set<String> setProperties = System.getProperties().stringPropertyNames();
+
+        void setIfNotSet(String property, String defaultValue) {
+            if (!setProperties.contains(property)) {
+                System.setProperty(property, defaultValue);
+            }
+        }
+    }
+
     private static void setUp() throws Exception {
         KeyConf.reload(new TestKeyConf());
         ServerConf.reload(new TestServerConf());
@@ -149,6 +160,10 @@ public final class ProxyTestSuite {
         jobManager.start();
 
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
+
+        for (AddOn addon :ServiceLoader.load(AddOn.class)) {
+            addon.init(actorSystem);
+        }
     }
 
     private static void runNormalTestCases(List<MessageTestCase> tc) throws Exception {
@@ -204,7 +219,7 @@ public final class ProxyTestSuite {
     }
 
     private static void runTestSuite(List<StartStop> services, List<MessageTestCase> tc) throws Exception {
-        for (StartStop s: services) {
+        for (StartStop s : services) {
             s.start();
 
             log.info(s.getClass().getSimpleName() + " started");
@@ -215,7 +230,7 @@ public final class ProxyTestSuite {
         try {
             runTestCases(tc);
         } finally {
-            for (StartStop s: services) {
+            for (StartStop s : services) {
                 s.stop();
             }
         }
@@ -231,7 +246,7 @@ public final class ProxyTestSuite {
                 t.execute();
 
                 log.info("TESTCASE PASSED: {}", t.getId());
-            } catch (Exception e) {
+            } catch (Exception | AssertionError e) {
                 t.setFailed(true);
 
                 log.info("TESTCASE FAILED: " + t.getId(), e);

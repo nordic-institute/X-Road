@@ -22,21 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -49,19 +34,35 @@ import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
+/**
+ * A processor of WSDL requests.
+ */
 @Slf4j
 @RequiredArgsConstructor
-class WsdlRequestProcessor {
-    static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
-    static final String PARAM_MEMBER_CLASS = "memberClass";
-    static final String PARAM_MEMBER_CODE = "memberCode";
-    static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
-    static final String PARAM_SERVICE_CODE = "serviceCode";
-    static final String PARAM_VERSION = "version";
+public class WsdlRequestProcessor {
+    public static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
+    public static final String PARAM_MEMBER_CLASS = "memberClass";
+    public static final String PARAM_MEMBER_CODE = "memberCode";
+    public static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
+    public static final String PARAM_SERVICE_CODE = "serviceCode";
+    public static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
 

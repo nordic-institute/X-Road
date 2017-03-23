@@ -22,18 +22,17 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.JaxbUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.JaxbUtils;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 
 /**
  * XML node parser for X-Road identifiers.
@@ -63,6 +62,25 @@ public final class IdentifierXmlNodeParser {
                 parseType(XRoadObjectType.MEMBER, node,
                         XRoadClientIdentifierType.class);
         return IdentifierTypeConverter.parseClientId(type);
+    }
+
+    /**
+     * Parses a client or subsystem ID from the given node.
+     * @param node the node from which to parse the client ID
+     * @return ClientId
+     * @throws Exception if errors occur during parsing
+     */
+    public static ClientId parseClientOrSubsystem(Node node) throws Exception {
+
+        XRoadObjectType type = getObjectType(node);
+        if (!XRoadObjectType.MEMBER.equals(type) && !XRoadObjectType.SUBSYSTEM.equals(type)) {
+            throw new CodedException(X_INVALID_XML,
+                    "Unexpected objectType: %s", type);
+        }
+        XRoadClientIdentifierType systemType =
+                parseType(type, node,
+                        XRoadClientIdentifierType.class);
+        return IdentifierTypeConverter.parseClientId(systemType);
     }
 
     /**

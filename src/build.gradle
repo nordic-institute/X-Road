@@ -107,10 +107,12 @@ subprojects {
 
     configurations {
         provided
+        testArtifacts.extendsFrom testRuntime
     }
 
     dependencies {
         testCompile 'junit:junit:4.11'
+        testCompile 'org.hamcrest:hamcrest-all:1.3'
 
         provided 'org.projectlombok:lombok:1.16.6'
 
@@ -119,6 +121,11 @@ subprojects {
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'
         from sourceSets.main.allSource
+    }
+
+    task testJar(type: Jar) {
+        classifier 'test'
+        from sourceSets.test.output
     }
 
     tasks.withType(JavaCompile) {
@@ -133,12 +140,14 @@ subprojects {
         }
     }
 
+
     task buildall(dependsOn: [build, ':proxy-ui:warble', ':center-ui:warble', ':center-service:warble']) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 
     artifacts {
         archives sourcesJar
+        testArtifacts testJar
     }
 
     sourceSets.main.compileClasspath += configurations.provided

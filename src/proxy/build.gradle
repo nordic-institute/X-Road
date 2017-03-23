@@ -17,6 +17,8 @@ dependencies {
     testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.powermock:powermock-module-junit4:1.6.5'
 
+    testCompile 'wsdl4j:wsdl4j:1.6.3'
+
     testCompile files(this.project(':common-util').sourceSets.test.output)
     testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
 

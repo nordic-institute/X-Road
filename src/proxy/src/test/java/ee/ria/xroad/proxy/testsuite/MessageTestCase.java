@@ -22,19 +22,20 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.util.AbstractHttpSender;
+import ee.ria.xroad.common.util.AsyncHttpSender;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.conf.SigningCtx;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -52,19 +53,19 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.util.AsyncHttpSender;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.conf.SigningCtx;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
@@ -220,6 +221,10 @@ public class MessageTestCase {
                 ? responseServiceContentType : getResponseContentType();
     }
 
+    protected URI getClientUri() throws URISyntaxException {
+        return new URI(url);
+    }
+
     /**
      * Performs the request and validates the response.
      * @throws Exception in case of any unexpected errors
@@ -236,7 +241,7 @@ public class MessageTestCase {
         Pair<String, InputStream> requestInput = getRequestInput(false);
 
         try (InputStream is = requestInput.getRight()) {
-            sentRequest = new Message(is, requestInput.getLeft());
+            sentRequest = new Message(is, requestInput.getLeft()).parse();
         }
 
         AsyncHttpSender sender = new AsyncHttpSender(client);
@@ -252,18 +257,17 @@ public class MessageTestCase {
             }
 
             if ("post".equalsIgnoreCase(httpMethod)) {
-                sender.doPost(new URI(url), is, CHUNKED_LENGTH,
+                sender.doPost(getClientUri(), is, CHUNKED_LENGTH,
                         requestInput.getLeft());
             } else {
-                sender.doGet(new URI(url));
+                sender.doGet(getClientUri());
             }
 
             sender.waitForResponse(DEFAULT_CLIENT_TIMEOUT);
         }
 
         try {
-            receivedResponse = new Message(sender.getResponseContent(),
-                    sender.getResponseContentType());
+            receivedResponse = extractResponse(sender);
 
             if (sentRequest != null && sentRequest.getSoap() != null
                     && sentRequest.getSoap() instanceof SoapMessageImpl) {
@@ -279,8 +283,11 @@ public class MessageTestCase {
             throw new Exception("Test failed in previous stage");
         }
 
-        log.debug("Validating SOAP message\n{}",
-                receivedResponse.getSoap().getXml());
+        if (receivedResponse.getSoap() != null) {
+            log.debug("Validating SOAP message\n{}",
+                    receivedResponse.getSoap().getXml());
+        }
+
 
         if (receivedResponse.isFault()) {
             log.debug("Validating fault: {}, {}",
@@ -311,6 +318,11 @@ public class MessageTestCase {
     }
 
     protected void closeDown() throws Exception {
+    }
+
+    protected Message extractResponse(AbstractHttpSender sender) throws Exception {
+        return new Message(sender.getResponseContent(),
+                sender.getResponseContentType()).parse();
     }
 
     protected void validateNormalResponse(Message response)
