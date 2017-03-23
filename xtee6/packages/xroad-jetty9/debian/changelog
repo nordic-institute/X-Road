@@ -2,7 +2,7 @@ xroad-jetty9 (6.9.3-1) trusty; urgency=medium
 
   * Version bump
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 22 Mar 2017 14:33:32 +0200
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 22 Mar 2017 14:33:32 +0200
 
 xroad-jetty9 (6.9.2-1) trusty; urgency=medium
 
