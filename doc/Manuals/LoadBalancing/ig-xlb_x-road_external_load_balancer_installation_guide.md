@@ -278,7 +278,7 @@ The configuration is now complete. If you do not want to set up the health check
  to verify the setup.
 
 ### 3.4 Health check service configuration
-The load balance support includes a health check service that can be used to ping the security server using HTTP to see if
+The load balancing support includes a health check service that can be used to ping the security server using HTTP to see if
 it is healthy and likely to be able to send and receive messages. The service is disabled by default but can be enabled
 via configuration options.
 
