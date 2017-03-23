@@ -155,7 +155,7 @@ restore_configuration_files () {
 
   cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
   cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
-  cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad -t /var/lib
+  cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad/dbdump.dat -t /var/lib/xroad/
 }
 
 restore_database () {
