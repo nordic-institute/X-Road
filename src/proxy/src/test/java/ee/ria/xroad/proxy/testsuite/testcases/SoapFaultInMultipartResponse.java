@@ -22,21 +22,18 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Request message with MTOM content.
+ * Request message with MTOM content, should receive the specific Fault message as a response and not a generic one.
  */
-public class SoapFaultAsMTOM extends MessageTestCase {
-
-    private static final String EXPTECTED_RESPONSE_TYPE =  MimeUtils.TEXT_XML_UTF8;
+public class SoapFaultInMultipartResponse extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public SoapFaultAsMTOM() {
+    public SoapFaultInMultipartResponse() {
         requestContentType = "Multipart/Related; "
                 + "start-info=\"application/soap+xml\"; "
                 + "type=\"application/xop+xml\"; "
@@ -48,19 +45,6 @@ public class SoapFaultAsMTOM extends MessageTestCase {
                 + "type=\"application/xop+xml\"; "
                 + "boundary=\"jetty771207119h3h10dty\";charset=UTF-8";
         responseFile = "soapfault-mtom.answer";
-    }
-
-    @Override
-    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
-        super.onServiceReceivedRequest(receivedRequest);
-//
-//        if (!EXPTECTED_RESPONSE_TYPE.equals(receivedResponse.getContentType())) {
-//            throw new RuntimeException(String.format(
-//                    "Expected response content type '%s' but got '%s'",
-//                    EXPTECTED_RESPONSE_TYPE, receivedResponse.getContentType()));
-//        }
-
-
     }
 
     @Override
