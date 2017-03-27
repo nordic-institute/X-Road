@@ -198,7 +198,7 @@ public class LogArchiver extends UntypedActor {
 
             recordsToArchive.addAll(messages);
             allowedInArchiveCount -= messages.size();
-            if (allowedInArchiveCount <= 0) {
+            if (safeTransactionBatch || allowedInArchiveCount <= 0) {
                 break;
             }
         }
