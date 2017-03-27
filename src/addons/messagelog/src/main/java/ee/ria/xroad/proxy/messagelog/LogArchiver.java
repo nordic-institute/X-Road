@@ -217,11 +217,12 @@ public class LogArchiver extends UntypedActor {
     }
 
     @SuppressWarnings("unchecked")
-    protected long getMaxTimestampId(
-            Session session) {
-        Criteria criteria = session.createCriteria(TimestampRecord.class);
-        criteria.setProjection(Projections.max("id"));
-        return (long)criteria.uniqueResult();
+    protected long getMaxTimestampId(Session session) {
+        return (long) session
+                .createCriteria(TimestampRecord.class)
+                .add(Restrictions.eq("archived", false))
+                .setProjection(Projections.max("id"))
+                .uniqueResult();
     }
 
     @SuppressWarnings("unchecked")
