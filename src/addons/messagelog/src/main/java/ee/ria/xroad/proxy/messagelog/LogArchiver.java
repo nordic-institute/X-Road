@@ -81,6 +81,7 @@ public class LogArchiver extends UntypedActor {
         if (START_ARCHIVING.equals(message)) {
             try {
                 long maxTimestampId = doInTransaction(session -> getMaxTimestampId(session));
+                log.info("Here is max Timestamp id: {} - what is it?", maxTimestampId);
                 while (handleArchive(maxTimestampId)) { }
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
