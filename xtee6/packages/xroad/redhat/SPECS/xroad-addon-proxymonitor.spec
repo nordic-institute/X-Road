@@ -36,12 +36,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-metaservice-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf
 
-%post
-%systemd_post xroad-proxy.service
-
-%preun
-%systemd_preun xroad-proxy.service
-
 %postun
 %systemd_postun_with_restart xroad-proxy.service
 

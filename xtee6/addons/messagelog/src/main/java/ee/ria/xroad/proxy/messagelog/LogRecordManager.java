@@ -22,16 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import org.hibernate.Criteria;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 import ee.ria.xroad.common.messagelog.LogRecord;
@@ -39,6 +29,15 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Criteria;
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
 /**
  * Log record manager handles saving of log records to database.
@@ -56,8 +55,7 @@ public class LogRecordManager {
      */
     public LogRecord getByQueryId(String queryId, Date startTime, Date endTime)
             throws Exception {
-        log.trace("getByQueryId({}, {}, {})",
-                new Object[] {queryId, startTime, endTime});
+        log.trace("getByQueryId({}, {}, {})", queryId, startTime, endTime);
 
         return doInTransaction(session -> getMessageRecord(session, queryId,
                 startTime, endTime));
@@ -73,8 +71,7 @@ public class LogRecordManager {
      */
     public MessageRecord getByQueryIdUnique(String queryId, ClientId clientId,
             boolean isResponse) throws Exception {
-        log.trace("getByQueryId({}, {}, {})",
-                new Object[] {queryId, clientId, isResponse});
+        log.trace("getByQueryId({}, {}, {})", queryId, clientId, isResponse);
 
         return doInTransaction(session -> getMessageRecord(session, queryId,
                 clientId, isResponse));
@@ -90,8 +87,7 @@ public class LogRecordManager {
      */
     public List<MessageRecord> getByQueryId(String queryId, ClientId clientId,
             boolean isResponse) throws Exception {
-        log.trace("getByQueryId({}, {}, {})",
-                new Object[] {queryId, clientId, isResponse});
+        log.trace("getByQueryId({}, {}, {})", queryId, clientId, isResponse);
 
         return doInTransaction(session -> getMessageRecords(session, queryId,
                 clientId, isResponse));

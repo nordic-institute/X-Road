@@ -258,14 +258,17 @@ public class ConfigurationParser {
                 ConfigurationSignature parameters) throws Exception {
             if (HASH_TO_CERT.containsKey(
                     parameters.getVerificationCertHash())) {
+                log.trace("Return certificate from HASH_TO_CERT map");
                 return HASH_TO_CERT.get(parameters.getVerificationCertHash());
             }
 
             X509Certificate cert = location.getVerificationCert(
                     parameters.getVerificationCertHash(),
                     parameters.getVerificationCertHashAlgoId());
+            log.trace("cert={}", cert);
 
             if (cert != null) {
+                log.trace("Put cert to HASH_TO_CERT map");
                 HASH_TO_CERT.put(parameters.getVerificationCertHash(), cert);
             }
 

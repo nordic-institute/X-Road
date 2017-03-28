@@ -877,8 +877,14 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         XROAD_SECURITYSERVERS.updateTable();
     }
 
+    function initTestability() {
+        $("#securityserver_client_register_dialog").parent().attr("data-name", "securityserver_client_register_dialog");
+        $("#securityserver_client_register_submit").attr("data-name", "securityserver_client_register_submit");
+    }
+
     $(document).ready(function() {
         initView();
+        initTestability();
     });
 
     function refreshMemberDataTablesIfExist() {

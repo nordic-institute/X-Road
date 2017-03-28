@@ -1,10 +1,33 @@
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 
 class SharedParametersGenerator
 
   def initialize()
     @marshaller = ConfMarshaller.new(
-       get_object_factory(), get_root_type_creator())
+        get_object_factory(), get_root_type_creator())
 
     @client_ids_generated = 0
 
@@ -12,7 +35,7 @@ class SharedParametersGenerator
     @clients_to_client_types = {}
 
     Rails.logger.debug(
-      "Initialized shared parameters generator: #{self.inspect()}")
+        "Initialized shared parameters generator: #{self.inspect()}")
   end
 
   def generate
@@ -32,7 +55,7 @@ class SharedParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.ria.xroad.common.conf.globalconf.sharedparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.ObjectFactory
   end
 
   def get_root_type_creator
@@ -50,8 +73,10 @@ class SharedParametersGenerator
     ApprovedCa.find_each do |each_approved_ca|
       approved_ca_type = @marshaller.factory.createApprovedCAType()
 
+      auth_only = each_approved_ca.authentication_only
+
       approved_ca_type.name = each_approved_ca.name
-      approved_ca_type.authenticationOnly = each_approved_ca.authentication_only
+      approved_ca_type.authenticationOnly = auth_only
 
       approved_ca_type.topCA = get_ca_info_type(each_approved_ca.top_ca)
 
@@ -60,7 +85,15 @@ class SharedParametersGenerator
             get_ca_info_type(each_intermediate_ca))
       end
 
-      approved_ca_type.certificateProfileInfo = each_approved_ca.cert_profile_info
+      if !auth_only
+        identifier_decoder_type =
+            @marshaller.factory.createIdentifierDecoderType()
+        identifier_decoder_type.memberClass =
+            each_approved_ca.identifier_decoder_member_class
+        identifier_decoder_type.methodName =
+            each_approved_ca.identifier_decoder_method_name
+        approved_ca_type.identifierDecoder = identifier_decoder_type
+      end
 
       @marshaller.root.getApprovedCA().add(approved_ca_type)
     end
@@ -148,7 +181,7 @@ class SharedParametersGenerator
       service_type = @marshaller.factory.createCentralServiceType()
       service_type.serviceCode = each.service_code
       service_type.implementingService =
-        get_service_identifier(each.target_service)
+          get_service_identifier(each.target_service)
 
       @marshaller.root.getCentralService().add(service_type)
     end
@@ -208,11 +241,11 @@ class SharedParametersGenerator
     return nil if service == nil
 
     return Java::ee.ria.xroad.common.identifier.ServiceId.create(
-      service.xroad_instance,
-      service.member_class,
-      service.member_code,
-      service.subsystem_code,
-      service.service_code,
-      service.service_version)
+        service.xroad_instance,
+        service.member_class,
+        service.member_code,
+        service.subsystem_code,
+        service.service_code,
+        service.service_version)
   end
 end

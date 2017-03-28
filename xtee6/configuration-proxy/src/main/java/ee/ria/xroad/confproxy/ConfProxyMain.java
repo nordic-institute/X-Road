@@ -95,13 +95,16 @@ public final class ConfProxyMain {
 
         if (args.length > 0) {
             instances = Arrays.asList(args);
+            log.debug("Instances from args: {}", instances);
         } else {
             instances = ConfProxyHelper.availableInstances();
+            log.debug("Instances from available instances: {}", instances);
         }
 
         for (String instance: instances) {
             try {
                 ConfProxy proxy = new ConfProxy(instance);
+                log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {
                 log.error("Error when executing configuration-proxy '{}'",

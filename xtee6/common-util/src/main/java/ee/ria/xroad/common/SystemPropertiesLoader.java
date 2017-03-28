@@ -22,24 +22,25 @@
  */
 package ee.ria.xroad.common;
 
-import static org.apache.commons.lang3.ArrayUtils.contains;
-import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+import org.apache.commons.configuration.SubnodeConfiguration;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static org.apache.commons.lang3.ArrayUtils.contains;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 
 /**
  * <p>SystemPropertiesLoader reads INI files and creates a Java system property
@@ -222,22 +223,18 @@ public class SystemPropertiesLoader {
         files.forEach(this::load);
 
         if (withAddOn) {
-            try {
-                Files.newDirectoryStream(FileSystems.getDefault().getPath(
-                        SystemProperties.CONF_FILE_ADDON_PATH), "*.ini")
-                        .forEach(path -> {
-                            load(new FileWithSections(path.toString()));
-                        });
+            try (DirectoryStream<Path> dir = Files.newDirectoryStream(
+                    Paths.get(SystemProperties.CONF_FILE_ADDON_PATH), "*.ini")) {
+                dir.forEach(path -> load(new FileWithSections(path.toString())));
             } catch (IOException e) {
                 log.error("Cannot load addon configuration", e);
             }
         }
 
         if (withOverrides) {
-            try {
-                Files.newDirectoryStream(FileSystems.getDefault().getPath(
-                        SystemProperties.getConfPath(), "conf.d"), "override-*.ini")
-                        .forEach(path -> load(new FileWithSections(path.toString())));
+            try (DirectoryStream<Path> dir = Files.newDirectoryStream(
+                    Paths.get(SystemProperties.getConfPath(), "conf.d"), "override-*.ini")) {
+                dir.forEach(path -> load(new FileWithSections(path.toString())));
             } catch (IOException e) {
                 log.error("Cannot load override configuration", e);
             }

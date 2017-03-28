@@ -1,6 +1,6 @@
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.4
+Version: 0.5
 
 Document ID: TEST-OPMON
 
@@ -23,18 +23,18 @@ SSH -- Secure Shell
 
 ### 1.3 References
 
-<a name="HD_1">HD_1</a> -- Hanke lisa 1: X-tee monitooringu tehniline kirjeldus  
-<a name="ARC-OPMON">ARC-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture  
-<a name="TEST-OPMONSTRAT">TEST-OPMONSTRAT</a> -- Cybernetica AS. X-Road: Operational Monitoring Testing Strategy  
-<a name="UC-OPMON">UC-OPMON</a> -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model  
-<a name="UG-SS">UG-SS</a> -- Cybernetica AS. X-Road: Security Server User Guide  
-<a name="PR-OPMONJMX">PR-OPMONJMX</a> -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface
+<a name="HD_1"></a>**HD_1** -- Hanke Lisa 1: X-tee monitooringu tehniline kirjeldus, https://riigihanked.riik.ee/register/hange/173409  
+<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
+<a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- Cybernetica AS. X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
+<a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
+<a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx).  
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing
 
 The operational monitoring system involves the X-Road security server and the operational monitoring daemon. In addition, global configuration is obtained from the X-Road central server.
 
-According to the architecture of the operational monitoring daemon ([[ARC-OPMON]](#ARC-OPMON)), the daemon is divided into the following components:
+According to the architecture of the operational monitoring daemon ([[ARC-OPMOND]](#ARC-OPMOND)), the daemon is divided into the following components:
 * operational monitoring database
 * operational monitoring service
 
@@ -183,19 +183,19 @@ The following results are an illustration of how to interpret the output of the 
 
 The simulation attempts with the operational monitoring buffer disabled, yielded the following results:
 
-| parameter | #1 | #2 | #3 |
-|---|---|---|---|
-| request count | 110 | 110 | 110 |
+| parameter                          | #1  | #2  | #3  |
+|------------------------------------|-----|-----|-----|
+| request count                      | 110 | 110 | 110 |
 | response time 50th percentile (ms) | 257 | 244 | 243 |
-| response time 75th percentile (ms) | 432 | 355 | 367 | 
+| response time 75th percentile (ms) | 432 | 355 | 367 |
 
 The attempts with the operational monitoring buffer enabled, yielded the following results:
 
-| parameter | #1 | #2 | #3 |
-|---|---|---|---|
-| request count | 110 | 110 | 110 |
+| parameter                          | #1  | #2  | #3  |
+|------------------------------------|-----|-----|-----|
+| request count                      | 110 | 110 | 110 |
 | response time 50th percentile (ms) | 299 | 256 | 240 |
-| response time 75th percentile (ms) | 442 | 370 | 380 | 
+| response time 75th percentile (ms) | 442 | 370 | 380 |
 
 In the environment under test, enabling the operational monitoring buffer added around 10-20 ms to the response time in the 50th and 75th percentiles.
 
@@ -210,7 +210,7 @@ The keys of JMX items related to services are similar to this example:
   metrics:name=requestDuration(XTEE-CI-XM/GOV/00000001//getSecurityServerOperationalData)
   ```
 where "//" represents a missing subsystem (the `getSecurityServerOperationalData` service is provided by the owner of the security server).
-  
+
 The keys of general JMX items are similar to this example:
   ```
   metrics:name=monitoringStartupTimestamp
@@ -242,7 +242,7 @@ The health metrics of the operational monitoring daemon will appear on the `MBea
 
 The items appearing under this subtree can be observed as the automated integration tests are run. Please refer to [[PR-OPMONJMX]](#PR-OPMONJMX) for the exact set of items required for each mediated request. Note that a separate `jconsole` session should be opened for the producer and the consumer security servers, to gain access to all the metrics made available.
 
-**NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `xtee6/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration. 
+**NOTE** Because the health metrics related to mediated services are reset upon each restart of the operational monitoring daemon, the necessary configuration of the system should be carried out before running each automated test case. Please refer to `xtee6/systemtest/op-monitoring/integration/run_tests.py` (`LOCAL_INI_PARAMETERS` and each test case in `OperationalMonitoringIntegrationTest`) for information about the necessary configuration.
 
 ## 8 Manual Integration Testing in Detail
 
@@ -292,7 +292,7 @@ Test case for verifying that operational monitoring data is cleaned up periodica
    ```sql
    INSERT INTO operational_data(
        id, monitoring_data_ts, security_server_internal_ip,
-       security_server_type, request_in_ts, response_out_ts, succeeded) 
+       security_server_type, request_in_ts, response_out_ts, succeeded)
      VALUES (
        1,
        extract(epoch from (
@@ -384,7 +384,7 @@ Test case for verifying that it is possible to configure a secure connection bet
 Test case for verifying that the secure connection between the security server and the external operational monitoring daemon fails in case invalid certificates are configured for the TLS connection.
 
 **Preconditions:**
-* A secure connection has been configured between security server *xtee10.ci.kit* and external monitoring daemon *xtee11.ci.kit*.
+* A secure connection has been configured between security server *xtee10.ci.kit* and external monitoring daemon *xtee11.ci.kit*. Note that the correct operational monitoring TLS certificate should be kept in security server *xtee10.ci.kit* for use after scenarios 1, 2 and 3 have been carried out. 
 
 **Test scenarios:**
 1. Configure an invalid operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*.
@@ -433,6 +433,10 @@ Test case for verifying that the secure connection between the security server a
     * Operational monitoring daemon certificate not loaded, cannot verify server.
   * The following warning is logged in the monitoring daemon log in monitoring daemon *xtee11.ci.kit*:
     * Received fatal alert: certificate_unknown.
+
+  *After this test, restore the communication between the security server and the operational monitoring daemon (to achieve the precondition of this test case).*
+    * Configure the correct operational monitoring daemon TLS certificate in security server *xtee10.ci.kit*
+    * Restart the proxy (`sudo service xroad-proxy restart`).
 
 4. Configure an invalid security server TLS certificate in operational monitoring daemon *xtee11.ci.kit*.
   * Replace the value of the parameter `client-tls-certificate` in the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` with a path to an invalid certificate. The example invalid certificate can be found in the source repository of the project at `xtee6/systemtest/op-monitoring/misc/invalid_certificate.crt`.

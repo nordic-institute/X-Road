@@ -35,10 +35,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.cli.CommandLine;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.ConfigurationAnchorType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.ConfigurationSourceType;
-import ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
+import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
@@ -65,9 +65,9 @@ public class ConfProxyUtilGenerateAnchor extends ConfProxyUtil {
         ensureProxyExists(commandLine);
         final ConfProxyProperties conf = loadConf(commandLine);
 
-        ConfigurationAnchor sourceAnchor = null;
+        ConfigurationAnchorV2 sourceAnchor = null;
         try {
-            sourceAnchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
+            sourceAnchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
         } catch (Exception ex) {
             fail("Could not load source anchor: ", ex);
         }

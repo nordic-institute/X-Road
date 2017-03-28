@@ -38,7 +38,7 @@ import java.util.TimeZone;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
@@ -100,10 +100,10 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      */
     private void displayInfo(final String instance,
             final ConfProxyProperties conf) throws Exception {
-        ConfigurationAnchor anchor = null;
+        ConfigurationAnchorV2 anchor = null;
         String anchorError = null;
         try {
-            anchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
+            anchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
         } catch (Exception e) {
             anchorError = "'" + ConfProxyProperties.ANCHOR_XML
                     + "' could not be loaded: " + e;

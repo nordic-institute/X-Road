@@ -16,6 +16,10 @@ import_sample_host.py:
   extracting JSON data about the host from that file, suitable for importing
   with the Zabbix UI manually.
 
+  The target Zabbix API URL used for importing the sample host must be the full
+  URL of the Zabbix API endpoint of the instance such as
+  http://example.com/zabbix/api_jsonrpc.php
+
 configure_hosts.py:
   A script for importing bulk applications and items using the file
   'zabbix_hosts_and_services.json', which should be created based on
@@ -38,4 +42,17 @@ zabbix_hosts_and_services.json.sample:
   for configuring one or more Zabbixes that monitor one or more Operational
   Monitoring Daemons.
   To be used as a base for the input to 'configure_hosts.py'.
+
+  The target Zabbix API URL for each host must be the full URL of the Zabbix
+  API endpoint of the instance such as http://example.com/zabbix/api_jsonrpc.php
+
+Obtaining the Authentication Key for Zabbix API
+-----------------------------------------------
+
+Edit the file zabbix_api_login.json.sample with the username and password
+applicable to the given Zabbix instance, and obtain the authentication key using
+curl, for instance:
+
+curl -H "Content-Type: application/json" --data @zabbix_api_login.json.sample \
+  http://example.com/zabbix/api_jsonrpc.php
 

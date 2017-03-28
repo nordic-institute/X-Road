@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.monitoring;
 
-import java.util.Date;
-
 import akka.actor.ActorSystem;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
 
 /**
  * This class encapsulates monitoring agent that can receive
@@ -69,8 +69,8 @@ public final class MonitorAgent {
             if (monitorAgentImpl != null) {
                 monitorAgentImpl.success(messageInfo, startTime, endTime);
             }
-        } catch (Throwable t) {
-            log.error("MonitorAgent::success() failed", t);
+        } catch (RuntimeException re) {
+            log.error("MonitorAgent::success() failed", re);
         }
     }
 
@@ -83,8 +83,8 @@ public final class MonitorAgent {
             if (monitorAgentImpl != null) {
                 monitorAgentImpl.serverProxyFailed(messageInfo);
             }
-        } catch (Throwable t) {
-            log.error("MonitorAgent::serverProxyFailed() failed", t);
+        } catch (RuntimeException re) {
+            log.error("MonitorAgent::serverProxyFailed() failed", re);
         }
     }
 
@@ -102,8 +102,8 @@ public final class MonitorAgent {
             if (monitorAgentImpl != null) {
                 monitorAgentImpl.failure(messageInfo, faultCode, faultMessage);
             }
-        } catch (Throwable t) {
-            log.error("MonitorAgent::failure() failed", t);
+        } catch (RuntimeException re) {
+            log.error("MonitorAgent::failure() failed", re);
         }
     }
 

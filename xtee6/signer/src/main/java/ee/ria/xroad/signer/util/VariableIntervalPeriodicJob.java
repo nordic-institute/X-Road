@@ -52,6 +52,7 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
                     getSelf());
             scheduleNextSend(getNextDelay());
         } else {
+            log.debug("received an unknown message: {}, no handling defined", incoming);
             unhandled(incoming);
         }
     }
@@ -67,7 +68,8 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
     }
 
     protected void scheduleNextSend(FiniteDuration delay) {
-        nextSend = getContext().system().scheduler().scheduleOnce(delay,
+            log.debug("next '{}' message in {} seconds", message, delay.toSeconds());
+            nextSend = getContext().system().scheduler().scheduleOnce(delay,
                 this::sendMessage, getContext().dispatcher());
     }
 
@@ -84,9 +86,8 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
     protected void cancelNextSend() {
         if (nextSend != null) {
             if (!nextSend.isCancelled()) {
-                log.debug("cancelling nextSend");
                 boolean result = nextSend.cancel();
-                log.debug("cancel called, return value: {}", result);
+                log.debug("cancelNextSend called, cancel() return value: {}", result);
             }
         }
     }

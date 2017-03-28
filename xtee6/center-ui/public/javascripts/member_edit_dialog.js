@@ -24,6 +24,10 @@ function openMemberEditDialog(memberRowData) {
     initTables();
     initActions();
 
+    // for testability
+    dialog.parent().attr("data-name", "member_edit_dialog");
+    $("button span:contains('Close')").parent().attr("data-name", "close");
+
     function _$(selector) {
         return dialog.closest(".ui-dialog").find(selector);
     }

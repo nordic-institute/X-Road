@@ -22,27 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.InputStream;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -74,6 +53,25 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+import java.io.InputStream;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -179,9 +177,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(),
                 SoapUtils.getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
-        servletResponse.addHeader(HEADER_HASH_ALGO_ID,
-                SoapUtils.getHashAlgoId());
-        servletResponse.addHeader("Connection", "close");
+        servletResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
+        if (!SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+            // if the header is added, the connections are closed and cannot be reused on the client side
+            servletResponse.addHeader("Connection", "close");
+        }
     }
 
     @Override
@@ -248,7 +248,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void soap(SoapMessageImpl soapMessage,
-                    Map<String, String> additionalHeaders) throws Exception {
+                             Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
 
                 updateOpMonitoringDataBySoapMessage(
@@ -401,7 +401,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         Collection<SecurityCategoryId> provided =
                 GlobalConf.getProvidedCategories(getClientAuthCert());
 
-        for (SecurityCategoryId cat: required) {
+        for (SecurityCategoryId cat : required) {
             if (provided.contains(cat)) {
                 return; // All OK.
             }
@@ -445,20 +445,25 @@ class ServerMessageProcessor extends MessageProcessorBase {
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
-            log.error("Malformed service address", e);
-
             throw new CodedException(X_SERVICE_MALFORMED_URL,
                     "Malformed service address '%s': %s", serviceAddress,
                     e.getMessage());
         }
 
         log.info("Sending request to {}", uri);
+        String contentType = servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE);
+        // 6.7.x series security servers don't know to add the original content type header.
+        // Not setting a content type will cause trouble with management requests to central server and
+        // normal requests to 6.9.x servers that pass the request on to services that expect a certain content type.
+        if (contentType == null) {
+            // set the content type like version 6.7.x
+            contentType = requestMessage.getSoapContentType();
+        }
 
         try (InputStream in = requestMessage.getSoapContent()) {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-            httpSender.doPost(uri, in, CHUNKED_LENGTH,
-                    servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE));
+            httpSender.doPost(uri, in, CHUNKED_LENGTH, contentType);
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
@@ -478,10 +483,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
         // Preserve the original content type of the service response
         servletResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE,
                 handler.getResponseContentType());
-        try {
+        try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
             SoapMessageDecoder soapMessageDecoder =
                     new SoapMessageDecoder(handler.getResponseContentType(),
-                            new SoapMessageHandler(),
+                            messageHandler,
                             new ResponseSoapParserImpl());
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
@@ -498,8 +503,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
         // from server?), it is an error instead.
         if (responseSoap == null) {
             throw new CodedException(X_INVALID_MESSAGE,
-                "No response message received from service").withPrefix(
-                        X_SERVICE_FAILED_X);
+                    "No response message received from service").withPrefix(
+                    X_SERVICE_FAILED_X);
         }
 
         updateOpMonitoringDataByResponse();
@@ -544,9 +549,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
 
             opMonitoringData.setSoapFault(exception);
-
-            log.error("Request processing error ({})",
-                    exception.getFaultDetail(), ex);
 
             monitorAgentNotifyFailure(exception);
 
@@ -620,7 +622,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         @Override
         public boolean canHandle(ServiceId requestSrvcId,
-                ProxyMessage requestProxyMessage) {
+                                 ProxyMessage requestProxyMessage) {
             return true;
         }
 
@@ -680,7 +682,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         @Override
         public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) throws Exception {
             encoder.attachment(contentType, content, additionalHeaders);
         }
 

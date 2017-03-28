@@ -22,30 +22,13 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.http.client.HttpClient;
-
-import org.w3c.dom.Node;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -54,6 +37,18 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.HttpClient;
+import org.w3c.dom.Node;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
 
 /**
  * Service handler for proxy monitoring
@@ -65,6 +60,9 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
+    private static class MonitorClientHolder {
+        private static final MonitorClient INSTANCE = new MonitorClient();
+    }
 
     private final ByteArrayOutputStream responseOut =
             new ByteArrayOutputStream();
@@ -112,8 +110,8 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         opMonitoringData.setAssignResponseOutTsToResponseInTs(true);
 
         //mock implementation
-        responseEncoder = new SoapMessageEncoder(responseOut);
-        MonitorClient client = new MonitorClient();
+        responseEncoder = new SimpleSoapEncoder(responseOut);
+        final MonitorClient client = MonitorClientHolder.INSTANCE;
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();
         final MetricSetType root = new MetricSetType();

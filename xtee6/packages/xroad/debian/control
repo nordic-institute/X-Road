@@ -37,15 +37,15 @@ Description: X-Road shared components
  X-Road shared components and utilities
 
 Package: xroad-securityserver
-Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
+Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5), xtee55-proxy
 Architecture: all
-Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version}), xroad-addon-opmonitoring (>=${source:Upstream-Version}), xroad-opmonitor (>=${source:Upstream-Version}), xroad-securityserver (>=${source:Upstream-Version})
+Depends: xroad-proxy (>=${source:Upstream-Version}), xroad-addon-metaservices (>=${source:Upstream-Version}), xroad-addon-messagelog (>=${source:Upstream-Version}), xroad-addon-proxymonitor (>=${source:Upstream-Version}), xroad-addon-wsdlvalidator (>=${source:Upstream-Version}), xroad-addon-opmonitoring (>=${source:Upstream-Version}), xroad-opmonitor (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
-Conflicts: xroad-center, xroad-confproxy
+Conflicts: xroad-center, xroad-confproxy, xtee55-proxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, xroad-jetty9  (>=${source:Upstream-Version}), curl, authbind
 Pre-depends: postgresql, postgresql-contrib, xroad-common (>=${source:Upstream-Version})
@@ -81,25 +81,25 @@ Description: X-Road AddOn: metaservices
 
 Package: xroad-addon-proxymonitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.6), xroad-monitor (>=6.6)
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version}), xroad-monitor (>=${source:Upstream-Version})
 Description: X-Road AddOn: proxy monitoring metaservice
  Addon for proxy monitoring
 
 Package: xroad-monitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-common (>=6.6)
+Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
 Description: X-Road monitoring service
  Monitoring service
 
 Package: xroad-addon-wsdlvalidator
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=6.8.1)
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version})
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
 Package: xroad-addon-opmonitoring
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version})
+Depends: ${misc:Depends}, xroad-proxy (>=${source:Upstream-Version}), xroad-opmonitor (>=${source:Upstream-Version})
 Description: X-Road AddOn: operations monitoring service
  AddOn for operations monitoring.
 
@@ -124,5 +124,4 @@ Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
 Pre-depends: postgresql, postgresql-contrib
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
-
 

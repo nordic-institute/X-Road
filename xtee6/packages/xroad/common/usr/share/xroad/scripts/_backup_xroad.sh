@@ -6,7 +6,12 @@
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
-BACKED_UP_PATHS="/etc/xroad/ /etc/nginx/sites-enabled/"
+BACKED_UP_PATHS="/etc/xroad/ /etc/nginx/conf.d/*xroad*.conf"
+if [ -d "/etc/nginx/sites-enabled" ]
+then
+    BACKED_UP_PATHS="$BACKED_UP_PATHS /etc/nginx/sites-enabled/*xroad*"
+fi
+
 THIS_FILE=$(pwd)/$0
 
 die () {

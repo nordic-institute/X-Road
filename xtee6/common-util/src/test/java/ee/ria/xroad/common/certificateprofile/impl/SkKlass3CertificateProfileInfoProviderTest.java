@@ -174,6 +174,10 @@ public class SkKlass3CertificateProfileInfoProviderTest {
             public String getMemberName() {
                 return "foobar";
             }
+            @Override
+            public SecurityServerId getServerId() {
+                return null;
+            }
         });
     }
 

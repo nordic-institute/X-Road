@@ -142,7 +142,6 @@ public final class ManagementRequestHandler {
         try {
             ownerCert.checkValidity();
         } catch (Exception e) {
-            log.warn("Owner certificate is invalid: {}", e);
             throw new CodedException(X_CERT_VALIDATION,
                     "Owner certificate is invalid: %s", e.getMessage());
         }

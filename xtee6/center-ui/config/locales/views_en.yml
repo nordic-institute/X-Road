@@ -335,6 +335,7 @@ en:
       configuration_parts: "Configuration Parts"
       file_name: "File"
       content_identifier: "Content Identifier"
+      version: "Version"
       updated: "Updated"
       upload_configuration_part: "Upload Configuration Part"
       activate_signing_key_confirm: "Activate key '{{key_id}}'?"

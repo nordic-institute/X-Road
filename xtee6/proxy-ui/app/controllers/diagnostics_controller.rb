@@ -31,7 +31,7 @@ require 'json'
 require 'time'
 
 class DiagnosticsController < ApplicationController
-  helper_method :get_confclient_status_message, :get_status_class, :get_formatted_time
+  helper_method :get_status_message, :get_status_class, :get_formatted_time
 
 
   def index
@@ -39,6 +39,7 @@ class DiagnosticsController < ApplicationController
     authorize!(:diagnostics)
     prepare_confclient_ui
     prepare_timestamper_ui
+    prepare_ocsp_ui
   end
 
   def prepare_timestamper_ui
@@ -49,7 +50,7 @@ class DiagnosticsController < ApplicationController
     response = query_confclient_status
     if response != nil
       returnCode = response.getReturnCode()
-      @globalConfStatusMessage = get_confclient_status_message(returnCode)
+      @globalConfStatusMessage = get_status_message(returnCode)
       @globalConfStatusClass = get_status_class(returnCode)
       @globalConfPrevUpdate = response.getFormattedPrevUpdate()
       @globalConfNextUpdate = response.getFormattedNextUpdate()
@@ -61,12 +62,22 @@ class DiagnosticsController < ApplicationController
     end
   end
 
+  def prepare_ocsp_ui
+    data = query_ocsp_status
+    if data && data.is_a?(Hash)
+      @ocsp_data = data['certificationServiceStatusMap'] || {}
+    else
+      @ocsp_data = {}
+    end
+  end
+
   def get_status_class (returnCode)
 
     if returnCode == DiagnosticsErrorCodes::RETURN_SUCCESS
       return "diagnostics_status_ok"
     elsif returnCode == DiagnosticsErrorCodes::ERROR_CODE_UNINITIALIZED or returnCode ==
-        DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED
+        DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED or returnCode ==
+        DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
       return "diagnostics_status_waiting"
     else
       return "diagnostics_status_fail"
@@ -127,7 +138,31 @@ class DiagnosticsController < ApplicationController
   end
 
 
-  def get_confclient_status_message (returnCode)
+  def query_ocsp_status
+    logger.info("Query OCSP status")
+
+    port =  SystemProperties::getSignerAdminPort
+    uri = URI("http://localhost:#{port}/status")
+
+    response = nil
+
+    begin
+      response = Net::HTTP.get_response(uri)
+      logger.info("Response code: " + response.code + " message: " + response.message + " body: " + response.body)
+    rescue
+      log_stacktrace($!)
+      return nil
+    end
+
+    if response.code == '500'
+      logger.error(response.body)
+      return nil
+    end
+
+    return JSON.parse(response.body)
+  end
+
+  def get_status_message (returnCode)
     case
       when returnCode == DiagnosticsErrorCodes::RETURN_SUCCESS
         t('diagnostics.return_success')
@@ -149,11 +184,18 @@ class DiagnosticsController < ApplicationController
         t('diagnostics.error_code_uninitialized')
       when returnCode == DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED
         t('diagnostics.error_code_timestamp_uninitialized')
+      when returnCode == DiagnosticsErrorCodes::ERROR_CODE_OCSP_CONNECTION_ERROR
+        t('diagnostics.error_code_ocsp_connection_error')
+      when returnCode == DiagnosticsErrorCodes::ERROR_CODE_OCSP_FAILED
+        t('diagnostics.error_code_ocsp_failed')
+      when returnCode == DiagnosticsErrorCodes::ERROR_CODE_OCSP_RESPONSE_INVALID
+        t('diagnostics.error_code_ocsp_response_invalid')
+      when returnCode == DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
+        t('diagnostics.error_code_ocsp_uninitialized')
       else
         t('diagnostics.error_code_unknown')
     end
   end
-
 
 
 end

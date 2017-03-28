@@ -35,8 +35,8 @@ import lombok.extern.slf4j.Slf4j;
  * Thread that periodically closes expired and idle connections.
  */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class IdleConnectionMonitorThread extends Thread {
+@RequiredArgsConstructor(access = AccessLevel.PUBLIC)
+public class IdleConnectionMonitorThread extends Thread {
 
     private static final int DEFAULT_IDLE_TIMEOUT = 1000;
     private static final int DEFAULT_MONITORING_INTERVAL = 5000;
@@ -50,7 +50,8 @@ class IdleConnectionMonitorThread extends Thread {
     @Setter
     private int connectionIdleTimeMilliseconds = DEFAULT_IDLE_TIMEOUT;
 
-    public void closeNow() {
+
+    void closeNow() {
         connectionManager.closeExpiredConnections();
         connectionManager.closeIdleConnections(connectionIdleTimeMilliseconds,
                 TimeUnit.MILLISECONDS);

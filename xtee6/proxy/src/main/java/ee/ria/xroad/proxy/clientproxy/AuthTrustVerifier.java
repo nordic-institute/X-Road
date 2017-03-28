@@ -106,8 +106,6 @@ public final class AuthTrustVerifier {
             ocspResponses = getOcspResponses(
                     chain.getAllCertsWithoutTrustedRoot(), address.getHost());
         } catch (CodedException e) {
-            log.error("Coded exception", e);
-
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 
@@ -199,7 +197,6 @@ public final class AuthTrustVerifier {
             return (X509Certificate[]) session.getPeerCertificates();
         } catch (SSLPeerUnverifiedException e) {
             log.error("Error while getting peer certificates", e);
-
             throw new CodedException(X_SSL_AUTH_FAILED, "Service provider "
                     + "did not send correct authentication certificate");
         }

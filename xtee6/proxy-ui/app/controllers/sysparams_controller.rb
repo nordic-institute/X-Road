@@ -21,12 +21,14 @@
 # THE SOFTWARE.
 #
 
-java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.common.conf.InternalSSLKey
 
 class SysparamsController < ApplicationController
+
+  include Keys::TokenRenderer
 
   def index
     authorize!(:view_sys_params)
@@ -229,22 +231,16 @@ class SysparamsController < ApplicationController
 
   def generate_csr
     audit_log("Generate certificate request for TLS", audit_log_data = {})
-
     authorize!(:generate_internal_cert_req)
-
     audit_log_data[:subjectName] = params[:subject_name]
-
     kp = CertUtils::readKeyPairFromPemFile(SystemProperties::getConfPath() + InternalSSLKey::PK_FILE_NAME)
     csr = CertUtils::generateCertRequest(kp.getPrivate(), kp.getPublic(), params[:subject_name])
-
     csr_file = SecureRandom.hex(4)
-
     File.open(CommonUi::IOUtils.temp_file(csr_file), 'wb') do |f|
       f.write(csr)
     end
-
     render_json({
-                    :tokens => view_context.columns(SignerProxy::getTokens),
+                    :tokens => tokens_to_json(SignerProxy::getTokens),
                     :redirect => csr_file
                 })
   end
@@ -332,7 +328,7 @@ class SysparamsController < ApplicationController
     hash = CryptoUtils::hexDigest(
       CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID, content.to_java_bytes)
 
-    anchor = ConfigurationAnchor.new(file)
+    anchor = ConfigurationAnchorV2.new(file)
     generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
 
     return {

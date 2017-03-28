@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ee.ria.xroad.common.SystemProperties;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -226,7 +227,7 @@ public class ConfigurationDownloaderTest {
             String ... successfulLocationUrls) {
         FileNameProvider fileNameProvider = file -> new File("f").toPath();
 
-        return new ConfigurationDownloader(fileNameProvider) {
+        return new ConfigurationDownloader(fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);
@@ -256,6 +257,11 @@ public class ConfigurationDownloaderTest {
             locationUrls.forEach(url -> result.add(getLocation(url)));
 
             return result;
+        }
+
+        @Override
+        public boolean hasChanged() {
+            return false;
         }
 
         private ConfigurationLocation getLocation(String url) {

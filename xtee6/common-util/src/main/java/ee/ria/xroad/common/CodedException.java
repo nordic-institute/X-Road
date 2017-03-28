@@ -22,13 +22,12 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.Serializable;
-import java.util.UUID;
-
-import org.apache.commons.lang3.StringUtils;
-
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Exception thrown by proxy business logic. Contains SOAP fault information
@@ -94,6 +93,26 @@ public class CodedException extends RuntimeException implements Serializable {
     }
 
     /**
+     * Creates new exception with fault code and fault message.
+     * The message is constructed using String.format(). from parameters
+     * format and args.
+     * @param faultCode the fault code
+     * @param format the string format
+     * @param args the arguments
+     */
+    public CodedException(String faultCode, Throwable cause, String format, Object... args) {
+        super(String.format(format, args), cause);
+
+        this.faultCode = faultCode;
+        faultDetail = String.valueOf(UUID.randomUUID());
+        faultString = String.format(format, args);
+
+        setArguments(args);
+    }
+
+
+
+    /**
      * Creates exception from fault code and cause.
      * @param faultCode the fault code
      * @param cause the cause
@@ -112,16 +131,14 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param faultString the fault string (e.g. the message)
      * @param faultActor the fault actor
      * @param faultDetail the details
-     * @param faultXml the XML document representing the fault
      * @return new proxy exception
      */
     public static CodedException fromFault(String faultCode, String faultString,
-            String faultActor, String faultDetail, String faultXml) {
+                                           String faultActor, String faultDetail, String faultXml) {
         Fault ret = new Fault(faultCode, faultString);
 
         ret.faultActor = faultActor;
         ret.faultDetail = faultDetail;
-
         ret.faultXml = faultXml;
 
         return ret;
@@ -159,6 +176,27 @@ public class CodedException extends RuntimeException implements Serializable {
 
         return ret;
     }
+
+    /**
+     * Creates new exception with translation code for i18n, arguments and the {@link Throwable} that
+     * caused this exception.
+     * @param faultCode the fault code
+     * @param cause the actual causing {@link Throwable}
+     * @param trCode the translation code
+     * @param faultMessage the message
+     * @param args optional arguments
+     * @return CodedException
+     */
+    public static CodedException tr(String faultCode, Throwable cause, String trCode,
+                                    String faultMessage, Object... args) {
+
+        CodedException ret = new CodedException(faultCode, cause, faultMessage, args);
+
+        ret.translationCode = trCode;
+
+        return ret;
+    }
+
 
     @Override
     public String getMessage() {
@@ -201,6 +239,7 @@ public class CodedException extends RuntimeException implements Serializable {
             arguments[i] = args[i] != null ? args[i].toString() : "";
         }
     }
+
 
     /**
      * Encapsulates error message read from SOAP fault.

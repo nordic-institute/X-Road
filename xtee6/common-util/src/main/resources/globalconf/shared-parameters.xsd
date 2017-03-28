@@ -4,9 +4,9 @@
     targetNamespace="http://x-road.eu/xsd/xroad.xsd"
     xmlns:id="http://x-road.eu/xsd/identifiers">
     <import namespace="http://x-road.eu/xsd/identifiers"
-        schemaLocation="../identifiers.xsd" id="id"/>
+            schemaLocation="../identifiers.xsd" id="id"/>
 
-    <element name="conf" type="tns:SharedParametersType">
+    <element name="conf" type="tns:SharedParametersTypeV2">
         <annotation>
             <documentation>
                 Set of configuration parameters that are used by members of this X-Road instance and other federated
@@ -15,7 +15,7 @@
         </annotation>
     </element>
 
-    <complexType name="SharedParametersType">
+    <complexType name="SharedParametersTypeV2">
         <sequence>
             <element name="instanceIdentifier" type="string">
                 <annotation>
@@ -25,7 +25,7 @@
                     </documentation>
                 </annotation>
             </element>
-            <element name="approvedCA" type="tns:ApprovedCAType" minOccurs="0" maxOccurs="unbounded">
+            <element name="approvedCA" type="tns:ApprovedCATypeV2" minOccurs="0" maxOccurs="unbounded">
                 <annotation>
                     <documentation>
                         Certification authority approved by the Governing Authority of providing certification services
@@ -155,7 +155,7 @@
         </sequence>
     </complexType>
 
-    <complexType name="ApprovedCAType">
+    <complexType name="ApprovedCATypeV2">
         <sequence>
             <element name="name" type="string">
                 <annotation>
