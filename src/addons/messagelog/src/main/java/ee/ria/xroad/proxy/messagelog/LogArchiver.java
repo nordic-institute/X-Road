@@ -81,7 +81,7 @@ public class LogArchiver extends UntypedActor {
         if (START_ARCHIVING.equals(message)) {
             try {
                 Long maxTimestampId = doInTransaction(session -> getMaxTimestampId(session));
-                if (maxTimestampId != null){
+                if (maxTimestampId != null) {
                     while (handleArchive(maxTimestampId)) { }
                 }
             } catch (Exception ex) {
