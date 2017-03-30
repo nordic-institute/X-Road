@@ -115,10 +115,12 @@ public class OcspClientWorker extends AbstractSignerActor {
     void handleReload() {
         log.trace("handleReload()");
         log.debug("Checking global configuration for validity and extension changes");
+
         GlobalConf.reload();
 
         if (!GlobalConf.isValid()) {
             log.error("Global configuration is not valid, skipping change detection");
+
             return;
         }
 
@@ -134,28 +136,37 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         if (changeChecker.hasChanged(OCSP_FRESHNESS_SECONDS)) {
             log.debug("Detected change in global configuration ocspFreshnessSeconds parameter");
+
             sendReschedule = true;
         }
         if (changeChecker.hasChanged(VERIFY_OCSP_NEXTUPDATE)) {
             log.debug("Detected change in global configuration extension shouldVerifyOcspNextUpdate parameter");
+
             sendReschedule = true;
         }
         if (changeChecker.hasChanged(OCSP_FETCH_INTERVAL)) {
             log.debug("Detected change in global configuration extension ocspFetchInterval parameter");
+
             sendExecute = true;
         }
         if (sendExecute) {
             log.info("Launching a new OCSP-response refresh due to change in OcspFetchInterval");
             log.debug("sending cancel");
+
             getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
+
             log.debug("sending execute");
+
             getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientWorker.EXECUTE, ActorRef.noSender());
         } else if (sendReschedule) {
             log.info("Rescheduling a new OCSP-response refresh due to "
                     + "change in global configuration's additional parameters");
             log.debug("sending cancel");
+
             getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.CANCEL, ActorRef.noSender());
+
             log.debug("sending reschedule");
+
             getContext().actorSelection("/user/" + OCSP_CLIENT_JOB).tell(OcspClientJob.RESCHEDULE, ActorRef.noSender());
         } else {
             log.debug("No global configuration extension changes detected");
@@ -165,15 +176,20 @@ public class OcspClientWorker extends AbstractSignerActor {
     void handleExecute() {
         log.trace("handleExecute()");
         log.info("OCSP-response refresh cycle started");
+
         if (!GlobalConf.isValid()) {
             log.debug("invalid global conf, returning");
+
             getSender().tell(GLOBAL_CONF_INVALIDATED, getSelf());
+
             return;
         }
 
         List<X509Certificate> certs = getCertsForOcsp();
+
         if (certs == null || certs.isEmpty()) {
             log.debug("Found no certificates that need OCSP responses");
+
             return;
         }
 
@@ -181,10 +197,12 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         Boolean failed = false;
         Map<String, OCSPResp> statuses = new HashMap<>();
+
         for (X509Certificate subject : certs) {
             try {
                 OCSPResp status = queryCertStatus(subject,
-                        new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
+                        new OcspVerifierOptions(GlobalConfExtensions
+                                .getInstance().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
                     String subjectHash = calculateCertHexHash(subject);
                     statuses.put(subjectHash, status);
@@ -193,6 +211,7 @@ public class OcspClientWorker extends AbstractSignerActor {
                 }
             } catch (Exception e) {
                 failed = true;
+
                 log.error("Error when querying certificate '"
                         + subject.getSerialNumber() + "'", e);
             }
@@ -418,11 +437,13 @@ public class OcspClientWorker extends AbstractSignerActor {
         for (X509Certificate caCertificate : GlobalConf.getAllCaCerts()) {
             try {
                 final String key = caCertificate.getSubjectDN().toString();
+
                 // add certification service if it does not exist
                 if (!diagnostics.getCertificationServiceStatusMap().containsKey(key)) {
                     CertificationServiceStatus newServiceStatus = new CertificationServiceStatus(key);
                     diagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
                 }
+
                 CertificationServiceStatus serviceStatus = diagnostics.getCertificationServiceStatusMap().get(key);
                 // add ocsp responder if it does not exist
                 GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate).stream()

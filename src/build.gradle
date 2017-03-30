@@ -30,7 +30,8 @@ sonarqube {
         property "sonar.projectKey", "xtee6"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "National Data Exchange Layer"
-        property "sonar.projectVersion", "6.12.0"    }
+        property "sonar.projectVersion", "6.12.0"
+    }
 }
 
 allprojects {
@@ -92,6 +93,11 @@ subprojects {
         //maven {
         //    url "http://ground.zero.ee/maven2"
         //}
+
+        // repository containing an up-to-date xerces fork
+        maven {
+            url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/"
+        }
     }
 
     configurations {

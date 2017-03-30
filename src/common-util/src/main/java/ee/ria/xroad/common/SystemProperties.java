@@ -122,6 +122,14 @@ public final class SystemProperties {
     public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
             PREFIX + "proxy.ocsp-responder-listen-address";
 
+    /** Property name of the Ocsp Responder Client connect timeout. */
+    public static final String OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT =
+            PREFIX + "proxy.ocsp-responder-client-connect-timeout";
+
+    /** Property name of the Ocsp Responder Client read timeout. */
+    public static final String OCSP_RESPONDER_CLIENT_READ_TIMEOUT =
+            PREFIX + "proxy.ocsp-responder-client-read-timeout";
+
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT =
             PREFIX + "proxy.verify-client-cert";
@@ -133,6 +141,10 @@ public final class SystemProperties {
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
+
+    /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
+    public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
+            PREFIX + "proxy.jetty-ocsp-responder-configuration-file";
 
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
@@ -153,7 +165,7 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.server-connector-max-idle-time";
 
-    /** Property name of the server Connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.server-connector-so-linger";
 
@@ -161,11 +173,12 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.client-connector-max-idle-time";
 
-    /** Property name of the client connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.client-connector-so-linger";
 
-    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient */
+    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
+     *  in seconds, value of -1 means off */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PREFIX + "proxy.client-httpclient-timeout";
 
@@ -567,8 +580,7 @@ public final class SystemProperties {
      */
     public static String getJettyClientProxyConfFile() {
         return System.getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
-                getConfPath()
-                        + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
+                getConfPath() + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
     }
 
     /**
@@ -577,8 +589,16 @@ public final class SystemProperties {
      */
     public static String getJettyServerProxyConfFile() {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
-                getConfPath()
-                        + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+                getConfPath() + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+    }
+
+    /**
+     * @return path to the cert hash based OCSP responder jetty server configuration file,
+     * '/etc/xroad/jetty/ocsp-responder.xml' by default.
+     */
+    public static String getJettyOcspResponderConfFile() {
+        return System.getProperty(JETTY_OCSP_RESPONDER_CONFIGURATION_FILE,
+                getConfPath() + DefaultFilepaths.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE);
     }
 
     /**
@@ -794,6 +814,22 @@ public final class SystemProperties {
     public static String getOcspResponderListenAddress() {
         return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS,
                 DEFAULT_CONNECTOR_HOST);
+    }
+
+    /**
+     * @return the OCSP Responder Client connect timeout in milliseconds,
+     * '20000' by default.
+     */
+    public static int getOcspResponderClientConnectTimeout() {
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
+    }
+
+    /**
+     * @return the OCSP Responder Client read timeout in milliseconds,
+     * '30000' by default.
+     */
+    public static int getOcspResponderClientReadTimeout() {
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT, "30000"));
     }
 
     /**

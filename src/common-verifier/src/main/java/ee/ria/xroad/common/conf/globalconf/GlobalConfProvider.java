@@ -289,6 +289,12 @@ public interface GlobalConfProvider extends ConfProvider {
             SecurityServerId securityServer);
 
     /**
+     * @param securityServerId the security server id
+     * @return true, if the given security server id exists
+     */
+    boolean existsSecurityServer(SecurityServerId securityServerId);
+
+    /**
      * @return all CA certificates that are suitable for verification, that is
      * pki elements that are not marked authenticationOnly
      */

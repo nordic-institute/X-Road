@@ -82,6 +82,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/clientproxy.xml
 %config /etc/xroad/jetty/contexts-admin/proxy-ui.xml
 %config /etc/xroad/jetty/serverproxy.xml
+%config /etc/xroad/jetty/ocsp-responder.xml
 %config /etc/xroad/services/jetty.conf
 %config(noreplace) /etc/pam.d/xroad
 

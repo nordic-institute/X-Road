@@ -40,6 +40,7 @@ en:
     internal_tls_key_import_failed: "Failed to import X-Road 5.0 internal TLS key"
     pin_not_ascii: "Software token pin can only contain ASCII characters."
     pin_weak: "Software token pin does not meet complexity requirements: Pin length is %{length} (minimum: %{min_length}) characters and it contains characters from %{character_class_count} (minimum: %{min_character_class_count}) character classes."
+    security_server_exists: "Security Server Code is not unique! This is not supported, unless you are restoring an existing security server or creating a security server cluster behind a load balancer! Continue with initialization?"
 
   menu:
     configuration:

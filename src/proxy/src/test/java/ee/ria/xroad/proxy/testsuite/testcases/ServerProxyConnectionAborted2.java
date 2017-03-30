@@ -22,10 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,6 +33,8 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Client sends normal message, SP aborts connection (content type: text/xml).
@@ -68,6 +66,8 @@ public class ServerProxyConnectionAborted2 extends MessageTestCase {
 
                 response.setContentType("text/xml");
                 response.setContentLength(1000);
+                response.getOutputStream().close();
+                response.flushBuffer();
                 baseRequest.setHandled(true);
             }
         };

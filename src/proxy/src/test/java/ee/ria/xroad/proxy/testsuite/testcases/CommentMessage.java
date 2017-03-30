@@ -22,35 +22,43 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import java.io.ByteArrayInputStream;
+
+import org.w3c.dom.Node;
+
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-
 /**
- * Client sends normal request, server responds with invalid content type.
- * Result: SP sends error
+ * Ensure comments are not stripped from messages.
  */
-public class NonUtf8ResponseContentType extends MessageTestCase {
+public class CommentMessage extends MessageTestCase {
+
+    private static final String EXPECTED_COMMENT = " multiline\n        comment ";
 
     /**
      * Constructs the test case.
      */
-    public NonUtf8ResponseContentType() {
-        requestFileName = "getstate.query";
-
-        responseFile = "getstate-iso88591.answer";
-        responseContentType = TEXT_XML;
-
-        responseServiceContentType =
-                contentTypeWithCharset(TEXT_XML, ISO_8859_1.name());
-
-        // Currently the 'getstate.answer' contains different encoding -- should this be an error?
+    public CommentMessage() {
+        requestFileName = "simple.query";
+        responseFile = "simple-comment.answer";
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse) {
+    protected void validateNormalResponse(Message receivedResponse) throws Exception {
+        SoapMessageImpl msg = (SoapMessageImpl) new SoapParserImpl().parse(receivedResponse.getContentType(),
+                new ByteArrayInputStream(((SoapMessageImpl) receivedResponse.getSoap()).getBytes()));
+
+        Node firstChild = msg.getSoap().getSOAPHeader().getFirstChild().getNextSibling();
+        short nodeType = firstChild.getNodeType();
+        if (nodeType != Node.COMMENT_NODE) {
+            throw new Exception("Expected comment not found!");
+        }
+        if (!firstChild.getTextContent().equals(EXPECTED_COMMENT)) {
+            throw new Exception("Comment '" + firstChild.getTextContent() + "' did not match expected value");
+        }
+
     }
 }

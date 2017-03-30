@@ -22,20 +22,21 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.util.MultiPartOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -44,8 +45,8 @@ import ee.ria.xroad.proxy.testsuite.MessageTestCase;
  * normal response.
  * Result: All OK.
  */
+@Slf4j
 public class AttachmentBig extends MessageTestCase {
-    private static final Logger LOG = LoggerFactory.getLogger(AttachmentBig.class);
 
     private static final int ATTACHMENT_SIZE_MBYTES = 650;
 
@@ -100,11 +101,11 @@ public class AttachmentBig extends MessageTestCase {
 
         @Override
         public void run() {
-            try {
+            Path path = Paths.get(QUERIES_DIR + "/getstate.query");
+            try (InputStream in = changeQueryId(Files.newInputStream(path))) {
                 // Write SOAP message
-                mpos.startPart(MimeUtils.TEXT_XML_UTF8);
-                mpos.write(IOUtils.toByteArray(changeQueryId(
-                        new FileInputStream(QUERIES_DIR + "/getstate.query"))));
+                mpos.startPart(MimeTypes.TEXT_XML_UTF8);
+                mpos.write(IOUtils.toByteArray(in));
 
                 // Write attachment
                 mpos.startPart("application/octet-stream",
@@ -115,7 +116,7 @@ public class AttachmentBig extends MessageTestCase {
                 }
                 mpos.close();
             } catch (Exception ex) {
-                LOG.error("Error when creating big attachment", ex);
+                log.error("Error when creating big attachment", ex);
             }
         }
     }

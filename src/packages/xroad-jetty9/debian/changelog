@@ -1,8 +1,8 @@
-xroad-jetty9 (6.12.0-1) trusty; urgency=medium
+xroad-jetty9 (6.12.0) trusty; urgency=low
 
   * Version bump
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 12 Jan 2017 16:37:12 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee>  Thu, 13 Mar 2017 14:16:52 +0200
 
 xroad-jetty9 (6.11.0-1) trusty; urgency=medium
 

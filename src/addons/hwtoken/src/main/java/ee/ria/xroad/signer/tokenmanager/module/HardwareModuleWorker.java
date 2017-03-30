@@ -22,19 +22,24 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
-
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import akka.actor.Props;
-import ee.ria.xroad.signer.tokenmanager.token.HardwareToken;
-import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
-import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+import akka.actor.SupervisorStrategy;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import ee.ria.xroad.signer.tokenmanager.token.HardwareToken;
+import ee.ria.xroad.signer.tokenmanager.token.HardwareTokenType;
+import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+import ee.ria.xroad.signer.util.SignerUtil;
+
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.moduleGetInstance;
 
 /**
  * Module worker for hardware tokens.
@@ -46,6 +51,12 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
     private final HardwareModuleType module;
 
     private iaik.pkcs.pkcs11.Module pkcs11Module;
+
+    @Override
+    public SupervisorStrategy supervisorStrategy() {
+        // escalate to module manager
+        return SignerUtil.createPKCS11ExceptionEscalatingStrategy();
+    }
 
     @Override
     protected void initializeModule() throws Exception {
@@ -93,13 +104,21 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         log.info("Module '{}' got {} slots", module.getType(), slots.length);
 
-        List<TokenType> tokens = new ArrayList<>();
+        Map<String, TokenType> tokens = new HashMap<>();
 
         for (int slotIndex = 0; slotIndex < slots.length; slotIndex++) {
-            tokens.add(createToken(slots, slotIndex));
+            TokenType token = createToken(slots, slotIndex);
+            TokenType previous = tokens.putIfAbsent(token.getId(), token);
+            if (previous == null) {
+                log.info("Module '{}' slot #{} has token with ID '{}': {}", module.getType(), slotIndex, token.getId(),
+                        token);
+            } else {
+                log.info("Module '{}' slot #{} has token with ID '{}' but token with that ID is already registered",
+                        module.getType(), slotIndex, token.getId());
+            }
         }
 
-        return tokens;
+        return new ArrayList<>(tokens.values());
     }
 
     private TokenType createToken(iaik.pkcs.pkcs11.Slot[] slots, int slotIndex)
@@ -111,6 +130,7 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
 
         TokenType token = new HardwareTokenType(
             module.getType(),
+            module.getTokenIdFormat(),
             pkcs11Token,
             module.isForceReadOnly() || tokenInfo.isWriteProtected(),
             slotIndex,
@@ -120,8 +140,6 @@ public class HardwareModuleWorker extends AbstractModuleWorker {
             module.isBatchSingingEnabled()
         );
 
-        log.info("Module '{}' slot #{} has token: {}",
-                new Object[] {module.getType(), slotIndex, token});
         return token;
     }
 
