@@ -42,7 +42,7 @@ public interface LogArchiveBase {
      * @param logRecord the log record to be marked as archived.
      * @throws Exception if marking records as archived fails.
      */
-    void markRecordArchived(final LogRecord logRecord) throws Exception;
+    void markRecordArchived(LogRecord logRecord) throws Exception;
 
     /**
      * Returns metadata of last archived entry.

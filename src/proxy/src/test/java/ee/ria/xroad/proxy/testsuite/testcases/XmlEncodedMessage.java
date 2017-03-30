@@ -20,49 +20,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.message;
+package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-
-import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
- * Simple SOAP encoder that does not support attachments or additional headers.
+ * The simplest case -- normal message and normal response.
+ * Result: client receives message.
  */
-public class SimpleSoapEncoder implements SoapMessageEncoder {
+public class XmlEncodedMessage extends MessageTestCase {
 
-    private final OutputStream outputStream;
-
-
-    public SimpleSoapEncoder(OutputStream outputStream) {
-        this.outputStream = outputStream;
+    /**
+     * Constructs the test case.
+     */
+    public XmlEncodedMessage() {
+        requestFileName = "xmlencoded.query";
+        responseFile = "xmlencoded.answer";
     }
 
     @Override
-    public String getContentType() {
-        return MimeTypes.TEXT_XML_UTF8;
+    protected void onServiceReceivedRequest(Message receivedRequest)
+            throws Exception {
+        validateXmlEncoded(receivedRequest);
     }
 
     @Override
-    public void close() throws IOException {
-        outputStream.close();
+    protected void validateNormalResponse(Message receivedResponse) throws Exception {
+        validateXmlEncoded(receivedResponse);
     }
 
-    @Override
-    public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
-        if (additionalHeaders != null && additionalHeaders.size() > 0) {
-            throw new IllegalArgumentException("Additional headers not supported!");
+    private void validateXmlEncoded(Message message) throws Exception {
+        SoapMessageImpl soap = (SoapMessageImpl) message.getSoap();
+        String expected = "<\"EE37702211234\" & 'xml encoded'>";
+        if (!soap.getUserId().equals(expected)) {
+            throw new Exception("XML encoded data is incorrect: " + soap.getUserId() + " should be " + expected);
         }
-        outputStream.write(message.getBytes());
     }
-
-    @Override
-    public void attachment(String contentType, InputStream content,
-                           Map<String, String> additionalHeaders) throws Exception {
-        throw new UnsupportedOperationException("Attachments are not supported!");
-    }
-
 }

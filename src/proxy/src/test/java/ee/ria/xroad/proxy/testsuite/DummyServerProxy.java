@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,25 +31,25 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.util.StartStop;
 
-@SuppressWarnings("unchecked")
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+
+@Slf4j
 class DummyServerProxy extends Server implements StartStop {
-    private static final Logger LOG = LoggerFactory.getLogger(
-            DummyServerProxy.class);
 
     DummyServerProxy() {
-        SelectChannelConnector connector = new SelectChannelConnector();
+        ServerConnector connector = new ServerConnector(this);
 
         connector.setName("ClientConnector");
         connector.setHost("127.0.0.2");
@@ -67,7 +64,7 @@ class DummyServerProxy extends Server implements StartStop {
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
-            LOG.debug("Proxy simulator received request {}, contentType={}",
+            log.debug("Proxy simulator received request {}, contentType={}",
                     target, request.getContentType());
 
             response.addHeader(
@@ -87,7 +84,7 @@ class DummyServerProxy extends Server implements StartStop {
                 createResponseFromFile(currentTestCase().getResponseFile(),
                         baseRequest, response);
             } else {
-                LOG.error("Unknown request {}", target);
+                log.error("Unknown request {}", target);
             }
         }
 
@@ -104,10 +101,10 @@ class DummyServerProxy extends Server implements StartStop {
                     IOUtils.copy(responseIs, response.getOutputStream());
                 }
             } catch (FileNotFoundException e) {
-                LOG.error("Could not find answer file: " + file, e);
+                log.error("Could not find answer file: " + file, e);
                 return;
             } catch (Exception e) {
-                LOG.error("An error has occured when sending response "
+                log.error("An error has occured when sending response "
                         + "from file " + file, e);
             }
 

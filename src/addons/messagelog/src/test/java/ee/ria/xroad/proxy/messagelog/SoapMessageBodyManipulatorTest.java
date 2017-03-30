@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,6 +34,9 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -48,9 +48,9 @@ import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.util.MimeTypes;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for SOAP message body manipulation
@@ -67,12 +67,15 @@ public class SoapMessageBodyManipulatorTest {
                                            Collection<ClientId> localOverrides,
                                            Collection<ClientId> remoteOverrides) {
             setConfigurator(new Configurator() {
+                @Override
                 public Collection<ClientId> getLocalProducerOverrides() {
                     return localOverrides;
                 }
+                @Override
                 public Collection<ClientId> getRemoteProducerOverrides() {
                     return remoteOverrides;
                 }
+                @Override
                 public boolean isSoapBodyLoggingEnabled() {
                     return globalBodyLogging;
                 }
@@ -133,7 +136,7 @@ public class SoapMessageBodyManipulatorTest {
      */
     public static Soap createSoapMessage(String fileName)
             throws Exception {
-        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, newQueryInputStream(fileName));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, newQueryInputStream(fileName));
     }
 
     /**

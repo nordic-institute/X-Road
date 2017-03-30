@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,27 +43,24 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
 
-@SuppressWarnings("unchecked")
-class DummyService extends Server implements StartStop {
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DummyService.class);
+@Slf4j
+class DummyService extends Server implements StartStop {
 
     private static X509Certificate serverCert;
     private static PrivateKey serverKey;
@@ -81,23 +76,20 @@ class DummyService extends Server implements StartStop {
     }
 
     private void setupConnectors() throws Exception {
-        SelectChannelConnector connector = new SelectChannelConnector();
+        ServerConnector connector = new ServerConnector(this);
         connector.setName("httpConnector");
         connector.setPort(ProxyTestSuite.SERVICE_PORT);
         connector.setSoLingerTime(0);
-        connector.setMaxIdleTime(0);
         addConnector(connector);
 
-        SelectChannelConnector sslConnector = createSslConnector();
+        ServerConnector sslConnector = createSslConnector();
         sslConnector.setName("httpsConnector");
         sslConnector.setPort(ProxyTestSuite.SERVICE_SSL_PORT);
         sslConnector.setSoLingerTime(0);
-        sslConnector.setMaxIdleTime(0);
-        sslConnector.setAcceptors(2 * Runtime.getRuntime().availableProcessors());
         addConnector(sslConnector);
     }
 
-    private SelectChannelConnector createSslConnector() throws Exception {
+    private ServerConnector createSslConnector() throws Exception {
         PKCS12 consumer = TestCertUtil.getConsumer();
         serverCert = consumer.cert;
         serverKey = consumer.key;
@@ -115,7 +107,7 @@ class DummyService extends Server implements StartStop {
 
         cf.setSslContext(ctx);
 
-        return new SslSelectChannelConnector(cf);
+        return new ServerConnector(this, cf);
     }
 
     private class ServiceHandler extends AbstractHandler {
@@ -123,7 +115,7 @@ class DummyService extends Server implements StartStop {
         public void handle(String target, Request baseRequest,
                 HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
-            LOG.debug("Service simulator received request {}, contentType={}",
+            log.debug("Service simulator received request {}, contentType={}",
                     target, request.getContentType());
             debugRequestHeaders(request);
             try {
@@ -139,7 +131,7 @@ class DummyService extends Server implements StartStop {
 
                 String encoding = request.getCharacterEncoding();
 
-                LOG.debug("Request: encoding={}, soap={}", encoding,
+                log.debug("Request: encoding={}, soap={}", encoding,
                         receivedRequest.getSoap());
 
                 currentTestCase().onServiceReceivedRequest(receivedRequest);
@@ -150,26 +142,26 @@ class DummyService extends Server implements StartStop {
                     try {
                         sendResponseFromFile(responseFile, response);
                     } catch (Exception e) {
-                        LOG.error("An error has occurred when sending response"
+                        log.error("An error has occurred when sending response"
                                 + " from file '{}': {}", responseFile, e);
                     }
                 } else {
-                    LOG.error("Unknown request {}", target);
+                    log.error("Unknown request {}", target);
                 }
             } catch (Exception ex) {
-                LOG.error("Error when reading request", ex);
+                log.error("Error when reading request", ex);
             } finally {
                 baseRequest.setHandled(true);
             }
         }
 
         private void debugRequestHeaders(HttpServletRequest request) {
-            LOG.debug("Request headers:");
+            log.debug("Request headers:");
 
             Enumeration<String> headerNames = request.getHeaderNames();
             while (headerNames.hasMoreElements()) {
                 String headerName = headerNames.nextElement();
-                LOG.debug("\t{} = {}", headerName,
+                log.debug("\t{} = {}", headerName,
                         request.getHeader(headerName));
             }
         }
@@ -179,7 +171,7 @@ class DummyService extends Server implements StartStop {
             String responseContentType =
                     currentTestCase().getResponseContentType();
 
-            LOG.debug("Sending response, content-type = {}, BOM = {}",
+            log.debug("Sending response, content-type = {}, BOM = {}",
                     responseContentType,
                     currentTestCase().addUtf8BomToResponseFile);
 
@@ -207,7 +199,7 @@ class DummyService extends Server implements StartStop {
                         new Message(responseIs, currentTestCase()
                                 .getResponseServiceContentType()));
             } catch (Exception e) {
-                LOG.error("Error when sending response from file '{}': {}",
+                log.error("Error when sending response from file '{}': {}",
                         file, e.toString());
             }
         }
@@ -224,14 +216,14 @@ class DummyService extends Server implements StartStop {
         @Override
         public String chooseClientAlias(String[] keyType, Principal[] issuers,
                 Socket socket) {
-            LOG.debug("chooseClientAlias");
+            log.debug("chooseClientAlias");
             return ALIAS;
         }
 
         @Override
         public String chooseServerAlias(String keyType, Principal[] issuers,
                 Socket socket) {
-            LOG.debug("chooseServerAlias");
+            log.debug("chooseServerAlias");
             return ALIAS;
         }
 
@@ -242,33 +234,33 @@ class DummyService extends Server implements StartStop {
 
         @Override
         public String[] getClientAliases(String keyType, Principal[] issuers) {
-            LOG.debug("getClientAliases");
+            log.debug("getClientAliases");
             return null;
         }
 
         @Override
         public PrivateKey getPrivateKey(String alias) {
-            LOG.debug("getPrivateKey {} - {}", alias, serverKey);
+            log.debug("getPrivateKey {} - {}", alias, serverKey);
             return serverKey;
         }
 
         @Override
         public String[] getServerAliases(String keyType, Principal[] issuers) {
-            LOG.debug("getServerAliases");
+            log.debug("getServerAliases");
             return null;
         }
 
         @Override
         public String chooseEngineClientAlias(String[] keyType, Principal[] issuers,
                 SSLEngine engine) {
-            LOG.debug("chooseEngineClientAlias");
+            log.debug("chooseEngineClientAlias");
             return ALIAS;
         }
 
         @Override
         public String chooseEngineServerAlias(String keyType, Principal[] issuers,
                 SSLEngine engine) {
-            LOG.debug("chooseEngineServerAlias");
+            log.debug("chooseEngineServerAlias");
             return ALIAS;
         }
     }
@@ -277,20 +269,20 @@ class DummyService extends Server implements StartStop {
 
         @Override
         public X509Certificate[] getAcceptedIssuers() {
-            LOG.debug("getAcceptedIssuers {}", serverCert);
+            log.debug("getAcceptedIssuers {}", serverCert);
             return new X509Certificate[] {serverCert};
         }
 
         @Override
         public void checkClientTrusted(X509Certificate[] certs, String authType)
                 throws CertificateException {
-            LOG.debug("checkClientTrusted");
+            log.debug("checkClientTrusted");
         }
 
         @Override
         public void checkServerTrusted(X509Certificate[] certs, String authType)
                 throws CertificateException {
-            LOG.debug("checkServerTrusted");
+            log.debug("checkServerTrusted");
         }
     }
 }

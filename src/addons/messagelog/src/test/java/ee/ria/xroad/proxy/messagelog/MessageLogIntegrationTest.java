@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
-import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -36,6 +33,9 @@ import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.MimeTypes;
+
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 
 /**
  * Messagelog integration test program.
@@ -97,7 +97,7 @@ public class MessageLogIntegrationTest extends AbstractMessageLogTest {
     static SoapMessageImpl createTestMessage() throws Exception {
         try (InputStream in = new FileInputStream("message.xml")) {
             return (SoapMessageImpl) new SoapParserImpl().parse(
-                    MimeTypes.TEXT_XML_UTF_8, in);
+                    MimeTypes.TEXT_XML_UTF8, in);
         }
     }
 

@@ -22,18 +22,19 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.SoapFault;
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapFault;
 
 /**
  * Convenience base class for proxy HTTP handlers.
@@ -46,12 +47,9 @@ public abstract class HandlerBase extends AbstractHandler {
      * @param ex exception that should be converted to a SOAP fault
      * @throws IOException if an I/O error occurred
      */
-    public static void sendErrorResponse(HttpServletResponse response,
-            CodedException ex) throws IOException {
-
+    public static void sendErrorResponse(HttpServletResponse response, CodedException ex) throws IOException {
         String faultXml = ex instanceof CodedException.Fault
-                ? ((CodedException.Fault) ex).getFaultXml()
-                : SoapFault.createFaultXml(ex);
+                ? ((CodedException.Fault) ex).getFaultXml() : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
         byte[] messageBytes = faultXml.getBytes(encoding);
 
@@ -61,7 +59,6 @@ public abstract class HandlerBase extends AbstractHandler {
         response.setHeader("SOAPAction", "");
         response.setCharacterEncoding(encoding);
         response.getOutputStream().write(messageBytes);
-
     }
 
     /**
@@ -71,11 +68,11 @@ public abstract class HandlerBase extends AbstractHandler {
      * @param message fault message
      * @throws IOException if an I/O error occurred
      */
-    public static void sendPlainTextErrorResponse(HttpServletResponse response,
-            int status, String message) throws IOException {
+    public static void sendPlainTextErrorResponse(HttpServletResponse response, int status, String message)
+            throws IOException {
         byte[] messageBytes = message.getBytes("UTF-8");
         response.setStatus(status);
-        response.setContentType(MimeTypes.TEXT_PLAIN_UTF_8);
+        response.setContentType(MimeTypes.TEXT_PLAIN_UTF8);
         response.setContentLength(messageBytes.length);
         response.getOutputStream().write(messageBytes);
     }
@@ -83,10 +80,9 @@ public abstract class HandlerBase extends AbstractHandler {
     /**
      * Returns the client certificate from the SSL context.
      */
-    protected List<X509Certificate> getClientCertificates(
-            HttpServletRequest request) {
-        Object attribute = request.getAttribute(
-                "javax.servlet.request.X509Certificate");
+    protected List<X509Certificate> getClientCertificates(HttpServletRequest request) {
+        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
+
         if (attribute != null) {
             return Arrays.asList((X509Certificate[]) attribute);
         } else {
@@ -94,7 +90,6 @@ public abstract class HandlerBase extends AbstractHandler {
         }
     }
 
-    protected void failure(HttpServletResponse response, CodedException ex)
-            throws IOException {
+    protected void failure(HttpServletResponse response, CodedException ex) throws IOException {
     }
 }

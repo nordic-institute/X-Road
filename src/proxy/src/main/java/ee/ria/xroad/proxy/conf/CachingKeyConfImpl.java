@@ -114,6 +114,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
     private CachedAuthKeyInfoImpl getAuthKeyInfo() throws Exception {
         SecurityServerId serverId = ServerConf.getIdentifier();
+
         log.debug("Retrieving authentication info for security server '{}'",
                 serverId);
 
@@ -127,6 +128,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
         ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
 
         PrivateKey key = loadAuthPrivateKey(keyInfo);
+
         return new CachedAuthKeyInfoImpl(key, certChain, ocspResponses);
     }
 

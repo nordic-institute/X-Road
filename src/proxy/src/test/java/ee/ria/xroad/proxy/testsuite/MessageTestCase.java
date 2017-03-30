@@ -22,10 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -39,6 +35,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,12 +62,13 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 
 /**
  * Base class for a message test case.
@@ -93,10 +93,10 @@ public class MessageTestCase {
     protected boolean addUtf8BomToRequestFile = false;
     protected boolean addUtf8BomToResponseFile = false;
 
-    protected String requestContentType = MimeUtils.TEXT_XML_UTF8;
+    protected String requestContentType = MimeTypes.TEXT_XML_UTF8;
 
     @Getter
-    protected String responseContentType = MimeUtils.TEXT_XML_UTF8;
+    protected String responseContentType = MimeTypes.TEXT_XML_UTF8;
 
     protected String responseServiceContentType;
 

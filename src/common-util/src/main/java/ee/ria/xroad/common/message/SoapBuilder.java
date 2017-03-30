@@ -31,7 +31,6 @@ import javax.xml.soap.SOAPMessage;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -39,6 +38,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
@@ -98,7 +98,7 @@ public class SoapBuilder {
         validateServiceName(getService().getServiceCode(), serviceName);
 
         return new SoapMessageImpl(SoapUtils.getBytes(soap), charset, header,
-                soap, serviceName, isRpcMessage(soap), MimeTypes.TEXT_XML_UTF_8);
+                soap, serviceName, isRpcMessage(soap), MimeTypes.TEXT_XML_UTF8);
     }
 
     protected void addNamespaces(SOAPMessage soapMessage, boolean rpcEncoded)
