@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.13.0 - 2017-03-30
+- TBD
+
 ## 6.12.0 - 2017-03-13
 - XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness check of the entered security server code when initializing the server.
 - XTE-252 / Joint development issue #53: Security Server: Upgraded embedded Jetty to the version 9.4.2. Due to upgrade SHA1 ciphers are no longer supported for communication between security server and client.
