@@ -30,8 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.eclipse.jetty.http.MimeTypes;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -42,6 +43,7 @@ import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static org.junit.Assert.*;
 
@@ -71,11 +73,9 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessage() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature =
-                new SignatureData(IOUtils.toString(getQuery("signature.xml")),
-                        null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
 
-        encoder.soap(message, new HashMap<String, String>());
+        encoder.soap(message, new HashMap<>());
         encoder.signature(signature);
         encoder.close();
 
@@ -95,13 +95,11 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessageWithOcsp() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature =
-                new SignatureData(IOUtils.toString(getQuery("signature.xml")),
-                        null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
         OCSPResp ocsp = getOcsp("src/test/queries/test.ocsp");
 
         encoder.ocspResponse(ocsp);
-        encoder.soap(message, new HashMap<String, String>());
+        encoder.soap(message, new HashMap<>());
         encoder.signature(signature);
         encoder.close();
 
@@ -121,14 +119,11 @@ public class ProxyMessageEncoderTest {
     @Test
     public void normalMessageWithAttachment() throws Exception {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
-        SignatureData signature =
-                new SignatureData(IOUtils.toString(getQuery("signature.xml")),
-                        null, null);
+        SignatureData signature = new SignatureData(IOUtils.toString(getQuery("signature.xml")), null, null);
 
-        InputStream attachment = new ByteArrayInputStream(
-                "Hello, world!".getBytes(StandardCharsets.UTF_8));
+        InputStream attachment = new ByteArrayInputStream("Hello, world!".getBytes(StandardCharsets.UTF_8));
 
-        encoder.soap(message, new HashMap<String, String>());
+        encoder.soap(message, new HashMap<>());
         encoder.attachment(MimeTypes.TEXT_PLAIN, attachment, null);
         encoder.signature(signature);
         encoder.close();
@@ -166,7 +161,7 @@ public class ProxyMessageEncoderTest {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
         SoapFault fault = createFault(getQuery("fault.query"));
 
-        encoder.soap(message, new HashMap<String, String>());
+        encoder.soap(message, new HashMap<>());
         encoder.fault(fault);
         encoder.close();
 
@@ -179,32 +174,30 @@ public class ProxyMessageEncoderTest {
 
     private ProxyMessage decode() throws Exception {
         ProxyMessage proxyMessage = new ProxyMessage("text/xml");
-        ProxyMessageDecoder decoder =
-                new ProxyMessageDecoder(proxyMessage, encoder.getContentType(),
-                        getHashAlgoId());
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(proxyMessage, encoder.getContentType(), getHashAlgoId());
         decoder.parse(new ByteArrayInputStream(out.toByteArray()));
 
         return proxyMessage;
     }
 
     private static SoapMessageImpl createMessage(InputStream is) throws Exception {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
         }
 
-        throw new RuntimeException(
-                "Unexpected SOAP from parser: " + soap.getClass());
+        throw new RuntimeException("Unexpected SOAP from parser: " + soap.getClass());
     }
 
     private static SoapFault createFault(InputStream is) throws Exception {
-        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
+
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
         }
 
-        throw new RuntimeException(
-                "Unexpected SOAP from parser: " + soap.getClass());
+        throw new RuntimeException("Unexpected SOAP from parser: " + soap.getClass());
     }
 
     private static InputStream getQuery(String fileName) throws Exception {

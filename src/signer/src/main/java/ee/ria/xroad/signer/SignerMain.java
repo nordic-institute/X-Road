@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
@@ -152,7 +153,9 @@ public final class SignerMain {
                     diagnostics = diagnosticsDefault;
                 }
                 try {
-                    JsonUtils.getSerializer().toJson(diagnostics, getParams().response.getWriter());
+                    HttpServletResponse response = getParams().response;
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(diagnostics, response.getWriter());
                 } catch (IOException e) {
                     log.error("Error writing response {}", e);
                 }

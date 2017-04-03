@@ -29,9 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 import javax.servlet.ServletException;
@@ -50,40 +50,34 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 @Slf4j
 public class HealthCheckPort implements StartStop {
 
-    private final Server server = new Server();
-
-    private final int portNumber;
-
-    private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
-
     private static final int SOCKET_MAX_IDLE_MILLIS = 30000;
-    private static final int THREAD_POOL_SIZE = 3;
+    private static final int THREAD_POOL_SIZE = 5;
     private static final int ACCEPTOR_THREAD_COUNT = 1;
+    private static final int SELECTOR_THREAD_COUNT = 1;
     private static final int SO_LINGER = 3;
 
+    private final Server server;
+    private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
+    private final int portNumber;
 
     /**
      * Create a new {@link HealthCheckPort} use the implemented {@link StartStop} interface to start/stop it.
      */
     public HealthCheckPort() {
+        server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
         stoppableHealthCheckProvider = new StoppableCombinationHealthCheckProvider();
         portNumber = SystemProperties.getHealthCheckPort();
         createHealthCheckConnector();
     }
 
     private void createHealthCheckConnector() {
-        SelectChannelConnector connector = new SelectChannelConnector();
 
-        // use minimal resources, this is not supposed to be a resource hog
-
+        ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT);
         connector.setName("HealthCheckPort");
         connector.setHost(SystemProperties.getHealthCheckInterface());
         connector.setPort(portNumber);
-        connector.setMaxIdleTime(SOCKET_MAX_IDLE_MILLIS);
-        connector.setThreadPool(new QueuedThreadPool(THREAD_POOL_SIZE));
+        connector.setIdleTimeout(SOCKET_MAX_IDLE_MILLIS);
         connector.setSoLingerTime(SO_LINGER);
-        connector.setAcceptors(ACCEPTOR_THREAD_COUNT);
-
         server.addConnector(connector);
 
         HandlerCollection handlerCollection = new HandlerCollection();

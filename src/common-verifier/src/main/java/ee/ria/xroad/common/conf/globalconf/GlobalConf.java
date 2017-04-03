@@ -618,6 +618,16 @@ public final class GlobalConf {
     }
 
     /**
+     * @param serverId the security server id
+     * @return true, if the given security server id exists.
+     */
+    public static boolean existsSecurityServer(SecurityServerId serverId) {
+        log.trace("existsSecurityServer({})", serverId);
+
+        return getInstance().existsSecurityServer(serverId);
+    }
+
+    /**
      * @param smallestValue if true the smallest value of all instances
      * should be returned
      * @return time (in seconds) where validity information is considered valid.

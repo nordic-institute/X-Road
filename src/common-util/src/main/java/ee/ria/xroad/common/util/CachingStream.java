@@ -31,14 +31,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import lombok.extern.slf4j.Slf4j;
+
 import ee.ria.xroad.common.DefaultFilepaths;
 import ee.ria.xroad.common.ErrorCodes;
 
 /**
  * Caches stuff in a temporary file.
  */
+@Slf4j
 public class CachingStream extends FilterOutputStream {
     private SeekableByteChannel channel;
+    private Path tempFile;
 
     /**
      * Constructs a new caching stream that caches data in a temporary file.
@@ -48,7 +52,7 @@ public class CachingStream extends FilterOutputStream {
         // Construct the parent class with null stream and replace it later.
         super(null);
 
-        Path tempFile = DefaultFilepaths.createTempFile("tmpattach", null);
+        tempFile = DefaultFilepaths.createTempFile("tmpattach", null);
         channel = Files.newByteChannel(tempFile, StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING,
                 StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE);
@@ -87,4 +91,15 @@ public class CachingStream extends FilterOutputStream {
         }
     }
 
+    /**
+     * Finalize caching stream. Use to avoid file handle leaks.
+     */
+    public void consume() {
+        try {
+            channel.close();
+        } catch (IOException e) {
+            log.warn("Error closing channel of the temporary file '{}'",
+                    tempFile.toString(), e);
+        }
+    }
 }

@@ -52,12 +52,14 @@ class CachedAuthKeyInfoImpl extends AbstractCachedInfo {
     boolean verifyValidity(Date atDate) {
         try {
             log.trace("CachedAuthKeyInfoImpl.verifyValidity date: {}", atDate);
+
             CertChainVerifier verifier = new CertChainVerifier(certChain);
             verifier.verify(ocspResponses, atDate);
+
             return true;
         } catch (Exception e) {
-            log.warn("Cached authentication info failed verification: {}",
-                    e);
+            log.warn("Cached authentication info failed verification: {}", e);
+
             return false;
         }
     }

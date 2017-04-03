@@ -45,11 +45,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -74,17 +73,12 @@ import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
  */
 @Slf4j
 public class SaxSoapParserImpl implements SoapParser {
-    private static final String LEXICAL_HANDLER_PROPERTY =
-            "http://xml.org/sax/properties/lexical-handler";
+    private static final String LEXICAL_HANDLER_PROPERTY = "http://xml.org/sax/properties/lexical-handler";
 
-    private static final String URI_IDENTIFIERS =
-            "http://x-road.eu/xsd/identifiers";
-    private static final String URI_REPRESENTATION =
-            "http://x-road.eu/xsd/representation.xsd";
-    private static final String URI_ENVELOPE =
-            "http://schemas.xmlsoap.org/soap/envelope/";
-    private static final String URI_ENCODING =
-            "http://schemas.xmlsoap.org/soap/encoding/";
+    private static final String URI_IDENTIFIERS = "http://x-road.eu/xsd/identifiers";
+    private static final String URI_REPRESENTATION = "http://x-road.eu/xsd/representation.xsd";
+    private static final String URI_ENVELOPE = "http://schemas.xmlsoap.org/soap/envelope/";
+    private static final String URI_ENCODING = "http://schemas.xmlsoap.org/soap/encoding/";
 
     private static final String ENVELOPE = "Envelope";
     private static final String HEADER = "Header";
@@ -120,76 +114,51 @@ public class SaxSoapParserImpl implements SoapParser {
     protected static final String ATTR_ALGORITHM_ID = "algorithmId";
     protected static final String ATTR_ENCODING_STYLE = "encodingStyle";
 
-    protected static final QName QNAME_SOAP_ENVELOPE =
-            new QName(SoapUtils.NS_SOAPENV, ENVELOPE);
-    protected static final QName QNAME_SOAP_HEADER =
-            new QName(SoapUtils.NS_SOAPENV, HEADER);
-    protected static final QName QNAME_SOAP_BODY =
-            new QName(SoapUtils.NS_SOAPENV, BODY);
-    protected static final QName QNAME_SOAP_FAULT =
-            new QName(SoapUtils.NS_SOAPENV, FAULT);
+    protected static final QName QNAME_SOAP_ENVELOPE = new QName(SoapUtils.NS_SOAPENV, ENVELOPE);
+    protected static final QName QNAME_SOAP_HEADER = new QName(SoapUtils.NS_SOAPENV, HEADER);
+    protected static final QName QNAME_SOAP_BODY = new QName(SoapUtils.NS_SOAPENV, BODY);
+    protected static final QName QNAME_SOAP_FAULT = new QName(SoapUtils.NS_SOAPENV, FAULT);
 
-    protected static final QName QNAME_XROAD_QUERY_ID =
-            new QName(SoapHeader.NS_XROAD, QUERY_ID);
-    protected static final QName QNAME_XROAD_USER_ID =
-            new QName(SoapHeader.NS_XROAD, USER_ID);
-    protected static final QName QNAME_XROAD_ISSUE =
-            new QName(SoapHeader.NS_XROAD, ISSUE);
-    protected static final QName QNAME_REPR_REPRESENTED_PARTY =
-            new QName(SoapHeader.NS_REPR, REPRESENTED_PARTY);
-    protected static final QName QNAME_XROAD_PROTOCOL_VERSION =
-            new QName(SoapHeader.NS_XROAD, PROTOCOL_VERSION);
-    protected static final QName QNAME_XROAD_REQUEST_HASH =
-            new QName(SoapHeader.NS_XROAD, REQUEST_HASH);
-    protected static final QName QNAME_XROAD_CLIENT =
-            new QName(SoapHeader.NS_XROAD, CLIENT);
-    protected static final QName QNAME_XROAD_SERVICE =
-            new QName(SoapHeader.NS_XROAD, SERVICE);
-    protected static final QName QNAME_XROAD_CENTRAL_SERVICE =
-            new QName(SoapHeader.NS_XROAD, CENTRAL_SERVICE);
-    protected static final QName QNAME_XROAD_SECURITY_SERVER =
-            new QName(SoapHeader.NS_XROAD, SECURITY_SERVER);
+    protected static final QName QNAME_XROAD_QUERY_ID = new QName(SoapHeader.NS_XROAD, QUERY_ID);
+    protected static final QName QNAME_XROAD_USER_ID = new QName(SoapHeader.NS_XROAD, USER_ID);
+    protected static final QName QNAME_XROAD_ISSUE = new QName(SoapHeader.NS_XROAD, ISSUE);
+    protected static final QName QNAME_REPR_REPRESENTED_PARTY = new QName(SoapHeader.NS_REPR, REPRESENTED_PARTY);
+    protected static final QName QNAME_XROAD_PROTOCOL_VERSION = new QName(SoapHeader.NS_XROAD, PROTOCOL_VERSION);
+    protected static final QName QNAME_XROAD_REQUEST_HASH = new QName(SoapHeader.NS_XROAD, REQUEST_HASH);
+    protected static final QName QNAME_XROAD_CLIENT = new QName(SoapHeader.NS_XROAD, CLIENT);
+    protected static final QName QNAME_XROAD_SERVICE = new QName(SoapHeader.NS_XROAD, SERVICE);
+    protected static final QName QNAME_XROAD_CENTRAL_SERVICE = new QName(SoapHeader.NS_XROAD, CENTRAL_SERVICE);
+    protected static final QName QNAME_XROAD_SECURITY_SERVER = new QName(SoapHeader.NS_XROAD, SECURITY_SERVER);
 
-    protected static final QName QNAME_ID_INSTANCE =
-            new QName(URI_IDENTIFIERS, INSTANCE);
-    protected static final QName QNAME_ID_MEMBER_CLASS =
-            new QName(URI_IDENTIFIERS, MEMBER_CLASS);
-    protected static final QName QNAME_ID_MEMBER_CODE =
-            new QName(URI_IDENTIFIERS, MEMBER_CODE);
-    protected static final QName QNAME_ID_SUBSYSTEM_CODE =
-            new QName(URI_IDENTIFIERS, SUBSYSTEM_CODE);
-    protected static final QName QNAME_ID_SERVICE_CODE =
-            new QName(URI_IDENTIFIERS, SERVICE_CODE);
-    protected static final QName QNAME_ID_SERVICE_VERSION =
-            new QName(URI_IDENTIFIERS, SERVICE_VERSION);
-    protected static final QName QNAME_ID_SERVER_CODE =
-            new QName(URI_IDENTIFIERS, SERVER_CODE);
+    protected static final QName QNAME_ID_INSTANCE = new QName(URI_IDENTIFIERS, INSTANCE);
+    protected static final QName QNAME_ID_MEMBER_CLASS = new QName(URI_IDENTIFIERS, MEMBER_CLASS);
+    protected static final QName QNAME_ID_MEMBER_CODE = new QName(URI_IDENTIFIERS, MEMBER_CODE);
+    protected static final QName QNAME_ID_SUBSYSTEM_CODE = new QName(URI_IDENTIFIERS, SUBSYSTEM_CODE);
+    protected static final QName QNAME_ID_SERVICE_CODE = new QName(URI_IDENTIFIERS, SERVICE_CODE);
+    protected static final QName QNAME_ID_SERVICE_VERSION = new QName(URI_IDENTIFIERS, SERVICE_VERSION);
+    protected static final QName QNAME_ID_SERVER_CODE = new QName(URI_IDENTIFIERS, SERVER_CODE);
 
-    protected static final QName QNAME_PARTY_CLASS =
-            new QName(URI_REPRESENTATION, PARTY_CLASS);
-    protected static final QName QNAME_PARTY_CODE =
-            new QName(URI_REPRESENTATION, PARTY_CODE);
+    protected static final QName QNAME_PARTY_CLASS = new QName(URI_REPRESENTATION, PARTY_CLASS);
+    protected static final QName QNAME_PARTY_CODE = new QName(URI_REPRESENTATION, PARTY_CODE);
 
-    private static final String MISSING_HEADER_MESSAGE =
-            "Malformed SOAP message: header missing";
-    private static final String MISSING_SERVICE_MESSAGE = "Message header"
-            + " must contain either service id or central service id";
-    private static final String MISSING_HEADER_FIELD_MESSAGE =
-            "Required field '%s' is missing";
-    private static final String DUPLICATE_HEADER_MESSAGE =
-            "SOAP header contains duplicate field '%s'";
-    private static final String MISSING_BODY_MESSAGE =
-            "Malformed SOAP message: body missing";
-    private static final String INVALID_BODY_MESSAGE = "Malformed SOAP"
-            + " message: body must have exactly one child element";
-    private static final String MISSING_ENVELOPE_MESSAGE =
-            "Malformed SOAP message: envelope missing";
+    private static final String MISSING_HEADER_MESSAGE = "Malformed SOAP message: header missing";
+    private static final String MISSING_SERVICE_MESSAGE =
+            "Message header must contain either service id or central service id";
+    private static final String MISSING_HEADER_FIELD_MESSAGE = "Required field '%s' is missing";
+    private static final String DUPLICATE_HEADER_MESSAGE = "SOAP header contains duplicate field '%s'";
+    private static final String MISSING_BODY_MESSAGE = "Malformed SOAP message: body missing";
+    private static final String INVALID_BODY_MESSAGE =
+            "Malformed SOAP message: body must have exactly one child element";
+    private static final String MISSING_ENVELOPE_MESSAGE = "Malformed SOAP message: envelope missing";
 
     private static final char[] CDATA_START = "<![CDATA[".toCharArray();
     private static final char[] CDATA_END = "]]>".toCharArray();
+    private static final char[] COMMENT_START = "<!--".toCharArray();
+    private static final char[] COMMENT_END = "-->".toCharArray();
+    private static final char[] ENTITY_START = {'&'};
+    private static final char[] ENTITY_END = {';'};
 
-    private static final SAXParserFactory PARSER_FACTORY =
-            createSaxParserFactory();
+    private static final SAXParserFactory PARSER_FACTORY = createSaxParserFactory();
 
     @Override
     public Soap parse(String contentType, InputStream is) {
@@ -211,15 +180,13 @@ public class SaxSoapParserImpl implements SoapParser {
         }
     }
 
-    private Soap parseMessage(InputStream is, String mimeType,
-            String contentType, String charset) throws Exception {
+    private Soap parseMessage(InputStream is, String mimeType, String contentType, String charset) throws Exception {
         log.trace("parseMessage({}, {})", mimeType, charset);
 
         ByteArrayOutputStream rawXml = new ByteArrayOutputStream();
         ByteArrayOutputStream processedXml = new ByteArrayOutputStream();
 
-        InputStream proxyStream = excludeUtf8Bom(contentType,
-                new TeeInputStream(is, rawXml));
+        InputStream proxyStream = excludeUtf8Bom(contentType, new TeeInputStream(is, rawXml));
         Writer outputWriter = new OutputStreamWriter(processedXml, charset);
         XRoadSoapHandler handler = handleSoap(outputWriter, proxyStream);
 
@@ -228,8 +195,7 @@ public class SaxSoapParserImpl implements SoapParser {
             return createSoapFault(charset, rawXml, fault);
         }
 
-        byte[] xmlBytes = isProcessedXmlRequired()
-                ? processedXml.toByteArray() : rawXml.toByteArray();
+        byte[] xmlBytes = isProcessedXmlRequired() ? processedXml.toByteArray() : rawXml.toByteArray();
 
         return createSoapMessage(contentType, charset, handler, xmlBytes);
     }
@@ -241,6 +207,9 @@ public class SaxSoapParserImpl implements SoapParser {
             SAXParser saxParser = PARSER_FACTORY.newSAXParser();
             XMLReader xmlReader = saxParser.getXMLReader();
             xmlReader.setProperty(LEXICAL_HANDLER_PROPERTY, handler);
+            // ensure both builtin entities and character entities are reported to the parser
+            xmlReader.setFeature("http://apache.org/xml/features/scanner/notify-char-refs", true);
+            xmlReader.setFeature("http://apache.org/xml/features/scanner/notify-builtin-refs", true);
 
             saxParser.parse(inputStream, handler);
             return handler;
@@ -266,17 +235,12 @@ public class SaxSoapParserImpl implements SoapParser {
     private static SAXParserFactory createSaxParserFactory() {
         SAXParserFactory factory = SAXParserFactory.newInstance();
         factory.setNamespaceAware(true);
-        factory.setFeature("http://xml.org/sax/features/namespace-prefixes",
-                true);
+        factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
         // disable external entity parsing to avoid DOS attacks
         factory.setValidating(false);
-        factory.setFeature(
-                "http://apache.org/xml/features/disallow-doctype-decl", true);
-        factory.setFeature(
-                "http://xml.org/sax/features/external-general-entities", false);
-        factory.setFeature(
-                "http://xml.org/sax/features/external-parameter-entities",
-                false);
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         return factory;
     }
 
@@ -289,41 +253,34 @@ public class SaxSoapParserImpl implements SoapParser {
         return false;
     }
 
-    private InputStream excludeUtf8Bom(String contentType,
-            InputStream soapStream) {
-        return hasUtf8Charset(contentType)
-                ? new BOMInputStream(soapStream) : soapStream;
+    private InputStream excludeUtf8Bom(String contentType, InputStream soapStream) {
+        return hasUtf8Charset(contentType) ? new BOMInputStream(soapStream) : soapStream;
     }
 
     @SneakyThrows
-    protected void writeStartElementXml(String prefix, QName element,
-            Attributes attributes, Writer writer) {
+    protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
         writer.append('<');
         String localName = element.getLocalPart();
-        String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":"
-                + localName;
+        String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":" + localName;
         writer.append(tag);
         for (int i = 0; i < attributes.getLength(); i++) {
-            writer.append(String.format(" %s=\"%s\"", attributes.getQName(i),
-                    attributes.getValue(i)));
+            String escapedAttrValue = StringEscapeUtils.escapeXml11(attributes.getValue(i));
+            writer.append(String.format(" %s=\"%s\"", attributes.getQName(i), escapedAttrValue));
         }
         writer.append('>');
     }
 
     @SneakyThrows
-    protected void writeEndElementXml(String prefix, QName element,
-            Attributes attributes, Writer writer) {
+    protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
         writer.append("</");
         String localName = element.getLocalPart();
-        String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":"
-                + localName;
+        String tag = StringUtils.isEmpty(prefix) ? localName : prefix + ":" + localName;
         writer.append(tag);
         writer.append('>');
     }
 
     @SneakyThrows
-    protected void writeCharactersXml(char[] characters, int start, int length,
-            Writer writer) {
+    protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
         writer.write(characters, start, length);
     }
 
@@ -335,10 +292,11 @@ public class SaxSoapParserImpl implements SoapParser {
     private class XRoadSoapHandler extends DefaultHandler2 {
         private static final String NAMESPACE_PREFIX_SEPARATOR = ":";
 
-        private static final String XML_VERSION_ENCODING =
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
+        private static final String XML_VERSION_ENCODING = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
         private final BufferedWriter out;
+
+        private char[] xmlEntity;
 
         private Stack<XmlElementHandler> elementHandlers = new Stack<>();
 
@@ -348,8 +306,7 @@ public class SaxSoapParserImpl implements SoapParser {
         private SoapHeader header;
 
         public String getServiceName() {
-            return envelopeHandler != null
-                    ? envelopeHandler.getServiceName() : null;
+            return envelopeHandler != null ? envelopeHandler.getServiceName() : null;
         }
 
         public boolean isRpc() {
@@ -379,8 +336,7 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName,
-                Attributes attributes) {
+        public void startElement(String uri, String localName, String qName, Attributes attributes) {
             QName element = new QName(uri, localName);
 
             if (elementHandlers.isEmpty()) {
@@ -396,8 +352,7 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         private void handleElement(Attributes attributes, QName element) {
-            XmlElementHandler elementHandler = elementHandlers.peek()
-                    .getChildElementHandler(element);
+            XmlElementHandler elementHandler = elementHandlers.peek().getChildElementHandler(element);
             elementHandler.setAttributes(attributes);
             elementHandler.openTag();
             elementHandlers.push(elementHandler);
@@ -405,24 +360,47 @@ public class SaxSoapParserImpl implements SoapParser {
 
         private void handleRootElement(Attributes attributes, QName element) {
             if (element.equals(QNAME_SOAP_ENVELOPE)) {
-                envelopeHandler = new SoapEnvelopeHandler(
-                        getSoapHeaderHandler(header));
+                envelopeHandler = new SoapEnvelopeHandler(getSoapHeaderHandler(header));
                 envelopeHandler.setAttributes(attributes);
                 envelopeHandler.openTag();
                 elementHandlers.push(envelopeHandler);
             } else {
-                throw new CodedException(X_INVALID_SOAP,
-                        MISSING_ENVELOPE_MESSAGE);
+                throw new CodedException(X_INVALID_SOAP, MISSING_ENVELOPE_MESSAGE);
             }
         }
 
         @Override
         public void characters(char[] ch, int start, int length) {
+
             XmlElementHandler elementParser = elementHandlers.peek();
             elementParser.characters(ch, start, length);
 
             if (isProcessedXmlRequired()) {
+                // Make sure XML entities are not resolved in processed XML
+                if (xmlEntity != null) {
+                    writeCharactersXml(ENTITY_START, 0, 1, out);
+                    writeCharactersXml(xmlEntity, 0, xmlEntity.length, out);
+                    writeCharactersXml(ENTITY_END, 0, 1, out);
+                    xmlEntity = null;
+                } else {
+                    writeCharactersXml(ch, start, length, out);
+                }
+            }
+        }
+
+        @Override
+        public void comment(char[] ch, int start, int length) {
+            if (isProcessedXmlRequired()) {
+                writeCharactersXml(COMMENT_START, 0, COMMENT_START.length, out);
                 writeCharactersXml(ch, start, length, out);
+                writeCharactersXml(COMMENT_END, 0, COMMENT_END.length, out);
+            }
+        }
+
+        @Override
+        public void startEntity(String name) {
+            if (isProcessedXmlRequired()) {
+                xmlEntity = name.toCharArray();
             }
         }
 
@@ -486,8 +464,7 @@ public class SaxSoapParserImpl implements SoapParser {
         private String findNamespacePrefix(String qName) {
             String prefix = "";
             if (qName.contains(NAMESPACE_PREFIX_SEPARATOR)) {
-                prefix = qName.substring(0, qName.indexOf(
-                        NAMESPACE_PREFIX_SEPARATOR));
+                prefix = qName.substring(0, qName.indexOf(NAMESPACE_PREFIX_SEPARATOR));
             }
             return prefix;
         }
@@ -496,8 +473,7 @@ public class SaxSoapParserImpl implements SoapParser {
     private static void validateDuplicateHeader(QName qName,
             Object existing) {
         if (existing != null) {
-            throw new CodedException(X_DUPLICATE_HEADER_FIELD,
-                    DUPLICATE_HEADER_MESSAGE, qName);
+            throw new CodedException(X_DUPLICATE_HEADER_FIELD, DUPLICATE_HEADER_MESSAGE, qName);
         }
     }
 
@@ -570,8 +546,7 @@ public class SaxSoapParserImpl implements SoapParser {
          * @param stringValueHandler the function that will be applied
          * @return the created element handler
          */
-        public static XmlElementHandler createValueElementHandler(
-                Consumer<String> stringValueHandler) {
+        public static XmlElementHandler createValueElementHandler(Consumer<String> stringValueHandler) {
             return new XmlElementHandler() {
                 @Override
                 protected void value(String val) {
@@ -609,14 +584,12 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         public String getServiceName() {
-            return bodyHandler != null
-                    ? bodyHandler.getServiceName() : null;
+            return bodyHandler != null ? bodyHandler.getServiceName() : null;
         }
 
         @Override
         protected void openTag() {
-            rpc = URI_ENCODING.equals(getAttributes().getValue(URI_ENVELOPE,
-                    ATTR_ENCODING_STYLE));
+            rpc = URI_ENCODING.equals(getAttributes().getValue(URI_ENVELOPE, ATTR_ENCODING_STYLE));
         }
 
         @Override
@@ -640,8 +613,7 @@ public class SaxSoapParserImpl implements SoapParser {
 
         private void validateHeader() {
             if (!headerHandler.isFinished()) {
-                throw new CodedException(X_MISSING_HEADER,
-                        MISSING_HEADER_MESSAGE);
+                throw new CodedException(X_MISSING_HEADER, MISSING_HEADER_MESSAGE);
             }
             SoapHeader header = headerHandler.getHeader();
             if (header.getProtocolVersion() == null) {
@@ -654,34 +626,28 @@ public class SaxSoapParserImpl implements SoapParser {
                 onMissingRequiredField(QUERY_ID);
             }
             if (getService() == null) {
-                throw new CodedException(X_MISSING_HEADER_FIELD,
-                        MISSING_SERVICE_MESSAGE);
+                throw new CodedException(X_MISSING_HEADER_FIELD, MISSING_SERVICE_MESSAGE);
             }
         }
 
         private void onMissingRequiredField(String fieldName) {
-            throw new CodedException(X_MISSING_HEADER_FIELD,
-                    MISSING_HEADER_FIELD_MESSAGE, fieldName);
+            throw new CodedException(X_MISSING_HEADER_FIELD, MISSING_HEADER_FIELD_MESSAGE, fieldName);
         }
 
         private void validateBody() {
             if (bodyHandler == null) {
-                throw new CodedException(X_MISSING_BODY,
-                        MISSING_BODY_MESSAGE);
+                throw new CodedException(X_MISSING_BODY, MISSING_BODY_MESSAGE);
             }
             if (getServiceName() == null) {
-                throw new CodedException(X_INVALID_BODY,
-                        INVALID_BODY_MESSAGE);
+                throw new CodedException(X_INVALID_BODY, INVALID_BODY_MESSAGE);
             }
             ServiceId service = getService();
-            SoapUtils.validateServiceName(service.getServiceCode(),
-                    getServiceName());
+            SoapUtils.validateServiceName(service.getServiceCode(), getServiceName());
         }
 
         private ServiceId getService() {
             SoapHeader header = headerHandler.getHeader();
-            ServiceId service = header.getService() != null
-                    ? header.getService() : header.getCentralService();
+            ServiceId service = header.getService() != null ? header.getService() : header.getCentralService();
             return service;
         }
 
@@ -762,16 +728,13 @@ public class SaxSoapParserImpl implements SoapParser {
                 return new XRoadServiceHeaderHandler(this::onService);
             } else if (element.equals(QNAME_REPR_REPRESENTED_PARTY)) {
                 validateDuplicateHeader(element, header.getRepresentedParty());
-                return new XRoadRepresentedPartyHeaderHandler(
-                        this::onRepresentedParty);
+                return new XRoadRepresentedPartyHeaderHandler(this::onRepresentedParty);
             } else if (element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
                 validateDuplicateHeader(element, header.getService());
-                return new XRoadCentralServiceHeaderHandler(
-                        this::onCentralService);
+                return new XRoadCentralServiceHeaderHandler(this::onCentralService);
             } else if (element.equals(QNAME_XROAD_SECURITY_SERVER)) {
                 validateDuplicateHeader(element, header.getSecurityServer());
-                return new XRoadSecurityServerHeaderHandler(
-                        this::onSecurityServer);
+                return new XRoadSecurityServerHeaderHandler(this::onSecurityServer);
             } else if (element.equals(QNAME_XROAD_REQUEST_HASH)) {
                 validateDuplicateHeader(element, header.getRequestHash());
                 return new XRoadRequestHashElementHandler();
@@ -811,8 +774,7 @@ public class SaxSoapParserImpl implements SoapParser {
      * by the getAllowedChildElements method.
      */
     @RequiredArgsConstructor
-    private abstract static class XRoadIdentifierHeaderHandler
-    extends XmlElementHandler {
+    private abstract static class XRoadIdentifierHeaderHandler extends XmlElementHandler {
         private final List<XRoadObjectType> expected;
 
         private Map<QName, String> identifierValues = new HashMap<>();
@@ -829,8 +791,7 @@ public class SaxSoapParserImpl implements SoapParser {
         public void openTag() {
             XRoadObjectType objectType = getObjectType();
             if (!expected.contains(objectType)) {
-                throw new CodedException(X_INVALID_XML,
-                        "Unexpected objectType: %s", objectType);
+                throw new CodedException(X_INVALID_XML, "Unexpected objectType: %s", objectType);
             }
         }
 
@@ -861,18 +822,15 @@ public class SaxSoapParserImpl implements SoapParser {
         }
 
         private XRoadObjectType getObjectType() {
-            String objectType = getAttributes().getValue(URI_IDENTIFIERS,
-                    ATTR_OBJECT_TYPE);
+            String objectType = getAttributes().getValue(URI_IDENTIFIERS, ATTR_OBJECT_TYPE);
             if (objectType == null) {
-                throw new CodedException(X_INVALID_XML,
-                        "Missing objectType attribute");
+                throw new CodedException(X_INVALID_XML, "Missing objectType attribute");
             }
 
             try {
                 return XRoadObjectType.valueOf(objectType);
             } catch (IllegalArgumentException e) {
-                throw new CodedException(X_INVALID_XML,
-                        "Unknown objectType: %s", objectType);
+                throw new CodedException(X_INVALID_XML, "Unknown objectType: %s", objectType);
             }
         }
     }
@@ -889,8 +847,7 @@ public class SaxSoapParserImpl implements SoapParser {
         private final Consumer<ClientId> onClientCallback;
 
         XRoadClientHeaderHandler(Consumer<ClientId> callback) {
-            super(Arrays.asList(XRoadObjectType.MEMBER,
-                    XRoadObjectType.SUBSYSTEM));
+            super(Arrays.asList(XRoadObjectType.MEMBER, XRoadObjectType.SUBSYSTEM));
             this.onClientCallback = callback;
         }
 
@@ -1088,8 +1045,7 @@ public class SaxSoapParserImpl implements SoapParser {
                 // If one body element has already been closed then we know
                 // it's name to be the service name and expect no more top
                 // level elements in the body
-                throw new CodedException(X_INVALID_BODY,
-                        INVALID_BODY_MESSAGE);
+                throw new CodedException(X_INVALID_BODY, INVALID_BODY_MESSAGE);
             }
             return super.getChildElementHandler(element);
         }
@@ -1124,14 +1080,11 @@ public class SaxSoapParserImpl implements SoapParser {
         @Override
         protected XmlElementHandler getChildElementHandler(QName element) {
             if (element.getLocalPart().equals(FAULT_CODE)) {
-                return createValueElementHandler(
-                        val -> faultCode = val);
+                return createValueElementHandler(val -> faultCode = val);
             } else if (element.getLocalPart().equals(FAULT_STRING)) {
-                return createValueElementHandler(
-                        val -> faultString = val);
+                return createValueElementHandler(val -> faultString = val);
             } else if (element.getLocalPart().equals(FAULT_ACTOR)) {
-                return createValueElementHandler(
-                        val -> faultActor = val);
+                return createValueElementHandler(val -> faultActor = val);
             } else if (element.getLocalPart().equals(FAULT_DETAIL)) {
                 return createFaultDetailHandler();
             }
@@ -1141,11 +1094,9 @@ public class SaxSoapParserImpl implements SoapParser {
         private XmlElementHandler createFaultDetailHandler() {
             return new XmlElementHandler() {
                 @Override
-                protected XmlElementHandler getChildElementHandler(
-                        QName element) {
+                protected XmlElementHandler getChildElementHandler(QName element) {
                     if (element.getLocalPart().equals(DETAIL)) {
-                        return createValueElementHandler(
-                                val -> faultDetail = val);
+                        return createValueElementHandler(val -> faultDetail = val);
                     }
                     return super.getChildElementHandler(element);
                 }

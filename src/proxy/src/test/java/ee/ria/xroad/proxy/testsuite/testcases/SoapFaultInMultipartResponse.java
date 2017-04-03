@@ -25,32 +25,38 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-
 /**
- * Client sends normal request, server responds with invalid content type.
- * Result: SP sends error
+ * Request message with MTOM content, should receive the specific Fault message as a response and not a generic one.
  */
-public class NonUtf8ResponseContentType extends MessageTestCase {
+public class SoapFaultInMultipartResponse extends MessageTestCase {
 
     /**
      * Constructs the test case.
      */
-    public NonUtf8ResponseContentType() {
-        requestFileName = "getstate.query";
+    public SoapFaultInMultipartResponse() {
+        requestContentType = "Multipart/Related; "
+                + "start-info=\"application/soap+xml\"; "
+                + "type=\"application/xop+xml\"; "
+                + "boundary=\"jetty771207119h3h10dty\"";
+        requestFileName = "soapfault-mtom.query";
 
-        responseFile = "getstate-iso88591.answer";
-        responseContentType = TEXT_XML;
-
-        responseServiceContentType =
-                contentTypeWithCharset(TEXT_XML, ISO_8859_1.name());
-
-        // Currently the 'getstate.answer' contains different encoding -- should this be an error?
+        responseContentType = "Multipart/Related; "
+                + "start-info=\"application/soap+xml\"; "
+                + "type=\"application/xop+xml\"; "
+                + "boundary=\"jetty771207119h3h10dty\";charset=UTF-8";
+        responseFile = "soapfault-mtom.answer";
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse) {
+    protected void validateFaultResponse(Message receivedResponse) throws Exception {
+
+            if (!receivedResponse.getSoap().getXml()
+                    .contains("<error>Unable to create payload, try increasing the size</error>")) {
+                throw new Exception(
+                        "The Soap fault in the multipart message was not returned");
+            }
+
+
+
     }
 }
