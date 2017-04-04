@@ -51,10 +51,10 @@ import static javax.servlet.http.HttpServletResponse.SC_OK;
 public class HealthCheckPort implements StartStop {
 
     private static final int SOCKET_MAX_IDLE_MILLIS = 30000;
-    private static final int THREAD_POOL_SIZE = 5;
+    private static final int THREAD_POOL_SIZE = 8;
     private static final int ACCEPTOR_THREAD_COUNT = 1;
     private static final int SELECTOR_THREAD_COUNT = 1;
-    private static final int SO_LINGER = 3;
+    private static final int SO_LINGER = -1; //disable linger
 
     private final Server server;
     private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
