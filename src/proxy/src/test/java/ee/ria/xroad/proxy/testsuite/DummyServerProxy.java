@@ -22,15 +22,8 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.util.StartStop;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -39,8 +32,13 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.util.StartStop;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 
 import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
@@ -67,8 +65,8 @@ class DummyServerProxy extends Server implements StartStop {
             log.debug("Proxy simulator received request {}, contentType={}",
                     target, request.getContentType());
 
-            response.addHeader(
-                    HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
+            response.addHeader("Connection", "close");
+            response.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
             // check if the test case implements custom service response
             AbstractHandler handler = currentTestCase().getServerProxyHandler();
