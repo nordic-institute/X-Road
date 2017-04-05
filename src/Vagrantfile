@@ -6,6 +6,8 @@ file_to_disk = './tmp/large_disk.vdi'
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/xenial64"
   config.vm.network "private_network", :ip => '10.122.151.3', :adapter => 2
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "../", "/hostX-Road"
 
   config.vm.provider "virtualbox" do |vb|
      # Display the VirtualBox GUI when booting the machine
@@ -13,7 +15,7 @@ Vagrant.configure("2") do |config|
   
      # Minimun what development environment will need.
      # Customize the amount of memory on the VM:
-     vb.memory = "6144"
+     vb.memory = "8192"
      unless File.exist?(file_to_disk)
        vb.customize [
          'createhd',
