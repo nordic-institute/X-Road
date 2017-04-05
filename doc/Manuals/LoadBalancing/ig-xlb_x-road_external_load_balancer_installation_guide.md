@@ -354,6 +354,15 @@ Server: Jetty(8.y.z-SNAPSHOT)
 Fetching health check response timed out for: Authentication key OCSP status
 ```
 
+### 3.5 Disabling support for client-side pooled connections (HTTP connection reuse)
+
+Below is a configuration snippet that should be added in the `proxy` section in `/etc/xroad/conf.d/local.ini` on the master in order to disable client-side HTTP connection reuse (also known as persistent connections or "connection keep-alive"). Because the load balancing works at TCP level, disabling connection reuse is recommended so that the load balancer can evenly distribute the traffic. 
+
+```
+[proxy]
+server-support-clients-pooled-connections=false
+```
+
 Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 ## 4. Database replication setup
