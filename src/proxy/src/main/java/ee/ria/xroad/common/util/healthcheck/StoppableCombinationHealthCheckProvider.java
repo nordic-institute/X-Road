@@ -86,6 +86,7 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
             try {
                 return future.get(timeoutAfter, timeUnit);
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 String msg = String.format("Fetching health check response was interrupted for for: %s",
                         healthCheckNameForErrorReporting);
                 log.info(msg);
@@ -119,6 +120,7 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
             final int timeout = 5;
             executorService.awaitTermination(timeout, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             log.info("Got interrupted while waiting for executor service to shut down");
         } finally {
             executorService.shutdownNow();
