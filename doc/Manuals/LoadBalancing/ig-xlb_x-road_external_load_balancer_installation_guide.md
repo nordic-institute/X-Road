@@ -12,47 +12,45 @@ Doc. ID: IG-XLB
 ## Table of Contents
 
 <!-- toc -->
-
-- [License](#license)
-- [1. Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 References](#12-references)
-- [2. Overview](#2-overview)
-  * [2.1 Goals and assumptions](#21-goals-and-assumptions)
-  * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
-  * [2.3 State replication from the master to the slaves](#23-state-replication-from-the-master-to-the-slaves)
-    + [2.3.1 Replicated state](#231-replicated-state)
-        * [2.3.1.1 `serverconf` database replication](#2311-serverconf-database-replication)
-        * [2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`](#2312-key-configuration-and-software-token-replication-from-etcxroadsigner)
-        * [2.3.1.3 Other server configuration parameters from `/etc/xroad/*`](#2313-other-server-configuration-parameters-from-etcxroad)
-    + [2.3.2 Non-replicated state](#232-non-replicated-state)
-        * [2.3.2.1 `messagelog` database: not replicated](#2321-messagelog-database-not-replicated)
-        * [2.3.2.2 OCSP responses from `/var/cache/xroad/`: not replicated](#2322-ocsp-responses-from-varcachexroad-not-replicated)
-- [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Master installation](#32-master-installation)
-  * [3.3 Slave installation](#33-slave-installation)
-  * [3.4 Health check service configuration](#34-health-check-service-configuration)
-    + [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
-    + [3.4.2 Health check examples](#342-health-check-examples)
-- [4. Database replication setup](#4-database-replication-setup)
-  * [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
-  * [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
-    + [4.2.1 on RHEL](#421-on-rhel)
-    + [4.2.2 on Ubuntu](#422-on-ubuntu)
-  * [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication)
-  * [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)
-- [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
-  * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
-  * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
-    + [5.2.1 RHEL: Use `systemd` for configuration synchronization](#521-rhel-use-systemd-for-configuration-synchronization)
-    + [5.2.2 Ubuntu: Use upstart and cron for configuration synchronization](#522-ubuntu-use-upstart-and-cron-for-configuration-synchronization)
-  * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
-- [6. Verifying the setup](#6-verifying-the-setup)
-  * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
-  * [6.2 Verifying database replication](#62-verifying-database-replication)
-  * [6.3 Verifying replication from the admin user interface](#63-verifying-replication-from-the-admin-user-interface)
-
+* [License](#license)
+* [1. Introduction](#1-introduction)
+    * [1.1 Target Audience](#11-target-audience)
+    * [1.2 References](#12-references)
+* [2. Overview](#2-overview)
+    * [2.1 Goals and assumptions](#21-goals-and-assumptions)
+    * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
+    * [2.3 State replication from the master to the slaves](#23-state-replication-from-the-master-to-the-slaves)
+        * [2.3.1 Replicated state](#231-replicated-state)
+            * [2.3.1.1 `serverconf` database replication](#2311-serverconf-database-replication)
+            * [2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`](#2312-key-configuration-and-software-token-replication-from-etcxroadsigner)
+            * [2.3.1.3 Other server configuration parameters from `/etc/xroad/*`](#2313-other-server-configuration-parameters-from-etcxroad)
+        * [2.3.2 Non-replicated state](#232-non-replicated-state)
+            * [2.3.2.1 `messagelog` database](#2321-messagelog-database)
+            * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
+* [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
+    * [3.1 Prerequisites](#31-prerequisites)
+    * [3.2 Master installation](#32-master-installation)
+    * [3.3 Slave installation](#33-slave-installation)
+    * [3.4 Health check service configuration](#34-health-check-service-configuration)
+        * [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
+        * [3.4.2 Health check examples](#342-health-check-examples)
+* [4. Database replication setup](#4-database-replication-setup)
+    * [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
+    * [4.2 Creating a separate PostgreSQL instance for the `serverconf` database](#42-creating-a-separate-postgresql-instance-for-the-serverconf-database)
+        * [4.2.1 on RHEL](#421-on-rhel)
+        * [4.2.2 on Ubuntu](#422-on-ubuntu)
+    * [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication)
+    * [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)
+* [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
+    * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
+    * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
+        * [5.2.1 RHEL: Use systemd for configuration synchronization](#521-rhel-use-systemd-for-configuration-synchronization)
+        * [5.2.2 Ubuntu: Use upstart and cron for configuration synchronization](#522-ubuntu-use-upstart-and-cron-for-configuration-synchronization)
+    * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
+* [6. Verifying the setup](#6-verifying-the-setup)
+    * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
+    * [6.2 Verifying database replication](#62-verifying-database-replication)
+    * [6.3 Verifying replication from the admin user interface](#63-verifying-replication-from-the-admin-user-interface)
 <!-- tocstop -->
 
 ## License
@@ -189,7 +187,7 @@ The following configurations are excluded from replication:
 
 #### 2.3.2 Non-replicated state
 
-###### 2.3.2.1 `messagelog` database: not replicated
+###### 2.3.2.1 `messagelog` database
 
 The messagelog database is not replicated. Each node has its own separate messagelog database. **However**, in order to
 support PostgreSQL streaming replication (hot standby mode) for the serverconf data, the serverconf and messagelog
@@ -198,7 +196,7 @@ for the messagelog database) and has some implications on the security server re
 instance uses some memory.
 
 
-###### 2.3.2.2 OCSP responses from `/var/cache/xroad/`: not replicated
+###### 2.3.2.2 OCSP responses from `/var/cache/xroad/`
 
 The OCSP responses are currently not replicated. Replicating them could make the cluster more fault tolerant but the
 replication cannot simultaneously create a single point of failure. A distributed cache could be used for the responses.
@@ -235,12 +233,19 @@ In order to properly set up the data replication, the slave nodes must be able t
    * Additionally, `rssh` shell can be used to to restrict slave access further, but note that it is not available on RHEL.
 
 7. Configure the node type as `master` in `/etc/xroad/conf.d/node.ini`:
-      ```bash
+      ```
       [node]
       type=master
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
-8. Start the X-Road services.
+8. Disable support for client-side pooled connections (HTTP connection persistence) in `/etc/xroad/conf.d/local.ini`
+    * Because the load balancing works at TCP level, disabling persistent HTTP connections is recommended so that the load balancer can evenly distribute the traffic. 
+
+      ```
+      [proxy]
+      server-support-clients-pooled-connections=false
+      ```
+9. Start the X-Road services.
 
 
 ### 3.3 Slave installation
@@ -354,14 +359,6 @@ Server: Jetty(8.y.z-SNAPSHOT)
 Fetching health check response timed out for: Authentication key OCSP status
 ```
 
-### 3.5 Disabling support for client-side pooled connections (HTTP connection reuse)
-
-Below is a configuration snippet that should be added in the `proxy` section in `/etc/xroad/conf.d/local.ini` on the master in order to disable client-side HTTP connection reuse (also known as persistent connections or "connection keep-alive"). Because the load balancing works at TCP level, disabling connection reuse is recommended so that the load balancer can evenly distribute the traffic. 
-
-```
-[proxy]
-server-support-clients-pooled-connections=false
-```
 
 Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
@@ -552,9 +549,9 @@ Go to the postgresql data directory:
 
 Clear the data directory:
 
- ```bash
+```bash
  rm -rf *
- ```
+```
 
 Then, do a base backup with `pg_basebackup`:
 ```bash
@@ -614,6 +611,7 @@ Note that on Ubuntu, the command starts all configured database instances.
 ## 5. Configuring data replication with rsync over SSH
 
 ### 5.1 Set up SSH between slaves and the master
+
 On the master, set up a system user that can read `/etc/xroad`. A system user has their password disabled and can not log
 in normally.
 
@@ -628,11 +626,10 @@ adduser --system --ingroup xroad xroad-slave
 useradd -r -m -g xroad xroad-slave
 ```
 
-
 Create an `.ssh` folder and the authorized keys file:
 ```bash
 sudo mkdir -m 755 -p /home/xroad-slave/.ssh && sudo touch /home/xroad-slave/.ssh/authorized_keys
- ```
+```
 **Warning:**  The owner of the file should be `root` and `xroad-slave` should not have write permission to the file.
 
 On the slave nodes, create an ssh key (`ssh-keygen`) without a passphrase for the `xroad` user and add the public keys in
@@ -649,11 +646,12 @@ there will be a small delay before the services are started.
 > Note that only modifications to the signer keyconf will be applied when the system is running. Changes to any other
 configuration files,  like `local.ini`, require restarting the services, which is not automatic.
 
-#### 5.2.1 RHEL: Use `systemd` for configuration synchronization
+#### 5.2.1 RHEL: Use systemd for configuration synchronization
 
 First, add `xroad-sync` as a `systemd` service.
 
 Create a new file `/etc/systemd/system/xroad-sync.service`:
+
 ```
 [Unit]
 Description=X-Road Sync Task
