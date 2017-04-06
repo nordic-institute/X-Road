@@ -22,12 +22,11 @@
  */
 package ee.ria.xroad.common.message;
 
-import javax.xml.soap.SOAPFault;
-
+import ee.ria.xroad.common.CodedException;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import ee.ria.xroad.common.CodedException;
+import javax.xml.soap.SOAPFault;
 
 /**
  * Soap interface implementation representing an error message.
@@ -55,7 +54,7 @@ public class SoapFault implements Soap {
      * @param charset the charset of the XML
      */
     public SoapFault(String faultCode, String faultString, String faultActor,
-            String faultDetail, byte[] rawXml, String charset) {
+                     String faultDetail, byte[] rawXml, String charset) {
         this.faultCode = faultCode;
         this.faultString = faultString;
         this.faultActor = faultActor;
@@ -162,27 +161,27 @@ public class SoapFault implements Soap {
      * @return a String containing XML of the SOAP fault represented by the given parameters
      */
     public static String createFaultXml(String faultCode, String faultString,
-            String faultActor, String detail) {
+                                        String faultActor, String detail) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<SOAP-ENV:Envelope "
-                    + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\">"
-                    + "<SOAP-ENV:Body>"
-                        + "<SOAP-ENV:Fault>"
-                            + "<faultcode>" + faultCode + "</faultcode>"
-                            + "<faultstring>"
-                            + StringEscapeUtils.escapeXml(faultString)
-                            + "</faultstring>"
-                            + (faultActor != null
-                             ? "<faultactor>"
-                                     + StringEscapeUtils.escapeXml(faultActor)
-                                     + "</faultactor>" : "")
-                                     + (detail != null
-                             ? "<detail><faultDetail xmlns=\"\">"
-                                     + StringEscapeUtils.escapeXml(detail)
-                                 + "</faultDetail>" + "</detail>" : "")
-                         + "</SOAP-ENV:Fault>"
-                     + "</SOAP-ENV:Body>"
-                 + "</SOAP-ENV:Envelope>";
+                + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\">"
+                + "<SOAP-ENV:Body>"
+                + "<SOAP-ENV:Fault>"
+                + "<faultcode>" + faultCode + "</faultcode>"
+                + "<faultstring>"
+                + StringEscapeUtils.escapeXml(faultString)
+                + "</faultstring>"
+                + (faultActor != null
+                ? "<faultactor>"
+                + StringEscapeUtils.escapeXml(faultActor)
+                + "</faultactor>" : "")
+                + (detail != null
+                ? "<detail><faultDetail xmlns=\"\">"
+                + StringEscapeUtils.escapeXml(detail)
+                + "</faultDetail>" + "</detail>" : "")
+                + "</SOAP-ENV:Fault>"
+                + "</SOAP-ENV:Body>"
+                + "</SOAP-ENV:Envelope>";
     }
 
     private static String getFaultDetail(SOAPFault soapFault) {

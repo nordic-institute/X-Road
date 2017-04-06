@@ -25,7 +25,8 @@ package ee.ria.xroad.confproxy;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.protocol.SignerClient;
@@ -58,10 +59,11 @@ public final class ConfProxyTest {
 
             ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
             ConfProxyHelper.purgeOutdatedGenerations(conf);
-            ConfigurationDirectory confDir = new ConfigurationDirectory(
-                    conf.getConfigurationDownloadPath());
+            ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
+                    conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
 
-            OutputBuilder output = new OutputBuilder(confDir, conf);
+            OutputBuilder output = new OutputBuilder(confDir, conf,
+                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
             output.buildSignedDirectory();
             output.moveAndCleanup();
         } catch (Exception ex) {

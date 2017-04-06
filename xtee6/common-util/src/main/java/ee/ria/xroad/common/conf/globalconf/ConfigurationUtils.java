@@ -22,10 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.net.URLEncoder;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
  * Utility methods for configuration directory.
@@ -47,10 +48,20 @@ public final class ConfigurationUtils {
      * Formats the instance identifier to a form suitable for directory names.
      * @param instanceIdentifier the instance identifier
      * @return escaped string
-     * @throws Exception if an error occurs while encoding the input
      */
-    public static String escapeInstanceIdentifier(String instanceIdentifier)
-            throws Exception {
-        return URLEncoder.encode(instanceIdentifier, "UTF-8");
+    public static String escapeInstanceIdentifier(String instanceIdentifier) {
+        try {
+            return URLEncoder.encode(instanceIdentifier, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            //IGNORE, UTF-8 is always available
+            return null;
+        }
+    }
+
+    /**
+     * Generates configuration location with version number
+     */
+    public static String generateConfigurationLocation(String base, int version) {
+        return String.format("%s?version=%d", base, version);
     }
 }

@@ -8,7 +8,8 @@ dependencies {
     compile project(':signer-protocol')
 
     compile 'org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016'
-    compile 'org.kohsuke:libpam4j:1.7'
+    compile 'org.kohsuke:libpam4j:1.8'
+    compile 'net.java.dev.jna:jna:4.2.2'
 
     testCompile project(':common-test')
     testCompile project(':common-util').sourceSets.test.output
@@ -27,6 +28,11 @@ task checkRubySource(type: Exec) {
 sass {
     sassDir = "public/stylesheets/scss/"
     cssDir = "public/stylesheets"
+}
+
+/* Some tests depend on English strings */
+test {
+    environment "LANGUAGE", "en"
 }
 
 check.dependsOn checkRubySource

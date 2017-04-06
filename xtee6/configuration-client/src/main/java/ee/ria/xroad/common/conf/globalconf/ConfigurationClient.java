@@ -22,23 +22,19 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
-
-import java.io.FileNotFoundException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 
 /**
  * Configuration client downloads the configuration from sources found in the
@@ -54,13 +50,15 @@ class ConfigurationClient {
 
     private final DownloadedFiles downloadedFiles;
     private final ConfigurationDownloader downloader;
+    private final int version;
 
-    private ConfigurationAnchor configurationAnchor;
+    private ConfigurationSource configurationAnchor;
 
     synchronized void execute() throws Exception {
-        log.trace("Configuration client executing...");
+        log.debug("Configuration client executing...");
 
         if (configurationAnchor == null || configurationAnchor.hasChanged()) {
+            log.debug("Initializing configuration anchor");
             initConfigurationAnchor();
         }
 
@@ -89,7 +87,11 @@ class ConfigurationClient {
         }
 
         try {
-            configurationAnchor = new ConfigurationAnchor(anchorFileName);
+            if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+                configurationAnchor = new ConfigurationAnchorV1(anchorFileName);
+            } else {
+                configurationAnchor = new ConfigurationAnchorV2(anchorFileName);
+            }
         } catch (Exception e) {
             String message = String.format(
                     "Failed to load configuration anchor from file %s",
@@ -117,8 +119,8 @@ class ConfigurationClient {
 
         String confDir = SystemProperties.getConfigurationPath();
         try {
-            ConfigurationDirectory dir = new ConfigurationDirectory(confDir);
-            PrivateParameters privateParameters =
+            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(confDir);
+            PrivateParametersV2 privateParameters =
                     dir.getPrivate(configurationAnchor.getInstanceIdentifier());
             if (privateParameters != null) {
                 putAdditionalConfigurationSources(
@@ -132,7 +134,7 @@ class ConfigurationClient {
     }
 
     private void downloadConfigurationFromAnchor() throws Exception {
-        log.trace("downloadConfFromAnchor()");
+        log.debug("downloadConfFromAnchor()");
 
         handleResult(downloader.download(configurationAnchor), true);
 
@@ -148,7 +150,7 @@ class ConfigurationClient {
             for (ConfigurationSource source : sources) {
                 DownloadResult result =
                         downloader.download(source,
-                                SharedParameters.CONTENT_ID_SHARED_PARAMETERS);
+                            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
                 handleResult(result, source.getInstanceIdentifier().equals(
                         configurationAnchor.getInstanceIdentifier()));
             }

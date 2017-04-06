@@ -1,6 +1,6 @@
 # X-Road: Use Case Model for Operational Monitoring Daemon
 
-Version: 0.4
+Version: 0.5
 
 Document ID: UC-OPMON
 
@@ -21,15 +21,15 @@ JMXMP -- Java Management Extensions Messaging Protocol
 
 ### 1.3 References
 
-<a name="ARC-OPMON"></a>ARC-OPMON -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: ARC-OPMON  
-<a name="PR-OPMON"></a>PR-OPMON -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: PR-OPMON.  
-<a name="PR-OPMONJMX"></a>PR-OPMONJMX -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: PR-OPMONJMX.
+<a name="ARC-OPMOND"></a>**ARC-OPMOND** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).  
+<a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).  
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
 
 ## 2 Overview
 
 The main function of the operational monitoring daemon is to collect operational monitoring data and health data of the X-Road security server(s). The operational monitoring daemon makes operational and health data available for the owner of the security server, regular client and central monitoring client via security server. Local health data is available for external monitoring systems (e.g. Zabbix) over JMXMP interface.
 
-An overview of the components of the monitoring daemon and its interfaces is provided in [[ARC-OPMON]](#ARC-OPMON).
+An overview of the components of the monitoring daemon and its interfaces is provided in [[ARC-OPMOND]](#ARC-OPMOND).
 
 ## 3 Use Case Model
 
@@ -176,7 +176,7 @@ The relationships between the actors and use cases are described in Figure 1.
 
   * 2c.2. Use case continues from step 5.
 
-2d. System verifies that the end of the time interval of requested operational data is bigger equal to the value of *current time - configured offset seconds* of the monitoring daemon.
+2d. System verifies that the end of the time interval of requested operational data is bigger or equal to the value of *current time - configured offset seconds* of the monitoring daemon.
 
   * 2d.1. System calculates new value for the end of the time interval *current time  - configured offset seconds - 1* for making the query and use case continues from step 3. The Unix timestamp in seconds (equal with the *current time  - configured offset seconds*) to use for the beginning of time interval of the next query is included into the response in step 4 of the use case.
 

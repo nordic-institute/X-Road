@@ -23,6 +23,7 @@
  package ee.ria.xroad.common.certificateprofile;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 
 /**
  * Signing certificate profile information provider.
@@ -33,6 +34,11 @@ public interface SignCertificateProfileInfo extends CertificateProfileInfo {
      * Parameters used to provide the instance of SignCertificateProfileInfo.
      */
     public interface Parameters {
+
+        /**
+         * @return the server identifier
+         */
+        SecurityServerId getServerId();
 
         /**
          * @return the client identifier

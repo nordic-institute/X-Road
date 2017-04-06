@@ -22,13 +22,6 @@
  */
 package ee.ria.xroad.signer.protocol;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
-import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -38,6 +31,13 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
+import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
 /**
  * Signer client is used to send messages to signer from other components
@@ -97,8 +97,8 @@ public final class SignerClient {
         try {
             return result(Await.result(Patterns.ask(requestProcessor, message, timeout), timeout.duration()));
         } catch (TimeoutException te) {
-            throw connectionTimeoutException();
-       }
+            throw connectionTimeoutException(te);
+        }
     }
 
     /**
@@ -129,8 +129,8 @@ public final class SignerClient {
         }
     }
 
-    private static CodedException connectionTimeoutException() {
-        return new CodedException(X_HTTP_ERROR,
+    private static CodedException connectionTimeoutException(Exception e) {
+        return new CodedException(X_HTTP_ERROR, e,
                 "Connection to Signer (port %s) timed out",
                 SystemProperties.getSignerPort());
     }

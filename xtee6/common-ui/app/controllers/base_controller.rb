@@ -117,7 +117,7 @@ class BaseController < ActionController::Base
 
     token.tokenInfo.each do |key, val|
       if (key == "Min PIN length" && pin.size < val.to_i) ||
-          (key == "Max PIN length" && pin.size > val.to_i)
+          (key == "Max PIN length" && val.to_i >= 0 && pin.size > val.to_i)
         raise t("activate_token.pin_format_incorrect")
       end
     end

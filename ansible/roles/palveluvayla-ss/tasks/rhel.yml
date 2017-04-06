@@ -1,0 +1,14 @@
+---
+- name: install xroad security server packages
+  yum:
+    name: xroad-securityserver-fi
+    state: present
+    update_cache: yes
+
+- name: add xroad admin user
+  command: "xroad-add-admin-user {{ xroad_ui_user }}"
+
+- name: start xroad-proxy
+  service:
+    name: xroad-proxy
+    state: started

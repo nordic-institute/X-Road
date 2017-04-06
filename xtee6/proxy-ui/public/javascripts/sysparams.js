@@ -238,6 +238,7 @@ function initTestability() {
         $("#internal_ssl_generate_csr_dialog").parent().attr("data-name", "internal_ssl_generate_csr_dialog");
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
+        $("#tsp_add_dialog").parent().attr("data-name", "tsp_add_dialog");
 }
 
 

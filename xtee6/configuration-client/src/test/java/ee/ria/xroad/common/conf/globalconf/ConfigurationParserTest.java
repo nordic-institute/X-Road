@@ -177,6 +177,11 @@ public class ConfigurationParserTest {
                     throw new RuntimeException(e);
                 }
             }
+
+            @Override
+            public boolean hasChanged() {
+                return false;
+            }
         };
     }
 }

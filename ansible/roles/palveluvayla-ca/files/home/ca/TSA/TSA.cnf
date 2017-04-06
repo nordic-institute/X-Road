@@ -1,0 +1,31 @@
+HOME=.
+oid_section             = new_oids
+
+[ new_oids ]
+
+# Policies used by the TSA examples.
+tsa_policy1 = 1.2.3.4.1
+tsa_policy2 = 1.2.3.4.5.6
+tsa_policy3 = 1.2.3.4.5.7
+
+[ tsa ]
+default_tsa = tsa_config1 # the default TSA section
+
+[ tsa_config1 ]
+dir               = $HOME
+serial            = $dir/serial
+
+# These are used by the TSA reply generation only. 
+signer_cert     = $HOME/../CA/certs/tsa.cert.pem # The TSA signing certificate # (optional) 
+signer_key      = $HOME/../CA/private/tsa.key.pem # The TSA private key (optional)
+
+default_policy  = tsa_policy1 # Policy if request did not specify it # (optional) 
+other_policies  = tsa_policy2, tsa_policy3 # acceptable policies (optional) 
+digests         = sha1,sha256,sha512 # Acceptable message digests (mandatory) 
+accuracy        = secs:1, millisecs:500, microsecs:100 # (optional) 
+clock_precision_digits = 0 # number of digits after dot. (optional) 
+ordering        = no # Is ordering defined for timestamps? # (optional, default: no) 
+tsa_name        = yes # Must the TSA name be included in the reply? # (optional, default: no) 
+ess_cert_id_chain = no # Must the ESS cert id chain be included? # (optional, default: no) 
+certs           = $HOME/../CA/certs/tsa.cert.pem
+

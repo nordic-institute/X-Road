@@ -4,6 +4,7 @@
 # XXX Don't change this file name without a reason -- that will break backwards compatibilty
 # with existing tarballs because the restore scripts expect to find a file with this
 # name after unpacking the tarball.
+umask 007
 DATABASE_DUMP_FILENAME="/var/lib/xroad/dbdump.dat"
 
 DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_db.sh"
@@ -116,6 +117,10 @@ make_tarball_label () {
       # The type of server has been checked already.
       ;;
   esac
+}
+
+has_command () {
+    command -v $1 &>/dev/null
 }
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

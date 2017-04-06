@@ -22,26 +22,22 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapFault;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.SoapFault;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Convenience base class for proxy HTTP handlers.
  */
-@Slf4j
 public abstract class HandlerBase extends AbstractHandler {
 
     /**
@@ -52,6 +48,7 @@ public abstract class HandlerBase extends AbstractHandler {
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
+
         String faultXml = ex instanceof CodedException.Fault
                 ? ((CodedException.Fault) ex).getFaultXml()
                 : SoapFault.createFaultXml(ex);
@@ -64,6 +61,7 @@ public abstract class HandlerBase extends AbstractHandler {
         response.setHeader("SOAPAction", "");
         response.setCharacterEncoding(encoding);
         response.getOutputStream().write(messageBytes);
+
     }
 
     /**

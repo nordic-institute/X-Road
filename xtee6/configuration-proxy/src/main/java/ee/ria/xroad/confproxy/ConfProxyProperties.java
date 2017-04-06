@@ -109,8 +109,8 @@ public class ConfProxyProperties {
      * configuration files for this configuration proxy instance.
      * @return download path for the global configuration files
      */
-    public final String getConfigurationDownloadPath() {
-        return Paths.get(SystemProperties.getConfigurationPath(), instance)
+    public final String getConfigurationDownloadPath(int version) {
+        return Paths.get(SystemProperties.getConfigurationPath(), String.format("V%d", version), instance)
                 .toString();
     }
 

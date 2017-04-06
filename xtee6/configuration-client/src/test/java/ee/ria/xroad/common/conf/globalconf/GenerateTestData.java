@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.SHARED_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 

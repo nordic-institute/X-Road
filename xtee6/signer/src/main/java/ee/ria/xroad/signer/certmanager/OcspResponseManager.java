@@ -22,23 +22,8 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-
-import java.io.Serializable;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.Map.Entry;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import akka.actor.Props;
 import akka.actor.UntypedActorContext;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
@@ -49,6 +34,16 @@ import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.io.Serializable;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.Map.Entry;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 
 
 /**
@@ -136,6 +131,13 @@ public class OcspResponseManager extends AbstractSignerActor {
         }
     }
 
+    /**
+     * Depending on given <code>message</code> parameter, sends back either nothing,
+     * data (eg. ocsp responses) or Exception which occurred
+     * whilst processing the request.
+     * @param message
+     * @throws Exception
+     */
     @Override
     public void onReceive(Object message) throws Exception {
         log.trace("onReceive({})", message);
@@ -173,33 +175,9 @@ public class OcspResponseManager extends AbstractSignerActor {
 
     void handleIsCachedOcspResponse(IsCachedOcspResponse message)
             throws Exception {
-        log.trace("handleIsCachedOcspResponse()");
-
-        OCSPResp response =
-                responseCache.get(message.getCertHash(), message.getAtDate());
-
+        OCSPResp response = responseCache.get(message.getCertHash(), message.getAtDate());
         TokenManager.setOcspResponse(message.getCertHash(), response);
-
-        Boolean isCached = response != null;
-
-        if (response != null) {
-            log.trace("got response from cache, now verifying validity");
-            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true),
-                    new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
-            X509Certificate subject = SignerUtil.getCertForCertHash(message.getCertHash());
-            X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), subject);
-            try {
-                verifier.verifyValidity(response, subject, issuer);
-                log.trace("verifyValidity succeeded");
-            } catch (Exception e) {
-                log.trace("ocsp verifyValidity failed, exception: {}", e);
-                isCached = Boolean.FALSE;
-            }
-        }
-        log.trace("'{}' (at: {}) cached: {}",
-                new Object[] {message.getCertHash(), message.getAtDate(),
-                    isCached });
-        sendResponse(isCached);
+        sendResponse(Boolean.FALSE);
     }
 
     OCSPResp getResponse(String certHash) throws Exception {
@@ -207,6 +185,7 @@ public class OcspResponseManager extends AbstractSignerActor {
     }
 
     void setResponse(String certHash, OCSPResp response) throws Exception {
+        log.debug("Setting a new response to cache for cert: {}", certHash);
         try {
             responseCache.put(certHash, response);
         } finally {
@@ -239,20 +218,23 @@ public class OcspResponseManager extends AbstractSignerActor {
             for (int i = 0; i < certHashes.length; i++) {
                 OCSPResp ocspResponse = manager.getResponse(certHashes[i]);
                 if (ocspResponse == null) {
+                    log.debug("No cached OCSP response available for cert {}", certHashes[i]);
                     // if the response is not in local cache, download it
                     ocspResponse = downloadOcspResponse(certHashes[i]);
                     if (ocspResponse != null) {
                         manager.setResponse(certHashes[i], ocspResponse);
                     }
+                } else {
+                    log.debug("Found a cached OCSP response for cert {}", certHashes[i]);
                 }
 
                 if (ocspResponse != null) {
-                    log.trace("Found OCSP response for certificate {}",
+                    log.debug("Acquired an OCSP response for certificate {}",
                             certHashes[i]);
                     base64EncodedResponses[i] =
                             encodeBase64(ocspResponse.getEncoded());
                 } else {
-                    log.warn("Could not find OCSP response for "
+                    log.warn("Could not acquire an OCSP response for "
                             + "certificate {}", certHashes[i]);
                 }
             }
@@ -271,6 +253,7 @@ public class OcspResponseManager extends AbstractSignerActor {
             }
 
             try {
+                log.debug("Downloading a new OCSP response for certificate {}", cert.getIssuerX500Principal());
                 return OcspClient.queryCertStatus(cert);
             } catch (Exception e) {
                 log.error("Error downloading OCSP response for certificate "

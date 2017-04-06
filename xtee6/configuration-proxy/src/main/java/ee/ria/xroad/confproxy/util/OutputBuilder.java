@@ -22,38 +22,6 @@
  */
 package ee.ria.xroad.confproxy.util;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
-import static ee.ria.xroad.common.util.MimeUtils
-        .HEADER_CONTENT_TRANSFER_ENCODING;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_VERIFICATION_CERT_HASH;
-import static ee.ria.xroad.common.util.MimeUtils.mpMixedContentType;
-import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
-import static ee.ria.xroad.common.util.MimeUtils.randomBoundary;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.input.TeeInputStream;
-import org.eclipse.jetty.util.MultiPartWriter;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -65,6 +33,24 @@ import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.TeeInputStream;
+import org.eclipse.jetty.util.MultiPartWriter;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
+
+import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.*;
 
 /**
  * Utility class that encapsulates the process of signing the downloaded
@@ -77,6 +63,7 @@ public class OutputBuilder {
 
     private final ConfigurationDirectory confDir;
     private final ConfProxyProperties conf;
+    private final int version;
 
     private Path tempConfPath;
     private HashCalculator hashCalculator;
@@ -95,9 +82,10 @@ public class OutputBuilder {
      * @throws Exception in case of errors when a temporary directory
      */
     public OutputBuilder(final ConfigurationDirectory confDirectory,
-            final ConfProxyProperties configuration) throws Exception {
+            final ConfProxyProperties configuration, int version) throws Exception {
         this.confDir = confDirectory;
         this.conf = configuration;
+        this.version = version;
         setup();
     }
 
@@ -127,11 +115,11 @@ public class OutputBuilder {
     public final void moveAndCleanup() throws Exception {
         String path = conf.getConfigurationTargetPath();
         Path targetPath = Paths.get(path, timestamp);
-        Path targetConf = Paths.get(path, SIGNED_DIRECTORY_NAME);
+        Path targetConf = Paths.get(path, String.format("%s-v%d", SIGNED_DIRECTORY_NAME, version));
         Files.createDirectories(targetPath.getParent());
-        log.info("Moving '{}' to '{}'", tempDirPath, targetPath);
+        log.debug("Moving '{}' to '{}'", tempDirPath, targetPath);
         Files.move(tempDirPath, targetPath);
-        log.info("Moving '{}' to '{}'", tempConfPath, targetConf);
+        log.debug("Moving '{}' to '{}'", tempConfPath, targetConf);
         Files.move(tempConfPath, targetConf, StandardCopyOption.ATOMIC_MOVE);
         FileUtils.deleteDirectory(tempDirPath.toFile());
     }
@@ -146,9 +134,11 @@ public class OutputBuilder {
 
         hashCalculator = new HashCalculator(hashAlgURI);
         timestamp = Long.toString(new Date().getTime());
-        tempConfPath = Paths.get(tempDir, SIGNED_DIRECTORY_NAME);
+        tempConfPath = Paths.get(tempDir, String.format("%s-v%d", SIGNED_DIRECTORY_NAME, version));
         tempDirPath = Paths.get(tempDir, timestamp);
+        log.debug("Creating directories {}", tempDirPath);
         Files.createDirectories(tempDirPath);
+        log.debug("Clean directory {}", tempDirPath);
         FileUtils.cleanDirectory(tempDirPath.toFile());
 
         dataBoundary = randomBoundary();
@@ -171,8 +161,8 @@ public class OutputBuilder {
                     new DateTime().plusSeconds(
                             conf.getValidityIntervalSeconds());
             encoder.startPart(null, new String[] {
-                        HEADER_EXPIRE_DATE + ": "
-                                + expireDate.toDateTime(DateTimeZone.UTC)
+                        HEADER_EXPIRE_DATE + ": " + expireDate.toDateTime(DateTimeZone.UTC),
+                        HEADER_VERSION + ": " + String.format("%d", version)
                     });
 
             String instance = conf.getInstance();
@@ -208,12 +198,12 @@ public class OutputBuilder {
             encoder.write(contentBytes);
             String algURI = CryptoUtils.getSignatureAlgorithmURI(algId);
             String hashURI = hashCalculator.getAlgoURI();
-            Path verificatioCertPath = conf.getCertPath(keyId);
+            Path verificationCertPath = conf.getCertPath(keyId);
             encoder.startPart(MimeTypes.BINARY, new String[] {
                     HEADER_CONTENT_TRANSFER_ENCODING + ": base64",
                     HEADER_SIG_ALGO_ID + ": " + algURI,
                     HEADER_VERIFICATION_CERT_HASH + ": "
-                            + getVerificationCertHash(verificatioCertPath)
+                            + getVerificationCertHash(verificationCertPath)
                             + "; " + HEADER_HASH_ALGORITHM_ID + "=" + hashURI
                 });
             encoder.write(signature.getBytes());

@@ -22,9 +22,11 @@
  */
 package ee.ria.xroad.commonui;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.ExpectedCodedException;
+import org.hamcrest.core.StringContains;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,12 +35,9 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
 import java.util.List;
 
-import org.hamcrest.core.StringContains;
-import org.junit.Rule;
-import org.junit.Test;
-
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify correct optional configuration parts behavior.

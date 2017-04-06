@@ -22,25 +22,18 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_FILE_NAME;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_IDENTIFIER;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_LOCATION;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.PARAM_INSTANCE;
-
-import java.util.HashMap;
-import java.util.Map;
-
+import ee.ria.xroad.common.CodedException;
+import lombok.Data;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.joda.time.DateTime;
 
-import ee.ria.xroad.common.CodedException;
-import lombok.Data;
-import lombok.Getter;
+import java.util.HashMap;
+import java.util.Map;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.MimeUtils.*;
 
 final class ConfigurationFile extends AbstractConfigurationPart {
 
@@ -131,8 +124,8 @@ final class ConfigurationFile extends AbstractConfigurationPart {
         String id = HttpFields.valueParameters(value, p);
         String instance = p.get(PARAM_INSTANCE);
 
-        if ((PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)
-                || SharedParameters.CONTENT_ID_SHARED_PARAMETERS.equals(id))
+        if ((ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS.equals(id)
+                || ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS.equals(id))
                 && StringUtils.isBlank(instance)) {
             throw new CodedException(X_INTERNAL_ERROR,
                     "Field " + HEADER_CONTENT_IDENTIFIER

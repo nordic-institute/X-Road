@@ -22,13 +22,14 @@
  */
 package ee.ria.xroad.confproxy;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import lombok.extern.slf4j.Slf4j;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * Defines a configuration proxy instance and carries out it's main operations.
@@ -53,24 +54,36 @@ public class ConfProxy {
      * @throws Exception in case of any errors
      */
     public final void execute() throws Exception {
+        log.debug("Purge outdated generations");
         ConfProxyHelper.purgeOutdatedGenerations(conf);
-        ConfigurationDirectory confDir = download();
-
-        OutputBuilder output = new OutputBuilder(confDir, conf);
-        output.buildSignedDirectory();
-        output.moveAndCleanup();
+        for (int version = SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION;
+             version >= SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion();
+             version--) {
+            log.debug("Download global configuration version {}. Minimum version {}", version,
+                    SystemProperties.getMinimumConfigurationProxyGlobalConfigurationVersion());
+            ConfigurationDirectory confDir = download(version);
+            log.debug("Create output builder");
+            OutputBuilder output = new OutputBuilder(confDir, conf, version);
+            log.debug("Build signed directory");
+            output.buildSignedDirectory();
+            log.debug("Move and cleanup");
+            output.moveAndCleanup();
+            log.debug("Finished execute");
+        }
     }
 
     /**
-     * Downloads the global configuration according to
-     * the instance configuration.
+     * Downloads the global configuration to configuration download path e.g. /etc/xroad/globalconf,
+     * according to the instance configuration.
      * @return downloaded configuration directory
      * @throws Exception if configuration client script encounters errors
      */
-    private ConfigurationDirectory download() throws Exception {
-        Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath()));
+    private ConfigurationDirectory download(int version) throws Exception {
+        log.debug("Create directories");
+        Files.createDirectories(Paths.get(conf.getConfigurationDownloadPath(version)));
         return ConfProxyHelper.downloadConfiguration(
-                conf.getConfigurationDownloadPath(),
-                conf.getProxyAnchorPath());
+                conf.getConfigurationDownloadPath(version),
+                conf.getProxyAnchorPath(),
+                version);
     }
 }

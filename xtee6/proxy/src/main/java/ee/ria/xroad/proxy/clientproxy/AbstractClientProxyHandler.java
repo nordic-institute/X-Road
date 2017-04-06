@@ -25,15 +25,14 @@ package ee.ria.xroad.proxy.clientproxy;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.client.HttpClient;
-
 import org.eclipse.jetty.server.Request;
 
 import ee.ria.xroad.common.CodedException;
@@ -96,8 +95,12 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 processor.process();
                 success(processor, start, opMonitoringData);
 
-                log.info("Request successfully handled ({} ms)",
-                        System.currentTimeMillis() - start);
+                if (log.isTraceEnabled()) {
+                    log.info("Request successfully handled ({} ms)",
+                            System.currentTimeMillis() - start);
+                } else {
+                    log.info("Request successfully handled");
+                }
             }
         } catch (CodedException.Fault | ClientException e) {
             handled = true;

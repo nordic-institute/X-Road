@@ -22,9 +22,13 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
-import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -45,14 +49,9 @@ import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
+import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
 /**
  * Encapsulates logic of creating log archive from ASiC containers.
@@ -81,12 +80,11 @@ class LogArchiveCache implements Closeable {
     private long archivesTotalSize;
 
     LogArchiveCache(Supplier<String> randomGenerator,
-            LinkingInfoBuilder linkingInfoBuilder,
-            Path workingDir) {
+                    LinkingInfoBuilder linkingInfoBuilder,
+                    Path workingDir) {
         this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.workingDir = workingDir;
-
         reset();
     }
 
@@ -103,12 +101,8 @@ class LogArchiveCache implements Closeable {
 
     InputStream getArchiveFile() throws IOException {
         tempArchive = File.createTempFile(
-            "xroad-log-archive-zip", ".tmp", workingDir.toFile()
-        );
-
-        try (ZipOutputStream out =
-                new ZipOutputStream(
-                        new FileOutputStream(tempArchive))) {
+                "xroad-log-archive-zip", ".tmp", workingDir.toFile());
+        try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(tempArchive))) {
             addAsicContainersToArchive(out);
             addLinkingInfoToArchive(out);
         } catch (Exception e) {
@@ -203,9 +197,7 @@ class LogArchiveCache implements Closeable {
         byte[] containerBytes = record.toAsicContainer().getBytes();
 
         String archiveFilename =
-                nameGenerator.getArchiveFilename(
-                        record.getQueryId(),
-                        record.isResponse() ? "response" : "request");
+                nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse() ? "response" : "request");
 
         linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
         archiveFileNames.add(archiveFilename);

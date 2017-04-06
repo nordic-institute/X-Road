@@ -22,12 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
+import org.apache.commons.io.IOUtils;
+import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -39,11 +38,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.TestCertUtil;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static org.junit.Assert.*;
 
 /**
  * Tests to verify configuration downloading procedure.
@@ -121,9 +119,9 @@ public class ConfigurationClientTest {
 
     // ------------------------------------------------------------------------
 
-    private static ConfigurationAnchor getConfigurationAnchor(
+    private static ConfigurationAnchorV2 getConfigurationAnchor(
             final String fileName) {
-        return new ConfigurationAnchor((String) null) {
+        return new ConfigurationAnchorV2((String) null) {
 
             @Override
             public boolean hasChanged() {
@@ -151,20 +149,25 @@ public class ConfigurationClientTest {
 
     private static ConfigurationClient getClient(final String confPath,
             final List<String> receivedParts, final List<String> deletedFiles) {
-        ConfigurationAnchor configurationAnchor =
+        ConfigurationAnchorV2 configurationAnchor =
                 getConfigurationAnchor(confPath + ".txt");
 
         FileNameProvider fileNameProvider = new FileNameProviderImpl(confPath);
 
         ConfigurationDownloader configurations =
-                new ConfigurationDownloader(fileNameProvider) {
+                new ConfigurationDownloader(fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             ConfigurationParser getParser() {
                 return new ConfigurationParser(instanceIdentifiers) {
                     @Override
                     protected InputStream getInputStream() throws Exception {
-                        String downloadURL =
-                                configuration.getLocation().getDownloadURL();
+                        String downloadURL = configuration.getLocation().getDownloadURL();
+                        // Because the test case cannot handle query parameters
+                        // we need to strip them from download URL
+                        int idx = downloadURL.lastIndexOf("?");
+                        if (idx != -1) {
+                            downloadURL = downloadURL.substring(0, downloadURL.lastIndexOf("?"));
+                        }
                         return new FileInputStream(downloadURL);
                     }
                 };
@@ -199,7 +202,7 @@ public class ConfigurationClientTest {
         };
 
         DownloadedFiles downloadedFiles = new DownloadedFiles(
-                Paths.get(confPath, "files")) {
+                Paths.get(confPath, "files"), SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void delete(String file) {
                 deletedFiles.add(file);
@@ -211,6 +214,6 @@ public class ConfigurationClientTest {
         };
 
         return new ConfigurationClient(downloadedFiles, configurations,
-                configurationAnchor);
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION, configurationAnchor);
     }
 }

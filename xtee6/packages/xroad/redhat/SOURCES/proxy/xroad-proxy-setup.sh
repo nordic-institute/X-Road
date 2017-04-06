@@ -52,11 +52,12 @@ cd /usr/share/xroad/db/
 #
 # SELinux policy modification
 #
+if [[ $(getenforce) != "Disabled" ]]; then
+    # allow httpd to act as reverse proxy
+    setsebool -P httpd_can_network_relay 1 || true
+    setsebool -P httpd_can_network_connect 1 || true
 
-# allow httpd to act as reverse proxy
-setsebool -P httpd_can_network_relay 1 || true
-setsebool -P httpd_can_network_connect 1 || true
-
-# allow httpd to connecto to non-standard port 4000
-semanage port -a -t http_port_t  -p tcp 4000 || true
+    # allow httpd to connecto to non-standard port 4000
+    semanage port -a -t http_port_t  -p tcp 4000 || true
+fi
 

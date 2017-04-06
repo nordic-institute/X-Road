@@ -69,24 +69,23 @@
                                 subject.push(oSubjects.fnGetData(row).subsystem_code);
                             }
 
-                            subjects.push('<li>' + subject.join(', ') + '</li>');
+                            subjects.push('<li>' + util.escape(subject.join(', ')) + '</li>');
                         });
 
                         var joinedSubjects = '<ol class="alert-ol">' + subjects.join('') + '</ol>';
 
-                        confirm("clients.service_acl_dialog.remove_selected_confirm",
-                                {subjects: joinedSubjects}, function() {
-
-                            $("#subjects .row_selected").each(function(idx, row) {
-                                params.subject_ids.push(oSubjects.fnGetData(row).subject_id);
+                        confirm_unsafe(
+                            confirm_title("clients.service_acl_dialog.remove_selected_confirm"),
+                            _("clients.service_acl_dialog.remove_selected_confirm",{subjects: joinedSubjects}, false),
+                            function() {
+                                $("#subjects .row_selected").each(function(idx, row) {
+                                    params.subject_ids.push(oSubjects.fnGetData(row).subject_id);
+                                });
+                                $.post(action("service_acl_subjects_remove"), params, function(response) {
+                                    oSubjects.fnReplaceData(response.data);
+                                    enableActions();
+                                }, "json");
                             });
-
-                            $.post(action("service_acl_subjects_remove"), params,
-                                   function(response) {
-                                oSubjects.fnReplaceData(response.data);
-                                enableActions();
-                            }, "json");
-                        });
                     }
                 },
                 {

@@ -64,20 +64,35 @@ clear_shared_memory () {
   ipcrm -s `ipcs -s | grep xroad | awk '{print $2}'` 2>/dev/null || true
 }
 
+select_commands () {
+  if has_command initctl
+  then
+    LIST_CMD="initctl list | grep -E  '^xroad-|^xtee55-' | cut -f 1 -d ' '"
+    STOP_CMD="initctl stop"
+    START_CMD="initctl start"
+  elif has_command systemctl
+  then
+    LIST_CMD="systemctl --plain -qt service list-units | grep -E 'xroad-.*.service\s' | sed 's/^\s*//' | cut -d' ' -f1"
+    STOP_CMD="systemctl stop"
+    START_CMD="systemctl start"
+  else
+    die "Cannot control X-Road services (initctl/systemctl not found). Aborting restore"
+  fi
+}
+
 stop_services () {
   echo "STOPPING ALL SERVICES EXCEPT JETTY"
-  XROAD_SERVICES=$(initctl list | grep -E  "^xroad-|^xtee55-" | grep -v -- -jetty | cut -f 1 -d " ")
+  select_commands
+  XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
   for service in ${XROAD_SERVICES} ; do
-    initctl stop ${service}
+    ${STOP_CMD} ${service}
   done
 }
 
 create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
-  # FIXME: deal with spaces in file names when using find and tar and combining
-  # the result with other file names.
-  #local backed_up_files="$(find /etc/xroad/ -type f) /etc/nginx/sites-enabled/*"
-  local backed_up_files="/etc/xroad/ /etc/nginx/sites-enabled/"
+  # we will run this through eval to get a multi-line list
+  local backed_up_files_cmd="find /etc/xroad/ -type f; find /etc/nginx/ -name \"*xroad*\""
 
   if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
     echo "Creating database dump to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
@@ -86,32 +101,61 @@ create_pre_restore_backup () {
       die "Error occured while creating pre-restore database backup" \
           "to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
     fi
-    backed_up_files="${backed_up_files} ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
+    backed_up_files_cmd="${backed_up_files_cmd}; echo ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
   else
     die "Failed to execute database backup script at ${DATABASE_BACKUP_SCRIPT} for" \
         "doing pre-restore backup"
   fi
 
+  CONF_FILE_LIST=$(eval ${backed_up_files_cmd})
+
   echo "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME}:"
   tar --create -v \
-    --label "${TARBALL_LABEL}" --file ${PRE_RESTORE_TARBALL_FILENAME} ${backed_up_files}
+    --label "${TARBALL_LABEL}" --file ${PRE_RESTORE_TARBALL_FILENAME} -T  <(echo "${CONF_FILE_LIST}")
   if [ $? != 0 ] ; then
     die "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME} failed"
   fi
-  # FIXME: ei tohi koristada nginxi kataloogi ennast, aga kasuta backed_up_files sisu
-  # Vt. eelmist FIXME-d.
-  rm -rf /etc/xroad/*
-  rm -rf /etc/nginx/sites-enabled/*
-  #rm -r ${backed_up_files}
-  #if [ $? -ne 0 ] ; then
-  #  die "Failed to remove files before restore"
-  #fi
+}
+
+remove_old_existing_files () {
+  echo "$CONF_FILE_LIST" | xargs -I {} rm {}
+  if [ $? -ne 0 ] ; then
+    die "Failed to remove files before restore"
+  fi
+}
+
+setup_tmp_restore_dir() {
+  RESTORE_DIR=/var/tmp/xroad/restore
+  rm -rf ${RESTORE_DIR}
+  mkdir -p ${RESTORE_DIR}
+}
+
+extract_to_tmp_restore_dir () {
+  # Restore to temporary directory and fix permissions before copying
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad etc/nginx || die "Extracting backup failed"
+  # dbdump is optional
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} var/lib/xroad/dbdump.dat
+  # keep existing db.properties
+  if [ -f /etc/xroad/db.properties ]
+  then
+      mv ${RESTORE_DIR}/etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties.restored
+      cp /etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties
+  fi
+  chown -R xroad:xroad ${RESTORE_DIR}/*
 }
 
 restore_configuration_files () {
   echo "RESTORING CONFIGURATION FROM ${BACKUP_FILENAME}"
   echo "Restoring files:"
-  tar xfv ${BACKUP_FILENAME} -C /
+  # restore files
+  Z=""
+  if cp --help | grep -q "\-Z"; then
+    Z="-Z"
+  fi
+
+  cp -a ${Z} ${RESTORE_DIR}/etc/xroad -t /etc
+  cp -r ${Z} ${RESTORE_DIR}/etc/nginx -t /etc
+  cp -a ${Z} ${RESTORE_DIR}/var/lib/xroad -t /var/lib
 }
 
 restore_database () {
@@ -130,10 +174,14 @@ restore_database () {
   fi
 }
 
+remove_tmp_restore_dir() {
+  rm -rf ${RESTORE_DIR}
+}
+
 restart_services () {
   echo "RESTARTING SERVICES"
   for service in ${XROAD_SERVICES} ; do
-    initctl start $service
+    ${START_CMD} ${service}
   done
 }
 
@@ -148,7 +196,7 @@ export_v55_key_and_cert () {
 }
 
 while getopts ":FSt:i:s:n:f:b" opt ; do
-  case $opt in
+  case ${opt} in
     F)
       FORCE_RESTORE=true
       ;;
@@ -191,8 +239,12 @@ check_tarball_label
 clear_shared_memory
 stop_services
 create_pre_restore_backup
+setup_tmp_restore_dir
+extract_to_tmp_restore_dir
+remove_old_existing_files
 restore_configuration_files
 restore_database
+remove_tmp_restore_dir
 restart_services
 export_v55_key_and_cert
 

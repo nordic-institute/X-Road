@@ -1,6 +1,15 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+sourceSets {
+    main {
+        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        resources.srcDirs = ['src/main/resources', '../../../common-util/src/main/resources']
+    }
 }
 
 dependencies {
@@ -9,8 +18,11 @@ dependencies {
     compile project(':monitor-common')
     compile project(':monitoring-conf')
     compile project(':addons:proxymonitor:common')
+    compile 'com.google.guava:guava:19.0'
+}
 
-    compile 'com.google.guava:guava:18.0'
+task createDirs() {
+    project.ext.schemaTargetDir.mkdirs()
 }
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
@@ -27,7 +39,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
 
 jar {
     enabled = false
@@ -50,3 +61,9 @@ shadowJar {
 build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
+compileJava.dependsOn processResources
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}

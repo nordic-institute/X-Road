@@ -22,20 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
-
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalTime;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.util.AdminPort;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.JsonUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -46,14 +40,17 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.JsonUtils;
-import lombok.extern.slf4j.Slf4j;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalTime;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
 /**
  * Main program of configuration client.
@@ -62,6 +59,9 @@ import lombok.extern.slf4j.Slf4j;
 public final class ConfigurationClientMain {
 
     private static ConfigurationClientJobListener listener;
+
+    private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
+    private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -95,11 +95,18 @@ public final class ConfigurationClientMain {
         CommandLine cmd = getCommandLine(args);
 
         String[] actualArgs = cmd.getArgs();
-        if (actualArgs.length == 2) {
-            System.exit(download(actualArgs[0], actualArgs[1]));
+        if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
+            // Run configuration client in one-shot mode downloading the specified global configuration version
+            System.exit(download(actualArgs[0], actualArgs[1], actualArgs[2]));
+        } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
+            // Run configuration client in one-shot mode downloading the current global configuration version
+            System.exit(download(actualArgs[0], actualArgs[1],
+                String.format("%d", SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)));
         } else if (actualArgs.length == 1) {
+            // Run configuration client in validate mode
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
         } else {
+            // Run configuration client in daemon mode
             startDaemon();
         }
     }
@@ -116,10 +123,10 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile,
-            String configurationPath) throws Exception {
-        log.trace("Downloading configuration using anchor {} (path = {})",
-                configurationAnchorFile, configurationPath);
+    private static int download(String configurationAnchorFile, String configurationPath,
+                                String version) throws Exception {
+        log.debug("Downloading configuration using anchor {} path = {} version = {})",
+                configurationAnchorFile, configurationPath, version);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 configurationAnchorFile);
@@ -130,13 +137,15 @@ public final class ConfigurationClientMain {
                 new FileNameProviderImpl(configurationPath);
 
         client = new ConfigurationClient(getDummyDownloadedFiles(),
-                        new ConfigurationDownloader(fileNameProvider) {
+            new ConfigurationDownloader(fileNameProvider, Integer.parseInt(version)) {
+
                     @Override
                     void addAdditionalConfigurationSources(
-                            PrivateParameters privateParameters) {
+                            PrivateParametersV2 privateParameters) {
                         // do not download additional sources
                     }
-                }) {
+
+                }, Integer.parseInt(version)) {
             @Override
             void initAdditionalConfigurationSources() {
                 // not needed
@@ -155,8 +164,8 @@ public final class ConfigurationClientMain {
                 configurationAnchorFile);
 
         // create configuration that does not persist files to disk
-        ConfigurationDownloader configuration =
-                new ConfigurationDownloader(getDefaultFileNameProvider()) {
+        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void handle(ConfigurationLocation location,
                     ConfigurationFile file) {
@@ -177,7 +186,7 @@ public final class ConfigurationClientMain {
         };
 
         client = new ConfigurationClient(getDummyDownloadedFiles(),
-                        configuration) {
+                        configuration, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void initAdditionalConfigurationSources() {
                 // not needed
@@ -218,14 +227,15 @@ public final class ConfigurationClientMain {
     }
 
     private static ConfigurationClient createClient() {
-        ConfigurationDownloader configuration =
-                new ConfigurationDownloader(getDefaultFileNameProvider());
+        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
 
         Path downloadedFilesConf =
                 Paths.get(SystemProperties.getConfigurationPath(), "files");
 
-        return new ConfigurationClient(
-                new DownloadedFiles(downloadedFilesConf), configuration);
+        return new ConfigurationClient(new DownloadedFiles(downloadedFilesConf,
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION), configuration,
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
     }
 
     private static FileNameProviderImpl getDefaultFileNameProvider() {
@@ -234,7 +244,7 @@ public final class ConfigurationClientMain {
     }
 
     private static DownloadedFiles getDummyDownloadedFiles() {
-        return new DownloadedFiles(null) {
+        return new DownloadedFiles(null, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void delete(String file) {
             }

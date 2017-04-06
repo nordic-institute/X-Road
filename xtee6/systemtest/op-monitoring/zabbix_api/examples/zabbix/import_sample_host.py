@@ -48,7 +48,7 @@ import requests
 EXPORTED_HOST_DATA_FILE = "sample_operational_monitoring_host.json"
 
 def _format_import_conf_request(exported_configuration, auth_key):
-    return json.dumps( 
+    return json.dumps(
         {
             "jsonrpc": "2.0",
             "method": "configuration.import",
@@ -75,7 +75,7 @@ def _format_import_conf_request(exported_configuration, auth_key):
                 "source": exported_configuration
             },
             "auth": auth_key,
-            "id": random.randint(1,100),
+            "id": random.randint(1, 100),
         }
     )
 
@@ -84,11 +84,11 @@ def _format_import_conf_request(exported_configuration, auth_key):
 def _print_err(msg):
     print >> sys.stderr, msg
 
-def _post_json_rpc_request(host_address, data):
+def _post_json_rpc_request(zabbix_api_url, data):
     response = requests.post(
-            "http://" + host_address + "/zabbix/api_jsonrpc.php",
-            headers={"Content-type": "application/json"},
-            data=data)
+            zabbix_api_url, headers={"Content-type": "application/json"}, data=data,
+            # Accept self-signed TLS certs
+            verify=False)
     response_json = json.loads(response.text)
 
     if response_json.get("error"):
@@ -98,23 +98,23 @@ def _post_json_rpc_request(host_address, data):
     # Let the caller process the result further.
     return response_json
 
-def _import_sample_configuration(host_address, auth_key):
+def _import_sample_configuration(zabbix_api_url, auth_key):
     sample_data = None
     with open(EXPORTED_HOST_DATA_FILE) as f:
         sample_data = json.loads(f.read()).get("result")
 
     request_data = _format_import_conf_request(sample_data, auth_key)
-    result = _post_json_rpc_request(host_address, request_data)
+    result = _post_json_rpc_request(zabbix_api_url, request_data)
     if not result.get("error"):
         _print_err("Sample host imported successfully")
-  
+
 def _extract_sample_configuration():
     sample_data = None
     with open(EXPORTED_HOST_DATA_FILE) as f:
         sample_data = json.loads(f.read())
 
     # Print the formatted JSON to stdout so the user can pipe it to a file.
-    print(json.dumps(json.loads(sample_data.get("result")), sort_keys=True, indent=4))
+    print json.dumps(json.loads(sample_data.get("result")), sort_keys=True, indent=4)
 
 if __name__ == '__main__':
     if not os.path.isfile(EXPORTED_HOST_DATA_FILE):
@@ -126,8 +126,8 @@ if __name__ == '__main__':
         help="Import the sample host using Zabbix API")
     argparser.add_argument("--extract", dest="run_extract", action="store_true",
         help="Extract the sample configuration for importing using the UI")
-    argparser.add_argument("--zabbix-host", dest="zabbix_host",
-        help="Address of the Zabbix host (with a port number if not default). " \
+    argparser.add_argument("--zabbix-api-url", dest="zabbix_api_url",
+        help="Full URL of the Zabbix API endpoint. " \
                 "Required if --import is given, ignored otherwise ")
     argparser.add_argument("--zabbix-auth-key", dest="zabbix_auth_key",
         help="Zabbix authentication key obtained using its API. " \
@@ -135,12 +135,13 @@ if __name__ == '__main__':
     args = argparser.parse_args()
 
     if args.run_import:
-        if not args.zabbix_host:
-            _print_err("Please provide the address of the Zabbix host with --zabbix-host")
+        if not args.zabbix_api_url:
+            _print_err(
+                "Please provide the URL of the Zabbix API endpoint with --zabbix-api-url")
         if not args.zabbix_auth_key:
             _print_err("Please provide the Zabbix API auth key with --zabbix-auth-key")
-        if args.zabbix_host and args.zabbix_auth_key:
-            _import_sample_configuration(args.zabbix_host, args.zabbix_auth_key)
+        if args.zabbix_api_url and args.zabbix_auth_key:
+            _import_sample_configuration(args.zabbix_api_url, args.zabbix_auth_key)
         else:
             sys.exit(2)
 

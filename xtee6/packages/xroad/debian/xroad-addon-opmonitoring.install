@@ -1,4 +1,4 @@
 ../../addons/op-monitoring/build/libs/op-monitoring-1.0.jar usr/share/xroad/jlib/addon/proxy/
 addon/proxy/opmonitoring.conf usr/share/xroad/jlib/addon/proxy/
-../../securityserver-LICENSE.txt usr/share/doc/xroad-addon-opmonitoring/
+../../LICENSE.txt usr/share/doc/xroad-addon-opmonitoring/
 ../../securityserver-LICENSE.info usr/share/doc/xroad-addon-opmonitoring/

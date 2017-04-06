@@ -1,0 +1,16 @@
+
+- name: Ensure a started container
+  with_inventory_hostnames: all:!lxd-servers
+  lxd_container:
+    name: "{{item}}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.linuxcontainers.org
+      protocol: lxd
+      alias: ubuntu/trusty/amd64
+    profiles: ["default"]
+    wait_for_ipv4_addresses: true
+    timeout: 600
+    

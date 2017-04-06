@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
 import ee.ria.xroad.common.util.FileContentChangeChecker;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 
 /**
  * Encapsulates module data read form the external configuration file.
@@ -50,6 +50,9 @@ public final class ModuleConf {
 
     // Maps Type (UID) to ModuleType
     private static final Map<String, ModuleType> MODULES = new HashMap<>();
+
+    private static final String DEFAULT_TOKEN_ID_FORMAT =
+            "{moduleType}{slotIndex}{serialNumber}{label}";
 
     private static FileContentChangeChecker changeChecker = null;
 
@@ -131,10 +134,15 @@ public final class ModuleConf {
         boolean batchSigning =
                 getBoolean(section, "batch_signing_enabled", true);
         boolean readOnly = getBoolean(section, "read_only", false);
+        String tokenIdFormat = section.getString("token_id_format");
+        if (StringUtils.isBlank(tokenIdFormat)) {
+            tokenIdFormat = DEFAULT_TOKEN_ID_FORMAT;
+        }
 
         log.trace("Read module configuration (UID = {}, library = {}, "
-                + "pinVerificationPerSigning = {}, batchSigning = {})",
-                    new Object[] {uid, library, verifyPin, batchSigning});
+                + ", tokenIdFormat = {}, pinVerificationPerSigning = {}"
+                + ", batchSigning = {})", new Object[] {uid, library,
+                        tokenIdFormat, verifyPin, batchSigning});
 
         if (MODULES.containsKey(uid)) {
             log.warn("Module information already defined for {}, skipping...",
@@ -142,8 +150,8 @@ public final class ModuleConf {
             return;
         }
 
-        MODULES.put(uid, new HardwareModuleType(uid, library, verifyPin,
-                batchSigning, readOnly));
+        MODULES.put(uid, new HardwareModuleType(uid, library, tokenIdFormat,
+                verifyPin, batchSigning, readOnly));
     }
 
     private static boolean getBoolean(SubnodeConfiguration section,

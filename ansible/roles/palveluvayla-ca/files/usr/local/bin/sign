@@ -1,0 +1,12 @@
+#!/bin/sh
+tmp=$(mktemp -dt "sign-XXXXX") || exit 1
+CSR=`basename $1`
+cp $1 $tmp/$CSR
+chmod o+x $tmp
+chmod o+r $tmp/$CSR
+if sudo -u ca /home/ca/CA/sign.sh $tmp/$CSR
+then
+  sudo service ocsp restart >/dev/null
+fi
+rm -fd $tmp/* $tmp
+
