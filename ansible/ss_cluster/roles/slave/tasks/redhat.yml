@@ -1,0 +1,28 @@
+---
+- name: allow rsync client
+  command: setsebool -P rsync_client 1
+  ignore_errors: yes
+
+- name: allow rsync to write
+  command: setsebool -P rsync_full_access 1
+  ignore_errors: yes
+
+- name: setup sync service
+  template:
+      src: "xroad-sync.service.j2"
+      dest: "/etc/systemd/system/xroad-sync.service"
+
+- name: setup sync timer
+  copy:
+      src: "xroad-sync.timer"
+      dest: "/etc/systemd/system/xroad-sync.timer"
+
+- name: enable sync
+  service:
+      name: "{{ item }}"
+      enabled: yes
+      state: started
+  with_items:
+      - xroad-sync.service
+      - xroad-sync.timer
+

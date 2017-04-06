@@ -125,6 +125,7 @@ public class SystemPropertiesLoader {
 
     private final String prefix;
     private final List<FileWithSections> files = new ArrayList<>();
+    private final List<FileWithSections> optionalLocalFiles = new ArrayList<>();
 
     private boolean withCommon;
     private boolean withLocal;
@@ -213,6 +214,19 @@ public class SystemPropertiesLoader {
     }
 
     /**
+     * Specifies the optional local ini file to be loaded.
+     * @param fileName the file name of the INI.
+     * @param sectionNames optional section names to be parsed from the INI.
+     * If not specified, all sections are parsed.
+     * @return this instance
+     */
+    public SystemPropertiesLoader withLocalOptional(String fileName,
+                                       String... sectionNames) {
+        optionalLocalFiles.add(new FileWithSections(fileName, sectionNames));
+        return this;
+    }
+
+    /**
      * Does the actual loading of the INI files.
      */
     public void load() {
@@ -243,6 +257,12 @@ public class SystemPropertiesLoader {
         if (withLocal) {
             load(new FileWithSections(SystemProperties.CONF_FILE_USER_LOCAL));
         }
+
+        optionalLocalFiles.forEach(f -> {
+            if (Files.isReadable(Paths.get(f.getName()))) {
+                load(f);
+            }
+        });
 
         log.debug("Loaded properties:\n{}", loadedProperties);
     }

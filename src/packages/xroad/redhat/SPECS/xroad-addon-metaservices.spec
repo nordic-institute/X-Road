@@ -33,7 +33,7 @@ cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name
 rm -rf %{buildroot}
 
 %files
-%defattr(-,xroad,xroad,-)
+%defattr(-,root,root,-)
 /usr/share/xroad/jlib/addon/proxy/metaservice-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/metaservices.conf
 %doc /usr/share/doc/%{name}/LICENSE.txt

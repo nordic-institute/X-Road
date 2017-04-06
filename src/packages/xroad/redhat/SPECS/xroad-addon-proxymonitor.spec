@@ -32,7 +32,7 @@ cp -p %{src}/../../addons/proxymonitor/metaservice/build/libs/proxymonitor-metas
 rm -rf %{buildroot}
 
 %files
-%defattr(-,xroad,xroad,-)
+%defattr(-,root,root,-)
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-metaservice-1.0.jar
 /usr/share/xroad/jlib/addon/proxy/proxymonitor-service.conf
 
