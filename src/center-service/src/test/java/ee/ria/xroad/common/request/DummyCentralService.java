@@ -28,12 +28,9 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -43,9 +40,6 @@ import ee.ria.xroad.common.util.StartStop;
  * Dummy central service.
  */
 public class DummyCentralService implements StartStop {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DummyCentralService.class);
 
     static final String HTTP_CONNECTOR_NAME = "HttpConnector";
     static final String HTTPS_CONNECTOR_NAME = "HttpsConnector";
@@ -77,20 +71,20 @@ public class DummyCentralService implements StartStop {
     }
 
     private void createConnectors() throws Exception {
-        SelectChannelConnector httpConnector = new SelectChannelConnector();
+        ServerConnector httpConnector = new ServerConnector(server);
         httpConnector.setName(HTTP_CONNECTOR_NAME);
         httpConnector.setPort(PortNumbers.CLIENT_HTTP_PORT);
         httpConnector.setHost(listenAddress);
         server.addConnector(httpConnector);
 
-        SelectChannelConnector httpsConnector = createSslConnector();
+        ServerConnector httpsConnector = createSslConnector(server);
         httpsConnector.setName(HTTPS_CONNECTOR_NAME);
         httpsConnector.setPort(PortNumbers.CLIENT_HTTPS_PORT);
         httpsConnector.setHost(listenAddress);
         server.addConnector(httpsConnector);
     }
 
-    private static SslSelectChannelConnector createSslConnector()
+    private static ServerConnector createSslConnector(Server server)
             throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
         //cf.setNeedClientAuth(true);
@@ -105,7 +99,7 @@ public class DummyCentralService implements StartStop {
 
         cf.setSslContext(ctx);
 
-        return new SslSelectChannelConnector(cf);
+        return new ServerConnector(server, cf);
     }
 
     private void createHandlers() {

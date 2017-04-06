@@ -24,6 +24,8 @@ package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import java.util.Arrays;
+
 
 /**
  * Contains system-wide constants for system properties.
@@ -122,6 +124,14 @@ public final class SystemProperties {
     public static final String OCSP_RESPONDER_LISTEN_ADDRESS =
             PREFIX + "proxy.ocsp-responder-listen-address";
 
+    /** Property name of the Ocsp Responder Client connect timeout. */
+    public static final String OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT =
+            PREFIX + "proxy.ocsp-responder-client-connect-timeout";
+
+    /** Property name of the Ocsp Responder Client read timeout. */
+    public static final String OCSP_RESPONDER_CLIENT_READ_TIMEOUT =
+            PREFIX + "proxy.ocsp-responder-client-read-timeout";
+
     /** Property name of the flag to turn off proxy client SSL verification. */
     public static final String PROXY_VERIFY_CLIENT_CERT =
             PREFIX + "proxy.verify-client-cert";
@@ -133,6 +143,10 @@ public final class SystemProperties {
     /** Property name of the ServerProxy Jetty server configuration file. */
     public static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-serverproxy-configuration-file";
+
+    /** Property name of the CertHashBasedOcspResponder Jetty server configuration file. */
+    public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
+            PREFIX + "proxy.jetty-ocsp-responder-configuration-file";
 
 
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
@@ -153,19 +167,23 @@ public final class SystemProperties {
     private static final String SERVERPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.server-connector-max-idle-time";
 
-    /** Property name of the server Connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    /** Property name of the server Connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String SERVERPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.server-connector-so-linger";
+
+    private static final String SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS =
+            PREFIX + "proxy.server-support-clients-pooled-connections";
 
     /** Property name of the idle time that ClientProxy connections are allowed, in milliseconds */
     private static final String CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME =
             PREFIX + "proxy.client-connector-max-idle-time";
 
-    /** Property name of the client connector socket SO_LINGER timer, in milliseconds, value of -1 means off */
+    /** Property name of the client connector socket SO_LINGER timer, in seconds, value of -1 means off */
     private static final String CLIENTPROXY_CONNECTOR_SO_LINGER =
             PREFIX + "proxy.client-connector-so-linger";
 
-    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient */
+    /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
+     *  in seconds, value of -1 means off */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PREFIX + "proxy.client-httpclient-timeout";
 
@@ -200,10 +218,15 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_POOL_REUSE_CONNECTIONS =
             PREFIX + "proxy.pool-enable-connection-reuse";
 
+    private static final String PROXY_HEALTH_CHECK_INTERFACE = PREFIX + "proxy.health-check-interface";
+
+    private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
+
+    private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -232,6 +255,10 @@ public final class SystemProperties {
     /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused **/
     private static final String DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS = "false";
+
+    private static final String DEFAULT_PROXY_HEALTH_CHECK_INTERFACE = "0.0.0.0";
+
+    private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
 
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
@@ -448,6 +475,30 @@ public final class SystemProperties {
     public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
             PREFIX + "env-monitor.exec-listing-sensor-interval";
 
+    // Cluster node configuration ------------------------------------------ //
+
+    /**
+     * The type of this server node in the cluster. Default is {@link #STANDALONE} which means this server is not
+     * part of a cluster.
+     */
+    public enum NodeType {
+        STANDALONE, MASTER, SLAVE;
+
+        /** Parse an enum (ignoring case) from the given String or return the default {@link #STANDALONE}
+         *  if the argument is not understood.
+         * @param name
+         * @return
+         */
+        public static NodeType fromStringIgnoreCaseOrReturnDefault(String name) {
+            return Arrays.stream(NodeType.values())
+                    .filter(e -> e.name().equalsIgnoreCase(name))
+                    .findAny()
+                    .orElse(STANDALONE);
+        }
+    }
+
+    public static final String NODE_TYPE = PREFIX + "node.type";
+
     // Configuration file names and section names -------------------------- //
 
     public static final String CONF_FILE_COMMON =
@@ -455,6 +506,9 @@ public final class SystemProperties {
 
     public static final String CONF_FILE_PROXY =
             getConfPath() + "conf.d/proxy.ini";
+
+    public static final String CONF_FILE_NODE =
+            getConfPath() + "conf.d/node.ini";
 
     public static final String CONF_FILE_PROXY_UI =
             getConfPath() + "conf.d/proxy-ui.ini";
@@ -567,8 +621,7 @@ public final class SystemProperties {
      */
     public static String getJettyClientProxyConfFile() {
         return System.getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
-                getConfPath()
-                        + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
+                getConfPath() + DefaultFilepaths.JETTY_CLIENTPROXY_CONFIGURATION_FILE);
     }
 
     /**
@@ -577,8 +630,16 @@ public final class SystemProperties {
      */
     public static String getJettyServerProxyConfFile() {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
-                getConfPath()
-                        + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+                getConfPath() + DefaultFilepaths.JETTY_SERVERPROXY_CONFIGURATION_FILE);
+    }
+
+    /**
+     * @return path to the cert hash based OCSP responder jetty server configuration file,
+     * '/etc/xroad/jetty/ocsp-responder.xml' by default.
+     */
+    public static String getJettyOcspResponderConfFile() {
+        return System.getProperty(JETTY_OCSP_RESPONDER_CONFIGURATION_FILE,
+                getConfPath() + DefaultFilepaths.JETTY_OCSP_RESPONDER_CONFIGURATION_FILE);
     }
 
     /**
@@ -794,6 +855,22 @@ public final class SystemProperties {
     public static String getOcspResponderListenAddress() {
         return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS,
                 DEFAULT_CONNECTOR_HOST);
+    }
+
+    /**
+     * @return the OCSP Responder Client connect timeout in milliseconds,
+     * '20000' by default.
+     */
+    public static int getOcspResponderClientConnectTimeout() {
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
+    }
+
+    /**
+     * @return the OCSP Responder Client read timeout in milliseconds,
+     * '30000' by default.
+     */
+    public static int getOcspResponderClientReadTimeout() {
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT, "30000"));
     }
 
     /**
@@ -1246,6 +1323,11 @@ public final class SystemProperties {
                 DEFAULT_CLIENTPROXY_POOL_REUSE_CONNECTIONS));
     }
 
+    public static boolean isServerProxySupportClientsPooledConnections() {
+        return Boolean.parseBoolean(System.getProperty(SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS,
+                DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS));
+    }
+
     public static int getClientProxyPoolTotalMaxConnections() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS,
                 DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS));
@@ -1283,7 +1365,27 @@ public final class SystemProperties {
     }
 
     /**
-     *
+     * @return the {@link #NODE_TYPE} in a cluster for this Server.
+     */
+    public static NodeType getServerNodeType() {
+        return  NodeType.fromStringIgnoreCaseOrReturnDefault(System.getProperty(NODE_TYPE));
+    }
+
+    public static boolean isHealthCheckEnabled() {
+        return getHealthCheckPort() > 0;
+    }
+
+    public static String getHealthCheckInterface() {
+        return System.getProperty(PROXY_HEALTH_CHECK_INTERFACE, DEFAULT_PROXY_HEALTH_CHECK_INTERFACE);
+    }
+
+    public static int getHealthCheckPort() {
+        return Integer.parseInt(System.getProperty(PROXY_HEALTH_CHECK_PORT,
+                DEFAULT_PROXY_HEALTH_CHECK_PORT));
+    }
+
+
+    /**
      * @return minimum central server global configuration version or default
      */
     public static int getMinimumCentralServerGlobalConfigurationVersion() {

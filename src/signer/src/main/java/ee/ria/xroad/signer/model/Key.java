@@ -22,21 +22,24 @@
  */
 package ee.ria.xroad.signer.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Model object representing a key.
  */
 @Data
+// a quick solution to avoid stack overflow if Token.toString() used, both key and token have references to each other.
+@ToString(exclude = {"token"})
 public final class Key {
 
     /** Reference to the token this key belongs to. */

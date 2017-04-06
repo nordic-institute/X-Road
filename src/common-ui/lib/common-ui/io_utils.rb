@@ -134,7 +134,7 @@ module CommonUi
       return filename =~ /\A[\w\.\-]+\z/
     end
 
-    # Returns lockfile of type java.io.RandomAccessFile of nil if aquiring lock
+    # Returns lockfile of type java.io.RandomAccessFile or nil if aquiring lock
     # is unsuccessful.
     def try_lock(lockfile_name)
       lockfile = RandomAccessFile.new(temp_file(lockfile_name), "rw")

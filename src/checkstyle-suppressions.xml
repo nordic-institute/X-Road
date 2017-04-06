@@ -6,4 +6,5 @@
    <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]test[\\/]resources[\\/]"/>
    <suppress checks="[a-zA-Z0-9]*" files="[\\/]build[\\/]generated-sources[\\/]"/>
    <suppress checks="[a-zA-Z0-9]*" files="[\\/]src[\\/]main[\\/]resources[\\/]"/>
+   <suppress checks="EmptyBlock" files=".LogArchiver.java"/>
 </suppressions>

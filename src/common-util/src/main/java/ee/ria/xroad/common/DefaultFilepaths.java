@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.common;
 
-import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
-import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,6 +31,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
 import java.util.Set;
+
+import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Default file paths for application configuration and artifacts based on FHS.
@@ -70,21 +67,18 @@ public final class DefaultFilepaths {
 
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
 
-    static final String MONITOR_AGENT_CONFIGURATION_FILE =
-            "monitor-agent.ini";
+    static final String MONITOR_AGENT_CONFIGURATION_FILE = "monitor-agent.ini";
 
-    static final String JETTY_SERVERPROXY_CONFIGURATION_FILE =
-            "jetty/serverproxy.xml";
+    static final String JETTY_SERVERPROXY_CONFIGURATION_FILE = "jetty/serverproxy.xml";
 
-    static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
-            "jetty/clientproxy.xml";
+    static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE = "jetty/clientproxy.xml";
 
-    static final String OP_MONITOR_DAEMON_CONFIGURATION_FILE =
-            "op-monitor-daemon.ini";
+    static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE = "jetty/ocsp-responder.xml";
+
+    static final String OP_MONITOR_DAEMON_CONFIGURATION_FILE = "op-monitor-daemon.ini";
 
     private static FileAttribute<Set<PosixFilePermission>> permissions =
-            PosixFilePermissions.asFileAttribute(EnumSet.of(
-                    OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));
+            PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, GROUP_READ, GROUP_WRITE));
 
     /**
      * Creates a temporary file on disk (location specified by
@@ -94,23 +88,21 @@ public final class DefaultFilepaths {
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
-    public static Path createTempFile(String prefix, String suffix)
-            throws IOException {
+    public static Path createTempFile(String prefix, String suffix) throws IOException {
         Path tempDirPath = Paths.get(SystemProperties.getTempFilesPath());
+
         return createTempFile(tempDirPath, prefix, suffix);
     }
 
     /**
-     * Creates a temporary file in the specified location. Also creates the
-     * location if it does not exist.
+     * Creates a temporary file in the specified location. Also creates the location if it does not exist.
      * @param tempDirPath the location
      * @param prefix the prefix to use
      * @param suffix the suffix to use
      * @return path to the created temporary file
      * @throws IOException if an error occurs
      */
-    public static Path createTempFile(Path tempDirPath, String prefix,
-            String suffix) throws IOException {
+    public static Path createTempFile(Path tempDirPath, String prefix, String suffix) throws IOException {
         if (!Files.exists(tempDirPath)) {
             Files.createDirectory(tempDirPath);
         }
@@ -119,15 +111,13 @@ public final class DefaultFilepaths {
     }
 
     /**
-     * Convenience method which creates a temporary file on disk
-     * and returns its path. The new file is created in the same directory
-     * as the file whose path is given as parameter
+     * Convenience method which creates a temporary file on disk and returns its path.
+     * The new file is created in the same directory as the file whose path is given as parameter.
      * @return path to the created temporary file
      * @param fileName file whose path will be used
      * @throws IOException if an error occurs
      */
-    public static Path createTempFileInSameDir(String fileName)
-            throws IOException {
+    public static Path createTempFileInSameDir(String fileName) throws IOException {
         Path target = Paths.get(fileName);
         Path parentPath = target.getParent();
 

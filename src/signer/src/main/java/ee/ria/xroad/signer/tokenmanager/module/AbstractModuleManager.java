@@ -22,12 +22,15 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.Collection;
-
 import akka.actor.ActorRef;
 import akka.actor.OneForOneStrategy;
 import akka.actor.Props;
 import akka.actor.SupervisorStrategy;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.model.Cert;
+import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
+import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.Update;
@@ -35,11 +38,20 @@ import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
+import static java.util.Objects.requireNonNull;
+
 /**
  * Module manager base class.
  */
 @Slf4j
 public abstract class AbstractModuleManager extends AbstractUpdateableActor {
+
+    private final SystemProperties.NodeType serverNodeType = SystemProperties.getServerNodeType();
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
@@ -58,8 +70,14 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     @Override
     protected void onUpdate() throws Exception {
         loadModules();
+
+        if (SLAVE.equals(serverNodeType)) {
+            mergeConfiguration();
+        }
         updateModuleWorkers();
-        persistConfiguration();
+        if (!SLAVE.equals(serverNodeType)) {
+            persistConfiguration();
+        }
     }
 
     @Override
@@ -96,6 +114,28 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         } catch (Exception e) {
             log.error("Failed to save conf", e);
         }
+    }
+
+    private void mergeConfiguration() {
+             TokenManager.merge(addedCerts -> {
+                 if (!addedCerts.isEmpty()) {
+                     log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
+                     ServiceLocator.getOcspResponseManager(getContext())
+                             .tell(mapCertListToGetOcspResponses(addedCerts), ActorRef.noSender());
+                 }
+             });
+    }
+
+    private static GetOcspResponses mapCertListToGetOcspResponses(List<Cert> certs) {
+        requireNonNull(certs);
+        return new GetOcspResponses(certs.stream().map(cert -> {
+            try {
+                return CryptoUtils.calculateCertHexHash(cert.getCertificate());
+            } catch (Exception e) {
+                log.error("Failed to calculate hash for new certificate {}", cert, e);
+                return null;
+            }
+        }).filter(Objects::nonNull).toArray(String[]::new));
     }
 
     private void addNewModules(Collection<ModuleType> modules) {

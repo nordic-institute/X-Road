@@ -386,6 +386,10 @@ pre {
     }
 }
 
+#tabs_wrapper {
+    text-align: center;
+}
+
 .box {
     @extend .cf;
     padding: $base-padding;

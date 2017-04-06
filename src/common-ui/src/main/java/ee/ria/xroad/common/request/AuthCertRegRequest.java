@@ -22,23 +22,12 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.util.CryptoUtils.SHA512WITHRSA_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.TEXT_XML_UTF8;
-import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 
 import ee.ria.xroad.common.CodedException;
@@ -54,7 +43,11 @@ import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
 import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.mpRelatedContentType;
 
 @Slf4j
 class AuthCertRegRequest implements ManagementRequest {
@@ -144,7 +137,7 @@ class AuthCertRegRequest implements ManagementRequest {
     }
 
     private void writeSoap() throws IOException {
-        multipart.startPart(TEXT_XML_UTF8);
+        multipart.startPart(MimeTypes.TEXT_XML_UTF8);
         multipart.write(dataToSign);
     }
 

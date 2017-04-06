@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.util.MimeUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+
+import ee.ria.xroad.common.util.MimeTypes;
 
 /**
  * Simple SOAP encoder that does not support attachments or additional headers.
@@ -43,7 +43,7 @@ public class SimpleSoapEncoder implements SoapMessageEncoder {
 
     @Override
     public String getContentType() {
-        return MimeUtils.TEXT_XML_UTF8;
+        return MimeTypes.TEXT_XML_UTF8;
     }
 
     @Override

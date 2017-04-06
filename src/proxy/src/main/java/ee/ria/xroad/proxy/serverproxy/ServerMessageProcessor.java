@@ -84,8 +84,7 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 class ServerMessageProcessor extends MessageProcessorBase {
 
-    private static final String SERVERPROXY_SERVICE_HANDLERS =
-            SystemProperties.PREFIX + "proxy.serverServiceHandlers";
+    private static final String SERVERPROXY_SERVICE_HANDLERS = SystemProperties.PREFIX + "proxy.serverServiceHandlers";
 
     private final X509Certificate[] clientSslCerts;
 
@@ -104,9 +103,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private HttpClient opMonitorHttpClient;
     private OpMonitoringData opMonitoringData;
 
-    ServerMessageProcessor(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse, HttpClient httpClient,
-            X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
+    ServerMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+            HttpClient httpClient, X509Certificate[] clientSslCerts, HttpClient opMonitorHttpClient,
             OpMonitoringData opMonitoringData) {
         super(servletRequest, servletResponse, httpClient);
 
@@ -150,38 +148,30 @@ class ServerMessageProcessor extends MessageProcessorBase {
             X509Certificate authCert = getClientAuthCert();
 
             if (authCert != null) {
-                opMonitoringData.setClientSecurityServerAddress(
-                        GlobalConf.getSecurityServerAddress(
-                                GlobalConf.getServerId(authCert)));
+                opMonitoringData.setClientSecurityServerAddress(GlobalConf.getSecurityServerAddress(
+                        GlobalConf.getServerId(authCert)));
             }
         } catch (Exception e) {
-            log.error(
-                    "Failed to assign operational monitoring data field {}",
+            log.error("Failed to assign operational monitoring data field {}",
                     OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
     private void updateOpMonitoringServiceSecurityServerAddress() {
         try {
-            opMonitoringData.setServiceSecurityServerAddress(
-                    getSecurityServerAddress());
+            opMonitoringData.setServiceSecurityServerAddress(getSecurityServerAddress());
         } catch (Exception e) {
-            log.error(
-                    "Failed to assign operational monitoring data field {}",
+            log.error("Failed to assign operational monitoring data field {}",
                     OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
         }
     }
 
     @Override
     protected void preprocess() throws Exception {
-        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(),
-                SoapUtils.getHashAlgoId());
+        encoder = new ProxyMessageEncoder(servletResponse.getOutputStream(), SoapUtils.getHashAlgoId());
+
         servletResponse.setContentType(encoder.getContentType());
         servletResponse.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
-        if (!SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
-            // if the header is added, the connections are closed and cannot be reused on the client side
-            servletResponse.addHeader("Connection", "close");
-        }
     }
 
     @Override
@@ -190,8 +180,8 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void loadServiceHandlers() {
-        String serviceHandlerNames =
-                System.getProperty(SERVERPROXY_SERVICE_HANDLERS);
+        String serviceHandlerNames = System.getProperty(SERVERPROXY_SERVICE_HANDLERS);
+
         if (!StringUtils.isBlank(serviceHandlerNames)) {
             for (String serviceHandlerName : serviceHandlerNames.split(",")) {
                 handlers.add(ServiceHandlerLoader.load(serviceHandlerName));
@@ -233,8 +223,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         try {
-            handler.startHandling(servletRequest, requestMessage,
-                    opMonitorHttpClient, opMonitoringData);
+            handler.startHandling(servletRequest, requestMessage, opMonitorHttpClient, opMonitoringData);
             parseResponse(handler);
         } finally {
             handler.finishHandling();
@@ -244,23 +233,19 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
-        requestMessage = new ProxyMessage(
-                servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
+        requestMessage = new ProxyMessage(servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
-            public void soap(SoapMessageImpl soapMessage,
-                             Map<String, String> additionalHeaders) throws Exception {
+            public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
                 super.soap(soapMessage, additionalHeaders);
 
-                updateOpMonitoringDataBySoapMessage(
-                        opMonitoringData, soapMessage);
+                updateOpMonitoringDataBySoapMessage(opMonitoringData, soapMessage);
 
                 requestServiceId = soapMessage.getService();
 
                 verifySecurityServer();
                 verifyClientStatus();
 
-                responseSigningCtx =
-                        KeyConf.getSigningCtx(requestServiceId.getClientId());
+                responseSigningCtx = KeyConf.getSigningCtx(requestServiceId.getClientId());
 
                 if (SystemProperties.isSslEnabled()) {
                     verifySslClientCert();
@@ -268,8 +253,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         };
 
-        decoder = new ProxyMessageDecoder(requestMessage,
-                servletRequest.getContentType(), false,
+        decoder = new ProxyMessageDecoder(requestMessage, servletRequest.getContentType(), false,
                 getHashAlgoId(servletRequest));
         try {
             decoder.parse(servletRequest.getInputStream());
@@ -285,26 +269,22 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private void updateOpMonitoringDataByRequest() {
         if (requestMessage.getSoap() != null) {
-            opMonitoringData.setRequestAttachmentCount(
-                    decoder.getAttachmentCount());
+            opMonitoringData.setRequestAttachmentCount(decoder.getAttachmentCount());
 
             if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setRequestMimeSize(
-                        requestMessage.getSoap().getBytes().length
-                                + decoder.getAttachmentsByteCount());
+                opMonitoringData.setRequestMimeSize(requestMessage.getSoap().getBytes().length
+                        + decoder.getAttachmentsByteCount());
             }
         }
     }
 
     private void checkRequest() throws Exception {
         if (requestMessage.getSoap() == null) {
-            throw new CodedException(X_MISSING_SOAP,
-                    "Request does not have SOAP message");
+            throw new CodedException(X_MISSING_SOAP, "Request does not have SOAP message");
         }
 
         if (requestMessage.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE,
-                    "Request does not have signature");
+            throw new CodedException(X_MISSING_SIGNATURE, "Request does not have signature");
         }
     }
 
@@ -314,8 +294,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         String status = ServerConf.getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
-                    client);
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
 
@@ -324,43 +303,36 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
         if (requestMessage.getOcspResponses().isEmpty()) {
             throw new CodedException(X_SSL_AUTH_FAILED,
-                    "Cannot verify TLS certificate, corresponding "
-                            + "OCSP response is missing");
+                    "Cannot verify TLS certificate, corresponding OCSP response is missing");
         }
 
-        String instanceIdentifier =
-                requestMessage.getSoap().getClient().getXRoadInstance();
+        String instanceIdentifier = requestMessage.getSoap().getClient().getXRoadInstance();
 
-        X509Certificate trustAnchor =
-                GlobalConf.getCaCert(instanceIdentifier,
-                        clientSslCerts[clientSslCerts.length - 1]);
+        X509Certificate trustAnchor = GlobalConf.getCaCert(instanceIdentifier,
+                clientSslCerts[clientSslCerts.length - 1]);
+
         if (trustAnchor == null) {
             throw new Exception("Unable to find trust anchor");
         }
 
         try {
-            CertChain chain = CertChain.create(instanceIdentifier,
-                    (X509Certificate[]) ArrayUtils.add(clientSslCerts,
-                            trustAnchor));
-            CertHelper.verifyAuthCert(chain,
-                    requestMessage.getOcspResponses(),
-                    requestMessage.getSoap().getClient());
+            CertChain chain = CertChain.create(instanceIdentifier, (X509Certificate[]) ArrayUtils.add(clientSslCerts,
+                    trustAnchor));
+            CertHelper.verifyAuthCert(chain, requestMessage.getOcspResponses(), requestMessage.getSoap().getClient());
         } catch (Exception e) {
             throw new CodedException(X_SSL_AUTH_FAILED, e);
         }
     }
 
     private void verifySecurityServer() throws Exception {
-        final SecurityServerId requestServerId =
-                requestMessage.getSoap().getSecurityServer();
+        final SecurityServerId requestServerId = requestMessage.getSoap().getSecurityServer();
 
         if (requestServerId != null) {
             final SecurityServerId serverId = ServerConf.getIdentifier();
 
             if (!requestServerId.equals(serverId)) {
                 throw new CodedException(X_INVALID_SECURITY_SERVER,
-                        "Invalid security server identifier '%s',"
-                                + " expected '%s'", requestServerId, serverId);
+                        "Invalid security server identifier '%s' expected '%s'", requestServerId, serverId);
             }
         }
     }
@@ -369,37 +341,31 @@ class ServerMessageProcessor extends MessageProcessorBase {
         log.trace("verifyAccess()");
 
         if (!ServerConf.serviceExists(requestServiceId)) {
-            throw new CodedException(X_UNKNOWN_SERVICE,
-                    "Unknown service: %s", requestServiceId);
+            throw new CodedException(X_UNKNOWN_SERVICE, "Unknown service: %s", requestServiceId);
         }
 
         verifySecurityCategory(requestServiceId);
 
-        if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(),
-                requestServiceId)) {
-            throw new CodedException(X_ACCESS_DENIED,
-                    "Request is not allowed: %s", requestServiceId);
+        if (!ServerConf.isQueryAllowed(requestMessage.getSoap().getClient(), requestServiceId)) {
+            throw new CodedException(X_ACCESS_DENIED, "Request is not allowed: %s", requestServiceId);
         }
 
         String disabledNotice = ServerConf.getDisabledNotice(requestServiceId);
         if (disabledNotice != null) {
-            throw new CodedException(X_SERVICE_DISABLED,
-                    "Service %s is disabled: %s", requestServiceId,
+            throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
                     disabledNotice);
         }
     }
 
     private void verifySecurityCategory(ServiceId service) throws Exception {
-        Collection<SecurityCategoryId> required =
-                ServerConf.getRequiredCategories(service);
+        Collection<SecurityCategoryId> required = ServerConf.getRequiredCategories(service);
 
         if (required == null || required.isEmpty()) {
             // Service requires nothing, we are satisfied.
             return;
         }
 
-        Collection<SecurityCategoryId> provided =
-                GlobalConf.getProvidedCategories(getClientAuthCert());
+        Collection<SecurityCategoryId> provided = GlobalConf.getProvidedCategories(getClientAuthCert());
 
         for (SecurityCategoryId cat : required) {
             if (provided.contains(cat)) {
@@ -408,24 +374,20 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         throw new CodedException(X_SECURITY_CATEGORY,
-                "Service requires security categories (%s), "
-                        + "but client only satisfies (%s)",
-                StringUtils.join(required, ", "),
-                StringUtils.join(provided, ", "));
+                "Service requires security categories (%s), but client only satisfies (%s)",
+                StringUtils.join(required, ", "), StringUtils.join(provided, ", "));
     }
 
     private void verifySignature() throws Exception {
         log.trace("verifySignature()");
 
-        decoder.verify(requestMessage.getSoap().getClient(),
-                requestMessage.getSignature());
+        decoder.verify(requestMessage.getSoap().getClient(), requestMessage.getSignature());
     }
 
     private void logRequestMessage() throws Exception {
         log.trace("logRequestMessage()");
 
-        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(),
-                false);
+        MessageLog.log(requestMessage.getSoap(), requestMessage.getSignature(), false);
     }
 
     private void logResponseMessage() throws Exception {
@@ -436,8 +398,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
     }
 
-    private void sendRequest(String serviceAddress, HttpSender httpSender)
-            throws Exception {
+    private void sendRequest(String serviceAddress, HttpSender httpSender) throws Exception {
         log.trace("sendRequest({})", serviceAddress);
 
         URI uri;
@@ -445,16 +406,17 @@ class ServerMessageProcessor extends MessageProcessorBase {
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
-            throw new CodedException(X_SERVICE_MALFORMED_URL,
-                    "Malformed service address '%s': %s", serviceAddress,
+            throw new CodedException(X_SERVICE_MALFORMED_URL, "Malformed service address '%s': %s", serviceAddress,
                     e.getMessage());
         }
 
         log.info("Sending request to {}", uri);
+
         String contentType = servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE);
         // 6.7.x series security servers don't know to add the original content type header.
         // Not setting a content type will cause trouble with management requests to central server and
         // normal requests to 6.9.x servers that pass the request on to services that expect a certain content type.
+
         if (contentType == null) {
             // set the content type like version 6.7.x
             contentType = requestMessage.getSoapContentType();
@@ -481,13 +443,11 @@ class ServerMessageProcessor extends MessageProcessorBase {
         preprocess();
 
         // Preserve the original content type of the service response
-        servletResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE,
-                handler.getResponseContentType());
+        servletResponse.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, handler.getResponseContentType());
+
         try (SoapMessageHandler messageHandler = new SoapMessageHandler()) {
-            SoapMessageDecoder soapMessageDecoder =
-                    new SoapMessageDecoder(handler.getResponseContentType(),
-                            messageHandler,
-                            new ResponseSoapParserImpl());
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(handler.getResponseContentType(),
+                    messageHandler, new ResponseSoapParserImpl());
             soapMessageDecoder.parse(handler.getResponseContent());
         } catch (Exception ex) {
             throw translateException(ex).withPrefix(X_SERVICE_FAILED_X);
@@ -502,8 +462,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         // If we did not parse a response message (empty response
         // from server?), it is an error instead.
         if (responseSoap == null) {
-            throw new CodedException(X_INVALID_MESSAGE,
-                    "No response message received from service").withPrefix(
+            throw new CodedException(X_INVALID_MESSAGE, "No response message received from service").withPrefix(
                     X_SERVICE_FAILED_X);
         }
 
@@ -511,12 +470,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     private void updateOpMonitoringDataByResponse() {
-        opMonitoringData.setResponseAttachmentCount(
-                encoder.getAttachmentCount());
+        opMonitoringData.setResponseAttachmentCount(encoder.getAttachmentCount());
 
         if (encoder.getAttachmentCount() > 0) {
-            opMonitoringData.setResponseMimeSize(responseSoap.getBytes().length
-                    + encoder.getAttachmentsByteCount());
+            opMonitoringData.setResponseMimeSize(responseSoap.getBytes().length + encoder.getAttachmentsByteCount());
         }
     }
 
@@ -562,14 +519,12 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void monitorAgentNotifyFailure(CodedException ex) {
         MessageInfo info = null;
 
-        boolean requestIsComplete = requestMessage != null
-                && requestMessage.getSoap() != null
+        boolean requestIsComplete = requestMessage != null && requestMessage.getSoap() != null
                 && requestMessage.getSignature() != null;
 
         // Include the request message only if the error was caused while
         // exchanging information with the adapter server.
-        if (requestIsComplete && ex.getFaultCode().startsWith(
-                SERVER_SERVERPROXY_X + "." + X_SERVICE_FAILED_X)) {
+        if (requestIsComplete && ex.getFaultCode().startsWith(SERVER_SERVERPROXY_X + "." + X_SERVICE_FAILED_X)) {
             info = createRequestMessageInfo();
         }
 
@@ -583,8 +538,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         SoapMessageImpl soap = requestMessage.getSoap();
-        return new MessageInfo(Origin.SERVER_PROXY, soap.getClient(),
-                requestServiceId, soap.getUserId(), soap.getQueryId());
+
+        return new MessageInfo(Origin.SERVER_PROXY, soap.getClient(), requestServiceId, soap.getUserId(),
+                soap.getQueryId());
     }
 
     private X509Certificate getClientAuthCert() {
@@ -593,9 +549,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private static String getHashAlgoId(HttpServletRequest servletRequest) {
         String hashAlgoId = servletRequest.getHeader(HEADER_HASH_ALGO_ID);
+
         if (hashAlgoId == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not get hash algorithm identifier from message");
+            throw new CodedException(X_INTERNAL_ERROR, "Could not get hash algorithm identifier from message");
         }
 
         return hashAlgoId;
@@ -621,15 +577,13 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public boolean canHandle(ServiceId requestSrvcId,
-                                 ProxyMessage requestProxyMessage) {
+        public boolean canHandle(ServiceId requestSrvcId, ProxyMessage requestProxyMessage) {
             return true;
         }
 
         @Override
-        public void startHandling(HttpServletRequest servletRequest,
-                ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-                OpMonitoringData monitoringData) throws Exception {
+        public void startHandling(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
+                HttpClient opMonitorClient, OpMonitoringData monitoringData) throws Exception {
             sender = createHttpSender();
 
             log.trace("processRequest({})", requestServiceId);
@@ -637,8 +591,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
             String address = ServerConf.getServiceAddress(requestServiceId);
 
             if (address == null || address.isEmpty()) {
-                throw new CodedException(X_SERVICE_MISSING_URL,
-                        "Service address not specified for '%s'",
+                throw new CodedException(X_SERVICE_MISSING_URL, "Service address not specified for '%s'",
                         requestServiceId);
             }
 
@@ -671,18 +624,16 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             responseSoap = (SoapMessageImpl) message;
             encoder.soap(responseSoap, headers);
 
-            opMonitoringData.setResponseSoapSize(
-                    responseSoap.getBytes().length);
+            opMonitoringData.setResponseSoapSize(responseSoap.getBytes().length);
         }
 
         @Override
-        public void attachment(String contentType, InputStream content,
-                               Map<String, String> additionalHeaders) throws Exception {
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+                throws Exception {
             encoder.attachment(contentType, content, additionalHeaders);
         }
 
@@ -708,8 +659,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     }
 
     /**
-     * Soap parser that adds the request message hash to the response
-     * message header.
+     * Soap parser that adds the request message hash to the response message header.
      */
     private class ResponseSoapParserImpl extends SaxSoapParserImpl {
 
@@ -748,34 +698,28 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeEndElementXml(String prefix, QName element,
-                Attributes attributes, Writer writer) {
+        protected void writeEndElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
             if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
                 inExistingRequestHash = false;
             } else {
                 writeBufferedCharacters(writer);
                 super.writeEndElementXml(prefix, element, attributes, writer);
             }
+
             if (inHeader && element.equals(QNAME_XROAD_QUERY_ID)) {
                 try {
                     byte[] hashBytes = requestMessage.getSoap().getHash();
                     String hash = encodeBase64(hashBytes);
 
                     AttributesImpl hashAttrs = new AttributesImpl(attributes);
-                    String algoId = getDigestAlgorithmURI(
-                            SoapUtils.getHashAlgoId());
-                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID,
-                            "xs:string", algoId);
+                    String algoId = getDigestAlgorithmURI(SoapUtils.getHashAlgoId());
+                    hashAttrs.addAttribute("", "", ATTR_ALGORITHM_ID, "xs:string", algoId);
 
-                    char[] tabs = headerElementTabs != null
-                            ? headerElementTabs : new char[0];
+                    char[] tabs = headerElementTabs != null ? headerElementTabs : new char[0];
                     super.writeCharactersXml(tabs, 0, tabs.length, writer);
-                    super.writeStartElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
-                            hashAttrs, writer);
-                    super.writeCharactersXml(hash.toCharArray(), 0,
-                            hash.length(), writer);
-                    super.writeEndElementXml(prefix, QNAME_XROAD_REQUEST_HASH,
-                            hashAttrs, writer);
+                    super.writeStartElementXml(prefix, QNAME_XROAD_REQUEST_HASH, hashAttrs, writer);
+                    super.writeCharactersXml(hash.toCharArray(), 0, hash.length(), writer);
+                    super.writeEndElementXml(prefix, QNAME_XROAD_REQUEST_HASH, hashAttrs, writer);
                 } catch (Exception e) {
                     throw translateException(e);
                 }
@@ -783,8 +727,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeStartElementXml(String prefix, QName element,
-                Attributes attributes, Writer writer) {
+        protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
             if (inHeader && element.equals(QNAME_XROAD_REQUEST_HASH)) {
                 inExistingRequestHash = true;
             } else {
@@ -800,17 +743,16 @@ class ServerMessageProcessor extends MessageProcessorBase {
         private void writeBufferedCharacters(Writer writer) {
             // Write the characters we ignored at the last characters event
             if (!bufferFlushed) {
-                super.writeCharactersXml(bufferedChars, bufferedOffset,
-                        bufferedLength, writer);
+                super.writeCharactersXml(bufferedChars, bufferedOffset, bufferedLength, writer);
                 bufferFlushed = true;
             }
         }
 
         @Override
-        protected void writeCharactersXml(char[] characters, int start,
-                int length, Writer writer) {
+        protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
             if (inHeader && headerElementTabs == null) {
                 String value = new String(characters, start, length);
+
                 if (value.trim().isEmpty()) {
                     headerElementTabs = value.toCharArray();
                 }
@@ -827,15 +769,13 @@ class ServerMessageProcessor extends MessageProcessorBase {
             }
         }
 
-        private void bufferCharacters(char[] characters, int start,
-                int length) {
-            if (bufferedChars == null
-                    || bufferedChars.length < characters.length) {
+        private void bufferCharacters(char[] characters, int start, int length) {
+            if (bufferedChars == null || bufferedChars.length < characters.length) {
                 bufferedChars = ArrayUtils.clone(characters);
             } else {
-                System.arraycopy(characters, start, bufferedChars, start,
-                        length);
+                System.arraycopy(characters, start, bufferedChars, start, length);
             }
+
             bufferedOffset = start;
             bufferedLength = length;
             bufferFlushed = false;

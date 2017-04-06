@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static java.nio.charset.StandardCharsets.ISO_8859_1;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
-
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+import static java.nio.charset.StandardCharsets.ISO_8859_1;
 
 /**
  * Client sends normal request, server responds with invalid content type.
