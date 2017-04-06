@@ -28,6 +28,7 @@ java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ServerConfType
 java_import Java::ee.ria.xroad.common.identifier.ClientId
+java_import Java::ee.ria.xroad.common.identifier.SecurityServerId
 java_import Java::ee.ria.xroad.commonui.SignerProxy
 java_import Java::ee.ria.xroad.common.util.TokenPinPolicy
 
@@ -177,6 +178,12 @@ class InitController < ApplicationController
     end
 
     if init_server_code
+      if (GlobalConf::existsSecurityServer(SecurityServerId.create(
+          xroad_instance, params[:owner_class], params[:owner_code],
+          params[:server_code])))
+        warn("serverconf_init", t('init.security_server_exists'))
+      end
+
       new_serverconf.serverCode = params[:server_code]
       audit_log_data[:serverCode] = new_serverconf.serverCode
     end

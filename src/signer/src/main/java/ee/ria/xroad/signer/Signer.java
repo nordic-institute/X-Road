@@ -22,21 +22,13 @@
  */
 package ee.ria.xroad.signer;
 
-import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
-import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
-import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
-
-import java.util.concurrent.TimeUnit;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PeriodicJob;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.certmanager.OcspResponseManager;
 import ee.ria.xroad.signer.protocol.SignerRequestProcessor;
@@ -48,6 +40,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
+
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
+import static ee.ria.xroad.signer.protocol.ComponentNames.*;
 
 /**
  * Signer application.
@@ -64,13 +62,26 @@ public class Signer implements StartStop {
 
     private final ActorSystem actorSystem;
 
+    private FileWatcherRunner keyConfFileWatcherRunner;
+
     @Override
     public void start() throws Exception {
         log.trace("start()");
 
         TokenManager.init();
 
-        createComponent(MODULE_MANAGER, getModuleManagerImpl());
+        ActorRef moduleManager = createComponent(MODULE_MANAGER, getModuleManagerImpl());
+
+        if (SLAVE.equals(SystemProperties.getServerNodeType())) {
+            // when the key conf file is changed from outside this system (i.e. a new copy from master),
+            // send an update event to the module manager so it knows to load the new config
+            this.keyConfFileWatcherRunner = FileWatcherRunner.create()
+                    .watchForChangesIn(Paths.get(SystemProperties.getKeyConfFile()))
+                    .listenToCreate().listenToModify()
+                    .andOnChangeNotify(() -> moduleManager.tell(new Update(), ActorRef.noSender()))
+                    .buildAndStartWatcher();
+        }
+
         createComponent(ModuleManagerJob.class);
 
         createComponent(REQUEST_PROCESSOR, SignerRequestProcessor.class);
@@ -96,7 +107,14 @@ public class Signer implements StartStop {
     public void stop() throws Exception {
         log.trace("stop()");
 
-        TokenManager.saveToConf();
+        if (!SLAVE.equals(SystemProperties.getServerNodeType())) {
+            TokenManager.saveToConf();
+        }
+
+        if (this.keyConfFileWatcherRunner != null) {
+            this.keyConfFileWatcherRunner.stop();
+        }
+
     }
 
     @Override
@@ -109,7 +127,7 @@ public class Signer implements StartStop {
     }
 
     private ActorRef createComponent(String name, Class<?> clazz,
-            Object... arg) {
+                                     Object... arg) {
         return actorSystem.actorOf(Props.create(clazz, arg), name);
     }
 

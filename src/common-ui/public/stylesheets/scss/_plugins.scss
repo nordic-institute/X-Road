@@ -44,8 +44,8 @@
         padding: 0;
         border: 1px solid $base-border-color;
         background: #fff;
-        display: table;
-        margin: 0 auto;
+        display: inline-block;
+        margin: 0;
 
         li {
             float: left;
@@ -66,6 +66,10 @@
                 outline: 0;
                 padding: 5px 10px;
                 cursor: pointer !important;
+            }
+
+            &.ui-tabs-last-visible {
+                border: none;
             }
         }
     }

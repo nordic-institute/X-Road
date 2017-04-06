@@ -1,0 +1,94 @@
+---
+- name: configure database
+  lineinfile:
+      dest: "{{ postgresql_config_dir }}/postgresql.conf"
+      regexp: "^\\s*#?{{ item.option }}\\s*="
+      line: "{{ item.option }} = {{ item.value }}"
+      state: "{{ item.state | default('present') }}"
+  with_items:
+      - { option: 'ssl', value: 'on' }
+      - { option: 'ssl_ca_file', value: "'/etc/xroad/postgresql/ca.crt'" }
+      - { option: 'ssl_cert_file', value: "'/etc/xroad/postgresql/server.crt'" }
+      - { option: 'ssl_key_file', value: "'/etc/xroad/postgresql/server.key'" }
+      - { option: 'listen_addresses', value: "'*'" }
+      - { option: 'wal_level', value: "'hot_standby'" }
+      - { option: 'max_wal_senders', value: '10' }
+      - { option: 'wal_keep_segments', value: '8' }
+
+- name: enable replication connections
+  lineinfile:
+      dest: "{{ postgresql_config_dir }}/pg_hba.conf"
+      regexp: "^\\s*hostssl\\s+replication\\s+\\+slavenode\\s+samenet\\s+cert"
+      line: "hostssl replication +slavenode samenet cert"
+
+- name: enable postgresql service
+  service:
+      name: "{{ postgresql_serverconf_service }}"
+      enabled: yes
+      state: started
+
+- name: check if serverconf user exists
+  become: yes
+  become_user: postgres
+  command: psql -p "{{ serverconf_db_port }}" -qtAc "SELECT 1 FROM pg_roles WHERE rolname='serverconf'"
+  register: serverconf_user_exists
+  changed_when: false
+
+- name: create serverconf user
+  become: yes
+  become_user: postgres
+  command: psql -p "{{ serverconf_db_port }}" -c "CREATE USER serverconf PASSWORD '{{ serverconf_password }}'"
+  when: serverconf_user_exists.stdout == ""
+
+- name: check if database exists
+  become: yes
+  become_user: postgres
+  command: psql -p "{{ serverconf_db_port }}" -qtAc "SELECT 1 from pg_database WHERE datname='serverconf'"
+  register: serverconf_database_exists
+  changed_when: false
+
+- name: copy serverconf database to a new instance
+  become: yes
+  become_user: postgres
+  shell: pg_dump -C serverconf | psql -p "{{ serverconf_db_port }}" -f -
+  when: serverconf_database_exists.stdout == ""
+  register: copy_db
+  failed_when: copy_db.stderr != "" 
+
+- name: create slavenode role 
+  become: yes
+  become_user: postgres
+  shell:
+      cmd: |
+          psql -p "{{ serverconf_db_port }}" <<"__EOF__"
+          DO $$
+          BEGIN
+          IF NOT EXISTS(SELECT 1 FROM pg_roles where rolname='slavenode') THEN
+            CREATE ROLE slavenode NOLOGIN;
+            RAISE NOTICE 'created';
+          END IF;
+          END$$;
+          __EOF__
+  register: result
+  changed_when: "'created' in result.stderr"
+  failed_when: "'ERROR:' in result.stderr"
+
+- name: create replication users  
+  become: yes
+  become_user: postgres
+  shell:
+      cmd: |
+          psql -p "{{ serverconf_db_port }}" <<"__EOF__"
+          DO $$
+          BEGIN
+          IF NOT EXISTS(SELECT 1 FROM pg_roles where rolname='{{ item }}') THEN
+            CREATE USER "{{ item }}" REPLICATION PASSWORD NULL IN ROLE slavenode;
+            RAISE NOTICE 'created';
+          END IF;
+          END$$;
+          __EOF__
+  register: result
+  changed_when: "'created' in result.stderr"
+  failed_when: "'ERROR:' in result.stderr"
+  with_items: "{{ groups['slaves']|map('extract', hostvars, 'nodename')|list }}"
+

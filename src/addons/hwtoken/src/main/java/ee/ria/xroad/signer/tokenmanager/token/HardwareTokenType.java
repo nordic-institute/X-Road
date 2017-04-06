@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import org.apache.commons.lang3.StringUtils;
-
-import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
+
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.util.SignerUtil;
 
 /**
  * Hardware token type, holding the actual pkcs11 token.
@@ -36,6 +36,8 @@ import lombok.Value;
 public class HardwareTokenType implements TokenType {
 
     private final String moduleType;
+
+    private final String tokenIdFormat;
 
     private final iaik.pkcs.pkcs11.Token token;
 
@@ -53,7 +55,7 @@ public class HardwareTokenType implements TokenType {
 
     @Override
     public String getId() {
-        return CryptoUtils.encodeHex(StringUtils.join(new Object[] {
-                moduleType, slotIndex, serialNumber, label }).getBytes());
+        return CryptoUtils.encodeHex(SignerUtil.getFormattedTokenId(tokenIdFormat, moduleType, token).getBytes());
     }
+
 }

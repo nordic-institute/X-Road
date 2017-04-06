@@ -21,11 +21,9 @@ dependencies {
     compile 'commons-jxpath:commons-jxpath:1.3'
     compile 'org.slf4j:jcl-over-slf4j:1.7.12'
     compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    compile 'xerces:xercesImpl:2.11.0.SP5'
 
-    compile 'org.eclipse.jetty:jetty-server:8.1.19.v20160209'
-    compile 'org.eclipse.jetty:jetty-continuation:8.1.19.v20160209'
-    compile 'org.eclipse.jetty:jetty-io:8.1.19.v20160209'
-    compile 'org.eclipse.jetty:jetty-xml:8.1.19.v20160209'
+    compile 'org.eclipse.jetty:jetty-server:9.4.2.v20170220'
 
     compile 'ch.qos.logback:logback-access:1.1.3'
     compile 'ch.qos.logback:logback-classic:1.1.3'

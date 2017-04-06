@@ -6,8 +6,8 @@
 # Security Server Installation Guide
 **X-ROAD 6**
 
-Version: 2.7
-23.02.2017
+Version: 2.8
+13.03.2017
 Doc. ID: IG-SS
 
 ---
@@ -33,6 +33,7 @@ Doc. ID: IG-SS
  30.09.2016 | 2.5     | Added chapter „[Different versions of xroad-\* package after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)“. |
  07.12.2016 | 2.6     | Added operational data monitoring packages. 2 GB RAM -&gt; 3 GB RAM |
  23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
+ 13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
 
 ## Table of Contents
 
@@ -173,7 +174,7 @@ To install the X-Road security server software, follow these steps.
 
 2.  Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-        curl http://x-road.eu/packages/xroad\_repo.gpg| sudo apt-key add -
+        curl http://x-road.eu/packages/xroad_repo.gpg | sudo apt-key add -
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 
@@ -234,7 +235,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 1.  Install the hardware token support module using the following command:
 
-        sudo apt-get install xroad-addon-hwtokens
+    sudo apt-get install xroad-addon-hwtokens
 
 2.  Install and configure a PKCS\#11 driver for the hardware token according to the manufacturer's instructions.
 
@@ -244,6 +245,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
         sudo service xroad-signer restart
 
+If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in /etc/xroad/devices.ini via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
 ### 2.8 Installing Support for Monitoring
 

@@ -172,6 +172,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public boolean existsSecurityServer(SecurityServerId securityServerId) {
+        return false;
+    }
+
+    @Override
     public CertChain getCertChain(String instanceIdentifier,
             X509Certificate subject) throws Exception {
         return null;

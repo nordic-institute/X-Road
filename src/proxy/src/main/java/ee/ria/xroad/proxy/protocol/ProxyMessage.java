@@ -22,24 +22,25 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageEncoder;
-import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CachingStream;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.common.util.MultipartEncoder;
-import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CachingStream;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.common.util.MultipartEncoder;
 
 /**
  * Reads in all of the proxy message, extracts the parts and is later able
@@ -112,7 +113,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public String getSoapContentType() {
         return isMimeEncodedSoap() || hasAttachments()
                 ? (originalContentType != null ? originalContentType : encoder.getContentType())
-                : MimeUtils.TEXT_XML_UTF8;
+                : MimeTypes.TEXT_XML_UTF8;
     }
 
     /**
@@ -122,18 +123,18 @@ public class ProxyMessage implements ProxyMessageConsumer {
     public InputStream getSoapContent() throws Exception {
         if (isMimeEncodedSoap()) {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            MultipartEncoder mp =
-                    new MultipartEncoder(out, originalMimeBoundary);
-            mp.startPart(getSoap().getContentType(),
-                    MimeUtils.toHeaders(soapPartHeaders));
+            MultipartEncoder mp = new MultipartEncoder(out, originalMimeBoundary);
+            mp.startPart(getSoap().getContentType(), MimeUtils.toHeaders(soapPartHeaders));
             mp.write(getSoap().getBytes());
             mp.close();
+
             return new ByteArrayInputStream(out.toByteArray());
         } else if (hasAttachments()) {
             // Finish writing to the attachment cache.
             encoder.close();
 
             hasBeenConsumed = true;
+
             return attachmentCache.getCachedContents();
         } else {
             return new ByteArrayInputStream(soapMessage.getBytes());
@@ -144,7 +145,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
      * Finalize SOAP message processing.
      */
     public void consume() {
-        if (!hasBeenConsumed && hasAttachments()) {
+        if (hasAttachments() && !hasBeenConsumed) {
             try {
                 encoder.close();
 
@@ -152,6 +153,10 @@ public class ProxyMessage implements ProxyMessageConsumer {
             } catch (Exception ignored) {
                 log.warn("Error closing SOAP encoder: {}", ignored);
             }
+        }
+
+        if (attachmentCache != null) {
+            attachmentCache.consume();
         }
     }
 
@@ -170,8 +175,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void soap(SoapMessageImpl soap,
-            Map<String, String> additionalHeaders) throws Exception {
+    public void soap(SoapMessageImpl soap, Map<String, String> additionalHeaders) throws Exception {
         log.trace("Read SOAP message");
 
         this.soapMessage = soap;
@@ -179,13 +183,12 @@ public class ProxyMessage implements ProxyMessageConsumer {
     }
 
     @Override
-    public void attachment(String contentType, InputStream content,
-            Map<String, String> additionalHeaders) throws Exception {
+    public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+            throws Exception {
         log.trace("Attachment: {}", contentType);
 
         if (!hasAttachments()) {
             attachmentCache = new CachingStream();
-
             encoder = createEncoder();
 
             // Write the SOAP before attachments
@@ -213,8 +216,7 @@ public class ProxyMessage implements ProxyMessageConsumer {
     // Returns true, if this the original message was a MIME-encoded SOAP
     // message without any attachments (special case).
     private boolean isMimeEncodedSoap() {
-        return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(
-                MimeUtils.getBaseContentType(originalContentType))
+        return MimeTypes.MULTIPART_RELATED.equalsIgnoreCase(MimeUtils.getBaseContentType(originalContentType))
                 && !hasAttachments();
     }
 }

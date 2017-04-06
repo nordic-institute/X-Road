@@ -10,4 +10,5 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+Alias=xroad-jetty.service
 

@@ -23,13 +23,21 @@
 package ee.ria.xroad.proxy.antidos;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.nio.channels.ServerSocketChannel;
-
-import org.eclipse.jetty.io.nio.SelectChannelEndPoint;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import java.nio.channels.SelectableChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Semaphore;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.eclipse.jetty.io.EndPoint;
+import org.eclipse.jetty.io.SelectorManager;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.util.thread.Scheduler;
+
+import ee.ria.xroad.common.util.SystemMetrics;
 
 /**
  * This class implements a connector that prevents DoS attacks.
@@ -46,49 +54,112 @@ import lombok.extern.slf4j.Slf4j;
  * also get closed.
  */
 @Slf4j
-public class AntiDosConnector extends SelectChannelConnector {
+public class AntiDosConnector extends ServerConnector {
 
-    private final AntiDosConnectorDelegate delegate;
+    private final AntiDosConfiguration configuration = new AntiDosConfiguration();
+
+    private final Semaphore semaphore = new Semaphore(configuration.getMaxParallelConnections());
+
+    private final AntiDosConnectionManager<SocketChannelWrapperImpl> manager =
+            new AntiDosConnectionManager<SocketChannelWrapperImpl>(configuration) {
+        @Override
+        void closeConnection(SocketChannelWrapperImpl sock) throws IOException {
+            try {
+                super.closeConnection(sock);
+            } finally {
+                onConnectionClosed();
+            }
+        }
+    };
 
     /**
      * Construct a new AntiDos connector.
+     * @param server the server
+     * @param acceptorCount acceptor count
      */
-    public AntiDosConnector() {
-        super();
+    public AntiDosConnector(Server server, int acceptorCount) {
+        super(server, acceptorCount, -1);
+    }
 
-        this.delegate = new AntiDosConnectorDelegate(this) {
-            @Override
-            void configure(Socket sock) throws IOException {
-                AntiDosConnector.this.configure(sock);
-            }
-        };
+    /**
+     * Constructs a new SSL-enabled AntiDos connector.
+     * @param server the server
+     * @param acceptorCount acceptor count
+     * @param sslContextFactory SSL context factory to use for configuration
+     */
+    public AntiDosConnector(Server server, int acceptorCount, SslContextFactory sslContextFactory) {
+        super(server, acceptorCount, -1, sslContextFactory);
     }
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
 
-        delegate.doStart();
+        manager.init();
+
+        getExecutor().execute(new QueueManager());
     }
 
     @Override
     public void accept(int acceptorID) throws IOException {
-        ServerSocketChannel server;
-        synchronized (this) {
-            server = _acceptChannel;
-        }
-        try {
-            delegate.accept(server);
-        } catch (Exception err) {
-            log.error("Error accepting connection", err);
-            server.close();
+        if (manager.canAccept()) {
+            super.accept(acceptorID);
         }
     }
 
     @Override
-    protected void endPointClosed(SelectChannelEndPoint endpoint) {
-        super.endPointClosed(endpoint);
+    protected void onEndPointClosed(EndPoint endpoint) {
+        super.onEndPointClosed(endpoint);
 
-        delegate.endPointClosed(endpoint);
+        log.trace("Closed connection: " + endpoint);
+
+        onConnectionClosed();
+    }
+
+    protected void onConnectionClosed() {
+        semaphore.release();
+
+        log.trace("Released a permit, current total: {}", semaphore.availablePermits());
+
+        SystemMetrics.connectionClosed();
+    }
+
+    @Override
+    protected SelectorManager newSelectorManager(Executor executor, Scheduler scheduler, int selectors) {
+        return new ServerConnectorManager(executor, scheduler, selectors) {
+            @Override
+            public void accept(SelectableChannel channel) {
+                log.trace("Accepted connection: " + channel);
+
+                manager.accept(new SocketChannelWrapperImpl((SocketChannel) channel));
+
+                SystemMetrics.connectionAccepted();
+            }
+        };
+    }
+
+    private class QueueManager implements Runnable {
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    // Take the next connection to be processed
+                    SocketChannel channel = manager.takeNextConnection().getChannel();
+
+                    if (channel.isOpen() && !channel.isRegistered()) {
+                        log.trace("Looking to acquire permit, current total: {}", semaphore.availablePermits());
+
+                        // Wait until we can start processing
+                        semaphore.acquire();
+
+                        log.trace("Processing connection: " + channel.socket());
+
+                        getSelectorManager().accept(channel, null);
+                    }
+                }
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }

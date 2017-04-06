@@ -1,0 +1,8 @@
+/var/log/xroad/slave-sync.log {
+        daily
+        rotate 7
+        missingok
+        nocreate
+        compress
+}
+

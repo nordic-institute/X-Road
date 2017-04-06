@@ -6,7 +6,7 @@
         <input name="token_id" type="hidden" value="<%= @token.id %>"/>
         <input name="friendly_name" type="text" style="float: right;"
                value="<%= @token.friendlyName || @token.id %>"
-               <%= "disabled" unless token_saved_to_configuration?(@token) %>/>
+               <%= "disabled" unless token_saved_to_configuration?(@token) && can?(:edit_keytable_friendly_names) %>/>
       </form>
     </td>
   </tr>

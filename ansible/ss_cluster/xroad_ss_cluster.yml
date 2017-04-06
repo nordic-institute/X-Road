@@ -1,0 +1,27 @@
+---
+- hosts: localhost
+  tasks:
+      - name: Require ansible version >=2.1
+        assert:
+          that: 
+            - "{{ ansible_version is defined }}"
+            - "{{ ansible_version.full | version_compare(2.1,'>=') }}"
+
+- hosts: slaves
+  become: yes
+  roles:
+      - node
+      - ssh
+
+- hosts: master
+  become: yes
+  roles:
+      - node
+      - ssh_server
+      - master
+
+- hosts: slaves
+  become: yes
+  roles:
+      - slave
+
