@@ -48,6 +48,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -214,7 +216,7 @@ public final class ProxyMain {
          */
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
             @Override
-            public void run() {
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     log.info("/timestampstatus");
 
@@ -252,8 +254,8 @@ public final class ProxyMain {
                         }
                     }
 
-
-                    JsonUtils.getSerializer().toJson(result, getParams().response.getWriter());
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(result, response.getWriter());
 
                 } catch (Exception e) {
                     log.error("Error getting timeout status", e);

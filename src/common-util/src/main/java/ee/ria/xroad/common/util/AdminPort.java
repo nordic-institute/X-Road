@@ -31,9 +31,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -51,29 +48,10 @@ import static javax.servlet.http.HttpServletResponse.*;
 public class AdminPort implements StartStop {
 
     /**
-     * Jetty HTTP request handler parameters
-     */
-    @AllArgsConstructor
-    public static class JettyHandlerParams {
-        public final String target;
-        public final Request baseRequest;
-        public final HttpServletRequest request;
-        public HttpServletResponse response;
-    }
-
-    /**
      * Base class for AdminPort callbacks
      */
-    @Getter
-    @Setter
-    public abstract static class AdminPortCallback implements Runnable {
-        private JettyHandlerParams params;
-    }
-
-    /**
-     * Asynchronous AdminPort callback interface.
-     */
-    public abstract static class AsynchronousCallback extends AdminPortCallback {
+    public abstract static class AdminPortCallback {
+        public abstract void handle(HttpServletRequest request, HttpServletResponse response);
     }
 
     /**
@@ -81,8 +59,6 @@ public class AdminPort implements StartStop {
      */
     public abstract static class SynchronousCallback extends AdminPortCallback {
     }
-
-    public static final String REQUEST_STOP = "/stop";
 
     private static final Logger LOG = LoggerFactory.getLogger(AdminPort.class);
 
@@ -124,14 +100,6 @@ public class AdminPort implements StartStop {
     }
 
     /**
-     * Registers the "stop" command on this AdminPort.
-     * @param handler callback to be executed when the "stop" command is issued
-     */
-    public void addStopHandler(AsynchronousCallback handler) {
-        addHandler(REQUEST_STOP, handler);
-    }
-
-    /**
      * Registers a shutdown hook to be executed when the application shuts down.
      * @param hook the runnable that should be run when the application shuts down
      */
@@ -145,15 +113,6 @@ public class AdminPort implements StartStop {
      * @param handler the synchronous callback that should be executed when the command is issued
      */
     public void addHandler(String target, SynchronousCallback handler) {
-        handlers.put(target, handler);
-    }
-
-    /**
-     * Registers an asynchronous callback for the given command string.
-     * @param target the command string
-     * @param handler the asynchronous callback that should be executed when the command is issued
-     */
-    public void addHandler(String target, AsynchronousCallback handler) {
         handlers.put(target, handler);
     }
 
@@ -187,11 +146,10 @@ public class AdminPort implements StartStop {
             try {
                 AdminPortCallback handler = handlers.get(target);
                 if (handler != null) {
-                    handler.setParams(new JettyHandlerParams(target, baseRequest, request, response));
                     if (handler instanceof SynchronousCallback) {
-                        handler.run();
+                        handler.handle(request, response);
                     } else {
-                        new Thread(handler).start();
+                        LOG.warn("Unknown handler detected for target '{}', skipping handling delegation", target);
                     }
                 } else {
                     response.setStatus(SC_NOT_FOUND);
