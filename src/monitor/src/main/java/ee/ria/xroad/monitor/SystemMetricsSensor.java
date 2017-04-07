@@ -22,12 +22,16 @@
  */
 package ee.ria.xroad.monitor;
 
+import akka.actor.ActorIdentity;
+import akka.actor.ActorRef;
+import akka.actor.Identify;
+import akka.actor.Terminated;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
-import com.sun.management.UnixOperatingSystemMXBean;
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.monitor.common.StatsRequest;
+import ee.ria.xroad.monitor.common.StatsResponse;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
@@ -48,6 +52,10 @@ public class SystemMetricsSensor extends AbstractSensor {
     private final SimpleSensor<Long> totalSwapSpaceSize = new SimpleSensor<>();
     private final SimpleSensor<Long> maxFileDescriptorCount = new SimpleSensor<>();
 
+    private ActorRef agent;
+    private final FiniteDuration interval
+            = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
+
     /**
      * Constructor
      */
@@ -63,7 +71,9 @@ public class SystemMetricsSensor extends AbstractSensor {
         metricRegistry.register(SystemMetricNames.TOTAL_SWAP_SPACE, totalPhysicalMemorySize);
         metricRegistry.register(SystemMetricNames.TOTAL_PHYSICAL_MEMORY, totalPhysicalMemorySize);
 
-        scheduleSingleMeasurement(getInterval(), new SystemMetricsMeasure());
+        context().system().actorSelection("akka.tcp://xroad-monitor@127.0.0.1:5567/user/ProxyMonitorAgent")
+                .tell(new Identify(self()), self());
+        scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
     }
 
     private Histogram createDefaultHistogram() {
@@ -73,9 +83,8 @@ public class SystemMetricsSensor extends AbstractSensor {
     /**
      * Update sensor metrics
      */
-    private void updateMetrics() {
+    private void updateMetrics(StatsResponse stats) {
         MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
-        UnixOperatingSystemMXBean stats = SystemMetrics.getStats();
         metrics.getHistograms().get(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT)
                 .update(stats.getOpenFileDescriptorCount());
         metrics.getHistograms().get(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY)
@@ -92,18 +101,54 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     public void onReceive(Object o) throws Exception {
-        if (o instanceof SystemMetricsMeasure) {
-            log.debug("Updating metrics");
-            updateMetrics();
-            scheduleSingleMeasurement(getInterval(), new SystemMetricsMeasure());
+
+        if (o instanceof ActorIdentity) {
+            final ActorIdentity identity = (ActorIdentity) o;
+            if (identity.correlationId().equals(self())) {
+                if (identity.getRef() != null && !identity.getRef().equals(agent)) {
+                    if (agent != null) {
+                        context().unwatch(agent);
+                    }
+                    log.debug("ProxyMonitorAgent enabled");
+                    agent = identity.getRef();
+                    context().watch(agent);
+                } else {
+                    log.debug("ProxyMonitorAgent not found");
+                }
+            }
         }
+
+        if (o instanceof Terminated) {
+            final Terminated terminated = (Terminated) o;
+            if (terminated.getActor().equals(agent)) {
+                log.debug("ProxyMonitorAgent terminated");
+                context().unwatch(agent);
+                agent = null;
+            }
+        }
+
+        if (o instanceof StatsResponse) {
+            updateMetrics((StatsResponse) o);
+        }
+
+        if (MEASURE_MESSAGE == o) {
+            if (agent == null) {
+                context().system()
+                        .actorSelection("akka.tcp://Proxy@127.0.0.1:5567/user/ProxyMonitorAgent")
+                        .tell(new Identify(self()), self());
+            } else {
+                agent.tell(STATS_REQUEST, self());
+            }
+            scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
+        }
+
     }
 
     @Override
     protected FiniteDuration getInterval() {
-        return Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
+        return interval;
     }
 
-    private static class SystemMetricsMeasure { }
-
+    private static final Object MEASURE_MESSAGE = new Object();
+    private static final StatsRequest STATS_REQUEST = new StatsRequest();
 }

@@ -27,7 +27,13 @@ import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
-import ee.ria.xroad.common.*;
+import ee.ria.xroad.common.CommonMessages;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -37,6 +43,7 @@ import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
+import ee.ria.xroad.proxy.addon.AddOn;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
@@ -57,9 +64,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 
-import static ee.ria.xroad.common.SystemProperties.*;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Main program for the proxy server.
@@ -85,6 +95,7 @@ public final class ProxyMain {
     private static ActorSystem actorSystem;
 
     private static String version;
+    private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
 
     private ProxyMain() {
     }
@@ -171,6 +182,10 @@ public final class ProxyMain {
         BatchSigner.init(actorSystem);
         MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
+
+        for (AddOn addOn : addOns) {
+            addOn.init(actorSystem);
+        }
 
         SERVICES.add(jobManager);
         SERVICES.add(new ClientProxy());
