@@ -8,7 +8,6 @@
 - PVAYLADEV-714: Added documentation for SecurityServer protocol extension.
 - PVAYLADEV-709: Added a read-only user role for security server user interface.
 - PVAYLADEV-707: SOAP Faults wrapped in a multipart message will now be passed to the client. Previously, the security server replaced the fault with a generalized error message.
-- PVAYLADEV-695: Increase Akka remoting maximum message size to 256KiB and enable logging of Akka error events.
 - PVAYLADEV-615: Fix for never ending messagelog archiving. Doing it now in smaller transactions.
 - PVAYLADEV-704: Added Jenkinsfile to support building Github pull requests in Jenkins.
 
