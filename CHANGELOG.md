@@ -1,6 +1,7 @@
 # Change Log
 
 ## 6.13.0 - 2017-03-30
+- PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and enable logging of akka error events.
 - TBD
 
 ## 6.12.0 - 2017-03-13

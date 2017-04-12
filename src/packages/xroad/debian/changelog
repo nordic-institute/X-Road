@@ -1,6 +1,7 @@
 xroad (6.13.0-1) trusty; urgency=medium
 
-  * TBD
+  * PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and
+    enable logging of akka error events.
 
  -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 12 Jan 2017 16:37:12 +0300
 
