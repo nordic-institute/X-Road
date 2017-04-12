@@ -25,12 +25,12 @@ package ee.ria.xroad.proxymonitor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import ee.ria.xroad.proxy.addon.AddOn;
-import ee.ria.xroad.proxymonitor.util.ProxyMonitorAgent;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
+import ee.ria.xroad.proxymonitor.util.ProxyMonitorAgent;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- *
+ *  ProxyMonitor initialization
  */
 @Slf4j
 public class ProxyMonitor implements AddOn {

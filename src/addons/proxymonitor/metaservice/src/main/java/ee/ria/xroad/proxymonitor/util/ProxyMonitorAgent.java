@@ -27,29 +27,45 @@ import com.sun.management.UnixOperatingSystemMXBean;
 import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- *
+ * Proxy monitoring agent
  */
+@Slf4j
 public class ProxyMonitorAgent extends UntypedActor {
+
+    private boolean failureState = false;
+
     @Override
     public void onReceive(Object o) throws Throwable {
         if (o instanceof StatsRequest) {
-            sender().tell(statsResponse(), self());
+            handleStatsRequest();
         }
     }
 
-    private StatsResponse statsResponse() {
-        UnixOperatingSystemMXBean stats = SystemMetrics.getStats();
-        return new StatsResponse(
-                stats.getOpenFileDescriptorCount(),
-                stats.getMaxFileDescriptorCount(),
-                stats.getSystemCpuLoad(),
-                stats.getCommittedVirtualMemorySize(),
-                stats.getFreePhysicalMemorySize(),
-                stats.getTotalPhysicalMemorySize(),
-                stats.getFreeSwapSpaceSize(),
-                stats.getTotalSwapSpaceSize()
-        );
+    private void handleStatsRequest() {
+        final UnixOperatingSystemMXBean stats = SystemMetrics.getStats();
+        try {
+            final StatsResponse response = new StatsResponse(
+                    stats.getOpenFileDescriptorCount(),
+                    stats.getMaxFileDescriptorCount(),
+                    stats.getSystemCpuLoad(),
+                    stats.getCommittedVirtualMemorySize(),
+                    stats.getFreePhysicalMemorySize(),
+                    stats.getTotalPhysicalMemorySize(),
+                    stats.getFreeSwapSpaceSize(),
+                    stats.getTotalSwapSpaceSize());
+            failureState = false;
+            sender().tell(response, self());
+        } catch (InternalError ignored) {
+            // Querying stats fails with an java.lang.InternalError if all file descriptors are in use
+            // An uncaught InternalError (by default) stops the actorsystem and Akka forces the JVM to exit.
+            if (!failureState) {
+                //Avoid logging periodically during failure.
+                log.error("Failed to retrieve OS stats", ignored);
+                failureState = true;
+            }
+        }
     }
 }

@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -46,15 +47,21 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SystemMetricsSensor extends AbstractSensor {
 
-    public static final int MINUTES_IN_HOUR = 60;
-    public static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
+    private static final int MINUTES_IN_HOUR = 60;
+    private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
+    private static final Object MEASURE_MESSAGE = new Object();
+    private static final StatsRequest STATS_REQUEST = new StatsRequest();
+
     private final SimpleSensor<Long> totalPhysicalMemorySize = new SimpleSensor<>();
     private final SimpleSensor<Long> totalSwapSpaceSize = new SimpleSensor<>();
     private final SimpleSensor<Long> maxFileDescriptorCount = new SimpleSensor<>();
-
-    private ActorRef agent;
     private final FiniteDuration interval
             = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
+    private final String agentPath =
+            "akka.tcp://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
+
+    private ActorRef agent;
+    private long correlationId = 1;
 
     /**
      * Constructor
@@ -71,8 +78,7 @@ public class SystemMetricsSensor extends AbstractSensor {
         metricRegistry.register(SystemMetricNames.TOTAL_SWAP_SPACE, totalPhysicalMemorySize);
         metricRegistry.register(SystemMetricNames.TOTAL_PHYSICAL_MEMORY, totalPhysicalMemorySize);
 
-        context().system().actorSelection("akka.tcp://xroad-monitor@127.0.0.1:5567/user/ProxyMonitorAgent")
-                .tell(new Identify(self()), self());
+        identifyAgent();
         scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
     }
 
@@ -84,14 +90,12 @@ public class SystemMetricsSensor extends AbstractSensor {
      * Update sensor metrics
      */
     private void updateMetrics(StatsResponse stats) {
-        MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
-        metrics.getHistograms().get(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT)
-                .update(stats.getOpenFileDescriptorCount());
-        metrics.getHistograms().get(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY)
-                .update(stats.getCommittedVirtualMemorySize());
-        metrics.getHistograms().get(SystemMetricNames.FREE_SWAP_SPACE).update(stats.getFreeSwapSpaceSize());
-        metrics.getHistograms().get(SystemMetricNames.FREE_PHYSICAL_MEMORY).update(stats.getFreePhysicalMemorySize());
-        metrics.getHistograms().get(SystemMetricNames.SYSTEM_CPU_LOAD)
+        final Map<String, Histogram> histograms = MetricRegistryHolder.getInstance().getMetrics().getHistograms();
+        histograms.get(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT).update(stats.getOpenFileDescriptorCount());
+        histograms.get(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY).update(stats.getCommittedVirtualMemorySize());
+        histograms.get(SystemMetricNames.FREE_SWAP_SPACE).update(stats.getFreeSwapSpaceSize());
+        histograms.get(SystemMetricNames.FREE_PHYSICAL_MEMORY).update(stats.getFreePhysicalMemorySize());
+        histograms.get(SystemMetricNames.SYSTEM_CPU_LOAD)
                 .update((long) (stats.getSystemCpuLoad() * SYSTEM_CPU_LOAD_MULTIPLIER));
 
         maxFileDescriptorCount.update(stats.getMaxFileDescriptorCount());
@@ -100,55 +104,54 @@ public class SystemMetricsSensor extends AbstractSensor {
     }
 
     @Override
-    public void onReceive(Object o) throws Exception {
+    public void onReceive(final Object message) {
 
-        if (o instanceof ActorIdentity) {
-            final ActorIdentity identity = (ActorIdentity) o;
-            if (identity.correlationId().equals(self())) {
-                if (identity.getRef() != null && !identity.getRef().equals(agent)) {
-                    if (agent != null) {
-                        context().unwatch(agent);
-                    }
-                    log.debug("ProxyMonitorAgent enabled");
-                    agent = identity.getRef();
-                    context().watch(agent);
-                } else {
-                    log.debug("ProxyMonitorAgent not found");
-                }
-            }
-        }
-
-        if (o instanceof Terminated) {
-            final Terminated terminated = (Terminated) o;
-            if (terminated.getActor().equals(agent)) {
-                log.debug("ProxyMonitorAgent terminated");
-                context().unwatch(agent);
-                agent = null;
-            }
-        }
-
-        if (o instanceof StatsResponse) {
-            updateMetrics((StatsResponse) o);
-        }
-
-        if (MEASURE_MESSAGE == o) {
+        if (MEASURE_MESSAGE == message) {
             if (agent == null) {
-                context().system()
-                        .actorSelection("akka.tcp://Proxy@127.0.0.1:5567/user/ProxyMonitorAgent")
-                        .tell(new Identify(self()), self());
+                identifyAgent();
             } else {
                 agent.tell(STATS_REQUEST, self());
             }
             scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
+        } else if (message instanceof StatsResponse) {
+            updateMetrics((StatsResponse) message);
+        } else if (message instanceof ActorIdentity) {
+            attachAgent((ActorIdentity) message);
+        } else if (message instanceof Terminated) {
+            detachAgent((Terminated) message);
+        } else {
+            unhandled(message);
         }
+    }
 
+    private void detachAgent(final Terminated message) {
+        if (message.getActor().equals(agent)) {
+            log.info("ProxyMonitorAgent detached");
+            context().unwatch(agent);
+            agent = null;
+        }
+    }
+
+    private void attachAgent(final ActorIdentity message) {
+        if (message.correlationId().equals(correlationId)) {
+            if (agent != null) {
+                context().unwatch(agent);
+            }
+            agent = message.getRef();
+            if (agent != null) {
+                context().watch(agent);
+                log.info("ProxyMonitorAgent attached");
+            }
+        }
+    }
+
+    private void identifyAgent() {
+        correlationId++;
+        context().system().actorSelection(agentPath).tell(new Identify(correlationId), self());
     }
 
     @Override
     protected FiniteDuration getInterval() {
         return interval;
     }
-
-    private static final Object MEASURE_MESSAGE = new Object();
-    private static final StatsRequest STATS_REQUEST = new StatsRequest();
 }

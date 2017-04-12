@@ -27,6 +27,7 @@ import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
@@ -158,10 +159,10 @@ public final class ProxyMain {
     private static void startup() throws Exception {
         log.trace("startup()");
 
-        actorSystem = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy")
-                    .withFallback(ConfigFactory.load()));
-
+        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
+                .withFallback(ConfigFactory.load())
+                .withValue("akka.remote.netty.tcp.port",
+                        ConfigValueFactory.fromAnyRef(PortNumbers.PROXY_ACTORSYSTEM_PORT)));
         readProxyVersion();
 
         log.info("Starting proxy ({})...", getVersion());
