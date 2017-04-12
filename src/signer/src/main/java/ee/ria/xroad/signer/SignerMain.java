@@ -35,6 +35,7 @@ import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -125,7 +126,7 @@ public final class SignerMain {
 
         port.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void run() {
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     signer.execute();
                 } catch (Exception ex) {
@@ -136,7 +137,7 @@ public final class SignerMain {
 
         port.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void run() {
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
                 log.info("handler /status");
                 CertificationServiceDiagnostics diagnostics = null;
                 try {
@@ -153,7 +154,6 @@ public final class SignerMain {
                     diagnostics = diagnosticsDefault;
                 }
                 try {
-                    HttpServletResponse response = getParams().response;
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(diagnostics, response.getWriter());
                 } catch (IOException e) {
