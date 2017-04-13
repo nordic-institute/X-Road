@@ -618,7 +618,7 @@ in normally.
 **Ubuntu:**
 
 ```bash
-adduser --system --ingroup xroad xroad-slave
+adduser --system --shell /bin/bash --ingroup xroad xroad-slave
 ```
 **RHEL:**
 

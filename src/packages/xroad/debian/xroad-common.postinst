@@ -72,7 +72,7 @@ Please fix this and reinstall this package." >&2
     chown -R xroad:xroad /etc/xroad/services
 
     chown -R xroad:xroad /etc/xroad/conf.d
-    chmod -R u=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
+    chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d
 
     chmod 0440 /etc/sudoers.d/xroad-restore
 
@@ -85,7 +85,14 @@ Please fix this and reinstall this package." >&2
 
 fi
 
-invoke-rc.d xroad-signer restart
-invoke-rc.d xroad-confclient restart
-
+if [ "$1" = triggered ]; then
+    # triggered if /etc/xroad is changed
+    # fix configuration directory permissions
+    chown -R xroad:xroad /etc/xroad/conf.d /etc/xroad/services ||:
+    chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d ||:
+else
+    invoke-rc.d xroad-signer restart
+    invoke-rc.d xroad-confclient restart
+fi
 exit 0
+
