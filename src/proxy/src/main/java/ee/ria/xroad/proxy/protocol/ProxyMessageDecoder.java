@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.Getter;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.CountingOutputStream;
@@ -38,12 +37,9 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
-
 import org.eclipse.jetty.http.HttpFields;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +52,7 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.signedmessage.Verifier;
 
@@ -63,7 +60,6 @@ import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.MimeTypes.*;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 /**
  * Decodes proxy SOAP messages from an input stream.
@@ -162,7 +158,7 @@ public class ProxyMessageDecoder {
     }
 
     private void parseFault(InputStream is) throws Exception {
-        Soap soap = new SaxSoapParserImpl().parse(MimeUtils.TEXT_XML_UTF8, is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw new CodedException(X_INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");

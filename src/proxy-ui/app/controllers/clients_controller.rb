@@ -160,7 +160,7 @@ class ClientsController < ApplicationController
   synchronize :client_add, :with => :@@lock_client_add
 
   def client_certs
-    authorize!(:view_client_details)
+    authorize!(:view_client_details_dialog)
 
     validate_params({
       :client_id => [:required]
@@ -437,8 +437,8 @@ class ClientsController < ApplicationController
          ClientType::STATUS_DELINPROG,
          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
       :owner => serverconf.owner.id == client.id,
-      :can_view_client_details =>
-          can?(:view_client_details),
+      :can_view_client_details_dialog =>
+          can?(:view_client_details_dialog),
       :can_view_client_services =>
           can?(:view_client_services) && is_subsystem,
       :can_view_client_local_groups =>

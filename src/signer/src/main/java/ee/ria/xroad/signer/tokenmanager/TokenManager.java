@@ -22,11 +22,23 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
-import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
-import static java.util.Collections.unmodifiableList;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.model.Cert;
+import ee.ria.xroad.signer.model.CertRequest;
+import ee.ria.xroad.signer.model.Key;
+import ee.ria.xroad.signer.model.Token;
+import ee.ria.xroad.signer.protocol.dto.*;
+import ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokensStrategy;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeAddedCertificatesListener;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy.MergeResult;
+import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
+import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.util.TokenAndKey;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -37,25 +49,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.model.Cert;
-import ee.ria.xroad.signer.model.CertRequest;
-import ee.ria.xroad.signer.model.Key;
-import ee.ria.xroad.signer.model.Token;
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
-import ee.ria.xroad.signer.tokenmanager.token.TokenType;
-import ee.ria.xroad.signer.util.SignerUtil;
-import ee.ria.xroad.signer.util.TokenAndKey;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.signer.util.ExceptionHelper.*;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Manages the current state of tokens, their keys and certificates.
@@ -63,15 +59,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class TokenManager {
 
-    static volatile List<Token> currentTokens = new ArrayList<>();
+   private static volatile List<Token> currentTokens = new ArrayList<>();
 
-    static boolean initialized;
+    private static boolean initialized;
+
+    // configure the implementation somewhere else if multiple implementations created
+    private static TokenMergeStrategy mergeStrategy = new MergeOntoFileTokensStrategy();
 
     private TokenManager() {
     }
 
     /**
      * Initializes the manager -- loads the tokens from the token configuration.
+     *
      * @throws Exception if an error occurs
      */
     public static void init() throws Exception {
@@ -88,6 +88,7 @@ public final class TokenManager {
 
     /**
      * Saves the current tokens to the configuration.
+     *
      * @throws Exception if an error occurs
      */
     public static synchronized void saveToConf() throws Exception {
@@ -98,6 +99,44 @@ public final class TokenManager {
         }
     }
 
+    /**
+     * Merge the in-memory configuration and the on-disk configuration if the configuration on
+     * disk has changed.
+     * @param listener
+     */
+    public static void merge(TokenMergeAddedCertificatesListener listener) {
+
+        if (TokenConf.getInstance().hasChanged()) {
+            log.debug("The key configuration on disk has changed, merging changes.");
+
+            List<Token> fileTokens;
+            try {
+                fileTokens = TokenConf.getInstance().retrieveTokensFromConf();
+
+            } catch (TokenConf.TokenConfException e) {
+                log.error("Failed to load the new key configuration from disk.", e);
+                return;
+            }
+
+            MergeResult result;
+            synchronized (TokenManager.class) {
+                result = mergeStrategy.merge(fileTokens, currentTokens);
+                currentTokens = result.getResultTokens();
+            }
+            if (listener != null) {
+                listener.mergeDone(result.getAddedCertificates());
+            }
+
+
+            log.info("Merged new key configuration.");
+
+        } else {
+            log.debug("The key configuration on disk has not changed, skipping merge.");
+        }
+    }
+
+
+
     // ------------------------------------------------------------------------
 
     /**
@@ -106,8 +145,8 @@ public final class TokenManager {
     public static synchronized List<TokenInfo> listTokens() {
         return unmodifiableList(
                 currentTokens.stream()
-                    .map(t -> t.toDTO())
-                    .collect(Collectors.toList()));
+                        .map(t -> t.toDTO())
+                        .collect(Collectors.toList()));
     }
 
     /**
@@ -120,6 +159,7 @@ public final class TokenManager {
 
     /**
      * Creates a new token with specified type.
+     *
      * @param tokenType the type
      * @return the new token
      */
@@ -174,7 +214,7 @@ public final class TokenManager {
         log.trace("findTokenAndKey({})", keyId);
 
         return forKey((t, k) -> k.getId().equals(keyId),
-                    (t, k) -> new TokenAndKey(t.getId(), k.toDTO()))
+                (t, k) -> new TokenAndKey(t.getId(), k.toDTO()))
                 .orElseThrow(() -> keyNotFound(keyId));
     }
 
@@ -335,11 +375,12 @@ public final class TokenManager {
 
     /**
      * Sets the OCSP response for the certificate.
+     *
      * @param certHash the certificate hash
      * @param response the OCSP response
      */
     public static synchronized void setOcspResponse(String certHash,
-            OCSPResp response) {
+                                                    OCSPResp response) {
         log.trace("setOcspResponse({})", certHash);
 
         forCert((k, c) -> certHash.equals(c.getHash()),
@@ -350,18 +391,18 @@ public final class TokenManager {
     }
 
     /**
-     * @param keyId the key id
+     * @param keyId    the key id
      * @param memberId the member id
      * @return the certificate request info or null if not found
      */
     public static synchronized CertRequestInfo getCertRequestInfo(String keyId,
-            ClientId memberId) {
+                                                                  ClientId memberId) {
         log.trace("getCertRequestInfo({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);
         return key.getCertRequests().stream()
                 .filter(c -> key.getUsage() == KeyUsageInfo.AUTHENTICATION
-                    || memberId.equals(c.getMemberId()))
+                        || memberId.equals(c.getMemberId()))
                 .map(c -> c.toDTO()).findFirst().orElse(null);
     }
 
@@ -389,11 +430,11 @@ public final class TokenManager {
 
     /**
      * @param certInfo the certificate info
-     * @param member the member id
+     * @param member   the member id
      * @return true if the cert belongs to the member
      */
     public static boolean certBelongsToMember(CertificateInfo certInfo,
-            ClientId member) {
+                                              ClientId member) {
         return member.equals(certInfo.getMemberId())
                 || member.subsystemContainsMember(certInfo.getMemberId());
     }
@@ -420,11 +461,12 @@ public final class TokenManager {
 
     /**
      * Sets the token available.
+     *
      * @param tokenType the token type
      * @param available availability flag
      */
     public static synchronized void setTokenAvailable(TokenType tokenType,
-            boolean available) {
+                                                      boolean available) {
         String tokenId = tokenType.getId();
 
         log.trace("setTokenAvailable({}, {})", tokenId, available);
@@ -436,11 +478,12 @@ public final class TokenManager {
 
     /**
      * Sets the token available.
-     * @param tokenId the token id
+     *
+     * @param tokenId   the token id
      * @param available availability flag
      */
     public static synchronized void setTokenAvailable(String tokenId,
-            boolean available) {
+                                                      boolean available) {
         log.trace("setTokenAvailable({}, {})", tokenId, available);
 
         findToken(tokenId).setAvailable(available);
@@ -448,11 +491,12 @@ public final class TokenManager {
 
     /**
      * Sets the token active (logged in) or not
+     *
      * @param tokenId the token id
-     * @param active active flag
+     * @param active  active flag
      */
     public static synchronized void setTokenActive(String tokenId,
-            boolean active) {
+                                                   boolean active) {
         log.trace("setTokenActive({}, {})", tokenId, active);
 
         findToken(tokenId).setActive(active);
@@ -460,11 +504,12 @@ public final class TokenManager {
 
     /**
      * Sets the token friendly name.
-     * @param tokenId token id
+     *
+     * @param tokenId      token id
      * @param friendlyName the friendly name
      */
     public static synchronized void setTokenFriendlyName(String tokenId,
-            String friendlyName) {
+                                                         String friendlyName) {
         log.trace("setTokenFriendlyName({}, {})", tokenId, friendlyName);
 
         findToken(tokenId).setFriendlyName(friendlyName);
@@ -482,11 +527,12 @@ public final class TokenManager {
 
     /**
      * Sets the token status info
+     *
      * @param tokenId the token id
-     * @param status the status
+     * @param status  the status
      */
     public static synchronized void setTokenStatus(String tokenId,
-            TokenStatusInfo status) {
+                                                   TokenStatusInfo status) {
         log.trace("setTokenStatus({}, {})", tokenId, status);
 
         findToken(tokenId).setStatus(status);
@@ -494,11 +540,12 @@ public final class TokenManager {
 
     /**
      * Sets the key availability.
-     * @param keyId the key id
+     *
+     * @param keyId     the key id
      * @param available true if available
      */
     public static synchronized void setKeyAvailable(String keyId,
-            boolean available) {
+                                                    boolean available) {
         log.trace("setKeyAvailable({}, {})", keyId, available);
 
         findKey(keyId).setAvailable(available);
@@ -516,11 +563,12 @@ public final class TokenManager {
 
     /**
      * Sets the key friendly name.
-     * @param keyId the key id
+     *
+     * @param keyId        the key id
      * @param friendlyName the friendly name
      */
     public static synchronized void setKeyFriendlyName(String keyId,
-            String friendlyName) {
+                                                       String friendlyName) {
         log.trace("setKeyFriendlyName({}, {})", keyId, friendlyName);
 
         findKey(keyId).setFriendlyName(friendlyName);
@@ -528,6 +576,7 @@ public final class TokenManager {
 
     /**
      * Sets the key label.
+     *
      * @param keyId the key id
      * @param label the label
      */
@@ -539,11 +588,12 @@ public final class TokenManager {
 
     /**
      * Sets the key usage.
-     * @param keyId the key id
+     *
+     * @param keyId    the key id
      * @param keyUsage the key usage
      */
     public static synchronized void setKeyUsage(String keyId,
-            KeyUsageInfo keyUsage) {
+                                                KeyUsageInfo keyUsage) {
         log.trace("setKeyUsage({}, {})", keyId, keyUsage);
 
         findKey(keyId).setUsage(keyUsage);
@@ -551,13 +601,14 @@ public final class TokenManager {
 
     /**
      * Adds a key with id and base64 public key to a token.
-     * @param tokenId the token id
-     * @param keyId the key if
+     *
+     * @param tokenId         the token id
+     * @param keyId           the key if
      * @param publicKeyBase64 the public key base64
      * @return the key info or throws exception if the token cannot be found
      */
     public static synchronized KeyInfo addKey(String tokenId, String keyId,
-            String publicKeyBase64) {
+                                              String publicKeyBase64) {
         log.trace("addKey({}, {})", tokenId, keyId);
 
         Token token = findToken(tokenId);
@@ -572,6 +623,7 @@ public final class TokenManager {
 
     /**
      * Removes a key with key id.
+     *
      * @param keyId the key id
      * @return true if key was removed
      */
@@ -584,11 +636,12 @@ public final class TokenManager {
 
     /**
      * Sets the public key for a key.
-     * @param keyId the key id
+     *
+     * @param keyId           the key id
      * @param publicKeyBase64 the public key base64
      */
     public static synchronized void setPublicKey(String keyId,
-            String publicKeyBase64) {
+                                                 String publicKeyBase64) {
         log.trace("setPublicKey({}, {})", keyId, publicKeyBase64);
 
         findKey(keyId).setPublicKey(publicKeyBase64);
@@ -596,7 +649,8 @@ public final class TokenManager {
 
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
-     * @param keyId the key id
+     *
+     * @param keyId     the key id
      * @param certBytes the certificate bytes
      */
     public static synchronized void addCert(String keyId, byte[] certBytes) {
@@ -612,11 +666,12 @@ public final class TokenManager {
 
     /**
      * Adds a certificate to a key. Throws exception, if key cannot be found.
-     * @param keyId the key id
+     *
+     * @param keyId    the key id
      * @param certInfo the certificate info
      */
     public static synchronized void addCert(String keyId,
-            CertificateInfo certInfo) {
+                                            CertificateInfo certInfo) {
         log.trace("addCert({})", keyId);
 
         Key key = findKey(keyId);
@@ -634,11 +689,12 @@ public final class TokenManager {
 
     /**
      * Sets the certificate active status.
+     *
      * @param certId the certificate id
      * @param active true if active
      */
     public static synchronized void setCertActive(String certId,
-            boolean active) {
+                                                  boolean active) {
         log.trace("setCertActive({}, {})", certId, active);
 
         findCert(certId).setActive(active);
@@ -646,11 +702,12 @@ public final class TokenManager {
 
     /**
      * Sets the certificate status.
+     *
      * @param certId the certificate id
      * @param status the status
      */
     public static synchronized void setCertStatus(String certId,
-            String status) {
+                                                  String status) {
         log.trace("setCertStatus({}, {})", certId, status);
 
         findCert(certId).setStatus(status);
@@ -658,6 +715,7 @@ public final class TokenManager {
 
     /**
      * Removes certificate with given id.
+     *
      * @param certId the certificate id
      * @return true if certificate was removed
      */
@@ -670,14 +728,15 @@ public final class TokenManager {
 
     /**
      * Adds a new certificate request to a key.
-     * @param keyId the key id
-     * @param memberId the member id
+     *
+     * @param keyId       the key id
+     * @param memberId    the member id
      * @param subjectName the sbject name
-     * @param keyUsage the key usage
+     * @param keyUsage    the key usage
      * @return certificate id
      */
     public static synchronized String addCertRequest(String keyId,
-            ClientId memberId, String subjectName, KeyUsageInfo keyUsage) {
+                                                     ClientId memberId, String subjectName, KeyUsageInfo keyUsage) {
         log.trace("addCertRequest({}, {})", keyId, memberId);
 
         Key key = findKey(keyId);
@@ -697,7 +756,7 @@ public final class TokenManager {
 
             if ((memberId == null && crSubject.equalsIgnoreCase(subjectName))
                     || (memberId != null && memberId.equals(crMember)
-                                && crSubject.equalsIgnoreCase(subjectName))) {
+                    && crSubject.equalsIgnoreCase(subjectName))) {
                 log.warn("Certificate request (memberId: {}, "
                                 + "subjectName: {}) already exists", memberId,
                         subjectName);
@@ -709,14 +768,15 @@ public final class TokenManager {
         key.addCertRequest(new CertRequest(certId, memberId, subjectName));
 
         log.info("Added new certificate request (memberId: {}, "
-                + "subjectId: {}) under key {}",
-                new Object[] {memberId, subjectName, keyId});
+                        + "subjectId: {}) under key {}",
+                new Object[]{memberId, subjectName, keyId});
 
         return certId;
     }
 
     /**
      * Removes a certificate request with given id.
+     *
      * @param certReqId the certificate request id
      * @return key id from which the certificate request was removed
      */
@@ -740,11 +800,12 @@ public final class TokenManager {
 
     /**
      * Sets the token info for the token.
+     *
      * @param tokenId the token id
-     * @param info the token info
+     * @param info    the token info
      */
     public static synchronized void setTokenInfo(String tokenId,
-            Map<String, String> info) {
+                                                 Map<String, String> info) {
         findToken(tokenId).setInfo(info);
     }
 
@@ -761,7 +822,7 @@ public final class TokenManager {
     // ------------------------------------------------------------------------
 
     private static <T> Optional<T> forToken(Function<Token, Boolean> tester,
-            Function<Token, T> mapper) {
+                                            Function<Token, T> mapper) {
         for (Token token : currentTokens) {
             if (tester.apply(token)) {
                 return Optional.ofNullable(mapper.apply(token));

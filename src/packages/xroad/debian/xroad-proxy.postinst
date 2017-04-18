@@ -6,7 +6,7 @@ set -e
 
 
 #add groups
-groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator"
+groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
 db_name=serverconf
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
@@ -29,6 +29,7 @@ case "$1" in
   test -d /var/spool/xroad && test -w /var/spool/xroad || mkdir /var/spool/xroad ; chown xroad:xroad /var/spool/xroad
   test -d /var/cache/xroad && test -w /var/cache/xroad || mkdir /var/cache/xroad ; chown xroad:xroad /var/cache/xroad
   test -d /etc/xroad/globalconf && test -w /etc/xroad/globalconf || mkdir /etc/xroad/globalconf ; chown xroad:xroad  /etc/xroad/globalconf
+  chown -h xroad:xroad /etc/xroad/conf.d/jetty-logback-context-name.xml
 
   test -f /etc/authbind/byport/80 && test -f /etc/authbind/byport/443 || touch /etc/authbind/byport/80; touch /etc/authbind/byport/443; chown xroad /etc/authbind/byport/80; chown xroad /etc/authbind/byport/443; chmod 500 /etc/authbind/byport/80; chmod 500 /etc/authbind/byport/443
 
@@ -88,27 +89,32 @@ case "$1" in
   chown xroad:xroad ${db_properties}
   chmod 640 ${db_properties}
 
-  echo "running ${db_name} database migrations"
-  cd /usr/share/xroad/db/
-  /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
 
-    if dpkg --compare-versions "$2" le-nl "6.8"
-     then
-      /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
-    fi
+  if [[ "$node_type" == "slave" ]]; then
+      echo "Skipping database migrations on cluster slave node"
+  else 
+      echo "running ${db_name} database migrations"
+      cd /usr/share/xroad/db/
+      /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
 
-    RET=""
-    db_get xroad-common/username
-    AUSER="$RET"
-
-
-    for groupname in $groups
-    do
-      if ! getent group $groupname > /dev/null; then
-        addgroup --system --quiet  $groupname
+      if dpkg --compare-versions "$2" le-nl "6.8"
+      then
+          /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
       fi
-        adduser $AUSER $groupname
-    done
+  fi
+
+  RET=""
+  db_get xroad-common/username
+  AUSER="$RET"
+
+  for groupname in $groups
+  do
+      if ! getent group $groupname > /dev/null; then
+          addgroup --system --quiet  $groupname
+      fi
+      adduser $AUSER $groupname
+  done
 
  ;;
 

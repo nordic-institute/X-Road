@@ -52,9 +52,15 @@
       <span class="box-title"><%= t '.internal_ssl_cert' %></span>
 
       <button id="cert_details"><%= t 'shared.cert_details_dialog.cert_details' %></button>
+      <% if can?(:export_internal_ssl_cert) %>
       <button id="export_internal_ssl_cert"><%= t 'common.export' %></button>
+      <% end %>
+      <% if can?(:import_internal_ssl_cert) %>
       <button id="import_internal_ssl_cert"><%= t 'common.import' %></button>
+      <% end %>
+      <% if can?(:generate_internal_ssl_csr) %>
       <button id="generate_ssl_csr"><%= t '.internal_ssl_generate_csr' %></button>
+      <% end %>
       <% if can?(:generate_internal_ssl) %>
       <button id="generate_internal_ssl"><%= t '.internal_ssl_generate_key' %></button>
       <% end %>

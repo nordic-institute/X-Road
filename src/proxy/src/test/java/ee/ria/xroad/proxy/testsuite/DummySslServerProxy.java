@@ -37,10 +37,8 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.TestCertUtil;
@@ -53,11 +51,7 @@ import ee.ria.xroad.common.util.StartStop;
  * but it uses a different SSL certificate to cause the TrustVerifier to fail
  * when establishing the SSL connection.
  */
-@SuppressWarnings("unchecked")
 public class DummySslServerProxy extends Server implements StartStop {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(DummySslServerProxy.class);
 
     DummySslServerProxy() throws Exception {
         SslContextFactory cf = new SslContextFactory(false);
@@ -71,7 +65,7 @@ public class DummySslServerProxy extends Server implements StartStop {
                 new SecureRandom());
         cf.setSslContext(ctx);
 
-        SslSelectChannelConnector connector = new SslSelectChannelConnector(cf);
+        ServerConnector connector = new ServerConnector(this, cf);
 
         connector.setName("ClientSslConnector");
         connector.setHost("127.0.0.5");

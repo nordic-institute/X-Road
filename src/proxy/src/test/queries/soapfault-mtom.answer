@@ -1,0 +1,40 @@
+--jetty771207119h3h10dty
+Content-Type: application/xop+xml; type="application/soap+xml"; charset=utf-8
+Content-ID: <foo>
+
+<?xml version="1.0" encoding="utf-8"?>
+<SOAP-ENV:Envelope
+        xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <SOAP-ENV:Header>
+        <xroad:client id:objectType="MEMBER">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>consumer</id:memberCode>
+        </xroad:client>
+        <xroad:service id:objectType="SERVICE">
+            <id:xRoadInstance>EE</id:xRoadInstance>
+            <id:memberClass>BUSINESS</id:memberClass>
+            <id:memberCode>producer</id:memberCode>
+            <id:serviceCode>generateMtom</id:serviceCode>
+        </xroad:service>
+        <xroad:userId>EE37702211234</xroad:userId>
+        <xroad:id>9876543210</xroad:id>
+        <xroad:issue>issue</xroad:issue>
+        <xroad:protocolVersion>4.0</xroad:protocolVersion>
+    </SOAP-ENV:Header>
+    <SOAP-ENV:Body>
+      <SOAP-ENV:Fault>
+        <faultcode>soap:Server</faultcode>
+        <faultstring>Error</faultstring>
+        <detail>
+          <errorResponse xmlns="http://gofore.com/test/messagegen">
+            <error>Unable to create payload, try increasing the size</error>
+          </errorResponse>
+        </detail>
+      </SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--jetty771207119h3h10dty

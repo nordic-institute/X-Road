@@ -1,0 +1,25 @@
+---
+- name: setup serverconf database service
+  template:
+      src: "postgresql-serverconf.service.j2"
+      dest: "/etc/systemd/system/postgresql-serverconf.service"
+      owner: root
+      group: root
+
+- name: create the database
+  environment:
+      PGSETUP_INITDB_OPTIONS: "--auth-local=peer --auth-host=md5"
+  command: "postgresql-setup initdb postgresql-serverconf"
+  args:
+      creates: /var/lib/pgsql/serverconf
+  register: create_database
+
+- name: allow postgresql port
+  command: semanage port -a -t postgresql_port_t -p tcp "{{ serverconf_db_port }}"
+  ignore_errors: yes
+
+- set_fact:
+      postgresql_data_dir: "/var/lib/pgsql/serverconf"
+      postgresql_config_dir: "/var/lib/pgsql/serverconf"
+      postgresql_serverconf_service: "postgresql-serverconf"
+

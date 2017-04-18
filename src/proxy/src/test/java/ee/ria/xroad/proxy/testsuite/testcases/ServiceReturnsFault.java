@@ -29,10 +29,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
@@ -60,8 +60,10 @@ public class ServiceReturnsFault extends MessageTestCase {
                 response.setStatus(
                         HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
-                IOUtils.copy(new FileInputStream(QUERIES_DIR + "/fault.query"),
-                        response.getOutputStream());
+                try (FileInputStream in =
+                        new FileInputStream(QUERIES_DIR + "/fault.query")) {
+                    IOUtils.copy(in, response.getOutputStream());
+                }
 
                 baseRequest.setHandled(true);
             }

@@ -49,9 +49,9 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
 import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
-import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
 /**
  * Contains utility methods for working with SOAP messages.

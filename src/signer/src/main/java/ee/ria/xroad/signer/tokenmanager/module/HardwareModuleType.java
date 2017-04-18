@@ -34,6 +34,8 @@ public class HardwareModuleType implements ModuleType {
 
     private final String pkcs11LibraryPath;
 
+    private final String tokenIdFormat;
+
     private final boolean pinVerificationPerSigning;
 
     private final boolean batchSingingEnabled;

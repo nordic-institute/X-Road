@@ -1,0 +1,46 @@
+---
+# some container images might not have ssh server installed
+- name: install ssh server
+  package: 
+      name: openssh-server
+      state: present
+
+- name: start ssh server
+  vars:
+      ssh_server:
+          ubuntu: ssh
+          redhat: sshd
+          centos: sshd              
+  service: 
+      name: "{{ ssh_server[ansible_distribution|lower] }}"
+      state: started
+
+- name: setup xroad-sync user
+  user:
+      name: "{{ xroad_slave_ssh_user }}"
+      group: xroad
+      system: true
+
+- name: setup ssh keys
+  authorized_key:
+      user: "{{ xroad_slave_ssh_user }}"
+      state: present
+      exclusive: true
+      key: "{{ groups['slaves']|map('extract', hostvars, ['xroad_user','ssh_public_key'])|list|join('\n') }}"
+      key_options: "no-agent-forwarding,no-port-forwarding,no-pty,no-user-rc,no-X11-forwarding"
+
+# the remote user should not be able to modify .ssh settings
+- name: set ssh directory permissions
+  file:
+      path: "/home/{{ xroad_slave_ssh_user}}/.ssh"
+      owner: root
+      mode: 0750
+      state: directory
+
+- name: set authorized_keys file permissions
+  file:
+      path: "/home/{{ xroad_slave_ssh_user }}/.ssh/authorized_keys"
+      owner: root
+      mode: 0640
+      state: file
+

@@ -47,7 +47,6 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.eclipse.jetty.http.MimeTypes;
 import org.w3c.dom.Attr;
 
 import ee.ria.xroad.common.CodedException;
@@ -66,6 +65,7 @@ import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SignatureVerifier;
 import ee.ria.xroad.common.signature.TimestampVerifier;
 import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
@@ -234,7 +234,7 @@ public class AsicContainerVerifier {
 
     private static ClientId getSigner(String messageXml) {
         Soap soap = new SaxSoapParserImpl().parse(
-                MimeTypes.TEXT_XML_UTF_8,
+                MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
         if (!(soap instanceof SoapMessageImpl)) {
             throw new RuntimeException("Unexpected SOAP: " + soap.getClass());
