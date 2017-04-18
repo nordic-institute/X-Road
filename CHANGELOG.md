@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.14.0 - 2017-04-18
+- TBD
+
 ## 6.13.0 - 2017-04-11
 - PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and enable logging of akka error events.
 - PVAYLADEV-729: During a configuration restore from backup, the access rights of the directory /var/lib/xroad for other users will no longer be removed.
