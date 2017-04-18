@@ -22,6 +22,32 @@
  */
 package ee.ria.xroad.proxy;
 
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import com.typesafe.config.ConfigFactory;
+import ee.ria.xroad.common.*;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.common.util.AdminPort;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.healthcheck.HealthCheckPort;
+import ee.ria.xroad.proxy.clientproxy.ClientProxy;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
+import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.signer.protocol.SignerClient;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import scala.concurrent.Await;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -33,43 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-
-import com.typesafe.config.ConfigFactory;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import scala.concurrent.Await;
-
-import ee.ria.xroad.common.CommonMessages;
-import ee.ria.xroad.common.DiagnosticsErrorCodes;
-import ee.ria.xroad.common.DiagnosticsStatus;
-import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemPropertiesLoader;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.signature.BatchSigner;
-import ee.ria.xroad.common.util.AdminPort;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.JsonUtils;
-import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.SystemProperties.*;
 
 /**
  * Main program for the proxy server.
@@ -83,6 +73,7 @@ public final class ProxyMain {
                 .withAddOn()
                 .with(CONF_FILE_PROXY)
                 .with(CONF_FILE_SIGNER)
+                .withLocalOptional(CONF_FILE_NODE)
                 .load();
 
         org.apache.xml.security.Init.init();
@@ -188,6 +179,10 @@ public final class ProxyMain {
         SERVICES.add(new CertHashBasedOcspResponder());
 
         SERVICES.add(createAdminPort());
+
+        if (SystemProperties.isHealthCheckEnabled()) {
+            SERVICES.add(new HealthCheckPort());
+        }
     }
 
     private static void loadConfigurations() {
@@ -203,15 +198,12 @@ public final class ProxyMain {
     private static AdminPort createAdminPort() throws Exception {
         AdminPort adminPort = new AdminPort(PortNumbers.ADMIN_PORT);
 
-        adminPort.addShutdownHook(new Runnable() {
-            @Override
-            public void run() {
-                log.info("Proxy shutting down...");
-                try {
-                    shutdown();
-                } catch (Exception e) {
-                    log.error("Error while shutdown", e);
-                }
+        adminPort.addShutdownHook(() -> {
+            log.info("Proxy shutting down...");
+            try {
+                shutdown();
+            } catch (Exception e) {
+                log.error("Error while shutdown", e);
             }
         });
 

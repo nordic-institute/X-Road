@@ -5,7 +5,7 @@
 # disable useless debuginfo package
 %define debug_package %{nil}
 
-Name:		xroad-jetty9           
+Name:		xroad-jetty9
 Version:        %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
 Release:        %{rel}%{?snapshot}%{?dist}
@@ -36,6 +36,7 @@ Jetty9 modified for X-Road usage. Used by web services.
 %setup -n %(basename -s .tar.gz %SOURCE0)
 
 %build
+rm -rf demo-base
 cp %{SOURCE1} modules/logging.mod
 sed -i'' 's/^resources/#resources/' modules/logging.mod
 sed -i'' 's/^logs/#logs/' modules/logging.mod
@@ -54,6 +55,7 @@ mkdir -p %{buildroot}/var/log/xroad/jetty
 mkdir -p %{buildroot}/usr/share/xroad/webapps
 cp -aP * %{buildroot}/usr/share/xroad/jetty9
 cp -aP %{_topdir}/../etc %{buildroot}/etc
+mkdir -p %{buildroot}/etc/xroad/jetty/contexts-admin
 cp %{SOURCE2} %{buildroot}%{_bindir}
 cp %{SOURCE3} %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/lib/tmpfiles.d
@@ -63,8 +65,10 @@ cp %{SOURCE4} %{buildroot}/usr/lib/tmpfiles.d/
 rm -rf %{buildroot}
 
 %files
-%defattr(-,xroad,xroad,-)
-%config /etc/xroad/jetty
+%defattr(0640,xroad,xroad,0751)
+%dir /etc/xroad/jetty
+%dir /etc/xroad/jetty/contexts-admin
+%config /etc/xroad/jetty/*
 %config /etc/xroad/conf.d/jetty-logback.xml
 %attr(664,root,root) /usr/lib/tmpfiles.d/%{name}.conf
 

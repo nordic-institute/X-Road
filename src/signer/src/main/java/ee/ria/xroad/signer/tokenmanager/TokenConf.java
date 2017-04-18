@@ -39,12 +39,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Holds the current keys & certificates in XML.
  */
 @Slf4j
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
+
+    /**
+     * Specialized exception instead of a generic exception for TokenConf errors.
+     */
+    public static class TokenConfException extends Exception {
+
+        public TokenConfException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
 
     private static TokenConf instance;
 
@@ -68,7 +79,14 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
      * @return all tokens
      */
     public List<Token> getTokens() {
-        return confType.getDevice().stream()
+        return getTokensFrom(confType);
+
+    }
+
+    private List<Token> getTokensFrom(KeyConfType keyConfType) {
+        requireNonNull(keyConfType);
+
+        return keyConfType.getDevice().stream()
                 .map(TokenConf::from)
                 .collect(Collectors.toList());
     }
@@ -126,6 +144,25 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
             });
 
         save();
+    }
+
+    /**
+     * Retrieves, <b>but does not load into memory</b> the tokens in the configuration file.
+     *
+     * @return
+     */
+    public List<Token> retrieveTokensFromConf() throws TokenConfException {
+
+        try {
+            doValidateConfFile();
+
+            LoadResult<KeyConfType> newKeyConfig = doLoadConfFile();
+
+            return getTokensFrom(newKeyConfig.getConfType());
+
+        } catch (Exception e) {
+            throw new TokenConfException("Error while loading or validating key config", e);
+        }
     }
 
     private static boolean hasKeysWithCertsOfCertRequests(Token token) {
@@ -278,4 +315,6 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static String getConfFileName() {
         return SystemProperties.getKeyConfFile();
     }
+
+
 }

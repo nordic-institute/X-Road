@@ -1,3 +1,18 @@
+xroad (6.13.0-1) trusty; urgency=medium
+
+  * PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and
+    enable logging of akka error events.
+  * PVAYLADEV-729: During a configuration restore from backup, the access rights of the directory /var/lib/xroad for other users will no longer be removed.
+  * PVAYLADEV-726: Fixed an issue where diagnostics view in security server UI was not able to show CA-information that contained special characters.
+  * PVAYLADEV-722: Added support for external load balancing.
+  * PVAYLADEV-714: Added documentation for SecurityServer protocol extension.
+  * PVAYLADEV-709: Added a read-only user role for security server user interface.
+  * PVAYLADEV-707: SOAP Faults wrapped in a multipart message will now be passed to the client. Previously, the security server replaced the fault with a generalized error message.
+  * PVAYLADEV-615: Fix for never ending messagelog archiving. Doing it now in smaller transactions.
+  * PVAYLADEV-704: Added Jenkinsfile to support building Github pull requests in Jenkins.
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 11 Apr 2017 15:46:12 +0300
+
 xroad (6.12.0) trusty; urgency=low
 
   * XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness

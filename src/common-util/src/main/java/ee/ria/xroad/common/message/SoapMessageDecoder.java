@@ -61,6 +61,7 @@ public class SoapMessageDecoder {
 
         /**
          * Called when SoapFault has been completely read.
+         *
          * @param fault SOAP fault that's been read from the stream
          * @throws Exception in case of any errors
          */
@@ -73,6 +74,7 @@ public class SoapMessageDecoder {
 
         /**
          * Called when an error occurred during soap or attachment part.
+         *
          * @param t the exception that occurred
          * @throws Exception if any errors occur
          */
@@ -86,8 +88,9 @@ public class SoapMessageDecoder {
     /**
      * Creates a new SOAP message decoder of the given content type and with
      * the provided callback.
+     *
      * @param contentType the expected content type
-     * @param callback the callback to handle completion
+     * @param callback    the callback to handle completion
      */
     public SoapMessageDecoder(String contentType, Callback callback) {
         this(contentType, callback, new SoapParserImpl());
@@ -96,12 +99,13 @@ public class SoapMessageDecoder {
     /**
      * Creates a new SOAP message decoder of the given content type and with
      * the provided callback and SOAP parser implementation.
+     *
      * @param contentType the expected content type
-     * @param callback the callback to handle completion
-     * @param parserImpl SOAP parser implementation to use
+     * @param callback    the callback to handle completion
+     * @param parserImpl  SOAP parser implementation to use
      */
     public SoapMessageDecoder(String contentType, Callback callback,
-            SoapParser parserImpl) {
+                              SoapParser parserImpl) {
         this.contentType = contentType;
         this.callback = callback;
         this.parser = parserImpl;
@@ -111,6 +115,7 @@ public class SoapMessageDecoder {
 
     /**
      * Decodes the SOAP message from the given input stream.
+     *
      * @param soapStream input stream with the SOAP message data
      * @throws Exception if any errors occur
      */
@@ -181,7 +186,7 @@ public class SoapMessageDecoder {
     private class MultipartHandler extends AbstractContentHandler {
         private Map<String, String> headers;
         private String partContentType;
-        private SoapMessage soapMessage;
+        private Soap soapBody;
 
         @Override
         public void startHeader() throws MimeException {
@@ -211,18 +216,19 @@ public class SoapMessageDecoder {
             }
 
             try {
-                if (soapMessage == null) {
+                if (soapBody == null) {
                     // First part, consisting of the SOAP message.
                     log.trace("Read SOAP from multipart: {}", partContentType);
                     try {
                         Soap soap = parser.parse(partContentType, is);
-                        if (!(soap instanceof SoapMessage)) {
-                            throw new CodedException(X_INTERNAL_ERROR,
-                                    "Unexpected SOAP message");
+                        if (soap instanceof SoapMessage) {
+                            callback.soap((SoapMessage) soap, headers);
+                        } else if (soap instanceof SoapFault) {
+                            callback.fault((SoapFault) soap);
+                        } else {
+                            throw new CodedException(X_INTERNAL_ERROR, "Unexpected SOAP message");
                         }
-
-                        soapMessage = (SoapMessage) soap;
-                        callback.soap(soapMessage, headers);
+                        soapBody = soap;
                     } catch (Exception e) {
                         throw translateException(e);
                     }

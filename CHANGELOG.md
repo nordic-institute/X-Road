@@ -1,5 +1,16 @@
 # Change Log
 
+## 6.13.0 - 2017-04-11
+- PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and enable logging of akka error events.
+- PVAYLADEV-729: During a configuration restore from backup, the access rights of the directory /var/lib/xroad for other users will no longer be removed.
+- PVAYLADEV-726: Fixed an issue where diagnostics view in security server UI was not able to show CA-information that contained special characters.
+- PVAYLADEV-722: Added support for external load balancing.
+- PVAYLADEV-714: Added documentation for SecurityServer protocol extension.
+- PVAYLADEV-709: Added a read-only user role for security server user interface.
+- PVAYLADEV-707: SOAP Faults wrapped in a multipart message will now be passed to the client. Previously, the security server replaced the fault with a generalized error message.
+- PVAYLADEV-615: Fix for never ending messagelog archiving. Doing it now in smaller transactions.
+- PVAYLADEV-704: Added Jenkinsfile to support building Github pull requests in Jenkins.
+
 ## 6.12.0 - 2017-03-13
 - XTE-99 / Joint development issue #79: Security Server UI: Added uniqueness check of the entered security server code when initializing the server.
 - XTE-252 / Joint development issue #53: Security Server: Upgraded embedded Jetty to the version 9.4.2. Due to upgrade SHA1 ciphers are no longer supported for communication between security server and client.

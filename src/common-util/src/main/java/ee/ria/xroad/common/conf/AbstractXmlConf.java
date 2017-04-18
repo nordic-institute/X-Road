@@ -28,21 +28,16 @@ import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.common.util.SchemaValidator;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.file.StandardCopyOption;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Base class for XML-based configurations, where underlying classes are
@@ -120,7 +115,6 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void load(String fileName) throws Exception {
         if (fileName == null) {
             return;
@@ -129,16 +123,61 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         confFileName = fileName;
         confFileChecker = new FileContentChangeChecker(confFileName);
 
+        doValidateConfFile();
+
+        LoadResult<T> result = doLoadConfFile();
+        root = result.getRoot();
+        confType = result.getConfType();
+    }
+
+    /** Load the xml configuration to a {@link LoadResult} that can be manipulated further.
+     * @return
+     * @throws IOException if opening {@link #confFileName} fails.
+     * @throws JAXBException if an unmarshalling error occurs
+     * @throws NullPointerException if {@link #confFileName} or {@link #jaxbCtx} is null
+     */
+    @SuppressWarnings("unchecked")
+    // the unmarshalling causes an unchecked cast, it is existing functionality.
+    // Is there an elegant way to handle the type checking of T at compile time?
+    protected LoadResult<T> doLoadConfFile() throws IOException, JAXBException {
+        requireNonNull(confFileName, "confFileName not set");
+        requireNonNull(jaxbCtx, "jaxbCtx not set");
+
+        try (InputStream in = new FileInputStream(confFileName)) {
+            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+
+            return new LoadResult<>((JAXBElement<T>) unmarshaller.unmarshal(in));
+        }
+    }
+
+    protected void doValidateConfFile() throws IOException, IllegalAccessException {
+        requireNonNull(confFileName, "confFileName not set");
+
         if (schemaValidator != null) {
             try (InputStream in = new FileInputStream(confFileName)) {
                 validateSchemaWithValidator(in);
             }
         }
 
-        try (InputStream in = new FileInputStream(confFileName)) {
-            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-            root = (JAXBElement<T>) unmarshaller.unmarshal(in);
-            confType = root.getValue();
+    }
+
+    protected static class LoadResult<T> {
+
+        private JAXBElement<T> root;
+
+        private T confType;
+
+        LoadResult(JAXBElement<T> root) {
+            this.root = root;
+            this.confType = root.getValue();
+        }
+
+        public JAXBElement<T> getRoot() {
+            return root;
+        }
+
+        public T getConfType() {
+            return confType;
         }
     }
 
@@ -192,7 +231,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         return ResourceUtils.getFullPathFromFileName(confFileName);
     }
 
-    private void validateSchemaWithValidator(InputStream in) throws Exception {
+    private void validateSchemaWithValidator(InputStream in) throws IllegalAccessException {
         try {
             Method validateMethod =
                     schemaValidator.getMethod("validate", Source.class);

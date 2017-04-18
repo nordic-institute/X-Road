@@ -22,20 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.IOException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.HttpClient;
-
-import org.eclipse.jetty.server.Request;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -47,8 +33,21 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType.PRODUCER;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
@@ -72,7 +71,7 @@ class ServerProxyHandler extends HandlerBase {
 
         long start = PerformanceLogger.log(log, "Received request from " + request.getRemoteAddr());
 
-        if (!SystemProperties.isEnableClientProxyPooledConnectionReuse()) {
+        if (!SystemProperties.isServerProxySupportClientsPooledConnections()) {
             // if the header is added, the connections are closed and cannot be reused on the client side
             response.addHeader("Connection", "close");
         }

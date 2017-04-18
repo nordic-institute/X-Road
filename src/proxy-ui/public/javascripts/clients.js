@@ -326,6 +326,8 @@
         $("#details_subsystem_code").val(client.subsystem_code);
         $("#details_member_name").val(client.member_name);
 
+        $("#client_details_tabs").find("li").removeClass("ui-tabs-last-visible");
+
         enableActions();
 
         $("#client_details_dialog").dialog("open");
@@ -334,18 +336,34 @@
         var newTabIndex = $("#client_details_tabs a[href='" + tab + "']")
             .parent().index();
 
+        var availableTabs = $("#client_details_tabs").find("li");
+        var availableTabCodesInOrder = availableTabs.map(
+            function (i, e) {
+                return {
+                    hash: $(e).find("a").eq(0).prop("hash"),
+                    originalIndex: i
+                };
+            }
+        );
+
         if (client.subsystem_code) {
             $("#client_details_tabs").tabs("option", "disabled", []);
-            for (var index = 0; index < 5; ++index) {
-            	$($("#client_details_tabs").find("li")[index]).show();
-            }
+            availableTabs.show();
         } else {
-            var disabled = [1, 2, 4];
-            $("#client_details_tabs").tabs("option", "disabled", disabled);
-            for (var index = 0; index < disabled.length; ++index) {
-            	$($("#client_details_tabs").find("li")[disabled[index]]).hide();
+            var memberTabs = ["#details_tab", "#internal_certs_tab"];
+            var disabledTabIndices = availableTabCodesInOrder.filter(function (i, tab) {
+                return memberTabs.indexOf(tab.hash) < 0;
+            }).map(function (i, e) {
+                return e.originalIndex;
+            }).toArray();
+
+            $("#client_details_tabs").tabs("option", "disabled", disabledTabIndices);
+            for (var index = 0; index < disabledTabIndices.length; ++index) {
+                availableTabs.eq(disabledTabIndices[index]).hide();
             }
+            $("#client_details_tabs").find("li:not('.ui-state-disabled'):last").addClass("ui-tabs-last-visible");
         }
+
         $("#client_details_tabs .ui-tabs-nav").show();
 
         $("#client_details_tabs").tabs("option", "active", newTabIndex);
@@ -492,46 +510,46 @@
                 mData: function(s, t, v) {
                     var actions = {};
 
-                    if (s.can_view_client_details) {
+                    if (s.can_view_client_details_dialog) {
                         actions['#details_tab'] = {
                             icon: 'info',
                             title: 'Details',
                             id: s.client_id
                         };
-                    }
 
-                    if (s.can_view_client_acl_subjects) {
-                        actions['#acl_subjects_tab'] = {
-                            icon: 'gears',
-                            title: 'Service Clients',
-                            id: s.client_id
-                        };
-                    }
 
-                    if (s.can_view_client_services) {
-                        actions['#services_tab'] = {
-                            icon: 'wrench',
-                            title: 'Services',
-                            id: s.client_id
-                        };
-                    }
+                        if (s.can_view_client_acl_subjects) {
+                            actions['#acl_subjects_tab'] = {
+                                icon: 'gears',
+                                title: 'Service Clients',
+                                id: s.client_id
+                            };
+                        }
 
-                    if (s.can_view_client_internal_certs) {
-                        actions['#internal_certs_tab'] = {
-                            icon: 'cloud',
-                            title: 'Internal Servers',
-                            id: s.client_id
-                        };
-                    }
+                        if (s.can_view_client_services) {
+                            actions['#services_tab'] = {
+                                icon: 'wrench',
+                                title: 'Services',
+                                id: s.client_id
+                            };
+                        }
 
-                    if (s.can_view_client_local_groups) {
-                        actions['#local_groups_tab'] = {
-                            icon: 'group',
-                            title: 'Local Groups',
-                            id: s.client_id
-                        };
-                    }
+                        if (s.can_view_client_internal_certs) {
+                            actions['#internal_certs_tab'] = {
+                                icon: 'cloud',
+                                title: 'Internal Servers',
+                                id: s.client_id
+                            };
+                        }
 
+                        if (s.can_view_client_local_groups) {
+                            actions['#local_groups_tab'] = {
+                                icon: 'group',
+                                title: 'Local Groups',
+                                id: s.client_id
+                            };
+                        }
+                    }
                     return generateTableActions(actions);
                 },
                 sWidth: "140px"
@@ -554,7 +572,7 @@
 
         $("#clients tbody tr").live("dblclick", function() {
             var clientData = oClients.fnGetData(this);
-            if (clientData.can_view_client_details) {
+            if (clientData.can_view_client_details_dialog) {
                 openClientDetails(oClients.fnGetData(this), "#details_tab");
             }
         });

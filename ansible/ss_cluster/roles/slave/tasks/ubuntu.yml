@@ -1,0 +1,15 @@
+---
+- name: setup sync service
+  template:
+      src: "xroad-sync.conf.j2"
+      dest: "/etc/init/xroad-sync.conf"
+
+- name: setup sync wait helper
+  copy:
+      src: "xroad-sync-wait.conf"
+      dest: "/etc/init/xroad-sync-wait.conf"
+
+- name: setup cron job
+  copy:
+      src: "xroad_slave_sync"
+      dest: /etc/cron.d/xroad_slave_sync

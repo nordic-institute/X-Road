@@ -45,9 +45,16 @@ db_url=`crudini --get ${db_properties} '' serverconf.hibernate.connection.url`
 db_user=`crudini --get ${db_properties} '' serverconf.hibernate.connection.username`
 db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.password`
 
-echo "running ${db_name} database migrations"
-cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
+if [[ "$node_type" == "slave" ]]; then
+    echo "Skipping database migrations on a slave node"
+else
+    echo "running ${db_name} database migrations"
+    export LIQUIBASE_HOME=/usr/share/xroad/db 
+    cd $LIQUIBASE_HOME
+    ${LIQUIBASE_HOME}/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+fi
 
 #
 # SELinux policy modification
