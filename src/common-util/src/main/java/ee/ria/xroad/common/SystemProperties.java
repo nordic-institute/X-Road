@@ -249,7 +249,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
 
-    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "-1";
+    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused **/
@@ -1215,6 +1215,7 @@ public final class SystemProperties {
     /**
      * @return the time in milliseconds, after which connections in a pool should be check for validity, ie.
      * after this time, check if pooled connections are still alive, don't just assume they are.
+     * Non-positive value disables connection validation. '2000' by default.
      */
     public static int getClientProxyValidatePoolConnectionsAfterInactivityMs() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
