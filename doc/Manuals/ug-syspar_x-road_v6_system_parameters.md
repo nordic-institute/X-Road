@@ -28,7 +28,7 @@ Doc. ID: UG-SYSPAR
 | 23.02.2017 | 2.16       | Added documentation for OCSP-response retrieval deactivation parameter | Tatu Repo |
 | 03.03.2017 | 2.17        | Added new parameter *jetty-ocsp-responder-configuration-file*                 | Kristo Heero       |
 | 07.03.2017 | 2.18        | Added new parameters *ocsp-responder-client-connect-timeout* and *ocsp-responder-client-read-timeout* | Kristo Heero |
-| 11.04.2017 | 2.19        | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*.| Kristo Heero |
+| 11.04.2017 | 2.19        | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*. | Kristo Heero |
 
 ## Table of Contents
 
