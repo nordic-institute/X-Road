@@ -82,9 +82,6 @@ module ApplicationHelper
     result << MenuItem.new(t('menu.management.system_settings'),
         :system_settings, :view_system_settings)
 
-    result << MenuItem.new(t('menu.management.import_v5'),
-        :import, :execute_v5_import) if can_import_V5_data?
-
     result << MenuItem.new(t('menu.management.backup_and_restore'),
         :backup, :backup_configuration)
 
@@ -106,10 +103,6 @@ module ApplicationHelper
       subject_names << cert.getSubjectDN.getName
     end
     subject_names.join("; ")
-  end
-
-  def can_import_V5_data?
-    return File.exists?("/usr/share/xroad/bin/xtee55_clients_importer")
   end
 
   def url_and_cert_dialog(prefix)

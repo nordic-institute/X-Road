@@ -12,7 +12,6 @@ et:
     mangement:
       title: "Haldus"
       request: "Haldustaotlused"
-      import_v5: "Impordi X-tee 5.0 andmed"
       distributed_file: "Jagatud failid"
       backup: "Varunda konfiguratsioon"
       restore: "Taasta konfiguratsioon"
@@ -83,26 +82,13 @@ et:
 
   distributed_files:
     invalid_extension: "Üleslaadimine ebaõnnestus, ebakorrektne faili formaat. Ainult XML-failid on lubatud."
-    identifier_mapping_uploaded: "Identifikaatorite teisendustabel on edukalt andmebaasi salvestatud."
     signed_files:
       type: "SIGNEERITUD FAILID"
       description: "'%{file}' signeeritud %{time}"
-    identifier_mapping:
-      type: "IDENTIFIKAATORITE TEISENDUSTABEL"
-      description: "'%{file}' üles laetud %{time}"
     global_conf:
       type: "GLOBAALNE KONFIGURATSIOON"
       description: "'%{file}' genereeritud %{time}"
 
-  import:
-    no_file: "Faili ei leitud."
-    file: "'%{file}' üles laetud %{time}"
-    label: "Versiooni 5.0 andmed"
-    execute:
-      success: "Import õnnestus"
-      warnings: "Import õnnestus mõnede hoiatustega, vaata detaile klikkides nupule 'Viimane tulemus'."
-      failure: "Import ebaõnnestus, vaata detaile klikkides nupule 'Viimane tulemus'."
-      other_error: "Importeri käivitamine ebaõnnestus, kontrolli, kas importer on korrektselt installitud"
   status:
     global_conf_gen:
       no_status_file: "Globaalse konfiguratsiooni genereerimise staatuse fail puudub, kontrolli, kas center-service töötab"

@@ -256,21 +256,6 @@ et:
     filetype: "Failitüüp"
     info: "Info"
     no_file: "Faili ei leitud"
-    identifier_mapping:
-      upload:
-        title: "Lae üles identifikaatorite teisendusfail"
-        enter_file_name: "Sisesta failinimi"
-    last_result: "Viimane tulemus"
-
-  import_v5:
-    upload_file:
-      title: "Lae fail üles"
-      enter_file_name: "Sisesta failinimi"
-    last_import:
-      title: "Viimane importimiskatse"
-      filename: "Tee imporditud failini"
-      time: "Viimase importimise aeg"
-      exit_status: "Viimase importimiskatse väljumisstaatus"
     last_result: "Viimane tulemus"
 
   system_status:
