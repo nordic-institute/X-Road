@@ -35,6 +35,7 @@ import javax.xml.bind.Marshaller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 
 import ee.ria.xroad.common.CodedException;
@@ -51,17 +52,18 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 @Slf4j
 @RequiredArgsConstructor
 class WsdlRequestProcessor {
-    static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
-    static final String PARAM_MEMBER_CLASS = "memberClass";
-    static final String PARAM_MEMBER_CODE = "memberCode";
-    static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
-    static final String PARAM_SERVICE_CODE = "serviceCode";
-    static final String PARAM_VERSION = "version";
+    private static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
+    private static final String PARAM_MEMBER_CLASS = "memberClass";
+    private static final String PARAM_MEMBER_CODE = "memberCode";
+    private static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
+    private static final String PARAM_SERVICE_CODE = "serviceCode";
+    private static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
 
@@ -71,6 +73,7 @@ class WsdlRequestProcessor {
     void process() throws Exception {
         ClientId client = ServerConf.getIdentifier().getOwner();
         ServiceId service = getServiceId();
+
         log.trace("process({}, {})", client, service);
 
         SoapMessageImpl message = createMessage(client, service);
@@ -80,20 +83,16 @@ class WsdlRequestProcessor {
         }
 
         HttpURLConnection connection = createConnection(message);
-        try (
-                InputStream in = connection.getInputStream();
-                SoapDecoderCallback callback = new SoapDecoderCallback()
-        ) {
-            SoapMessageDecoder decoder =
-                    new SoapMessageDecoder(connection.getContentType(),
-                            callback);
+
+        try (InputStream in = connection.getInputStream(); SoapDecoderCallback callback = new SoapDecoderCallback()) {
+            SoapMessageDecoder decoder = new SoapMessageDecoder(connection.getContentType(), callback);
             decoder.parse(in);
         }
     }
 
-    private SoapMessageImpl createMessage(ClientId client,
-                                          final ServiceId service) throws Exception {
+    private SoapMessageImpl createMessage(ClientId client, final ServiceId service) throws Exception {
         ServiceId implementingService = GlobalConf.getServiceId(service);
+
         log.debug("Implementing service: {}", implementingService);
 
         SoapHeader header = new SoapHeader();
@@ -109,8 +108,7 @@ class WsdlRequestProcessor {
             req.setServiceCode(implementingService.getServiceCode());
             req.setServiceVersion(implementingService.getServiceVersion());
 
-            Marshaller marshaller =
-                    JaxbUtils.createMarshaller(req.getClass());
+            Marshaller marshaller = JaxbUtils.createMarshaller(req.getClass());
             marshaller.marshal(req, soapBody);
         });
 
@@ -118,21 +116,20 @@ class WsdlRequestProcessor {
     }
 
     private ServiceId createGetWsdlService(ServiceId service) {
-        return ServiceId.create(service.getClientId(), GET_WSDL,
-                service.getServiceVersion());
+        return ServiceId.create(service.getClientId(), GET_WSDL, service.getServiceVersion());
     }
 
-    ServiceId getServiceId() {
+    private ServiceId getServiceId() {
         String instance = request.getParameter(PARAM_INSTANCE_IDENTIFIER);
+
         if (isBlank(instance)) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Must specify instance identifier");
+            throw new CodedException(X_INVALID_REQUEST, "Must specify instance identifier");
         }
 
         String serviceCode = request.getParameter(PARAM_SERVICE_CODE);
+
         if (isBlank(serviceCode)) {
-            throw new CodedException(X_INVALID_REQUEST,
-                    "Must specify service code");
+            throw new CodedException(X_INVALID_REQUEST, "Must specify service code");
         }
 
         String memberClass = request.getParameter(PARAM_MEMBER_CLASS);
@@ -145,33 +142,32 @@ class WsdlRequestProcessor {
             if (isBlank(memberClass) && isBlank(memberCode)) {
                 return CentralServiceId.create(instance, serviceCode);
             } else { // Service
-                return ServiceId.create(instance, memberClass, memberCode,
-                        subsystemCode, serviceCode, version);
+                return ServiceId.create(instance, memberClass, memberCode, subsystemCode, serviceCode, version);
             }
         } catch (Exception e) {
             throw new CodedException(X_INVALID_REQUEST, e.getMessage());
         }
     }
 
-    HttpURLConnection createConnection(SoapMessageImpl message)
-            throws Exception {
-        URL url = new URL("http://127.0.0.1:"
-                + SystemProperties.getClientProxyHttpPort());
+    private HttpURLConnection createConnection(SoapMessageImpl message) throws Exception {
+        URL url = new URL("http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort());
 
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setDoInput(true);
         con.setDoOutput(true);
+        // Use the same timeouts as client proxy to server proxy connections.
+        con.setConnectTimeout(SystemProperties.getClientProxyTimeout());
+        con.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
         con.setRequestMethod("POST");
 
-        con.setRequestProperty(HttpHeaders.CONTENT_TYPE,
-                MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
-                        StandardCharsets.UTF_8.name()));
+        con.setRequestProperty(HttpHeaders.CONTENT_TYPE, MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
+                StandardCharsets.UTF_8.name()));
 
         IOUtils.write(message.getBytes(), con.getOutputStream());
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("Received HTTP error: "
-                    + con.getResponseCode() + " - " + con.getResponseMessage());
+            throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
+                    + con.getResponseMessage());
         }
 
         return con;
@@ -180,14 +176,13 @@ class WsdlRequestProcessor {
     private class SoapDecoderCallback implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             // discard
         }
 
         @Override
-        public void attachment(String contentType, InputStream content,
-                               Map<String, String> additionalHeaders) throws Exception {
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+                throws Exception {
             log.trace("attachment({})", contentType);
 
             response.setContentType(contentType);

@@ -28,8 +28,10 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
@@ -41,7 +43,7 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 @Slf4j
 final class TimestamperUtil {
@@ -50,21 +52,18 @@ final class TimestamperUtil {
     }
 
     @SuppressWarnings("unchecked")
-    static TimeStampToken addSignerCertificate(
-            TimeStampResponse tsResponse, X509Certificate signerCertificate)
-                    throws Exception {
+    static TimeStampToken addSignerCertificate(TimeStampResponse tsResponse,
+            X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
-        List<X509Certificate> collection = Arrays.asList(signerCertificate);
+        List<X509Certificate> collection = Collections.singletonList(signerCertificate);
         collection.addAll(cms.getCertificates().getMatches(null));
 
         return new TimeStampToken(CMSSignedData.replaceCertificatesAndCRLs(cms,
-                new JcaCertStore(collection), cms.getAttributeCertificates(),
-                cms.getCRLs()));
+                new JcaCertStore(collection), cms.getAttributeCertificates(), cms.getCRLs()));
     }
 
-    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl)
-            throws Exception {
+    static InputStream makeTsRequest(TimeStampRequest req, String tspUrl) throws Exception {
         byte[] request = req.getEncoded();
 
         URL url = new URL(tspUrl);
@@ -72,26 +71,27 @@ final class TimestamperUtil {
 
         con.setDoOutput(true);
         con.setDoInput(true);
+        con.setConnectTimeout(MessageLogProperties.getTimestamperClientConnectTimeout());
+        con.setReadTimeout(MessageLogProperties.getTimestamperClientReadTimeout());
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-type", "application/timestamp-query");
-
         con.setRequestProperty("Content-length", String.valueOf(request.length));
+
         OutputStream out = con.getOutputStream();
         out.write(request);
         out.flush();
 
         if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("Received HTTP error: "
-                    + con.getResponseCode() + " - " + con.getResponseMessage());
+            throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
+                    + con.getResponseMessage());
         }
 
         return con.getInputStream();
     }
 
-    static TimeStampResponse getTimestampResponse(InputStream in)
-            throws Exception {
-        TimeStampResp response = TimeStampResp.getInstance(
-                new ASN1InputStream(in).readObject());
+    static TimeStampResponse getTimestampResponse(InputStream in) throws Exception {
+        TimeStampResp response = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
+
         if (response == null) {
             throw new RuntimeException("Could not read time-stamp response");
         }
@@ -105,18 +105,19 @@ final class TimestamperUtil {
             PKIFreeText statusString = response.getStatus().getStatusString();
 
             StringBuilder sb = new StringBuilder();
+
             for (int i = 0; i < statusString.size(); i++) {
                 if (i > 0) {
                     sb.append(", ");
                 }
+
                 sb.append("\"" + statusString.getStringAt(i) + "\"");
             }
 
             log.error("getTimestampDer() - TimeStampResp.status is not "
-                    + "\"granted\" neither \"grantedWithMods\": {}, {}",
-                    status, sb);
-            throw new RuntimeException("TimeStampResp.status: " + status
-                    + ", .statusString: " + sb);
+                    + "\"granted\" neither \"grantedWithMods\": {}, {}", status, sb);
+
+            throw new RuntimeException("TimeStampResp.status: " + status + ", .statusString: " + sb);
         }
 
         return new TimeStampResponse(response);

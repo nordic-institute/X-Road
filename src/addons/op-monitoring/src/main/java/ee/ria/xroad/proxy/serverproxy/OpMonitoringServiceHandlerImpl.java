@@ -54,9 +54,11 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 @Slf4j
 public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
 
-    private static final int SENDING_TIMEOUT_MILLISECONDS =
-            TimeUtils.secondsToMillis(OpMonitoringSystemProperties
-                    .getOpMonitorServiceSendingTimeoutSeconds());
+    private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds());
+
+    private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds());
 
     private static final String OP_MONITOR_ADDRESS = getOpMonitorAddress();
 
@@ -83,22 +85,20 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         switch (requestServiceId.getServiceCode()) {
             case GET_SECURITY_SERVER_HEALTH_DATA: // $FALL-THROUGH$
             case GET_SECURITY_SERVER_OPERATIONAL_DATA:
-                return requestServiceId.getClientId().equals(
-                        ServerConf.getIdentifier().getOwner());
+                return requestServiceId.getClientId().equals(ServerConf.getIdentifier().getOwner());
             default:
                 return false;
         }
     }
 
     @Override
-    public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
-        log.trace("startHandling({})",
-                proxyRequestMessage.getSoap().getService());
+    public void startHandling(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
+            HttpClient opMonitorClient, OpMonitoringData opMonitoringData) throws Exception {
+        log.trace("startHandling({})", proxyRequestMessage.getSoap().getService());
 
         sender = createHttpSender(opMonitorClient);
-        sender.setTimeout(SENDING_TIMEOUT_MILLISECONDS);
+        sender.setConnectionTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
+        sender.setSocketTimeout(SOCKET_TIMEOUT_MILLISECONDS);
         sender.addHeader("accept-encoding", "");
 
         sendRequest(servletRequest, proxyRequestMessage, opMonitoringData);
@@ -124,9 +124,8 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         return new HttpSender(opMonitorClient);
     }
 
-    private void sendRequest(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, OpMonitoringData opMonitoringData)
-            throws Exception {
+    private void sendRequest(HttpServletRequest servletRequest, ProxyMessage proxyRequestMessage,
+            OpMonitoringData opMonitoringData) throws Exception {
         log.trace("sendRequest {}", OP_MONITOR_ADDRESS);
 
         URI opMonitorUri;
@@ -134,11 +133,9 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
         try {
             opMonitorUri = getOpMonitorUri();
         } catch (URISyntaxException e) {
-            log.error("Malformed operational monitoring daemon address '{}'",
-                    OP_MONITOR_ADDRESS, e);
+            log.error("Malformed operational monitoring daemon address '{}'", OP_MONITOR_ADDRESS, e);
 
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Malformed operational monitoring daemon address");
+            throw new CodedException(X_INTERNAL_ERROR, "Malformed operational monitoring daemon address");
         }
 
         log.info("Sending request to {}", opMonitorUri);
@@ -147,8 +144,7 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
             opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
             sender.doPost(opMonitorUri, in, AbstractHttpSender.CHUNKED_LENGTH,
-                    servletRequest.getHeader(
-                            MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
+                    servletRequest.getHeader(MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE));
 
             opMonitoringData.setResponseInTs(getEpochMillisecond());
         } catch (Exception ex) {
@@ -161,10 +157,8 @@ public class OpMonitoringServiceHandlerImpl implements ServiceHandler {
     }
 
     private static String getOpMonitorAddress() {
-        return String.format("%s://%s:%s%s",
-                OpMonitoringSystemProperties.getOpMonitorDaemonScheme(),
-                OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorPort(),
+        return String.format("%s://%s:%s%s", OpMonitoringSystemProperties.getOpMonitorDaemonScheme(),
+                OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
                 OpMonitoringDaemonEndpoints.QUERY_DATA_PATH);
     }
 

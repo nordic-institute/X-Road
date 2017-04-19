@@ -179,7 +179,6 @@ class FastestConnectionSelectingSSLSocketFactory
      * @throws SocketException
      */
     private void configureSocket(Socket socket) throws SocketException {
-
         socket.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
 
         int linger = SystemProperties.getClientProxyHttpClientSoLinger();

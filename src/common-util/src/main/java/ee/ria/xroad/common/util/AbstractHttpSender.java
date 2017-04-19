@@ -59,7 +59,9 @@ import static ee.ria.xroad.common.ErrorCodes.*;
 public abstract class AbstractHttpSender implements Closeable {
     public static final int CHUNKED_LENGTH = -1;
 
-    private static final int DEFAULT_TIMEOUT = 30000; // default 30 sec
+    private static final int DEFAULT_CONNECTION_TIMEOUT = 30000; // default 30 sec
+
+    private static final int DEFAULT_SOCKET_TIMEOUT = 0; // default infinite
 
     private final Map<String, String> additionalHeaders = new HashMap<>();
 
@@ -72,14 +74,23 @@ public abstract class AbstractHttpSender implements Closeable {
     protected HttpRequestBase request;
     protected HttpEntity responseEntity;
 
-    protected int timeout = DEFAULT_TIMEOUT;
+    protected int connectionTimeout = DEFAULT_CONNECTION_TIMEOUT;
+    protected int socketTimeout = DEFAULT_SOCKET_TIMEOUT;
 
     /**
      * Sets the connection timeout in milliseconds.
      * @param newTimeout the new timeout value
      */
-    public void setTimeout(int newTimeout) {
-        this.timeout = newTimeout;
+    public void setConnectionTimeout(int newTimeout) {
+        this.connectionTimeout = newTimeout;
+    }
+
+    /**
+     * Sets the socket timeout in milliseconds.
+     * @param newTimeout the new timeout value
+     */
+    public void setSocketTimeout(int newTimeout) {
+        this.socketTimeout = newTimeout;
     }
 
     /**
@@ -128,12 +139,10 @@ public abstract class AbstractHttpSender implements Closeable {
 
         responseHeaders = getResponseHeaders(response);
         this.responseEntity = getResponseEntity(response);
-        responseContentType = getResponseContentType(responseEntity,
-                this.request instanceof HttpGet);
+        responseContentType = getResponseContentType(responseEntity, this.request instanceof HttpGet);
 
         // Wrap the response input stream in order to catch EOF errors.
-        responseContent = new EofSensorInputStream(
-                responseEntity.getContent(), new ResponseStreamWatcher());
+        responseContent = new EofSensorInputStream(responseEntity.getContent(), new ResponseStreamWatcher());
     }
 
     /**
@@ -150,8 +159,7 @@ public abstract class AbstractHttpSender implements Closeable {
      * @param contentType the content type of the input data
      * @throws Exception if an error occurs
      */
-    public abstract void doPost(URI address, String content,
-            String contentType) throws Exception;
+    public abstract void doPost(URI address, String content, String contentType) throws Exception;
 
     /**
      * Sends data using POST method to the given address.
@@ -161,8 +169,8 @@ public abstract class AbstractHttpSender implements Closeable {
      * @param contentType the content type of the input data
      * @throws Exception if an error occurs
      */
-    public abstract void doPost(URI address, InputStream content,
-            long contentLength, String contentType) throws Exception;
+    public abstract void doPost(URI address, InputStream content, long contentLength, String contentType)
+            throws Exception;
 
     @Override
     public void close() {
@@ -191,19 +199,23 @@ public abstract class AbstractHttpSender implements Closeable {
 
     protected RequestConfig getRequestConfig() {
         RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(timeout);
-        rb.setConnectionRequestTimeout(timeout);
+        rb.setConnectTimeout(connectionTimeout);
+        rb.setConnectionRequestTimeout(connectionTimeout);
+        rb.setSocketTimeout(socketTimeout);
+
         return rb.build();
     }
 
-    protected static InputStreamEntity createInputStreamEntity(
-            InputStream content, long contentLength, String contentType) {
-        InputStreamEntity entity =
-                new InputStreamEntity(content, contentLength);
+    protected static InputStreamEntity createInputStreamEntity(InputStream content, long contentLength,
+            String contentType) {
+        InputStreamEntity entity = new InputStreamEntity(content, contentLength);
+
         if (contentLength < 0) {
             entity.setChunked(true); // Just in case
         }
+
         entity.setContentType(contentType);
+
         return entity;
     }
 
@@ -219,16 +231,14 @@ public abstract class AbstractHttpSender implements Closeable {
             case HttpStatus.INTERNAL_SERVER_ERROR_500:
                 return;
             default:
-                throw new CodedException(X_HTTP_ERROR,
-                        "Server responded with error %s: %s",
-                        response.getStatusLine().getStatusCode(),
-                        response.getStatusLine().getReasonPhrase());
+                throw new CodedException(X_HTTP_ERROR, "Server responded with error %s: %s",
+                        response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
         }
     }
 
-    protected static Map<String, String> getResponseHeaders(
-            HttpResponse response) {
+    protected static Map<String, String> getResponseHeaders(HttpResponse response) {
         Map<String, String> headers = new HashMap<>();
+
         for (Header header : response.getAllHeaders()) {
             headers.put(header.getName(), header.getValue());
         }
@@ -238,24 +248,23 @@ public abstract class AbstractHttpSender implements Closeable {
 
     protected static HttpEntity getResponseEntity(HttpResponse response) {
         HttpEntity entity = response.getEntity();
+
         if (entity == null) {
-            throw new CodedException(X_HTTP_ERROR,
-                    "Could not get content from response");
+            throw new CodedException(X_HTTP_ERROR, "Could not get content from response");
         }
 
         return entity;
     }
 
-    protected String getResponseContentType(HttpEntity entity,
-            boolean isGetRequest) {
+    protected String getResponseContentType(HttpEntity entity, boolean isGetRequest) {
         Header contentType = entity.getContentType();
+
         if (contentType == null) {
             if (isGetRequest) {
                 return null;
             }
 
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Could not get content type from response");
+            throw new CodedException(X_INVALID_CONTENT_TYPE, "Could not get content type from response");
         }
 
         return contentType.getValue();
@@ -270,6 +279,7 @@ public abstract class AbstractHttpSender implements Closeable {
         @Override
         public boolean streamClosed(InputStream wrapped) throws IOException {
             log.warn("Stream was closed before EOF was detected");
+
             return true;
         }
 

@@ -89,7 +89,7 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         for (int i = 0; i < 10; i++) {
             try (HttpSender sender = new HttpSender(client);) {
                 sender.setAttribute(ID_TARGETS, addresses);
-                sender.setTimeout(10);
+                sender.setConnectionTimeout(10);
                 sender.doPost(new URI("https://localhost:1234"), content,
                         CHUNKED_LENGTH, "text/plain");
             } catch (Exception e) {
@@ -133,7 +133,7 @@ final class FastestConnectionSelectingSSLSocketFactoryIntegrationTest {
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(timeout);
         rb.setConnectionRequestTimeout(timeout);
-        rb.setStaleConnectionCheckEnabled(false);
+        rb.setSocketTimeout(timeout);
 
         HttpClientBuilder cb = HttpClients.custom();
         cb.setConnectionManager(connMgr);
