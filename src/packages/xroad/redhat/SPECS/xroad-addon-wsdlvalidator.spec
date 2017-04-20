@@ -71,7 +71,13 @@ rm -rf %{buildroot}
 /usr/share/xroad/wsdlvalidator/licenses/wsdl.txt
 /usr/share/xroad/wsdlvalidator/licenses/ws-policy.txt
 
+%post
+crudini --set /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+%systemd_post xroad-jetty.service
+
 %postun
+crudini --del /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command
+%systemd_postun_with_restart xroad-jetty.service
 %systemd_postun_with_restart xroad-proxy.service
 
 %changelog
