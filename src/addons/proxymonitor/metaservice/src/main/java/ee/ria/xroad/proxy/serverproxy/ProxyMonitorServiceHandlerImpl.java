@@ -32,6 +32,7 @@ import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxymonitor.ProxyMonitor;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.ObjectFactory;
@@ -60,9 +61,6 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
-    private static class MonitorClientHolder {
-        private static final MonitorClient INSTANCE = new MonitorClient();
-    }
 
     private final ByteArrayOutputStream responseOut =
             new ByteArrayOutputStream();
@@ -111,7 +109,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         //mock implementation
         responseEncoder = new SimpleSoapEncoder(responseOut);
-        final MonitorClient client = MonitorClientHolder.INSTANCE;
+        final MonitorClient client = ProxyMonitor.getClient();
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();
         final MetricSetType root = new MetricSetType();
@@ -123,7 +121,10 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         version.setValue(ProxyMain.getVersion());
         root.getMetrics().add(version);
 
-        root.getMetrics().add(client.getMetrics());
+        if (client != null) {
+            root.getMetrics().add(client.getMetrics());
+        }
+
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
         responseEncoder.soap(result, Collections.emptyMap());
     }

@@ -222,6 +222,8 @@ public final class SystemProperties {
 
     private static final String PROXY_HEALTH_CHECK_PORT = PREFIX + "proxy.health-check-port";
 
+    private static final String PROXY_ACTORSYSTEM_PORT = PREFIX + "proxy.actorsystem-port";
+
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
@@ -526,7 +528,7 @@ public final class SystemProperties {
             getConfPath() + "conf.d/op-monitor.ini";
 
     public static final String CONF_FILE_ENV_MONITOR =
-            getConfPath() + "conf.d/monitor.ini";
+            getConfPath() + "conf.d/addons/monitor.ini";
 
     public static final String CONF_FILE_USER_LOCAL =
             getConfPath() + "conf.d/local.ini";
@@ -1055,6 +1057,13 @@ public final class SystemProperties {
     }
 
     /**
+     * @return proxy actorsystem port, {@link PortNumbers#PROXY_ACTORSYSTEM_PORT} by default.
+     */
+    public static int getProxyActorSystemPort() {
+        return Integer.getInteger(PROXY_ACTORSYSTEM_PORT, PortNumbers.PROXY_ACTORSYSTEM_PORT);
+    }
+
+    /**
      * @return environmental monitoring port,
      * '2552' by default.
      */
@@ -1383,7 +1392,6 @@ public final class SystemProperties {
         return Integer.parseInt(System.getProperty(PROXY_HEALTH_CHECK_PORT,
                 DEFAULT_PROXY_HEALTH_CHECK_PORT));
     }
-
 
     /**
      * @return minimum central server global configuration version or default
