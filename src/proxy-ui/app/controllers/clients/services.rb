@@ -631,7 +631,7 @@ module Clients::Services
 
   def run_wsdl_validator(url)
     unless SystemProperties::getWsdlValidatorCommand
-      logger.debug("Skipping WSDL validator, command not set")
+      logger.warn("Skipping WSDL validator, command not set")
       return
     end
 
