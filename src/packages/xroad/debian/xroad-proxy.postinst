@@ -8,6 +8,9 @@ set -e
 #add groups
 groups="xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer"
 
+#define groups that are allowed on ss-cluster slaves
+slave_groups="xroad-securityserver-observer"
+
 db_name=serverconf
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}
 db_user=serverconf
@@ -108,7 +111,16 @@ case "$1" in
   db_get xroad-common/username
   AUSER="$RET"
 
-  for groupname in $groups
+  groupnames=""
+  if [[ "$node_type" == "slave" ]]; then
+      echo "Cluster slave node detected, configuring slave compatible groups"
+      groupnames=$slave_groups
+  else
+      echo "Configuring groups"
+      groupnames=$groups
+  fi
+
+  for groupname in $groupnames
   do
       if ! getent group $groupname > /dev/null; then
           addgroup --system --quiet  $groupname
