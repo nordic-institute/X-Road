@@ -35,3 +35,9 @@
       - xroad-signer
       - xroad-jetty
 
+- name: remove UI editor groups
+  group:
+      name: "{{ item }}"
+      state: absent
+  with_items: "{{ ui_editor_groups }}"
+  tags: remove_editor_groups
