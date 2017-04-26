@@ -323,7 +323,7 @@ public final class WSDLParser {
                         ),
                         new ByteArrayInputStream(response));
             } catch (Exception e) {
-                log.info("Exception while parsing: {}", e);
+                log.trace("Exception while parsing: {}", e);
                 // Ignore exceptions, since the response might have
                 // been a valid WSDL, which SoapParser cannot parse.
                 return;
