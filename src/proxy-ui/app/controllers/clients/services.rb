@@ -669,7 +669,9 @@ module Clients::Services
 
   def parse_wsdl(wsdl)
     # Run WSDLParser before validator to catch various IO errors
+    logger.info("running WSDL parser")
     services = WSDLParser::parseWSDL(wsdl.url)
+    logger.info("running WSDL validator")
     run_wsdl_validator(wsdl.url)
     services
   rescue Java::ee.ria.xroad.common.CodedException
