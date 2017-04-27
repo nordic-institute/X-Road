@@ -27,17 +27,12 @@ fi
 #
 # add X-road groups
 #
-
-
-
 for groupname in ${UG//,/$' '}
 do
     if ! getent group $groupname > /dev/null; then
         groupadd --system $groupname
     fi
 done
-
-
 
 #
 # proxy-ui uses PAM password (pam_unix) authentication by default
