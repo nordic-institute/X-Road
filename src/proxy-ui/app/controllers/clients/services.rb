@@ -631,7 +631,7 @@ module Clients::Services
 
   def run_wsdl_validator(url)
     unless SystemProperties::getWsdlValidatorCommand
-      logger.debug("Skipping WSDL validator, command not set")
+      logger.warn("Skipping WSDL validator, command not set")
       return
     end
 
@@ -639,7 +639,7 @@ module Clients::Services
       "curl -sk #{Shellwords.escape(url)} | #{SystemProperties::getWsdlValidatorCommand} 2>&1 >/dev/null"
     ]
 
-    logger.debug("Running WSDL validator: #{command}")
+    logger.info("Running WSDL validator: #{command}")
     output = CommonUi::ScriptUtils.run_script(command, false)
     exitstatus = $?.exitstatus
 
@@ -647,7 +647,7 @@ module Clients::Services
     output.each { |line| logger.debug(line) }
     logger.debug(" --- Console output - END --- ")
 
-    logger.debug("WSDL validator finished with exit status '#{exitstatus}'")
+    logger.info("WSDL validator finished with exit status '#{exitstatus}'")
 
     if exitstatus == 127
       raise t("clients.wsdl_validator_not_found")
@@ -669,6 +669,7 @@ module Clients::Services
 
   def parse_wsdl(wsdl)
     # Run WSDLParser before validator to catch various IO errors
+    logger.info("running WSDL parser")
     services = WSDLParser::parseWSDL(wsdl.url)
     run_wsdl_validator(wsdl.url)
     services
