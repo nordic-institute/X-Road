@@ -1,6 +1,18 @@
 #!/bin/bash
 set -e
-XG="xroad-security-officer,xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-system-auditor,xroad-users-administrator,xroad-securityserver-observer"
+# all groups
+XG="xroad-security-officer,xroad-registration-officer,xroad-service-administrator,xroad-system-administrator,xroad-securityserver-observer"
+# cluster slave node compatible groups
+SG="xroad-securityserver-observer"
+
+node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
+UG=""
+if [[ "$node_type" == "slave" ]]; then
+    UG=$SG
+else
+    UG=$XG
+fi
 
 if [ "$1x" = "x" ]
 then
@@ -8,14 +20,14 @@ then
 Usage: $0 <username>
 Create local X-Road admin user <username> and add the user to the following groups:
 EOF
-    echo " ${XG//,/$'\n' }"
+    echo " ${UG//,/$'\n' }"
     exit 1
 fi
 
 #
 # add X-road groups
 #
-for groupname in ${XG//,/$' '}
+for groupname in ${UG//,/$' '}
 do
     if ! getent group $groupname > /dev/null; then
         groupadd --system $groupname
@@ -40,10 +52,10 @@ fi
 if getent passwd "$1" >/dev/null
 then
     echo "User $1 exists, just adding to the xroad groups"
-    usermod -a -G $XG "$1"
+    usermod -a -G $UG "$1"
 else
     echo "Adding user $1"
-    useradd "$1" -c "X-Road admin user" -G $XG
+    useradd "$1" -c "X-Road admin user" -G $UG
     passwd "$1"
 fi
 
