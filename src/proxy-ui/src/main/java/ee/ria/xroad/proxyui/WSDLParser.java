@@ -301,36 +301,13 @@ public final class WSDLParser {
                 try (InputStream in = conn.getInputStream()) {
                     response = IOUtils.toByteArray(in);
                 }
-
                 log.trace("Received WSDL response: {}", new String(response));
-                checkForSoapFault(response);
 
                 return new InputSource(new ByteArrayInputStream(response));
             } catch (CodedException e) {
                 throw e;
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
-            }
-        }
-
-        private void checkForSoapFault(byte[] response) {
-            Soap soap = null;
-            try {
-                soap = new SaxSoapParserImpl().parse(
-                        contentTypeWithCharset(
-                            MimeTypes.TEXT_XML,
-                            StandardCharsets.UTF_8.name()
-                        ),
-                        new ByteArrayInputStream(response));
-            } catch (Exception e) {
-                log.trace("Exception while parsing: {}", e);
-                // Ignore exceptions, since the response might have
-                // been a valid WSDL, which SoapParser cannot parse.
-                return;
-            }
-
-            if (soap instanceof SoapFault) {
-                throw ((SoapFault) soap).toCodedException();
             }
         }
 
