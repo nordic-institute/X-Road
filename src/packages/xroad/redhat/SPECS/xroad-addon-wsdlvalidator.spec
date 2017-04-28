@@ -41,8 +41,8 @@ rm -rf %{buildroot}
 %files
 %defattr(-,root,root,-)
 /usr/share/xroad/wsdlvalidator
-%attr(755,root,root,-) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator
-%attr(755,root,root,-) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+%attr(755,root,root) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator
+%attr(755,root,root) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 
 %post
 crudini --set /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
