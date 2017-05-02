@@ -28,7 +28,7 @@ import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
@@ -56,7 +56,8 @@ final class TimestamperUtil {
             X509Certificate signerCertificate) throws Exception {
         CMSSignedData cms = tsResponse.getTimeStampToken().toCMSSignedData();
 
-        List<X509Certificate> collection = Arrays.asList(signerCertificate);
+        List<X509Certificate> collection = new ArrayList<>();
+        collection.add(signerCertificate);
         collection.addAll(cms.getCertificates().getMatches(null));
 
         return new TimeStampToken(CMSSignedData.replaceCertificatesAndCRLs(cms,
