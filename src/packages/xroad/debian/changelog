@@ -1,4 +1,4 @@
-xroad (6.14.0) trusty; urgency=low
+xroad (6.14.0-1) trusty; urgency=low
 
   * XTE-334 / Joint development issue #135: Security Server bugfix:
     Fixed not correctly functioning timeouts.
