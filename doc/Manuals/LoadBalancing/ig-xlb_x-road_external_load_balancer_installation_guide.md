@@ -676,6 +676,9 @@ Group=xroad
 Type=oneshot
 Environment=XROAD_USER=xroad-slave
 Environment=MASTER=<master_host>
+
+ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
+
 ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
@@ -721,6 +724,11 @@ Create a new file: `/etc/init/xroad-sync.conf`:
 env XROAD_USER=xroad-slave
 env MASTER=<master_host>
 task
+
+pre-start script
+  test ! -f /var/tmp/xroad/sync-disabled || { stop; exit 0; }
+end script
+
 script
   su -s /bin/sh -c 'exec "$0" "$@"' xroad -- rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 end script
