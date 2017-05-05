@@ -14,7 +14,6 @@ en:
       request: "Management Requests"
       configuration_management: "Global Configuration"
       system_settings: "System Settings"
-      import_v5: "Version 5.0 Data Import"
       distributed_file: "Distributed Files"
     help:
       title: "Help"
@@ -205,21 +204,6 @@ en:
     auth_cert_reg_request_revoked: "Successfully revoked authentication request with id '%{id}'"
     request_approved: "Successfully approved request with id '%{id}'"
     request_declined: "Successfully declined request with id '%{id}'"
-
-  import:
-    action:
-      index: "display import page"
-      get_imported: "get imported file"
-      last_result: "get last import console output"
-      import_v5_data: "import V5 data"
-    no_file: "No file found."
-    file: "'%{file}' uploaded at %{time}"
-    label: "5.0 DATA"
-    execute:
-      success: "Import successful"
-      warnings: "Import succeeded with some warnings, click 'Last result' for details."
-      failure: "Importer finished unsuccessfully, click 'Last result' for details."
-      other_error: "Import failed, check if importer is installed properly"
 
   status:
     global_conf_gen:

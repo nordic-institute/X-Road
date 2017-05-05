@@ -287,23 +287,6 @@ en:
     filetype: "File type"
     info: "Info"
     no_file: "No file found"
-    identifier_mapping:
-      upload:
-        title: "Upload identifier mapping file"
-        enter_file_name: "Enter File Name"
-    last_result: "Last Result"
-
-  import_v5:
-    file_type: "File Type"
-    file_info: "File Info"
-    upload_file:
-      title: "Upload File"
-      enter_file_name: "Enter File Name"
-    last_import:
-      title: "Last import attempt"
-      filename: "Path to the imported file"
-      time: "Last time attempted to import"
-      exit_status: "Exit status of the last import attempt"
     last_result: "Last Result"
 
   system_status:

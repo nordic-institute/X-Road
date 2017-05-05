@@ -1,13 +1,14 @@
 # X-Road: Operational Monitoring System Parameters
 # User Guide
 
-Version: 0.3  
+Version: 0.4  
 Doc ID: UG-OPMONSYSPAR
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-|  | 0.2       | Initial version               |          |
-| 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
+| Date       | Version | Description                                                                  | Author             |
+|------------|---------|------------------------------------------------------------------------------|--------------------|
+|            | 0.2     | Initial version                                                              |                    |
+| 23.01.2017 | 0.3     | Added license text, table of contents and version history                    | Sami Kallio        |
+| 17.03.2017 | 0.4     | Added new parameters *op-monitor-buffer.connection-timeout-seconds* and *op-monitor-service.connection-timeout-seconds* | Kristo Heero       |
 
 ## Table of Contents
 
@@ -64,7 +65,7 @@ op-monitor        | tls-certificate           |/etc/xroad/ssl/opmonitor.crt | Ab
 op-monitor-buffer | connection-timeout-seconds| 30                   | HTTP client connection timeout in seconds.
 op-monitor-buffer | max-records-in-message    | 100                  | Maximum number of operational data records in a message sent by the operational monitoring buffer to the operational monitoring daemon.
 op-monitor-buffer | sending-interval-seconds  | 5                    | The interval in seconds at which the operational monitoring buffer tries to send records to the operational monitoring daemon.
-op-monitor-buffer | sending-timeout-seconds   | 60                   | The timeout of sending operational monitoring records from the operational monitoring buffer to the operational monitoring daemon in seconds.
+op-monitor-buffer | socket-timeout-seconds    | 60                   | The socket timeout (*SO_TIMEOUT*) of sending operational monitoring records from the operational monitoring buffer to the operational monitoring daemon in seconds.
 op-monitor-buffer | size                      | 20000                | Maximum size of operational monitoring buffer. In case buffer size < 1, operational monitoring data is not stored and sent to the operational monitoring daemon.
 op-monitor-service| connection-timeout-seconds| 30                   | HTTP client connection timeout in seconds.
-op-monitor-service| sending-timeout-seconds   | 60                   | The timeout of sending the operational data request to the operational monitoring daemon in seconds.
+op-monitor-service| socket-timeout-seconds    | 60                   | The socket timeout (*SO_TIMEOUT*) of sending the operational data request to the operational monitoring daemon in seconds.

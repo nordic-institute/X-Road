@@ -27,14 +27,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -70,6 +69,8 @@ public class ServerProxy implements StartStop {
 
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
+
+    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getServerProxyConnectorSoLinger() * 1000;
 
     private static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
@@ -132,7 +133,8 @@ public class ServerProxy implements StartStop {
 
     private void createOpMonitorClient() throws Exception {
         opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(),
-                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()));
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceConnectionTimeoutSeconds()),
+                TimeUtils.secondsToMillis(OpMonitoringSystemProperties.getOpMonitorServiceSocketTimeoutSeconds()));
     }
 
     private void createConnectors() throws Exception {
@@ -147,7 +149,7 @@ public class ServerProxy implements StartStop {
         connector.setPort(port);
         connector.setHost(listenAddress);
 
-        connector.setSoLingerTime(SystemProperties.getServerProxyConnectorSoLinger());
+        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getServerProxyConnectorMaxIdleTime());
 
         connector.getConnectionFactories().stream()

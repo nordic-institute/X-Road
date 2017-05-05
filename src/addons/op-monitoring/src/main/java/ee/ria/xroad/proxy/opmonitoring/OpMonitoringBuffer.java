@@ -32,15 +32,11 @@ import java.util.concurrent.TimeUnit;
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 import akka.actor.Props;
-
 import com.google.gson.Gson;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
-
 import scala.concurrent.duration.FiniteDuration;
 
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -62,27 +58,23 @@ import static java.util.Collections.list;
  */
 @Slf4j
 public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
-    public static final String OP_MONITORING_DAEMON_SENDER =
-            "OpMonitoringDaemonSender";
+    public static final String OP_MONITORING_DAEMON_SENDER = "OpMonitoringDaemonSender";
 
-    private static final String NO_ADDRESS_FOUND =
-            "No suitable IP address is bound to the network interface ";
-    private static final String NO_INTERFACE_FOUND =
-            "No non-loopback network interface found";
+    private static final String NO_ADDRESS_FOUND = "No suitable IP address is bound to the network interface ";
+    private static final String NO_INTERFACE_FOUND = "No non-loopback network interface found";
 
-    private static final long MAX_BUFFER_SIZE =
-            OpMonitoringSystemProperties.getOpMonitorBufferSize();
+    private static final long MAX_BUFFER_SIZE = OpMonitoringSystemProperties.getOpMonitorBufferSize();
 
     private static final int MAX_RECORDS_IN_MESSAGE =
-            OpMonitoringSystemProperties
-                    .getOpMonitorBufferMaxRecordsInMessage();
+            OpMonitoringSystemProperties.getOpMonitorBufferMaxRecordsInMessage();
     private static final long SENDING_INTERVAL_SECONDS =
-            OpMonitoringSystemProperties
-                    .getOpMonitorBufferSendingIntervalSeconds();
+            OpMonitoringSystemProperties.getOpMonitorBufferSendingIntervalSeconds();
 
-    private static final int CLIENT_CONNECTION_TIMEOUT_MILLISECONDS =
-            TimeUtils.secondsToMillis(OpMonitoringSystemProperties
-                    .getOpMonitorBufferConnectionTimeoutSeconds());
+    private static final int CLIENT_CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds());
+
+    private static final int CLIENT_SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
     private static final Gson GSON = JsonUtils.getSerializer();
 
@@ -95,9 +87,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
                     boolean overflow = size() > MAX_BUFFER_SIZE;
 
                     if (overflow) {
-                        log.warn("Operational monitoring buffer overflow,"
-                                + " removing eldest record: {}",
-                                eldest.getKey());
+                        log.warn("Operational monitoring buffer overflow, removing eldest record: {}", eldest.getKey());
                     }
 
                     return overflow;
@@ -120,8 +110,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
      */
     public OpMonitoringBuffer() throws Exception {
         if (ignoreOpMonitoringData()) {
-            log.info("Operational monitoring buffer is switched off,"
-                    + " no operational monitoring data is stored");
+            log.info("Operational monitoring buffer is switched off, no operational monitoring data is stored");
 
             httpClient = null;
             sender = null;
@@ -132,14 +121,12 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     CloseableHttpClient createHttpClient() throws Exception {
-        return OpMonitoringDaemonHttpClient.createHttpClient(
-                ServerConf.getSSLKey(), 1, 1,
-                CLIENT_CONNECTION_TIMEOUT_MILLISECONDS);
+        return OpMonitoringDaemonHttpClient.createHttpClient(ServerConf.getSSLKey(), 1, 1,
+                CLIENT_CONNECTION_TIMEOUT_MILLISECONDS, CLIENT_SOCKET_TIMEOUT_MILLISECONDS);
     }
 
     ActorRef createSender() {
-        return getContext().system().actorOf(
-                Props.create(OpMonitoringDaemonSender.class, httpClient),
+        return getContext().system().actorOf(Props.create(OpMonitoringDaemonSender.class, httpClient),
                 OP_MONITORING_DAEMON_SENDER);
     }
 
@@ -172,8 +159,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     private String prepareMonitoringMessage() {
-        StoreOpMonitoringDataRequest request =
-                new StoreOpMonitoringDataRequest();
+        StoreOpMonitoringDataRequest request = new StoreOpMonitoringDataRequest();
 
         for (Map.Entry<Long, OpMonitoringData> entry : buffer.entrySet()) {
             processedBufferIndices.add(entry.getKey());
@@ -213,11 +199,9 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     }
 
     private void scheduleSendMonitoringData() {
-        FiniteDuration interval = FiniteDuration.create(
-                SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        FiniteDuration interval = FiniteDuration.create(SENDING_INTERVAL_SECONDS, TimeUnit.SECONDS);
 
-        tick = getContext().system().scheduler().schedule(
-                interval, interval, getSelf(), SEND_MONITORING_DATA,
+        tick = getContext().system().scheduler().schedule(interval, interval, getSelf(), SEND_MONITORING_DATA,
                 getContext().dispatcher(), ActorRef.noSender());
     }
 
@@ -248,14 +232,12 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     private static String getIpAddress() {
         try {
             if (ipAddress == null) {
-
                 NetworkInterface ni = list(getNetworkInterfaces()).stream()
                         .filter(OpMonitoringBuffer::isNonLoopback)
                         .findFirst()
                         .orElseThrow(() -> new Exception(NO_INTERFACE_FOUND));
 
-                Exception addressNotFound = new Exception(NO_ADDRESS_FOUND
-                        + ni.getDisplayName());
+                Exception addressNotFound = new Exception(NO_ADDRESS_FOUND + ni.getDisplayName());
 
                 ipAddress = list(ni.getInetAddresses()).stream()
                         .filter(addr -> !addr.isLinkLocalAddress())
@@ -270,8 +252,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
             return ipAddress;
         } catch (Exception e) {
-            log.error("Cannot get IP address of a non-loopback network"
-                    + " interface", e);
+            log.error("Cannot get IP address of a non-loopback network interface", e);
 
             return "0.0.0.0";
         }

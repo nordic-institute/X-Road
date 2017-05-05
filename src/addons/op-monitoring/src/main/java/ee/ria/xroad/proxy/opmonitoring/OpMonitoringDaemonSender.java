@@ -47,18 +47,19 @@ import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STA
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_OK;
 
 /**
- * Actor for sending operational data to the operational monitoring daemon.
- * This actor is used by the OpMonitoringBuffer class for periodically
- * forwarding operational data gathered in the buffer.
+ * Actor for sending operational data to the operational monitoring daemon. This actor is used by the
+ * OpMonitoringBuffer class for periodically forwarding operational data gathered in the buffer.
  */
 @Slf4j
 public class OpMonitoringDaemonSender extends UntypedActor {
 
     private static final Gson GSON = JsonUtils.getSerializer();
 
-    private static final int SENDING_TIMEOUT_MILLISECONDS =
-            TimeUtils.secondsToMillis(OpMonitoringSystemProperties
-                    .getOpMonitorBufferSendingTimeoutSeconds());
+    private static final int CONNECTION_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorBufferConnectionTimeoutSeconds());
+
+    private static final int SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
+            OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
     private CloseableHttpClient httpClient;
 
@@ -87,31 +88,27 @@ public class OpMonitoringDaemonSender extends UntypedActor {
     }
 
     private void success() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_SUCCESS,
-                ActorRef.noSender());
+        getSender().tell(AbstractOpMonitoringBuffer.SENDING_SUCCESS, ActorRef.noSender());
     }
 
     private void failure() {
-        getSender().tell(AbstractOpMonitoringBuffer.SENDING_FAILURE,
-                ActorRef.noSender());
+        getSender().tell(AbstractOpMonitoringBuffer.SENDING_FAILURE, ActorRef.noSender());
     }
 
     private void send(String json) throws Exception {
         try (HttpSender sender = new HttpSender(httpClient)) {
-            sender.setTimeout(SENDING_TIMEOUT_MILLISECONDS);
+            sender.setConnectionTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
+            sender.setSocketTimeout(SOCKET_TIMEOUT_MILLISECONDS);
 
             sender.doPost(getAddress(), json, MimeTypes.JSON);
 
-            String responseJson = IOUtils.toString(sender.getResponseContent(),
-                    MimeUtils.UTF8);
+            String responseJson = IOUtils.toString(sender.getResponseContent(), MimeUtils.UTF8);
             StoreOpMonitoringDataResponse response;
 
             try {
-                response = GSON.fromJson(responseJson,
-                        StoreOpMonitoringDataResponse.class);
+                response = GSON.fromJson(responseJson, StoreOpMonitoringDataResponse.class);
             } catch (Exception e) {
-                throw new Exception("Received invalid response: "
-                        + responseJson);
+                throw new Exception("Received invalid response: " + responseJson);
             }
 
             if (STATUS_OK.equals(response.getStatus())) {
@@ -121,21 +118,17 @@ public class OpMonitoringDaemonSender extends UntypedActor {
             }
 
             if (STATUS_ERROR.equals(response.getStatus())) {
-                throw new Exception("Received error response"
-                        + (StringUtils.isBlank(response.getErrorMessage())
+                throw new Exception("Received error response" + (StringUtils.isBlank(response.getErrorMessage())
                         ? "" : ": " + response.getErrorMessage()));
             } else {
-                throw new Exception("Received invalid response: "
-                        + responseJson);
+                throw new Exception("Received invalid response: " + responseJson);
             }
         }
     }
 
     private URI getAddress() throws URISyntaxException {
-        return new URI(
-                OpMonitoringSystemProperties.getOpMonitorDaemonScheme(), null,
-                OpMonitoringSystemProperties.getOpMonitorHost(),
-                OpMonitoringSystemProperties.getOpMonitorPort(),
+        return new URI(OpMonitoringSystemProperties.getOpMonitorDaemonScheme(), null,
+                OpMonitoringSystemProperties.getOpMonitorHost(), OpMonitoringSystemProperties.getOpMonitorPort(),
                 OpMonitoringDaemonEndpoints.STORE_DATA_PATH, null, null);
     }
 }

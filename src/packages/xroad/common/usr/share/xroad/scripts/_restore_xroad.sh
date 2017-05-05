@@ -16,9 +16,6 @@ PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
-V55_XROAD6_INSTALLED="/usr/xtee/etc/v6_xroad_installed"
-V55_XROAD6_ACTIVATED="/usr/xtee/etc/v6_xroad_activated"
-V6_INTERNAL_TLS_KEY_EXPORTER="/usr/share/xroad/scripts/export_v6_internal_tls_key.sh"
 
 THIS_FILE=$(pwd)/$0
 XROAD_SERVICES=
@@ -185,16 +182,6 @@ restart_services () {
   done
 }
 
-export_v55_key_and_cert () {
-  if [ -f ${V55_XROAD6_INSTALLED} ] && [ -f ${V55_XROAD6_ACTIVATED} ] ; then
-    echo "EXPORTING INTERNAL TLS KEY AND CERTIFICATE TO 5.0 X-ROAD PROXY"
-    su - ui -c ${V6_INTERNAL_TLS_KEY_EXPORTER}
-    if [ $? -ne 0 ] ; then
-      die "Failed to export the internal TLS key and certificate to 5.0 X-Road proxy!"
-    fi
-  fi
-}
-
 while getopts ":FSt:i:s:n:f:b" opt ; do
   case ${opt} in
     F)
@@ -246,6 +233,5 @@ restore_configuration_files
 restore_database
 remove_tmp_restore_dir
 restart_services
-export_v55_key_and_cert
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

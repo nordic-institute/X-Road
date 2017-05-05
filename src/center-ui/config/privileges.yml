@@ -83,6 +83,5 @@
 -     delete_signing_key: [xroad-security-officer]
 - view_system_settings: [xroad-security-officer]
 -   register_service_provider: [xroad-security-officer]
-- execute_v5_import: [xroad-registration-officer]
 - backup_configuration: [xroad-system-administrator]
 - restore_configuration: [xroad-system-administrator]

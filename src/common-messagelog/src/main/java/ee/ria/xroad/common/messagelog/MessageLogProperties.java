@@ -45,9 +45,21 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_TIMESTAMP_RECORDS_LIMIT = 10000;
 
+    private static final int DEFAULT_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT = 20000;
+
+    private static final int DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT = 60000;
+
     private static final int DEFAULT_ARCHIVE_TRANSACTION_BATCH_SIZE = 10000;
 
     private static final String PREFIX = "xroad.message-log.";
+
+    /** Property name of the timestamper client connect timeout (milliseconds). */
+    public static final String TIMESTAMPER_CLIENT_CONNECT_TIMEOUT =
+            PREFIX + "timestamper-client-connect-timeout";
+
+    /** Property name of the timestamper client read timeout (milliseconds). */
+    public static final String TIMESTAMPER_CLIENT_READ_TIMEOUT =
+            PREFIX + "timestamper-client-read-timeout";
 
     public static final String TIMESTAMP_IMMEDIATELY =
             PREFIX + "timestamp-immediately";
@@ -108,6 +120,24 @@ public final class MessageLogProperties {
     public static final int FOURTH_COMPONENT = 3;
 
     private MessageLogProperties() {
+    }
+
+    /**
+     * @return the timestamper client connect timeout in milliseconds. A timeout of zero is
+     * interpreted as an infinite timeout. '20000' by default.
+     */
+    public static int getTimestamperClientConnectTimeout() {
+        return getInt(System.getProperty(TIMESTAMPER_CLIENT_CONNECT_TIMEOUT),
+                DEFAULT_TIMESTAMPER_CLIENT_CONNECT_TIMEOUT);
+    }
+
+    /**
+     * @return the timestamper client read timeout in milliseconds. A timeout of zero is
+     * interpreted as an infinite timeout. '60000' by default.
+     */
+    public static int getTimestamperClientReadTimeout() {
+        return getInt(System.getProperty(TIMESTAMPER_CLIENT_READ_TIMEOUT),
+                DEFAULT_TIMESTAMPER_CLIENT_READ_TIMEOUT);
     }
 
     /**
