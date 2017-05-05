@@ -148,7 +148,6 @@ public final class SystemProperties {
     public static final String JETTY_OCSP_RESPONDER_CONFIGURATION_FILE =
             PREFIX + "proxy.jetty-ocsp-responder-configuration-file";
 
-
     /** Property name of the ClientProxy HTTPS connector and ServerProxy HTTP client supported TLS protocols */
     private static final String PROXY_CLIENT_TLS_PROTOCOLS =
             PREFIX + "proxy.client-tls-protocols";
@@ -183,7 +182,7 @@ public final class SystemProperties {
             PREFIX + "proxy.client-connector-so-linger";
 
     /** Property name for he connection maximum idle time that should be set for client proxy apache HttpClient,
-     *  in seconds, value of -1 means off */
+     * in milliseconds, value 0 means infinite timeout, -1 means the system default */
     private static final String CLIENTPROXY_HTTPCLIENT_TIMEOUT =
             PREFIX + "proxy.client-httpclient-timeout";
 
@@ -240,17 +239,17 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_POOL_IDLE_MONITOR_IDLE_TIME = "60000";
 
-    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = "false";
+    private static final String DEFAULT_CLIENTPROXY_POOL_USE_IDLE_CONNECTION_MONITOR = "true";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_TOTAL_MAX_CONNECTIONS = "10000";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_DEFAULT_MAX_CONN_PER_ROUTE = "2500";
 
-    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "false";
+    private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
 
-    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "-1";
+    private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
      * for the ClientProxy can be actually reused **/
@@ -359,10 +358,6 @@ public final class SystemProperties {
     public static final String CONF_BACKUP_PATH =
             PREFIX + "center.conf-backup-path";
 
-    /** Property name of the path where original V5 data files are located. */
-    public static final String V5_IMPORT_PATH =
-            PREFIX + "center.v5-import-path";
-
     // Misc -------------------------------------------------------------------
 
     /** Property name of the configuration files path. */
@@ -377,20 +372,11 @@ public final class SystemProperties {
     public static final String LOG_PATH =
             PREFIX + "appLog.path";
 
-    /** Property name of the application log level of ee.ria.xroad.* */
+    /** Property name of the application log level of ee.ria.xroad. */
     public static final String XROAD_LOG_LEVEL =
             PREFIX + "appLog.xroad.level";
 
     // Proxy UI ---------------------------------------------------------------
-
-    public static final String CLIENTS_IMPORTER_COMMAND =
-            PREFIX + "proxy-ui.clients-importer-command";
-
-    public static final String TLS_KEY_IMPORTER_COMMAND =
-            PREFIX + "proxy-ui.tls-key-importer-command";
-
-    public static final String TLS_KEY_EXPORTER_COMMAND =
-            PREFIX + "proxy-ui.tls-key-exporter-command";
 
     /** Property name of the WSDL validator command. */
     public static final String WSDL_VALIDATOR_COMMAND =
@@ -420,14 +406,13 @@ public final class SystemProperties {
     public static final String MONITORING_AGENT_URI =
             PREFIX + "monitoringagent.uri";
 
-    /** Property of the central monitor agent HTTPS port. **/
+    /** Property of the central monitor agent HTTPS port. */
     public static final String CENTRAL_MONITOR_AGENT_HTTPS_PORT =
             PREFIX + "central-monitor-agent.https-port";
 
     // Zabbix configurator agent ----------------------------------------------
 
-    /** Property name of the Zabbix configurator client's
-     * timeout (milliseconds). */
+    /** Property name of the Zabbix configurator client's timeout (milliseconds). */
     public static final String ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT =
             PREFIX + "monitoring.zabbix-configurator-client-timeout";
 
@@ -548,16 +533,14 @@ public final class SystemProperties {
     private static final String DEFAULT_CONNECTOR_HOST = "0.0.0.0";
 
     /**
-     * @return path to the directory where configuration files are located,
-     * '/etc/xroad/' by default.
+     * @return path to the directory where configuration files are located, '/etc/xroad/' by default.
      */
     public static String getConfPath() {
         return System.getProperty(CONF_PATH, DefaultFilepaths.CONF_PATH);
     }
 
     /**
-     * @return path to the directory where application logs are stored,
-     * '/var/log/xroad/' by default.
+     * @return path to the directory where application logs are stored, '/var/log/xroad/' by default.
      */
     public static String getLogPath() {
         return System.getProperty(LOG_PATH, DefaultFilepaths.LOG_PATH);
@@ -571,17 +554,14 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the proxy database configuration file,
-     * '/etc/xroad/db.properties' by default.
+     * @return path to the proxy database configuration file, '/etc/xroad/db.properties' by default.
      */
     public static String getDatabasePropertiesFile() {
-        return System.getProperty(DATABASE_PROPERTIES,
-                getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
+        return System.getProperty(DATABASE_PROPERTIES, getConfPath() + DefaultFilepaths.SERVER_DATABASE_PROPERTIES);
     }
 
     /**
-     * @return path to the configuration anchor file,
-     * '/etc/xroad/configuration-anchor.xml' by default.
+     * @return path to the configuration anchor file, '/etc/xroad/configuration-anchor.xml' by default.
      */
     public static String getConfigurationAnchorFile() {
         return System.getProperty(CONFIGURATION_ANCHOR_FILE,
@@ -589,26 +569,22 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where the downloaded global configuration
-     * is placed, '/etc/xroad/globalconf/' by default.
+     * @return path to the directory where the downloaded global configuration is placed,
+     * '/etc/xroad/globalconf/' by default.
      */
     public static String getConfigurationPath() {
-        return System.getProperty(CONFIGURATION_PATH,
-                getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
+        return System.getProperty(CONFIGURATION_PATH, getConfPath() + DefaultFilepaths.CONFIGURATION_PATH);
     }
 
     /**
-     * @return path to the signing key configuration file,
-     * '/etc/xroad/signer/keyconf.xml' by default.
+     * @return path to the signing key configuration file, '/etc/xroad/signer/keyconf.xml' by default.
      */
     public static String getKeyConfFile() {
-        return System.getProperty(KEY_CONFIGURATION_FILE,
-                getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
+        return System.getProperty(KEY_CONFIGURATION_FILE, getConfPath() + DefaultFilepaths.KEY_CONFIGURATION_FILE);
     }
 
     /**
-     * @return path to the signing key device configuration file,
-     * '/etc/xroad/signer/devices.ini' by default.
+     * @return path to the signing key device configuration file, '/etc/xroad/signer/devices.ini' by default.
      */
     public static String getDeviceConfFile() {
         return System.getProperty(DEVICE_CONFIGURATION_FILE,
@@ -616,8 +592,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the client proxy jetty server configuration file,
-     * '/etc/xroad/jetty/clientproxy.xml' by default.
+     * @return path to the client proxy jetty server configuration file, '/etc/xroad/jetty/clientproxy.xml' by default.
      */
     public static String getJettyClientProxyConfFile() {
         return System.getProperty(JETTY_CLIENTPROXY_CONFIGURATION_FILE,
@@ -625,8 +600,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the server proxy jetty server configuration file,
-     * '/etc/xroad/jetty/serverproxy.xml' by default.
+     * @return path to the server proxy jetty server configuration file, '/etc/xroad/jetty/serverproxy.xml' by default.
      */
     public static String getJettyServerProxyConfFile() {
         return System.getProperty(JETTY_SERVERPROXY_CONFIGURATION_FILE,
@@ -650,62 +624,42 @@ public final class SystemProperties {
     }
 
     /**
-     * @return path to the directory where query logs are archived,
-     * '/var/lib/xroad/' by default.
+     * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
      */
     public static String getLogReaderPath() {
-        return System.getProperty(LOG_READER_PATH,
-                DefaultFilepaths.SECURE_LOG_PATH);
+        return System.getProperty(LOG_READER_PATH, DefaultFilepaths.SECURE_LOG_PATH);
     }
 
     /**
-     * @return path to the directory where temporary files are stored,
-     * '/var/tmp/xroad/' by default.
+     * @return path to the directory where temporary files are stored, '/var/tmp/xroad/' by default.
      */
     public static String getTempFilesPath() {
-        return System.getProperty(TEMP_FILES_PATH,
-                DefaultFilepaths.TEMP_FILES_PATH);
+        return System.getProperty(TEMP_FILES_PATH, DefaultFilepaths.TEMP_FILES_PATH);
     }
 
     /**
-     * @return path to the directory where OCSP responses are stored,
-     * '/var/cache/xroad/' by default.
+     * @return path to the directory where OCSP responses are stored, '/var/cache/xroad/' by default.
      */
     public static String getOcspCachePath() {
-        return System.getProperty(OCSP_CACHE_PATH,
-                DefaultFilepaths.OCSP_CACHE_PATH);
+        return System.getProperty(OCSP_CACHE_PATH, DefaultFilepaths.OCSP_CACHE_PATH);
     }
 
     /**
-     * @return path to the directory where configuration backups are stored,
-     * '/var/lib/xroad/backup/' by default.
+     * @return path to the directory where configuration backups are stored, '/var/lib/xroad/backup/' by default.
      */
     public static String getConfBackupPath() {
-        return System.getProperty(CONF_BACKUP_PATH,
-                DefaultFilepaths.CONF_BACKUP_PATH);
+        return System.getProperty(CONF_BACKUP_PATH, DefaultFilepaths.CONF_BACKUP_PATH);
     }
 
     /**
-     * @return path to the directory where imported V5 data files are stored,
-     * '/var/lib/xroad/import' by default.
-     */
-    public static String getV5ImportPath() {
-        return System.getProperty(V5_IMPORT_PATH,
-                DefaultFilepaths.V5_IMPORT_PATH);
-    }
-
-    /**
-     * @return the host address on which the client proxy is listening,
-     * '0.0.0.0' by default.
+     * @return the host address on which the client proxy is listening, '0.0.0.0' by default.
      */
     public static String getConnectorHost() {
-        return System.getProperty(PROXY_CONNECTOR_HOST,
-                DEFAULT_CONNECTOR_HOST);
+        return System.getProperty(PROXY_CONNECTOR_HOST, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
-     * @return the HTTP port on which the client proxy is listening,
-     * '8080' by default.
+     * @return the HTTP port on which the client proxy is listening, '8080' by default.
      */
     public static int getClientProxyHttpPort() {
         return Integer.parseInt(System.getProperty(PROXY_CLIENT_HTTP_PORT,
@@ -713,8 +667,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the HTTPS port on which the client proxy is listening,
-     * '8443' by default.
+     * @return the HTTPS port on which the client proxy is listening, '8443' by default.
      */
     public static int getClientProxyHttpsPort() {
         return Integer.parseInt(System.getProperty(PROXY_CLIENT_HTTPS_PORT,
@@ -722,73 +675,59 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the client proxy connection timeout in milliseconds,
-     * '300000' by default.
+     * @return the client proxy connect timeout in milliseconds, '30000' by default.
      */
     public static int getClientProxyTimeout() {
-        return Integer.parseInt(System.getProperty(PROXY_CLIENT_TIMEOUT,
-                "300000")); // default timeout in milliseconds
+        return Integer.parseInt(System.getProperty(PROXY_CLIENT_TIMEOUT, "30000"));
     }
 
     /**
-     * @return the HTTP port on which the server proxy listens for messages,
-     * '5500' by default.
+     * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
      */
     public static int getServerProxyPort() {
-        return Integer.parseInt(System.getProperty(PROXY_SERVER_PORT,
-                Integer.toString(PortNumbers.PROXY_PORT)));
+        return Integer.parseInt(System.getProperty(PROXY_SERVER_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
     }
 
     /**
-     * @return the HTTP port on which the server proxy listens for messages,
-     * '5500' by default.
+     * @return the HTTP port on which the server proxy listens for messages, '5500' by default.
      */
     public static int getServerProxyListenPort() {
-        return Integer.parseInt(System.getProperty(PROXY_SERVER_LISTEN_PORT,
-                Integer.toString(PortNumbers.PROXY_PORT)));
+        return Integer.parseInt(System.getProperty(PROXY_SERVER_LISTEN_PORT, Integer.toString(PortNumbers.PROXY_PORT)));
     }
 
     /**
-     * @return the host address on which the server proxy listens for messages,
-     * '0.0.0.0' by default.
+     * @return the host address on which the server proxy listens for messages, '0.0.0.0' by default.
      */
     public static String getServerProxyListenAddress() {
-        return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS,
-                DEFAULT_CONNECTOR_HOST);
+        return System.getProperty(PROXY_SERVER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
-     * @return the HTTP port on which the signer listens for signing requests,
-     * '5558' by default.
+     * @return the HTTP port on which the signer listens for signing requests, '5558' by default.
      */
     public static int getSignerPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_PORT,
-                Integer.toString(PortNumbers.SIGNER_PORT)));
+        return Integer.parseInt(System.getProperty(SIGNER_PORT, Integer.toString(PortNumbers.SIGNER_PORT)));
     }
 
     /**
      * @return the port on which the signer admin listens for requests
      */
     public static int getSignerAdminPort() {
-        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT,
-                Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
+        return Integer.parseInt(System.getProperty(SIGNER_ADMIN_PORT, Integer.toString(PortNumbers.SIGNER_ADMIN_PORT)));
     }
 
     /**
-     * @return the signer connection timeout in milliseconds,
-     * '60000' by default.
+     * @return the signer connection timeout in milliseconds, '60000' by default.
      */
     public static int getSignerClientTimeout() {
-        return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT,
-                "60000")); // default timeout in milliseconds
+        return Integer.parseInt(System.getProperty(SIGNER_CLIENT_TIMEOUT, "60000"));
     }
 
     /**
      * @return authentication and signing key length.
      */
     public static int getSignerKeyLength() {
-        return Math.max(MIN_SIGNER_KEY_LENGTH,
-                Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
+        return Math.max(MIN_SIGNER_KEY_LENGTH, Integer.getInteger(SIGNER_KEY_LENGTH, DEFAULT_SIGNER_KEY_LENGTH));
     }
 
     /**
@@ -804,28 +743,23 @@ public final class SystemProperties {
      * @return whether OCSP-response retrieval loop should be activated
      */
     public static boolean isOcspResponseRetrievalActive() {
-        return "true".equalsIgnoreCase(
-                System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
+        return "true".equalsIgnoreCase(System.getProperty(OCSP_RESPONSE_RETRIEVAL_ACTIVE, "true"));
     }
 
     /**
-     * @return the HTTP port on which the configuration client is listening,
-     * '5665' by default.
+     * @return the HTTP port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
-        return Integer.parseInt(
-                System.getProperty(CONFIGURATION_CLIENT_PORT,
-                        Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_PORT,
+                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_PORT)));
     }
 
     /**
-     * @return the HTTP port on which the configuration client is listening,
-     * '5675' by default.
+     * @return the HTTP port on which the configuration client is listening, '5675' by default.
      */
     public static int getConfigurationClientAdminPort() {
-        return Integer.parseInt(
-                System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
-                        Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
+                Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
     }
 
 
@@ -834,78 +768,46 @@ public final class SystemProperties {
      * downloads the global configuration, '60' by default.
      */
     public static int getConfigurationClientUpdateIntervalSeconds() {
-        return Integer.parseInt(
-                System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS,
-                        "60")); // default time in seconds
+        return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
     }
 
     /**
-     * @return the HTTP port on which the server proxy OCSP responder is listening,
-     * '5577' by default.
+     * @return the HTTP port on which the server proxy OCSP responder is listening, '5577' by default.
      */
     public static int getOcspResponderPort() {
-        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_PORT,
-                Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
+        return Integer.parseInt(System.getProperty(OCSP_RESPONDER_PORT, Integer.toString(PortNumbers.PROXY_OCSP_PORT)));
     }
 
     /**
-     * @return the host address on which the server proxy OCSP responder is listening,
-     * '0.0.0.0' by default.
+     * @return the host address on which the server proxy OCSP responder is listening, '0.0.0.0' by default.
      */
     public static String getOcspResponderListenAddress() {
-        return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS,
-                DEFAULT_CONNECTOR_HOST);
+        return System.getProperty(OCSP_RESPONDER_LISTEN_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
-     * @return the OCSP Responder Client connect timeout in milliseconds,
-     * '20000' by default.
+     * @return the OCSP Responder Client connect timeout in milliseconds, '20000' by default.
      */
     public static int getOcspResponderClientConnectTimeout() {
         return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_CONNECT_TIMEOUT, "20000"));
     }
 
     /**
-     * @return the OCSP Responder Client read timeout in milliseconds,
-     * '30000' by default.
+     * @return the OCSP Responder Client read timeout in milliseconds, '30000' by default.
      */
     public static int getOcspResponderClientReadTimeout() {
         return Integer.parseInt(System.getProperty(OCSP_RESPONDER_CLIENT_READ_TIMEOUT, "30000"));
     }
 
     /**
-     * @return the shell command used when importing V5 clients.
-     */
-    public static String getClientsImporterCommand() {
-        return System.getProperty(CLIENTS_IMPORTER_COMMAND);
-    }
-
-    /**
-     * @return the shell command used when importing V5 internal TLS key to V6.
-     */
-    public static String getInternalTlsKeyImporterCommand() {
-        return System.getProperty(TLS_KEY_IMPORTER_COMMAND);
-    }
-
-    /**
-     * @return the shell command used when exporting V6 internal TLS key to V5.
-     */
-    public static String getInternalTlsKeyExporterCommand() {
-        return System.getProperty(TLS_KEY_EXPORTER_COMMAND);
-    }
-
-    /**
-     * @return whether SSL should be used between client and server proxies,
-     * 'true' by default.
+     * @return whether SSL should be used between client and server proxies, 'true' by default.
      */
     public static boolean isSslEnabled() {
-        return "true".equalsIgnoreCase(
-                System.getProperty(PROXY_SSL_SUPPORT, "true"));
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_SSL_SUPPORT, "true"));
     }
 
     /**
-     * @return path to the central server database configuration file,
-     * '/etc/xroad/db.properties' by default.
+     * @return path to the central server database configuration file, '/etc/xroad/db.properties' by default.
      */
     public static String getCenterDatabasePropertiesFile() {
         return System.getProperty(CENTER_DATABASE_PROPERTIES,
@@ -913,18 +815,15 @@ public final class SystemProperties {
     }
 
     /**
-     * @return whether configuration of trusted anchors is enabled in the
-     * central server UI, 'true' by default.
+     * @return whether configuration of trusted anchors is enabled in the central server UI, 'true' by default.
      */
     public static boolean getCenterTrustedAnchorsAllowed() {
-        return "true".equalsIgnoreCase(
-                System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
+        return "true".equalsIgnoreCase(System.getProperty(CENTER_TRUSTED_ANCHORS_ALLOWED, "false"));
     }
 
     /**
      * @return the name of the signed internal configuration directory
-     * that will be distributed to security servers inside the instance,
-     * 'internalconf' by default.
+     * that will be distributed to security servers inside the instance, internalconf' by default.
      */
     public static String getCenterInternalDirectory() {
         return System.getProperty(CENTER_INTERNAL_DIRECTORY, "internalconf");
@@ -932,8 +831,7 @@ public final class SystemProperties {
 
     /**
      * @return the name of the signed external configuration directory
-     * that will be distributed to security servers inside the federation,
-     * 'externalconf' by default.
+     * that will be distributed to security servers inside the federation, 'externalconf' by default.
      */
     public static String getCenterExternalDirectory() {
         return System.getProperty(CENTER_EXTERNAL_DIRECTORY, "externalconf");
@@ -941,60 +839,48 @@ public final class SystemProperties {
 
     /**
      * @return path to the directory on the central server where both private
-     * and shared parameter files are created for distribution,
-     * '/var/lib/xroad/public' by default.
+     * and shared parameter files are created for distribution, '/var/lib/xroad/public' by default.
      */
     public static String getCenterGeneratedConfDir() {
-        return System.getProperty(CENTER_GENERATED_CONF_DIR,
-                DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
+        return System.getProperty(CENTER_GENERATED_CONF_DIR, DefaultFilepaths.DISTRIBUTED_GLOBALCONF_PATH);
     }
 
     /**
-     * @return the HTTP port on which the monitor agent listens for administrative
-     * commands, '5588' by default.
+     * @return the HTTP port on which the monitor agent listens for administrative commands, '5588' by default.
      */
     public static int getMonitorAgentAdminPort() {
-        return Integer.parseInt(System.getProperty(
-                MONITOR_AGENT_ADMIN_PORT,
+        return Integer.parseInt(System.getProperty(MONITOR_AGENT_ADMIN_PORT,
                 Integer.toString(PortNumbers.MONITOR_AGENT_ADMIN_PORT)));
     }
 
     /**
-     * @return the interval in seconds at which monitor agent sends collected
-     * monitoring data, '180' by default.
+     * @return the interval in seconds at which monitor agent sends collected monitoring data, '180' by default.
      */
     public static int getProxyMonitorAgentSendingInterval() {
-        return Integer.parseInt(System.getProperty(
-                PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
+        return Integer.parseInt(System.getProperty(PROXY_MONITOR_AGENT_SENDING_INTERVAL, "180"));
     }
 
     /**
-     * @return path to the monitor agent configuration file,
-     * '/etc/xroad/monitor-agent.ini' by default.
+     * @return path to the monitor agent configuration file, '/etc/xroad/monitor-agent.ini' by default.
      */
     public static String getMonitorAgentConfFile() {
         return System.getProperty(MONITOR_AGENT_CONFIGURATION_FILE,
-                getConfPath()
-                        + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
+                getConfPath() + DefaultFilepaths.MONITOR_AGENT_CONFIGURATION_FILE);
     }
 
     /**
-     * @return the Zabbix configurator client connection timeout in milliseconds,
-     * '300000' by default.
+     * @return the Zabbix configurator client connection timeout in milliseconds, '300000' by default.
      */
     public static int getZabbixConfiguratorClientTimeout() {
-        return Integer.parseInt(System.getProperty(
-                ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT,
-                "300000")); // Default timeout in milliseconds.
+        return Integer.parseInt(System.getProperty(ZABBIX_CONFIGURATOR_CLIENT_TIMEOUT, "300000"));
     }
 
     /**
-     * @return path to the directory containing configuration proxy configuration
-     * files, '/etc/xroad/confproxy' by default.
+     * @return path to the directory containing configuration proxy configuration files,
+     * '/etc/xroad/confproxy' by default.
      */
     public static String getConfigurationProxyConfPath() {
-        return System.getProperty(CONFIGURATION_PROXY_CONF_PATH,
-                getConfPath() + "confproxy/");
+        return System.getProperty(CONFIGURATION_PROXY_CONF_PATH, getConfPath() + "confproxy/");
     }
 
     /**
@@ -1008,8 +894,7 @@ public final class SystemProperties {
 
     /**
      * @return path to the directory on the configuration proxy where global
-     * configuration files are generated for distribution,
-     * '/var/lib/xroad/public' by default.
+     * configuration files are generated for distribution, '/var/lib/xroad/public' by default.
      */
     public static String getConfigurationProxyGeneratedConfPath() {
         return System.getProperty(CONFIGURATION_PROXY_GENERATED_CONF_PATH,
@@ -1018,12 +903,10 @@ public final class SystemProperties {
 
     /**
      * @return ID of the signing algorithm the configuration proxy uses when
-     * signing generated global configuration directories,
-     * 'SHA512withRSA' by default.
+     * signing generated global configuration directories, 'SHA512withRSA' by default.
      */
     public static String getConfigurationProxySignatureAlgorithmId() {
-        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID,
-                CryptoUtils.SHA512WITHRSA_ID);
+        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID, CryptoUtils.SHA512WITHRSA_ID);
     }
 
     /**
@@ -1032,8 +915,7 @@ public final class SystemProperties {
      * 'http://www.w3.org/2001/04/xmlenc#sha512' by default.
      */
     public static String getConfigurationProxyHashAlgorithmUri() {
-        return System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI,
-                CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI);
+        return System.getProperty(CONFIGURATION_PROXY_HASH_ALGORITHM_URI, CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI);
     }
 
     /**
@@ -1041,58 +923,42 @@ public final class SystemProperties {
      * global configuration download requests, '0.0.0.0' by default.
      */
     public static String getConfigurationProxyAddress() {
-        return System.getProperty(CONFIGURATION_PROXY_ADDRESS,
-                DEFAULT_CONNECTOR_HOST);
+        return System.getProperty(CONFIGURATION_PROXY_ADDRESS, DEFAULT_CONNECTOR_HOST);
     }
 
     /**
-     * @return the interval in seconds at which proxy monitor agent collects
-     * monitoring data, '60' by default.
+     * @return the interval in seconds at which proxy monitor agent collects monitoring data, '60' by default.
      */
     public static int getProxyParamsCollectingInterval() {
-        return Integer.parseInt(System.getProperty(
-                PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
+        return Integer.parseInt(System.getProperty(PROXY_PARAMS_COLLECTING_INTERVAL, "60"));
     }
 
     /**
-     * @return environmental monitoring port,
-     * '2552' by default.
+     * @return environmental monitoring port, '2552' by default.
      */
     public static int getEnvMonitorPort() {
-        return Integer.parseInt(System.getProperty(
-                ENV_MONITOR_PORT,
-                "2552")); // Default port
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_PORT, "2552"));
     }
 
     /**
-     * @return system metrics sensor interval in seconds,
-     * '5' by default.
+     * @return system metrics sensor interval in seconds,'5' by default.
      */
     public static int getEnvMonitorSystemMetricsSensorInterval() {
-        return Integer.parseInt(System.getProperty(
-                ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL,
-                "5")); // Default interval in seconds.
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL, "5"));
     }
 
     /**
-     * @return disk space sensor interval in seconds,
-     * '60' by default.
+     * @return disk space sensor interval in seconds, '60' by default.
      */
     public static int getEnvMonitorDiskSpaceSensorInterval() {
-        return Integer.parseInt(System.getProperty(
-                ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL,
-                "60")); // Default interval in seconds.
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_DISK_SPACE_SENSOR_INTERVAL, "60"));
     }
 
-
     /**
-     * @return exec listing sensor interval in seconds,
-     * '60' by default.
+     * @return exec listing sensor interval in seconds, '60' by default.
      */
     public static int getEnvMonitorExecListingSensorInterval() {
-        return Integer.parseInt(System.getProperty(
-                ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL,
-                "60")); // Default interval in seconds.
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
     }
 
     /**
@@ -1112,8 +978,7 @@ public final class SystemProperties {
      * 'true' by default.
      */
     public static boolean shouldVerifyClientCert() {
-        return "true".equalsIgnoreCase(
-                System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
+        return "true".equalsIgnoreCase(System.getProperty(PROXY_VERIFY_CLIENT_CERT, "true"));
     }
 
     /**
@@ -1121,8 +986,7 @@ public final class SystemProperties {
      * Anti-Dos will let through to be processed, '5000' by default.
      */
     public static int getAntiDosMaxParallelConnections() {
-        return Integer.parseInt(System.getProperty(
-                ANTIDOS_MAX_PARALLEL_CONNECTIONS, "5000"));
+        return Integer.parseInt(System.getProperty(ANTIDOS_MAX_PARALLEL_CONNECTIONS, "5000"));
     }
 
     /**
@@ -1131,8 +995,7 @@ public final class SystemProperties {
      * '1.1' by default.
      */
     public static double getAntiDosMaxCpuLoad() {
-        return Double.parseDouble(System.getProperty(
-                ANTIDOS_MAX_CPU_LOAD, "1.1"));
+        return Double.parseDouble(System.getProperty(ANTIDOS_MAX_CPU_LOAD, "1.1"));
     }
 
     /**
@@ -1140,8 +1003,7 @@ public final class SystemProperties {
      * start rejecting incoming connections, '100' by default.
      */
     public static int getAntiDosMinFreeFileHandles() {
-        return Integer.parseInt(System.getProperty(
-                ANTIDOS_MIN_FREE_FILEHANDLES, "100"));
+        return Integer.parseInt(System.getProperty(ANTIDOS_MIN_FREE_FILEHANDLES, "100"));
     }
 
     /**
@@ -1150,16 +1012,14 @@ public final class SystemProperties {
      * '1.1' by default.
      */
     public static double getAntiDosMaxHeapUsage() {
-        return Double.parseDouble(System.getProperty(
-                ANTIDOS_MAX_HEAP_USAGE, "1.1"));
+        return Double.parseDouble(System.getProperty(ANTIDOS_MAX_HEAP_USAGE, "1.1"));
     }
 
     /**
      * @return whether Anti-Dos should be used, 'true' by default.
      */
     public static boolean isAntiDosEnabled() {
-        return "true".equalsIgnoreCase(System.getProperty(
-                ANTIDOS_ENABLED, "true"));
+        return "true".equalsIgnoreCase(System.getProperty(ANTIDOS_ENABLED, "true"));
     }
 
     /**
@@ -1167,9 +1027,8 @@ public final class SystemProperties {
      * incoming monitoring data, '443' by default.
      */
     public static int getCentralMonitorAgentPort() {
-        return Integer.parseInt(
-                System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
-                        Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
+        return Integer.parseInt(System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
+                Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
     }
 
     /**
@@ -1223,12 +1082,10 @@ public final class SystemProperties {
 
     /**
      *
-     * @return the update interval in seconds at which server conf in cached '60' by default
+     * @return the update interval in seconds at which server conf in cached, '60' by default
      */
     public static int getServerConfCachePeriod() {
-        return Integer.parseInt(
-                System.getProperty(SERVER_CONF_CACHE_PERIOD,
-                        "60")); // default time in seconds
+        return Integer.parseInt(System.getProperty(SERVER_CONF_CACHE_PERIOD, "60"));
     }
 
     /**
@@ -1252,7 +1109,8 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value that should be set for server proxy connector
+     * @return the so_linger value in seconds that should be set for server proxy connector, 0 by default
+     *
      */
     public static int getServerProxyConnectorSoLinger() {
         return Integer.parseInt(System.getProperty(SERVERPROXY_CONNECTOR_SO_LINGER,
@@ -1269,16 +1127,15 @@ public final class SystemProperties {
     }
 
     /**
-     * @return the so_linger value that should be set for client proxy apache HttpClient
+     * @return the so_linger value in seconds that should be set for client proxy apache HttpClient, -1 by default
      */
     public static int getClientProxyHttpClientSoLinger() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_HTTPCLIENT_SO_LINGER,
                 DEFAULT_CLIENTPROXY_HTTPCLIENT_SO_LINGER));
     }
 
-
     /**
-     * @return the so_linger value that should be set for client proxy connector
+     * @return the so_linger value in seconds that should be set for client proxy connector, 0 by default
      */
     public static int getClientProxyConnectorSoLinger() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_CONNECTOR_SO_LINGER,
@@ -1358,6 +1215,7 @@ public final class SystemProperties {
     /**
      * @return the time in milliseconds, after which connections in a pool should be check for validity, ie.
      * after this time, check if pooled connections are still alive, don't just assume they are.
+     * Non-positive value disables connection validation. '2000' by default.
      */
     public static int getClientProxyValidatePoolConnectionsAfterInactivityMs() {
         return Integer.parseInt(System.getProperty(CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS,
@@ -1393,6 +1251,7 @@ public final class SystemProperties {
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION));
         checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CENTRAL_SERVER_GLOBAL_CONFIGURATION_VERSION);
+
         return version;
     }
 
@@ -1406,13 +1265,13 @@ public final class SystemProperties {
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION));
         checkVersionValidity(version, CURRENT_GLOBAL_CONFIGURATION_VERSION,
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
+
         return version;
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {
         if (version > current || version < 1) {
-            throw new IllegalArgumentException("Illegal minimum global configuration version in "
-                    + "system parameters");
+            throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
     }
 }

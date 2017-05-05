@@ -17,15 +17,14 @@ then
     classname=ee.ria.xroad.proxy.ProxyMain
 fi
 
-$javabin -Dxroad.proxy.ocspCachePath=build/ocsp-cache\
-    -Dxroad.tempFiles.path=build/attach-tmp -Xmx2000m\
-    -Dxroad.appLog.path=log\
-    -Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml\
-    -Dlogback.configurationFile=src/test/logback-proxytest.xml\
+$javabin -Xmx2g\
+    -Dxroad.proxy.ocspCachePath=build/ocsp-cache\
+    -Dxroad.tempFiles.path=build/attach-tmp\
     -Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml\
     -Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml\
     -Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml\
     -Dxroad.proxy.client-connector-so-linger=-1\
     -Dxroad.proxy.client-httpclient-so-linger=-1\
     -Dxroad.proxy.server-connector-so-linger=-1\
+    -Dlogback.configurationFile=src/test/logback-proxytest.xml\
     -cp ../common-test/build/libs/common-test-1.0.jar:build/libs/proxy-1.0.jar:../common-verifier/build/classes/test:$classes $classname $*

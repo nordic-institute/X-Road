@@ -43,15 +43,14 @@ import static org.junit.Assert.assertTrue;
  * Tests to verify correct optional configuration parts behavior.
  */
 public class OptionalPartsConfBehavior {
-    public static final String CONF_DIR = "src/test/resources/configuration-parts";
-    public static final String MESSAGE_CONVERTER_FILE =
-            CONF_DIR + File.separator + "message-converter.ini";
+    private static final String CONF_DIR = "src/test/resources/configuration-parts";
+    private static final String MESSAGE_CONVERTER_FILE = CONF_DIR + File.separator + "message-converter.ini";
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
     /**
-     * Test to ensure validation program can be found from identifier mapping.
+     * Test to ensure validation program can be found from test configuration part.
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -59,20 +58,19 @@ public class OptionalPartsConfBehavior {
         // Given
         String confDir = "src/test/resources/configuration-parts";
         OptionalPartsConf conf = new OptionalPartsConf(confDir);
-        String partFile = "identifiermapping.xml";
+        String partFile = "test-configuration-part.xml";
 
         // When
         String actualValidationProgram = conf.getValidationProgram(partFile);
 
         // Then
-        String expectedValidationProgram =
-                "/usr/share/xroad/scripts/validate-identifiermapping.sh";
+        String expectedValidationProgram = "/usr/share/xroad/scripts/validate-test-configuration-part.sh";
 
         assertEquals(expectedValidationProgram, actualValidationProgram);
     }
 
     /**
-     * Test to ensure identifier mapping content identifier can be read.
+     * Test to ensure test configuration part content identifier can be read.
      * @throws IOException in case optional parts directory cannot be read
      */
     @Test
@@ -80,13 +78,13 @@ public class OptionalPartsConfBehavior {
         // Given
         String confDir = "src/test/resources/configuration-parts";
         OptionalPartsConf conf = new OptionalPartsConf(confDir);
-        String partFile = "identifiermapping.xml";
+        String partFile = "test-configuration-part.xml";
 
         // When
         String actualContentIdentifier = conf.getContentIdentifier(partFile);
 
         // Then
-        String expectedContentIdentifier = "IDENTIFIERMAPPING";
+        String expectedContentIdentifier = "TEST-CONFIGURATION-PART";
 
         assertEquals(expectedContentIdentifier, actualContentIdentifier);
     }
@@ -104,11 +102,10 @@ public class OptionalPartsConfBehavior {
         List<OptionalConfPart> actualOptionalParts = conf.getAllParts();
 
         // Then
-        OptionalConfPart expectedFirstPart = new OptionalConfPart(
-                "identifiermapping.xml", "IDENTIFIERMAPPING");
+        OptionalConfPart expectedFirstPart = new OptionalConfPart("test-configuration-part.xml",
+                "TEST-CONFIGURATION-PART");
 
-        OptionalConfPart expectedSecondPart = new OptionalConfPart(
-                        "messageconverter.xml", "MESSAGECONVERTER");
+        OptionalConfPart expectedSecondPart = new OptionalConfPart("messageconverter.xml", "MESSAGECONVERTER");
 
         assertEquals(2, actualOptionalParts.size());
         assertTrue(actualOptionalParts.contains(expectedFirstPart));
@@ -179,8 +176,7 @@ public class OptionalPartsConfBehavior {
      */
     @Test
     public void shouldNotAllowReservedFilenames() throws IOException {
-        testMalformedConf(
-                "src/test/resources/configuration-parts-RESERVED_FILE");
+        testMalformedConf("src/test/resources/configuration-parts-RESERVED_FILE");
     }
 
     /**
@@ -189,8 +185,7 @@ public class OptionalPartsConfBehavior {
      */
     @Test
     public void shouldNotAllowReservedContentIds() throws IOException {
-        testMalformedConf(
-                "src/test/resources/configuration-parts-RESERVED_ID");
+        testMalformedConf("src/test/resources/configuration-parts-RESERVED_ID");
     }
 
     /**
@@ -199,8 +194,7 @@ public class OptionalPartsConfBehavior {
      */
     @Test
     public void shouldNotAllowDuplicateFilenames() throws IOException {
-        testMalformedConf(
-                "src/test/resources/configuration-parts-DUPLICATES");
+        testMalformedConf("src/test/resources/configuration-parts-DUPLICATES");
     }
 
     private void testMalformedConf(String confDir) throws IOException {

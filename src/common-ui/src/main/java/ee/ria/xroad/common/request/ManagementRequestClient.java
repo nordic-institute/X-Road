@@ -36,6 +36,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
@@ -54,7 +55,6 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.StartStop;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Client that sends managements requests to the Central Server.
@@ -69,8 +69,7 @@ public final class ManagementRequestClient implements StartStop {
     private CloseableHttpClient centralHttpClient;
     private CloseableHttpClient proxyHttpClient;
 
-    private static ManagementRequestClient instance =
-            new ManagementRequestClient();
+    private static ManagementRequestClient instance = new ManagementRequestClient();
 
     /**
      * @return the singleton ManagementRequestClient
@@ -80,11 +79,23 @@ public final class ManagementRequestClient implements StartStop {
     }
 
     static HttpSender createCentralHttpSender() {
-        return new HttpSender(getInstance().centralHttpClient);
+        return createSender(getInstance().centralHttpClient);
     }
 
     static HttpSender createProxyHttpSender() {
-        return new HttpSender(getInstance().proxyHttpClient);
+        return createSender(getInstance().proxyHttpClient);
+    }
+
+    private static HttpSender createSender(CloseableHttpClient client) {
+        HttpSender httpSender = new HttpSender(client);
+
+        int timeout = SystemProperties.getClientProxyTimeout();
+        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
+
+        httpSender.setConnectionTimeout(timeout);
+        httpSender.setSocketTimeout(socketTimeout);
+
+        return httpSender;
     }
 
     private ManagementRequestClient() {
@@ -92,8 +103,7 @@ public final class ManagementRequestClient implements StartStop {
             createCentralHttpClient();
             createProxyHttpClient();
         } catch (Exception e) {
-            throw new RuntimeException(
-                    "Unable to initialize management request client", e);
+            throw new RuntimeException("Unable to initialize management request client", e);
         }
     }
 
@@ -121,37 +131,29 @@ public final class ManagementRequestClient implements StartStop {
 
         TrustManager tm = new X509TrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] chain,
-                    String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             }
 
             @Override
-            public void checkServerTrusted(X509Certificate[] chain,
-                    String authType) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
                 if (chain.length == 0) {
-                    throw new CertificateException(
-                            "Central server did not send TLS certificate");
+                    throw new CertificateException("Central server did not send TLS certificate");
                 }
 
                 X509Certificate centralServerSslCert = null;
+
                 try {
-                    centralServerSslCert =
-                            GlobalConf.getCentralServerSslCertificate();
+                    centralServerSslCert = GlobalConf.getCentralServerSslCertificate();
                 } catch (Exception e) {
-                    throw new CertificateException("Could not get central "
-                            + "server TLS certificate from global conf", e);
+                    throw new CertificateException("Could not get central server TLS certificate from global conf", e);
                 }
 
                 if (centralServerSslCert == null) {
-                    throw new CertificateException(
-                            "Central server TLS certificate "
-                                    + "is not in global conf");
+                    throw new CertificateException("Central server TLS certificate is not in global conf");
                 }
 
                 if (!centralServerSslCert.equals(chain[0])) {
-                    throw new CertificateException(
-                            "Central server TLS certificate "
-                                    + "does not match in global conf");
+                    throw new CertificateException("Central server TLS certificate does not match in global conf");
                 }
             }
 
@@ -169,12 +171,10 @@ public final class ManagementRequestClient implements StartStop {
 
         TrustManager tm = new X509TrustManager() {
             @Override
-            public void checkClientTrusted(X509Certificate[] chain,
-                    String authType) throws CertificateException {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             }
             @Override
-            public void checkServerTrusted(X509Certificate[] chain,
-                    String authType) throws CertificateException {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 
             }
             @Override
@@ -188,31 +188,28 @@ public final class ManagementRequestClient implements StartStop {
             private static final String ALIAS = "MgmtAuthKeyManager";
 
             @Override
-            public String chooseClientAlias(String[] keyType,
-                    Principal[] issuers, Socket socket) {
+            public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
                 return ALIAS;
             }
 
             @Override
-            public String chooseServerAlias(String keyType,
-                    Principal[] issuers, Socket socket) {
+            public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
                 return ALIAS;
             }
 
             @Override
             public X509Certificate[] getCertificateChain(String alias) {
                 try {
-                    return new X509Certificate[] {
-                            InternalSSLKey.load().getCert() };
+                    return new X509Certificate[] {InternalSSLKey.load().getCert()};
                 } catch (Exception e) {
                     log.error("Failed to load internal TLS key", e);
+
                     return new X509Certificate[] {};
                 }
             }
 
             @Override
-            public String[] getClientAliases(String keyType,
-                    Principal[] issuers) {
+            public String[] getClientAliases(String keyType, Principal[] issuers) {
                 return null;
             }
 
@@ -222,25 +219,23 @@ public final class ManagementRequestClient implements StartStop {
                     return InternalSSLKey.load().getKey();
                 } catch (Exception e) {
                     log.error("Failed to load internal TLS key", e);
+
                     return null;
                 }
             }
 
             @Override
-            public String[] getServerAliases(String keyType,
-                    Principal[] issuers) {
+            public String[] getServerAliases(String keyType, Principal[] issuers) {
                 return null;
             }
 
             @Override
-            public String chooseEngineClientAlias(String[] keyType,
-                    Principal[] issuers, SSLEngine engine) {
+            public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine) {
                 return ALIAS;
             }
 
             @Override
-            public String chooseEngineServerAlias(String keyType,
-                    Principal[] issuers, SSLEngine engine) {
+            public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
                 return ALIAS;
             }
         };
@@ -248,34 +243,31 @@ public final class ManagementRequestClient implements StartStop {
         proxyHttpClient = createHttpClient(km, tm);
     }
 
-    private static CloseableHttpClient createHttpClient(KeyManager km,
-            TrustManager tm) throws Exception {
-        RegistryBuilder<ConnectionSocketFactory> sfr =
-                RegistryBuilder.<ConnectionSocketFactory>create();
+    private static CloseableHttpClient createHttpClient(KeyManager km, TrustManager tm) throws Exception {
+        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(km != null  ? new KeyManager[] {km} : null,
-                tm != null  ? new TrustManager[] {tm} : null,
-                        new SecureRandom());
+        ctx.init(km != null ? new KeyManager[] {km} : null, tm != null ? new TrustManager[] {tm} : null,
+                new SecureRandom());
 
-        SSLConnectionSocketFactory sf =
-                new SSLConnectionSocketFactory(ctx,
-                        SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+        SSLConnectionSocketFactory sf = new SSLConnectionSocketFactory(ctx,
+                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
         sfr.register("https", sf);
 
-        PoolingHttpClientConnectionManager cm =
-                new PoolingHttpClientConnectionManager(sfr.build());
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(sfr.build());
         cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
         cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
 
         int timeout = SystemProperties.getClientProxyTimeout();
+        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
+
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(timeout);
         rb.setConnectionRequestTimeout(timeout);
-        rb.setStaleConnectionCheckEnabled(false);
+        rb.setSocketTimeout(socketTimeout);
 
         HttpClientBuilder cb = HttpClients.custom();
         cb.setConnectionManager(cm);

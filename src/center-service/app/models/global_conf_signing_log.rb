@@ -45,9 +45,9 @@ class GlobalConfSigningLog
     log_file_content << (writable.is_a?(Exception) ?
         get_exception_ctx(writable): writable)
 
-    identifier_mapping_log_file = get_log_file(file_id)
+    log_file = get_log_file(file_id)
 
-    CommonUi::IOUtils.write(identifier_mapping_log_file, log_file_content)
+    CommonUi::IOUtils.write(log_file, log_file_content)
   end
 
   private
