@@ -69,8 +69,6 @@ et:
       ui_user:
         username: "Kasutajanimi"
         locale: "Lokaat"
-      v5_import:
-        file_name: "Failinimi"
     errors:
       invalid_url: "'%{url}' on ebakorrektne URL, näited korrektsetest: 'http://www.example.com', 'https://www.example.com'"
       input_too_long: "võib sisaldada ülimalt %{max_length} sümbolit"
@@ -100,10 +98,6 @@ et:
     request:
       auth_cert_not_unique: "Turvaserver '%{server_id}' juba omab autentimissertifikaati, mida Sa lisada püüad"
       cert_not_auth: "Seda sertifikaati ei saa autentimiseks kasutada."
-    identifier_mapping:
-      malformed: "Faili laadimine ebaõnnestus: ebakorrektne failistruktuur. %{fault_msg}"
-      member_class_not_allowed: "Faili laadimine ebaõnnestus: Liikmeklass '%{class}' pole süsteemis lubatud. Valiidsed väärtused on: '%{allowed_classes}'"
-      wrong_xroad_instance: "Faili laadimine ebaõnnestus: X-tee eksemplari kood peab olema '%{current}', leiti '%{found}'"
     import:
       invalid_extension: "Üleslaetud faili nimel '%{file}' on vale laiend, korrektsed on '%{extensions}'"
       invalid_content_type: "Vale üleslaetud faili sisutüüp: '%{content_type}', lubatud on '%{allowed_content_types}'"

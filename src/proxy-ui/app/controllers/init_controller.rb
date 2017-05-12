@@ -220,13 +220,6 @@ class InitController < ApplicationController
 
     serverconf_save(new_serverconf)
 
-    after_commit do
-      if x55_installed?
-        import_v5_clients
-        import_v5_internal_tls_key
-      end
-    end
-
     render_json
   end
 
@@ -280,33 +273,4 @@ class InitController < ApplicationController
 
   private
 
-  def import_v5_clients
-    if importer = SystemProperties::getClientsImporterCommand
-      logger.info("Importing clients from 5.0 to X-Road")
-
-      output = %x["#{importer}" 2>&1]
-
-      if $?.exitstatus != 0
-        logger.error(output)
-        error(t('init.clients_import_failed'))
-      end
-    else
-      logger.warn("Clients importer unspecified, skipping import")
-    end
-  end
-
-  def import_v5_internal_tls_key
-      if importer = SystemProperties::getInternalTlsKeyImporterCommand
-        logger.info("Importing internal TLS key from 5.0 to X-Road")
-
-        output = %x["#{importer}" 2>&1]
-
-        if $?.exitstatus != 0
-          logger.error(output)
-          error(t('init.internal_tls_key_import_failed'))
-        end
-      else
-        logger.warn("Internal TSL key importer unspecified, skipping import")
-      end
-    end
 end

@@ -74,15 +74,14 @@ public final class OpMonitoringDaemonHttpClient {
      * Creates HTTP client.
      * @param authKey the client's authentication key
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
+     * @param socketTimeoutMilliseconds socket timeout in milliseconds
      * @return HTTP client
-     * @throws Exception if creating a HTTPS client and SSLContext
-     * initialization fails
+     * @throws Exception if creating a HTTPS client and SSLContext initialization fails
      */
     public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
-            int connectionTimeoutMilliseconds) throws Exception {
-        return createHttpClient(authKey, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS,
-                DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
-                connectionTimeoutMilliseconds);
+            int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
+        return createHttpClient(authKey, DEFAULT_CLIENT_MAX_TOTAL_CONNECTIONS, DEFAULT_CLIENT_MAX_CONNECTIONS_PER_ROUTE,
+                connectionTimeoutMilliseconds, socketTimeoutMilliseconds);
     }
 
     /**
@@ -91,36 +90,33 @@ public final class OpMonitoringDaemonHttpClient {
      * @param clientMaxTotalConnections client max total connections
      * @param clientMaxConnectionsPerRoute client max connections per route
      * @param connectionTimeoutMilliseconds connection timeout in milliseconds
+     * @param socketTimeoutMilliseconds socket timeout in milliseconds
      * @return HTTP client
      * @throws Exception if creating a HTTPS client and SSLContext
      * initialization fails
      */
     public static CloseableHttpClient createHttpClient(InternalSSLKey authKey,
             int clientMaxTotalConnections, int clientMaxConnectionsPerRoute,
-            int connectionTimeoutMilliseconds) throws Exception {
+            int connectionTimeoutMilliseconds, int socketTimeoutMilliseconds) throws Exception {
         log.trace("createHttpClient()");
 
-        RegistryBuilder<ConnectionSocketFactory> sfr =
-                RegistryBuilder.<ConnectionSocketFactory>create();
+        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.<ConnectionSocketFactory>create();
 
-        if ("https".equalsIgnoreCase(
-                OpMonitoringSystemProperties.getOpMonitorDaemonScheme())) {
+        if ("https".equalsIgnoreCase(OpMonitoringSystemProperties.getOpMonitorDaemonScheme())) {
             sfr.register("https", createSSLSocketFactory(authKey));
         } else {
             sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
         }
 
-        PoolingHttpClientConnectionManager cm =
-                new PoolingHttpClientConnectionManager(sfr.build());
+        PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(sfr.build());
         cm.setMaxTotal(clientMaxTotalConnections);
         cm.setDefaultMaxPerRoute(clientMaxConnectionsPerRoute);
-        cm.setDefaultSocketConfig(
-                SocketConfig.custom().setTcpNoDelay(true).build());
+        cm.setDefaultSocketConfig(SocketConfig.custom().setTcpNoDelay(true).build());
 
         RequestConfig.Builder rb = RequestConfig.custom()
                 .setConnectTimeout(connectionTimeoutMilliseconds)
                 .setConnectionRequestTimeout(connectionTimeoutMilliseconds)
-                .setStaleConnectionCheckEnabled(false);
+                .setSocketTimeout(socketTimeoutMilliseconds);
 
         HttpClientBuilder cb = HttpClients.custom()
                 .setConnectionManager(cm)
@@ -132,24 +128,18 @@ public final class OpMonitoringDaemonHttpClient {
         return cb.build();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory(
-            InternalSSLKey authKey) throws Exception {
+    private static SSLConnectionSocketFactory createSSLSocketFactory(InternalSSLKey authKey) throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(getKeyManager(authKey),
-                new TrustManager[] {new OpMonitorTrustManager()},
-                new SecureRandom());
+        ctx.init(getKeyManager(authKey), new TrustManager[] {new OpMonitorTrustManager()}, new SecureRandom());
 
-        return new SSLConnectionSocketFactory(ctx.getSocketFactory(),
-                new String[] {CryptoUtils.SSL_PROTOCOL},
-                CryptoUtils.getINCLUDED_CIPHER_SUITES(),
-                // We don't need hostname verification
-                NoopHostnameVerifier.INSTANCE);
+        return new SSLConnectionSocketFactory(ctx.getSocketFactory(), new String[] {CryptoUtils.SSL_PROTOCOL},
+                CryptoUtils.getINCLUDED_CIPHER_SUITES(), NoopHostnameVerifier.INSTANCE);
+        // We don't need hostname verification
     }
 
     private static KeyManager[] getKeyManager(InternalSSLKey authKey) {
         if (authKey == null) {
-            log.error("No internal TLS key required by operational monitoring"
-                    + " daemon HTTP client");
+            log.error("No internal TLS key required by operational monitoring daemon HTTP client");
 
             return null;
         }
@@ -157,47 +147,39 @@ public final class OpMonitoringDaemonHttpClient {
         return new KeyManager[] {new OpMonitorClientKeyManager(authKey)};
     }
 
-    private static final class OpMonitorTrustManager
-            implements X509TrustManager {
+    private static final class OpMonitorTrustManager implements X509TrustManager {
         private X509Certificate opMonitorCert = null;
 
         private OpMonitorTrustManager() {
-            String monitorCertPath =
-                    OpMonitoringSystemProperties.getOpMonitorCertificatePath();
+            String monitorCertPath = OpMonitoringSystemProperties.getOpMonitorCertificatePath();
 
-            try (InputStream monitorCertStream =
-                    new FileInputStream(monitorCertPath)) {
+            try (InputStream monitorCertStream = new FileInputStream(monitorCertPath)) {
                 opMonitorCert = CryptoUtils.readCertificate(monitorCertStream);
             } catch (Exception e) {
-                log.error("Could not load operational monitoring daemon"
-                        + " certificate '{}'", monitorCertPath, e);
+                log.error("Could not load operational monitoring daemon certificate '{}'", monitorCertPath, e);
             }
         }
 
         @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
         }
 
         @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType)
-                throws CertificateException {
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
             if (chain.length == 0) {
-                throw new CertificateException(
-                        "Server did not send TLS certificate");
+                throw new CertificateException("Server did not send TLS certificate");
             }
 
             log.trace("Received server certificate {}", chain[0]);
 
             if (opMonitorCert == null) {
-                throw new CertificateException("Operational monitoring daemon"
-                        + " certificate not loaded, cannot verify server");
+                throw new CertificateException(
+                        "Operational monitoring daemon certificate not loaded, cannot verify server");
             }
 
             if (!chain[0].equals(opMonitorCert)) {
-                throw new CertificateException("Server TLS certificate does not"
-                        + " match expected operational monitoring daemon"
-                        + " certificate");
+                throw new CertificateException(
+                        "Server TLS certificate does not match expected operational monitoring daemon certificate");
             }
         }
 
@@ -208,21 +190,18 @@ public final class OpMonitoringDaemonHttpClient {
     }
 
     @RequiredArgsConstructor
-    private static final class OpMonitorClientKeyManager
-            extends X509ExtendedKeyManager {
+    private static final class OpMonitorClientKeyManager extends X509ExtendedKeyManager {
         private static final String ALIAS = "OpMonitorClientKeyManager";
 
         private final InternalSSLKey authKey;
 
         @Override
-        public String chooseClientAlias(String[] keyType, Principal[] issuers,
-                Socket socket) {
+        public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
             return ALIAS;
         }
 
         @Override
-        public String chooseServerAlias(String keyType, Principal[] issuers,
-                Socket socket) {
+        public String chooseServerAlias(String keyType, Principal[] issuers, Socket socket) {
             return ALIAS;
         }
 
@@ -247,14 +226,12 @@ public final class OpMonitoringDaemonHttpClient {
         }
 
         @Override
-        public String chooseEngineClientAlias(String[] keyType,
-                Principal[] issuers, SSLEngine engine) {
+        public String chooseEngineClientAlias(String[] keyType, Principal[] issuers, SSLEngine engine) {
             return ALIAS;
         }
 
         @Override
-        public String chooseEngineServerAlias(String keyType,
-                Principal[] issuers, SSLEngine engine) {
+        public String chooseEngineServerAlias(String keyType, Principal[] issuers, SSLEngine engine) {
             return ALIAS;
         }
     }

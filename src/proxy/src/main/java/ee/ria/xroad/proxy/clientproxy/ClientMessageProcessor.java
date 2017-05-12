@@ -22,53 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RequestHash;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapHeader;
-import ee.ria.xroad.common.message.SoapMessage;
-import ee.ria.xroad.common.message.SoapMessageDecoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.ProxyMain;
-import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
-import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
-import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.EqualsAndHashCode;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -88,15 +41,58 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.protocol.HttpClientContext;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
+import ee.ria.xroad.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
+import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
+import ee.ria.xroad.proxy.util.MessageProcessorBase;
+
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
+import static ee.ria.xroad.common.util.MimeUtils.*;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -159,16 +155,17 @@ class ClientMessageProcessor extends MessageProcessorBase {
             public Thread newThread(Runnable r) {
                 Thread handlerThread = new Thread(r);
                 handlerThread.setName(Thread.currentThread().getName() + "-soap");
+
                 return handlerThread;
             }
         });
     }
 
-    ClientMessageProcessor(HttpServletRequest servletRequest,
-            HttpServletResponse servletResponse, HttpClient httpClient,
-            IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
+    ClientMessageProcessor(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+            HttpClient httpClient, IsAuthenticationData clientCert, OpMonitoringData opMonitoringData)
             throws Exception {
         super(servletRequest, servletResponse, httpClient);
+
         this.clientCert = clientCert;
         this.opMonitoringData = opMonitoringData;
         this.reqIns = new PipedInputStream();
@@ -221,11 +218,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void updateOpMonitoringClientSecurityServerAddress() {
         try {
-            opMonitoringData.setClientSecurityServerAddress(
-                    getSecurityServerAddress());
+            opMonitoringData.setClientSecurityServerAddress(getSecurityServerAddress());
         } catch (Exception e) {
-            log.error(
-                    "Failed to assign operational monitoring data field {}",
+            log.error("Failed to assign operational monitoring data field {}",
                     OpMonitoringData.CLIENT_SECURITY_SERVER_ADDRESS, e);
         }
     }
@@ -256,8 +251,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // the HTTP request so that server proxy could verify the SSL
             // certificate properly.
             if (isSslEnabled()) {
-                httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME,
-                        requestServiceId);
+                httpSender.setAttribute(AuthTrustVerifier.ID_PROVIDERNAME, requestServiceId);
             }
 
             // Start sending the request to server proxies. The underlying
@@ -265,11 +259,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // (socket that connects first) from the provided addresses.
             // Dummy service address is only needed so that host name resolving
             // could do its thing and start the ssl connection.
-            URI[] addresses = getServiceAddresses(requestServiceId,
-                    requestSoap.getSecurityServer());
+            URI[] addresses = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
 
-            updateOpMonitoringServiceSecurityServerAddress(addresses,
-                    httpSender);
+            updateOpMonitoringServiceSecurityServerAddress(addresses, httpSender);
 
             httpSender.setAttribute(ID_TARGETS, addresses);
 
@@ -278,7 +270,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 // security servers.
                 httpSender.setAttribute(HttpClientContext.USER_TOKEN, new TargetHostsUserToken(addresses));
             }
-            httpSender.setTimeout(SystemProperties.getClientProxyTimeout());
+
+            httpSender.setConnectionTimeout(SystemProperties.getClientProxyTimeout());
+            httpSender.setSocketTimeout(SystemProperties.getClientProxyHttpClientTimeout());
 
             httpSender.addHeader(HEADER_HASH_ALGO_ID, SoapUtils.getHashAlgoId());
             httpSender.addHeader(HEADER_PROXY_VERSION, ProxyMain.getVersion());
@@ -286,19 +280,18 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // Preserve the original content type in the "x-original-content-type"
             // HTTP header, which will be used to send the request to the
             // service provider
-            httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE,
-                    servletRequest.getContentType());
+            httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
 
             try {
                 opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-                httpSender.doPost(getDummyServiceAddress(addresses), reqIns,
-                        CHUNKED_LENGTH, outputContentType);
+                httpSender.doPost(getDummyServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);
 
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             } catch (Exception e) {
                 // Failed to connect to server proxy
                 MonitorAgent.serverProxyFailed(createRequestMessageInfo());
+
                 // Rethrow
                 throw e;
             }
@@ -337,12 +330,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private void parseResponse(HttpSender httpSender) throws Exception {
         log.trace("parseResponse()");
 
-        response = new ProxyMessage(
-                httpSender.getResponseHeaders().get(
-                        HEADER_ORIGINAL_CONTENT_TYPE));
+        response = new ProxyMessage(httpSender.getResponseHeaders().get(HEADER_ORIGINAL_CONTENT_TYPE));
 
-        ProxyMessageDecoder decoder = new ProxyMessageDecoder(response,
-                httpSender.getResponseContentType(),
+        ProxyMessageDecoder decoder = new ProxyMessageDecoder(response, httpSender.getResponseContentType(),
                 getHashAlgoId(httpSender));
         try {
             decoder.parse(httpSender.getResponseContent());
@@ -358,18 +348,15 @@ class ClientMessageProcessor extends MessageProcessorBase {
         decoder.verify(requestServiceId.getClientId(), response.getSignature());
     }
 
-    private void updateOpMonitoringServiceSecurityServerAddress(
-            URI addresses[], HttpSender httpSender) {
+    private void updateOpMonitoringServiceSecurityServerAddress(URI addresses[], HttpSender httpSender) {
         if (addresses.length == 1) {
-            opMonitoringData.setServiceSecurityServerAddress(
-                    addresses[0].getHost());
+            opMonitoringData.setServiceSecurityServerAddress(addresses[0].getHost());
         } else {
             // In case multiple addresses the service security server
             // address will be founded by received TLS authentication
             // certificate in AuthTrustVerifier class.
 
-            httpSender.setAttribute(OpMonitoringData.class.getName(),
-                    opMonitoringData);
+            httpSender.setAttribute(OpMonitoringData.class.getName(), opMonitoringData);
         }
     }
 
@@ -378,12 +365,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
             long responseSoapSize = response.getSoap().getBytes().length;
 
             opMonitoringData.setResponseSoapSize(responseSoapSize);
-            opMonitoringData.setResponseAttachmentCount(
-                    decoder.getAttachmentCount());
+            opMonitoringData.setResponseAttachmentCount(decoder.getAttachmentCount());
 
             if (decoder.getAttachmentCount() > 0) {
-                opMonitoringData.setResponseMimeSize(responseSoapSize
-                        + decoder.getAttachmentsByteCount());
+                opMonitoringData.setResponseMimeSize(responseSoapSize + decoder.getAttachmentsByteCount());
             }
         }
     }
@@ -396,54 +381,49 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         if (response.getSoap() == null) {
-            throw new CodedException(X_MISSING_SOAP,
-                    "Response does not have SOAP message");
+            throw new CodedException(X_MISSING_SOAP, "Response does not have SOAP message");
         }
 
         if (response.getSignature() == null) {
-            throw new CodedException(X_MISSING_SIGNATURE,
-                    "Response does not have signature");
+            throw new CodedException(X_MISSING_SIGNATURE, "Response does not have signature");
         }
     }
 
     private void checkConsistency() throws Exception {
         log.trace("checkConsistency()");
+
         try {
             SoapUtils.checkConsistency(requestSoap, response.getSoap());
         } catch (CodedException e) {
             log.error("Inconsistent request-response", e);
+
             // The error code includes ServiceFailed because it indicates
             // faulty response from service (problem on the other side).
             throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response from server proxy is not consistent with request")
-                    .withPrefix(X_SERVICE_FAILED_X);
+                    "Response from server proxy is not consistent with request").withPrefix(X_SERVICE_FAILED_X);
         }
 
         checkRequestHash();
     }
 
     private void checkRequestHash() throws Exception {
-        RequestHash requestHashFromResponse =
-                response.getSoap().getHeader().getRequestHash();
+        RequestHash requestHashFromResponse = response.getSoap().getHeader().getRequestHash();
+
         if (requestHashFromResponse != null) {
             byte[] requestHash = requestSoap.getHash();
 
             if (log.isTraceEnabled()) {
-                log.trace("Calculated request message hash: {}\n"
-                        + "Request message (base64): {}",
-                        encodeBase64(requestHash),
-                        encodeBase64(requestSoap.getBytes()));
+                log.trace("Calculated request message hash: {}\nRequest message (base64): {}",
+                        encodeBase64(requestHash), encodeBase64(requestSoap.getBytes()));
             }
 
-            if (!Arrays.areEqual(requestHash, decodeBase64(
-                    requestHashFromResponse.getHash()))) {
+            if (!Arrays.areEqual(requestHash, decodeBase64(requestHashFromResponse.getHash()))) {
                 throw new CodedException(X_INCONSISTENT_RESPONSE,
                         "Request message hash does not match request message");
             }
         } else {
             throw new CodedException(X_INCONSISTENT_RESPONSE,
-                    "Response from server proxy is missing request message "
-                            + "hash");
+                    "Response from server proxy is missing request message hash");
         }
     }
 
@@ -468,24 +448,26 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     private void waitForSoapMessage() {
         log.trace("waitForSoapMessage()");
+
         try {
-            if (!requestHandlerGate.await(WAIT_FOR_SOAP_TIMEOUT,
-                    TimeUnit.SECONDS)) {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "Reading SOAP from request timed out");
+            if (!requestHandlerGate.await(WAIT_FOR_SOAP_TIMEOUT, TimeUnit.SECONDS)) {
+                throw new CodedException(X_INTERNAL_ERROR, "Reading SOAP from request timed out");
             }
         } catch (InterruptedException e) {
             log.error("waitForSoapMessage interrupted", e);
+
             Thread.currentThread().interrupt();
         }
     }
 
     private void waitForRequestSent() {
         log.trace("waitForRequestSent()");
+
         try {
             httpSenderGate.await();
         } catch (InterruptedException e) {
             log.error("waitForRequestSent interrupted", e);
+
             Thread.currentThread().interrupt();
         }
     }
@@ -524,8 +506,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             return null;
         }
 
-        return new MessageInfo(Origin.CLIENT_PROXY, requestSoap.getClient(),
-                requestServiceId, requestSoap.getUserId(),
+        return new MessageInfo(Origin.CLIENT_PROXY, requestSoap.getClient(), requestServiceId, requestSoap.getUserId(),
                 requestSoap.getQueryId());
     }
 
@@ -534,8 +515,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         String status = ServerConf.getMemberStatus(client);
 
         if (!ClientType.STATUS_REGISTERED.equals(status)) {
-            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found",
-                    client);
+            throw new CodedException(X_UNKNOWN_MEMBER, "Client '%s' not found", client);
         }
     }
 
@@ -550,41 +530,34 @@ class ClientMessageProcessor extends MessageProcessorBase {
         IsAuthentication.verifyClientAuthentication(sender, clientCert);
     }
 
-    private static URI getDummyServiceAddress(URI[] addresses)
-            throws Exception {
+    private static URI getDummyServiceAddress(URI[] addresses) throws Exception {
         if (!isSslEnabled()) {
             // In non-ssl mode we just connect to the first address
             return addresses[0];
         }
 
-        return new URI("https", null, "localhost", getServerProxyPort(), "/",
-                null, null);
+        return new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
     }
 
-    private static URI[] getServiceAddresses(ServiceId serviceProvider,
-            SecurityServerId serverId) throws Exception {
+    private static URI[] getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
-        Collection<String> hostNames =
-                GlobalConf.getProviderAddress(serviceProvider.getClientId());
+        Collection<String> hostNames = GlobalConf.getProviderAddress(serviceProvider.getClientId());
+
         if (hostNames == null || hostNames.isEmpty()) {
-            throw new CodedException(X_UNKNOWN_MEMBER,
-                    "Could not find addresses for service provider \"%s\"",
+            throw new CodedException(X_UNKNOWN_MEMBER, "Could not find addresses for service provider \"%s\"",
                     serviceProvider);
         }
 
         if (serverId != null) {
             final String securityServerAddress = GlobalConf.getSecurityServerAddress(serverId);
+
             if (securityServerAddress == null) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER,
-                        "Could not find security server \"%s\"",
-                        serverId);
+                throw new CodedException(X_INVALID_SECURITY_SERVER, "Could not find security server \"%s\"", serverId);
             }
 
             if (!hostNames.contains(securityServerAddress)) {
-                throw new CodedException(X_INVALID_SECURITY_SERVER,
-                        "Invalid security server \"%s\"",
-                        serviceProvider);
+                throw new CodedException(X_INVALID_SECURITY_SERVER, "Invalid security server \"%s\"", serviceProvider);
             }
 
             hostNames = Collections.singleton(securityServerAddress);
@@ -594,6 +567,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         int port = getServerProxyPort();
 
         List<URI> addresses = new ArrayList<>(hostNames.size());
+
         for (String host : hostNames) {
             addresses.add(new URI(protocol, null, host, port, "/", null, null));
         }
@@ -607,9 +581,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
     public void handleSoap() {
         try (SoapMessageHandler handler = new SoapMessageHandler()) {
-            SoapMessageDecoder soapMessageDecoder =
-                    new SoapMessageDecoder(servletRequest.getContentType(),
-                            handler, new RequestSoapParserImpl());
+            SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(servletRequest.getContentType(),
+                    handler, new RequestSoapParserImpl());
             try {
                 soapMessageDecoder.parse(servletRequest.getInputStream());
             } catch (Exception ex) {
@@ -627,8 +600,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private class SoapMessageHandler implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message, Map<String, String> headers)
-                throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers) throws Exception {
             if (log.isTraceEnabled()) {
                 log.trace("soap({})", message.getXml());
             }
@@ -656,8 +628,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        public void attachment(String contentType, InputStream content,
-                               Map<String, String> additionalHeaders) throws Exception {
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+                throws Exception {
             log.trace("attachment()");
 
             request.attachment(contentType, content, additionalHeaders);
@@ -673,8 +645,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
             log.trace("onCompleted()");
 
             if (requestSoap == null) {
-                setError(new ClientException(X_MISSING_SOAP,
-                        "Request does not contain SOAP message"));
+                setError(new ClientException(X_MISSING_SOAP, "Request does not contain SOAP message"));
+
                 return;
             }
 
@@ -690,13 +662,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         private void updateOpMonitoringData() {
-            opMonitoringData.setRequestAttachmentCount(
-                    request.getAttachmentCount());
+            opMonitoringData.setRequestAttachmentCount(request.getAttachmentCount());
 
             if (request.getAttachmentCount() > 0) {
-                opMonitoringData.setRequestMimeSize(
-                        requestSoap.getBytes().length
-                                + request.getAttachmentsByteCount());
+                opMonitoringData.setRequestMimeSize(requestSoap.getBytes().length + request.getAttachmentsByteCount());
             }
         }
 
@@ -716,8 +685,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
         private void writeOcspResponses() throws Exception {
             CertChain chain = KeyConf.getAuthKey().getCertChain();
-            List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(
-                    chain.getAllCertsWithoutTrustedRoot()); // exclude TopCA
+            // exclude TopCA
+            List<OCSPResp> ocspResponses = KeyConf.getAllOcspResponses(chain.getAllCertsWithoutTrustedRoot());
 
             for (OCSPResp ocsp : ocspResponses) {
                 request.ocspResponse(ocsp);
@@ -761,15 +730,13 @@ class ClientMessageProcessor extends MessageProcessorBase {
         // service request, use raw request XML instead
         @Override
         protected boolean isProcessedXmlRequired() {
-            boolean headerNotProcessed = headerHandler == null
-                    || !headerHandler.isFinished();
-            return headerNotProcessed
-                    || headerHandler.getHeader().getCentralService() != null;
+            boolean headerNotProcessed = headerHandler == null || !headerHandler.isFinished();
+
+            return headerNotProcessed || headerHandler.getHeader().getCentralService() != null;
         }
 
         @Override
-        protected void writeStartElementXml(String prefix, QName element,
-                Attributes attributes, Writer writer) {
+        protected void writeStartElementXml(String prefix, QName element, Attributes attributes, Writer writer) {
             if (inHeader && element.equals(QNAME_XROAD_CENTRAL_SERVICE)) {
                 beginServiceElementSubstitution(attributes);
                 inServiceElement = true;
@@ -786,10 +753,10 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     if (serviceId != null) {
                         finishServiceElementSubstitution(prefix, writer);
                     }
+
                     inServiceElement = false;
                 } else if (!inServiceElement) {
-                    super.writeEndElementXml(prefix, element, attributes,
-                            writer);
+                    super.writeEndElementXml(prefix, element, attributes, writer);
                 }
 
                 if (inServiceElement && element.equals(QNAME_ID_SERVICE_CODE)) {
@@ -802,15 +769,16 @@ class ClientMessageProcessor extends MessageProcessorBase {
         }
 
         @Override
-        protected void writeCharactersXml(char[] characters, int start,
-                int length, Writer writer) {
+        protected void writeCharactersXml(char[] characters, int start, int length, Writer writer) {
             if (inServiceElement) {
                 String value = new String(characters, start, length);
                 char[] chars = value.toCharArray();
+
                 if (value.trim().isEmpty()) {
                     if (nestedTabs == null) {
                         nestedTabs = chars;
                     }
+
                     wrapperTabs = chars;
                 }
             } else {
@@ -828,8 +796,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
                 }
 
                 @Override
-                protected void onCentralService(
-                        CentralServiceId centralServiceId) {
+                protected void onCentralService(CentralServiceId centralServiceId) {
                     super.onCentralService(centralServiceId);
                     header.setCentralService(centralServiceId);
                     serviceId = GlobalConf.getServiceId(centralServiceId);
@@ -842,39 +809,35 @@ class ClientMessageProcessor extends MessageProcessorBase {
                     inHeader = false;
                 }
             };
+
             return headerHandler;
         }
 
         private void beginServiceElementSubstitution(Attributes attributes) {
             wrapperElementAttributes = new AttributesImpl(attributes);
+
             for (int i = 0; i < wrapperElementAttributes.getLength(); i++) {
-                if (wrapperElementAttributes.getValue(i)
-                        .endsWith("CENTRALSERVICE")) {
+                if (wrapperElementAttributes.getValue(i).endsWith("CENTRALSERVICE")) {
                     wrapperElementAttributes.setValue(i, "SERVICE");
+
                     break;
                 }
             }
         }
 
-        private void finishServiceElementSubstitution(String prefix,
-                Writer writer) {
-            super.writeStartElementXml(prefix, QNAME_XROAD_SERVICE,
-                    wrapperElementAttributes, writer);
+        private void finishServiceElementSubstitution(String prefix, Writer writer) {
+            super.writeStartElementXml(prefix, QNAME_XROAD_SERVICE, wrapperElementAttributes, writer);
 
-            writeElement(writer, QNAME_ID_INSTANCE,
-                    serviceId.getXRoadInstance());
-            writeElement(writer, QNAME_ID_MEMBER_CLASS,
-                    serviceId.getMemberClass());
-            writeElement(writer, QNAME_ID_MEMBER_CODE,
-                    serviceId.getMemberCode());
+            writeElement(writer, QNAME_ID_INSTANCE, serviceId.getXRoadInstance());
+            writeElement(writer, QNAME_ID_MEMBER_CLASS, serviceId.getMemberClass());
+            writeElement(writer, QNAME_ID_MEMBER_CODE, serviceId.getMemberCode());
 
             if (serviceId.getSubsystemCode() != null) {
                 String subsystemCode = serviceId.getSubsystemCode();
                 writeElement(writer, QNAME_ID_SUBSYSTEM_CODE, subsystemCode);
             }
 
-            writeElement(writer, QNAME_ID_SERVICE_CODE,
-                    serviceId.getServiceCode());
+            writeElement(writer, QNAME_ID_SERVICE_CODE, serviceId.getServiceCode());
 
             if (serviceId.getServiceVersion() != null) {
                 String serviceVersion = serviceId.getServiceVersion();
@@ -883,20 +846,17 @@ class ClientMessageProcessor extends MessageProcessorBase {
 
             char[] tabs = wrapperTabs != null ? wrapperTabs : new char[0];
             super.writeCharactersXml(tabs, 0, tabs.length, writer);
-            super.writeEndElementXml(prefix, QNAME_XROAD_SERVICE,
-                    wrapperElementAttributes, writer);
+            super.writeEndElementXml(prefix, QNAME_XROAD_SERVICE, wrapperElementAttributes, writer);
         }
 
         @SneakyThrows
         private void writeElement(Writer writer, QName element, String value) {
             char[] tabs = nestedTabs != null ? nestedTabs : new char[0];
+
             super.writeCharactersXml(tabs, 0, tabs.length, writer);
-            super.writeStartElementXml(nestedPrefix, element,
-                    nestedElementAttributes, writer);
-            super.writeCharactersXml(value.toCharArray(), 0, value.length(),
-                    writer);
-            super.writeEndElementXml(nestedPrefix, element,
-                    nestedElementAttributes, writer);
+            super.writeStartElementXml(nestedPrefix, element, nestedElementAttributes, writer);
+            super.writeCharactersXml(value.toCharArray(), 0, value.length(), writer);
+            super.writeEndElementXml(nestedPrefix, element, nestedElementAttributes, writer);
         }
     }
 }

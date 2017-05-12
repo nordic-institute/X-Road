@@ -30,7 +30,6 @@ def create_all_test_data
   create_global_groups()
   create_configuration_sources()
   create_configuration_anchors()
-  create_identifier_mapping()
 end
 
 private
@@ -221,14 +220,6 @@ def create_global_groups
         :key => SystemParameter::SECURITY_SERVER_OWNERS_GROUP,
         :value => "security-server-owners")
   end
-end
-
-def create_identifier_mapping
-  DistributedFiles.create!(
-    :file_name => "identifiermapping.xml",
-    :file_data => "<identifierMapping>",
-    :content_identifier => "IDENTIFIERMAPPING"
-  )
 end
 
 # Data unit generation methods - end

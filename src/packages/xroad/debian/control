@@ -1,7 +1,7 @@
 Source: xroad
 Section: X-Road
 Priority: extra
-Maintainer: Tarmo Oja <Tarmo.Oja@cyber.ee>
+Maintainer: Cybernetica AS <xroad-support@cyber.ee>
 Build-Depends: debhelper (>= 7)
 Standards-Version: 3.8.3
 
@@ -14,7 +14,7 @@ Description: Monitoring client configuration for X-Road central
  This meta-package adds optional global monitoring configuration file.
 
 Package: xroad-centralserver
-Conflicts: xroad-securityserver
+Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
 Depends: xroad-center
 Pre-depends:
@@ -22,7 +22,7 @@ Description: X-Road central server
  This is meta-package of X-Road central server.
 
 Package: xroad-center
-Conflicts: xroad-proxy, xroad-confproxy
+Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=${source:Upstream-Version}), curl, unzip, libmhash2
 Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=${source:Upstream-Version})

@@ -37,7 +37,7 @@ class AnchorUnmarshallerTest < ActiveSupport::TestCase
     assert_equal(1, actual_anchor_urls.size())
 
     anchor_url = actual_anchor_urls[0]
-    assert_equal("http://iks2-fed0.cyber.ee/internalconf", anchor_url.url)
+    assert_equal("http://iks2-fed0.cyber.ee/internalconf?version=2", anchor_url.url)
 
     certs = anchor_url.anchor_url_certs
     assert_equal(4, certs.size())

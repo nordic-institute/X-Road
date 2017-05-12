@@ -32,15 +32,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
@@ -54,7 +53,6 @@ import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -85,6 +83,8 @@ public class ClientProxy implements StartStop {
 
     // SSL session timeout
     private static final int SSL_SESSION_TIMEOUT = 600;
+
+    private static final int CONNECTOR_SO_LINGER_MILLIS = SystemProperties.getClientProxyConnectorSoLinger() * 1000;
 
     private static final String CLIENTPROXY_HANDLERS = SystemProperties.PREFIX + "proxy.clientHandlers";
 
@@ -124,10 +124,11 @@ public class ClientProxy implements StartStop {
         log.trace("createClient()");
 
         int timeout = SystemProperties.getClientProxyTimeout();
+        int socketTimeout = SystemProperties.getClientProxyHttpClientTimeout();
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(timeout);
         rb.setConnectionRequestTimeout(timeout);
-        rb.setStaleConnectionCheckEnabled(false);
+        rb.setSocketTimeout(socketTimeout);
 
         HttpClientBuilder cb = HttpClients.custom();
 
@@ -197,7 +198,7 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(SystemProperties.getClientProxyConnectorSoLinger());
+        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         disableSendServerVersion(connector);
@@ -231,7 +232,7 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(SystemProperties.getClientProxyConnectorSoLinger());
+        connector.setSoLingerTime(CONNECTOR_SO_LINGER_MILLIS);
         connector.setIdleTimeout(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         disableSendServerVersion(connector);
