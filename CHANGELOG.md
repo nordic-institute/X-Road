@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.16.0 - SNAPSHOT
+- TBD
+
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
 - PVAYLADEV-621 / XRJD #148 Fix environmental monitoring does not return correct value for open file handles.
