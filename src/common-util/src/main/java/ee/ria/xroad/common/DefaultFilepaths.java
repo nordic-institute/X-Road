@@ -59,8 +59,6 @@ public final class DefaultFilepaths {
 
     static final String CONF_BACKUP_PATH = "/var/lib/xroad/backup/";
 
-    static final String V5_IMPORT_PATH = "/var/lib/xroad/import";
-
     static final String DISTRIBUTED_GLOBALCONF_PATH = "/var/lib/xroad/public";
 
     static final String SECURE_LOG_FILE = SECURE_LOG_PATH + "slog";

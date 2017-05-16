@@ -215,11 +215,6 @@ class SysparamsController < ApplicationController
 
     restart_service("xroad-proxy")
 
-    if x55_installed?
-      export_v6_internal_tls_key
-      restart_service("xtee55-clientmediator")
-    end
-
     cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
     audit_log_data[:certHash] = cert_hash
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
@@ -288,11 +283,6 @@ class SysparamsController < ApplicationController
 
     restart_service("xroad-proxy")
 
-    if x55_installed?
-      export_v6_internal_tls_key
-      restart_service("xtee55-clientemediator")
-    end
-
     cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
     audit_log_data[:certHash] = cert_hash
     audit_log_data[:certHashAlgorithm] = CommonUi::CertUtils.cert_hash_algorithm
@@ -307,19 +297,6 @@ class SysparamsController < ApplicationController
   end
 
   private
-
-  def export_v6_internal_tls_key
-    if exporter = SystemProperties::getInternalTlsKeyExporterCommand
-      output = %x["#{exporter}" 2>&1]
-
-      if $?.exitstatus != 0
-        logger.error(output)
-        error(t('sysparams.internal_tls_key_export_failed'))
-      end
-    else
-      logger.warn("Internal TLS key exporter unspecified, skipping")
-    end
-  end
 
   def read_anchor
     file = SystemProperties::getConfigurationAnchorFile

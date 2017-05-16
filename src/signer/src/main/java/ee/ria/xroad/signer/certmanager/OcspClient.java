@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class OcspClient {
 
+    // TODO make it configurable
     private static final int CONNECT_TIMEOUT_MS = 20000;
     private static final int READ_TIMEOUT_MS = 60000;
 

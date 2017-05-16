@@ -73,8 +73,6 @@ en:
       ui_user:
         username: "username"
         locale: "locale"
-      v5_import:
-        file_name: "file name"
     errors:
       invalid_url: "'%{url}' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'"
       input_too_long: "can contain up to %{max_length} symbols"
@@ -107,9 +105,5 @@ en:
     request:
       auth_cert_not_unique: "Security server '%{server_id}' already has authentication certificate You are trying to add"
       cert_not_auth: "This certificate cannot be used for authentication."
-    identifier_mapping:
-      malformed: "Incorrect file structure.  %{fault_msg}"
-      member_class_not_allowed: "Uploading failed: Member class '%{class}' is not defined in the system. Valid values are: '%{allowed_classes}'"
-      wrong_xroad_instance: "Uploading failed: X-Road instance identifier must be '%{current}', '%{found}' was found"
     import:
       invalid_content: "Content of uploaded file '%{file}' is not in gzip format"

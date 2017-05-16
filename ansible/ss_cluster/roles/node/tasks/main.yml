@@ -22,7 +22,7 @@
       - xroad-confclient
       - xroad-signer
       - xroad-jetty
-  when: "{{ not node_ini.stat.exists }}"
+  when: not node_ini.stat.exists
   register: services_stopped
 
 # missing node ini means initial installation. stop services

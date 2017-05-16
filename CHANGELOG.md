@@ -1,7 +1,9 @@
 # Change Log
 
-## 6.14.0 - 2017-04-18
-- TBD
+## 6.14.0 - 2017-04-13
+- XTE-334 / Joint development issue #135: Security Server bugfix: Fixed not correctly functioning timeouts.
+- XTE-337 / Joint development issue #140: Remove X-Road version 5 migration support. **Warning:** Central Server database schema changed, old Central Server backups are not usable.
+- XTE-341 / Joint development issue #142: Security Server: Enable detect connections that have become stale (half-closed) while kept inactive in the connection pool.
 
 ## 6.13.0 - 2017-04-11
 - PVAYLADEV-695: Increase akka remoting maximum message size to 256KiB and enable logging of akka error events.

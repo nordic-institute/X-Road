@@ -22,6 +22,29 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import java.io.InputStream;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -53,25 +76,6 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-import java.io.InputStream;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -351,6 +355,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
         }
 
         String disabledNotice = ServerConf.getDisabledNotice(requestServiceId);
+
         if (disabledNotice != null) {
             throw new CodedException(X_SERVICE_DISABLED, "Service %s is disabled: %s", requestServiceId,
                     disabledNotice);
@@ -595,9 +600,10 @@ class ServerMessageProcessor extends MessageProcessorBase {
                         requestServiceId);
             }
 
-            int timeout = ServerConf.getServiceTimeout(requestServiceId);
+            int timeout = TimeUtils.secondsToMillis(ServerConf.getServiceTimeout(requestServiceId));
 
-            sender.setTimeout(TimeUtils.secondsToMillis(timeout));
+            sender.setConnectionTimeout(timeout);
+            sender.setSocketTimeout(timeout);
             sender.setAttribute(ServiceId.class.getName(), requestServiceId);
 
             sender.addHeader("accept-encoding", "");
