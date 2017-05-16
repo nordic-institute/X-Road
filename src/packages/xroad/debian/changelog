@@ -1,8 +1,15 @@
-xroad (6.14.0-1) trusty; urgency=medium
+xroad (6.14.0-1) trusty; urgency=low
 
-  * TBD
+  * XTE-334 / Joint development issue #135: Security Server bugfix:
+    Fixed not correctly functioning timeouts.
+  * XTE-337 / Joint development issue #140: Remove X-Road version 5 migration
+    support. Warning: Central Server database schema changed, old Central
+    Server backups are not usable.
+  * XTE-341 / Joint development issue #142: Security Server: Enable detect
+    connections that have become stale (half-closed) while kept inactive in
+    the connection pool.
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 11 Apr 2017 15:46:12 +0300
+ -- Cybernetica AS <xroad-support@cyber.ee>  Tue, 13 Apr 2017 17:43:23 +0300
 
 xroad (6.13.0-1) trusty; urgency=medium
 

@@ -22,11 +22,14 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.util.CryptoUtils;
+import java.security.SecureRandom;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -40,10 +43,10 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import java.security.SecureRandom;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 /**
  * This class creates Apache {@link CloseableHttpClient}s with common security settings for use by both
@@ -78,7 +81,7 @@ public class HttpClientCreator {
         }
 
         public HttpClientCreatorException(String message, Throwable cause,
-                                          boolean enableSuppression, boolean writableStackTrace) {
+                boolean enableSuppression, boolean writableStackTrace) {
             super(message, cause, enableSuppression, writableStackTrace);
         }
     }
@@ -96,6 +99,7 @@ public class HttpClientCreator {
         if (connectionManager == null) {
             build();
         }
+
         return connectionManager;
     }
 
@@ -107,31 +111,29 @@ public class HttpClientCreator {
         if (httpClient == null) {
             build();
         }
+
         return httpClient;
     }
 
     private void build() throws HttpClientCreatorException {
-
-        RegistryBuilder<ConnectionSocketFactory> sfr =
-                RegistryBuilder.create();
+        RegistryBuilder<ConnectionSocketFactory> sfr = RegistryBuilder.create();
         sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
+
         try {
             sfr.register("https", createSSLSocketFactory());
         } catch (Exception e) {
             throw new HttpClientCreatorException("Creating SSL Socket Factory failed", e);
         }
 
-        connectionManager =
-                new PoolingHttpClientConnectionManager(sfr.build());
+        connectionManager = new PoolingHttpClientConnectionManager(sfr.build());
         connectionManager.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
         connectionManager.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
-        connectionManager.setDefaultSocketConfig(
-                SocketConfig.custom().setTcpNoDelay(true).build());
+        connectionManager.setDefaultSocketConfig(SocketConfig.custom().setTcpNoDelay(true).build());
 
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(CLIENT_TIMEOUT);
         rb.setConnectionRequestTimeout(CLIENT_TIMEOUT);
-        rb.setStaleConnectionCheckEnabled(false);
+        rb.setSocketTimeout(CLIENT_TIMEOUT);
 
         HttpClientBuilder cb = HttpClients.custom();
         cb.setDefaultRequestConfig(rb.build());
@@ -140,33 +142,26 @@ public class HttpClientCreator {
         // Disable request retry
         cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
 
-
         httpClient = cb.build();
-
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory()
-            throws Exception {
+    private static SSLConnectionSocketFactory createSSLSocketFactory() throws Exception {
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(createServiceKeyManager(),
-                new TrustManager[]{new ServiceTrustManager()},
-                new SecureRandom());
+        ctx.init(createServiceKeyManager(), new TrustManager[]{new ServiceTrustManager()}, new SecureRandom());
 
         log.info("SSL context successfully created");
 
-        return new CustomSSLSocketFactory(ctx,
-                SystemProperties.getProxyClientTLSProtocols(),
-                SystemProperties.getProxyClientTLSCipherSuites(),
-                NoopHostnameVerifier.INSTANCE);
+        return new CustomSSLSocketFactory(ctx, SystemProperties.getProxyClientTLSProtocols(),
+                SystemProperties.getProxyClientTLSCipherSuites(), NoopHostnameVerifier.INSTANCE);
     }
 
     private static KeyManager[] createServiceKeyManager() throws Exception {
         InternalSSLKey key = ServerConf.getSSLKey();
+
         if (key != null) {
             return new KeyManager[]{new ServiceKeyManager(key)};
         }
 
         return null;
     }
-
 }

@@ -32,12 +32,14 @@ esac
 
 #DEBHELPER#
 
-invoke-rc.d nginx restart
-invoke-rc.d xroad-signer restart
+#workaround for buggy nginx installation
+/usr/sbin/nginx -s stop || true
+service nginx restart
+service xroad-signer restart
 
 # disable confclient start
 echo manual > /etc/init/xroad-confclient.override
-invoke-rc.d xroad-confclient stop
+service xroad-confclient stop
 
 db_stop
 

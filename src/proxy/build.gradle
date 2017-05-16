@@ -69,9 +69,9 @@ task runProxyMain(type: JavaExec) {
 apply plugin: "jacoco"
 
 task runProxyTest(type: JavaExec) {
-    jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
+    jvmArgs '-Xmx2g',
+        '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
-        '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_producer.xml',
         '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
         '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml',
         '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',

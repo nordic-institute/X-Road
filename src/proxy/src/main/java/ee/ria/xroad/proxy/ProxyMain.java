@@ -92,7 +92,9 @@ public final class ProxyMain {
         org.apache.xml.security.Init.init();
     }
 
-    private static final int CONNECTION_TIMEOUT_MS = 1200;
+    private static final int DIAGNOSTICS_CONNECTION_TIMEOUT_MS = 1200;
+    private static final int DIAGNOSTICS_READ_TIMEOUT_MS = 15000; // 15 seconds
+
     private static final List<StartStop> SERVICES = new ArrayList<>();
 
     private static ActorSystem actorSystem;
@@ -218,6 +220,7 @@ public final class ProxyMain {
 
         adminPort.addShutdownHook(() -> {
             log.info("Proxy shutting down...");
+
             try {
                 shutdown();
             } catch (Exception e) {
@@ -241,7 +244,7 @@ public final class ProxyMain {
 
                     ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
 
-                    Timeout timeout = new Timeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                    Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                     Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>) Await.result(
                             Patterns.ask(
                                     logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
@@ -261,11 +264,11 @@ public final class ProxyMain {
                                 && DiagnosticsErrorCodes.RETURN_SUCCESS != statusFromLogManager.get(key)
                                 .getReturnCode())) {
                             result.put(key, statusFromLogManager.get(key));
-                            log.info("Using time stamping status from LogManager for url {} "
-                                    + "status: {}", key,
+
+                            log.info("Using time stamping status from LogManager for url {} status: {}", key,
                                     statusFromLogManager.get(key));
-                        } else if (statusFromLogManager.get(key) == null && DiagnosticsErrorCodes.RETURN_SUCCESS
-                                == result.get(key).getReturnCode()) {
+                        } else if (statusFromLogManager.get(key) == null
+                                && DiagnosticsErrorCodes.RETURN_SUCCESS == result.get(key).getReturnCode()) {
                             result.get(key).setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
                         }
                     }
@@ -283,20 +286,23 @@ public final class ProxyMain {
     }
 
     private static Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
+        Map<String, DiagnosticsStatus> statuses = new HashMap<>();
 
-        Map<String, DiagnosticsStatus> statuses = new HashMap<String, DiagnosticsStatus>();
         for (String tspUrl: ServerConf.getTspUrl()) {
             try {
-
                 URL url = new URL(tspUrl);
+
                 log.info("Checking timestamp server status for url {}", url);
+
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setConnectTimeout(CONNECTION_TIMEOUT_MS);
+                con.setConnectTimeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS);
+                con.setReadTimeout(DIAGNOSTICS_READ_TIMEOUT_MS);
                 con.setDoOutput(true);
                 con.setDoInput(true);
                 con.setRequestMethod("POST");
                 con.setRequestProperty("Content-type", "application/timestamp-query");
                 con.connect();
+
                 log.info("Checking timestamp server con {}", con);
 
                 if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -311,6 +317,7 @@ public final class ProxyMain {
 
             } catch (Exception e) {
                 log.warn("Timestamp status check failed {}", e);
+
                 statuses.put(tspUrl, new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), LocalTime.now(), tspUrl));
             }
         }
@@ -335,8 +342,7 @@ public final class ProxyMain {
             if (StringUtils.isBlank(version)) {
                 version = "unknown";
 
-                log.warn("Unable to read proxy version: {}",
-                        IOUtils.toString(p.getErrorStream()));
+                log.warn("Unable to read proxy version: {}", IOUtils.toString(p.getErrorStream()));
             }
         } catch (Exception ex) {
             version = "unknown";

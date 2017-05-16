@@ -37,7 +37,7 @@ class OptionalConfPartsTest < ActiveSupport::TestCase
     # Given
     validation_program = "test/resources/validate_conf_part_SUCCESS.sh"
     file_bytes = "SUCCESSFULLY VALIDATED"
-    content_identifier = "IDENTIFIERMAPPING"
+    content_identifier = "TEST-CONFIGURATION-PART"
 
     validator = OptionalConfParts::Validator.new(
         validation_program, file_bytes, content_identifier)
@@ -59,7 +59,7 @@ class OptionalConfPartsTest < ActiveSupport::TestCase
     # Given
     validation_program = "test/resources/validate_conf_part_LOT_OF_STDOUT.sh"
     file_bytes = get_large_file_bytes()
-    content_identifier = "IDENTIFIERMAPPING"
+    content_identifier = "TEST-CONFIGURATION-PART"
 
     validator = OptionalConfParts::Validator.new(
         validation_program, file_bytes, content_identifier)

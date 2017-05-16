@@ -25,22 +25,19 @@ package ee.ria.xroad.common.util;
 import java.io.InputStream;
 import java.net.URI;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates the sending and receiving of content via HTTP POST
  * method synchronously.
  */
+@Slf4j
 public class HttpSender extends AbstractHttpSender {
-
-    private static final Logger LOG = LoggerFactory.getLogger(HttpSender.class);
-
     private final HttpClient client;
 
     /**
@@ -63,9 +60,9 @@ public class HttpSender extends AbstractHttpSender {
      * @throws Exception if an error occurs
      */
     @Override
-    public void doPost(URI address, String content, String contentType)
-            throws Exception {
-        LOG.trace("doPost(address = {}, timeout = {})", address, timeout);
+    public void doPost(URI address, String content, String contentType) throws Exception {
+        log.trace("doPost(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+                socketTimeout);
 
         HttpPost post = new HttpPost(address);
         post.setConfig(getRequestConfig());
@@ -87,21 +84,21 @@ public class HttpSender extends AbstractHttpSender {
      * @throws Exception if an error occurs
      */
     @Override
-    public void doPost(URI address, InputStream content, long contentLength,
-            String contentType) throws Exception {
-        LOG.trace("doPost(address = {}, timeout = {})", address, timeout);
+    public void doPost(URI address, InputStream content, long contentLength, String contentType) throws Exception {
+        log.trace("doPost(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+                socketTimeout);
 
         HttpPost post = new HttpPost(address);
         post.setConfig(getRequestConfig());
-        post.setEntity(createInputStreamEntity(content, contentLength,
-                contentType));
+        post.setEntity(createInputStreamEntity(content, contentLength, contentType));
 
         doRequest(post);
     }
 
     @Override
     public void doGet(URI address) throws Exception {
-        LOG.trace("doGet(address = {}, timeout = {})", address, timeout);
+        log.trace("doGet(address = {}, connectionTimeout = {}, socketTimeout = {})", address, connectionTimeout,
+                socketTimeout);
 
         HttpGet get = new HttpGet(address);
         get.setConfig(getRequestConfig());
@@ -113,12 +110,15 @@ public class HttpSender extends AbstractHttpSender {
         this.request = request;
 
         addAdditionalHeaders();
+
         try {
             HttpResponse response = client.execute(request, context);
             handleResponse(response);
         } catch (Exception ex) {
-            LOG.debug("Request failed", ex);
+            log.debug("Request failed", ex);
+
             request.abort();
+
             throw ex;
         }
     }
