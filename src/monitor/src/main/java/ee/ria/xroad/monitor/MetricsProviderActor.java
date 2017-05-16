@@ -23,6 +23,8 @@
 package ee.ria.xroad.monitor;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 import com.codahale.metrics.Gauge;
@@ -54,9 +56,16 @@ import ee.ria.xroad.monitor.executablelister.ProcessInfo;
 public class MetricsProviderActor extends UntypedActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    private SimpleDateFormat certificateDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
 
     @Override
     public void onReceive(Object o) throws Exception {
+
+        System.out.println("monitorointi juttua onReceive");
+        log.info("monitorointi juttua onReceive");
+        log.error("monitorointi juttua erroriin");
+
 
         if (o instanceof SystemMetricsRequest) {
             log.info("received SystemMetricsRequest");
@@ -75,7 +84,8 @@ public class MetricsProviderActor extends UntypedActor {
                             SystemMetricNames.XROAD_PROCESSES,
                             SystemMetricNames.XROAD_PROCESS_STRINGS,
                             SystemMetricNames.PACKAGES,
-                            SystemMetricNames.PACKAGE_STRINGS).contains(name))
+                            SystemMetricNames.PACKAGE_STRINGS,
+                            SystemMetricNames.CERTIFICATES).contains(name))
                     .entrySet()) {
                 builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
             }
@@ -85,6 +95,12 @@ public class MetricsProviderActor extends UntypedActor {
                             || SystemMetricNames.XROAD_PROCESSES.equals(name))
                     .entrySet()) {
                 builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
+            }
+
+            for (Map.Entry<String, Gauge> e : metrics.getGauges(
+                    (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name))
+                    .entrySet()) {
+                builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(
@@ -123,6 +139,33 @@ public class MetricsProviderActor extends UntypedActor {
         }
         return mainBuilder.build();
     }
+
+
+
+    private MetricSetDto toCertificateMetricSetDTO(String name,
+                                               Gauge<ListedData<CertificateMonitoringInfo>> certificateSensor) {
+        ListedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
+        MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
+        for (CertificateMonitoringInfo cert: c.getParsedData()) {
+            MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getId());
+            certBuilder.withMetric(new SimpleMetricDto<>("subjectDN", cert.getSubject()));
+            certBuilder.withMetric(new SimpleMetricDto<>("issuerDN", cert.getIssuer()));
+            certBuilder.withMetric(new SimpleMetricDto<>("status", cert.getStatus()));
+            certBuilder.withMetric(new SimpleMetricDto<>("notBefore",
+                    formatCertificateDate(cert.getNotBefore())));
+            certBuilder.withMetric(new SimpleMetricDto<>("notAfter",
+                    formatCertificateDate(cert.getNotAfter())));
+            MetricSetDto certDto = certBuilder.build();
+            mainBuilder.withMetric(certDto);
+        }
+        return mainBuilder.build();
+    }
+
+    private String formatCertificateDate(Date date) {
+        return certificateDateFormat.format(date);
+        // TODO: signer timeout problems???
+    }
+
     private MetricSetDto toPackageMetricSetDto(String name,
                                         Gauge<ListedData<PackageInfo>> packageSensor) {
         ListedData<PackageInfo> p = packageSensor.getValue();
