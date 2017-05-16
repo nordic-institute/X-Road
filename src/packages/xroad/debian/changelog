@@ -1,3 +1,16 @@
+xroad (6.16.0-0) trusty; urgency=medium
+
+  * TBD
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 16 May 2017 10:52:03 +0300
+
+xroad (6.15.0-1) trusty; urgency=low
+
+  * PVAYLADEV-621 / XRJD #148 Fix environmental monitoring does not return correct value for open file handles.
+  * PVAYLADEV-738 / XRJD #139 Fix concurrency issue in AdminPort synchronous request handling
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 12 May 2017 15:12:36 +0300
+
 xroad (6.14.0-1) trusty; urgency=low
 
   * XTE-334 / Joint development issue #135: Security Server bugfix:
