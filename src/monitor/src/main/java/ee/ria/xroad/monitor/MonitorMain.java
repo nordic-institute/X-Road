@@ -28,6 +28,7 @@ import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
@@ -50,7 +51,6 @@ public final class MonitorMain {
                 .load();
     }
 
-    private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
     private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
 
     private static ActorSystem actorSystem;
@@ -64,9 +64,7 @@ public final class MonitorMain {
 
         log.info("Starting X-Road Environmental Monitoring");
         registerShutdownHook();
-
         initAkka();
-
         startReporters();
     }
 
@@ -74,17 +72,12 @@ public final class MonitorMain {
     }
 
     private static void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                shutdownAkka();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdownAkka()));
     }
 
     private static void shutdownAkka() {
         if (actorSystem != null) {
-            actorSystem.shutdown();
+            actorSystem.terminate();
             actorSystem = null;
         }
     }
@@ -99,21 +92,17 @@ public final class MonitorMain {
 
     private static Config loadAkkaConfiguration() {
         log.info("loadAkkaConfiguration");
-        Config externalConfig = ConfigFactory.empty();
-        int port = SystemProperties.getEnvMonitorPort();
-        externalConfig = ConfigFactory.parseString(String.format("%s = %d", AKKA_PORT, port));
-        Config defaultConfig = ConfigFactory.load();
-        Config mergedConfig = externalConfig.withFallback(defaultConfig);
-        return ConfigFactory.load(mergedConfig);
+        final int port = SystemProperties.getEnvMonitorPort();
+        return ConfigFactory.load()
+                .withValue(AKKA_PORT, ConfigValueFactory.fromAnyRef(port));
     }
 
     private static void startReporters() {
         JmxReporter jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .filter((name, metric) ->
-                        !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                                SystemMetricNames.PACKAGES).contains(name))
+                .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
+                        SystemMetricNames.PACKAGES).contains(name))
                 .build();
 
         jmxReporter.start();

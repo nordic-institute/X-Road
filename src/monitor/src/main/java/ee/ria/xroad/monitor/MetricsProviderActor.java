@@ -127,14 +127,8 @@ public class MetricsProviderActor extends UntypedActor {
                                         Gauge<ListedData<PackageInfo>> packageSensor) {
         ListedData<PackageInfo> p = packageSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-//        int counter = 1;
         for (PackageInfo pac: p.getParsedData()) {
             mainBuilder.withMetric(new SimpleMetricDto<>(pac.getName(), pac.getVersion()));
-//            MetricSetDto.Builder packageBuilder = new MetricSetDto.Builder("package " + counter++);
-//            packageBuilder.withMetric(new SimpleMetricDto<>("name", pac.getName()));
-//            packageBuilder.withMetric(new SimpleMetricDto<>("version", pac.getVersion()));
-//            MetricSetDto processDto = packageBuilder.build();
-//            mainBuilder.withMetric(processDto);
         }
         return mainBuilder.build();
     }

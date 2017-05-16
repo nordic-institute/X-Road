@@ -13,6 +13,7 @@ Requires:           xroad-proxy >= %version
 Requires:           xroad-addon-messagelog >= %version
 Requires:           xroad-addon-metaservices >= %version
 Requires:           xroad-addon-proxymonitor >= %version
+Requires:           xroad-addon-wsdlvalidator >= %version
 Conflicts:          xroad-centralserver
 
 %description
