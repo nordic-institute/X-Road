@@ -20,28 +20,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.serverproxy;
+package ee.ria.xroad.proxy.util;
 
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.X509ExtendedKeyManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
-class ServiceKeyManager extends X509ExtendedKeyManager {
+/**
+ * a KeyManager that holds the internal SSL Key
+ */
+@RequiredArgsConstructor
+public class InternalKeyManager extends X509ExtendedKeyManager {
 
     private static final Logger LOG =
-            LoggerFactory.getLogger(ServiceKeyManager.class);
+            LoggerFactory.getLogger(InternalKeyManager.class);
 
     private static final String ALIAS = "AuthKeyManager";
 
