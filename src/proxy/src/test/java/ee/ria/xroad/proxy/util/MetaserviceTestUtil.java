@@ -49,12 +49,12 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.soap.*;
 import javax.xml.transform.stream.StreamSource;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
@@ -131,11 +131,14 @@ public final class MetaserviceTestUtil {
             throws JAXBException {
 
         NodeList list = body.getChildNodes();
-        final List<Element> elements = IntStream.range(0, list.getLength())
-                .mapToObj(list::item)
-                .filter(node -> node.getNodeType() == Node.ELEMENT_NODE)
-                .map(node -> (Element) node)
-                .collect(Collectors.toList());
+
+        List<Element> elements = new ArrayList<>();
+        for (int i = 0; i < list.getLength(); i++) {
+            Node node = list.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                elements.add((Element) node);
+            }
+        }
 
         assertThat("Was expecting a single element", elements.size(), is(1));
         JAXBElement<T> element = unmarshallerSupplier.get().unmarshal(elements.get(0), clazz);
@@ -154,6 +157,7 @@ public final class MetaserviceTestUtil {
     public static List<String> parseOperationNamesFromWSDLDefinition(Definition definition) {
         @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
 
+        // note that these return raw type collections
         return services.stream()
                 .map(service -> service.getPorts().values())
                 .flatMap(Collection::stream)
