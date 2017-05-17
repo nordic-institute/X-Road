@@ -62,11 +62,6 @@ public class MetricsProviderActor extends UntypedActor {
     @Override
     public void onReceive(Object o) throws Exception {
 
-        System.out.println("monitorointi juttua onReceive");
-        log.info("monitorointi juttua onReceive");
-        log.error("monitorointi juttua erroriin");
-
-
         if (o instanceof SystemMetricsRequest) {
             log.info("received SystemMetricsRequest");
             MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
@@ -163,7 +158,6 @@ public class MetricsProviderActor extends UntypedActor {
 
     private String formatCertificateDate(Date date) {
         return certificateDateFormat.format(date);
-        // TODO: signer timeout problems???
     }
 
     private MetricSetDto toPackageMetricSetDto(String name,

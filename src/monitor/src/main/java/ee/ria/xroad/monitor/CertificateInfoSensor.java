@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.executablelister.ListedData;
@@ -52,28 +51,52 @@ import java.util.concurrent.TimeUnit;
 public class CertificateInfoSensor extends AbstractSensor {
 
     private CertificateFactory cf;
+    private static final FiniteDuration INITIAL_DELAY =
+            Duration.create(10, TimeUnit.SECONDS);
 
     /**
      * TODO: Javadocsia checkstylelle
      * @throws Exception
      */
     public CertificateInfoSensor() throws Exception {
-        log.info("CertificateInfoSensor created");
+        log.info("creating CertificateInfoSensor");
         cf = CertificateFactory.getInstance("X.509");
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        metricRegistry.register(SystemMetricNames.CERTIFICATES, createParsedMetric(list()));
-        scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
+        updateOrRegisterData(new ListedData());
+        scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 
-    // TODO: refactor ListedData etc monitor.executablelister.*
+    /**
+     * Update existing metric with the data, or register metric as a new (with the data)
+     * @param data
+     */
+    private void updateOrRegisterData(ListedData<CertificateMonitoringInfo> data) {
+        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
+        String metricName = SystemMetricNames.CERTIFICATES;
+        SimpleSensor sensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
+        if (sensor == null) {
+            sensor = new SimpleSensor<>();
+            metricRegistry.register(metricName, sensor);
+        }
+        sensor.update(data);
+    }
+
     private ListedData<CertificateMonitoringInfo> list() throws Exception {
 
         log.info("listing certificate data");
 
+//        if (true) throw new ee.ria.xroad.common.CodedException("testing timeout error");
+//
         // TODO: why cant we use JMX more easily, without 2 different representations?
         ArrayList<String> jmxRepresentation = new ArrayList<>();
         ArrayList<CertificateMonitoringInfo> parsedData = new ArrayList<>();
-        List<TokenInfo> tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = null;
+
+//        try {
+            tokens = SignerClient.execute(new ListTokens());
+//        } catch (Exception e) {
+//            log.error("could not read certificate information from signer", e);
+//            throw e;
+//        }
         for (TokenInfo token : tokens) {
             for (KeyInfo keyInfo : token.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
@@ -102,37 +125,23 @@ public class CertificateInfoSensor extends AbstractSensor {
         return listedData;
     }
 
-    private Metric createParsedMetric(ListedData data) {
-        SimpleSensor<ListedData> sensor = new SimpleSensor<>();
-        sensor.update(data);
-        return sensor;
-    }
-
-    private void updateMetrics() throws Exception {
-        log.info("updating certificate metrics");
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.CERTIFICATES))
-                .update(list());
-
-    }
 
     @Override
     public void onReceive(Object o) throws Exception {
-        log.info("onReceive {}", o);
         if (o instanceof CertificateInfoMeasure) {
             log.info("Updating metrics");
-            updateMetrics();
+            ListedData<CertificateMonitoringInfo> data = list();
+            updateOrRegisterData(data);
             scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
         } else {
-            // TODO: what to do?
-            log.info("checkstyle :(");
+            unhandled(o);
         }
     }
 
     @Override
     protected FiniteDuration getInterval() {
         // TODO: real interval
-        final int magic = 15;
+        final int magic = 20;
         return Duration.create(magic, TimeUnit.SECONDS);
 //        return Duration.create(SystemProperties.getEnvMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
     }

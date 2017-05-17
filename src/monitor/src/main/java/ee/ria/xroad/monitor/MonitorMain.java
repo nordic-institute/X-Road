@@ -22,8 +22,10 @@
  */
 package ee.ria.xroad.monitor;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.UnhandledMessage;
 import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
@@ -86,17 +88,19 @@ public final class MonitorMain {
 
     private static void initAkka() throws Exception {
         actorSystem = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
-        // TODO: signer timeout problem? reproduce? handle?
         SignerClient.init(actorSystem);
+
+        ActorRef unhandled = actorSystem.actorOf(Props.create(UnhandledListenerActor.class), "UnhandledListenerActor");
+        actorSystem.eventStream().subscribe(unhandled, UnhandledMessage.class);
 
         actorSystem.actorOf(Props.create(MetricsProviderActor.class), "MetricsProviderActor");
         actorSystem.actorOf(Props.create(SystemMetricsSensor.class), "SystemMetricsSensor");
         actorSystem.actorOf(Props.create(DiskSpaceSensor.class), "DiskSpaceSensor");
         actorSystem.actorOf(Props.create(ExecListingSensor.class), "ExecListingSensor");
-        actorSystem.actorOf(Props.create(CertificateInfoSensor.class), "CertificateInfoSensor");
+        ActorRef cert = actorSystem.actorOf(Props.create(CertificateInfoSensor.class),
+                "CertificateInfoSensor");
 
         log.info("akka init complete");
-
     }
 
     private static Config loadAkkaConfiguration() {
