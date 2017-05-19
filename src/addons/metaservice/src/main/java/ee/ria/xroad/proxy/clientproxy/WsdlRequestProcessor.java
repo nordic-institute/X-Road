@@ -78,6 +78,10 @@ public class WsdlRequestProcessor {
     static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
+    private static final String PROXY_LOCAL_HTTPS_ENDPOINT =
+            "https://127.0.0.1:" + SystemProperties.getClientProxyHttpsPort();
+    private static final String PROXY_LOCAL_HTTP_ENDPOINT =
+            "http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort();
 
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -164,18 +168,15 @@ public class WsdlRequestProcessor {
 
     HttpURLConnection createConnection(SoapMessageImpl message) throws Exception {
 
-        final URL url;
         final HttpURLConnection urlConnection;
 
         if (request.isSecure()) {
-            url = new URL("https://127.0.0.1:" + SystemProperties.getClientProxyHttpsPort());
-            HttpsURLConnection tmp = (HttpsURLConnection) url.openConnection();
+            HttpsURLConnection tmp = (HttpsURLConnection) new URL(PROXY_LOCAL_HTTPS_ENDPOINT).openConnection();
             tmp.setSSLSocketFactory(InternalSslSocketFactory.getInstance());
             tmp.setHostnameVerifier(NoopHostnameVerifier.INSTANCE);
             urlConnection = tmp;
         } else {
-            url = new URL("http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort());
-            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection = (HttpURLConnection) new URL(PROXY_LOCAL_HTTP_ENDPOINT).openConnection();
         }
 
         urlConnection.setDoInput(true);
@@ -185,7 +186,9 @@ public class WsdlRequestProcessor {
         urlConnection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
         urlConnection.setRequestMethod("POST");
 
-        urlConnection.setRequestProperty(HttpHeaders.CONTENT_TYPE, MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
+        urlConnection.setRequestProperty(
+                HttpHeaders.CONTENT_TYPE,
+                MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
                 StandardCharsets.UTF_8.name()));
 
         IOUtils.write(message.getBytes(), urlConnection.getOutputStream());
