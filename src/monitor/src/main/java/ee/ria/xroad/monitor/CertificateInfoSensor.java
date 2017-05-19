@@ -24,7 +24,6 @@ package ee.ria.xroad.monitor;
 
 import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.monitor.executablelister.ListedData;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;

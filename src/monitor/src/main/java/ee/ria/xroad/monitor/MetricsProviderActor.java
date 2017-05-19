@@ -37,7 +37,6 @@ import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.monitor.common.dto.SimpleMetricDto;
-import ee.ria.xroad.monitor.executablelister.ListedData;
 import ee.ria.xroad.monitor.executablelister.PackageInfo;
 import ee.ria.xroad.monitor.executablelister.ProcessInfo;
 

@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
+import ee.ria.xroad.monitor.ListedData;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

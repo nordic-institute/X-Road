@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.executablelister;
+package ee.ria.xroad.monitor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
