@@ -25,6 +25,8 @@ package ee.ria.xroad.proxy.testsuite.testcases;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
@@ -34,7 +36,8 @@ import ee.ria.xroad.common.metadata.MetadataRequests;
 import ee.ria.xroad.common.util.AbstractHttpSender;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
+import ee.ria.xroad.proxy.testsuite.TestServerConf;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.stream.BodyDescriptor;
@@ -55,8 +58,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.*;
-import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.*;
+import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_INSTANCE_IDENTIFIER;
+import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_MEMBER_CLASS;
+import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_MEMBER_CODE;
+import static ee.ria.xroad.proxy.clientproxy.WsdlRequestProcessor.PARAM_SERVICE_CODE;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.DUMMY_QUERY_FILE;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.cleanDB;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -65,7 +73,7 @@ import static org.junit.Assert.assertThat;
  * Test WSDL retrieval.
  * Result: client receives the WSDL of the given service.
  */
-public class GetWSDLMessage extends MessageTestCase {
+public class GetWSDLMessage extends SslMessageTestCase {
 
     private static final int WSDL_SERVER_PORT = 9857;
     private static final String EXPECTED_WSDL_QUERY_PATH = "/wsdlMock";
@@ -97,12 +105,11 @@ public class GetWSDLMessage extends MessageTestCase {
         this.mockServer = new WireMockServer(options().port(WSDL_SERVER_PORT));
     }
 
-
     @Override
     protected URI getClientUri() throws URISyntaxException {
         URIBuilder builder = new URIBuilder();
-        builder.setScheme("http").setHost("localhost")
-                .setPort(SystemProperties.getClientProxyHttpPort())
+        builder.setScheme("https").setHost("localhost")
+                .setPort(SystemProperties.getClientProxyHttpsPort())
                 .setPath(MetadataRequests.WSDL)
                 .setParameter(PARAM_INSTANCE_IDENTIFIER, expectedProviderQuery.getXRoadInstance())
                 .setParameter(PARAM_MEMBER_CLASS, expectedProviderQuery.getMemberClass())
@@ -142,7 +149,12 @@ public class GetWSDLMessage extends MessageTestCase {
     @Override
     protected void startUp() throws Exception {
         super.startUp();
-
+        ServerConf.reload(new TestServerConf() {
+            @Override
+            public IsAuthentication getIsAuthentication(ClientId client) {
+                return  IsAuthentication.SSLAUTH;
+            }
+        });
         setUpDatabase();
 
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
