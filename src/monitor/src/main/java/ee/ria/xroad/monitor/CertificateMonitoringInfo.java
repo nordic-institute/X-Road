@@ -22,23 +22,21 @@
  */
 package ee.ria.xroad.monitor;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.util.Date;
+import lombok.*;
 
 /**
  * Created by janne on 11.5.2017.
  */
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @ToString
 public class CertificateMonitoringInfo {
     private String id;
     private String issuer;
     private String subject;
-    private Date notBefore;
-    private Date notAfter;
+    private String notBefore;
+    private String notAfter;
     private String status;
 }

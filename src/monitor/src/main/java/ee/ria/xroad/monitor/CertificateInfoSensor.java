@@ -38,7 +38,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -50,12 +52,20 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CertificateInfoSensor extends AbstractSensor {
 
+    private SimpleDateFormat certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private CertificateFactory cf;
+
     private static final FiniteDuration INITIAL_DELAY =
             Duration.create(10, TimeUnit.SECONDS);
+    private static final char TAB = '\t';
+    private static final String JMX_HEADER = "ID\tISSUER\tSUBJECT\tNOT BEFORE\tNOT AFTER\tSTATUS";
+
+    private String formatCertificateDate(Date date) {
+        return certificateFormat.format(date);
+    }
 
     /**
-     * TODO: Javadocsia checkstylelle
+     * Create new CertificateInfoSensor
      * @throws Exception
      */
     public CertificateInfoSensor() throws Exception {
@@ -71,32 +81,32 @@ public class CertificateInfoSensor extends AbstractSensor {
      */
     private void updateOrRegisterData(ListedData<CertificateMonitoringInfo> data) {
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        String metricName = SystemMetricNames.CERTIFICATES;
+        SimpleSensor sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES);
+        sensor.update(data);
+        sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES_STRINGS);
+        sensor.update(data.getJmxData());
+    }
+
+    private SimpleSensor getOrCreateSimpleSensor(MetricRegistry metricRegistry, String metricName) {
         SimpleSensor sensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
         if (sensor == null) {
             sensor = new SimpleSensor<>();
             metricRegistry.register(metricName, sensor);
         }
-        sensor.update(data);
+        return sensor;
     }
 
     private ListedData<CertificateMonitoringInfo> list() throws Exception {
 
         log.info("listing certificate data");
 
-//        if (true) throw new ee.ria.xroad.common.CodedException("testing timeout error");
-//
-        // TODO: why cant we use JMX more easily, without 2 different representations?
         ArrayList<String> jmxRepresentation = new ArrayList<>();
+        jmxRepresentation.add(JMX_HEADER);
         ArrayList<CertificateMonitoringInfo> parsedData = new ArrayList<>();
         List<TokenInfo> tokens = null;
 
-//        try {
-            tokens = SignerClient.execute(new ListTokens());
-//        } catch (Exception e) {
-//            log.error("could not read certificate information from signer", e);
-//            throw e;
-//        }
+        tokens = SignerClient.execute(new ListTokens());
+
         for (TokenInfo token : tokens) {
             for (KeyInfo keyInfo : token.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
@@ -110,11 +120,12 @@ public class CertificateInfoSensor extends AbstractSensor {
                     CertificateMonitoringInfo certificateInfo = new CertificateMonitoringInfo();
                     certificateInfo.setIssuer(cert.getIssuerDN().getName());
                     certificateInfo.setSubject(cert.getSubjectDN().getName());
-                    certificateInfo.setNotAfter(cert.getNotAfter());
-                    certificateInfo.setNotBefore(cert.getNotBefore());
+                    certificateInfo.setNotAfter(formatCertificateDate(cert.getNotAfter()));
+                    certificateInfo.setNotBefore(formatCertificateDate(cert.getNotBefore()));
                     certificateInfo.setStatus(certInfo.getStatus());
                     certificateInfo.setId(certInfo.getId());
                     parsedData.add(certificateInfo);
+                    jmxRepresentation.add(getLineFrom(certificateInfo));
                 }
             }
         }
@@ -123,6 +134,22 @@ public class CertificateInfoSensor extends AbstractSensor {
         listedData.setParsedData(parsedData);
         log.info("got listedData {}", listedData);
         return listedData;
+    }
+
+    private static String getLineFrom(CertificateMonitoringInfo info) {
+        StringBuilder b = new StringBuilder();
+        b.append(info.getId());
+        b.append(TAB);
+        b.append(info.getIssuer());
+        b.append(TAB);
+        b.append(info.getSubject());
+        b.append(TAB);
+        b.append(info.getNotBefore());
+        b.append(TAB);
+        b.append(info.getNotAfter());
+        b.append(TAB);
+        b.append(info.getStatus());
+        return b.toString();
     }
 
 
@@ -134,6 +161,7 @@ public class CertificateInfoSensor extends AbstractSensor {
             updateOrRegisterData(data);
             scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
         } else {
+            log.error("received unhandled message -> lets see how akka logs it");
             unhandled(o);
         }
     }

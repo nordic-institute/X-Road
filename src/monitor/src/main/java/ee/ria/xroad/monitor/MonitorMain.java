@@ -85,7 +85,6 @@ public final class MonitorMain {
         }
     }
 
-
     private static void initAkka() throws Exception {
         actorSystem = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
         SignerClient.init(actorSystem);
@@ -115,7 +114,9 @@ public final class MonitorMain {
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                        SystemMetricNames.PACKAGES).contains(name))
+                        SystemMetricNames.PACKAGES,
+                        SystemMetricNames.CERTIFICATES
+                        ).contains(name))
                 .build();
 
         jmxReporter.start();
