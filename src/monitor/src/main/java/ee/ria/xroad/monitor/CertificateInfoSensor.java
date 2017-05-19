@@ -70,7 +70,7 @@ public class CertificateInfoSensor extends AbstractSensor {
     public CertificateInfoSensor() throws Exception {
         log.info("creating CertificateInfoSensor");
         cf = CertificateFactory.getInstance("X.509");
-        updateOrRegisterData(new ListedData());
+        updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 
@@ -78,12 +78,12 @@ public class CertificateInfoSensor extends AbstractSensor {
      * Update existing metric with the data, or register metric as a new (with the data)
      * @param data
      */
-    private void updateOrRegisterData(ListedData<CertificateMonitoringInfo> data) {
+    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) {
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
         SimpleSensor sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES);
         sensor.update(data);
         sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES_STRINGS);
-        sensor.update(data.getJmxData());
+        sensor.update(data.getJmxStringData());
     }
 
     private SimpleSensor getOrCreateSimpleSensor(MetricRegistry metricRegistry, String metricName) {
@@ -95,7 +95,7 @@ public class CertificateInfoSensor extends AbstractSensor {
         return sensor;
     }
 
-    private ListedData<CertificateMonitoringInfo> list() throws Exception {
+    private JmxStringifiedData<CertificateMonitoringInfo> list() throws Exception {
 
         log.info("listing certificate data");
 
@@ -128,9 +128,9 @@ public class CertificateInfoSensor extends AbstractSensor {
                 }
             }
         }
-        ListedData<CertificateMonitoringInfo> listedData = new ListedData<>();
-        listedData.setJmxData(jmxRepresentation);
-        listedData.setParsedData(parsedData);
+        JmxStringifiedData<CertificateMonitoringInfo> listedData = new JmxStringifiedData<>();
+        listedData.setJmxStringData(jmxRepresentation);
+        listedData.setDtoData(parsedData);
         log.info("got listedData {}", listedData);
         return listedData;
     }
@@ -156,7 +156,7 @@ public class CertificateInfoSensor extends AbstractSensor {
     public void onReceive(Object o) throws Exception {
         if (o instanceof CertificateInfoMeasure) {
             log.info("Updating metrics");
-            ListedData<CertificateMonitoringInfo> data = list();
+            JmxStringifiedData<CertificateMonitoringInfo> data = list();
             updateOrRegisterData(data);
             scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
         } else {

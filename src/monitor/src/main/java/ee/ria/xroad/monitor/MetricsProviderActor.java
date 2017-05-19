@@ -108,10 +108,10 @@ public class MetricsProviderActor extends UntypedActor {
     }
 
     private MetricSetDto toProcessMetricSetDto(String name,
-                                        Gauge<ListedData<ProcessInfo>> processSensor) {
-        ListedData<ProcessInfo> p = processSensor.getValue();
+                                        Gauge<JmxStringifiedData<ProcessInfo>> processSensor) {
+        JmxStringifiedData<ProcessInfo> p = processSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (ProcessInfo process: p.getParsedData()) {
+        for (ProcessInfo process: p.getDtoData()) {
             MetricSetDto.Builder processBuilder = new MetricSetDto.Builder(process.getProcessId());
             processBuilder.withMetric(new SimpleMetricDto<>("processId", process.getProcessId()));
             processBuilder.withMetric(new SimpleMetricDto<>("command", process.getCommand()));
@@ -128,10 +128,10 @@ public class MetricsProviderActor extends UntypedActor {
 
 
     private MetricSetDto toCertificateMetricSetDTO(String name,
-                                               Gauge<ListedData<CertificateMonitoringInfo>> certificateSensor) {
-        ListedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
+                                               Gauge<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor) {
+        JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (CertificateMonitoringInfo cert: c.getParsedData()) {
+        for (CertificateMonitoringInfo cert: c.getDtoData()) {
             MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getId());
             certBuilder.withMetric(new SimpleMetricDto<>("subjectDN", cert.getSubject()));
             certBuilder.withMetric(new SimpleMetricDto<>("issuerDN", cert.getIssuer()));
@@ -145,10 +145,10 @@ public class MetricsProviderActor extends UntypedActor {
     }
 
     private MetricSetDto toPackageMetricSetDto(String name,
-                                        Gauge<ListedData<PackageInfo>> packageSensor) {
-        ListedData<PackageInfo> p = packageSensor.getValue();
+                                        Gauge<JmxStringifiedData<PackageInfo>> packageSensor) {
+        JmxStringifiedData<PackageInfo> p = packageSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (PackageInfo pac: p.getParsedData()) {
+        for (PackageInfo pac: p.getDtoData()) {
             mainBuilder.withMetric(new SimpleMetricDto<>(pac.getName(), pac.getVersion()));
         }
         return mainBuilder.build();
