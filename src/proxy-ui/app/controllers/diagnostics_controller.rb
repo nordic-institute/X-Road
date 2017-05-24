@@ -30,9 +30,9 @@ java_import Java::java.util.Collection
 require 'json'
 require 'time'
 
+# Controller for the diagnostics view
 class DiagnosticsController < ApplicationController
   helper_method :get_status_message, :get_status_class, :get_formatted_time
-
 
   def index
     logger.info("Diagnostics index")
@@ -50,18 +50,18 @@ class DiagnosticsController < ApplicationController
     response = query_confclient_status
     if !response.nil? && response.java_kind_of?(DiagnosticsStatus)
       return_code = response.getReturnCode
-      @globalConfStatus = {
-          :status_class => get_status_class(return_code),
-          :status_message => get_status_message(return_code),
-          :prev_update => response.getFormattedPrevUpdate,
-          :next_update => response.getFormattedNextUpdate
+      @global_conf_status = {
+        status_class: get_status_class(return_code),
+        status_message: get_status_message(return_code),
+        prev_update: response.getFormattedPrevUpdate,
+        next_update: response.getFormattedNextUpdate
       }
     else
-      @globalConfStatus = {
-          :status_class => 'diagnostics_status_fail',
-          :status_message => t('diagnostics.error_code_connection_failed'),
-          :prev_update => '',
-          :next_update => ''
+      @global_conf_status = {
+        status_class: 'diagnostics_status_fail',
+        status_message: t('diagnostics.error_code_connection_failed'),
+        prev_update: '',
+        next_update: ''
       }
     end
   end
@@ -75,27 +75,27 @@ class DiagnosticsController < ApplicationController
     end
   end
 
-  def get_status_class (return_code)
+  def get_status_class(return_code)
     case return_code
-      when DiagnosticsErrorCodes::RETURN_SUCCESS
-        "diagnostics_status_ok"
-      when DiagnosticsErrorCodes::ERROR_CODE_UNINITIALIZED,
-          DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED,
-          DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
-        "diagnostics_status_waiting"
-      else
-        "diagnostics_status_fail"
+    when DiagnosticsErrorCodes::RETURN_SUCCESS
+      'diagnostics_status_ok'
+    when DiagnosticsErrorCodes::ERROR_CODE_UNINITIALIZED,
+         DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED,
+         DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
+      'diagnostics_status_waiting'
+    else
+      'diagnostics_status_fail'
     end
   end
 
-  def get_formatted_time (tm)
-    tm["hour"].to_s.rjust(2, "0")+":"+tm["minute"].to_s.rjust(2, "0")
+  def get_formatted_time(tm)
+    tm['hour'].to_s.rjust(2, '0') + ':' + tm['minute'].to_s.rjust(2, '0')
   end
 
   def query_confclient_status
     logger.info("Query configuration client status")
 
-    port = SystemProperties::getConfigurationClientAdminPort()
+    port = SystemProperties.getConfigurationClientAdminPort
     url = "http://localhost:#{port}/status"
 
     query_status_from_adminport(url, DiagnosticsStatus.java_class)
@@ -110,18 +110,17 @@ class DiagnosticsController < ApplicationController
     query_status_from_adminport(url, nil)
   end
 
-
   def query_ocsp_status
     logger.info("Query OCSP status")
 
-    port =  SystemProperties::getSignerAdminPort
+    port =  SystemProperties.getSignerAdminPort
     url = "http://localhost:#{port}/status"
 
     query_status_from_adminport(url, nil)
   end
 
   def query_status_from_adminport(url, target_class)
-    if !url.is_a?(String)
+    unless url.is_a?(String)
       logger.error("Non-string URL, defaulting to an empty response")
       return nil
     end
@@ -132,7 +131,8 @@ class DiagnosticsController < ApplicationController
     begin
       uri = URI(url)
       response = Net::HTTP.get_response(uri)
-      logger.debug("Response code: " + response.code + " message: " + response.message + " body: " + response.body)
+      logger.debug("Response code: " + response.code + " message: " +
+                       response.message + " body: " + response.body)
     rescue
       logger.error("Unable to connect to designated admin port, defaulting to an empty response")
       log_stacktrace($!)
@@ -149,7 +149,7 @@ class DiagnosticsController < ApplicationController
         response_data = JSON.parse(response.body)
       else
         logger.info("Target class detected, attempting to deserialize")
-        gson = JsonUtils::getSerializer()
+        gson = JsonUtils.getSerializer
         response_data = gson.fromJson(response.body, target_class)
       end
       rescue
@@ -160,42 +160,40 @@ class DiagnosticsController < ApplicationController
     response_data
   end
 
-    def get_status_message (return_code)
+  def get_status_message(return_code)
     case return_code
-      when DiagnosticsErrorCodes::RETURN_SUCCESS
-        t('diagnostics.return_success')
-      when DiagnosticsErrorCodes::ERROR_CODE_INTERNAL
-        t('diagnostics.error_code_internal')
-      when DiagnosticsErrorCodes::ERROR_CODE_INVALID_SIGNATURE_VALUE
-        t('diagnostics.error_code_invalid_signature_value')
-      when DiagnosticsErrorCodes::ERROR_CODE_EXPIRED_CONF
-        t('diagnostics.error_code_expired_conf')
-      when DiagnosticsErrorCodes::ERROR_CODE_CANNOT_DOWNLOAD_CONF
-        t('diagnostics.error_code_cannot_download_conf')
-      when DiagnosticsErrorCodes::ERROR_CODE_MISSING_PRIVATE_PARAMS
-        t('diagnostics.error_code_missing_private_params')
-      when DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT
-        t('diagnostics.error_code_timestamp_request_timed_out')
-      when DiagnosticsErrorCodes::ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL
-        t('diagnostics.error_code_malformed_timestamp_server_url')
-      when DiagnosticsErrorCodes::ERROR_CODE_UNINITIALIZED
-        t('diagnostics.error_code_uninitialized')
-      when DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED
-        t('diagnostics.error_code_timestamp_uninitialized')
-      when DiagnosticsErrorCodes::ERROR_CODE_OCSP_CONNECTION_ERROR
-        t('diagnostics.error_code_ocsp_connection_error')
-      when DiagnosticsErrorCodes::ERROR_CODE_OCSP_FAILED
-        t('diagnostics.error_code_ocsp_failed')
-      when DiagnosticsErrorCodes::ERROR_CODE_OCSP_RESPONSE_INVALID
-        t('diagnostics.error_code_ocsp_response_invalid')
-      when DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
-        t('diagnostics.error_code_ocsp_uninitialized')
-      when DiagnosticsErrorCodes::ERROR_CODE_LOGMANAGER_UNAVAILABLE
-        t('diagnostics.error_code_logmanager_unavailable')
-      else
-        t('diagnostics.error_code_unknown')
+    when DiagnosticsErrorCodes::RETURN_SUCCESS
+      t('diagnostics.return_success')
+    when DiagnosticsErrorCodes::ERROR_CODE_INTERNAL
+      t('diagnostics.error_code_internal')
+    when DiagnosticsErrorCodes::ERROR_CODE_INVALID_SIGNATURE_VALUE
+      t('diagnostics.error_code_invalid_signature_value')
+    when DiagnosticsErrorCodes::ERROR_CODE_EXPIRED_CONF
+      t('diagnostics.error_code_expired_conf')
+    when DiagnosticsErrorCodes::ERROR_CODE_CANNOT_DOWNLOAD_CONF
+      t('diagnostics.error_code_cannot_download_conf')
+    when DiagnosticsErrorCodes::ERROR_CODE_MISSING_PRIVATE_PARAMS
+      t('diagnostics.error_code_missing_private_params')
+    when DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT
+      t('diagnostics.error_code_timestamp_request_timed_out')
+    when DiagnosticsErrorCodes::ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL
+      t('diagnostics.error_code_malformed_timestamp_server_url')
+    when DiagnosticsErrorCodes::ERROR_CODE_UNINITIALIZED
+      t('diagnostics.error_code_uninitialized')
+    when DiagnosticsErrorCodes::ERROR_CODE_TIMESTAMP_UNINITIALIZED
+      t('diagnostics.error_code_timestamp_uninitialized')
+    when DiagnosticsErrorCodes::ERROR_CODE_OCSP_CONNECTION_ERROR
+      t('diagnostics.error_code_ocsp_connection_error')
+    when DiagnosticsErrorCodes::ERROR_CODE_OCSP_FAILED
+      t('diagnostics.error_code_ocsp_failed')
+    when DiagnosticsErrorCodes::ERROR_CODE_OCSP_RESPONSE_INVALID
+      t('diagnostics.error_code_ocsp_response_invalid')
+    when DiagnosticsErrorCodes::ERROR_CODE_OCSP_UNINITIALIZED
+      t('diagnostics.error_code_ocsp_uninitialized')
+    when DiagnosticsErrorCodes::ERROR_CODE_LOGMANAGER_UNAVAILABLE
+      t('diagnostics.error_code_logmanager_unavailable')
+    else
+      t('diagnostics.error_code_unknown')
     end
   end
-
-
 end
