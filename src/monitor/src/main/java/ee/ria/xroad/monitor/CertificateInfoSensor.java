@@ -35,6 +35,7 @@ import scala.concurrent.duration.FiniteDuration;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
@@ -45,22 +46,37 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Collects certificate information.
- * Before using CertificateInfoSensor, SignerClient needs to be initialized
+ * Before using CertificateInfoSensor, SignerClient needs to have been initialized
  * with SignerClient.init()
  */
 @Slf4j
 public class CertificateInfoSensor extends AbstractSensor {
 
-    private SimpleDateFormat certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private TokenInfoLister tokenInfoLister = new TokenInfoLister();
     private CertificateFactory cf;
 
     private static final FiniteDuration INITIAL_DELAY =
             Duration.create(10, TimeUnit.SECONDS);
-    private static final char TAB = '\t';
     private static final String JMX_HEADER = "ID\tISSUER\tSUBJECT\tNOT BEFORE\tNOT AFTER\tSTATUS";
+
+    private SimpleDateFormat certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
     private String formatCertificateDate(Date date) {
         return certificateFormat.format(date);
+    }
+
+    /**
+     * for testability
+     * @param lister
+     */
+    void setTokenInfoLister(TokenInfoLister lister) {
+        this.tokenInfoLister = lister;
+    }
+
+    static class TokenInfoLister {
+        List<TokenInfo> listTokens() throws Exception {
+            return SignerClient.execute(new ListTokens());
+        }
     }
 
     /**
@@ -78,33 +94,48 @@ public class CertificateInfoSensor extends AbstractSensor {
      * Update existing metric with the data, or register metric as a new (with the data)
      * @param data
      */
-    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) {
+    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) throws Exception {
+
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        SimpleSensor sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES);
-        sensor.update(data);
-        sensor = getOrCreateSimpleSensor(metricRegistry, SystemMetricNames.CERTIFICATES_STRINGS);
-        sensor.update(data.getJmxStringData());
+
+        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor = getOrCreateSimpleSensor(
+                new SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>(),
+                metricRegistry,
+                SystemMetricNames.CERTIFICATES);
+        certificateSensor.update(data);
+
+        SimpleSensor<ArrayList<String>> certificateTextSensor = getOrCreateSimpleSensor(
+                new SimpleSensor<ArrayList<String>>(),
+                metricRegistry,
+                SystemMetricNames.CERTIFICATES_STRINGS);
+        certificateTextSensor.update(data.getJmxStringData());
     }
 
-    private SimpleSensor getOrCreateSimpleSensor(MetricRegistry metricRegistry, String metricName) {
-        SimpleSensor sensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
-        if (sensor == null) {
-            sensor = new SimpleSensor<>();
-            metricRegistry.register(metricName, sensor);
+    /**
+     * Either registers a new sensor to metricRegistry, or reuses already registered one
+     */
+    private <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(
+            SimpleSensor<T> typeDefiningSensor,
+            MetricRegistry metricRegistry,
+            String metricName) {
+
+        typeDefiningSensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
+        if (typeDefiningSensor == null) {
+            typeDefiningSensor = new SimpleSensor<>();
+            metricRegistry.register(metricName, typeDefiningSensor);
         }
-        return sensor;
+        return typeDefiningSensor;
     }
+
 
     private JmxStringifiedData<CertificateMonitoringInfo> list() throws Exception {
 
-        log.info("listing certificate data");
+        log.debug("listing certificate data");
 
         ArrayList<String> jmxRepresentation = new ArrayList<>();
         jmxRepresentation.add(JMX_HEADER);
         ArrayList<CertificateMonitoringInfo> parsedData = new ArrayList<>();
-        List<TokenInfo> tokens = null;
-
-        tokens = SignerClient.execute(new ListTokens());
+        List<TokenInfo> tokens = tokenInfoLister.listTokens();
 
         for (TokenInfo token : tokens) {
             for (KeyInfo keyInfo : token.getKeyInfo()) {
@@ -124,43 +155,44 @@ public class CertificateInfoSensor extends AbstractSensor {
                     certificateInfo.setStatus(certInfo.getStatus());
                     certificateInfo.setId(certInfo.getId());
                     parsedData.add(certificateInfo);
-                    jmxRepresentation.add(getLineFrom(certificateInfo));
+                    jmxRepresentation.add(getJxmRepresentationFrom(certificateInfo));
                 }
             }
         }
         JmxStringifiedData<CertificateMonitoringInfo> listedData = new JmxStringifiedData<>();
         listedData.setJmxStringData(jmxRepresentation);
         listedData.setDtoData(parsedData);
-        log.info("got listedData {}", listedData);
+        log.debug("got listedData {}", listedData);
         return listedData;
     }
 
-    private static String getLineFrom(CertificateMonitoringInfo info) {
+    /**
+     * Tab-delimited strings, as with package / process listing
+     */
+    private String getJxmRepresentationFrom(CertificateMonitoringInfo info) {
         StringBuilder b = new StringBuilder();
-        b.append(info.getId());
-        b.append(TAB);
-        b.append(info.getIssuer());
-        b.append(TAB);
-        b.append(info.getSubject());
-        b.append(TAB);
-        b.append(info.getNotBefore());
-        b.append(TAB);
-        b.append(info.getNotAfter());
-        b.append(TAB);
+        addWithTab(info.getId(), b);
+        addWithTab(info.getIssuer(), b);
+        addWithTab(info.getSubject(), b);
+        addWithTab(info.getNotBefore(), b);
+        addWithTab(info.getNotAfter(), b);
         b.append(info.getStatus());
         return b.toString();
     }
 
+    private void addWithTab(String s, StringBuilder b) {
+        b.append(s);
+        b.append('\t');
+    }
 
     @Override
     public void onReceive(Object o) throws Exception {
         if (o instanceof CertificateInfoMeasure) {
-            log.info("Updating metrics");
-            JmxStringifiedData<CertificateMonitoringInfo> data = list();
-            updateOrRegisterData(data);
+            log.info("Updating CertificateInfo metrics");
+            updateOrRegisterData(list());
             scheduleSingleMeasurement(getInterval(), new CertificateInfoMeasure());
         } else {
-            log.error("received unhandled message -> lets see how akka logs it");
+            log.error("received unhandled message {}", o);
             unhandled(o);
         }
     }
@@ -173,6 +205,6 @@ public class CertificateInfoSensor extends AbstractSensor {
 //        return Duration.create(SystemProperties.getEnvMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
     }
 
-    private static class CertificateInfoMeasure { }
+    public static class CertificateInfoMeasure { }
 
 }
