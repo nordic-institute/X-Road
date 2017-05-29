@@ -462,6 +462,12 @@ public final class SystemProperties {
     public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
             PREFIX + "env-monitor.exec-listing-sensor-interval";
 
+    /** Property name of certificate info sensor refresh interval. */
+    public static final String ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL =
+            PREFIX + "env-monitor.certificate-info-sensor-interval";
+
+    public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
+
     // Cluster node configuration ------------------------------------------ //
 
     /**
@@ -969,6 +975,14 @@ public final class SystemProperties {
     public static int getEnvMonitorExecListingSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
     }
+
+    /**
+     * @return exec listing sensor interval in seconds, '60' by default.
+     */
+    public static int getEnvMonitorCertificateInfoSensorInterval() {
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
+    }
+
 
     /**
      * @return path to the file containing network statistics,

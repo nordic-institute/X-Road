@@ -55,7 +55,7 @@ public class CertificateInfoSensorTest {
     private static final String CA_CERT_ID = "CA_CERT_ID";
     private static final String TSP_CERT_ID = "TSP_CERT_ID";
     private static final String CA_NOT_BEFORE = "2014-09-29T12:41:37Z";
-    private static final String CA_NOT_AFTER= "2024-09-26T12:41:37Z";
+    private static final String CA_NOT_AFTER = "2024-09-26T12:41:37Z";
     private static final String CA_ISSUER = "EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE";
     private static final String CA_SUBJECT = "EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE";
     private static final String TSP_NOT_BEFORE = "2012-11-29T13:53:06Z";
@@ -85,6 +85,15 @@ public class CertificateInfoSensorTest {
         caTokenInfo = createTestTokenInfo(caKeyInfo);
         tspTokenInfo = createTestTokenInfo(tspKeyInfo);
 
+    }
+
+    /**
+     * Shut down actor system and wait for clean up, so that other tests are not disturbed
+     */
+    @After
+    public void tearDown() {
+        actorSystem.shutdown();
+        actorSystem.awaitTermination();
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {
@@ -126,11 +135,6 @@ public class CertificateInfoSensorTest {
                 cert.getEncoded(),
                 null);
         return cInfo;
-    }
-
-    @After
-    public void tearDown() {
-        actorSystem.shutdown();
     }
 
     @Test

@@ -23,6 +23,8 @@
 package ee.ria.xroad.monitor;
 
 import com.codahale.metrics.MetricRegistry;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
@@ -33,10 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.Serializable;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,12 +51,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CertificateInfoSensor extends AbstractSensor {
 
-    private TokenInfoLister tokenInfoLister = new TokenInfoLister();
-    private CertificateFactory cf;
-
-    private static final FiniteDuration INITIAL_DELAY =
-            Duration.create(10, TimeUnit.SECONDS);
+    // give signer some time to become available
+    private static final FiniteDuration INITIAL_DELAY = Duration.create(10, TimeUnit.SECONDS);
     private static final String JMX_HEADER = "ID\tISSUER\tSUBJECT\tNOT BEFORE\tNOT AFTER\tSTATUS";
+
+    private TokenInfoLister tokenInfoLister = new TokenInfoLister();
 
     private SimpleDateFormat certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
@@ -84,8 +82,6 @@ public class CertificateInfoSensor extends AbstractSensor {
      * @throws Exception
      */
     public CertificateInfoSensor() throws Exception {
-        log.info("creating CertificateInfoSensor");
-        cf = CertificateFactory.getInstance("X.509");
         updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
@@ -141,11 +137,7 @@ public class CertificateInfoSensor extends AbstractSensor {
             for (KeyInfo keyInfo : token.getKeyInfo()) {
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     byte[] certBytes = certInfo.getCertificateBytes();
-
-                    // TODO: find if this is the way certificate bytes are
-                    // handled in Java elsewhere in X-Road
-                    InputStream in = new ByteArrayInputStream(certBytes);
-                    X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+                    X509Certificate cert = CryptoUtils.readCertificate(certBytes);
 
                     CertificateMonitoringInfo certificateInfo = new CertificateMonitoringInfo();
                     certificateInfo.setIssuer(cert.getIssuerDN().getName());
@@ -199,12 +191,12 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     @Override
     protected FiniteDuration getInterval() {
-        // TODO: real interval
-        final int magic = 20;
-        return Duration.create(magic, TimeUnit.SECONDS);
-//        return Duration.create(SystemProperties.getEnvMonitorDiskSpaceSensorInterval(), TimeUnit.SECONDS);
+        return Duration.create(SystemProperties.getEnvMonitorCertificateInfoSensorInterval(), TimeUnit.SECONDS);
     }
 
+    /**
+     * Akka message
+     */
     public static class CertificateInfoMeasure { }
 
 }

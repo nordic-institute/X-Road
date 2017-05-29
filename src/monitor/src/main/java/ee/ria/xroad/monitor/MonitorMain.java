@@ -63,7 +63,7 @@ public final class MonitorMain {
      *
      * @param args
      */
-    public static void main(String args[]) throws Exception { // TODO: throws Exception - do error handling
+    public static void main(String args[]) throws Exception {
 
         log.info("Starting X-Road Environmental Monitoring");
         registerShutdownHook();
@@ -96,8 +96,7 @@ public final class MonitorMain {
         actorSystem.actorOf(Props.create(SystemMetricsSensor.class), "SystemMetricsSensor");
         actorSystem.actorOf(Props.create(DiskSpaceSensor.class), "DiskSpaceSensor");
         actorSystem.actorOf(Props.create(ExecListingSensor.class), "ExecListingSensor");
-        ActorRef cert = actorSystem.actorOf(Props.create(CertificateInfoSensor.class),
-                "CertificateInfoSensor");
+        actorSystem.actorOf(Props.create(CertificateInfoSensor.class), "CertificateInfoSensor");
 
         log.info("akka init complete");
     }
