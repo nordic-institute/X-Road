@@ -100,6 +100,10 @@ The following sensors produce monitoring data:
 - `PackageLister`
   - data: list of installed packages and their versions
   - data is refreshed once per minute
+- `CertificateInfoSensor`
+  - data: information about certificates associated with this security server, including their expiration dates
+  - data is refreshed once per day
+
 
 Monitoring service is installed as a separate package, with name `xroad-monitor`. It runs in a separate process.
 
