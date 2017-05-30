@@ -109,6 +109,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         //mock implementation
         responseEncoder = new SimpleSoapEncoder(responseOut);
+
         final MonitorClient client = ProxyMonitor.getClient();
 
         final GetSecurityServerMetricsResponse metricsResponse = new GetSecurityServerMetricsResponse();

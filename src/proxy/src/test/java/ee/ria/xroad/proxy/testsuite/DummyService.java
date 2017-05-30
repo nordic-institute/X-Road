@@ -22,6 +22,23 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.TestCertUtil.PKCS12;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.util.ssl.SslContextFactory;
+
+import javax.net.ssl.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,30 +49,6 @@ import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509TrustManager;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.ByteOrderMark;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 
@@ -127,7 +120,7 @@ class DummyService extends Server implements StartStop {
                 }
 
                 Message receivedRequest = new Message(
-                        request.getInputStream(), request.getContentType());
+                        request.getInputStream(), request.getContentType()).parse();
 
                 String encoding = request.getCharacterEncoding();
 
@@ -197,7 +190,7 @@ class DummyService extends Server implements StartStop {
                             currentTestCase().changeQueryId(fileIs)) {
                 currentTestCase().onSendResponse(
                         new Message(responseIs, currentTestCase()
-                                .getResponseServiceContentType()));
+                                .getResponseServiceContentType()).parse());
             } catch (Exception e) {
                 log.error("Error when sending response from file '{}': {}",
                         file, e.toString());

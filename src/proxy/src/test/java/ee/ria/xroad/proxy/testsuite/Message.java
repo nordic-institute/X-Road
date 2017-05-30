@@ -22,7 +22,15 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
+import ee.ria.xroad.common.message.*;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.james.mime4j.MimeException;
+import org.apache.james.mime4j.parser.AbstractContentHandler;
+import org.apache.james.mime4j.parser.MimeStreamParser;
+import org.apache.james.mime4j.stream.BodyDescriptor;
+import org.apache.james.mime4j.stream.Field;
+import org.apache.james.mime4j.stream.MimeConfig;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,20 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.james.mime4j.MimeException;
-import org.apache.james.mime4j.parser.AbstractContentHandler;
-import org.apache.james.mime4j.parser.MimeStreamParser;
-import org.apache.james.mime4j.stream.BodyDescriptor;
-import org.apache.james.mime4j.stream.Field;
-import org.apache.james.mime4j.stream.MimeConfig;
-
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 
 /**
  * Encapsulates a test SOAP message.
@@ -57,6 +52,9 @@ public class Message {
             new ArrayList<>();
 
     private final String contentType;
+    private final InputStream inputStream;
+
+    protected final MimeStreamParser parser;
 
     private int numAttachments = 0;
 
@@ -64,7 +62,7 @@ public class Message {
 
     /**
      * Constructs a new message from the given input stream with the specified
-     * content type.
+     * content type. Remember to call {@link #parse()}
      * @param inputStream the input stream
      * @param contentType the contect type
      * @throws Exception in case of any unexpected errors
@@ -74,19 +72,27 @@ public class Message {
         log.debug("new Message({})", contentType);
 
         this.contentType = contentType;
+        MimeConfig config = new MimeConfig();
+        config.setHeadlessParsing(contentType);
+
+        this.parser = new MimeStreamParser(config);
+        parser.setContentHandler(new MessageContentHandler());
+
+        this.inputStream = inputStream;
+    }
+
+    /** Parse the message.
+     */
+    public Message parse() {
+
         try {
-            MimeConfig config = new MimeConfig();
-            config.setHeadlessParsing(contentType);
-
-            MimeStreamParser parser = new MimeStreamParser(config);
-            parser.setContentHandler(new ContentHandler());
-
-            parser.parse(inputStream);
+            parser.parse(this.inputStream);
         } catch (Exception ex) {
             // Ignore errors, because we may be dealing with tests with
             // invalid messages.
             log.error("Error when parsing message", ex);
         }
+        return this;
     }
 
     /**
@@ -135,7 +141,7 @@ public class Message {
                 && ((SoapMessageImpl) soap).isResponse();
     }
 
-    private class ContentHandler extends AbstractContentHandler {
+    protected class MessageContentHandler extends AbstractContentHandler {
         private Map<String, String> headers;
         private int nextPart = 0;
 

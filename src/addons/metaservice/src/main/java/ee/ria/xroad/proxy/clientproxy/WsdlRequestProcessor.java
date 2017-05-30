@@ -22,22 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -50,20 +34,39 @@ import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-
 import static org.apache.commons.lang.StringUtils.isBlank;
 
+/**
+ * A processor of WSDL requests.
+ */
 @Slf4j
 @RequiredArgsConstructor
-class WsdlRequestProcessor {
-    private static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
-    private static final String PARAM_MEMBER_CLASS = "memberClass";
-    private static final String PARAM_MEMBER_CODE = "memberCode";
-    private static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
-    private static final String PARAM_SERVICE_CODE = "serviceCode";
-    private static final String PARAM_VERSION = "version";
+public class WsdlRequestProcessor {
+
+    // These are public for proxy testsuite: GetWsdlMessage purposes
+    public static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
+    public static final String PARAM_MEMBER_CLASS = "memberClass";
+    public static final String PARAM_MEMBER_CODE = "memberCode";
+    public static final String PARAM_SERVICE_CODE = "serviceCode";
+
+    // these are package-private for unit test purposes
+    static final String PARAM_SUBSYSTEM_CODE = "subsystemCode";
+    static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
 
@@ -119,7 +122,8 @@ class WsdlRequestProcessor {
         return ServiceId.create(service.getClientId(), GET_WSDL, service.getServiceVersion());
     }
 
-    private ServiceId getServiceId() {
+    // package-private for unit-test purposes
+    ServiceId getServiceId() {
         String instance = request.getParameter(PARAM_INSTANCE_IDENTIFIER);
 
         if (isBlank(instance)) {
@@ -149,7 +153,8 @@ class WsdlRequestProcessor {
         }
     }
 
-    private HttpURLConnection createConnection(SoapMessageImpl message) throws Exception {
+    // package-private for unit-test purposes
+    HttpURLConnection createConnection(SoapMessageImpl message) throws Exception {
         URL url = new URL("http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort());
 
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
