@@ -45,7 +45,7 @@ var XROAD_CAS = function() {
         });
 
         $("#cas").on("dblclick", "tbody tr", function() {
-            $("#ca_edit").click();
+            XROAD_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
         });
 
         $("#ca_add").click(function() {

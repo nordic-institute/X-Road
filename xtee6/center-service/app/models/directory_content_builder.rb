@@ -40,14 +40,16 @@ class DirectoryContentBuilder
     @allowed_content_identifiers = allowed_content_identifiers
   end
 
-  def build(data_boundary)
+  def build(data_boundary, version=1)
+    path_prefix = "/V#{version}"
     content_lines = []
     content_lines << "--#{data_boundary}"
     content_lines << "Expire-date: "\
         "#{@expire_date.utc().strftime "%Y-%m-%dT%H:%M:%SZ"}"
+    content_lines << "Version: #{version}"
     content_lines << ""
 
-    DistributedFiles.get_all.each do |distributed_file|
+    DistributedFiles.get_all(version).each do |distributed_file|
       next if !can_add_file?(distributed_file)
 
       file_data = distributed_file.file_data
@@ -64,7 +66,7 @@ class DirectoryContentBuilder
       content_lines << "Content-identifier: #{content_identifier}; "\
           "instance='#{SystemParameter.instance_identifier}'"
       content_lines <<
-          "Content-location: /#@generation_timestamp/#{distributed_file.file_name}"
+          "Content-location: #{path_prefix}/#{@generation_timestamp}/#{distributed_file.file_name}"
       content_lines << "Hash-algorithm-id: #{@hash_calculator.getAlgoURI()}"
       content_lines << ""
       content_lines << @hash_calculator.calculateFromBytes(

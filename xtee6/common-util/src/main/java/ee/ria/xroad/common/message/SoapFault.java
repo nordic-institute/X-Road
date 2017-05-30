@@ -23,55 +23,79 @@
 package ee.ria.xroad.common.message;
 
 import ee.ria.xroad.common.CodedException;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringEscapeUtils;
 
-import javax.xml.namespace.QName;
-import javax.xml.soap.*;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import javax.xml.soap.SOAPFault;
 
 /**
  * Soap interface implementation representing an error message.
  */
 public class SoapFault implements Soap {
 
-    private static final QName FAULT_DETAIL = new QName(SoapHeader.NS_XROAD, "faultDetail", SoapHeader.PREFIX_XROAD);
+    static final String SOAP_NS_SOAP_ENV =
+            "http://schemas.xmlsoap.org/soap/envelope/";
 
-    private final QName faultCode;
+    private final String faultCode;
     private final String faultString;
     private final String faultActor;
     private final String faultDetail;
 
+    private final byte[] rawXml;
+    private final String charset;
+
+    /**
+     * Creates a new SOAP fault from the given parts.
+     * @param faultCode the fault code
+     * @param faultString the fault string
+     * @param faultActor the fault actor
+     * @param faultDetail the fault detail
+     * @param rawXml the raw XML data
+     * @param charset the charset of the XML
+     */
+    public SoapFault(String faultCode, String faultString, String faultActor,
+                     String faultDetail, byte[] rawXml, String charset) {
+        this.faultCode = faultCode;
+        this.faultString = faultString;
+        this.faultActor = faultActor;
+        this.faultDetail = faultDetail;
+        this.rawXml = rawXml;
+        this.charset = charset;
+    }
+
     /**
      * Creates a new SOAP fault from a SOAPFault DOM element.
-     *
      * @param soapFault the DOM element used in created of the fault
      */
     public SoapFault(SOAPFault soapFault) {
-        this.faultCode = soapFault.getFaultCodeAsQName();
+        this(soapFault, null, null);
+    }
+
+    /**
+     * Creates a new SOAP fault from a SOAPFault DOM element.
+     * @param soapFault the DOM element used in created of the fault
+     * @param rawXml the raw XML data
+     * @param charset the charset of the XML
+     */
+    public SoapFault(SOAPFault soapFault, byte[] rawXml, String charset) {
+        this.faultCode = soapFault.getFaultCode();
         this.faultString = soapFault.getFaultString();
         this.faultActor = soapFault.getFaultActor();
         this.faultDetail = getFaultDetail(soapFault);
+        this.rawXml = rawXml;
+        this.charset = charset;
     }
 
     /**
      * Gets the fault code of the SOAP fault.
-     *
      * @return a String with the fault code
      */
     public String getCode() {
-        return faultCode.getLocalPart();
-    }
-
-    /**
-     * @return fault code as QName
-     */
-    public QName getCodeAsQName() {
         return faultCode;
     }
 
     /**
      * Gets the fault string of the SOAP fault.
-     *
      * @return a String giving an explanation of the fault
      */
     public String getString() {
@@ -80,7 +104,6 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault actor of the SOAP fault.
-     *
      * @return a String giving the actor in the message path that caused this fault
      */
     public String getActor() {
@@ -89,7 +112,6 @@ public class SoapFault implements Soap {
 
     /**
      * Gets the fault detail of the SOAP fault.
-     *
      * @return a String with application-specific error information
      */
     public String getDetail() {
@@ -98,70 +120,68 @@ public class SoapFault implements Soap {
 
     /**
      * Converts this SOAP fault into a coded exception.
-     *
      * @return CodedException
      */
+    @SneakyThrows
     public CodedException toCodedException() {
-        return CodedException.fromFault(faultCode, faultString, faultActor, faultDetail);
+        return CodedException.fromFault(faultCode, faultString, faultActor,
+                faultDetail, new String(rawXml, charset));
     }
 
     @Override
-    public String getXml() throws IOException {
-        return createFaultXml(faultCode, faultString, faultActor, faultDetail);
+    public String getXml() throws Exception {
+        if (rawXml != null) {
+            return new String(rawXml, charset);
+        } else {
+            return createFaultXml(faultCode, faultString, faultActor,
+                    faultDetail);
+        }
     }
 
     /**
      * Creates SOAP fault message from exception.
-     *
      * @param ex exception representing a SOAP fault
      * @return a String containing XML of the SOAP fault represented by the given coded exception
      */
-    public static String createFaultXml(CodedException ex) throws IOException {
-        return createFaultXml(ex.getFaultCodeAsQName(), ex.getFaultString(), ex.getFaultActor(), ex.getFaultDetail());
-    }
-
-    /**
-     * Creates a SOAP fault message.
-     *
-     * @param faultCode   code of the new SOAP fault
-     * @param faultString string of the new SOAP fault
-     * @param faultActor  actor of the new SOAP fault
-     * @param detail      detail of the new SOAP fault
-     * @return a String containing XML of the SOAP fault represented by the given parameters
-     */
-    public static String createFaultXml(QName faultCode, String faultString,
-                                        String faultActor, String detail) throws IOException {
-
-        try {
-            final SOAPMessage msg = SoapUtils.MESSAGE_FACTORY.createMessage();
-            final SOAPFault soapFault = msg.getSOAPBody().addFault();
-            soapFault.setFaultCode(faultCode);
-            if (faultActor != null) {
-                soapFault.setFaultActor(faultActor);
-            }
-            if (faultString != null) {
-                soapFault.setFaultString(faultString);
-            }
-            if (detail != null) {
-                soapFault.addDetail().addChildElement(FAULT_DETAIL).addTextNode(detail);
-            }
-            return SoapUtils.getXml(msg, StandardCharsets.UTF_8.name());
-        } catch (SOAPException | IOException e) {
-            //SoapUtils.getXml converts SOAP exceptions to IOExceptions
-            throw new IOException("Creating fault xml failed", e);
+    public static String createFaultXml(CodedException ex) {
+        if (ex instanceof CodedException.Fault) {
+            return ((CodedException.Fault) ex).getFaultXml();
+        } else {
+            return createFaultXml(ex.getFaultCode(), ex.getFaultString(),
+                    ex.getFaultActor(), ex.getFaultDetail());
         }
     }
 
     /**
      * Creates a SOAP fault message.
-     *
-     * @see #createFaultXml(QName, String, String, String)
+     * @param faultCode code of the new SOAP fault
+     * @param faultString string of the new SOAP fault
+     * @param faultActor actor of the new SOAP fault
+     * @param detail detail of the new SOAP fault
+     * @return a String containing XML of the SOAP fault represented by the given parameters
      */
-    public static String createFaultXml(String faultCode,
-                                        String faultString,
-                                        String faultActor,
-                                        String detail) throws IOException {
-        return createFaultXml(new QName(faultCode), faultString, faultActor, detail);
+    public static String createFaultXml(String faultCode, String faultString,
+                                        String faultActor, String detail) {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                + "<SOAP-ENV:Envelope "
+                + "xmlns:SOAP-ENV=\"" + SOAP_NS_SOAP_ENV + "\">"
+                + "<SOAP-ENV:Body>"
+                + "<SOAP-ENV:Fault>"
+                + "<faultcode>" + faultCode + "</faultcode>"
+                + "<faultstring>"
+                + StringEscapeUtils.escapeXml(faultString)
+                + "</faultstring>"
+                + (faultActor != null
+                ? "<faultactor>"
+                + StringEscapeUtils.escapeXml(faultActor)
+                + "</faultactor>" : "")
+                + (detail != null
+                ? "<detail><faultDetail xmlns=\"\">"
+                + StringEscapeUtils.escapeXml(detail)
+                + "</faultDetail>" + "</detail>" : "")
+                + "</SOAP-ENV:Fault>"
+                + "</SOAP-ENV:Body>"
+                + "</SOAP-ENV:Envelope>";
     }
 
     private static String getFaultDetail(SOAPFault soapFault) {

@@ -22,10 +22,21 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -33,31 +44,23 @@ import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 /**
  * Actually tests inner class of LogArchive.
  */
-@Slf4j
 public class LogArchiveCacheTest {
     private static final int TOO_LARGE_CONTAINER_SIZE = 10000;
     private static final int ARCHIVE_SIZE_SMALL = 50;
@@ -76,19 +79,10 @@ public class LogArchiveCacheTest {
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
-    private LogArchiveCache cache = new LogArchiveCache(
-            getMockRandomGenerator(), mockLinkingInfoBuilder());
+    private LogArchiveCache cache = createCache(getMockRandomGenerator());
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    /**
-     * Preparations for testing log archive cache.
-     */
-    @Before
-    public void beforeTest() {
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp/");
-    }
 
     /**
      * Test to ensure one entry of normal size can be added successfully.
@@ -103,7 +97,6 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        // TODO Get bytes from temp file from now on!
         assertZip(expectedNormalSizeRequestEntryName(), getArchiveBytes());
         assertFalse(
                 "Should not rotate, as entry is small enough to fit in.",
@@ -185,7 +178,9 @@ public class LogArchiveCacheTest {
     public void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip()
             throws Exception {
         setMaxArchiveSizeDefault();
-        createCacheWithMoreRealisticRandom();
+
+        // Create cache with more realistic random generator
+        cache = createCache(new TestRandomGenerator());
 
         // First record
         cache.add(createRequestRecordNormal());
@@ -198,11 +193,6 @@ public class LogArchiveCacheTest {
 
     private byte[] getArchiveBytes() throws IOException {
         return IOUtils.toByteArray(cache.getArchiveFile());
-    }
-
-    private void createCacheWithMoreRealisticRandom() {
-        cache = new LogArchiveCache(
-                new TestRandomGenerator(), mockLinkingInfoBuilder());
     }
 
     private void setMaxArchiveSizeSmall() {
@@ -293,8 +283,8 @@ public class LogArchiveCacheTest {
         return new Date(LOG_TIME_RESPONSE_NORMAL);
     }
 
-    private void assertZip(
-            List<String> expectedEntryNames, byte[] archiveBytes) throws IOException {
+    private void assertZip(List<String> expectedEntryNames,
+            byte[] archiveBytes) throws IOException {
         if (archiveBytes == null || archiveBytes.length == 0) {
             fail("Bytes of zip archive must not be empty");
         }
@@ -376,6 +366,14 @@ public class LogArchiveCacheTest {
         when(builder.build()).thenReturn("DUMMY".getBytes());
 
         return builder;
+    }
+
+    private LogArchiveCache createCache(Supplier<String> randomGenerator) {
+        return new LogArchiveCache(
+            randomGenerator,
+            mockLinkingInfoBuilder(),
+            Paths.get("build/tmp/")
+        );
     }
 
     @RequiredArgsConstructor

@@ -23,7 +23,7 @@
 
 java_import Java::java.util.UUID
 
-java_import Java::ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory
+java_import Java::ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.commonui.SignerProxy
 java_import Java::ee.ria.xroad.signer.protocol.dto.KeyUsageInfo
@@ -123,8 +123,8 @@ class ConfigurationSource < ActiveRecord::Base
       )
   end
 
-  def generate_signing_key(token_id)
-    key_info = SignerProxy::generateKey(token_id)
+  def generate_signing_key(token_id, label)
+    key_info = SignerProxy::generateKey(token_id, label)
 
     begin
       cert = SignerProxy::generateSelfSignedCert(

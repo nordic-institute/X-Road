@@ -36,15 +36,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.common.util.CryptoUtils;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines the set of properties for a configuration proxy instance and provides
@@ -109,8 +109,8 @@ public class ConfProxyProperties {
      * configuration files for this configuration proxy instance.
      * @return download path for the global configuration files
      */
-    public final String getConfigurationDownloadPath() {
-        return Paths.get(SystemProperties.getConfigurationPath(), instance)
+    public final String getConfigurationDownloadPath(int version) {
+        return Paths.get(SystemProperties.getConfigurationPath(), String.format("V%d", version), instance)
                 .toString();
     }
 
@@ -237,7 +237,7 @@ public class ConfProxyProperties {
      * @return a list containing configured key ids
      */
     public final List<String> getKeyList() {
-        List<String> keys = new ArrayList<String>();
+        List<String> keys = new ArrayList<>();
         Iterator<String> signingKeys = config.getKeys();
         while (signingKeys.hasNext()) {
             String k = signingKeys.next();
@@ -363,7 +363,8 @@ public class ConfProxyProperties {
                 new FileInputStream(getCertPath(keyId).toFile())) {
             return CryptoUtils.readCertificate(is);
         } catch (Exception e) {
-            log.error("Failed to read cert for key ID '{}'. Exception: {}", keyId, e);
+            log.error("Failed to read cert for key ID '{}'", keyId, e);
+
             return null;
         }
     }

@@ -22,11 +22,48 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.assertTaskQueueSize;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
+import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.criterion.Restrictions;
+import org.joda.time.DateTime;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import akka.actor.Props;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.*;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.AbstractLogRecord;
+import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
@@ -34,31 +71,8 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.io.File;
-import java.io.FileFilter;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.ErrorCodes.X_SLOG_TIMESTAMPER_FAILED;
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.proxy.messagelog.TestUtil.*;
-import static org.junit.Assert.*;
 
 /**
  * Contains tests to verify correct message log behavior.
@@ -198,7 +212,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
      * the database.
      * @throws Exception in case of any unexpected errors
      *
-     * TODO As this test is quite expensive in terms of time and usable
+     * FUTURE As this test is quite expensive in terms of time and usable
      * resources (in addition depends on external utilities), consider moving
      * this test apart from unit tests.
      */
@@ -264,7 +278,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     public void timestampingFailedStopLogging() throws Exception {
         initLogManager();
 
-        thrown.expectError(X_SLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
 
         System.setProperty(
                 MessageLogProperties.ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD, "1");
@@ -351,7 +365,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         ServerConf.reload(new EmptyServerConf());
         initLogManager();
 
-        thrown.expectError(X_SLOG_TIMESTAMPER_FAILED);
+        thrown.expectError(X_MLOG_TIMESTAMPER_FAILED);
 
         log(createMessage(), createSignature());
     }
@@ -472,8 +486,11 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @SneakyThrows
     private static String getLastHashStepInDatabase() {
         return doInTransaction(session -> {
-            Query query = session.createQuery(getLastDigestQuery());
-            return (String) query.setMaxResults(1).list().get(0);
+            return (String) session
+                    .createQuery(getLastDigestQuery())
+                    .setMaxResults(1)
+                    .list()
+                    .get(0);
         });
     }
 
@@ -528,16 +545,17 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static Date getDate(String dateStr) throws Exception {
-        DateFormat df = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS");
-        return df.parse(dateStr);
+        return new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS").parse(dateStr);
     }
 
     private static int getNumberOfRecords(final boolean archived)
             throws Exception {
         return doInTransaction(session -> {
-            Criteria criteria = session.createCriteria(AbstractLogRecord.class);
-            criteria.add(Restrictions.eq("archived", archived));
-            return criteria.list().size();
+            return session
+                    .createCriteria(AbstractLogRecord.class)
+                    .add(Restrictions.eq("archived", archived))
+                    .list()
+                    .size();
         });
     }
 
@@ -573,8 +591,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         }
 
         @Override
-        protected Class<? extends TaskQueue> getTaskQueueImpl() {
-            return TestTaskQueue.class;
+        protected Props getTaskQueueImpl() {
+            return Props.create(TestTaskQueue.class);
         }
 
         /**
@@ -603,18 +621,22 @@ public class MessageLogTest extends AbstractMessageLogTest {
         }
 
         @Override
-        protected Class<? extends Timestamper> getTimestamperImpl() {
-            return TestTimestamper.class;
+        protected Props getTimestamperImpl() {
+            return Props.create(TestTimestamper.class);
         }
 
         @Override
-        protected Class<? extends LogArchiver> getArchiverImpl() {
-            return TestLogArchiver.class;
+        protected Props getArchiverImpl() {
+            return Props.create(
+                TestLogArchiver.class,
+                Paths.get("build"),
+                Paths.get("build/tmp")
+            );
         }
 
         @Override
-        protected Class<? extends LogCleaner> getCleanerImpl() {
-            return TestLogCleaner.class;
+        protected Props getCleanerImpl() {
+            return Props.create(TestLogCleaner.class);
         }
 
         @Override

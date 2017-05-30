@@ -3,12 +3,15 @@
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/var/log/xroad/clientproxy_access.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/xroad/clientproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>100MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+        <!-- NB! Use ee.ria.xroad.common.XRoadSizeBasedRollingPolicy rolling -->
+        <!-- policy instead of ch.qos.logback.core.rolling.TimeBasedRollingPolicy -->
+        <!-- as a workaround for Logback bug http://jira.qos.ch/browse/LOGBACK-992 -->
+        <rollingPolicy class="ee.ria.xroad.common.XRoadSizeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/clientproxy_access.%i.log.zip</fileNamePattern>
         </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>100MB</maxFileSize>
+        </triggeringPolicy>
         <encoder>
             <pattern>combined</pattern>
             <charset>UTF-8</charset>

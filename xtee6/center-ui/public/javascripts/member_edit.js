@@ -1,10 +1,11 @@
 var XROAD_MEMBER_EDIT = function() {
     var oAddableUsedServers;
     var remainingGlobalGroups = {};
+    var fnServerDataRefresh;
 
     function open(memberData) {
         if (can("view_member_details")) {
-            openMemberEditDialog(memberData);
+            fnServerDataRefresh = openMemberEditDialog(memberData);
         }
     }
 
@@ -23,8 +24,8 @@ var XROAD_MEMBER_EDIT = function() {
 
         $("#member_name_edit_dialog").initDialog({
             modal: true,
-            height: 230,
-            width: 360,
+            height: 175,
+            width: 700,
             buttons: [{
                 text: _("common.ok"),
                 click: function() {
@@ -36,9 +37,9 @@ var XROAD_MEMBER_EDIT = function() {
                         memberName: newName
                     };
 
-                    $.post("members/member_edit", params, function() {
+                    $.post("members/member_edit", params, function(response) {
                         if (typeof onSubmit != "undefined") {
-                            onSubmit(newName);
+                            onSubmit(response.data.name);
                         }
 
                         XROAD_MEMBERS.redrawMembersTable();
@@ -101,11 +102,19 @@ var XROAD_MEMBER_EDIT = function() {
                 }
             }],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
             },
             close: function() {
+                $("#owned_server_cert_upload").val("");
                 $(this).dialog("destroy");
             }
+        });
+
+        // FUTURE: Make it work with enableForInput() instead!
+        // Test with Linux and Chromium browser!
+        $("#owned_server_add_servercode").on("change keyup paste",
+                function(ev) {
+            updateOwnedServerCertSubmitButton(ev);
         });
 
         $("#owned_server_cert_upload").unbind("change")
@@ -114,13 +123,16 @@ var XROAD_MEMBER_EDIT = function() {
                 // function uploadCallbackOwnedServerAuthCert manages
                 // post-submission activities on UI part
             });
+        // for testability
+        $("#owned_server_add_dialog").parent().attr("data-name", "owned_server_add_dialog");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
+        $("button span:contains('Submit')").parent().attr("data-name", "submit");
     }
 
     function uploadCallbackOwnedServerAuthCert(response) {
         var submitButton = $("#add_owned_server_submit");
 
         if (response.success) {
-            $("#owned_server_cert_upload").val("");
             $("#owned_server_authcert_csp").text(response.data.csp);
             $("#owned_server_authcert_serial_number").text(
                 response.data.serial_number);
@@ -128,7 +140,8 @@ var XROAD_MEMBER_EDIT = function() {
             $("#owned_server_authcert_expires").text(response.data.expires);
             $("#owned_server_temp_cert_id").text(response.data.temp_cert_id);
 
-            submitButton.enable();
+            updateOwnedServerCertSubmitButton();
+
             $(".auth_cert_details").show();
         } else {
             clearOwnedServerCertData();
@@ -140,6 +153,14 @@ var XROAD_MEMBER_EDIT = function() {
         showMessages(response.messages);
 
         return true;
+    }
+
+    function refreshServerData() {
+        if (typeof fnServerDataRefresh != 'function') {
+            return;
+        }
+
+        fnServerDataRefresh();
     }
 
     function clearOwnedServerAddData() {
@@ -155,6 +176,43 @@ var XROAD_MEMBER_EDIT = function() {
         $("#owned_server_authcert_serial_number").val("");
         $("#owned_server_authcert_subject").val("");
         $("#owned_server_authcert_expires").val("");
+    }
+
+    function openSubsystemAddDialog(memberId, memberName, onSubmit) {
+        $("#subsystem_add_code").val("");
+
+        $("#subsystem_add_dialog").initDialog({
+            modal: true,
+            height: 200,
+            width: 500,
+            buttons: [{
+                id: "subsystem_add_submit",
+                text: _("common.ok"),
+                click: function() {
+                    var self = this;
+                    var params = {
+                        memberClass: memberId.memberClass,
+                        memberCode: memberId.memberCode,
+                        subsystemCode: $("#subsystem_add_code", this).val()
+                    };
+
+                    $.post("members/add_subsystem", params, function(response) {
+                        onSubmit(response);
+                        $(self).dialog("close");
+                    }, "json");
+                }
+            }, {
+                text: _("common.cancel"),
+                click: function() {
+                    $(this).dialog("close");
+                }
+            }],
+            close: function() {
+                $(this).dialog("destroy");
+            }
+        });
+
+        $("#subsystem_add_submit").enableForInput("#subsystem_add_code");
     }
 
     function openMemberToGlobalGroupAddDialog(memberId, memberName, onSubmit) {
@@ -245,6 +303,7 @@ var XROAD_MEMBER_EDIT = function() {
 
     function selectUsedServer(usedServerSearchDialog) {
         fillUsedServerFields();
+        updateUsedServerSubmitButton();
         closeDialog(usedServerSearchDialog);
     }
 
@@ -257,19 +316,54 @@ var XROAD_MEMBER_EDIT = function() {
         $("#used_server_server_code").text(serverData.server_code);
     }
 
-    function openUsedServersRegisterDialog(memberId, memberName, onSubmit) {
+    function updateUsedServerSubmitButton() {
+        var usedServerSubmitButton = $("#member_used_server_register_submit");
+
+        if (isReadonlyInputFilled($("#used_server_owner_class")) &&
+                isReadonlyInputFilled($("#used_server_owner_code"))) {
+            usedServerSubmitButton.enable();
+        } else {
+            usedServerSubmitButton.disable();
+        }
+    }
+
+    function updateOwnedServerCertSubmitButton(ev) {
+        var submitButton = $("#add_owned_server_submit");
+
+        if (isInputFilled($("#owned_server_add_servercode"), ev)
+                && isInputFilled($("#owned_server_cert_upload"))) {
+            submitButton.enable();
+        } else {
+            submitButton.disable();
+        }
+    }
+
+    function openUsedServersRegisterDialog(memberId, memberName, onSubmit,
+            clientIsManagementServiceProvider) {
         clearUsedServerAddData();
+
+        var title = clientIsManagementServiceProvider
+            ? _("members.edit.used_servers.add.management_service_provider_title")
+            : _("members.edit.used_servers.add.title");
 
         $("#used_server_name").text(memberName);
         $("#used_server_class").text(memberId.memberClass);
         $("#used_server_code").text(memberId.memberCode);
 
+        if (clientIsManagementServiceProvider) {
+            $("#used_server_subsystem_code")
+                .val(memberId.subsystemCode).disable();
+        }
+
         $("#member_used_server_register_dialog").initDialog({
+            title: title,
             modal: true,
-            height: "auto",
+            height: 600,
             width: 560,
             buttons: [{
                 text: _("common.submit"),
+                disabled: "disabled",
+                id: "member_used_server_register_submit",
                 click: function() {
                     var self = this;
                     var params = {
@@ -281,14 +375,17 @@ var XROAD_MEMBER_EDIT = function() {
                         serverCode: $("#used_server_server_code").text()
                     };
 
-                    $.post("members/add_new_server_client_request", params,
-                           function() {
+                    var postUrl = clientIsManagementServiceProvider
+                        ? "system_settings/service_provider_register"
+                        : "members/add_new_server_client_request";
+
+                    $.post(postUrl, params, function(response) {
                         clearUsedServerAddData();
 
                         $(self).dialog("close");
 
                         if (typeof onSubmit != "undefined") {
-                            onSubmit();
+                            onSubmit(response);
                         }
                     }, "json");
                 }
@@ -299,7 +396,7 @@ var XROAD_MEMBER_EDIT = function() {
                 }
             }],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
                 initUsedServerSubsystemCodeAutocomplete();
             },
             close: function() {
@@ -310,8 +407,13 @@ var XROAD_MEMBER_EDIT = function() {
 
         $("#used_server_server_search").unbind("click")
             .click(function() {
-                $("#securityserver_search_dialog").dialog("open");
+                openSecurityServerSearchDialog();
             });
+    }
+
+    function openSecurityServerSearchDialog() {
+        $("#member_securityserver_search_select").disable();
+        $("#securityserver_search_dialog").dialog("open");
     }
 
     function clearUsedServerAddData() {
@@ -394,8 +496,8 @@ var XROAD_MEMBER_EDIT = function() {
             }
         });
 
-        oAddableUsedServers.on("dblclick", "tbody td[class!=dataTables_empty]",
-                function() {
+        oAddableUsedServers.unbind("dblclick")
+                .on( "dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_securityserver_search_select").click();
         });
     }
@@ -422,7 +524,10 @@ var XROAD_MEMBER_EDIT = function() {
         openMemberNameEditDialog: openMemberNameEditDialog,
         openOwnedServersAddDialog: openOwnedServersAddDialog,
         openMemberToGlobalGroupAddDialog: openMemberToGlobalGroupAddDialog,
+        openSubsystemAddDialog: openSubsystemAddDialog,
         openUsedServersRegisterDialog: openUsedServersRegisterDialog,
+
+        refreshServerData: refreshServerData,
 
         uploadCallbackOwnedServerAuthCert: uploadCallbackOwnedServerAuthCert
     };

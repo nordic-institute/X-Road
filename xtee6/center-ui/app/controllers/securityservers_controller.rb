@@ -59,6 +59,10 @@ class SecurityserversController < ApplicationController
   def get_cert_details_by_id
     authorize!(:view_security_server_details)
 
+    validate_params({
+      :certId => [:required]
+    })
+
     raw_cert = AuthCert.find(params[:certId])
     render_cert_dump_and_hash(raw_cert.cert)
   end
@@ -97,6 +101,12 @@ class SecurityserversController < ApplicationController
   def server_security_categories
     authorize!(:view_security_server_details)
 
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required]
+    })
+
     server  = find_server(params[:serverCode],
         params[:ownerCode], params[:ownerClass])
 
@@ -106,7 +116,13 @@ class SecurityserversController < ApplicationController
   def all_security_categories
     authorize!(:view_security_server_details)
 
-    server  = find_server(params[:serverCode],
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required]
+    })
+
+    server = find_server(params[:serverCode],
         params[:ownerCode], params[:ownerClass])
 
     all_categories = SecurityCategory.find(:all)
@@ -126,6 +142,12 @@ class SecurityserversController < ApplicationController
   def clients
     authorize!(:view_security_server_details)
 
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required]
+    })
+
     server  = find_server(params[:serverCode],
         params[:ownerCode], params[:ownerClass])
 
@@ -142,7 +164,7 @@ class SecurityserversController < ApplicationController
         xroad_member = client
       end
 
-      logger.debug("XROAD member for client: '#{xroad_member.inspect}'")
+      logger.debug("X-Road member for client: '#{xroad_member.inspect}'")
 
       clients << {
         :id => xroad_member.id,
@@ -159,7 +181,13 @@ class SecurityserversController < ApplicationController
   def auth_certs
     authorize!(:view_security_server_details)
 
-    server  = find_server(params[:serverCode],
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required]
+    })
+
+    server = find_server(params[:serverCode],
         params[:ownerCode], params[:ownerClass])
 
     auth_certs = []
@@ -203,6 +231,10 @@ class SecurityserversController < ApplicationController
   def get_server_by_id
     authorize!(:view_security_server_details)
 
+    validate_params({
+      :serverId => [:required]
+    })
+
     server = SecurityServer.find(params[:serverId])
     render_json(get_full_server_data_as_json(server))
   end
@@ -216,6 +248,13 @@ class SecurityserversController < ApplicationController
 
     authorize!(:edit_security_server_address)
 
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required],
+      :address => [:required]
+    })
+
     audit_log_data[:serverCode] = params[:serverCode]
     audit_log_data[:ownerCode] = params[:ownerCode]
     audit_log_data[:ownerClass] = params[:ownerClass]
@@ -226,11 +265,18 @@ class SecurityserversController < ApplicationController
 
     server_to_update.update_attributes!(:address => params[:address])
 
-    render_json
+    render_json({
+      :address => server_to_update.address
+    })
   end
 
   def edit_security_categories
     authorize!(:edit_security_server_security_category)
+
+    validate_params({
+      :serverData => [:required],
+      :categories => []
+    })
 
     server_data = params[:serverData]
     server = find_server(server_data[:serverCode],
@@ -250,6 +296,12 @@ class SecurityserversController < ApplicationController
 
     authorize!(:delete_security_server)
 
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required]
+    })
+
     audit_log_data[:serverCode] = params[:serverCode]
     audit_log_data[:ownerCode] = params[:ownerCode]
     audit_log_data[:ownerClass] = params[:ownerClass]
@@ -265,7 +317,11 @@ class SecurityserversController < ApplicationController
   def import_auth_cert
     authorize!(:add_security_server_auth_cert_reg_request)
 
-    cert_param = get_uploaded_file_param
+    validate_params({
+      :securityserver_auth_cert_upload => [:required],
+    })
+
+    cert_param = params[:securityserver_auth_cert_upload]
     validate_auth_cert(cert_param)
     auth_cert_data = upload_cert(cert_param)
 
@@ -279,6 +335,13 @@ class SecurityserversController < ApplicationController
       audit_log_data = {})
 
     authorize!(:add_security_server_auth_cert_reg_request)
+
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required],
+      :tempCertId => [:required]
+    })
 
     audit_log_data[:ownerClass] = params[:ownerClass]
     audit_log_data[:ownerCode] = params[:ownerCode]
@@ -300,7 +363,7 @@ class SecurityserversController < ApplicationController
     notice(t("securityservers.add_auth_cert_adding_request",
         {:security_server => request.security_server}))
 
-    render_json()
+    render_json
   end
 
   def auth_cert_deletion_request
@@ -308,6 +371,13 @@ class SecurityserversController < ApplicationController
       audit_log_data = {})
 
     authorize!(:delete_security_server_auth_cert)
+
+    validate_params({
+      :serverCode => [:required],
+      :ownerCode => [:required],
+      :ownerClass => [:required],
+      :certId => [:required]
+    })
 
     audit_log_data[:ownerClass] = params[:ownerClass]
     audit_log_data[:ownerCode] = params[:ownerCode]

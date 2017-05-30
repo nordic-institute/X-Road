@@ -22,30 +22,36 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
+
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
-import ee.ria.xroad.signer.protocol.dto.*;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.GetAuthKey;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 
 /**
  * Handles authentication key retrieval requests.
@@ -56,6 +62,9 @@ public class GetAuthKeyRequestHandler
 
     @Override
     protected Object handle(GetAuthKey message) throws Exception {
+        log.trace("Selecting authentication key for security server {}",
+                message.getSecurityServer());
+
         if (!SoftwareTokenUtil.isTokenInitialized()) {
             throw tokenNotInitialized(SoftwareTokenType.ID);
         }
@@ -66,20 +75,26 @@ public class GetAuthKeyRequestHandler
 
         for (TokenInfo tokenInfo : TokenManager.listTokens()) {
             if (!SoftwareModuleType.TYPE.equals(tokenInfo.getType())) {
+                log.trace("Ignoring {} module", tokenInfo.getType());
                 continue;
             }
 
             for (KeyInfo keyInfo : tokenInfo.getKeyInfo()) {
                 if (keyInfo.getUsage() != KeyUsageInfo.AUTHENTICATION) {
+                    log.trace("Ignoring {} key {}", keyInfo.getUsage(),
+                            keyInfo.getId());
                     continue;
                 }
 
                 if (!keyInfo.isAvailable()) {
+                    log.trace("Ignoring unavailable key {}", keyInfo.getId());
                     continue;
                 }
 
                 for (CertificateInfo certInfo : keyInfo.getCerts()) {
                     if (authCertValid(certInfo, message.getSecurityServer())) {
+                        log.trace("Found suitable authentication key {}",
+                                keyInfo.getId());
                         return authKeyResponse(keyInfo, certInfo);
                     }
                 }
@@ -103,19 +118,25 @@ public class GetAuthKeyRequestHandler
 
     private boolean authCertValid(CertificateInfo certInfo,
             SecurityServerId securityServer) throws Exception {
+        X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
+
         if (!certInfo.isActive()) {
+            log.trace("Ignoring inactive authentication certificate {}",
+                    CertUtils.identify(cert));
             return false;
         }
 
         if (!isRegistered(certInfo.getStatus())) {
+            log.trace("Ignoring non-registered ({}) authentication certificate"
+                    + " {}", certInfo.getStatus(), CertUtils.identify(cert));
             return false;
         }
 
-        X509Certificate cert = readCertificate(certInfo.getCertificateBytes());
+        SecurityServerId serverIdFromConf = GlobalConf.getServerId(cert);
         try {
             cert.checkValidity();
 
-            if (securityServer.equals(GlobalConf.getServerId(cert))) {
+            if (securityServer.equals(serverIdFromConf)) {
                 verifyOcspResponse(securityServer.getXRoadInstance(), cert, certInfo.getOcspBytes(),
                         new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
                 return true;
@@ -123,8 +144,14 @@ public class GetAuthKeyRequestHandler
         } catch (Exception e) {
             log.warn("Ignoring authentication certificate '{}' because: ",
                     cert.getSubjectX500Principal().getName(), e);
+            return false;
         }
 
+        log.trace("Ignoring authentication certificate {} because it does "
+                + "not belong to security server {} "
+                + "(server id from global conf: {})", new Object[] {
+                        CertUtils.identify(cert),
+                        securityServer, serverIdFromConf});
         return false;
     }
 

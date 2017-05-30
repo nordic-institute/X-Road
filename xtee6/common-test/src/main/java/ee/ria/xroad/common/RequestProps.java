@@ -32,20 +32,18 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import ee.ria.xroad.common.Request.RequestTag;
 
 /**
- * Encapsulates everything that is specific to one request: name, content and
- * whether it is asynchronous or not.
+ * Encapsulates everything that is specific to one request: name and content.
+ *
+ * FUTURE Only 'extra' project uses it (subproject 'testclient')
  */
 public abstract class RequestProps {
     protected List<RequestTag> content;
-    protected boolean async;
 
     /**
      * Creates a request properties object with no content.
-     * @param async whether the request is asynchronous
      */
-    public RequestProps(boolean async) {
+    public RequestProps() {
         this.content = new ArrayList<>();
-        this.async = async;
     }
 
     /**
@@ -58,13 +56,6 @@ public abstract class RequestProps {
      */
     public List<RequestTag> getContent() {
         return Collections.unmodifiableList(content);
-    }
-
-    /**
-     * @return true if this request is asynchronous
-     */
-    public boolean isAsync() {
-        return async;
     }
 
     @Override

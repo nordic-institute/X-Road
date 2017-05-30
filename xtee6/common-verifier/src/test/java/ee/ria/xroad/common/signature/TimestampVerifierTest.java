@@ -27,7 +27,7 @@ import java.io.FileInputStream;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -62,10 +62,10 @@ public class TimestampVerifierTest {
         TestSecurityUtil.initSecurity();
 
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common-util/src/test/resources/globalconf_good");
+                "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectory(getConfigurationPath())));
+        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectoryV2(getConfigurationPath())));
     }
 
     /**

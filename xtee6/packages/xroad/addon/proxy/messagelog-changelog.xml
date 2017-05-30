@@ -9,4 +9,5 @@
   <include file="messagelog/1-indices.xml"/>
   <include file="messagelog/2-lastarchive.xml"/>
   <include file="messagelog/3-clientids.xml"/>
+  <include file="messagelog/4-archive-index.xml"/>
 </databaseChangeLog>

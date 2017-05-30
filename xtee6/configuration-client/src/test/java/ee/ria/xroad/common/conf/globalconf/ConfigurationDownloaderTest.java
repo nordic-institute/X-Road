@@ -22,12 +22,9 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import lombok.Getter;
-import lombok.Value;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +34,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import ee.ria.xroad.common.SystemProperties;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.Test;
+
+import lombok.Getter;
+import lombok.Value;
 
 /**
  * Tests for configuration downloader
@@ -223,7 +227,7 @@ public class ConfigurationDownloaderTest {
             String ... successfulLocationUrls) {
         FileNameProvider fileNameProvider = file -> new File("f").toPath();
 
-        return new ConfigurationDownloader(fileNameProvider) {
+        return new ConfigurationDownloader(fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);
@@ -253,6 +257,11 @@ public class ConfigurationDownloaderTest {
             locationUrls.forEach(url -> result.add(getLocation(url)));
 
             return result;
+        }
+
+        @Override
+        public boolean hasChanged() {
+            return false;
         }
 
         private ConfigurationLocation getLocation(String url) {

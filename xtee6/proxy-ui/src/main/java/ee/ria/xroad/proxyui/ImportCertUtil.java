@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.proxyui;
 
-import java.security.cert.X509Certificate;
-
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import java.security.cert.X509Certificate;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_MEMBER;
 
 /**
@@ -61,7 +63,18 @@ public final class ImportCertUtil {
      */
     public static ClientId getClientIdForSigningCert(String instanceIdentifier,
             X509Certificate cert) throws Exception {
-        return GlobalConf.getSubjectName(instanceIdentifier, cert);
+        try {
+            return GlobalConf.getSubjectName(
+                    new SignCertificateProfileInfoParameters(
+                            ClientId.create(instanceIdentifier, "dummy",
+                                    "dummy"),
+                            "dummy"), cert);
+        } catch (Exception e) {
+            throw CodedException.tr(X_CERT_IMPORT_FAILED, e,
+                    "cert_import_failed", "%s",
+                    "Cannot read member identifier from signing certificate: "
+                            + e.getMessage());
+        }
     }
 
     private static boolean clientExists(ClientId clientId) {

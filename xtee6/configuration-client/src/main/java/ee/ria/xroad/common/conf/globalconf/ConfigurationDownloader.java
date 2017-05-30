@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,15 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
- * Downloaded configuration directory.
+ * Downloads configuration directory from a configuration location defined
+ * in the configuration anchor.
+ *
+ * When there is only one configuration location in the configuration anchor, it
+ * is used. If there is more than one configuration location, then, for
+ * high-availability concerns, list of configuration locations is shuffled and
+ * then traversed to find the first location where configuration * can be
+ * downloaded. The successful location is remembered and used first next time
+ * the configuration is downloaded.
  */
 @Slf4j
 class ConfigurationDownloader {
@@ -53,6 +62,7 @@ class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
     protected final String[] instanceIdentifiers;
+    private final int version;
 
     private Map<ConfigurationSource, ConfigurationLocation>
             lastSuccessfulLocation = new HashMap<>();
@@ -61,9 +71,10 @@ class ConfigurationDownloader {
     protected final Map<String, Set<ConfigurationSource>> additionalSources =
             new HashMap<>();
 
-    ConfigurationDownloader(FileNameProvider fileNameProvider,
+    ConfigurationDownloader(FileNameProvider fileNameProvider, int version,
             String... instanceIdentifiers) {
         this.fileNameProvider = fileNameProvider;
+        this.version = version;
         this.instanceIdentifiers = instanceIdentifiers;
     }
 
@@ -224,30 +235,49 @@ class ConfigurationDownloader {
     void handleContent(byte[] content, ConfigurationFile file)
             throws Exception {
         switch (file.getContentIdentifier()) {
-            case PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParameters privateParameters = new PrivateParameters();
-                privateParameters.load(content);
-                handlePrivateParameters(privateParameters, file);
+            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
+                if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+                    PrivateParametersV1 privateParameters = new PrivateParametersV1();
+                    privateParameters.load(content);
+                    handlePrivateParameters(privateParameters, file);
+                } else {
+                    PrivateParametersV2 privateParameters = new PrivateParametersV2();
+                    privateParameters.load(content);
+                    handlePrivateParameters(privateParameters, file);
+                }
                 break;
-            case SharedParameters.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParameters sharedParameters = new SharedParameters();
-                sharedParameters.load(content);
-                handleSharedParameters(sharedParameters, file);
+            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
+                if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+                    SharedParametersV1 sharedParameters = new SharedParametersV1();
+                    sharedParameters.load(content);
+                    handleSharedParameters(sharedParameters, file);
+                } else {
+                    SharedParametersV2 sharedParameters = new SharedParametersV2();
+                    sharedParameters.load(content);
+                    handleSharedParameters(sharedParameters, file);
+                }
                 break;
             default: // do nothing
                 break;
         }
     }
 
-    void handlePrivateParameters(PrivateParameters privateParameters,
+    void handlePrivateParameters(PrivateParametersV2 privateParameters,
             ConfigurationFile file) throws Exception {
         verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(),
                 file);
         addAdditionalConfigurationSources(privateParameters);
     }
 
+    void handlePrivateParameters(PrivateParametersV1 privateParameters,
+                                 ConfigurationFile file) throws Exception {
+        verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(),
+            file);
+        addAdditionalConfigurationSources(privateParameters);
+    }
+
     void addAdditionalConfigurationSources(
-            PrivateParameters privateParameters) {
+            PrivateParametersV2 privateParameters) {
         // If there are any additional configuration sources,
         // we need to download the shared parameters from these
         // configuration sources.
@@ -264,10 +294,34 @@ class ConfigurationDownloader {
                 sources);
     }
 
-    void handleSharedParameters(SharedParameters sharedParameters,
+    void addAdditionalConfigurationSources(
+        PrivateParametersV1 privateParameters) {
+        // If there are any additional configuration sources,
+        // we need to download the shared parameters from these
+        // configuration sources.
+        Set<ConfigurationSource> sources = new HashSet<>();
+
+        if (!privateParameters.getConfigurationSource().isEmpty()) {
+            log.trace("Received private parameters with additional "
+                + privateParameters.getConfigurationSource().size()
+                + " configuration sources");
+            sources.addAll(privateParameters.getConfigurationSource());
+        }
+
+        additionalSources.put(privateParameters.getInstanceIdentifier(),
+            sources);
+    }
+
+    void handleSharedParameters(SharedParametersV2 sharedParameters,
             ConfigurationFile file) throws Exception {
         verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(),
                 file);
+    }
+
+    void handleSharedParameters(SharedParametersV1 sharedParameters,
+                                ConfigurationFile file) throws Exception {
+        verifyInstanceIdentifier(sharedParameters.getInstanceIdentifier(),
+            file);
     }
 
     void persistContent(byte[] content, Path destination,

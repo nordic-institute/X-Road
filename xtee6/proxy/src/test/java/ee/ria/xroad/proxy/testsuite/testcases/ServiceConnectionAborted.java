@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -30,8 +34,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Client sends normal message. Service aborts connection during sending

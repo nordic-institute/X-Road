@@ -22,6 +22,50 @@
  */
 package ee.ria.xroad.common.signature;
 
+import static ee.ria.xroad.common.signature.Helper.ALGORITHM_ATTRIBUTE;
+import static ee.ria.xroad.common.signature.Helper.CERTIFFICATE_VALUES_TAG;
+import static ee.ria.xroad.common.signature.Helper.CERT_DIGEST_TAG;
+import static ee.ria.xroad.common.signature.Helper.CERT_REFS_TAG;
+import static ee.ria.xroad.common.signature.Helper.CERT_TAG;
+import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
+import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_TAG;
+import static ee.ria.xroad.common.signature.Helper.DATAOBJECTFORMAT_TAG;
+import static ee.ria.xroad.common.signature.Helper.DIGEST_METHOD_TAG;
+import static ee.ria.xroad.common.signature.Helper.DIGEST_VALUE_TAG;
+import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_CERT_ID;
+import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_OCSP_VALUE_TAG;
+import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_X509_CERTIFICATE_TAG;
+import static ee.ria.xroad.common.signature.Helper.ID_ATTRIBUTE;
+import static ee.ria.xroad.common.signature.Helper.ID_SIGNATURE;
+import static ee.ria.xroad.common.signature.Helper.ISSUER_SERIAL_TAG;
+import static ee.ria.xroad.common.signature.Helper.MIMETYPE_TAG;
+import static ee.ria.xroad.common.signature.Helper.NS_SIG_PROP;
+import static ee.ria.xroad.common.signature.Helper.OBJECTREFERENCE_ATTR;
+import static ee.ria.xroad.common.signature.Helper.OCSP_RESPONSE_ID;
+import static ee.ria.xroad.common.signature.Helper.OCSP_VALUES_TAG;
+import static ee.ria.xroad.common.signature.Helper.PREFIX_DS;
+import static ee.ria.xroad.common.signature.Helper.PREFIX_XADES;
+import static ee.ria.xroad.common.signature.Helper.QUALIFYING_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.REVOCATION_VALUES_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_ID;
+import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNED_DATAOBJ_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNED_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNED_SIGNATURE_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNING_CERTIFICATE_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNING_TIME_TAG;
+import static ee.ria.xroad.common.signature.Helper.TARGET_ATTR;
+import static ee.ria.xroad.common.signature.Helper.UNSIGNED_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.UNSIGNED_SIGNATURE_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.URI_ATTRIBUTE;
+import static ee.ria.xroad.common.signature.Helper.X509_ISSUER_NAME_TAG;
+import static ee.ria.xroad.common.signature.Helper.X509_SERIAL_NUMBER_TAG;
+import static ee.ria.xroad.common.signature.Helper.createDocument;
+import static ee.ria.xroad.common.signature.Helper.createSignatureElement;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -46,9 +90,6 @@ import org.w3c.dom.Text;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
-
-import static ee.ria.xroad.common.signature.Helper.*;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class creates the

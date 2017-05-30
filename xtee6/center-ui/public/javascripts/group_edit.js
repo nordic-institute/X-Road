@@ -32,6 +32,9 @@ var XROAD_GROUP_EDIT = function() {
         groupCode = groupData.code;
         isReadonly = groupData.is_readonly;
 
+        disableRemoveAllMembersButton();
+        disableRemoveSelectedMembersButton();
+
         $("#group_details_description").text(groupData.description);
 
         $("#group_details_dialog").dialog(
@@ -40,8 +43,6 @@ var XROAD_GROUP_EDIT = function() {
         $("#group_details_dialog").dialog("open");
 
         refreshGroupMemberCount();
-
-        disableRemoveSelectedMembersButton();
     }
 
     /* -- PUBLIC - END -- */
@@ -52,8 +53,14 @@ var XROAD_GROUP_EDIT = function() {
         var params = {groupId: groupId};
 
         $.get("groups/get_member_count", params, function(response) {
-            $("#group_details_member_count")
-                .text(" (" + response.data.member_count + ")");
+            var memberCount = response.data.member_count;
+            $("#group_details_member_count").text(" (" + memberCount + ")");
+
+            if (memberCount > 0) {
+                enableRemoveAllMembersButton();
+            } else {
+                disableRemoveAllMembersButton();
+            }
         });
     }
 
@@ -84,7 +91,7 @@ var XROAD_GROUP_EDIT = function() {
         };
 
         $.post("groups/group_edit_description", params, function(response) {
-            $("#group_details_description").text(newDescription);
+            $("#group_details_description").text(response.data.description);
             refreshGlobalGroupsList();
             $(dialog).dialog("close");
         }, "json");
@@ -100,6 +107,14 @@ var XROAD_GROUP_EDIT = function() {
 
     function disableRemoveSelectedMembersButton() {
         $("#group_details_remove_selected_members").disable();
+    }
+
+    function enableRemoveAllMembersButton() {
+        $("#group_details_remove_all_members").enable();
+    }
+
+    function disableRemoveAllMembersButton() {
+        $("#group_details_remove_all_members").disable();
     }
 
     function getRemovableMemberIds() {
@@ -156,6 +171,26 @@ var XROAD_GROUP_EDIT = function() {
                 }, "json");
             });
         });
+
+        $("#group_details_remove_all_members").live("click", function() {
+            var params = {
+                groupId: groupId,
+                searchable: $("#group_members_simple_search_tab input").val()
+            };
+
+            if (oGroupMembers.data("advancedSearch")) {
+                params["advancedSearchParams"] =
+                        getAdvancedSearchParams(oGroupMembers)["value"];
+            }
+
+            confirm("groups.remove.all_members_confirm", {group: groupCode},
+                    function() {
+                $.post("groups/remove_matching_members", params, function() {
+                    refreshGroupMembersTable();
+                    refreshGlobalGroupsList();
+                }, "json");
+            });
+        });
     }
 
     function initAddableMembersHandlers() {
@@ -192,11 +227,11 @@ var XROAD_GROUP_EDIT = function() {
         opts.sDom = "tp";
         opts.aoColumns = [
             { "mData": "name", mRender: util.escape },
-            { "mData": "member_code", mRender: util.escape },
-            { "mData": "member_class", "sWidth": "5em", mRender: util.escape },
-            { "mData": "subsystem", mRender: util.escape },
-            { "mData": "xroad", "sWidth": "5em", mRender: util.escape },
             { "mData": "type", mRender: util.escape },
+			{ "mData": "xroad", "sWidth": "5em", mRender: util.escape },
+            { "mData": "member_class", "sWidth": "5em", mRender: util.escape },
+			{ "mData": "member_code", mRender: util.escape },
+            { "mData": "subsystem", mRender: util.escape },
             { "mData": "added", "sWidth": "13em" }
         ];
         opts.oTableTools = {
@@ -230,11 +265,11 @@ var XROAD_GROUP_EDIT = function() {
         opts.sDom = "<'dataTables_header'<'clearer'>>tp";
         opts.aoColumns = [
             { "mData": "name", mRender: util.escape },
-            { "mData": "member_code", mRender: util.escape },
-            { "mData": "member_class", mRender: util.escape },
-            { "mData": "subsystem", mRender: util.escape },
+            { "mData": "type", mRender: util.escape },
             { "mData": "xroad", mRender: util.escape },
-            { "mData": "type", mRender: util.escape }
+            { "mData": "member_class", mRender: util.escape },
+            { "mData": "member_code", mRender: util.escape },
+            { "mData": "subsystem", mRender: util.escape }
         ];
         opts.oTableTools = {
             "sRowSelect": "multi"
@@ -267,7 +302,8 @@ var XROAD_GROUP_EDIT = function() {
             }
         }
 
-        opts.aaSorting = [[1, 'desc']];
+        var codeColumn = 5
+        opts.aaSorting = [[codeColumn, 'desc']];
 
         oAddableMembers = $('#group_addable_members').dataTable(opts);
     }
@@ -356,10 +392,12 @@ var XROAD_GROUP_EDIT = function() {
                     $("#group_details_delete_group").show();
                     $("#group_details_add_members").show();
                     $("#group_details_remove_selected_members").show();
+                    $("#group_details_remove_all_members").show();
                 } else {
                     $("#group_details_delete_group").hide();
                     $("#group_details_remove_selected_members").hide();
                     $("#group_details_add_members").hide();
+                    $("#group_details_remove_all_members").hide();
                 }
             }
         });
@@ -472,7 +510,6 @@ var XROAD_GROUP_EDIT = function() {
 
             confirm("groups.remove.confirm", {group: groupCode}, function() {
                 $.post("groups/delete_group", requestParams, function() {
-                    // TODO: update globalgroupmembership table in member_edit_dialog
                     refreshGlobalGroupsList();
 
                     $("#group_details_dialog").dialog("close");

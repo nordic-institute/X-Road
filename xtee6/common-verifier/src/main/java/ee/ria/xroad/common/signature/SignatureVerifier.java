@@ -22,17 +22,19 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
-import ee.ria.xroad.common.cert.CertHelper;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.hashchain.DigestValue;
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
-import ee.ria.xroad.common.hashchain.HashChainVerifier;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.dom.DOMSource;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
@@ -44,16 +46,20 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 
-import javax.xml.transform.dom.DOMSource;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.*;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.cert.CertChainVerifier;
+import ee.ria.xroad.common.cert.CertHelper;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.hashchain.DigestValue;
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
 
 /**
@@ -263,7 +269,10 @@ public class SignatureVerifier {
 
     private static void verifySignerName(ClientId signer,
             X509Certificate signingCert) throws Exception {
-        ClientId cn = GlobalConf.getSubjectName(signer.getXRoadInstance(),
+        ClientId cn = GlobalConf.getSubjectName(
+                new SignCertificateProfileInfoParameters(
+                    signer, signer.getMemberCode()
+                ),
                 signingCert);
         if (!signer.memberEquals(cn)) {
             throw new CodedException(X_INCORRECT_CERTIFICATE,
@@ -340,16 +349,7 @@ public class SignatureVerifier {
     private static DigestValue getDigestValue(MessagePart part)
             throws Exception {
         if (part.getData() != null) {
-            byte[] data = null;
-
-            // We assume message is not hashed, so we hash it here
-            if (MessageFileNames.MESSAGE.equals(part.getName())) {
-                data = calculateDigest(part.getHashAlgoId(), part.getData());
-            } else {
-                data = part.getData(); // attachment hash
-            }
-
-            return new DigestValue(part.getHashAlgorithmURI(), data);
+            return new DigestValue(part.getHashAlgorithmURI(), part.getData());
         }
 
         return null;
@@ -374,8 +374,8 @@ public class SignatureVerifier {
             switch (uri.getValue()) {
                 case MessageFileNames.MESSAGE:
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
-                    if (part != null && part.getData() != null) {
-                        return new XMLSignatureInput(part.getData());
+                    if (part != null && part.getSoap() != null) {
+                        return new XMLSignatureInput(part.getSoap());
                     }
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:

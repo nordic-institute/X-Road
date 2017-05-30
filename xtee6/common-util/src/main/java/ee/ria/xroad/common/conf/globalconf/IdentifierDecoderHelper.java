@@ -30,7 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.IdentifierDecoderType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.IdentifierDecoderType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;

@@ -49,3 +49,4 @@ class SearchSqlGenerator
     return " lower(#{column}) LIKE ?"
   end
 end
+

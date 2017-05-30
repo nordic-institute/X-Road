@@ -161,6 +161,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static KeyType from(Key key) {
         KeyType keyType = new KeyType();
         keyType.setFriendlyName(key.getFriendlyName());
+        keyType.setLabel(key.getLabel());
         keyType.setKeyId(key.getId());
         keyType.setUsage(key.getUsage());
 
@@ -201,6 +202,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     private static Key from(Token device, KeyType keyType) {
         Key key = new Key(device, keyType.getKeyId());
         key.setFriendlyName(keyType.getFriendlyName());
+        key.setLabel(keyType.getLabel());
         key.setUsage(keyType.getUsage());
 
         if (keyType.getPublicKey() != null) {
@@ -261,7 +263,9 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
             try {
                  return calculateCertHexHash(type.getContents());
             } catch (Exception e) {
-                log.error("Failed to calculate certificate hash for {}. {}",  type, e);
+                log.error("Failed to calculate certificate hash for {}",
+                         type, e);
+
                 return SignerUtil.randomId();
             }
         }

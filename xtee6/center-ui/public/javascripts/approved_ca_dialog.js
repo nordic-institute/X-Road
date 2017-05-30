@@ -62,6 +62,9 @@ var XROAD_APPROVED_CA_DIALOG = function() {
                 }
             ]
         });
+
+        $("#ca_settings_submit, #ca_settings_save")
+                .enableForInput($(".cert_profile_info"));
     }
 
     function initApprovedCADialog() {
@@ -111,17 +114,10 @@ var XROAD_APPROVED_CA_DIALOG = function() {
     }
 
     function initCASettingsTab() {
-        $(".name_extractor_disabled").click(function(){
-            var checked = $(this).is(":checked");
-            $(this).closest("table")
-                .find(".name_extractor_member_class, .name_extractor_method")
-                .val("").enable(!checked);
-            $("#ca_settings_submit, #ca_settings_save").enable(checked);
-        });
-
-        $(".name_extractor_method").keyup(function() {
-            $("#ca_settings_submit, #ca_settings_save")
-                .enable($(this).val().length > 0);
+        $(".authentication_only").click(function() {
+            if (isInputFilled($(".cert_profile_info:visible:first"))) {
+                $("#ca_settings_save").enable();
+            }
         });
 
         $("#ca_settings_save").click(function() {
@@ -296,9 +292,9 @@ var XROAD_APPROVED_CA_DIALOG = function() {
         if (response.success) {
             tempCaCertId = response.data.temp_cert_id;
 
-            $(".name_extractor_disabled", "#ca_settings_dialog")
+            $(".authentication_only", "#ca_settings_dialog")
                 .prop("checked", false);
-            $(".name_extractor_member_class, .name_extractor_method",
+            $(".cert_profile_info",
               "#ca_settings_dialog").val("").enable();
             $("#ca_settings_submit").disable();
 
@@ -310,48 +306,45 @@ var XROAD_APPROVED_CA_DIALOG = function() {
     }
 
     function openAddDialog() {
-        tempCaCertId = null;
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed(
+                "approved_cas/can_see_details", function(){
+            tempCaCertId = null;
 
-        $("#ca_cert_upload_dialog").dialog(
-            "option", "title", _("approved_cas.upload_ca_cert"));
-        $("#ca_cert_upload_dialog form")
-            .attr("action", action("upload_top_ca_cert"));
-        $("#ca_cert_upload_dialog form #ca_id").disable();
+            $("#ca_cert_upload_dialog").dialog(
+                "option", "title", _("approved_cas.upload_ca_cert"));
+            $("#ca_cert_upload_dialog form")
+                .attr("action", action("upload_top_ca_cert"));
+            $("#ca_cert_upload_dialog form #ca_id").disable();
 
-        $("#ca_cert_file").val("");
-        $("#ca_cert_submit").text(_("common.next")).disable();
-        $("#ca_cert_upload_dialog").dialog("open");
+            $("#ca_cert_file").val("");
+            $("#ca_cert_submit").text(_("common.next")).disable();
+            $("#ca_cert_upload_dialog").dialog("open");
+        });
     }
 
     function openEditDialog(selectedCa) {
-        caId = selectedCa.id;
-        ocspResponders.fnClearTable();
-        intermediateCas.fnClearTable();
+        XROAD_CENTERUI_COMMON.openDetailsIfAllowed(
+                "approved_cas/can_see_details", function(){
+            caId = selectedCa.id;
+            ocspResponders.fnClearTable();
+            intermediateCas.fnClearTable();
 
-        $("#top_ca_cert_subject_dn").text(selectedCa.subject);
-        $("#top_ca_cert_issuer_dn").text(selectedCa.issuer);
-        $("#top_ca_cert_valid_from").text(selectedCa.valid_from);
-        $("#top_ca_cert_valid_to").text(selectedCa.valid_to);
+            $("#top_ca_cert_subject_dn").text(selectedCa.subject);
+            $("#top_ca_cert_issuer_dn").text(selectedCa.issuer);
+            $("#top_ca_cert_valid_from").text(selectedCa.valid_from);
+            $("#top_ca_cert_valid_to").text(selectedCa.valid_to);
 
-        $("#ca_settings_save").enable();
-        $(".name_extractor_disabled", "#ca_settings_tab").prop(
-            "checked", selectedCa.name_extractor_disabled);
+            $("#ca_settings_save").disable();
+            $(".authentication_only", "#ca_settings_tab").prop(
+                "checked", selectedCa.authentication_only);
+            $(".cert_profile_info").val(selectedCa.cert_profile_info);
 
-        if (selectedCa.name_extractor_disabled) {
-            $(".name_extractor_member_class, .name_extractor_method",
-              "#ca_settings_tab").val("").disable();
-        } else {
-            $(".name_extractor_member_class", "#ca_settings_tab").val(
-                selectedCa.name_extractor_member_class).enable();
-            $(".name_extractor_method", "#ca_settings_tab").val(
-                selectedCa.name_extractor_method).enable();
-        }
+            $("#approved_ca_tabs").tabs("option", "active", 0);
 
-        $("#approved_ca_tabs").tabs("option", "active", 0);
-
-        $("#approved_ca_dialog").dialog(
-            "option", "title", _("approved_cas.approved_ca_details"));
-        $("#approved_ca_dialog").dialog("open");
+            $("#approved_ca_dialog").dialog(
+                "option", "title", _("approved_cas.approved_ca_details"));
+            $("#approved_ca_dialog").dialog("open");
+        });
     }
     
     function initTestability() {

@@ -22,18 +22,17 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.util.Map;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
 import ee.ria.xroad.common.CodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 abstract class AbstractConfigurationPart {

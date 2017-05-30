@@ -22,9 +22,71 @@
  */
 package ee.ria.xroad.signer.console;
 
-import akka.actor.ActorSystem;
-import asg.cliche.*;
+import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.ACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_FILE_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CERT_REQUEST_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CLIENT_IDENTIFIER_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.CSR_FORMAT_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DEACTIVATE_THE_CERTIFICATE_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.DELETE_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_CERT_REQUEST_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.GENERATE_A_KEY_ON_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.IMPORT_A_CERTIFICATE_FROM_THE_FILE;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.INITIALIZE_THE_SOFTWARE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_LABEL_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.KEY_USAGE_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOGOUT_FROM_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.LOG_INTO_THE_TOKEN;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_KEY_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY_NAME_TO_THE_TOKEN_EVENT;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SUBJECT_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_FRIENDLY_NAME_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_ID_PARAM;
+import static ee.ria.xroad.signer.console.Utils.base64ToFile;
+import static ee.ria.xroad.signer.console.Utils.bytesToFile;
+import static ee.ria.xroad.signer.console.Utils.createClientId;
+import static ee.ria.xroad.signer.console.Utils.fileToBytes;
+import static ee.ria.xroad.signer.console.Utils.printCertInfo;
+import static ee.ria.xroad.signer.console.Utils.printKeyInfo;
+import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.lang.StringUtils;
+
 import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
+import asg.cliche.CLIException;
+import asg.cliche.Command;
+import asg.cliche.InputConverter;
+import asg.cliche.Param;
+import asg.cliche.Shell;
+import asg.cliche.ShellFactory;
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
@@ -32,24 +94,37 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.*;
-import ee.ria.xroad.signer.protocol.message.*;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.*;
-import static ee.ria.xroad.signer.console.Utils.*;
+import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.message.ActivateCert;
+import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
+import ee.ria.xroad.signer.protocol.message.DeleteKey;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetAuthKey;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHash;
+import ee.ria.xroad.signer.protocol.message.GetKeyIdForCertHashResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberCerts;
+import ee.ria.xroad.signer.protocol.message.GetMemberCertsResponse;
+import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
+import ee.ria.xroad.signer.protocol.message.GetTokenBatchSigningEnabled;
+import ee.ria.xroad.signer.protocol.message.ImportCert;
+import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
+import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+import ee.ria.xroad.signer.protocol.message.Sign;
+import ee.ria.xroad.signer.protocol.message.SignResponse;
 
 /**
  * Signer command line interface.
@@ -583,19 +658,22 @@ public class SignerCLI {
     /**
      * Generate key on token.
      * @param tokenId token id
+     * @param label label
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate key on token")
     public void generateKey(
             @Param(name = "tokenId", description = "Token ID")
-                String tokenId) throws Exception {
+                String tokenId,
+            @Param(name = "label", description = "Key label")
+            String label) throws Exception {
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(TOKEN_ID_PARAM, tokenId);
+        logData.put(KEY_LABEL_PARAM, label);
 
         KeyInfo response;
-
         try {
-            response = SignerClient.execute(new GenerateKey(tokenId));
+            response = SignerClient.execute(new GenerateKey(tokenId, label));
 
             logData.put(KEY_ID_PARAM, response.getId());
             AuditLogger.log(GENERATE_A_KEY_ON_THE_TOKEN_EVENT, XROAD_USER, logData);
@@ -615,6 +693,7 @@ public class SignerCLI {
      * @param memberId member id
      * @param usage usage
      * @param subjectName subject name
+     * @param format request format
      * @throws Exception if an error occurs
      */
     @Command(description = "Generate certificate request")
@@ -626,21 +705,29 @@ public class SignerCLI {
             @Param(name = "usage", description = "Key usage (a - auth, s - sign)")
                 String usage,
             @Param(name = "subjectName", description = "Subject name")
-                String subjectName) throws Exception {
+                String subjectName,
+            @Param(name = "format", description = "Format of request (der/pem)")
+                String format) throws Exception {
         KeyUsageInfo keyUsage = "a".equals(usage)
                 ? KeyUsageInfo.AUTHENTICATION : KeyUsageInfo.SIGNING;
+
+        GenerateCertRequest.RequestFormat requestFormat =
+                format.equalsIgnoreCase("der")
+                    ? GenerateCertRequest.RequestFormat.DER
+                    : GenerateCertRequest.RequestFormat.PEM;
 
         Map<String, Object> logData = new LinkedHashMap<>();
         logData.put(KEY_ID_PARAM, keyId);
         logData.put(CLIENT_IDENTIFIER_PARAM, memberId);
         logData.put(KEY_USAGE_PARAM, keyUsage.name());
         logData.put(SUBJECT_NAME_PARAM, subjectName);
+        logData.put(CSR_FORMAT_PARAM, requestFormat.name());
 
         GenerateCertRequestResponse response;
 
         try {
             GenerateCertRequest request = new GenerateCertRequest(
-                    keyId, memberId, keyUsage, subjectName);
+                    keyId, memberId, keyUsage, subjectName, requestFormat);
             response = SignerClient.execute(request);
 
             AuditLogger.log(GENERATE_A_CERT_REQUEST_EVENT, XROAD_USER, logData);
@@ -751,7 +838,8 @@ public class SignerCLI {
         }
 
         ActorSystem actorSystem = ActorSystem.create("SignerConsole",
-                ConfigFactory.load().getConfig("signer-console"));
+                ConfigFactory.load().getConfig("signer-console")
+                    .withFallback(ConfigFactory.load()));
         try {
             SignerClient.init(actorSystem);
 

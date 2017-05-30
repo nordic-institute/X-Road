@@ -24,7 +24,7 @@ fatJar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.console.SignerCLI'
     }
 
-    from rootProject.file('securityserver-LICENSE.txt')
+    from rootProject.file('LICENSE.txt')
 }
 
 jar.enabled = false

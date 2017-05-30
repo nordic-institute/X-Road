@@ -1,0 +1,13 @@
+--- 
+- name: Copy to server modules {{selected_modules}}
+  copy: src=../xtee6/{{modules[item].dir}}/build/libs/{{modules[item].lib}} dest={{modules[item].target}}/
+  when: item in modules
+  with_items: "{{selected_modules.split(',')}}"
+
+
+  
+  
+
+ 
+  
+

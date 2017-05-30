@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common;
 
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+
 import java.io.InputStream;
 import java.net.URI;
 
@@ -37,10 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.util.AsyncHttpSender;
 
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-
 /**
  * Performs a single request at a time and returns a response.
+ *
+ * FUTURE Only 'extra' project uses it (subproject 'testclient')
  */
 public class SingleRequestSender {
 

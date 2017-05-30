@@ -22,6 +22,9 @@
 #
 
 module RequestsHelper
+
+  private
+
   def add_requests_to_result(requests, result)
     requests.each do |each|
       result << get_request_as_json(each)

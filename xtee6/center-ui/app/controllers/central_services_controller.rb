@@ -67,7 +67,7 @@ class CentralServicesController < ApplicationController
     central_services.each do |each|
       service_id = each.target_service
       provider_name = service_id ?
-          XroadMember.get_name(service_id.member_class, service_id.member_code) :
+          XRoadMember.get_name(service_id.member_class, service_id.member_code) :
           ""
       result << {
         :central_service_code => each.service_code,
@@ -127,6 +127,27 @@ class CentralServicesController < ApplicationController
 
     authorize!(:add_central_service)
 
+    required = []
+
+    [:targetServiceCode, :targetServiceVersion,
+     :targetProviderName, :targetProviderClass,
+     :targetProviderCode, :targetProviderSubsystem].each do |param|
+      if params[param].length > 0
+        required = [:required]
+        break
+      end
+    end
+
+    validate_params({
+      :serviceCode => [:required],
+      :targetServiceCode => required,
+      :targetServiceVersion => [],
+      :targetProviderName => required,
+      :targetProviderClass => required,
+      :targetProviderCode => required,
+      :targetProviderSubsystem => []
+    })
+
     target_service = get_target_service_from_params()
     provider_id = get_provider_id(target_service[:code])
 
@@ -154,15 +175,39 @@ class CentralServicesController < ApplicationController
 
     authorize!(:edit_implementing_service)
 
+    required = []
+
+    [:targetServiceCode, :targetServiceVersion,
+     :targetProviderName, :targetProviderClass,
+     :targetProviderCode, :targetProviderSubsystem].each do |param|
+      if params[param].length > 0
+        required = [:required]
+        break
+      end
+    end
+
+    validate_params({
+      :serviceCode => [:required],
+      :targetServiceCode => required,
+      :targetServiceVersion => [],
+      :targetProviderName => required,
+      :targetProviderClass => required,
+      :targetProviderCode => required,
+      :targetProviderSubsystem => []
+    })
+
     target_service = get_target_service_from_params
     provider_id = get_provider_id(target_service[:code])
 
     audit_log_data[:serviceCode] = params[:serviceCode]
     audit_log_data[:targetServiceCode] = target_service[:code]
     audit_log_data[:targetServiceVersion] = target_service[:version]
-    audit_log_data[:providerIdentifier] = JavaClientId.create(
-      provider_id.xroad_instance, provider_id.member_class,
-      provider_id.member_code, provider_id.subsystem_code)
+
+    if provider_id
+      audit_log_data[:providerIdentifier] = JavaClientId.create(
+        provider_id.xroad_instance, provider_id.member_class,
+        provider_id.member_code, provider_id.subsystem_code)
+    end
 
     CentralService.update(
         params[:serviceCode],
@@ -178,18 +223,15 @@ class CentralServicesController < ApplicationController
 
     authorize!(:remove_central_service)
 
+    validate_params({
+      :serviceCode => [:required]
+    })
+
     audit_log_data[:serviceCode] = params[:serviceCode]
 
     CentralService.delete(params[:serviceCode])
 
     render_json
-  end
-
-  def delete_target_service
-    authorize!(:remove_central_service)
-
-    CentralService.delete_target_service(params[:serviceCode])
-    render_json()
   end
 
   # -- Specific POST methods - end ---

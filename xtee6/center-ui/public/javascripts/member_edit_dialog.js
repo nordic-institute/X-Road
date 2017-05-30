@@ -24,8 +24,20 @@ function openMemberEditDialog(memberRowData) {
     initTables();
     initActions();
 
+    // for testability
+    dialog.parent().attr("data-name", "member_edit_dialog");
+    $("button span:contains('Close')").parent().attr("data-name", "close");
+
     function _$(selector) {
         return dialog.closest(".ui-dialog").find(selector);
+    }
+
+    function getMemberId() {
+        if (isBlank(memberId.subsystemCode)) {
+            delete memberId["subsystemCode"];
+        }
+
+        return memberId;
     }
 
     function initDialog() {
@@ -76,6 +88,7 @@ function openMemberEditDialog(memberRowData) {
         initMemberDetailsActions();
         initOwnedServersActions();
         initGlobalGroupMembershipsActions();
+        initSubsystemsActions();
         initUsedServersActions();
 
         disableUsedServerDeletionButton();
@@ -260,6 +273,7 @@ function openMemberEditDialog(memberRowData) {
                     function() {
                 $.post("members/delete_subsystem", requestParams,
                        function(response) {
+                    disableSubsystemDeleteButton();
                     oSubsystems.fnReplaceData(response.data);
                 }, "json");
             });
@@ -327,12 +341,14 @@ function openMemberEditDialog(memberRowData) {
         opts.aaSorting = [[2, 'desc']];
 
         opts.fnRowCallback = function(nRow, managementRequest) {
+            XROAD_CENTERUI_COMMON.translateRequestType(
+                    nRow, managementRequest.type, 1);
+
             var managementRequestColumn = $(nRow).find("td:first");
             var managementRequestLink =
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
             var updateTablesCallback = function() {
                 refreshManagementRequests();
-                // TODO: Add callback for members if needed!
             }
 
             managementRequestLink.click(function() {
@@ -362,7 +378,7 @@ function openMemberEditDialog(memberRowData) {
     function initUsedServersActions() {
         _$("#register_securityserver_client").click(function() {
             XROAD_MEMBER_EDIT.openUsedServersRegisterDialog(
-                memberId, memberName, refreshUsedServers);
+                getMemberId(), memberName, refreshUsedServers, false);
         });
 
         _$("#remove_securityserver_client").click(function() {
@@ -392,14 +408,14 @@ function openMemberEditDialog(memberRowData) {
 
     function initMemberDetailsActions() {
         _$("#member_edit_delete").click(function() {
-            deleteMember(memberId, function() {
+            deleteMember(getMemberId(), function() {
                 dialog.dialog("close");
             });
         });
 
         _$("#member_edit_change_name").click(function() {
             XROAD_MEMBER_EDIT.openMemberNameEditDialog(
-                memberId, memberName, function(newName) {
+                getMemberId(), memberName, function(newName) {
                     memberName = newName;
                     _$("#member_edit_name").text(memberName);
                 });
@@ -411,15 +427,25 @@ function openMemberEditDialog(memberRowData) {
     function initOwnedServersActions() {
         _$("#add_owned_server").click(function() {
             XROAD_MEMBER_EDIT.openOwnedServersAddDialog(
-                memberId, memberName, refreshOwnedServers);
+                getMemberId(), memberName, refreshOwnedServers);
         });
     }
 
     function initGlobalGroupMembershipsActions() {
         _$("#add_global_group_membership").click(function() {
             XROAD_MEMBER_EDIT.openMemberToGlobalGroupAddDialog(
-                memberId, memberName, function(response) {
+                getMemberId(), memberName, function(response) {
                     oGlobalGroupMembership.fnReplaceData(response.data);
+                });
+        });
+    }
+
+    function initSubsystemsActions() {
+        _$("#add_subsystem").click(function() {
+            XROAD_MEMBER_EDIT.openSubsystemAddDialog(
+                getMemberId(), memberName, function(response) {
+                    disableSubsystemDeleteButton();
+                    oSubsystems.fnReplaceData(response.data);
                 });
         });
     }
@@ -439,7 +465,7 @@ function openMemberEditDialog(memberRowData) {
     }
 
     function refreshOwnedServers(refreshCallback) {
-        $.get("members/owned_servers", memberId, function(response) {
+        $.get("members/owned_servers", getMemberId(), function(response) {
             oOwnedServers.fnReplaceData(response.data);
 
             if (refreshCallback != null) {
@@ -451,7 +477,7 @@ function openMemberEditDialog(memberRowData) {
     function refreshGlobalGroupMembership() {
         disableGroupMemberDeletionButton();
 
-        $.get("members/global_groups", memberId, function(response) {
+        $.get("members/global_groups", getMemberId(), function(response) {
             oGlobalGroupMembership.fnReplaceData(response.data);
         });
     }
@@ -459,13 +485,13 @@ function openMemberEditDialog(memberRowData) {
     function refreshSubsystems() {
         disableSubsystemDeleteButton();
 
-        $.get("members/subsystems", memberId, function(response) {
+        $.get("members/subsystems", getMemberId(), function(response) {
             oSubsystems.fnReplaceData(response.data);
         });
     }
 
     function refreshUsedServers() {
-        $.get("members/used_servers", memberId, function(response) {
+        $.get("members/used_servers", getMemberId(), function(response) {
             oUsedServers.fnReplaceData(response.data);
             _$("#remove_securityserver_client").disable();
         });
@@ -534,5 +560,16 @@ function openMemberEditDialog(memberRowData) {
             {serversToRemove : serversAsString});
 
         return translatedMessage ;
+    }
+
+    return function() {
+        // Return if dialog closed
+        if (!$( ".member_edit_dialog" ).dialog("isOpen")) {
+            return;
+        }
+
+        refreshOwnedServers();
+        refreshUsedServers();
+        refreshManagementRequests();
     }
 }

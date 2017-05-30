@@ -29,7 +29,6 @@ import akka.util.Timeout;
 import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
@@ -46,9 +45,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public final class MonitorClient {
 
-    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/monitor.ini";
     private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
-    private static final String CONFIG_SECTION = "monitor";
     private static final int DEFAULT_PORT = 2552;
 
     private static final ActorSystem ACTOR_SYSTEM
@@ -60,15 +57,6 @@ public final class MonitorClient {
             ACTOR_SYSTEM.actorSelection(getMonitorAddress() + "/user/MetricsProviderActor");
 
     /**
-     * Program entry point
-     */
-    public static void main(String[] args) {
-        log.debug("starting testing getMetrics");
-        new MonitorClient().getMetrics();
-        log.debug("starting testing getMetrics");
-    }
-
-    /**
      * Get monitoring metrics
      */
     public MetricSetType getMetrics() {
@@ -78,10 +66,7 @@ public final class MonitorClient {
             Object obj = Await.result(response, Duration.apply(TIMEOUT_AWAIT, TimeUnit.SECONDS));
             if (obj instanceof SystemMetricsResponse) {
                 final SystemMetricsResponse result = (SystemMetricsResponse) obj;
-                log.debug("monitorclient received metrics result: " + result.getMetrics());
-                MetricSetType jaxb = MetricTypes.of(result.getMetrics());
-                log.debug("converted to jaxb = " + jaxb);
-                return jaxb;
+                return MetricTypes.of(result.getMetrics());
             } else {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Unexpected response");
             }
@@ -93,7 +78,6 @@ public final class MonitorClient {
 
     private String getMonitorAddress() {
         int port = DEFAULT_PORT;
-        SystemPropertiesLoader.create().with(CONFIG_FILENAME, CONFIG_SECTION).load();
         try {
             port = Integer.parseUnsignedInt(System.getProperty(CONFIG_PROPERTY_PORT));
         } catch (NumberFormatException e) {

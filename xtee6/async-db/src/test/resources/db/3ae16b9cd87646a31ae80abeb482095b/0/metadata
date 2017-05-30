@@ -1,6 +1,0 @@
-{"orderNo":"0",
-"id":"id0",
-"receivedTime":"1359756000000",
-"sender":{"memberClass":"GOV","memberCode":"sender1","type":"MEMBER","xRoadInstance":"EE"},
-"user":"222",
-"service":{"memberClass":"GOV","memberCode":"sender1","serviceCode":"service1","type":"SERVICE","xRoadInstance":"EE"}}

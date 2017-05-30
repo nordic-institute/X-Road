@@ -26,11 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import org.joda.time.DateTime;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.joda.time.DateTime;
 
 /**
  * Downloaded configuration directory.

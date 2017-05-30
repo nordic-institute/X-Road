@@ -34,6 +34,7 @@ class GroupsController < ApplicationController
       :group_edit_description,
       :delete_group,
       :remove_selected_members,
+      :remove_matching_members,
       :add_members_to_group,
       :add_all_clients_to_group]
 
@@ -111,7 +112,7 @@ class GroupsController < ApplicationController
       member_code = member_id.member_code
 
       result << {
-        :name => XroadMember.get_name(member_class, member_code),
+        :name => XRoadMember.get_name(member_class, member_code),
         :member_code => member_code,
         :member_class => member_class,
         :subsystem => member_id.subsystem_code,
@@ -172,19 +173,27 @@ class GroupsController < ApplicationController
   end
 
   def get_member_count
-    member_count = GlobalGroup.get_member_count(params[:groupId])
-    render_json({:member_count => member_count})
+    validate_params({
+      :groupId => [:required]
+    })
+
+    render_json({
+      :member_count => GlobalGroup.get_member_count(params[:groupId])
+    })
   end
 
   def find_by_id
+    validate_params({
+      :groupId => [:required]
+    })
+
     group = GlobalGroup.find(params[:groupId])
-    group_as_json = {
+
+    render_json({
       :id => group.id,
       :code => group.group_code,
       :description => group.description,
-    }
-
-    render_json(group_as_json)
+    })
   end
 
   # -- Specific GET methods - end ---
@@ -196,16 +205,17 @@ class GroupsController < ApplicationController
 
     authorize!(:add_global_group)
 
-    validate_description()
+    validate_params({
+      :code => [:required],
+      :description => [:required]
+    })
 
-    code = params[:code]
-    description = params[:description]
+    audit_log_data[:code] = params[:code]
+    audit_log_data[:description] = params[:description]
 
-    audit_log_data[:code] = code
-    audit_log_data[:description] = description
+    GlobalGroup.add_group(params[:code], params[:description])
 
-    GlobalGroup.add_group(code, description)
-    render_json({})
+    render_json
   end
 
   def group_edit_description
@@ -213,23 +223,33 @@ class GroupsController < ApplicationController
 
     authorize!(:edit_group_description)
 
+    validate_params({
+      :groupId => [:required],
+      :description => [:required]
+    })
+
     group = GlobalGroup.find(params[:groupId])
 
     audit_log_data[:code] = group.group_code
     audit_log_data[:description] = params[:description]
 
-    validate_description
-
     GlobalGroup.update_description(params[:groupId], params[:description])
 
-    notice(t("groups.change_description"));
-    render_json();
+    notice(t("groups.change_description"))
+
+    render_json({
+      :description => params[:description]
+    })
   end
 
   def delete_group
     audit_log("Delete global group", audit_log_data = {})
 
     authorize!(:delete_group)
+
+    validate_params({
+      :groupId => [:required]
+    })
 
     group = GlobalGroup.find(params[:groupId])
 
@@ -276,7 +296,41 @@ class GroupsController < ApplicationController
       group.remove_member(member_id);
     end
 
-    notice(t("groups.delete_selected_members"))
+    notice(t("groups.remove_selected_members"))
+
+    render_json
+  end
+
+  def remove_matching_members
+    audit_log("Remove members from global group", audit_log_data = {})
+
+    authorize!(:add_and_remove_group_members)
+
+    group = GlobalGroup.find(params[:groupId])
+
+    advanced_search_params =
+        get_advanced_search_params(params[:advancedSearchParams])
+
+    searchable = advanced_search_params ?
+        advanced_search_params : params[:searchable]
+
+    audit_log_data[:code] = group.group_code
+    audit_log_data[:description] = group.description
+    audit_log_data[:memberIdentifiers] = []
+
+    removed_member_ids = GlobalGroupMember.remove_matching_members(
+        group.id, searchable)
+
+    removed_member_ids.each do |each|
+      audit_log_data[:memberIdentifiers] << JavaClientId.create(
+          each.xroad_instance,
+          each.member_class,
+          each.member_code,
+          each.subsystem_code
+      )
+    end
+
+    notice(t("groups.remove_matching_members"))
 
     render_json
   end
@@ -314,7 +368,7 @@ class GroupsController < ApplicationController
     render_json
   end
 
-  # TODO Add test for it!
+  # FUTURE Add test for it!
   def add_all_clients_to_group
     audit_log("Add members to global group", audit_log_data = {})
 
@@ -356,12 +410,6 @@ class GroupsController < ApplicationController
 
   private
 
-  def validate_description
-    return unless params[:description].blank?()
-
-    raise t("groups.description_blank")
-  end
-
   def init_owners_group_code
     @owners_group_code = SystemParameter.security_server_owners_group
   end
@@ -392,15 +440,15 @@ class GroupsController < ApplicationController
     when 0
       return 'security_server_clients.name'
     when 1
-      return 'identifiers.member_code'
-    when 2
-      return 'identifiers.member_class'
-    when 3
-      return 'identifiers.subsystem_code'
-    when 4
-      return 'identifiers.xroad_instance'
-    when 5
       return 'identifiers.object_type'
+    when 2
+      return 'identifiers.xroad_instance'
+    when 3
+      return 'identifiers.member_class'
+    when 4
+      return 'identifiers.member_code'
+    when 5
+      return 'identifiers.subsystem_code'
     when 6
       return 'identifiers.created_at'
     else
@@ -411,17 +459,17 @@ class GroupsController < ApplicationController
   def get_addable_members_column(index)
     case index
     when 0
-      return 'security_server_client_names.name'
+      return 'security_server_clients.name'
     when 1
-      return 'identifiers.member_code'
-    when 2
-      return 'identifiers.member_class'
-    when 3
-      return 'identifiers.subsystem_code'
-    when 4
-      return 'identifiers.xroad_instance'
-    when 5
       return 'identifiers.object_type'
+    when 2
+      return 'identifiers.xroad_instance'
+    when 3
+      return 'identifiers.member_class'
+    when 4
+      return 'identifiers.member_code'
+    when 5
+      return 'identifiers.subsystem_code'
     else
       raise "Index '#{index}' has no corresponding column."
     end

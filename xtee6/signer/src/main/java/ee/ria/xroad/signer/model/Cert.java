@@ -22,21 +22,20 @@
  */
 package ee.ria.xroad.signer.model;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Setter;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.Setter;
 
 /**
  * Model object that holds the information associated with a certificate.

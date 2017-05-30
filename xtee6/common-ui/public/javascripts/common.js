@@ -49,6 +49,54 @@ $.fn.enable = function(enable) {
     }
 };
 
+/**
+ * Enables/disables the button based on input values. Supports both AND and
+ * OR operations with inputs.
+ *
+ * Can be applied only for a button that already exists in the UI.
+ *
+ * @param inputSelector - jQuery selector for input
+ * @param allRequired - if true, all inputs must be filled (AND), otherwise at
+ * least one input must be filled (OR).
+ */
+$.fn.enableForInput = function(inputSelector, allRequired) {
+    var button = this;
+    button.disable();
+
+    var onChange = function(event) {
+        button.disable();
+        var enableForAll = true;
+
+        $(inputSelector).each(function(idx, input) {
+            if (!$(input).is(":visible")) {
+                return true;
+            }
+
+            var inputFilled = isInputFilled($(input), event);
+
+            if (allRequired) {
+                if (inputFilled) {
+                    return true;
+                } else {
+                    enableForAll = false;
+                    return false;
+                }
+            }
+
+            if (inputFilled) {
+                button.enable();
+                return false;
+            }
+        });
+
+        if (allRequired && enableForAll) {
+            button.enable();
+        }
+    };
+
+    $(inputSelector).on("change keyup paste", onChange);
+};
+
 $.fn.initDialog = function(opts) {
     var dialog = this;
 
@@ -422,8 +470,55 @@ String.prototype.containsIgnoreCase = function(searchable) {
     return this.toLowerCase().indexOf(searchable.toLowerCase()) != -1;
 };
 
+function isBlank(value) {
+    return $.trim(value) == 0;
+}
+
 function isNotBlank(value) {
     return $.trim(value) != 0;
+}
+
+function generateIdElement(data, extraData) {
+    extraData = typeof extraData !== 'undefined' ? extraData : [];
+
+    var wrap = $("<div/>");
+    var span = $("<span/>").addClass("xroad-id");
+    var spanText = [];
+    var spanTextExtra = [];
+    var spanTitle = [];
+
+    for (var item in data) {
+        if (data.hasOwnProperty(item) && data[item]) {
+            spanText.push(data[item]);
+            spanTitle.push(item + ": " + data[item]);
+        }
+    }
+
+    for (var item in extraData) {
+        if (extraData.hasOwnProperty(item) && extraData[item]) {
+            spanTextExtra.push(extraData[item]);
+            spanTitle.push(item + ": " + extraData[item]);
+        }
+    }
+
+    span.text(spanText.join(' : '));
+
+    if (spanTextExtra.length > 0) {
+        span.text(span.text() + " (" + spanTextExtra.join(", ") + ")");
+    }
+
+    span.attr("title", spanTitle.join("<br>"));
+
+    return wrap.html(span).html();
+}
+
+function initServerInfo() {
+    $("#server-info h1").prepend(generateIdElement({
+        "Instance": $("#server-info").data("instance"),
+        "Security Server Code": $("#server-info").data("server-code")
+    }, {
+        "Node Name": $("#server-info").data("node-name")
+    }));
 }
 
 function initMenu() {
@@ -490,8 +585,12 @@ function addMessage(type, message) {
     messageContainer.append(message + "<br/>");
 }
 
-function clearMessages() {
-    $(".message").remove();
+function clearMessages(dialogsOnly) {
+    if (dialogsOnly) {
+        $(".ui-dialog .message").remove();
+    } else {
+        $(".message").remove();
+    }
 }
 
 function showMessages(messages) {
@@ -784,8 +883,8 @@ function warning(text, params, success) {
         title: title,
         autoOpen: true,
         modal: true,
-        width: "auto",
         minWidth: 500,
+        height: "auto",
         buttons: [
             { text: _("common.continue"),
               click: function() {
@@ -858,14 +957,29 @@ function initConsoleOutput(consoleOutput, dialogTitle, dialogHeight, onClose) {
 
 // -- Functionality related to console output - end
 
-function isInputFilled(inputSelector) {
-    var inputValue = inputSelector.val();
+function isInputFilled(inputSelector, copyEvent) {
+    var inputValue = inputSelector.val() || getClipboardContent(copyEvent);
     return inputValue != null && inputValue.length > 0
 }
 
 function isReadonlyInputFilled(inputSelector) {
     var inputValue = inputSelector.text();
     return inputValue != null && inputValue.length > 0
+}
+
+function getClipboardContent(event) {
+    if (!event) {
+        return "";
+    }
+
+    var clipboard = event.originalEvent
+            ? event.originalEvent.clipboardData : null;
+
+    if (!clipboard) {
+        return "";
+    }
+
+    return clipboard.getData("Text").replace(/ /g, "");
 }
 
 $.ajaxPrefilter(function(options, originalOptions, jqXHR) {
@@ -918,12 +1032,27 @@ $(document).ajaxSuccess(function(ev, xhr, opts) {
 });
 
 $(document).ajaxError(function(ev, xhr) {
-    var response = $.parseJSON(xhr.responseText);
-    showMessages(response.messages);
+    showMessages(getXRoadAjaxErrorMessages(xhr));
 });
 
+function getXRoadAjaxErrorMessages(xhr) {
+    var errorServerUnreachable = [["error", [_("errors.server_unreachable")]]];
+
+    try {
+        var response = $.parseJSON(xhr.responseText);
+
+        if (response && response.messages) {
+            return response.messages;
+        } else {
+            return errorServerUnreachable;
+        }
+    } catch (err) {
+        return errorServerUnreachable;
+    }
+}
+
 $(document).on("dialogclose", ".ui-dialog", function() {
-    clearMessages();
+    clearMessages(true);
 });
 
 // Default uploadCallback
@@ -1094,23 +1223,31 @@ function initTestability() {
     $("button span:contains('Confirm')").parent().attr("data-name", "confirm");
 }
 
+function moveButtonsToHeader() {
+    $("." + $("#ctrl").val() + "_actions").find("button").each(function() {
+        var clone = $(this).clone();
+        $(this).remove();
+        $(".button-group").append(clone);
+    });
+}
 
-$(document).ready(function() {
-
-    initMenu();
-
+function addButtonIcons() {
     $("button:contains('Add')" ).addClass("add-icon");
     $("button:contains('Edit')" ).addClass("edit-icon");
     $("button:contains('Delete')" ).addClass("delete-icon");
+}
 
-    // Submit only search forms with ENTER.
-    $(document).on("keydown", "form", function(e) {
+function disableEnterSubmit() {
+    // Submit only search forms with ENTER. Disable ENTER key on textareas.
+    $(document).on("keydown", "form, textarea", function(e) {
         if (e.which == 13) {
             $(this).find(".search").click();
         }
         return e.which !== 13;
     });
+}
 
+function resizeTablesOnRowSelect() {
     // Manually increase the size of scrollBody to accomodate the
     // increased size of the table after selecting a row (which makes
     // clipped data visible for that row). Redrawing the whole table
@@ -1127,38 +1264,24 @@ $(document).ready(function() {
             $(this).css("height", tableHeight);
         }
     });
+}
 
-    // Close buttons on messages.
+function addCloseButtonToMessages() {
     $(document).on("click", ".message i", function() {
         $(this).parent().remove();
     });
+}
 
-    // Misc stuff. TODO: cleanup
-    $('.' + $('#ctrl').val() + '_actions').find('button').each(function() {
-        var clone = $(this).clone();
-        $(this).remove();
-        $('.button-group').append(clone);
-    });
-
-    $('#server-names h2').text($('#server-names h2').text().replace(' Administration', ''));
-    if($('#server-names h1').text() == '')
-        $('#server-names h2').addClass('big');
-
-    if($('#user h2').text() == '')
-        $('#user h1').addClass('big');
-
-    initFileUploadDialog();
-    initLocaleSelectDialog();
-    initTestability();
-
+function initTooltips() {
     // Init every tooltip on page, even the ones added dynamically later.
     $(document).tooltip({
         content: function() {
             return $(this).attr("title");
         }
     });
+}
 
-    // Init simple/advanced search tabs.
+function initSearchTabs() {
     $(".search_tabs").initTabs({
         active: 0,
         create: function() {
@@ -1182,4 +1305,22 @@ $(document).ready(function() {
             }
         }
     });
+}
+
+$(document).ready(function() {
+    initServerInfo();
+    initMenu();
+
+    moveButtonsToHeader();
+    addButtonIcons();
+    disableEnterSubmit();
+    resizeTablesOnRowSelect();
+    addCloseButtonToMessages();
+
+    initFileUploadDialog();
+    initLocaleSelectDialog();
+	initTestability();
+
+    initTooltips();
+    initSearchTabs();
 });

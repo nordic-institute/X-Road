@@ -28,7 +28,7 @@ class PrivateParametersGenerator
         get_object_factory(), get_root_type_creator())
 
     Rails.logger.debug(
-      "Initialized private parameters generator: #{self.inspect()}")
+        "Initialized private parameters generator: #{self.inspect()}")
   end
 
   def generate
@@ -44,7 +44,7 @@ class PrivateParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.ria.xroad.common.conf.globalconf.privateparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.privateparameters.v1.ObjectFactory
   end
 
   def get_root_type_creator
@@ -110,7 +110,7 @@ class PrivateParametersGenerator
         SystemParameter.management_service_provider_subsystem)
 
     management_service_type.managementRequestServiceProviderId =
-      provider_id_type
+        provider_id_type
 
     @marshaller.root.managementService = management_service_type
   end

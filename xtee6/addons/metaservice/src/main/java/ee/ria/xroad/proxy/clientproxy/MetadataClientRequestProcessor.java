@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CENTRAL_SERVICES;
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
+import static ee.ria.xroad.common.metadata.MetadataRequests.WSDL;
+
 import java.io.OutputStream;
 import java.util.stream.Collectors;
 
@@ -31,7 +35,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.MimeTypes;
 
@@ -42,8 +45,7 @@ import ee.ria.xroad.common.metadata.ClientType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
-
-import static ee.ria.xroad.common.metadata.MetadataRequests.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class MetadataClientRequestProcessor extends MessageProcessorBase {

@@ -28,7 +28,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.client.HttpClient;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.conf.KeyConf;
 
@@ -95,4 +98,31 @@ public abstract class MessageProcessorBase {
      * @return MessageInfo object for the request message being processed
      */
     public abstract MessageInfo createRequestMessageInfo();
+
+    /**
+     * Update operational monitoring data with SOAP message header data and
+     * the size of the message.
+     * @param opMonitoringData monitoring data to update
+     * @param soapMessage SOAP message
+     */
+    protected static void updateOpMonitoringDataBySoapMessage(
+            OpMonitoringData opMonitoringData, SoapMessageImpl soapMessage) {
+        if (opMonitoringData != null && soapMessage != null) {
+            opMonitoringData.setClientId(soapMessage.getClient());
+            opMonitoringData.setServiceId(soapMessage.getService());
+            opMonitoringData.setMessageId(soapMessage.getQueryId());
+            opMonitoringData.setMessageUserId(soapMessage.getUserId());
+            opMonitoringData.setMessageIssue(soapMessage.getIssue());
+            opMonitoringData.setRepresentedParty(
+                    soapMessage.getRepresentedParty());
+            opMonitoringData.setMessageProtocolVersion(
+                    soapMessage.getProtocolVersion());
+
+            opMonitoringData.setRequestSoapSize(soapMessage.getBytes().length);
+        }
+    }
+
+    protected static String getSecurityServerAddress() {
+        return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());
+    }
 }

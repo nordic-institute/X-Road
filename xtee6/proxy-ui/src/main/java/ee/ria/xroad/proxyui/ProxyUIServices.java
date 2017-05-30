@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.proxyui;
 
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.commonui.UIServices;
 import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.SystemProperties.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains the UI actor system instance and configuration checker jobs.

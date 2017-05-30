@@ -22,24 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.UUID;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.Marshaller;
-import javax.xml.soap.SOAPBody;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-import org.eclipse.jetty.http.MimeTypes;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -47,16 +29,24 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.JaxbUtils;
-import ee.ria.xroad.common.message.SoapBuilder;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapHeader;
-import ee.ria.xroad.common.message.SoapMessage;
-import ee.ria.xroad.common.message.SoapMessageDecoder;
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.*;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.http.MimeTypes;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.Marshaller;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -72,7 +62,6 @@ class WsdlRequestProcessor {
     static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
-    private static final String USER_ID = "wsdl-request";
 
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -89,16 +78,19 @@ class WsdlRequestProcessor {
         }
 
         HttpURLConnection connection = createConnection(message);
-        try (InputStream in = connection.getInputStream()) {
+        try (
+                InputStream in = connection.getInputStream();
+                SoapDecoderCallback callback = new SoapDecoderCallback()
+        ) {
             SoapMessageDecoder decoder =
                     new SoapMessageDecoder(connection.getContentType(),
-                            new SoapDecoderCallback());
+                            callback);
             decoder.parse(in);
         }
     }
 
     private SoapMessageImpl createMessage(ClientId client,
-            final ServiceId service) throws Exception {
+                                          final ServiceId service) throws Exception {
         ServiceId implementingService = GlobalConf.getServiceId(service);
         log.debug("Implementing service: {}", implementingService);
 
@@ -106,21 +98,18 @@ class WsdlRequestProcessor {
         header.setClient(client);
         header.setService(createGetWsdlService(implementingService));
         header.setQueryId(UUID.randomUUID().toString());
-        header.setUserId(USER_ID);
+        header.setProtocolVersion(new ProtocolVersion());
 
         SoapBuilder sb = new SoapBuilder();
         sb.setHeader(header);
-        sb.setCreateBodyCallback(new SoapBuilder.SoapBodyCallback() {
-            @Override
-            public void create(SOAPBody soapBody) throws Exception {
-                WsdlRequestData req = new WsdlRequestData();
-                req.setServiceCode(implementingService.getServiceCode());
-                req.setServiceVersion(implementingService.getServiceVersion());
+        sb.setCreateBodyCallback(soapBody -> {
+            WsdlRequestData req = new WsdlRequestData();
+            req.setServiceCode(implementingService.getServiceCode());
+            req.setServiceVersion(implementingService.getServiceVersion());
 
-                Marshaller marshaller =
-                        JaxbUtils.createMarshaller(req.getClass());
-                marshaller.marshal(req, soapBody);
-            }
+            Marshaller marshaller =
+                    JaxbUtils.createMarshaller(req.getClass());
+            marshaller.marshal(req, soapBody);
         });
 
         return sb.build();
@@ -189,13 +178,14 @@ class WsdlRequestProcessor {
     private class SoapDecoderCallback implements SoapMessageDecoder.Callback {
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> headers)
+                throws Exception {
             // discard
         }
 
         @Override
         public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+                               Map<String, String> additionalHeaders) throws Exception {
             log.trace("attachment({})", contentType);
 
             response.setContentType(contentType);
@@ -205,6 +195,7 @@ class WsdlRequestProcessor {
         @Override
         public void fault(SoapFault fault) throws Exception {
             log.error("Received fault {}", fault.getXml());
+
             throw fault.toCodedException();
         }
 
@@ -216,6 +207,7 @@ class WsdlRequestProcessor {
         @Override
         public void onError(Exception t) throws Exception {
             log.error("Error while reading response", t);
+
             throw t;
         }
 

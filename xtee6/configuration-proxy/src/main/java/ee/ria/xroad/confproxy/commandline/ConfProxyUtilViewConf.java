@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
+import static ee.ria.xroad.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.SIGNING_KEY_ID_PREFIX;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SECONDS;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,17 +35,15 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
-
-import static ee.ria.xroad.confproxy.ConfProxyProperties.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility tool for viewing the configuration proxy configuration settings.
@@ -73,7 +76,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             displayInfo(conf.getInstance(), conf);
         } else if (commandLine.hasOption("a")) {
             for (String instance : ConfProxyHelper.availableInstances()) {
-                ConfProxyProperties conf = null;
+                ConfProxyProperties conf;
                 try {
                     conf = new ConfProxyProperties(instance);
                 } catch (Exception e) {
@@ -97,10 +100,10 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
      */
     private void displayInfo(final String instance,
             final ConfProxyProperties conf) throws Exception {
-        ConfigurationAnchor anchor = null;
+        ConfigurationAnchorV2 anchor = null;
         String anchorError = null;
         try {
-            anchor = new ConfigurationAnchor(conf.getProxyAnchorPath());
+            anchor = new ConfigurationAnchorV2(conf.getProxyAnchorPath());
         } catch (Exception e) {
             anchorError = "'" + ConfProxyProperties.ANCHOR_XML
                     + "' could not be loaded: " + e;
@@ -172,7 +175,7 @@ public class ConfProxyUtilViewConf extends ConfProxyUtil {
             return "";
         }
         Path certPath = conf.getCertPath(keyId).toAbsolutePath();
-        byte[] certBytes = null;
+        byte[] certBytes;
         try {
             certBytes = Files.readAllBytes(certPath);
         } catch (IOException e) {

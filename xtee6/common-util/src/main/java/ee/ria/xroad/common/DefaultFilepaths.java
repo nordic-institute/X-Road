@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common;
 
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,8 +36,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.EnumSet;
 import java.util.Set;
-
-import static java.nio.file.attribute.PosixFilePermission.*;
 
 /**
  * Default file paths for application configuration and artifacts based on FHS.
@@ -67,11 +70,6 @@ public final class DefaultFilepaths {
 
     static final String TEMP_FILES_PATH = "/var/tmp/xroad/";
 
-    static final String ASYNC_DB_PATH = "/var/spool/xroad/";
-
-    static final String ASYNC_SENDER_CONFIGURATION_FILE =
-            "async-sender.properties";
-
     static final String MONITOR_AGENT_CONFIGURATION_FILE =
             "monitor-agent.ini";
 
@@ -80,6 +78,9 @@ public final class DefaultFilepaths {
 
     static final String JETTY_CLIENTPROXY_CONFIGURATION_FILE =
             "jetty/clientproxy.xml";
+
+    static final String OP_MONITOR_DAEMON_CONFIGURATION_FILE =
+            "op-monitor-daemon.ini";
 
     private static FileAttribute<Set<PosixFilePermission>> permissions =
             PosixFilePermissions.asFileAttribute(EnumSet.of(

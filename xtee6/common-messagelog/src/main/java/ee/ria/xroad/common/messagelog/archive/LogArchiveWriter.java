@@ -22,6 +22,16 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import static ee.ria.xroad.common.DefaultFilepaths.createTempFile;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchivePath;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -33,23 +43,15 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-
-import static ee.ria.xroad.common.DefaultFilepaths.createTempFile;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchivePath;
-import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardOpenOption.*;
-import static org.apache.commons.io.FileUtils.deleteQuietly;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class for writing log records to zip file containing ASiC containers
@@ -80,18 +82,25 @@ public class LogArchiveWriter implements Closeable {
 
     /**
      * Creates new LogArchiveWriter
-     * @param outputPath - directory where the log archive is created.
-     * @param archiveBase - interface to archive database.
+     * @param outputPath directory where the log archive is created.
+     * @param workingPath directory where the temporary files are stored
+     * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) {
+    public LogArchiveWriter(Path outputPath, Path workingPath,
+            LogArchiveBase archiveBase) {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
         this.linkingInfoBuilder = new LinkingInfoBuilder(
-                MessageLogProperties.getHashAlg(), archiveBase);
-        this.logArchiveCache = new LogArchiveCache(
-                LogArchiveWriter::generateRandom, linkingInfoBuilder);
+            MessageLogProperties.getHashAlg(),
+            archiveBase
+        );
 
+        this.logArchiveCache = new LogArchiveCache(
+            LogArchiveWriter::generateRandom,
+            linkingInfoBuilder,
+            workingPath
+        );
     }
 
     /**
@@ -213,10 +222,9 @@ public class LogArchiveWriter implements Closeable {
             return;
         }
 
-        String random = generateRandom();
+        String archiveFilename = getArchiveFilename(generateRandom());
 
-        String archiveFilename = getArchiveFilename(random);
-        Path archiveFile = Paths.get(outputPath.toString(), archiveFilename);
+        Path archiveFile = outputPath.resolve(archiveFilename);
 
         atomicMove(archiveTmp, archiveFile);
 
@@ -229,17 +237,17 @@ public class LogArchiveWriter implements Closeable {
 
     private void setArchivedInDatabase(String archiveFilename)
             throws IOException {
-        DigestEntry lastArchive = new DigestEntry(
-                linkingInfoBuilder.getCreatedArchiveLastDigest(),
-                archiveFilename);
-
         try {
-            archiveBase.markArchiveCreated(lastArchive);
+            archiveBase.markArchiveCreated(
+                new DigestEntry(
+                    linkingInfoBuilder.getCreatedArchiveLastDigest(),
+                    archiveFilename
+                )
+            );
         } catch (Exception e) {
             throw new IOException(e);
         }
     }
-
 
     private static String generateRandom() {
         String random = randomAlphanumeric(RANDOM_LENGTH);
@@ -261,12 +269,11 @@ public class LogArchiveWriter implements Closeable {
     private static boolean filenameRandomUnique(String random) {
         String filenameEnd = String.format("-%s.zip", random);
 
-        String[] fileNamesWithSameRandom = new File(
-                getArchivePath()).list((file, name) ->
+        String[] fileNamesWithSameRandom = new File(getArchivePath())
+                .list((file, name) ->
                         name.startsWith("mlog-") && name.endsWith(filenameEnd));
 
-        return fileNamesWithSameRandom == null
-                || fileNamesWithSameRandom.length == 0;
+        return ArrayUtils.isEmpty(fileNamesWithSameRandom);
     }
 
     private static WritableByteChannel createOutputToTempFile(Path tmp)

@@ -26,3 +26,4 @@
 class SecurityServerClientName < ActiveRecord::Base
   validates_with Validators::MaxlengthValidator
 end
+

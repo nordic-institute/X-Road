@@ -99,12 +99,14 @@ var XROAD_SECURITYSERVER_EDIT = function() {
     }
 
     function refreshServerDataTables(params) {
+        delete params["tempCertId"];
+
         refreshClients(params);
         refreshAuthCerts(params);
         refreshManagementRequests(params);
     }
 
-    // TODO (RM #2770): probably usable when security categories implemented
+    // FUTURE (RM #2770): probably usable when security categories implemented
     function refreshSecurityCategories(params, refreshCallback) {
         $.get("securityservers/server_security_categories", params,
                 function(response) {
@@ -349,12 +351,11 @@ var XROAD_SECURITYSERVER_EDIT = function() {
     /* -- POST REQUESTS - START -- */
 
     function editAddress(dialog) {
-        var newAddress = $("#securityserver_edit_address_new").val();
-        $("#securityserver_edit_address").text(newAddress);
-        serverData = getEditableServerData();
+        var params = getEditableServerId();
+        params.address = $("#securityserver_edit_address_new").val();
 
-        $.post("securityservers/address_edit", serverData,
-                function() {
+        $.post("securityservers/address_edit", params, function(response) {
+            $("#securityserver_edit_address").text(response.data.address);
             updateSecurityserversTableIfExists();
             $(dialog).dialog("close");
         }, "json");
@@ -395,7 +396,8 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         params["certId"] = certId;
 
         $.post("securityservers/auth_cert_deletion_request", params,
-                function(response) {
+               function(response) {
+            delete params.certId;
             refreshServerDataTables(params);
             $(dialog).dialog("close");
         }, "json");
@@ -421,7 +423,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
             return startAddressChange();
         });
 
-        // TODO (RM #2770): probably usable when security categories implemented
+        // FUTURE (RM #2770): probably usable when security categories implemented
         $("#security_categories_edit").live("click", function() {
             startSecurityCategoryEditing()
         });
@@ -447,10 +449,11 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         $("#securityserver_client_client_search").live("click", function() {
             var securityServerCode = getEditableServerId().serverCode;
 
-            MEMBER_SEARCH_DIALOG.open(securityServerCode, function(newClient) {
+            MEMBER_SEARCH_DIALOG.open(securityServerCode, false,
+                    function(newClient) {
                 selectNewServerClient(newClient);
                 initNewServerClientSubsystemAutocomplete(newClient);
-            }, true);
+            });
         });
 
         $("#securityserver_delete").live("click", function() {
@@ -649,12 +652,14 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         opts.aaSorting = [ [2,'desc'] ];
 
         opts.fnRowCallback = function(nRow, managementRequest) {
+            XROAD_CENTERUI_COMMON.translateRequestType(
+                    nRow, managementRequest.type, 1);
+
             var managementRequestColumn = $(nRow).find("td:first");
             var managementRequestLink =
                 XROAD_CENTERUI_COMMON.getDetailsLink(managementRequest.id);
             var updateTablesCallback = function() {
                 refreshManagementRequests();
-                // TODO: Add callback for members if needed!
             }
 
             managementRequestLink.click(function(){
@@ -734,8 +739,8 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         $("#securityserver_address_edit_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 230,
-            width: 360,
+            height: 200,
+            width: 450,
             buttons: [
                 { text: "OK",
                   click: function() {
@@ -751,7 +756,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         });
     }
 
-    // TODO (RM #2770): probably usable when security categories implemented
+    // FUTURE (RM #2770): probably usable when security categories implemented
     function initSecurityCategoriesEditDialog() {
         $("#security_categories_edit_dialog").initDialog({
             autoOpen: false,
@@ -794,7 +799,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
                 }
             ],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
             }
 
         });
@@ -819,7 +824,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
                 }
             ],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
             }
 
         });
@@ -846,7 +851,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
                 }
             ],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
             }
         });
     }
@@ -872,8 +877,14 @@ var XROAD_SECURITYSERVER_EDIT = function() {
         XROAD_SECURITYSERVERS.updateTable();
     }
 
+    function initTestability() {
+        $("#securityserver_client_register_dialog").parent().attr("data-name", "securityserver_client_register_dialog");
+        $("#securityserver_client_register_submit").attr("data-name", "securityserver_client_register_submit");
+    }
+
     $(document).ready(function() {
         initView();
+        initTestability();
     });
 
     function refreshMemberDataTablesIfExist() {
@@ -881,9 +892,7 @@ var XROAD_SECURITYSERVER_EDIT = function() {
             return;
         }
 
-        // TODO: what exactly needs to be refreshed here?
-        // var memberId = XROAD_MEMBER_EDIT.getEditableMemberId()
-        // XROAD_MEMBER_EDIT.refreshMemberDataTables(memberId);
+        XROAD_MEMBER_EDIT.refreshServerData()
     }
 
     function enableAuthCertDeletion(event) {

@@ -51,7 +51,7 @@ module ManagementRequestHelper
     receiver = GlobalConf.getManagementRequestService
     sender = owner_identifier
 
-    ManagementRequestSender.new("proxyUi", receiver, sender)
+    ManagementRequestSender.new(sender, receiver)
   end
 
   def server_id

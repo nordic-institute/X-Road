@@ -11,7 +11,12 @@ rh2.mydomain.com ansible_ssh_user=ec2-user
 [cp-servers]
 cp.mydomain.com ansible_ssh_user=ubuntu
 
+[ca-servers]
+ca.mydomain.com ansible_ssh_user=ubuntu
+
 [example:children]
 cs-servers
 ss-servers
 cp-servers
+ca-servers
+

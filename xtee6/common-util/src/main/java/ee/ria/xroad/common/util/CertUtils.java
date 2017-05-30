@@ -51,10 +51,28 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
 import javax.security.auth.x500.X500Principal;
-import java.io.*;
-import java.security.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
 import java.security.cert.Certificate;
-import java.security.cert.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -255,9 +273,11 @@ public final class CertUtils {
     }
 
     /**
-     * Returns the RDN value from the X500Name.
+     * @param name the name
+     * @param id the identifier of the value
+     * @return the RDN value from the X500Name.
      */
-    static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
+    public static String getRDNValue(X500Name name, ASN1ObjectIdentifier id) {
         RDN[] cnList = name.getRDNs(id);
         if (cnList.length == 0) {
             return null;
@@ -335,7 +355,7 @@ public final class CertUtils {
      * @param filename input file
      * @return X509Certificate
      * @throws CertificateException when certificate is invalid
-     * @throws FileNotFoundException when file is not found
+     * @throws java.io.FileNotFoundException when file is not found
      * @throws IOException when I/O error occurs
      */
     public static X509Certificate readCertificate(String filename) throws CertificateException, IOException {
@@ -357,7 +377,6 @@ public final class CertUtils {
         Security.addProvider(new BouncyCastleProvider());
 
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
-        PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
 
         X509Certificate cert = readCertificate(filenamePem);
@@ -370,5 +389,15 @@ public final class CertUtils {
             outStore.store(outputStream, InternalSSLKey.getKEY_PASSWORD());
             outputStream.flush();
         }
+    }
+
+    /**
+     * Returns string identifying the certificate. The string consists of
+     * the issuer DN and serial number. This method is used for logging purposes.
+     * @param certificate the certificate
+     * @return the string identifying the certificate
+     */
+    public static String identify(X509Certificate certificate) {
+        return certificate.getIssuerDN() + " " + certificate.getSerialNumber();
     }
 }

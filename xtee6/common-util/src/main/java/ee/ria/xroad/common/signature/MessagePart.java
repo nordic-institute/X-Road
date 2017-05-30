@@ -22,10 +22,11 @@
  */
 package ee.ria.xroad.common.signature;
 
-import ee.ria.xroad.common.util.CryptoUtils;
+import java.io.Serializable;
+
 import lombok.Data;
 
-import java.io.Serializable;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 
 /**
@@ -42,6 +43,9 @@ public final class MessagePart implements Serializable {
 
     /** The data in data. */
     private final byte[] data;
+
+    /** Optionally holds the message if this is a message part */
+    private final byte[] soap;
 
     /**
      * @return the raw data

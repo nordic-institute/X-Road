@@ -5,7 +5,8 @@ sudo apt-get install -y curl software-properties-common
 sudo apt-add-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 
-sudo apt-get install -y openjdk-8-jdk build-essential git unzip debhelper
+sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper
+sudo update-ca-certificates -f
 
 cd ~
 
@@ -17,4 +18,3 @@ rvm use jruby-1.7.25
 jgem install jruby-jars:1.7.25 bundle warbler:1.4.9 bundler-audit
 
 mkdir -p /var/tmp/xroad
-

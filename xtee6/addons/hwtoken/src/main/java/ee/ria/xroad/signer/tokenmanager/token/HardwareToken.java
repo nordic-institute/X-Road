@@ -23,7 +23,6 @@
 package ee.ria.xroad.signer.tokenmanager.token;
 
 import akka.actor.Props;
-
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 /**

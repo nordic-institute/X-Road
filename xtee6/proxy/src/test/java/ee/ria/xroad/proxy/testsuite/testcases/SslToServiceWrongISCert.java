@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import static java.util.Collections.singletonList;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -33,9 +38,6 @@ import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.ProxyTestSuite;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static java.util.Collections.singletonList;
 
 /**
  * ServerProxy connects to Service using SSL, serverconf contains wrong

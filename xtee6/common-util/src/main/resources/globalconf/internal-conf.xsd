@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schema xmlns="http://www.w3.org/2001/XMLSchema"
-    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
-    targetNamespace="http://x-road.eu/xsd/xroad.xsd"
-    xmlns:id="http://x-road.eu/xsd/identifiers">
+        xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+        targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
     <import namespace="http://x-road.eu/xsd/identifiers"
-        schemaLocation="../identifiers.xsd" id="id"/>
+            schemaLocation="../identifiers.xsd" id="id"/>
     <element name="conf" type="tns:PrivateParametersType">
         <annotation>
             <documentation>
@@ -13,7 +13,7 @@
         </annotation>
     </element>
     <element name="configurationAnchor"
-        type="tns:ConfigurationAnchorType">
+             type="tns:ConfigurationAnchorType">
         <annotation>
             <documentation>
                 Information about a source of configuration.
@@ -32,8 +32,8 @@
                 </annotation>
             </element>
             <element name="configurationAnchor"
-                type="tns:ConfigurationAnchorType" minOccurs="0"
-                maxOccurs="unbounded">
+                     type="tns:ConfigurationAnchorType" minOccurs="0"
+                     maxOccurs="unbounded">
                 <annotation>
                     <documentation>
                         Information about a source of configuration.
@@ -41,7 +41,7 @@
                 </annotation>
             </element>
             <element name="managementService"
-                type="tns:ManagementServiceType">
+                     type="tns:ManagementServiceType">
                 <annotation>
                     <documentation>
                         Parameters of management services called by the security servers.
@@ -70,7 +70,7 @@
                 </annotation>
             </element>
             <element name="authCertRegServiceCert" type="base64Binary"
-                minOccurs="0">
+                     minOccurs="0">
                 <annotation>
                     <documentation>
                         Server certificate that is used to authenticate TLS connection to the authentication
@@ -79,7 +79,7 @@
                 </annotation>
             </element>
             <element name="managementRequestServiceProviderId"
-                type="id:XroadClientIdentifierType">
+                     type="id:XRoadClientIdentifierType">
                 <annotation>
                     <documentation>
                         Identifier of the X-Road member or subsystem providing the management request services.
@@ -105,7 +105,7 @@
                 </annotation>
             </element>
             <element name="source" type="tns:ConfigurationSourceType"
-                maxOccurs="unbounded">
+                     maxOccurs="unbounded">
                 <annotation>
                     <documentation>
                         Describes one configuration source.
@@ -125,7 +125,7 @@
                 </annotation>
             </element>
             <element name="verificationCert" type="base64Binary"
-                maxOccurs="unbounded">
+                     maxOccurs="unbounded">
                 <annotation>
                     <documentation>
                         Public key that can be used to verify the signed configuration, presented as X.509 certificate.

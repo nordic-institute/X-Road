@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.util;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import org.apache.commons.io.output.WriterOutputStream;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Manages passwords stored in the shared memory segment.

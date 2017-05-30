@@ -61,6 +61,10 @@ class ApprovedCasController < ApplicationController
     @member_classes = MemberClass.get_all_codes
   end
 
+  def can_see_details
+    render_details_visibility(:view_approved_ca_details)
+  end
+
   def top_cas
     authorize!(:view_approved_cas)
 
@@ -127,6 +131,7 @@ class ApprovedCasController < ApplicationController
     })
 
     cert_data = upload_cert(params[:ca_cert])
+    validate_cert(params[:ca_cert])
 
     notice(t("common.cert_imported"))
 
@@ -142,17 +147,15 @@ class ApprovedCasController < ApplicationController
 
     validate_params({
       :temp_cert_id => [:required],
-      :name_extractor_disabled => [],
-      :name_extractor_member_class => [],
-      :name_extractor_method => []
+      :authentication_only => [],
+      :cert_profile_info => [:required]
     })
 
     ca = ApprovedCa.new
     ca.top_ca = CaInfo.new
     ca.top_ca.cert = get_temp_cert_from_session(params[:temp_cert_id])
-    ca.authentication_only = params[:name_extractor_disabled]
-    ca.identifier_decoder_member_class = params[:name_extractor_member_class]
-    ca.identifier_decoder_method_name = params[:name_extractor_method]
+    ca.authentication_only = params[:authentication_only]
+    ca.cert_profile_info = params[:cert_profile_info ]
 
     ca.save!
 
@@ -163,8 +166,7 @@ class ApprovedCasController < ApplicationController
     audit_log_data[:caCertHashAlgorithm] =
       CommonUi::CertUtils.cert_hash_algorithm
     audit_log_data[:authenticationOnly] = ca.authentication_only != nil
-    audit_log_data[:nameExtractorMemberClass] = ca.identifier_decoder_member_class
-    audit_log_data[:nameExtractorMethod] = ca.identifier_decoder_method_name
+    audit_log_data[:certificateProfileInfo] = ca.cert_profile_info
 
     notice(t("approved_cas.approved_ca_added"))
 
@@ -241,25 +243,22 @@ class ApprovedCasController < ApplicationController
 
     validate_params({
       :ca_id => [:required],
-      :name_extractor_disabled => [],
-      :name_extractor_member_class => [],
-      :name_extractor_method => []
+      :authentication_only => [],
+      :cert_profile_info => [:required]
     })
 
     ca = ApprovedCa.find(params[:ca_id])
 
-    ca.authentication_only = params[:name_extractor_disabled]
-    ca.identifier_decoder_member_class = params[:name_extractor_member_class]
-    ca.identifier_decoder_method_name = params[:name_extractor_method]
+    ca.authentication_only = params[:authentication_only]
+    ca.cert_profile_info = params[:cert_profile_info]
 
     audit_log_data[:caId] = params[:ca_id]
     audit_log_data[:authenticationOnly] = ca.authentication_only != nil
-    audit_log_data[:nameExtractorMemberClass] = ca.identifier_decoder_member_class
-    audit_log_data[:nameExtractorMethod] = ca.identifier_decoder_method_name
+    audit_log_data[:certificateProfileInfo] = ca.cert_profile_info
 
     ca.save!
 
-    logger.info("Name extractor edited, result: '#{ca}'")
+    logger.info("Certificate profile info edited, result: '#{ca}'")
     notice(t("approved_cas.ca_settings_saved"))
 
     render_json
@@ -273,6 +272,7 @@ class ApprovedCasController < ApplicationController
     })
 
     cert_data = upload_cert(params[:ocsp_responder_cert], true)
+    validate_cert(params[:ocsp_responder_cert])
 
     notice(t("common.cert_imported"))
 
@@ -384,9 +384,8 @@ class ApprovedCasController < ApplicationController
       :issuer => cert_obj.issuer.to_s,
       :valid_from => format_time(top_ca.top_ca.valid_from.localtime),
       :valid_to => format_time(top_ca.top_ca.valid_to.localtime),
-      :name_extractor_disabled => top_ca.authentication_only,
-      :name_extractor_member_class => top_ca.identifier_decoder_member_class,
-      :name_extractor_method => top_ca.identifier_decoder_method_name
+      :authentication_only => top_ca.authentication_only,
+      :cert_profile_info => top_ca.cert_profile_info
     }
   end
 
@@ -419,7 +418,7 @@ class ApprovedCasController < ApplicationController
 
     {
       :id => intermediate_ca.id,
-      :name => cert_obj.subject.to_s,
+      :name => CommonUi::CertUtils.cert_subject_cn(cert_obj),
       :subject => cert_obj.subject.to_s,
       :issuer => cert_obj.issuer.to_s,
       :valid_from => format_time(cert_obj.not_before.localtime),

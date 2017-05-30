@@ -9,10 +9,10 @@
             <id:memberClass>BUSINESS</id:memberClass>
             <id:memberCode>consumer</id:memberCode>
         </xroad:client>
-        <xroad:service id:objectType="CENTRALSERVICE">
+        <xroad:centralService id:objectType="CENTRALSERVICE">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:serviceCode>centralservice</id:serviceCode>
-        </xroad:service>
+        </xroad:centralService>
         <xroad:service id:objectType="SERVICE">
             <id:xRoadInstance>EE</id:xRoadInstance>
             <id:memberClass>BUSINESS</id:memberClass>

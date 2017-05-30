@@ -30,7 +30,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
@@ -41,7 +40,6 @@ import ee.ria.xroad.common.hashchain.HashChainBuilder;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.*;
 
@@ -113,8 +111,8 @@ class SignatureCtx {
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
             return builder.createDataToBeSigned(MESSAGE,
-                    createResourceResolver(
-                            firstRequest.getParts().get(0).getData()));
+                    createResourceResolver(firstRequest.getParts().get(0)
+                            .getSoap()));
         }
 
         buildHashChain();
@@ -145,27 +143,10 @@ class SignatureCtx {
         hashChains = hashChainBuilder.getHashChains(MESSAGE);
     }
 
-    private static byte[][] getHashChainInputs(SigningRequest request)
-            throws Exception {
-        List<MessagePart> parts = request.getParts();
-
-        byte[][] result = new byte[parts.size()][];
-        for (int i = 0; i < parts.size(); i++) {
-            MessagePart part = parts.get(i);
-
-            // Assuming that message is raw data, we need to hash it
-            if (MessageFileNames.MESSAGE.equals(part.getName())) {
-                result[i] = calculateHash(part);
-            } else {
-                result[i] = part.getData(); // attachment
-            }
-        }
-
-        return result;
-    }
-
-    private static byte[] calculateHash(MessagePart part) throws Exception {
-        return calculateDigest(part.getHashAlgoId(), part.getData());
+    private static byte[][] getHashChainInputs(SigningRequest request) {
+        return request.getParts().stream()
+                .map(MessagePart::getData)
+                .toArray(size -> new byte[size][]);
     }
 
     /**

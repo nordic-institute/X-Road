@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
 import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 import static java.nio.charset.StandardCharsets.ISO_8859_1;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
+
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
  * Client sends normal request, server responds with invalid content type.
@@ -51,7 +51,6 @@ public class NonUtf8ResponseContentType extends MessageTestCase {
     }
 
     @Override
-    protected void validateNormalResponse(Message receivedResponse)
-            throws Exception {
+    protected void validateNormalResponse(Message receivedResponse) {
     }
 }

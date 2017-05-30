@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -30,9 +33,6 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_SECURITY_CATEGORY;
 
 /**
  * The client attempts to make query that it is not allowed to perform.

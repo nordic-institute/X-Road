@@ -26,8 +26,6 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
@@ -35,6 +33,8 @@ import org.apache.commons.cli.Options;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Base for all the configuration proxy utility tools.
@@ -67,11 +67,11 @@ public abstract class ConfProxyUtil {
      * Prints the available arguments for the utility program.
      */
     protected final void printHelp() {
-        final PrintWriter writer = new PrintWriter(System.out);
-        final HelpFormatter helpFormatter = new HelpFormatter();
-        helpFormatter.printHelp(writer, HELP_LINE_WIDTH, name, "", options,
-                HELP_LINE_PADDING, HELP_LINE_DESCRIPTION_PADDING, "", true);
-        writer.close();
+        try (final PrintWriter writer = new PrintWriter(System.out)) {
+            final HelpFormatter helpFormatter = new HelpFormatter();
+            helpFormatter.printHelp(writer, HELP_LINE_WIDTH, name, "", options,
+                    HELP_LINE_PADDING, HELP_LINE_DESCRIPTION_PADDING, "", true);
+        }
      }
 
     /**

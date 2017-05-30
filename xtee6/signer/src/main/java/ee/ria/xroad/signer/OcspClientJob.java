@@ -29,10 +29,13 @@ import scala.concurrent.duration.FiniteDuration;
 
 import java.util.concurrent.TimeUnit;
 
+import static ee.ria.xroad.signer.certmanager.OcspClientWorker.GLOBAL_CONF_INVALIDATED;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 
 /**
- * Periodically executes the OcspClient
+ * Periodically executes OCSP-response refresh by sending {@link ee.ria.xroad.signer.certmanager.OcspClientWorker}
+ * the message {@value OcspClientWorker#EXECUTE} and manages the refresh interval
+ * based on the status of the last refresh.
  */
 @Slf4j
 public class OcspClientJob extends VariableIntervalPeriodicJob {
@@ -46,9 +49,12 @@ public class OcspClientJob extends VariableIntervalPeriodicJob {
             FiniteDuration.create(5, TimeUnit.SECONDS);
 
     private static final int BASIC_DELAY = 10;
+    private static final int RECOVER_FROM_INVALID_GLOBALCONF_DELAY = 60;
     private int nextDelay = 0;
     private int currentDelay = 0;
     private int prevDelay = 0;
+
+    //flag for indicating backoff retry state
     private boolean failed = false;
 
     OcspClientJob() {
@@ -67,20 +73,25 @@ public class OcspClientJob extends VariableIntervalPeriodicJob {
             prevDelay = 0;
             currentDelay = BASIC_DELAY;
         }
-        // Use fibonacci number serie for counting increasing delay
+        // Use fibonacci number series for modeling backoff delay
         nextDelay = currentDelay + prevDelay;
+
 
         if (failed && nextDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
             prevDelay = currentDelay;
             currentDelay = nextDelay;
-            log.debug("Delay for next OCSP refresh: {}", nextDelay);
+            log.info("Next OCSP refresh retry scheduled in {} seconds", nextDelay);
             return FiniteDuration.create(nextDelay, TimeUnit.SECONDS);
         } else {
-            log.debug("Delay for greatest OSCP refresh time: {}", OcspClientWorker.getNextOcspFetchIntervalSeconds());
+            log.info("Next OCSP refresh scheduled in {} seconds", OcspClientWorker.getNextOcspFetchIntervalSeconds());
             return FiniteDuration.create(
-                OcspClientWorker.getNextOcspFetchIntervalSeconds(),
-                TimeUnit.SECONDS);
+                    OcspClientWorker.getNextOcspFetchIntervalSeconds(),
+                    TimeUnit.SECONDS);
         }
+    }
+
+    private FiniteDuration getNextDelayForInvalidGlobalConf() {
+        return FiniteDuration.create(RECOVER_FROM_INVALID_GLOBALCONF_DELAY, TimeUnit.SECONDS);
     }
 
     @Override
@@ -90,18 +101,43 @@ public class OcspClientJob extends VariableIntervalPeriodicJob {
             cancelNextSend();
         } else if (RESCHEDULE.equals(incoming)) {
             log.debug("received message OcspClientWorker.RESCHEDULE");
+            log.info("OCSP-response refresh cycle rescheduling");
             scheduleNextSend(getNextDelay());
         } else if (SUCCESS.equals(incoming)) {
             log.debug("received message OcspClientJob.SUCCESS");
+            log.info("OCSP-response refresh cycle successfully completed, continuing with normal scheduling");
             failed = false;
             currentDelay = 0;
-        } else if (FAILED.equals(incoming) && !failed) {
+        } else if (FAILED.equals(incoming)) {
             log.debug("received message OcspClientJob.FAILED");
+            if (!failed) {
+                log.info("OCSP-response refresh cycle failed, switching to retry backoff schedule");
+                // move into recover-from-failed state
+                // cancel next send and start fibonacci-recovering
+                cancelNextSend();
+                failed = true;
+                scheduleNextSend(getNextDelay());
+            } else {
+                // no need to touch scheduling, we have already
+                // scheduled correctly in previous round's
+                // VariableIntervalPeriodicJob.onReceive(EXECUTE)
+                log.info("OCSP-response refresh retry failed, continuing along backoff schedule");
+            }
+        } else if (GLOBAL_CONF_INVALIDATED.equals(incoming)) {
+            log.debug("received message OcspClientWorker.GLOBAL_CONF_INVALIDATED");
+            log.info("OCSP-response refresh cycle failed due to invalid global configuration, "
+                    + "switching to global configuration recovery schedule");
+            // attempted to execute OCSP refresh, but global conf was
+            // invalid at that time -> reschedule
             cancelNextSend();
-            failed = true;
-            scheduleNextSend(getNextDelay());
+            scheduleNextSend(getNextDelayForInvalidGlobalConf());
+            failed = false;
+            currentDelay = 0;
+
         } else {
-            log.debug("received unknown message {}", incoming);
+            // received either EXECUTE (VariableIntervalPeriodicJob
+            // executes, and schedules next EXECUTE) or something else
+            // (which is dismissed in VariableIntervalPeriodicJob)
             super.onReceive(incoming);
         }
     }

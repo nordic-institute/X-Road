@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @Log
 public final class MonitorMain {
 
-    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/monitor.ini";
+    private static final String CONFIG_FILENAME = "/etc/xroad/conf.d/addons/monitor.ini";
     private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
     private static final String CONFIG_SECTION = "monitor";
     private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
@@ -55,7 +55,7 @@ public final class MonitorMain {
     public static void main(String args[]) {
 
         registerShutdownHook();
-        
+
         loadConfiguration();
 
         initAkka();

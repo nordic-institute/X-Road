@@ -2,4 +2,4 @@
 # Need to restart xroad-proxy
 xroad	ALL=(root) NOPASSWD: /sbin/restart xroad-proxy
 xroad	ALL=(root) NOPASSWD: /usr/sbin/invoke-rc.d nginx reload
- 
+

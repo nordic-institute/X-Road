@@ -22,29 +22,28 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.URI;
-import java.nio.channels.UnresolvedAddressException;
-import java.util.Arrays;
-import java.util.Enumeration;
-
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSessionContext;
-import javax.net.ssl.SSLSocket;
-
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSessionContext;
+import javax.net.ssl.SSLSocket;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URI;
+import java.nio.channels.UnresolvedAddressException;
+import java.util.Arrays;
+import java.util.Enumeration;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
@@ -104,7 +103,19 @@ class FastestConnectionSelectingSSLSocketFactory
 
         // If the current SSL session cache contains a session to a target
         // then connect to that target immediately without host selection.
-        URI cachedSSLSessionURI = getCachedSSLSessionHostURI(addresses);
+        URI cachedSSLSessionURI = null;
+
+        // .. the target host might be unreachable though, and we didn't use to clear the cached host URI.
+        // We don't always want to use the FastestSocketSelector -- but when the connection pool is in good use,
+        // we should be using pooled connections anyway if available. And if they are not available, it might
+        // be a good idea to check what the fastest host currently is.
+        // Leaving the cached session host uri as an option, default to "on" (as it used to be)
+        CachedSSLSessionHostInformation cachedHostInfo = getCachedSSLSessionHostURI(addresses);
+
+        if (SystemProperties.isUseCachedSSLSessionHostUri()) {
+            cachedSSLSessionURI = cachedHostInfo.getSelectedAddresses();
+        }
+
         if (cachedSSLSessionURI != null) {
             addresses = new URI[] {cachedSSLSessionURI};
         }
@@ -114,6 +125,9 @@ class FastestConnectionSelectingSSLSocketFactory
         if (selectedSocket == null) {
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
+                // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
+                cachedHostInfo.clearCachedURIForSession();
+
                 selectedSocket =
                         connect(addressesFromContext, context, timeout);
                 if (selectedSocket == null) {
@@ -126,10 +140,50 @@ class FastestConnectionSelectingSSLSocketFactory
 
         log.info("Connecting to {}", selectedSocket.getUri());
 
+        configureSocket(selectedSocket.getSocket());
+
+        updateOpMonitoringData(context, selectedSocket);
+
         SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
         return sslSocket;
+    }
+
+    private static void updateOpMonitoringData(HttpContext context,
+            SocketInfo socketInfo) {
+        try {
+            OpMonitoringData opMonitoringData = (OpMonitoringData) context
+                    .getAttribute(OpMonitoringData.class.getName());
+
+            if (opMonitoringData != null) {
+                opMonitoringData.setServiceSecurityServerAddress(
+                        socketInfo.getUri().getHost());
+            }
+        } catch (Exception e) {
+            log.error("Failed to assign op monitoring data field {}",
+                    OpMonitoringData.SERVICE_SECURITY_SERVER_ADDRESS, e);
+        }
+    }
+
+    /**
+     * Configures socket with any options needed.
+     * <p>
+     * Normally, the client using this factory would call {@link #createSocket(HttpContext)} and then configure the
+     * socket. And indeed, it ({@link org.apache.http.impl.conn.DefaultHttpClientConnectionOperator}) does.
+     * However, that socket is thrown away in {@link #connectSocket(int, Socket, HttpHost, InetSocketAddress,
+     * InetSocketAddress, HttpContext)})
+     * So apply here any configurations you actually want enabled.
+     *
+     * @param socket The socket to be configured
+     * @throws SocketException
+     */
+    private void configureSocket(Socket socket) throws SocketException {
+
+        socket.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+
+        int linger = SystemProperties.getClientProxyHttpClientSoLinger();
+        socket.setSoLinger(linger >= 0, linger);
     }
 
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
@@ -138,7 +192,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
 
-        verify(context, sslSocket.getSession());
+        verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,
@@ -159,7 +213,7 @@ class FastestConnectionSelectingSSLSocketFactory
             socket.connect(toAddress(address), timeout);
             return new SocketInfo(address, socket);
         } catch (IOException | UnresolvedAddressException e) {
-            log.error("Could not connect to '{}': {}", address, e);
+            log.error("Could not connect to '{}'", address, e);
 
             IOUtils.closeQuietly(socket);
             return null;
@@ -181,7 +235,7 @@ class FastestConnectionSelectingSSLSocketFactory
                 "Failed to create SSL socket");
     }
 
-    private URI getCachedSSLSessionHostURI(URI[] addresses) {
+    private CachedSSLSessionHostInformation getCachedSSLSessionHostURI(URI[] addresses) {
         SSLSessionContext sessionCtx = sslContext.getClientSessionContext();
 
         Enumeration<byte[]> ids = sessionCtx.getIds();
@@ -193,13 +247,39 @@ class FastestConnectionSelectingSSLSocketFactory
                 for (URI address : addresses) {
                     if (isSessionHost(session, address)) {
                         log.trace("Found cached session for {}", address);
-                        return address;
+                        return new CachedSSLSessionHostInformation(address, session);
                     }
                 }
             }
         }
 
-        return null;
+        return new CachedSSLSessionHostInformation();
+    }
+
+    private static class CachedSSLSessionHostInformation {
+        private final URI selectedAddress;
+        private final SSLSession sslSession;
+
+        CachedSSLSessionHostInformation(URI selectedAddress, SSLSession sslSession) {
+            this.selectedAddress = selectedAddress;
+            this.sslSession = sslSession;
+        }
+
+        CachedSSLSessionHostInformation() {
+            this.selectedAddress = null;
+            this.sslSession = null;
+
+        }
+
+        URI getSelectedAddresses() {
+            return selectedAddress;
+        }
+
+        void clearCachedURIForSession() {
+            if (sslSession != null) {
+                sslSession.removeValue(ID_SELECTED_TARGET);
+            }
+        }
     }
 
     private static URI[] getAddressesFromContext(HttpContext context) {
@@ -216,7 +296,7 @@ class FastestConnectionSelectingSSLSocketFactory
     private static boolean isSessionHost(SSLSession session, URI host) {
         try {
             URI sslHost = (URI) session.getValue(ID_SELECTED_TARGET);
-            return sslHost != null ? sslHost.equals(host) : false;
+            return sslHost != null && sslHost.equals(host);
         } catch (Exception e) {
             log.error("Error checking if host {} is in session ({}).", host,
                     session);

@@ -8,13 +8,6 @@
     <td><%= text_field_tag "subject_search_description", nil, :id => nil %></td>
   </tr>
   <tr>
-    <td><%= t 'clients.group_details_dialog.type' %></td>
-    <td>
-      <%= select_tag "subject_search_type",
-          options_for_select(@member_types), :id => nil, :include_blank => true %>
-    </td>
-  </tr>
-  <tr>
     <td><%= t 'clients.group_details_dialog.instance' %></td>
     <td>
       <%= select_tag "subject_search_instance",

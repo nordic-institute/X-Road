@@ -21,13 +21,14 @@
 # THE SOFTWARE.
 #
 
-java_import Java::ee.ria.xroad.asyncdb.AsyncSenderConf
-java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.TspType
 java_import Java::ee.ria.xroad.common.util.CryptoUtils
 java_import Java::ee.ria.xroad.common.conf.InternalSSLKey
 
 class SysparamsController < ApplicationController
+
+  include Keys::TokenRenderer
 
   def index
     authorize!(:view_sys_params)
@@ -46,10 +47,6 @@ class SysparamsController < ApplicationController
       sysparams[:tsps] = read_tsps
     end
 
-    if can?(:view_async_params)
-      sysparams[:async] = read_async_params
-    end
-
     if can?(:view_internal_ssl_cert)
       sysparams[:internal_ssl_cert] = {
         :hash => CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
@@ -66,8 +63,15 @@ class SysparamsController < ApplicationController
       :file_upload => [:required]
     })
 
-    anchor_details =
-      save_temp_anchor_file(params[:file_upload].read)
+    save_temp_anchor_file(params[:file_upload].read)
+
+    # Check if the uploaded anchor's instance ID matches our configured instance ID.
+    # This is to prevent accidental uploads of anchors obtained from some other
+    # central server.
+    anchor_details = get_temp_anchor_details
+    if anchor_details[:instance_id] != serverconf.owner.identifier.xRoadInstance
+      raise t('sysparams.internal_anchor_upload_invalid_instance_id')
+    end
 
     render_json(anchor_details)
   end
@@ -83,9 +87,11 @@ class SysparamsController < ApplicationController
 
     audit_log_data[:anchorFileHash] = anchor_details[:hash]
     audit_log_data[:anchorFileHashAlgorithm] = anchor_details[:hash_algorithm]
-    audit_log_data[:generatedAt] = anchor_details[:generated_at]
+    audit_log_data[:generatedAt] = anchor_details[:generated_at_iso]
 
     apply_temp_anchor_file
+
+    download_configuration
 
     render_json
   end
@@ -174,24 +180,6 @@ class SysparamsController < ApplicationController
     render_json(read_tsps)
   end
 
-  def async_params_edit
-    authorize!(:edit_async_params)
-
-    validate_params({
-      :base_delay => [:required, :int],
-      :max_delay => [:required, :int],
-      :max_senders => [:required, :int]
-    })
-
-    async_sender_conf = AsyncSenderConf.new
-    async_sender_conf.baseDelay = params[:base_delay].to_i
-    async_sender_conf.maxDelay = params[:max_delay].to_i
-    async_sender_conf.maxSenders = params[:max_senders].to_i
-    async_sender_conf.save
-
-    render_json(read_async_params)
-  end
-
   def internal_ssl_cert_details
     authorize!(:view_internal_ssl_cert)
 
@@ -229,7 +217,7 @@ class SysparamsController < ApplicationController
 
     if x55_installed?
       export_v6_internal_tls_key
-      restart_service("xtee55-clientemediator")
+      restart_service("xtee55-clientmediator")
     end
 
     cert_hash = CommonUi::CertUtils.cert_hash(read_internal_ssl_cert)
@@ -243,22 +231,16 @@ class SysparamsController < ApplicationController
 
   def generate_csr
     audit_log("Generate certificate request for TLS", audit_log_data = {})
-
     authorize!(:generate_internal_cert_req)
-
     audit_log_data[:subjectName] = params[:subject_name]
-
     kp = CertUtils::readKeyPairFromPemFile(SystemProperties::getConfPath() + InternalSSLKey::PK_FILE_NAME)
     csr = CertUtils::generateCertRequest(kp.getPrivate(), kp.getPublic(), params[:subject_name])
-
     csr_file = SecureRandom.hex(4)
-
     File.open(CommonUi::IOUtils.temp_file(csr_file), 'wb') do |f|
       f.write(csr)
     end
-
     render_json({
-                    :tokens => view_context.columns(SignerProxy::getTokens),
+                    :tokens => tokens_to_json(SignerProxy::getTokens),
                     :redirect => csr_file
                 })
   end
@@ -346,7 +328,7 @@ class SysparamsController < ApplicationController
     hash = CryptoUtils::hexDigest(
       CryptoUtils::DEFAULT_ANCHOR_HASH_ALGORITHM_ID, content.to_java_bytes)
 
-    anchor = ConfigurationAnchor.new(file)
+    anchor = ConfigurationAnchorV2.new(file)
     generated_at = Time.at(anchor.getGeneratedAt.getTime / 1000).utc
 
     return {
@@ -380,15 +362,4 @@ class SysparamsController < ApplicationController
 
     tsps
   end
-
-  def read_async_params
-    async_sender_conf = AsyncSenderConf.new
-
-    data = {
-      :base_delay => async_sender_conf.baseDelay,
-      :max_delay => async_sender_conf.maxDelay,
-      :max_senders => async_sender_conf.maxSenders
-    }
-  end
-
 end

@@ -30,10 +30,9 @@ import java.security.cert.X509Certificate;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 class ClientSslKeyManager extends X509ExtendedKeyManager {

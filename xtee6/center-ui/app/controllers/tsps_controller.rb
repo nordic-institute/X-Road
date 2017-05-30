@@ -104,6 +104,11 @@ class TspsController < ApplicationController
 
     authorize!(:add_approved_tsa)
 
+    validate_params({
+      :url => [:required],
+      :temp_cert_id => [:required]
+    })
+
     tsp = ApprovedTsa.new
     tsp.url = params[:url]
     tsp.cert = get_temp_cert_from_session(params[:temp_cert_id])
@@ -129,6 +134,12 @@ class TspsController < ApplicationController
 
     authorize!(:edit_approved_tsa)
 
+    validate_params({
+      :tsp_id => [:required],
+      :url => [:required],
+      :temp_cert_id => []
+    })
+
     tsp = ApprovedTsa.find(params[:tsp_id])
     tsp.url = params[:url]
 
@@ -149,6 +160,10 @@ class TspsController < ApplicationController
 
     authorize!(:delete_approved_tsa)
 
+    validate_params({
+      :tsp_id => [:required]
+    })
+
     tsp = ApprovedTsa.find(params[:tsp_id])
 
     audit_log_data[:tsaId] = tsp.id
@@ -163,7 +178,12 @@ class TspsController < ApplicationController
   def upload_tsp_cert
     authorize!(:add_approved_tsa)
 
+    validate_params({
+      :tsp_cert => [:required]
+    })
+
     cert_data = upload_cert(params[:tsp_cert], true)
+    validate_cert(params[:tsp_cert])
 
     notice(t("common.cert_imported"))
 

@@ -20,7 +20,7 @@ var XROAD_REQUEST_CLIENT_DELETION = function(){
                 }
             } ],
             open: function() {
-                XROAD_CENTERUI_COMMON.limitDialogMaxHeight($(this));
+                XROAD_CENTERUI_COMMON.limitDialogHeight($(this));
             }
         }).dialog("open");
     }

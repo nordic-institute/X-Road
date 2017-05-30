@@ -38,13 +38,13 @@ class PrivateParametersGeneratorTest < ActiveSupport::TestCase
     instance_identifier = "EE"
     time_stamping_interval_seconds = 10
 
-    generator = PrivateParametersGenerator.new()
+    generator = PrivateParametersGeneratorV2.new()
 
     # When
     xml = generator.generate()
     puts("Generated private parameters XML:\n#{xml}")
 
     # Then
-    PrivateParametersSchemaValidator.validate(xml)
+    PrivateParametersSchemaValidatorV2.validate(xml)
   end
 end

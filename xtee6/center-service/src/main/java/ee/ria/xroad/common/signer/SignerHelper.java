@@ -22,15 +22,16 @@
  */
 package ee.ria.xroad.common.signer;
 
-import java.nio.charset.StandardCharsets;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
 
-import lombok.extern.slf4j.Slf4j;
+import java.nio.charset.StandardCharsets;
 
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains utility methods for interacting with the signer.

@@ -6,7 +6,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
 
     function enableActions() {
         $("#activate_signing_key, #delete_signing_key").disable();
-        $("#upload_conf_part, #download_conf_part").disable();
+        $("#upload_conf_part").hide();
+        $("#download_conf_part").disable();
 
         if (oSigningKeys.getFocus()) {
             var selectedKey = oSigningKeys.getFocusData();
@@ -16,18 +17,12 @@ var XROAD_CONFIGURATION_SOURCE = function() {
                 !selectedKey.key_active && selectedKey.key_available);
         }
 
-        if (getSourceType() == "external") {
-            $("#upload_conf_part").hide();
-        } else {
-            $("#upload_conf_part").show();
-        }
-
         if (oConfParts.getFocus()) {
             $("#download_conf_part").enable();
 
             var selectedPart = oConfParts.getFocusData();
             if (selectedPart.optional) {
-                $("#upload_conf_part").enable();
+                $("#upload_conf_part").show();
             }
 
             var downloadButton = $("#download_conf_part")
@@ -139,6 +134,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         opts.aoColumns = [
             { "mData": "file_name" },
             { "mData": "content_identifier" },
+            { "mData": "version" },
             { "mData": "updated_at" }
         ];
 
@@ -193,7 +189,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
 
                   var params = {
                       source_type: getSourceType(),
-                      token_id: $("#token_id", this).val()
+                      token_id: $("#token_id", this).val(),
+                      label: $("#label", this).val()
                   };
 
                   var generate = function() {
@@ -218,6 +215,8 @@ var XROAD_CONFIGURATION_SOURCE = function() {
         });
 
         $("#generate_signing_key").click(function() {
+            $("#generate_signing_key_dialog #label").val("");
+
             $.get(action("available_tokens"), null, function(response) {
                 $("#generate_signing_key_dialog #token_id").html("");
 
@@ -306,7 +305,7 @@ var XROAD_CONFIGURATION_SOURCE = function() {
             var confPart = oConfParts.getFocusData();
 
             window.location = action("download_conf_part") +
-                "?content_identifier=" + confPart.content_identifier;
+                "?content_identifier=" + confPart.content_identifier + "&version=" + confPart.version;
         });
     }
 

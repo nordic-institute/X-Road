@@ -19,22 +19,6 @@ var XROAD_REQUESTS = function() {
         }
     }
 
-    function getTranslatedRequestType(rawRequestType) {
-        switch (rawRequestType) {
-        case 'AuthCertRegRequest':
-            return _("management_requests.auth_cert_reg");
-        case 'ClientRegRequest':
-            return _("management_requests.client_reg");
-        case 'AuthCertDeletionRequest':
-            return _("management_requests.auth_cert_deletion");
-        case 'ClientDeletionRequest':
-            return _("management_requests.client_deletion");
-        default:
-            alert("Type '" + rawRequestType + "'is not supported");
-        break;
-        }
-    }
-
     function getTranslatedSource(rawSource) {
         switch (rawSource) {
         case 'CENTER':
@@ -103,9 +87,8 @@ var XROAD_REQUESTS = function() {
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
 
         opts.fnRowCallback = function(nRow, request) {
-            var translatedRequestType =
-                    getTranslatedRequestType(request.type);
-            $(nRow).find("td:eq(2)").text(translatedRequestType);
+            XROAD_CENTERUI_COMMON.translateRequestType(nRow, request.type, 2);
+
             var translatedSource = getTranslatedSource(request.source);
             $(nRow).find("td:eq(3)").text(translatedSource);
         };
@@ -156,6 +139,10 @@ var XROAD_REQUESTS = function() {
         }
 
         XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
+    }
+
+    function getTranslatedRequestType(rawRequestType) {
+        return XROAD_CENTERUI_COMMON.getTranslatedRequestType(rawRequestType);
     }
 
     $(document).ready(function() {

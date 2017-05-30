@@ -25,9 +25,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -40,6 +37,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Represents meta data information for a configuration part.

@@ -63,23 +63,38 @@ public final class InternalSSLKey {
     }
 
     /**
-     * Loads the SSL key from the pkcs11 file.
+     * Loads the SSL key (the 'internal' key by default) from the pkcs11 file.
      * @return the internal ssl key
      * @throws Exception if an error occurs while loading
      */
     public static InternalSSLKey load() throws Exception {
-        Path file = Paths.get(SystemProperties.getConfPath(), KEY_FILE_NAME);
-        if (Files.exists(file)) {
-            KeyStore ks = loadPkcs12KeyStore(file.toFile(), KEY_PASSWORD);
+         return load(KEY_FILE_NAME, KEY_ALIAS, KEY_PASSWORD);
+    }
 
-            PrivateKey key = (PrivateKey) ks.getKey(KEY_ALIAS, KEY_PASSWORD);
+    /**
+     * Loads the SSL key with the given name from the pkcs11 file.
+     * @param keyName the name of the key to load
+     * @return the internal ssl key
+     * @throws Exception if an error occurs while loading
+     */
+    public static InternalSSLKey load(String keyName) throws Exception {
+         String filename = String.format("ssl/%s.p12", keyName);
+         return load(filename, keyName, keyName.toCharArray());
+    }
+
+    private static InternalSSLKey load(String filename, String keyAlias, char[] keyPassword) throws Exception {
+        Path file = Paths.get(SystemProperties.getConfPath(), filename);
+        if (Files.exists(file)) {
+            KeyStore ks = loadPkcs12KeyStore(file.toFile(), keyPassword);
+
+            PrivateKey key = (PrivateKey) ks.getKey(keyAlias, keyPassword);
             if (key == null) {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Could not get key from '%s'", file);
             }
 
             X509Certificate cert =
-                    (X509Certificate) ks.getCertificate(KEY_ALIAS);
+                    (X509Certificate) ks.getCertificate(keyAlias);
             if (cert == null) {
                 throw new CodedException(X_INTERNAL_ERROR,
                         "Could not get certificate from '%s'", file);

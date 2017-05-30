@@ -61,12 +61,8 @@ var XROAD_BACKUP = function() {
         restoreInProgress = true;
 
         $.post(action("restore"), {fileName: fileName}, function(response) {
-            var onClose = response.data.activate_hardware_tokens && function() {
-                yesno("backup.index.activate_hardware_tokens", null, function(yes) {
-                    if (yes) {
-                        redirect("keys");
-                    }
-                });
+            var onClose = response.data.hardware_tokens_exist && function() {
+               alert("backup.index.token_logout_notice", null, null);
             };
 
             initConsoleOutput(response.data.stderr,

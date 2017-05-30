@@ -22,18 +22,19 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 
+import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main program for launching configuration proxy utility tools.

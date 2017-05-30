@@ -1,4 +1,9 @@
 ---
+- name: Update all packages to the latest version
+  apt:
+    force: yes
+    upgrade: dist
+
 - name: install packages
   apt:
     name: "{{ item }}"
@@ -30,7 +35,7 @@
 - name: install xroad security server packages
   apt:
     name: "{{ item }}"
-    state: present
+    state: latest
     force: yes
   with_items:
     - xroad-securityserver-fi
@@ -41,3 +46,5 @@
 #    - xroad-addon-messagelog
 #    - xroad-addon-metaservices
 #    - xroad-proxy
+
+

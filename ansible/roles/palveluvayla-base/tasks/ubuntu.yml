@@ -1,4 +1,9 @@
 ---
+- name: Update all packages to the latest version
+  apt:
+    force: yes
+    upgrade: dist
+
 - name: "update apt cache"
   apt:
     update_cache: yes

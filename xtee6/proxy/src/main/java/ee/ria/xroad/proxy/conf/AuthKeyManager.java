@@ -31,9 +31,8 @@ import java.util.List;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.cert.CertChain;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authentication key manager used by the proxy.

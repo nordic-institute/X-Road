@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.request;
 
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
@@ -29,7 +31,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.eclipse.jetty.http.MimeTypes;
@@ -40,8 +41,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.translateException;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * HTTP request handler for the dummy central service.

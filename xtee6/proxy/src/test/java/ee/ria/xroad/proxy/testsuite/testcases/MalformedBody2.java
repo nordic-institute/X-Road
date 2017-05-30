@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
  * Client sends message with invalid SOAP body (no child elements)

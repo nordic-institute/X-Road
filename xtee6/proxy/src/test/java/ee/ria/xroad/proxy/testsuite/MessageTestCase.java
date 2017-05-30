@@ -22,7 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -34,9 +39,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -58,16 +61,14 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.util.AsyncHttpSender;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.SigningCtx;
-
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for a message test case.
@@ -89,6 +90,9 @@ public class MessageTestCase {
     @Getter
     protected String responseFile;
 
+    protected boolean addUtf8BomToRequestFile = false;
+    protected boolean addUtf8BomToResponseFile = false;
+
     protected String requestContentType = MimeUtils.TEXT_XML_UTF8;
 
     @Getter
@@ -104,6 +108,7 @@ public class MessageTestCase {
     @Setter
     private String id;
 
+    @Getter
     private String queryId;
 
     @Getter
@@ -228,7 +233,8 @@ public class MessageTestCase {
 
         // Request input stream is read twice, once for recording,
         // second time for HTTP request.
-        Pair<String, InputStream> requestInput = getRequestInput();
+        Pair<String, InputStream> requestInput = getRequestInput(false);
+
         try (InputStream is = requestInput.getRight()) {
             sentRequest = new Message(is, requestInput.getLeft());
         }
@@ -238,7 +244,8 @@ public class MessageTestCase {
         sender.addHeader(HEADER_HASH_ALGO_ID, DEFAULT_DIGEST_ALGORITHM_ID);
 
         // Get the input again.
-        requestInput = getRequestInput();
+        requestInput = getRequestInput(addUtf8BomToRequestFile);
+
         try (InputStream is = requestInput.getRight()) {
             for (Entry<String, String> e : requestHeaders.entrySet()) {
                 sender.addHeader(e.getKey(), e.getValue());
@@ -259,9 +266,7 @@ public class MessageTestCase {
                     sender.getResponseContentType());
 
             if (sentRequest != null && sentRequest.getSoap() != null
-                    && sentRequest.getSoap() instanceof SoapMessageImpl
-                    && ((SoapMessageImpl) sentRequest.getSoap()).isAsync()
-                    && !requestHeaders.containsKey(SoapUtils.X_IGNORE_ASYNC)) {
+                    && sentRequest.getSoap() instanceof SoapMessageImpl) {
                 sentResponse = receivedResponse;
             }
         } finally {
@@ -322,18 +327,31 @@ public class MessageTestCase {
     /**
      * Returns pair of <contenttype, inputstream> containing the request.
      */
-    protected Pair<String, InputStream> getRequestInput() throws Exception {
+    protected Pair<String, InputStream> getRequestInput(
+            boolean addUtf8Bom) throws Exception {
         if (requestFileName != null) {
             String file = QUERIES_DIR + "/" + requestFileName;
-            return Pair.of(requestContentType, getQueryInputStream(file));
+            return Pair.of(requestContentType, getQueryInputStream(
+                    file, addUtf8Bom));
         }
 
         throw new IllegalArgumentException("requestFileName must be specified");
     }
 
-    protected InputStream getQueryInputStream(String fileName)
-            throws Exception {
-        return changeQueryId(new FileInputStream(fileName));
+    protected InputStream getQueryInputStream(String fileName,
+            boolean addUtf8Bom) throws Exception {
+        InputStream is = changeQueryId(new FileInputStream(fileName));
+
+        return addUtf8Bom ? addUtf8Bom(is) : is;
+    }
+
+    private InputStream addUtf8Bom(InputStream is) throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        out.write(ByteOrderMark.UTF_8.getBytes());
+        out.write(IOUtils.toByteArray(is));
+
+        return new ByteArrayInputStream(out.toByteArray());
     }
 
     protected CloseableHttpAsyncClient getClient() throws Exception {
@@ -373,7 +391,7 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
-    protected void onReceiveRequest(Message receivedRequest) throws Exception {
+    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
         if (!checkConsistency(sentRequest, receivedRequest)) {
             log.error("Sent request and received request are not "
                     + "consistent, sending fault response.");

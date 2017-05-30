@@ -63,7 +63,8 @@ var XROAD_SECURITYSERVERS = function() {
             }
         });
 
-        $("#securityservers tbody tr").live("dblclick", function() {
+        $("#securityservers tbody tr")
+                .unbind("dblclick").live("dblclick", function() {
             XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
         });
 

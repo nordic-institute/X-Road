@@ -22,16 +22,15 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 
 /**
  * Holds the list of recently downloaded files. Used for checking for removed
@@ -44,9 +43,11 @@ class DownloadedFiles {
     private final Set<String> newList = new HashSet<>();
 
     private final Path confFile;
+    private final int version;
 
-    DownloadedFiles(Path confFile) {
+    DownloadedFiles(Path confFile, int version) {
         this.confFile = confFile;
+        this.version = version;
         try {
             load();
         } catch (Exception e) {
@@ -75,7 +76,6 @@ class DownloadedFiles {
 
     void delete(String file) {
         log.trace("delete({})", file);
-
         ConfigurationDirectory.delete(file);
     }
 

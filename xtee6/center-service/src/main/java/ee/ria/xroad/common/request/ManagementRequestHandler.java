@@ -22,9 +22,26 @@
  */
 package ee.ria.xroad.common.request;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+
+import java.io.InputStream;
+import java.security.Signature;
+import java.security.cert.X509Certificate;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
@@ -34,16 +51,6 @@ import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.MimeUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import java.io.InputStream;
-import java.security.Signature;
-import java.security.cert.X509Certificate;
-import java.util.Map;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Reads management requests from input stream.
@@ -103,6 +110,31 @@ public final class ManagementRequestHandler {
 
         OCSPResp ownerCertOcsp = new OCSPResp(cb.getOwnerCertOcsp());
         verifyCertificate(ownerCert, ownerCertOcsp);
+
+        // verify that the subject id from the certificate matches the one
+        // in the request (server id)
+        AuthCertRegRequestType req =
+                ManagementRequestParser.parseAuthCertRegRequest(soap);
+
+        ClientId idFromCert = GlobalConf.getSubjectName(
+            new SignCertificateProfileInfoParameters(
+                ClientId.create(
+                    GlobalConf.getInstanceIdentifier(),
+                    "dummy",
+                    "dummy"
+                ),
+                "dummy"
+            ),
+            ownerCert
+        );
+
+        ClientId idFromReq = req.getServer().getOwner();
+        if (!idFromReq.equals(idFromCert)) {
+            throw new CodedException(X_INVALID_REQUEST,
+                    "Subject identifier (%s) in certificate does not match"
+                    + " security server owner identifier (%s) in request",
+                    idFromCert, idFromReq);
+        }
     }
 
     private static void verifyCertificate(X509Certificate ownerCert,
@@ -153,7 +185,8 @@ public final class ManagementRequestHandler {
         private byte[] ownerCertOcsp;
 
         @Override
-        public void soap(SoapMessage message) throws Exception {
+        public void soap(SoapMessage message,
+                Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = (SoapMessageImpl) message;
         }
 
@@ -204,13 +237,13 @@ public final class ManagementRequestHandler {
 
             if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(service)) {
                 verifyMessagePart(authSignatureAlgoId,
-                        "Auth signature algorightm id is missing");
+                        "Auth signature algorithm id is missing");
 
                 verifyMessagePart(authSignature,
                         "Auth signature is missing");
 
                 verifyMessagePart(ownerSignatureAlgoId,
-                        "Owner signature algorightm id is missing");
+                        "Owner signature algorithm id is missing");
 
                 verifyMessagePart(ownerSignature,
                         "Owner signature is missing");

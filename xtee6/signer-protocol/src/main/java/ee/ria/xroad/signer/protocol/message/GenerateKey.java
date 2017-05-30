@@ -33,5 +33,6 @@ import lombok.Value;
 public class GenerateKey implements Serializable {
 
     private final String tokenId;
+    private final String keyLabel;
 
 }

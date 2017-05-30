@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -33,8 +35,6 @@ import org.junit.Test;
 import ee.ria.xroad.common.Request.RequestTag;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to verify test requests are created as expected.
@@ -73,7 +73,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();
@@ -116,7 +116,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();
@@ -159,7 +159,7 @@ public class RequestTest {
                 TEMPLATES_DIR + File.separator + "v5DoclitRequest.st"));
 
         Request request =
-                new Request(template, client, service, id, content, false);
+                new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();

@@ -125,7 +125,7 @@ public final class SignerMain {
                 try {
                     signer.execute();
                 } catch (Exception ex) {
-                    log.error("error occurred in execute handler: {}", ex);
+                    log.error("error occurred in execute handler", ex);
                 }
             }
         });
@@ -162,7 +162,8 @@ public final class SignerMain {
     }
 
     private static Config getConf(int signerPort) {
-        Config conf = ConfigFactory.load().getConfig("signer-main");
+        Config conf = ConfigFactory.load().getConfig("signer-main")
+                .withFallback(ConfigFactory.load());
         return conf.withValue("akka.remote.netty.tcp.port",
                 ConfigValueFactory.fromAnyRef(signerPort));
     }

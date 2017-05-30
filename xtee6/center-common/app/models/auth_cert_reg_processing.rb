@@ -56,7 +56,7 @@ class AuthCertRegProcessing < RequestProcessing
 
       # Find the owner.
       owner_id = request.security_server.owner_id
-      owner = XroadMember.find_by_id(owner_id)
+      owner = XRoadMember.find_by_id(owner_id)
       if owner == nil
         raise I18n.t("requests.client_not_found",
             :client => owner_id.to_s)

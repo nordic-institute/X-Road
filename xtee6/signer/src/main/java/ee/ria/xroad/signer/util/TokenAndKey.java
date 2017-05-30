@@ -22,9 +22,8 @@
  */
 package ee.ria.xroad.signer.util;
 
-import lombok.Value;
-
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import lombok.Value;
 
 /**
  * DTO for holding a token id and key info.

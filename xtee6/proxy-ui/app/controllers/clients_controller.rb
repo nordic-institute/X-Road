@@ -24,7 +24,7 @@
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.ClientType
 java_import Java::ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl
 java_import Java::ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx
-java_import Java::ee.ria.xroad.common.identifier.XroadObjectType
+java_import Java::ee.ria.xroad.common.identifier.XRoadObjectType
 java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class ClientsController < ApplicationController
@@ -43,15 +43,9 @@ class ClientsController < ApplicationController
     @member_classes_instance = GlobalConf::getMemberClasses(xroad_instance)
 
     @subject_types = [
-      XroadObjectType::MEMBER.toString(),
-      XroadObjectType::SUBSYSTEM.toString(),
-      XroadObjectType::GLOBALGROUP.toString(),
-      XroadObjectType::LOCALGROUP.toString(),
-    ]
-
-    @member_types = [
-      XroadObjectType::MEMBER.toString(),
-      XroadObjectType::SUBSYSTEM.toString()
+      XRoadObjectType::SUBSYSTEM.toString(),
+      XRoadObjectType::GLOBALGROUP.toString(),
+      XRoadObjectType::LOCALGROUP.toString()
     ]
   end
 
@@ -108,12 +102,8 @@ class ClientsController < ApplicationController
     validate_params({
       :add_member_class => [:required],
       :add_member_code => [:required],
-      :add_subsystem_code => []
+      :add_subsystem_code => [:required]
     })
-
-    if params[:add_subsystem_code].empty?
-      params[:add_subsystem_code] = nil
-    end
 
     client_id = ClientId.create(
       xroad_instance,
@@ -131,38 +121,38 @@ class ClientsController < ApplicationController
     member_name = get_member_name(
       params[:add_member_class], params[:add_member_code])
 
-    member_string = "#{member_name} #{params[:add_member_class]}: " \
-      "#{params[:add_member_code]}"
-
     if !member_name
-      warn("new_member", t('clients.unregistered_member', :member => member_string))
+      warn("new_member", t('clients.unregistered_member', {
+        :member_name => member_name,
+        :member_class => client_id.memberClass,
+        :member_code => client_id.memberCode
+      }))
     end
 
-    if params[:add_subsystem_code]
-      member_found = GlobalConf::getMembers(xroad_instance).index do |member|
-        member.id == client_id
-      end
-
-      unless member_found
-        warn("new_subsys", t('clients.new_subsystem',
-          :subsystem => params[:add_subsystem_code], :member => member_string))
-      end
-    end
+    client_id = get_identifier(client_id)
+    registered = GlobalConf::isSecurityServerClient(client_id, @server_id)
 
     client = ClientType.new
-    client.identifier = get_identifier(client_id)
-    client.clientStatus = ClientType::STATUS_SAVED
+    client.identifier = client_id
+    client.clientStatus = registered ?
+      ClientType::STATUS_REGISTERED : ClientType::STATUS_SAVED
     client.isAuthentication = "NOSSL"
     client.conf = serverconf
 
     audit_log_data[:clientIdentifier] = client.identifier
-    audit_log_data[:isAuthentication] = isAuthenticationToUIStr(client.isAuthentication)
+    audit_log_data[:isAuthentication] =
+      isAuthenticationToUIStr(client.isAuthentication)
     audit_log_data[:clientStatus] = client.clientStatus
 
     serverconf.client.add(client)
     serverconf_save
 
-    render_json(read_clients)
+    render_json({
+      :clients => read_clients,
+      :registered => registered,
+      :subsystem_registered => subsystem_registered?(client_id),
+      :member_name => member_name
+    })
   end
 
   def client_certs
@@ -226,7 +216,8 @@ class ClientsController < ApplicationController
       raise t('clients.cannot_register_owner')
     end
 
-    register_client(client_id)
+    request_id = register_client(client_id)
+    audit_log_data[:managementRequestId] = request_id
 
     client = get_client(client_id.toString)
     client.clientStatus = ClientType::STATUS_REGINPROG
@@ -265,7 +256,8 @@ class ClientsController < ApplicationController
       raise t('clients.cannot_delete_owner')
     end
 
-    unregister_client(client_id)
+    request_id = unregister_client(client_id)
+    audit_log_data[:managementRequestId] = request_id
 
     client = get_client(client_id.toString)
     client.clientStatus = ClientType::STATUS_DELINPROG
@@ -390,9 +382,14 @@ class ClientsController < ApplicationController
 
   def read_clients
     clients = []
+    registered_subsystems = []
+
+    GlobalConf::getMembers(xroad_instance).each do |member|
+      registered_subsystems << member.id if member.id.subsystemCode
+    end
 
     serverconf.client.each do |client|
-      clients << client_to_json(client)
+      clients << client_to_json(client, registered_subsystems)
     end
 
     cache_client_ids
@@ -400,7 +397,22 @@ class ClientsController < ApplicationController
     clients
   end
 
-  def client_to_json(client)
+  def subsystem_registered?(client_id)
+    registered = GlobalConf::getMembers(xroad_instance).index do |member|
+      member.id == client_id
+    end
+
+    !registered.nil?
+  end
+
+  def client_to_json(client, registered_subsystems = nil)
+    is_subsystem = client.identifier.subsystemCode
+
+    unless registered_subsystems
+      registered_subsystems = []
+      registered_subsystems << client.identifier if subsystem_registered?(client.identifier)
+    end
+
     {
       :client_id => client.identifier.toString,
       :member_name => GlobalConf::getMemberName(client.identifier),
@@ -409,6 +421,7 @@ class ClientsController < ApplicationController
       :member_class => client.identifier.memberClass,
       :member_code => client.identifier.memberCode,
       :subsystem_code => client.identifier.subsystemCode,
+      :subsystem_registered => registered_subsystems.include?(client.identifier),
       :state => client.clientStatus,
       :register_enabled =>
         [ClientType::STATUS_SAVED].include?(client.clientStatus),
@@ -419,12 +432,17 @@ class ClientsController < ApplicationController
         [ClientType::STATUS_SAVED,
          ClientType::STATUS_DELINPROG,
          ClientType::STATUS_GLOBALERR].include?(client.clientStatus),
-      :owner => serverconf.owner.id == client.getId,
-      :can_view_client_details => can?(:view_client_details),
-      :can_view_client_services => can?(:view_client_services),
-      :can_view_client_local_groups => can?(:view_client_local_groups),
-      :can_view_client_acl_subjects => can?(:view_client_acl_subjects),
-      :can_view_client_internal_certs => can?(:view_client_internal_certs)
+      :owner => serverconf.owner.id == client.id,
+      :can_view_client_details =>
+          can?(:view_client_details),
+      :can_view_client_services =>
+          can?(:view_client_services) && is_subsystem,
+      :can_view_client_local_groups =>
+          can?(:view_client_local_groups) && is_subsystem,
+      :can_view_client_acl_subjects =>
+          can?(:view_client_acl_subjects) && is_subsystem,
+      :can_view_client_internal_certs =>
+          can?(:view_client_internal_certs)
     }
   end
 

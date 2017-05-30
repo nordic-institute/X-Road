@@ -22,34 +22,51 @@
  */
 package ee.ria.xroad.proxy;
 
-import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import com.typesafe.config.ConfigFactory;
-import ee.ria.xroad.common.*;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.signature.BatchSigner;
-import ee.ria.xroad.common.util.*;
-import ee.ria.xroad.proxy.clientproxy.ClientProxy;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.serverproxy.ServerProxy;
-import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-import ee.ria.xroad.signer.protocol.SignerClient;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import scala.concurrent.Await;
-
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+
+import com.typesafe.config.ConfigFactory;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import scala.concurrent.Await;
+
+import ee.ria.xroad.common.CommonMessages;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.PortNumbers;
+import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.signature.BatchSigner;
+import ee.ria.xroad.common.util.AdminPort;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.clientproxy.ClientProxy;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
+import ee.ria.xroad.proxy.serverproxy.ServerProxy;
+import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+import ee.ria.xroad.signer.protocol.SignerClient;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -125,6 +142,7 @@ public final class ProxyMain {
         for (StartStop service: SERVICES) {
             service.join();
         }
+
     }
 
     private static void stopServices() throws Exception {
@@ -139,7 +157,8 @@ public final class ProxyMain {
         log.trace("startup()");
 
         actorSystem = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy"));
+                ConfigFactory.load().getConfig("proxy")
+                    .withFallback(ConfigFactory.load()));
 
         readProxyVersion();
 
@@ -160,14 +179,13 @@ public final class ProxyMain {
         SignerClient.init(actorSystem);
         BatchSigner.init(actorSystem);
         MessageLog.init(actorSystem, jobManager);
+        OpMonitoring.init(actorSystem);
 
         SERVICES.add(jobManager);
         SERVICES.add(new ClientProxy());
         SERVICES.add(new ServerProxy());
 
         SERVICES.add(new CertHashBasedOcspResponder());
-
-        SERVICES.add(new SystemMonitor());
 
         SERVICES.add(createAdminPort());
     }
@@ -246,7 +264,7 @@ public final class ProxyMain {
                     JsonUtils.getSerializer().toJson(result, getParams().response.getWriter());
 
                 } catch (Exception e) {
-                    log.error("Error getting timeout status {}", e);
+                    log.error("Error getting timeout status", e);
                 }
             }
         });

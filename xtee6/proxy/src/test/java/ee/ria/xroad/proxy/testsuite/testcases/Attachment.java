@@ -46,8 +46,8 @@ public class Attachment extends MessageTestCase {
     }
 
     @Override
-    protected void onReceiveRequest(Message receivedRequest) throws Exception {
-        super.onReceiveRequest(receivedRequest);
+    protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
+        super.onServiceReceivedRequest(receivedRequest);
 
         String clientHeaderValue =
                 receivedRequest.getMultipartHeaders().get(2).get(

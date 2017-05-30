@@ -22,8 +22,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import lombok.extern.slf4j.Slf4j;
 import akka.actor.Props;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default module manager supporting only software modules.

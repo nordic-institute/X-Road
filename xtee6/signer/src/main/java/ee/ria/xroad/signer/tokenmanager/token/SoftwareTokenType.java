@@ -22,9 +22,8 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import lombok.Data;
-
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
+import lombok.Data;
 
 /**
  * The software token type TDO.

@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Handles requests for software token initialization.

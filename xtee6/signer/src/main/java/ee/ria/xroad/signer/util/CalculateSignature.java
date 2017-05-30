@@ -24,9 +24,9 @@ package ee.ria.xroad.signer.util;
 
 import java.io.Serializable;
 
+import akka.actor.ActorRef;
 import lombok.Data;
 import lombok.ToString;
-import akka.actor.ActorRef;
 
 /**
  * Message for signature calculation request.

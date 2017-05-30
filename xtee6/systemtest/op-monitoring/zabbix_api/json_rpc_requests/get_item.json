@@ -1,0 +1,10 @@
+{
+    "jsonrpc": "2.0",
+    "method": "item.get",
+    "params": {
+        "output": "extend",
+        "itemids": "24540"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 1
+}

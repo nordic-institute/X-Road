@@ -24,11 +24,10 @@ package ee.ria.xroad.common;
 
 import java.util.List;
 
-import lombok.Getter;
-
 import ee.ria.xroad.common.Request.RequestTag;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.Getter;
 
 /**
  * Encapsulates test request data.
@@ -60,7 +59,7 @@ public class TestRequest {
         this.service = service;
 
         this.content = new Request(template, client, service, "1234567890",
-                content, false, boundary).toRawContent();
+                content, boundary).toRawContent();
 
         this.description = description;
         this.timeoutSec = timeoutSec;
@@ -69,7 +68,6 @@ public class TestRequest {
     /**
      * @return service code of the test request service
      */
-    // TODO May be we should show entire service id instead?
     public String getName() {
         return service.getServiceCode();
     }

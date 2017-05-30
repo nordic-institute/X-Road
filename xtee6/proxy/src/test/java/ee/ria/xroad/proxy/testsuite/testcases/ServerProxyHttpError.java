@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,9 +36,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
 
 /**
  * Server proxy responds with HTTP error.

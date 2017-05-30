@@ -22,8 +22,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
+import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -37,10 +38,8 @@ import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
-
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
-import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
+import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Token worker base class.
@@ -105,6 +104,9 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
     private void handleActivateToken(ActivateToken message) throws Exception {
         try {
             activateToken(message);
+
+            onUpdate();
+
             sendSuccessResponse();
         } catch (Exception e) {
             log.error("Failed to activate token '{}': {}", getWorkerId(),
@@ -131,6 +133,8 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         if (!hasKey(keyId)) {
             TokenManager.addKey(tokenId, keyId, result.getPublicKeyBase64());
             TokenManager.setKeyAvailable(keyId, true);
+            TokenManager.setKeyLabel(keyId, message.getKeyLabel());
+            TokenManager.setKeyFriendlyName(keyId, message.getKeyLabel());
         }
 
         sendResponse(TokenManager.findKeyInfo(keyId));
@@ -140,7 +144,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         try {
             deleteKey(message.getKeyId());
         } catch (Exception e) {
-            log.error("Failed to delete key '{}': {}", message.getKeyId(), e);
+            log.error("Failed to delete key '{}'", message.getKeyId(), e);
             throw translateError(customizeException(e));
         }
 
@@ -153,7 +157,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
         try {
             deleteCert(message.getCertId());
         } catch (Exception e) {
-            log.error("Failed to delete cert '{}': {}", message.getCertId(), e);
+            log.error("Failed to delete cert '{}'", message.getCertId(), e);
             throw translateError(customizeException(e));
         }
 
@@ -167,7 +171,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
                     sign(signRequest.getKeyId(), signRequest.getData());
             sendResponse(new CalculatedSignature(signRequest, signature, null));
         } catch (Exception e) { // catch-log-rethrow
-            log.error("Error while signing with key '{}': {}",
+            log.error("Error while signing with key '{}'",
                     signRequest.getKeyId(), e);
             CodedException tr = translateError(
                     customizeException(e)).withPrefix(X_CANNOT_SIGN);

@@ -34,9 +34,11 @@ public interface SoapMessageConsumer {
     /**
      * Called when SOAP message is parsed.
      * @param message the SOAP message
+     * @param additionalHeaders SOAP part headers
      * @throws Exception if an error occurs
      */
-    void soap(SoapMessage message) throws Exception;
+    void soap(SoapMessage message,
+            Map<String, String> additionalHeaders) throws Exception;
 
     /**
      * Called when an attachment is received.

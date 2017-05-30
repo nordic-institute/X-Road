@@ -23,7 +23,7 @@
 
 require 'test_helper'
 
-class XroadMemberTest < ActiveSupport::TestCase
+class XRoadMemberTest < ActiveSupport::TestCase
 
   test "Should load all requests" do
     # Given
@@ -31,7 +31,7 @@ class XroadMemberTest < ActiveSupport::TestCase
         "requests.created_at", "desc", 0, 10)
 
     # When
-    requests = XroadMember.get_management_requests(
+    requests = XRoadMember.get_management_requests(
         "riigiasutus", "member_in_vallavalitsused", query_params)
 
     # Then
@@ -44,7 +44,7 @@ class XroadMemberTest < ActiveSupport::TestCase
         "requests.created_at", "desc", 1, 10)
 
     # When
-    requests = XroadMember.get_management_requests(
+    requests = XRoadMember.get_management_requests(
         "riigiasutus", "member_in_vallavalitsused", query_params)
 
     # Then
@@ -61,7 +61,7 @@ class XroadMemberTest < ActiveSupport::TestCase
         "requests.created_at", "desc", 0, 1)
 
     # When
-    requests = XroadMember.get_management_requests(
+    requests = XRoadMember.get_management_requests(
         "riigiasutus", "member_in_vallavalitsused", query_params)
 
     # Then
@@ -74,7 +74,7 @@ class XroadMemberTest < ActiveSupport::TestCase
 
   test "Should update request server owner name when member name changed" do
     # Given
-    member = XroadMember.where(:member_code => "member_in_vallavalitsused").first
+    member = XRoadMember.where(:member_code => "member_in_vallavalitsused").first
     new_name = "New name"
 
     # When
@@ -90,7 +90,7 @@ class XroadMemberTest < ActiveSupport::TestCase
 
   test "Should update request server user name when member name changed" do
     # Given
-    member = XroadMember.where(:member_code => "member_out_of_vallavalitsused").first
+    member = XRoadMember.where(:member_code => "member_out_of_vallavalitsused").first
     new_name = "New name"
 
     # When
@@ -106,7 +106,7 @@ class XroadMemberTest < ActiveSupport::TestCase
 
   test "Should preserve server owner name when owner deleted" do
     # Given
-    member = XroadMember.where(:member_code => "member_in_vallavalitsused").first
+    member = XRoadMember.where(:member_code => "member_in_vallavalitsused").first
 
     # When
     member.destroy
@@ -122,7 +122,7 @@ class XroadMemberTest < ActiveSupport::TestCase
 
   test "Should preserve server user name when user deleted" do
     # Given
-    member = XroadMember.where(:member_code => "member_out_of_vallavalitsused").first
+    member = XRoadMember.where(:member_code => "member_out_of_vallavalitsused").first
 
     # When
     member.destroy

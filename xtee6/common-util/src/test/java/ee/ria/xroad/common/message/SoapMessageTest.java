@@ -22,26 +22,29 @@
  */
 package ee.ria.xroad.common.message;
 
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.util.List;
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPException;
+
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.util.Arrays;
+
+import org.junit.Rule;
+import org.junit.Test;
+
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.ExpectedCodedException;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.util.Arrays;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPException;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
+
 import static org.junit.Assert.*;
 
 /**
@@ -121,38 +124,20 @@ public class SoapMessageTest {
     }
 
     /**
-     * Test that reading a normal async request message is successful and that
-     * header and body are correctly parsed.
+     * Test that represented party header element is correctly parsed.
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void asyncMessage() throws Exception {
-        SoapMessageImpl message = createRequest("async.query");
+    public void simpleRepresentedPartyAndIssueInHeaderRequest()
+            throws Exception {
+        SoapMessageImpl message = createRequest(
+                "simple-representedparty.query");
+        RepresentedParty expectedRepresentedParty = new RepresentedParty("COM",
+                "MEMBER3");
+        String expectedIssue = "issue-1";
 
-        ClientId expectedClient =
-                ClientId.create("EE", "BUSINESS", "consumer");
-        ServiceId expectedService =
-                ServiceId.create("EE", "BUSINESS", "producer", null,
-                        "getState");
-
-        assertTrue(message.isRequest());
-        assertTrue(message.isAsync());
-        assertEquals(expectedClient, message.getClient());
-        assertEquals(expectedService, message.getService());
-        assertEquals("EE:PIN:abc4567", message.getUserId());
-        assertEquals("411d6755661409fed365ad8135f8210be07613da",
-                message.getQueryId());
-    }
-
-    /**
-     * Tests that verification fails against schema, if the message is not a
-     * valid SOAP message.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void notSoapMessage() throws Exception {
-        thrown.expectError(X_MALFORMED_SOAP);
-        createSoapMessage("malformed-soap.query");
+        assertEquals(expectedRepresentedParty, message.getRepresentedParty());
+        assertEquals(expectedIssue, message.getIssue());
     }
 
     /**
@@ -231,8 +216,10 @@ public class SoapMessageTest {
     @Test
     public void invalidContentType() throws Exception {
         thrown.expectError(X_INVALID_CONTENT_TYPE);
-        new SoapParserImpl().parse("text/html", StandardCharsets.UTF_8.name(),
-                new FileInputStream(QUERY_DIR + "simple.query"));
+        try (FileInputStream in =
+                new FileInputStream(QUERY_DIR + "simple.query")) {
+            new SaxSoapParserImpl().parse(MimeTypes.TEXT_HTML_UTF_8, in);
+        }
     }
 
     /**
@@ -241,58 +228,16 @@ public class SoapMessageTest {
      */
     @Test
     public void faultMessage() throws Exception {
-        String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
-        Soap message = new SoapParserImpl().parse(
+        String soapFaultXml = SoapFault.createFaultXml(
+                "foo.bar", "baz", "xxx", "yyy");
+        Soap message = new SaxSoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
         assertTrue(message instanceof SoapFault);
 
         SoapFault fault = (SoapFault) message;
         assertEquals("foo.bar", fault.getCode());
-        assertEquals("baz", fault.getString());
-        assertEquals("xxx", fault.getActor());
-        assertEquals("yyy", fault.getDetail());
-    }
-
-    /**
-     * Tests that SoapMessage class understands fault messages.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void faultMessageWithCustomPrefix() throws Exception {
-        String soapFaultXml = SoapFault.createFaultXml(new QName(SoapUtils.NS_SOAPENV, "foo.bar", "SE"),
-                "baz", "xxx", "yyy");
-        Soap message = new SoapParserImpl().parse(
-                new ByteArrayInputStream(soapFaultXml.getBytes()));
-
-        assertTrue(message instanceof SoapFault);
-
-        SoapFault fault = (SoapFault) message;
-        final QName code = fault.getCodeAsQName();
-        assertEquals("foo.bar", code.getLocalPart());
-        assertEquals(SoapUtils.NS_SOAPENV, code.getNamespaceURI());
-        assertEquals("baz", fault.getString());
-        assertEquals("xxx", fault.getActor());
-        assertEquals("yyy", fault.getDetail());
-    }
-
-    /**
-     * Tests that SoapMessage class understands fault messages.
-     * @throws Exception in case of any unexpected errors
-     */
-    @Test
-    public void faultMessageWithCustomNamespace() throws Exception {
-        final QName customCode = new QName("http://example.org", "foo.bar", "foo");
-        String soapFaultXml = SoapFault.createFaultXml(customCode,
-                "baz", "xxx", "yyy");
-        Soap message = new SoapParserImpl().parse(
-                new ByteArrayInputStream(soapFaultXml.getBytes()));
-
-        assertTrue(message instanceof SoapFault);
-
-        SoapFault fault = (SoapFault) message;
-        assertEquals(customCode.getLocalPart(), fault.getCodeAsQName().getLocalPart());
-        assertEquals(customCode.getNamespaceURI(), fault.getCodeAsQName().getNamespaceURI());
         assertEquals("baz", fault.getString());
         assertEquals("xxx", fault.getActor());
         assertEquals("yyy", fault.getDetail());
@@ -376,8 +321,9 @@ public class SoapMessageTest {
         assertEquals(client, built.getClient());
         assertEquals(service, built.getService());
 
-        Soap parsedSoap = new SoapParserImpl().parse(
-                        new ByteArrayInputStream(built.getBytes()));
+        Soap parsedSoap = new SaxSoapParserImpl().parse(
+                built.getContentType(),
+                new ByteArrayInputStream(built.getBytes()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         SoapMessageImpl parsed = (SoapMessageImpl) parsedSoap;
@@ -393,10 +339,11 @@ public class SoapMessageTest {
         assertEquals(userId, built.getUserId());
         assertEquals(queryId, built.getQueryId());
         assertEquals(client, built.getClient());
-        assertEquals(centralService, built.getService());
+        assertEquals(centralService, built.getCentralService());
 
-        parsedSoap = new SoapParserImpl().parse(
-                        IOUtils.toInputStream(built.getXml()));
+        parsedSoap = new SaxSoapParserImpl().parse(
+                built.getContentType(),
+                IOUtils.toInputStream(built.getXml()));
         assertTrue(parsedSoap instanceof SoapMessageImpl);
 
         parsed = (SoapMessageImpl) parsedSoap;
@@ -485,5 +432,4 @@ public class SoapMessageTest {
         thrown.expectError(X_INVALID_PROTOCOL_VERSION);
         createRequest("wrong-version.query");
     }
-
 }

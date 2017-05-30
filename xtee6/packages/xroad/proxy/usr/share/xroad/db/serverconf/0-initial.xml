@@ -188,6 +188,6 @@
         <addForeignKeyConstraint baseColumnNames="CONF_ID" baseTableName="TSP" constraintName="FK_SAE6CB6EMXN9IY5H56BQ8IER2" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="SERVERCONF"/>
         <addForeignKeyConstraint baseColumnNames="IDENTIFIER" baseTableName="CLIENT" constraintName="FK_TH1B8VIW7RFXP53T1B27OSCV1" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="IDENTIFIER"/>
         <addForeignKeyConstraint baseColumnNames="ACL_ID" baseTableName="AUTHORIZEDSUBJECT" constraintName="FK_TNUBREVSMMHLG21W1RIB0WQ58" deferrable="false" initiallyDeferred="false" referencedColumnNames="ID" referencedTableName="ACL"/>
-	<createSequence sequenceName="hibernate_sequence"/>
+        <createSequence sequenceName="hibernate_sequence"/>
     </changeSet>
 </databaseChangeLog>

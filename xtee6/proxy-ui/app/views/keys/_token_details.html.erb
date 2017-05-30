@@ -13,9 +13,12 @@
 </table>
 
 <section class="container">
-  <% unless @token.tokenInfo.isEmpty %>
-  <textarea readonly class="dump" style="height: auto;" wrap="off"><%= t '.token_info' %>:
+  <h2><span><%= t '.token_info' %></span></h2>
+  <pre>
+    <%= t '.token_id' %>: <%= @token.id %>
+<% unless @token.tokenInfo.isEmpty %>
 <% @token.tokenInfo.each do |key, value| %>    <%= key %>: <%= value %>
-<% end %></textarea>
-  <% end %>
+<% end %>
+<% end %>
+  </pre>
 </section>

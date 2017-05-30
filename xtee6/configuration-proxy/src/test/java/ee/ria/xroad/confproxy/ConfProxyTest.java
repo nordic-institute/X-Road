@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.confproxy;
 
-import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
 
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import akka.actor.ActorSystem;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Test program for the configuration proxy,
@@ -58,10 +59,11 @@ public final class ConfProxyTest {
 
             ConfProxyProperties conf = new ConfProxyProperties("PROXY1");
             ConfProxyHelper.purgeOutdatedGenerations(conf);
-            ConfigurationDirectory confDir = new ConfigurationDirectory(
-                    conf.getConfigurationDownloadPath());
+            ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
+                    conf.getConfigurationDownloadPath(SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION));
 
-            OutputBuilder output = new OutputBuilder(confDir, conf);
+            OutputBuilder output = new OutputBuilder(confDir, conf,
+                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
             output.buildSignedDirectory();
             output.moveAndCleanup();
         } catch (Exception ex) {

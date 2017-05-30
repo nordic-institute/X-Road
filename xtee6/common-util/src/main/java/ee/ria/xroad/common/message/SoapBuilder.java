@@ -31,12 +31,14 @@ import javax.xml.soap.SOAPMessage;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.MimeUtils;
 
 import static ee.ria.xroad.common.identifier.IdentifierXmlNodeParser.NS_IDENTIFIERS;
@@ -93,10 +95,10 @@ public class SoapBuilder {
         assembleMessageBody(soap);
 
         String serviceName = getServiceName(soap.getSOAPBody());
-        validateServiceName(header.getService().getServiceCode(), serviceName);
+        validateServiceName(getService().getServiceCode(), serviceName);
 
         return new SoapMessageImpl(SoapUtils.getBytes(soap), charset, header,
-                soap, serviceName);
+                soap, serviceName, isRpcMessage(soap), MimeTypes.TEXT_XML_UTF_8);
     }
 
     protected void addNamespaces(SOAPMessage soapMessage, boolean rpcEncoded)
@@ -111,10 +113,15 @@ public class SoapBuilder {
         }
     }
 
+    private ServiceId getService() {
+        return header.getService() != null ? header.getService()
+                : header.getCentralService();
+    }
+
     private void assembleMessageBody(SOAPMessage soap) throws Exception {
         SoapBodyCallback cb = createBodyCallback;
         if (cb == null) {
-            final String bodyNodeName = header.getService().getServiceCode();
+            final String bodyNodeName = getService().getServiceCode();
             cb = new SoapBodyCallback() {
                 @Override
                 public void create(SOAPBody soapBody) throws Exception {

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:conf xmlns:id="http://x-road.eu/xsd/identifiers"
+    xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
+    <instanceIdentifier>foo</instanceIdentifier>
+    <configurationAnchor>
+        <instanceIdentifier>bar</instanceIdentifier>
+        <source>
+            <downloadURL>http://www.bar.com/conf</downloadURL>
+            <verificationCert>YmFyCg==</verificationCert>
+        </source>
+    </configurationAnchor>
+    <managementService>
+        <authCertRegServiceAddress>http://mgmt.com:1234</authCertRegServiceAddress>
+        <!--<authCertRegServiceCert></authCertRegServiceCert>-->
+        <managementRequestServiceProviderId id:objectType="MEMBER">
+            <id:xRoadInstance>foo</id:xRoadInstance>
+            <id:memberClass>fooclass</id:memberClass>
+            <id:memberCode>foocode</id:memberCode>
+        </managementRequestServiceProviderId>
+    </managementService>
+    <timeStampingIntervalSeconds>123</timeStampingIntervalSeconds>
+</tns:conf>

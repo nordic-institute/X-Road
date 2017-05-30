@@ -22,11 +22,12 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.ComponentNames;
 import ee.ria.xroad.signer.protocol.message.Sign;
@@ -34,11 +35,8 @@ import ee.ria.xroad.signer.protocol.message.SignResponse;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
+import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-
-// TODO #2577 resource management -- make sure every key gets to sign on this token.
 /**
  * Token signer actor. Handles signing requests and calculated signatures.
  */

@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
+import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
+
 import java.util.Date;
 
 import org.apache.commons.cli.CommandLine;
@@ -34,8 +36,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
 import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
-
-import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for adding new signing keys to a configuration proxy instance.
@@ -65,7 +65,9 @@ public class ConfProxyUtilAddSigningKey extends ConfProxyUtil {
             addSigningKey(conf, keyId);
         } else if (commandLine.hasOption("token-id")) {
             String tokenId = commandLine.getOptionValue("t");
-            KeyInfo keyInfo = SignerClient.execute(new GenerateKey(tokenId));
+            KeyInfo keyInfo = SignerClient.execute(
+                new GenerateKey(tokenId, "key-" + System.currentTimeMillis())
+            );
             System.out.println("Generated key with ID " + keyInfo.getId());
             addSigningKey(conf, keyInfo.getId());
         } else {

@@ -22,15 +22,18 @@
  */
 package ee.ria.xroad.common.message;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import org.apache.commons.io.IOUtils;
-
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 
+import org.apache.commons.io.IOUtils;
+
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.MimeTypes;
+
 /**
- * Test utils for SOAP messages
+ * Utility class providing helper functionality for SOAP messages.
  */
 public final class SoapMessageTestUtil {
 
@@ -43,13 +46,13 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Build SOAP message
-     * @param sender message sender
-     * @param receiver message receiver
+     * Builds SOAP message
+     * @param sender sender
+     * @param receiver receiver
      * @param userId user id
      * @param queryId query id
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(ClientId sender,
             ServiceId receiver, String userId, String queryId)
@@ -58,14 +61,14 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Build SOAP message
-     * @param isRpcEncoded wheter message is rpc encoded
-     * @param sender message sender
-     * @param receiver message receiver
+     * Builds SOAP message.
+     * @param isRpcEncoded if true, RPC encoded style is used
+     * @param sender sender
+     * @param receiver receiver
      * @param userId user id
      * @param queryId query id
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
             ServiceId receiver, String userId, String queryId)
@@ -74,15 +77,15 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     *
-     * @param isRpcEncoded wheter message is rpc encoded
-     * @param sender message sender
-     * @param receiver message receiver
+     * Builds SOAP message.
+     * @param isRpcEncoded if true, RPC encoded style is used
+     * @param sender sender
+     * @param receiver receiver
      * @param userId user id
      * @param queryId query id
-     * @param createBodyCallback callback for body creation
+     * @param createBodyCallback callback to create body of SOAP message
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl build(boolean isRpcEncoded, ClientId sender,
             ServiceId receiver, String userId, String queryId,
@@ -90,9 +93,14 @@ public final class SoapMessageTestUtil {
                     throws Exception {
         SoapHeader header = new SoapHeader();
         header.setClient(sender);
-        header.setService(receiver);
+        if (receiver instanceof CentralServiceId) {
+            header.setCentralService((CentralServiceId) receiver);
+        } else {
+            header.setService(receiver);
+        }
         header.setUserId(userId);
         header.setQueryId(queryId);
+        header.setProtocolVersion(new ProtocolVersion());
 
         SoapBuilder builder = new SoapBuilder();
         builder.setHeader(header);
@@ -103,20 +111,20 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * File to bytes
-     * @param fileName file
-     * @return byte array
-     * @throws Exception when error occurs
+     * Returns byte array of file.
+     * @param fileName file name
+     * @return byte array of the file
+     * @throws Exception in case of any errors
      */
     public static byte[] fileToBytes(String fileName) throws Exception {
         return IOUtils.toByteArray(newQueryInputStream(fileName));
     }
 
     /**
-     * SOAP message to bytes
+     * Gets byte array of SOAP message
      * @param soap SOAP message
-     * @return byte array
-     * @throws Exception when error occurs
+     * @return byte array of SOAP message
+     * @throws Exception in case of any errors
      */
     public static byte[] messageToBytes(Soap soap) throws Exception {
         if (soap instanceof SoapMessage) {
@@ -127,10 +135,10 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Create SOAP message from file
-     * @param fileName input file
+     * Creates SOAP message from file
+     * @param fileName SOAP message file name
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static Soap createSoapMessage(String fileName)
             throws Exception {
@@ -138,33 +146,34 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Create SOAP message from file
+     * Creates SOAP message from file
      * @param queryDir query directory
-     * @param fileName file
+     * @param fileName SOAP message file name
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static Soap createSoapMessage(String queryDir, String fileName)
             throws Exception {
-        return new SoapParserImpl().parse(newQueryInputStream(queryDir, fileName));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, newQueryInputStream(queryDir, fileName));
     }
 
     /**
-     * Create SOAP message from byte array
-     * @param data byte array
+     * Creates SOAP message from byte array.
+     * @param data byte array of SOAP message
      * @return SOAP message
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static Soap createSoapMessage(byte[] data)
             throws Exception {
-        return new SoapParserImpl().parse(new ByteArrayInputStream(data));
+        return new SoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8,
+                new ByteArrayInputStream(data));
     }
 
     /**
-     * Create SOAP request from file
-     * @param fileName input file
+     * Creates SOAP request message from file
+     * @param fileName request file name
      * @return SOAP request
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl createRequest(String fileName)
             throws Exception {
@@ -194,10 +203,10 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Create SOAP response from file
-     * @param fileName input file
+     * Creates SOAP response message from file.
+     * @param fileName response file name
      * @return SOAP response
-     * @throws Exception when error occurs
+     * @throws Exception in case of any errors
      */
     public static SoapMessageImpl createResponse(String fileName)
             throws Exception {
@@ -227,10 +236,10 @@ public final class SoapMessageTestUtil {
     }
 
     /**
-     * Create query input stream
-     * @param fileName file
-     * @return input stream
-     * @throws Exception when error occurs
+     * Create new query input stream of the query file.
+     * @param fileName query file name
+     * @return file input stream of the query file.
+     * @throws Exception in case of any errors
      */
     public static FileInputStream newQueryInputStream(String fileName)
             throws Exception {

@@ -1,0 +1,44 @@
+--jetty771207119h3h10dty
+Content-Type: application/xop+xml; charset=UTF-8; type="text/xml"
+Content-Transfer-Encoding: 8bit
+Content-ID:<rootpart>
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:swi="http://ws-i.org/profiles/basic/1.1/xsd" xmlns:repr="http://x-road.eu/xsd/representation.xsd">
+   <SOAP-ENV:Header>
+      <xroad:client id:objectType="SUBSYSTEM">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000001</id:memberCode>
+         <id:subsystemCode>System1</id:subsystemCode>
+      </xroad:client>
+      <xroad:service id:objectType="SERVICE">
+         <id:xRoadInstance>XTEE-CI-XM</id:xRoadInstance>
+         <id:memberClass>GOV</id:memberClass>
+         <id:memberCode>00000000</id:memberCode>
+         <id:subsystemCode>Center</id:subsystemCode>
+         <id:serviceCode>xroadGetRandom</id:serviceCode>
+         <id:serviceVersion>v1</id:serviceVersion>
+      </xroad:service>
+      <xroad:protocolVersion>4.0</xroad:protocolVersion>
+      <xroad:id>c60b7e66-1dc8-4203-a3c1-3235661f6a84</xroad:id>
+   </SOAP-ENV:Header>
+   <SOAP-ENV:Body>
+      <xroad:xroadGetRandom>
+         <xroad:request>
+            <xroad:seed>100</xroad:seed>
+            <xroad:XXX>cid:598833653015</xroad:XXX>
+         </xroad:request>
+      </xroad:xroadGetRandom>
+   </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>
+
+--jetty771207119h3h10dty
+Content-Type: text/plain; charset=us-ascii; name=test.txt
+Content-Transfer-Encoding: 7bit
+Content-ID: <test.txt>
+Content-Disposition: attachment; name="test.txt"; filename="test.txt"
+
+test test test test test test test test test test test test test test test test
+test test test test test test test test test test test test test test test test
+test
+--jetty771207119h3h10dty--

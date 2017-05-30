@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import akka.actor.Props;
-
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 

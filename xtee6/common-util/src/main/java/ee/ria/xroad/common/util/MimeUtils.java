@@ -25,8 +25,10 @@ package ee.ria.xroad.common.util;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiPartWriter;
 
@@ -38,6 +40,8 @@ public final class MimeUtils {
     private static final int RANDOM_BOUNDARY_LENGTH = 30;
 
     public static final String HEADER_CONTENT_TYPE = "content-type";
+    public static final String HEADER_ORIGINAL_CONTENT_TYPE =
+            "x-original-content-type";
     public static final String HEADER_CONTENT_DATE = "content-date";
     public static final String HEADER_SIG_ALGO_ID = "signature-algorithm-id";
     public static final String HEADER_HASH_ALGO_ID = "x-hash-algorithm";
@@ -51,7 +55,9 @@ public final class MimeUtils {
     public static final String HEADER_HASH_ALGORITHM_ID = "hash-algorithm-id";
     public static final String HEADER_CONTENT_FILE_NAME = "content-file-name";
     public static final String HEADER_EXPIRE_DATE = "expire-date";
+    public static final String HEADER_VERSION = "Version";
     public static final String PARAM_INSTANCE = "instance";
+    public static final String HEADER_CONTENT_ID = "content-id";
 
     public static final String HASH_CHAIN_CONTENT_TYPE =
             "application/hash-chain";
@@ -80,14 +86,16 @@ public final class MimeUtils {
 
     /**
      * Constructs content-type string for multipart/related content with given
-     * boundary.
+     * boundary and root part content-type.
      * @param boundary boundary to be used in the content-type construction
+     * @param rootContentType type of the root part of the multipart message
      * @return String
      */
-    public static String mpRelatedContentType(String boundary) {
+    public static String mpRelatedContentType(String boundary,
+            String rootContentType) {
         return contentTypeWithCharsetAndBoundary(MimeTypes.MULTIPART_RELATED,
-                UTF8, boundary);
-    }
+            rootContentType, UTF8, boundary);
+     }
 
     /**
      * Constructs a content type with given type, charset and boundary.
@@ -99,6 +107,21 @@ public final class MimeUtils {
     public static String contentTypeWithCharsetAndBoundary(String mimeType,
             String charset, String boundary) {
         return mimeType + "; charset=" + charset + "; boundary=" + boundary;
+    }
+
+    /**
+     * Constructs a content-type with given type, type parameter, charset and
+     * boundary.
+     * @param mimeType mime type to be used in the content-type construction
+     * @param type type to be used in the content-type construction
+     * @param charset charset to be used in the content-type construction
+     * @param boundary boundary to be used in the content-type construction
+     * @return String
+     */
+    public static String contentTypeWithCharsetAndBoundary(String mimeType,
+            String type, String charset, String boundary) {
+        return mimeType + "; type=\"" + type + "\"; charset=" + charset
+                + "; boundary=" + boundary;
     }
 
     /**
@@ -123,13 +146,22 @@ public final class MimeUtils {
 
     /**
      * Returns the charset from the given mime type.
-     * @param mimeType mime type from which to extract the charset
+     * @param contentType content type from which to extract the charset
      * @return String
      */
-    public static String getCharset(String mimeType) {
-        Map<String, String> params = new HashMap<>();
-        HttpFields.valueParameters(mimeType, params);
-        return params.get("charset");
+    public static String getCharset(String contentType) {
+        return getParameterValue(contentType, "charset");
+    }
+
+    /**
+     * Returns true, if content type has UTF-8 charset or "charset" is not set.
+     * @param contentType content type from which to extract the charset
+     * @return true, if content type has UTF-8 charset or "charset" is not set
+     */
+    public static boolean hasUtf8Charset(String contentType) {
+        String charset = getCharset(contentType);
+
+        return StringUtils.isBlank(charset) || charset.equalsIgnoreCase(UTF8);
     }
 
     /**
@@ -138,9 +170,17 @@ public final class MimeUtils {
      * @return boolean
      */
     public static boolean hasBoundary(String contentType) {
-        Map<String, String> map = new HashMap<>();
-        HttpFields.valueParameters(contentType.toLowerCase(), map);
-        return map.containsKey("boundary");
+        return getBoundary(contentType) != null;
+    }
+
+    /**
+     * Returns boundary from the content type.
+     * @param contentType the content type to check
+     * @return boundary from the content type or null if the content type
+     * does not contain boundary
+     */
+    public static String getBoundary(String contentType) {
+        return getParameterValue(contentType, "boundary");
     }
 
     /**
@@ -150,16 +190,14 @@ public final class MimeUtils {
      * @return array of color-separated Strings
      */
     public static String[] toHeaders(Map<String, String> headers) {
-        String[] result = null;
         if (headers != null && !headers.isEmpty()) {
-            result = new String[headers.size()];
-            int i = 0;
-            for (Map.Entry<String, String> h: headers.entrySet()) {
-                result[i++] = h.getKey() + ": " + h.getValue();
-            }
+            return headers.entrySet().stream()
+                    .map(e -> e.getKey() + ": " + e.getValue())
+                    .collect(Collectors.toList())
+                    .toArray(new String[] {});
+        } else {
+            return null;
         }
-
-        return result;
     }
 
     /**
@@ -167,6 +205,17 @@ public final class MimeUtils {
      */
     public static String randomBoundary() {
         return RandomStringUtils.randomAlphabetic(RANDOM_BOUNDARY_LENGTH);
+    }
+
+    private static String getParameterValue(String contentType,
+            String parameterName) {
+        Map<String, String> params = new HashMap<>();
+        HttpFields.valueParameters(contentType, params);
+        return params.entrySet().stream()
+                .filter(e -> e.getKey().trim().equalsIgnoreCase(parameterName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
     }
 }
 

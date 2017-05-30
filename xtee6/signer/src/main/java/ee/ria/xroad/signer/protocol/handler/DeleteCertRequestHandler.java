@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.message.DeleteCert;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
 
 /**
  * Handles certificate deletions. If certificate is not saved in configuration,

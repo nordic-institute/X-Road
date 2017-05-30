@@ -21,12 +21,12 @@
 # THE SOFTWARE.
 #
 
-java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchor
+java_import Java::ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2
 
 class AnchorUnmarshaller
   def initialize(anchor_file)
     @anchor_file = anchor_file
-    @anchor = ConfigurationAnchor.new(anchor_file)
+    @anchor = ConfigurationAnchorV2.new(anchor_file)
   end
 
   def get_instance_identifier

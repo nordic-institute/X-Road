@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common.util;
 
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA384;
+import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA512;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,9 +54,6 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.crypto.dsig.DigestMethod;
 
-import ee.ria.xroad.common.SystemProperties;
-import lombok.Getter;
-import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -71,7 +73,9 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
 
-import static org.apache.xml.security.signature.XMLSignature.*;
+import ee.ria.xroad.common.SystemProperties;
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -92,7 +96,7 @@ public final class CryptoUtils {
     /** SSL protocol name. */
     public static final String SSL_PROTOCOL = "TLSv1.2";
 
-    /** The list of cipher suites used with SSL. */
+    /** The list of cipher suites used with TLS. */
     @Getter
     private static final String[] INCLUDED_CIPHER_SUITES =
             {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};

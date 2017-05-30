@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<xroad:client id:objectType="SUBSYSTEM"
+        xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"
+        xmlns:id="http://x-road.eu/xsd/identifiers">
+    <id:xRoadInstance>EE</id:xRoadInstance>
+    <id:memberClass>COMPANY</id:memberClass>
+    <id:memberCode>FOOBAR</id:memberCode>
+</xroad:client>
+

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd">
   <SOAP-ENV:Header>
-    <xroad:client id:objectType="MEMBER">
+    <xroad:client id:objectType="SUBSYSTEM">
       <id:xRoadInstance>EE</id:xRoadInstance>
       <id:memberClass>GOV</id:memberClass>
       <id:memberCode>codeOfMember</id:memberCode>
@@ -16,7 +16,7 @@
     </xroad:service>
     <xroad:userId>proxyUi</xroad:userId>
     <xroad:id>9b2fa334-c227-4439-8a80-e22c87317196</xroad:id>
-    <xroad:async>false</xroad:async>
+    <xroad:protocolVersion>4.0</xroad:protocolVersion>
   </SOAP-ENV:Header>
   <SOAP-ENV:Body>
     <xroad:clientReg>
