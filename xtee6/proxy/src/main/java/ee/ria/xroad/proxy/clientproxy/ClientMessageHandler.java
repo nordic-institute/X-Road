@@ -30,6 +30,8 @@ import org.apache.http.client.HttpClient;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
@@ -45,17 +47,17 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 class ClientMessageHandler extends AbstractClientProxyHandler {
 
     ClientMessageHandler(HttpClient client) {
-        super(client);
+        super(client, true);
     }
 
     @Override
     MessageProcessorBase createRequestProcessor(String target,
-            HttpServletRequest request, HttpServletResponse response)
-                    throws Exception {
+            HttpServletRequest request, HttpServletResponse response,
+            OpMonitoringData opMonitoringData) throws Exception {
         verifyCanProcess(request);
 
         return new ClientMessageProcessor(request, response, client,
-                getIsAuthenticationData(request));
+                getIsAuthenticationData(request), opMonitoringData);
     }
 
     private void verifyCanProcess(HttpServletRequest request) {
@@ -64,6 +66,8 @@ class ClientMessageHandler extends AbstractClientProxyHandler {
                     "Must use POST request method instead of %s",
                     request.getMethod());
         }
+
+        GlobalConf.verifyValidity();
 
         if (!SystemProperties.isSslEnabled()) {
             return;

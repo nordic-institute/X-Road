@@ -55,7 +55,7 @@ fatJar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
 
-    from rootProject.file('securityserver-LICENSE.txt')
+    from rootProject.file('LICENSE.txt')
 }
 
 jar.enabled = false
@@ -83,7 +83,7 @@ task xjc () {
 // java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
 task runSignerMain(type: JavaExec) {
     jvmArgs '-Dxroad.signer.key-configuration-file=build/tmp/keyconf.xml',
-        '-Dxroad.common.device-configuration-file=src/test/resources/devices.ini',
+        '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
         '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good',
         '-Dxroad.common.temp-files-path=build/tmp/',
         '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',

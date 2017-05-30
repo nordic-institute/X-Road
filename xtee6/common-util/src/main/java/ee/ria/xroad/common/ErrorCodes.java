@@ -30,10 +30,13 @@ import java.net.UnknownServiceException;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
 
+import javax.xml.bind.UnmarshalException;
 import javax.xml.soap.SOAPException;
 
 import org.apache.james.mime4j.MimeException;
 import org.xml.sax.SAXException;
+
+import com.sun.xml.bind.api.AccessorException;
 
 /** Enumeration class for various error codes. */
 public final class ErrorCodes {
@@ -44,6 +47,8 @@ public final class ErrorCodes {
     public static final String CLIENT_X = "Client";
     public static final String SERVER_CLIENTPROXY_X = "Server.ClientProxy";
     public static final String SIGNER_X = "Signer";
+    public static final String SERVER_SERVER_PROXY_OPMONITOR_X =
+            SERVER_SERVERPROXY_X + ".OpMonitor";
 
     // Generic errors.
 
@@ -114,6 +119,8 @@ public final class ErrorCodes {
     public static final String X_SECURITY_CATEGORY = "SecurityCategory";
     public static final String X_INVALID_PROTOCOL_VERSION =
             "InvalidProtocolVersion";
+    public static final String X_INVALID_CLIENT_IDENTIFIER =
+            "InvalidClientIdentifier";
 
     // ASiC container related errors
 
@@ -176,14 +183,8 @@ public final class ErrorCodes {
     public static final String X_CERT_IMPORT_FAILED = "CertImportFailed";
     public static final String X_TOKEN_PIN_POLICY_FAILURE = "TokenPinPolicyFailure";
 
-    // SecureLog errors
-
-    public static final String X_SLOG_MALFORMED_RECORD = "MalformedRecord";
-    public static final String X_SLOG_MALFORMED_INDEX = "MalformedIndex";
-    public static final String X_SLOG_MALFORMED_ARCHIVE = "MalformedArchive";
-    public static final String X_SLOG_TIMESTAMPER_FAILED = "TimestamperFailed";
-    public static final String X_SLOG_RECORD_NOT_FOUND = "RecordNotFound";
-
+    // MessageLog errors
+    public static final String X_MLOG_TIMESTAMPER_FAILED = "TimestamperFailed";
 
     /**
      * Translates technical exceptions to proxy exceptions with
@@ -210,6 +211,14 @@ public final class ErrorCodes {
             return new CodedException(X_MIME_PARSING_FAILED, ex);
         } else if (ex instanceof SAXException) {
             return new CodedException(X_INVALID_XML, ex);
+        } else if (ex instanceof UnmarshalException) {
+            return ex.getCause() instanceof AccessorException
+                    ? translateException(ex.getCause())
+                    : new CodedException(X_INTERNAL_ERROR, ex);
+        } else if (ex instanceof AccessorException) {
+            return ex.getCause() instanceof CodedException
+                    ? (CodedException) ex.getCause()
+                    : new CodedException(X_INTERNAL_ERROR, ex);
         } else { // other system exceptions.
             return new CodedException(X_INTERNAL_ERROR, ex);
         }

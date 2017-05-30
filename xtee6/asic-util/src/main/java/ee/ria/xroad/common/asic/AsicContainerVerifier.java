@@ -22,18 +22,19 @@
  */
 package ee.ria.xroad.common.asic;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.hashchain.DigestValue;
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
-import ee.ria.xroad.common.hashchain.HashChainVerifier;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.signature.*;
-import ee.ria.xroad.common.util.MessageFileNames;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.Security;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -46,16 +47,25 @@ import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.eclipse.jetty.http.MimeTypes;
 import org.w3c.dom.Attr;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.Security;
-import java.security.cert.X509Certificate;
-import java.util.*;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.hashchain.DigestValue;
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.hashchain.HashChainVerifier;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.ocsp.OcspVerifier;
+import ee.ria.xroad.common.signature.MessagePart;
+import ee.ria.xroad.common.signature.Signature;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.signature.SignatureVerifier;
+import ee.ria.xroad.common.signature.TimestampVerifier;
+import ee.ria.xroad.common.util.MessageFileNames;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
@@ -129,7 +139,7 @@ public class AsicContainerVerifier {
         signatureVerifier.setVerifySchema(false);
 
         // Add required part "message" to the hash chain verifier.
-        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null));
+        signatureVerifier.addPart(new MessagePart(MESSAGE, null, null, null));
 
         signatureVerifier.verify(signerName, atDate);
         signerCert = signatureVerifier.getSigningCertificate();
@@ -223,7 +233,8 @@ public class AsicContainerVerifier {
     }
 
     private static ClientId getSigner(String messageXml) {
-        Soap soap = new SoapParserImpl().parse(
+        Soap soap = new SaxSoapParserImpl().parse(
+                MimeTypes.TEXT_XML_UTF_8,
                 new ByteArrayInputStream(messageXml.getBytes(UTF_8)));
         if (!(soap instanceof SoapMessageImpl)) {
             throw new RuntimeException("Unexpected SOAP: " + soap.getClass());

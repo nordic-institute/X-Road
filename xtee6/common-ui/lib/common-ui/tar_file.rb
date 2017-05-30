@@ -33,7 +33,7 @@ module CommonUi
 
     class Validator
       def validate(tar_file, original_filename)
-        # TODO: Could we validate tar file through some Ruby API?
+        # FUTURE: Could we validate tar file through some Ruby API?
         system("tar", "tf", tar_file.path)
 
         raise I18n.t("backup.error.not_tar") if $? != 0

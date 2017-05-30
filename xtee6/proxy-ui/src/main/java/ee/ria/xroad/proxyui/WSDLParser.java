@@ -65,13 +65,13 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapParser;
-import ee.ria.xroad.common.message.SoapParserImpl;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 
 /**
  * Contains utility methods for extracting information from WSDL files.
@@ -314,11 +314,13 @@ public final class WSDLParser {
         }
 
         private void checkForSoapFault(byte[] response) {
-            SoapParser parser = new SoapParserImpl();
             Soap soap = null;
             try {
-                soap = parser.parse(MimeTypes.TEXT_XML,
-                        StandardCharsets.UTF_8.name(),
+                soap = new SaxSoapParserImpl().parse(
+                        contentTypeWithCharset(
+                            MimeTypes.TEXT_XML,
+                            StandardCharsets.UTF_8.name()
+                        ),
                         new ByteArrayInputStream(response));
             } catch (Exception e) {
                 log.info("Exception while parsing: {}", e);

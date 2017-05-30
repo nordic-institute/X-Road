@@ -28,9 +28,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.asic.AsicUtils;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationPartMetadata;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+import ee.ria.xroad.common.conf.globalconf.*;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -149,7 +147,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private void handleVerificationConfRequest() throws Exception {
         // GlobalConf.verifyValidity() is not necessary here.
 
-        ConfigurationDirectory confDir = new ConfigurationDirectory(
+        ConfigurationDirectoryV2 confDir = new ConfigurationDirectoryV2(
                 SystemProperties.getConfigurationPath());
 
         servletResponse.setContentType(MimeTypes.ZIP);
@@ -405,7 +403,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         return RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH);
     }
 
-    private static class VerificationConfWriter implements ConfigurationDirectory.FileConsumer, Closeable {
+    private static class VerificationConfWriter implements FileConsumer, Closeable {
 
         private static final String PREFIX = "verificationconf/";
 
@@ -422,7 +420,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         public void consume(ConfigurationPartMetadata metadata,
                 InputStream contents) throws Exception {
             if (metadata.getContentIdentifier()
-                    .equals(SharedParameters.CONTENT_ID_SHARED_PARAMETERS)) {
+                    .equals(ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS)) {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);
                 zos.closeEntry();
@@ -431,7 +429,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
         private String buildPath(ConfigurationPartMetadata metadata) {
             return PREFIX + metadata.getInstanceIdentifier() + "/"
-                    + SharedParameters.FILE_NAME_SHARED_PARAMETERS;
+                    + ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
         }
 
         @Override

@@ -91,6 +91,7 @@ et:
     security_server_exists: "Sertifikaat on juba registreeritud, taotluse id '%{id}"
 
   errors:
+    format: "%{message}"
     pki:
       top_ca_cert_too_long_subject_name: "Laetava tipmise SK sertifikaadi subjektinime pikkus ületab %{max_length} sümbolit. Subjektinimi: '%{subject_name}'"
     tsp:

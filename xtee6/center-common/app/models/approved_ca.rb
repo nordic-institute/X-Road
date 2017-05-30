@@ -28,6 +28,7 @@ class ApprovedCa < ActiveRecord::Base
 
   validates_with MaxlengthValidator
   validates :top_ca, :presence => true
+  validates :cert_profile_info , :presence => true
 
   belongs_to :top_ca,
       :class_name => "CaInfo",
@@ -43,9 +44,9 @@ class ApprovedCa < ActiveRecord::Base
 
   before_save do |approved_ca|
     logger.info("Saving PKI: '#{approved_ca}'")
-
-    approved_ca.prepare_name_extractor()
-    approved_ca.prepare_top_ca_cert()
+    approved_ca.prepare_name_extractor
+    approved_ca.validate_cert_profile_info
+    approved_ca.prepare_top_ca_cert
   end
 
   before_destroy do |approved_ca|
@@ -53,9 +54,9 @@ class ApprovedCa < ActiveRecord::Base
   end
 
   def prepare_name_extractor
-    if self.name_extractor_missing?
-      raise XroadArgumentError.new(:no_name_extractor_method)
-    end
+    # if self.name_extractor_missing?
+    #   raise XroadArgumentError.new(:no_name_extractor_method)
+    # end
 
     if self.authentication_only?
       self.identifier_decoder_method_name = nil
@@ -69,11 +70,18 @@ class ApprovedCa < ActiveRecord::Base
             self.identifier_decoder_method_name.empty?)
   end
 
+  def validate_cert_profile_info
+    Java::ee.ria.xroad.commonui.CertificateProfileInfoValidator\
+        .validate(self.cert_profile_info)
+  rescue Java::java.lang.RuntimeException
+    raise $!.message
+  end
+
   def prepare_top_ca_cert
     top_ca_cert = self.top_ca.cert
 
     cert_obj = CommonUi::CertUtils.cert_object(top_ca_cert)
-    subject_name = cert_obj.subject.to_s
+    subject_name = CommonUi::CertUtils.cert_subject_cn(cert_obj)
 
     unless MaxlengthValidator.string_length_valid?(subject_name)
       raise I18n.t("errors.approved_ca.top_ca_cert_too_long_subject_name", {
@@ -85,9 +93,9 @@ class ApprovedCa < ActiveRecord::Base
   end
 
   def to_s
-    "ApprovedCa(authOnly: '#{self.authentication_only}', nameExtractorMemberClass: "\
-      "'#{self.identifier_decoder_member_class}', nameExtractorMethodName: "\
-      "'#{self.identifier_decoder_method_name}', id: '#{self.id}', "\
+    "ApprovedCa(authOnly: '#{self.authentication_only}', "\
+      "certificateProfileInfo: "\
+      "'#{self.cert_profile_info}', id: '#{self.id}', "\
       ", topCa: '#{self.top_ca}', intermediateCas: "\
       "[#{self.intermediate_cas.join(', ')}])"
   end

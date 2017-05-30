@@ -22,13 +22,14 @@
  */
 package ee.ria.xroad.common.signature;
 
-import lombok.ToString;
-import lombok.Value;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import lombok.ToString;
+import lombok.Value;
 
 /**
  * Encapsulates contents of a signing request.

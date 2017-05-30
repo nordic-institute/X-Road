@@ -33,14 +33,14 @@ public abstract class AbstractUpdateableActor extends AbstractSignerActor {
 
     @Override
     public final void onReceive(Object message) throws Exception {
-        try {
-            if (message instanceof Update) {
-                onUpdate();
-            } else {
+        if (message instanceof Update) {
+            onUpdate();
+        } else {
+            try {
                 onMessage(message);
+            } catch (Exception e) {
+                sendResponse(translateException(e).withPrefix(SIGNER_X));
             }
-        } catch (Exception e) {
-            sendResponse(translateException(e).withPrefix(SIGNER_X));
         }
     }
 

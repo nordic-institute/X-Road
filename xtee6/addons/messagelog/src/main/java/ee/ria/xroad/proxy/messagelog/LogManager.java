@@ -22,38 +22,57 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import akka.actor.*;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
-import ee.ria.xroad.common.*;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.*;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.MessageSendingJob;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTime;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
-
-import java.time.LocalTime;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.ErrorCodes.X_SLOG_TIMESTAMPER_FAILED;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.*;
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getCleanInterval;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
 import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
 import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
 import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.nio.file.Paths;
+import java.time.LocalTime;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import org.joda.time.DateTime;
+import org.quartz.JobDataMap;
+import org.quartz.SchedulerException;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.Cancellable;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.CommonMessages;
+import ee.ria.xroad.common.DiagnosticsErrorCodes;
+import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.DiagnosticsUtils;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.MessageSendingJob;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
 
 /**
  * Message log manager. Sets up the whole logging system components.
@@ -66,7 +85,7 @@ public class LogManager extends AbstractLogManager {
     private static final Timeout TIMESTAMP_TIMEOUT =
             new Timeout(Duration.create(30, TimeUnit.SECONDS));
 
-    // Actor names of secure log components
+    // Actor names of message log components
     static final String TASK_QUEUE_NAME = "RequestLogTaskQueue";
     static final String TIMESTAMPER_NAME = "RequestLogTimestamper";
     static final String ARCHIVER_NAME = "RequestLogArchiver";
@@ -96,13 +115,15 @@ public class LogManager extends AbstractLogManager {
 
 
     private void createTaskQueue() {
-        taskQueueRef = getContext().actorOf(Props.create(getTaskQueueImpl()),
+        taskQueueRef = getContext().actorOf(getTaskQueueImpl(),
                 TASK_QUEUE_NAME);
     }
 
     private void createTimestamper() {
         timestamper = getContext().actorOf(
-                Props.create(getTimestamperImpl()), TIMESTAMPER_NAME);
+                getTimestamperImpl(),
+                TIMESTAMPER_NAME
+            );
 
         getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
     }
@@ -117,14 +138,14 @@ public class LogManager extends AbstractLogManager {
     }
 
     private void createArchiver(JobManager jobManager) {
-        getContext().actorOf(Props.create(getArchiverImpl()), ARCHIVER_NAME);
+        getContext().actorOf(getArchiverImpl(), ARCHIVER_NAME);
 
         registerCronJob(jobManager, ARCHIVER_NAME, START_ARCHIVING,
                 getArchiveInterval());
     }
 
     private void createCleaner(JobManager jobManager) {
-        getContext().actorOf(Props.create(getCleanerImpl()), CLEANER_NAME);
+        getContext().actorOf(getCleanerImpl(), CLEANER_NAME);
 
         registerCronJob(jobManager, CLEANER_NAME, START_CLEANING,
                 getCleanInterval());
@@ -182,20 +203,24 @@ public class LogManager extends AbstractLogManager {
 
     // ------------------------------------------------------------------------
 
-    protected Class<? extends TaskQueue> getTaskQueueImpl() {
-        return TaskQueue.class;
+    protected Props getTaskQueueImpl() {
+        return Props.create(TaskQueue.class);
     }
 
-    protected Class<? extends Timestamper> getTimestamperImpl() {
-        return Timestamper.class;
+    protected Props getTimestamperImpl() {
+        return Props.create(Timestamper.class);
     }
 
-    protected Class<? extends LogArchiver> getArchiverImpl() {
-        return LogArchiver.class;
+    protected Props getArchiverImpl() {
+        return Props.create(
+            LogArchiver.class,
+            Paths.get(MessageLogProperties.getArchivePath()),
+            Paths.get(SystemProperties.getTempFilesPath())
+        );
     }
 
-    protected Class<? extends LogCleaner> getCleanerImpl() {
-        return LogCleaner.class;
+    protected Props getCleanerImpl() {
+        return Props.create(LogCleaner.class);
     }
 
     protected TimestampRecord timestampImmediately(MessageRecord logRecord)
@@ -400,14 +425,14 @@ public class LogManager extends AbstractLogManager {
         }
 
         if (ServerConf.getTspUrl().isEmpty()) {
-            throw new CodedException(X_SLOG_TIMESTAMPER_FAILED,
+            throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
                     "Cannot time-stamp messages: "
                             + "no timestamping services configured");
         }
 
         if (isTimestampFailed()) {
             if (new DateTime().minusSeconds(period).isAfter(timestampFailed)) {
-                throw new CodedException(X_SLOG_TIMESTAMPER_FAILED,
+                throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
                         "Cannot time-stamp messages");
             }
         }
@@ -431,8 +456,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     private static byte[] getInputHash(String str) throws Exception {
-        String hashAlgoId = MessageLogProperties.getHashAlg();
-        return calculateDigest(hashAlgoId, str.getBytes(UTF_8));
+        return calculateDigest(getHashAlg(), str.getBytes(UTF_8));
     }
 
     /**

@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
  * Client sends request with invalid content type.

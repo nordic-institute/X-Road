@@ -1,0 +1,38 @@
+[
+  {
+    "target_zabbix_api_url": "<url>",
+    "zabbix_auth_key": "<auth_key>",
+    "zabbix_host_id": "<host_id>",
+    "jmx_username": "<jmx_username>",
+    "jmx_password": "<jmx_password>",
+    "services": [
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerOperationalData",
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerHealthData",
+        "<xroad_instance>/<member_class>/<member_code>/[<subsystem>]/<service_id>[/<service_version>]"
+    ]
+  },
+  {
+    "target_zabbix_api_url": "<url>",
+    "zabbix_auth_key": "<auth_key>",
+    "zabbix_host_id": "<host_id>",
+    "jmx_username": "<jmx_username>",
+    "jmx_password": "<jmx_password>",
+    "services": [
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerOperationalData",
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerHealthData",
+        "<xroad_instance>/<member_class>/<member_code>/[<subsystem>]/<service_id>[/<service_version>]"
+    ]
+  },
+  {
+    "target_zabbix_api_url": "<url>",
+    "zabbix_auth_key": "<auth_key>",
+    "zabbix_host_id": "<host_id>",
+    "jmx_username": "<jmx_username>",
+    "jmx_password": "<jmx_password>",
+    "services": [
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerOperationalData",
+        "<xroad_instance>/<member_class>/<member_code>//getSecurityServerHealthData",
+        "<xroad_instance>/<member_class>/<member_code>/[<subsystem>]/<service_id>[/<service_version>]"
+    ]
+  }
+]

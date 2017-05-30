@@ -19,9 +19,9 @@ dependencies {
     compile 'commons-configuration:commons-configuration:1.9'
     compile 'commons-io:commons-io:2.4'
     compile 'commons-jxpath:commons-jxpath:1.3'
-
+    compile 'org.slf4j:jcl-over-slf4j:1.7.12'
     compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
-    compile 'org.slf4j:jcl-over-slf4j:1.6.6'
+    compile 'xerces:xercesImpl:2.11.0.SP5'
 
     compile 'org.eclipse.jetty:jetty-server:8.1.19.v20160209'
     compile 'org.eclipse.jetty:jetty-continuation:8.1.19.v20160209'
@@ -49,6 +49,7 @@ dependencies {
     compile 'com.google.guava:guava:19.0'
 
     testCompile 'org.mockito:mockito-core:1.10.19'
+    testCompile project(':common-test').sourceSets.main.output
 
     xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
     xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
@@ -84,17 +85,33 @@ task xjc() {
 
     // Generate classes for federateable global external conf
     ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v1',
+            schema: 'src/main/resources/globalconf/external-conf.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+    )
+
+    // Generate classes for federateable global internal conf
+    ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v1',
+            schema: 'src/main/resources/globalconf/internal-conf.xsd',
+            binding: 'src/main/resources/identifiers-bindings.xml'
+    )
+
+    // Generate classes for federateable global external conf
+    ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters',
-        schema: 'src/main/resources/globalconf/external-conf.xsd',
+        package: 'ee.ria.xroad.common.conf.globalconf.sharedparameters.v2',
+        schema: 'src/main/resources/globalconf/shared-parameters.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
 
     // Generate classes for federateable global internal conf
     ant.xjc(
         destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.globalconf.privateparameters',
-        schema: 'src/main/resources/globalconf/internal-conf.xsd',
+        package: 'ee.ria.xroad.common.conf.globalconf.privateparameters.v2',
+        schema: 'src/main/resources/globalconf/private-parameters.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
 
@@ -166,4 +183,3 @@ idea.module {
     excludeDirs -= file(buildDir)
     buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
 }
-

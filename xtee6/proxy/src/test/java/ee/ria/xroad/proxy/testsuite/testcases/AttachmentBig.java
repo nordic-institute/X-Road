@@ -28,6 +28,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Random;
 
+import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.util.MultiPartOutputStream;
@@ -62,10 +63,15 @@ public class AttachmentBig extends MessageTestCase {
     }
 
     @Override
-    protected Pair<String, InputStream> getRequestInput() throws Exception {
+    protected Pair<String, InputStream> getRequestInput(boolean addUtf8Bom)
+            throws Exception {
         PipedOutputStream os = new PipedOutputStream();
         PipedInputStream is = new PipedInputStream(os);
         MultiPartOutputStream mpos = new MultiPartOutputStream(os);
+
+        if (addUtf8Bom) {
+            mpos.write(ByteOrderMark.UTF_8.getBytes());
+        }
 
         new Thread(new MpWriter(mpos)).start();
 

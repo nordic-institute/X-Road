@@ -22,9 +22,16 @@
  */
 package ee.ria.xroad.signer.util;
 
-import ee.ria.xroad.common.CodedException;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_LOGOUT_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_INITIALIZED;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import ee.ria.xroad.common.CodedException;
 
 /**
  * Contains helper methods for constructing CodedExceptions which are used in

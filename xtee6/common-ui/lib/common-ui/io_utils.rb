@@ -30,7 +30,7 @@ java_import Java::java.lang.System
 java_import Java::java.io.RandomAccessFile
 
 # Common file read/write functions
-# TODO Remove Mutex. Acquire file locks for concrete files. RM #3505.
+# Note: Calls of read_* and write_* functions on different files are synchronized.
 module CommonUi
   module IOUtils
 

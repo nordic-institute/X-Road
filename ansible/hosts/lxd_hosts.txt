@@ -1,0 +1,27 @@
+[cs-servers]
+xroad-lxd-cs ansible_connection=lxd
+
+[cs-servers:vars]
+ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
+ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
+
+[cp-servers]
+xroad-lxd-cp ansible_connection=lxd
+
+[cp-servers:vars]
+ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
+ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
+
+[ss-servers]
+xroad-lxd-ss1 ansible_connection=lxd
+xroad-lxd-ss2 ansible_connection=lxd
+
+[ss-servers:vars]
+ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
+ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
+
+[lxd-servers]
+localhost ansible_connection=local
+
+[compile-servers]
+localhost ansible_connection=local

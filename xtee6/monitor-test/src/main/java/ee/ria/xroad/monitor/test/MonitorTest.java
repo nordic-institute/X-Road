@@ -22,10 +22,11 @@
  */
 package ee.ria.xroad.monitor.test;
 
+import com.typesafe.config.ConfigFactory;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import com.typesafe.config.ConfigFactory;
 
 /**
  * Test client for monitoring

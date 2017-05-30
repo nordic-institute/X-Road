@@ -25,9 +25,13 @@ package ee.ria.xroad.proxy.serverproxy;
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonHttpClient;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.antidos.AntiDosConnector;
 import ee.ria.xroad.proxy.antidos.AntiDosSslConnector;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
@@ -71,6 +75,8 @@ public class ServerProxy implements StartStop {
 
     private String listenAddress;
 
+    private CloseableHttpClient opMonitorClient;
+
     /**
      * Constructs and configures a new server proxy.
      * @throws Exception in case of any errors
@@ -90,6 +96,7 @@ public class ServerProxy implements StartStop {
         configureServer();
 
         createClient();
+        createOpMonitorClient();
         createConnectors();
         createHandlers();
     }
@@ -119,6 +126,12 @@ public class ServerProxy implements StartStop {
         client = creator.getHttpClient();
     }
 
+    private void createOpMonitorClient() throws Exception {
+        opMonitorClient = OpMonitoringDaemonHttpClient.createHttpClient(
+                ServerConf.getSSLKey(), TimeUtils.secondsToMillis(
+                        OpMonitoringSystemProperties
+                                .getOpMonitorServiceConnectionTimeoutSeconds()));
+    }
 
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
@@ -143,8 +156,7 @@ public class ServerProxy implements StartStop {
         server.setSendServerVersion(false);
 
         log.info("ClientProxy {} created ({}:{})",
-                new Object[]{connector.getClass().getSimpleName(),
-                        listenAddress, port});
+                connector.getClass().getSimpleName(), listenAddress, port);
     }
 
     private void createHandlers() {
@@ -156,7 +168,8 @@ public class ServerProxy implements StartStop {
         reqLog.setQuiet(true);
         logHandler.setRequestLog(reqLog);
 
-        ServerProxyHandler proxyHandler = new ServerProxyHandler(client);
+        ServerProxyHandler proxyHandler = new ServerProxyHandler(client,
+                opMonitorClient);
 
         HandlerCollection handler = new HandlerCollection();
         handler.addHandler(logHandler);
@@ -188,6 +201,7 @@ public class ServerProxy implements StartStop {
 
         connMonitor.shutdown();
         client.close();
+        opMonitorClient.close();
         server.stop();
 
         HibernateUtil.closeSessionFactories();

@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -31,20 +38,13 @@ import java.security.Signature;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
-
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.SHARED_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.SharedParameters.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Generates test configuration directory.
@@ -90,11 +90,6 @@ public final class GenerateTestData {
         private final List<ConfDirEntry> entries = new ArrayList<>();
         private boolean writeExpireDate = true;
 
-        TestConfDir(String name, boolean writeExpireDate) {
-            this(name);
-            this.writeExpireDate = writeExpireDate;
-        }
-
         TestConfDir addEntry(ConfDirEntry e, String fileName) throws Exception {
             e.setContent(getFileContent(Paths.get(ROOT, name,
                     e.getInstanceIdentifier(), fileName)));
@@ -106,7 +101,7 @@ public final class GenerateTestData {
             String parts = "";
 
             if (writeExpireDate) {
-                parts += "--innerboundary\nExpire-date: 2016-05-20T17:42:55Z\n\n";
+                parts += "--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n";
             }
 
             for (ConfDirEntry entry : entries) {

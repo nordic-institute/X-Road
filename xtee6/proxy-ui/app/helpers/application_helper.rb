@@ -77,4 +77,11 @@ module ApplicationHelper
     return false
   end
 
+  def instance_identifier
+    @server_id.xRoadInstance if @server_id
+  end
+
+  def server_code
+    @server_id.serverCode if @server_id
+  end
 end

@@ -26,7 +26,7 @@ class Subsystem < SecurityServerClient
   validates_presence_of :subsystem_code
 
   belongs_to :xroad_member,
-      :class_name => "XroadMember",
+      :class_name => "XRoadMember",
       :foreign_key => "xroad_member_id"
 
   def name

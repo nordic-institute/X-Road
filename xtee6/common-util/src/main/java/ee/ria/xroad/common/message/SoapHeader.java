@@ -27,13 +27,14 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.Getter;
 import lombok.Setter;
+
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 /**
@@ -47,6 +48,8 @@ public class SoapHeader {
 
     public static final String NS_XROAD = "http://x-road.eu/xsd/xroad.xsd";
     public static final String PREFIX_XROAD = "xroad";
+    public static final String NS_REPR =
+            "http://x-road.eu/xsd/representation.xsd";
 
     @CheckConsistency
     @XmlElement(name = "client", required = true, namespace = NS_XROAD)
@@ -67,17 +70,22 @@ public class SoapHeader {
     private String userId;
 
     @CheckConsistency
+    @XmlElement(name = "representedParty", required = false, namespace = NS_REPR)
+    private RepresentedParty representedParty;
+
+    @CheckConsistency
+    @XmlElement(name = "issue", required = false, namespace = NS_XROAD)
+    private String issue;
+
+    @CheckConsistency
     @XmlElement(name = "id", required = true, namespace = NS_XROAD)
     private String queryId;
 
     @XmlElement(name = "requestHash", required = false, namespace = NS_XROAD)
     private RequestHash requestHash;
 
-    @XmlElement(name = "async", required = false, namespace = NS_XROAD)
-    private boolean async;
-
     @XmlElement(name = "protocolVersion", required = true, namespace = NS_XROAD)
-    private ProtocolVersion protocolVersion = new ProtocolVersion();
+    private ProtocolVersion protocolVersion;
 
     @Override
     public String toString() {

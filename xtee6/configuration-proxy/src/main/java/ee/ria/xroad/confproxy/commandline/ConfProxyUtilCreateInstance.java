@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
+import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
+
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,8 +33,6 @@ import org.apache.commons.cli.CommandLine;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
-
-import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for creating a new configuration proxy instance

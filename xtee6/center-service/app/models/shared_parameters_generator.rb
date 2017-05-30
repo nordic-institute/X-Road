@@ -27,7 +27,7 @@ class SharedParametersGenerator
 
   def initialize()
     @marshaller = ConfMarshaller.new(
-       get_object_factory(), get_root_type_creator())
+        get_object_factory(), get_root_type_creator())
 
     @client_ids_generated = 0
 
@@ -35,7 +35,7 @@ class SharedParametersGenerator
     @clients_to_client_types = {}
 
     Rails.logger.debug(
-      "Initialized shared parameters generator: #{self.inspect()}")
+        "Initialized shared parameters generator: #{self.inspect()}")
   end
 
   def generate
@@ -55,7 +55,7 @@ class SharedParametersGenerator
 
   def get_object_factory
     return \
-      Java::ee.ria.xroad.common.conf.globalconf.sharedparameters.ObjectFactory
+      Java::ee.ria.xroad.common.conf.globalconf.sharedparameters.v1.ObjectFactory
   end
 
   def get_root_type_creator
@@ -112,7 +112,7 @@ class SharedParametersGenerator
   end
 
   def add_members
-    XroadMember.find_each do |each_member|
+    XRoadMember.find_each do |each_member|
       member_type = @marshaller.factory.createMemberType()
       member_type.name = each_member.name
       member_type.memberCode = each_member.member_code
@@ -181,7 +181,7 @@ class SharedParametersGenerator
       service_type = @marshaller.factory.createCentralServiceType()
       service_type.serviceCode = each.service_code
       service_type.implementingService =
-        get_service_identifier(each.target_service)
+          get_service_identifier(each.target_service)
 
       @marshaller.root.getCentralService().add(service_type)
     end
@@ -241,11 +241,11 @@ class SharedParametersGenerator
     return nil if service == nil
 
     return Java::ee.ria.xroad.common.identifier.ServiceId.create(
-      service.xroad_instance,
-      service.member_class,
-      service.member_code,
-      service.subsystem_code,
-      service.service_code,
-      service.service_version)
+        service.xroad_instance,
+        service.member_class,
+        service.member_code,
+        service.subsystem_code,
+        service.service_code,
+        service.service_version)
   end
 end

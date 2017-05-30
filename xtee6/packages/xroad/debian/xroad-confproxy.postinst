@@ -2,15 +2,13 @@
 
 . /usr/share/debconf/confmodule
 
-
-
 case "$1" in
     configure)
 
     dpkg-divert --package xroad-confproxy --add --rename --divert /etc/xroad/nginx/default-xroad.conf.disabled /etc/xroad/nginx/default-xroad.conf
 
     mkdir -p  /var/lib/xroad/public
-    chmod 755 /var/lib/xroad/public 
+    chmod 755 /var/lib/xroad/public
     chown xroad:xroad /var/lib/xroad/public
 
     mkdir -p  /etc/xroad/confproxy
@@ -23,7 +21,7 @@ case "$1" in
     abort-upgrade|abort-remove|abort-deconfigure)
     ;;
     *)
-   
+
         echo "postinst called with unknown argument \`$1'" >&2
         exit 1
     ;;
@@ -35,6 +33,10 @@ esac
 #DEBHELPER#
 
 invoke-rc.d nginx restart
+
+# disable confclient start
+echo manual > /etc/init/xroad-confclient.override
+invoke-rc.d xroad-confclient stop
 
 db_stop
 

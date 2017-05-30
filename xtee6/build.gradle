@@ -30,7 +30,7 @@ sonarqube {
         property "sonar.projectKey", "xtee6"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "National Data Exchange Layer"
-        property "sonar.projectVersion", "develop"    }
+        property "sonar.projectVersion", "6.9.2"    }
 }
 
 allprojects {
@@ -71,15 +71,13 @@ subprojects {
     apply plugin: 'maven'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
-    apply plugin: 'pmd'
     apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
 
     jacoco {
-        toolVersion = "0.7.5.201505241946"
+        toolVersion = "0.7.7.201606060606"
     }
-
 
     repositories {
         mavenCentral()
@@ -94,6 +92,11 @@ subprojects {
         //maven {
         //    url "http://ground.zero.ee/maven2"
         //}
+
+        // repository containing an up-to-date xerces fork
+        maven {
+            url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/"
+        }
     }
 
     configurations {
@@ -104,6 +107,7 @@ subprojects {
         testCompile 'junit:junit:4.11'
 
         provided 'org.projectlombok:lombok:1.16.6'
+
     }
 
     task sourcesJar(type: Jar, dependsOn: classes) {
@@ -154,10 +158,6 @@ subprojects {
         showViolations = true
     }
 
-    pmd {
-        ignoreFailures = true
-    }
-
     jacocoTestReport {
         reports {
             xml.enabled true
@@ -170,6 +170,7 @@ subprojects {
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
         include '**/*.rb'
+        skipExistingHeaders = true
     }
 
     jar {
@@ -214,3 +215,16 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 
 }
 
+task clean(type: Delete) {
+    delete "${rootDir}/packages/xroad-jetty9/jetty9/"
+    delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
+    delete "${rootDir}/packages/xroad/debian/xroad-common.xroad-signer.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-confclient.upstart"
+    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
+    delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
+
+    ant.delete {
+        fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
+    }
+}

@@ -47,8 +47,39 @@ var XROAD_CENTERUI_COMMON = function() {
         }, "json");
     }
 
-    function limitDialogMaxHeight(dialog) {
-        dialog.dialog({ maxHeight: $(window).height() * DIALOG_MAX_HEIGHT });
+    /**
+     * Sets height of the dialog. Lets it be 'auto' if it is smaller than
+     * maximum * required height. Limits it when it is larger and 'minHeight'
+     * property is not set.
+     *
+     * Assumes that dialog is open (only this way we can get the height)
+     */
+    function limitDialogHeight(dialog) {
+        var maxHeight = $(window).height() * DIALOG_MAX_HEIGHT;
+
+        var heightValue = dialog.height() > maxHeight ? maxHeight : "auto";
+        dialog.dialog({ height: heightValue });
+    }
+
+    function translateRequestType(row, rawType, columnNo) {
+        var translatedRequestType = getTranslatedRequestType(rawType);
+        $(row).find("td:eq(" + columnNo + ")").text(translatedRequestType);
+    }
+
+    function getTranslatedRequestType(rawRequestType) {
+        switch (rawRequestType) {
+        case 'AuthCertRegRequest':
+            return _("management_requests.auth_cert_reg");
+        case 'ClientRegRequest':
+            return _("management_requests.client_reg");
+        case 'AuthCertDeletionRequest':
+            return _("management_requests.auth_cert_deletion");
+        case 'ClientDeletionRequest':
+            return _("management_requests.client_deletion");
+        default:
+            alert("Type '" + rawRequestType + "'is not supported");
+        break;
+        }
     }
 
     /* -- PUBLIC - END -- */
@@ -58,6 +89,8 @@ var XROAD_CENTERUI_COMMON = function() {
         fillSelectWithEmptyOption: fillSelectWithEmptyOption,
         openDetailsIfAllowed: openDetailsIfAllowed,
         updateRecordsCount: updateRecordsCount,
-        limitDialogMaxHeight: limitDialogMaxHeight
+        limitDialogHeight: limitDialogHeight,
+        getTranslatedRequestType: getTranslatedRequestType,
+        translateRequestType, translateRequestType
     };
 }();

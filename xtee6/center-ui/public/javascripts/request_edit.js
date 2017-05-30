@@ -104,8 +104,8 @@ var XROAD_REQUEST_EDIT = function(){
     }
 
     function openRequestEditDialog(dialog) {
-        XROAD_CENTERUI_COMMON.limitDialogMaxHeight(dialog);
         dialog.dialog("open");
+        XROAD_CENTERUI_COMMON.limitDialogHeight(dialog);
         blurInputs();
     }
 

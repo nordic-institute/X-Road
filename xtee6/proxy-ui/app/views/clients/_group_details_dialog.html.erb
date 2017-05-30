@@ -2,13 +2,12 @@
   <section class="container">
     <h2><span><%= t 'common.description' %></span></h2>
 
-    <table class="details">
+    <table class="details" style="table-layout: fixed;">
       <tr>
-        <td></td>
-        <td style="width: 100%">
-          <p id="group_details_description" class="input" ></p>
-        </td>
         <td>
+          <p id="group_details_description" class="input" style="white-space: pre-wrap; overflow: auto;"></p>
+        </td>
+        <td style="width: 4em;">
           <% if can?(:edit_local_group_desc) %>
             <button id="edit"><%= t 'common.edit' %></button>
           <% end %>

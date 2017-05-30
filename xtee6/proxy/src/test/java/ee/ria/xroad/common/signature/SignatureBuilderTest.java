@@ -24,10 +24,9 @@ package ee.ria.xroad.common.signature;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -78,12 +77,11 @@ public class SignatureBuilderTest {
      */
     @Test
     public void buildSuccessfullyNoExtraCerts() throws Exception {
-        List<MessagePart> hashes = new ArrayList<>();
-        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
-                CryptoUtils.SHA512_ID, hash("xxx")));
+        MessagePart hash = new MessagePart(MessageFileNames.MESSAGE,
+                CryptoUtils.SHA512_ID, hash("xxx"), hash("xxx"));
 
         SignatureBuilder builder = new SignatureBuilder();
-        builder.addParts(hashes);
+        builder.addPart(hash);
 
         Date thisUpdate = new DateTime().plusDays(1).toDate();
 
@@ -91,7 +89,8 @@ public class SignatureBuilderTest {
                 subjectCert, issuerCert, signerCert,
                 signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
-        builder.setSigningCert(subjectCert, ocsp);
+        builder.setSigningCert(subjectCert);
+        builder.addOcspResponses(Collections.singletonList(ocsp));
 
         SignatureData data = builder.build(new TestSigningKey(subjectKey),
                 CryptoUtils.SHA512WITHRSA_ID);
@@ -107,14 +106,7 @@ public class SignatureBuilderTest {
      */
     @Test
     public void buildSuccessfullyWithExtraCerts() throws Exception {
-        List<MessagePart> hashes = new ArrayList<>();
-        hashes.add(new MessagePart(MessageFileNames.MESSAGE,
-                CryptoUtils.SHA512_ID, hash("xxx")));
-        hashes.add(new MessagePart(MessageFileNames.attachment(0),
-                CryptoUtils.SHA512_ID, hash("yyy")));
-
         SignatureBuilder builder = new SignatureBuilder();
-        builder.addParts(hashes);
 
         Date thisUpdate = new DateTime().plusDays(1).toDate();
 
@@ -127,7 +119,7 @@ public class SignatureBuilderTest {
         builder.addExtraCertificates(Arrays.asList(subjectCert, subjectCert));
         builder.addOcspResponses(Arrays.asList(ocsp, ocsp));
 
-        builder.setSigningCert(subjectCert, ocsp);
+        builder.setSigningCert(subjectCert);
 
         SignatureData data = builder.build(new TestSigningKey(subjectKey),
                 CryptoUtils.SHA512WITHRSA_ID);

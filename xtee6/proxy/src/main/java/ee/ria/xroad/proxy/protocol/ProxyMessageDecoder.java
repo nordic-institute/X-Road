@@ -27,26 +27,32 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
 import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.DigestCalculator;
+
 import org.eclipse.jetty.http.HttpFields;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
@@ -86,6 +92,11 @@ public class ProxyMessageDecoder {
 
     /** The signature that is read from the message*/
     private SignatureData signature = new SignatureData(null, null, null);
+
+    @Getter
+    private long attachmentsByteCount = 0;
+
+    private int attachmentNo = 0;
 
     /**
      * Construct a message decoder.
@@ -146,8 +157,12 @@ public class ProxyMessageDecoder {
         verifier.verify(sender, signatureData);
     }
 
+    public int getAttachmentCount() {
+        return attachmentNo;
+    }
+
     private void parseFault(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeUtils.TEXT_XML_UTF8, is);
         if (!(soap instanceof SoapFault)) {
             throw new CodedException(X_INVALID_MESSAGE,
                     "Expected fault message, but got reqular SOAP message");
@@ -177,12 +192,29 @@ public class ProxyMessageDecoder {
 
     private class ContentHandler extends AbstractContentHandler {
         private NextPart nextPart = NextPart.OCSP;
+        private Map<String, String> headers;
+        private String partContentType;
 
         @Override
         public void startMultipart(BodyDescriptor bd) {
             // Do not parse SOAP attachments in the (optional) second
             // part of the message. We will create separate parser for them.
             parser.setFlat();
+        }
+
+        @Override
+        public void startHeader() throws MimeException {
+            headers = new HashMap<>();
+            partContentType = null;
+        }
+
+        @Override
+        public void field(Field field) throws MimeException {
+            if (field.getName().toLowerCase().equals(HEADER_CONTENT_TYPE)) {
+                partContentType = field.getBody();
+            } else {
+                headers.put(field.getName(), field.getBody());
+            }
         }
 
         @Override
@@ -198,7 +230,7 @@ public class ProxyMessageDecoder {
                 }
                 // $FALL-THROUGH$ OCSP response is only sent from CP to SP.
             case SOAP:
-                handleSoap(bd, is);
+                handleSoap(bd, is, partContentType, headers);
 
                 nextPart = NextPart.ATTACHMENT;
                 break;
@@ -267,26 +299,30 @@ public class ProxyMessageDecoder {
         }
     }
 
-    private void handleSoap(BodyDescriptor bd, InputStream is) {
+    private void handleSoap(BodyDescriptor bd, InputStream is,
+            String partContentType, Map<String, String> soapPartHeaders) {
         try {
             LOG.trace("Looking for SOAP, got: {}, {}", bd.getMimeType(),
                     bd.getCharset());
 
-            if (!TEXT_XML.equalsIgnoreCase(bd.getMimeType())) {
-                throw new CodedException(X_INVALID_CONTENT_TYPE,
-                        "Invalid content type for SOAP message: %s",
-                        bd.getMimeType());
+            switch (bd.getMimeType().toLowerCase()) {
+                case TEXT_XML:
+                case XOP_XML:
+                    break;
+                default:
+                    throw new CodedException(X_INVALID_CONTENT_TYPE,
+                            "Invalid content type for SOAP message: %s",
+                            bd.getMimeType());
             }
 
-            Soap soap = new SoapParserImpl().parse(bd.getMimeType(),
-                    bd.getCharset(), is);
+            Soap soap = new SaxSoapParserImpl().parse(partContentType, is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
             } else {
-                callback.soap((SoapMessageImpl) soap);
+                callback.soap((SoapMessageImpl) soap, soapPartHeaders);
 
-                verifier.addPart(MessageFileNames.MESSAGE, getHashAlgoId(),
-                        ((SoapMessageImpl) soap).getBytes());
+                verifier.addMessagePart(getHashAlgoId(),
+                        (SoapMessageImpl) soap);
             }
         } catch (Exception ex) {
             throw translateException(ex);
@@ -308,18 +344,21 @@ public class ProxyMessageDecoder {
 
         final MimeStreamParser attachmentParser = new MimeStreamParser(config);
         attachmentParser.setContentHandler(new AbstractContentHandler() {
-            private int attachmentNo = 0;
             private Map<String, String> headers;
+            private String partContentType;
 
             @Override
             public void startHeader() throws MimeException {
                 headers = new HashMap<>();
+                partContentType = null;
             }
 
             @Override
             public void field(Field field) throws MimeException {
-                if (!field.getName().toLowerCase().equals(
+                if (field.getName().toLowerCase().equals(
                         HEADER_CONTENT_TYPE)) {
+                    partContentType = field.getBody();
+                } else {
                     headers.put(field.getName(), field.getBody());
                 }
             }
@@ -336,10 +375,13 @@ public class ProxyMessageDecoder {
                 try {
                     DigestCalculator dc =
                             CryptoUtils.createDigestCalculator(getHashAlgoId());
-                    TeeInputStream proxyIs =
-                            new TeeInputStream(is, dc.getOutputStream(), true);
+                    CountingOutputStream cos = new CountingOutputStream(
+                            dc.getOutputStream());
+                    TeeInputStream proxyIs = new TeeInputStream(is, cos, true);
 
-                    callback.attachment(bd.getMimeType(), proxyIs, headers);
+                    callback.attachment(partContentType, proxyIs, headers);
+
+                    attachmentsByteCount += cos.getByteCount();
 
                     verifier.addPart(
                             MessageFileNames.attachment(++attachmentNo),
@@ -390,7 +432,7 @@ public class ProxyMessageDecoder {
             // party sent SOAP fault instead of signature.
 
             // Parse the fault message.
-            Soap soap = new SoapParserImpl().parse(bd.getMimeType(), is);
+            Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
             if (soap instanceof SoapFault) {
                 callback.fault((SoapFault) soap);
                 return; // The nextPart will be set to NONE

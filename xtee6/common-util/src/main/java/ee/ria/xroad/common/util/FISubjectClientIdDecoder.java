@@ -22,17 +22,19 @@
  */
 package ee.ria.xroad.common.util;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.identifier.ClientId;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x500.style.BCStyle;
+import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
 
-import javax.security.auth.x500.X500Principal;
 import java.security.cert.X509Certificate;
 import java.util.regex.Pattern;
 
-import static ee.ria.xroad.common.util.CertUtils.getRDNValue;
+import javax.security.auth.x500.X500Principal;
+
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.identifier.ClientId;
 
 /**
  * Helper class for decoding ClientId from Finnish X-Road instance signing certificates.

@@ -1,0 +1,64 @@
+---
+# This playbook compiles X-Road and installs the compiled version
+
+
+- hosts: lxd-servers
+  roles:
+    - init-lxd
+  tags: 
+    - init
+        
+- hosts: compile-servers
+  vars_files:
+    - common_modules.yml
+    - cs_modules.yml
+    - cp_modules.yml
+    - ss_modules.yml
+  roles:
+    - { role: compile-module, modules: "{{common_modules | combine(cs_modules,cp_modules,ss_modules)  }}"}
+  tags: 
+    - compile
+
+- hosts: ss-servers, cs-servers, cp-servers
+  become: yes
+  become_user: root
+  gather_facts: no
+  pre_tasks:
+    - name: 'Install python2'
+      raw: apt-get -y install python
+  tags:
+    - init
+
+- hosts: cs-servers
+  vars_files:
+    - common_modules.yml
+    - cs_modules.yml
+  roles:
+    - { role: packages-to-server, modules: "{{common_modules | combine(cs_modules) }}"}
+  tags:
+    - packages
+
+- hosts: cp-servers
+  vars_files:
+    - common_modules.yml
+    - cp_modules.yml
+  roles:
+    - { role: packages-to-server, modules: "{{common_modules | combine(cp_modules) }}"}
+  tags:
+    - packages
+
+- hosts: ss-servers
+  vars_files:
+    - common_modules.yml
+    - ss_modules.yml
+  roles:
+    - { role: packages-to-server, modules: "{{common_modules | combine(ss_modules) }}"}
+  tags:
+    - packages
+
+
+- hosts: lxd-servers
+  roles:
+    - restart-lxd
+  tags:
+    - restart

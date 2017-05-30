@@ -22,10 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Client sends normal request, server responds with faulty SOAP header

@@ -34,7 +34,24 @@ import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.message.*;
+import ee.ria.xroad.signer.protocol.message.ActivateCert;
+import ee.ria.xroad.signer.protocol.message.ActivateToken;
+import ee.ria.xroad.signer.protocol.message.DeleteCert;
+import ee.ria.xroad.signer.protocol.message.DeleteCertRequest;
+import ee.ria.xroad.signer.protocol.message.DeleteKey;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
+import ee.ria.xroad.signer.protocol.message.GenerateCertRequestResponse;
+import ee.ria.xroad.signer.protocol.message.GenerateKey;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCert;
+import ee.ria.xroad.signer.protocol.message.GenerateSelfSignedCertResponse;
+import ee.ria.xroad.signer.protocol.message.GetTokenInfo;
+import ee.ria.xroad.signer.protocol.message.ImportCert;
+import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
+import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.ListTokens;
+import ee.ria.xroad.signer.protocol.message.SetCertStatus;
+import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
+import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs,
@@ -134,14 +151,16 @@ public final class SignerProxy {
     /**
      * Generate a new key for the token with the given ID.
      * @param tokenId ID of the token
+     * @param keyLabel label of the key
      * @return generated key KeyInfo object
      * @throws Exception if any errors occur
      */
-    public static KeyInfo generateKey(String tokenId) throws Exception {
+    public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
         LOG.trace("Generating key for token '{}'", tokenId);
-        KeyInfo keyInfo = execute(new GenerateKey(tokenId));
 
-        LOG.trace("Received response with keyId '{}' and public key '{}'",
+        KeyInfo keyInfo = execute(new GenerateKey(tokenId, keyLabel));
+
+        LOG.trace("Received key with keyId '{}' and public key '{}'",
                 keyInfo.getId(), keyInfo.getPublicKey());
 
         return keyInfo;
@@ -238,14 +257,16 @@ public final class SignerProxy {
      * @param memberId client ID of the certificate owner
      * @param keyUsage specifies whether the certificate is for signing or authentication
      * @param subjectName subject name of the certificate
+     * @param format the format of the request
      * @return byte content of the certificate request
      * @throws Exception if any errors occur
      */
     public static byte[] generateCertRequest(String keyId, ClientId memberId,
-            KeyUsageInfo keyUsage, String subjectName) throws Exception {
+            KeyUsageInfo keyUsage, String subjectName,
+            GenerateCertRequest.RequestFormat format) throws Exception {
         GenerateCertRequestResponse response =
                 execute(new GenerateCertRequest(keyId, memberId, keyUsage,
-                        subjectName));
+                        subjectName, format));
 
         byte[] certRequestBytes = response.getCertRequest();
 

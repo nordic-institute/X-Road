@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * Tests to verify NET statistics calculator behavior.

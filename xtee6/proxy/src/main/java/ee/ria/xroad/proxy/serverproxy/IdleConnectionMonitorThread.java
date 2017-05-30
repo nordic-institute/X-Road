@@ -24,11 +24,12 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.conn.HttpClientConnectionManager;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.conn.HttpClientConnectionManager;
 
 /**
  * Thread that periodically closes expired and idle connections.

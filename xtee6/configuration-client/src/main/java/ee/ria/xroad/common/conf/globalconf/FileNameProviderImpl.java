@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang.StringUtils;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory.SHARED_PARAMETERS_XML;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInstanceIdentifier;
 
 /**
@@ -44,10 +44,10 @@ public class FileNameProviderImpl implements FileNameProvider {
     public Path getFileName(ConfigurationFile file) throws Exception {
         String fileName;
         switch (file.getContentIdentifier()) {
-            case PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS:
+            case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
                 fileName = PRIVATE_PARAMETERS_XML;
                 break;
-            case SharedParameters.CONTENT_ID_SHARED_PARAMETERS:
+            case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
                 fileName = SHARED_PARAMETERS_XML;
                 break;
             default:

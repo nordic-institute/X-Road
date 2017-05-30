@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.util.JobManager;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import ee.ria.xroad.common.util.JobManager;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Log manager which just records messages, to test that control mailbox

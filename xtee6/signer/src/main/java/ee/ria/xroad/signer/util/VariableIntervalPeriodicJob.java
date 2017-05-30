@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.signer.util;
 
+import java.util.concurrent.TimeUnit;
+
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 import akka.actor.UntypedActor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.FiniteDuration;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Periodic job with potentially variable interval. The next interval is
@@ -52,6 +52,7 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
                     getSelf());
             scheduleNextSend(getNextDelay());
         } else {
+            log.debug("received an unknown message: {}, no handling defined", incoming);
             unhandled(incoming);
         }
     }
@@ -67,7 +68,8 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
     }
 
     protected void scheduleNextSend(FiniteDuration delay) {
-        nextSend = getContext().system().scheduler().scheduleOnce(delay,
+            log.debug("next '{}' message in {} seconds", message, delay.toSeconds());
+            nextSend = getContext().system().scheduler().scheduleOnce(delay,
                 this::sendMessage, getContext().dispatcher());
     }
 
@@ -84,9 +86,8 @@ public abstract class VariableIntervalPeriodicJob extends UntypedActor {
     protected void cancelNextSend() {
         if (nextSend != null) {
             if (!nextSend.isCancelled()) {
-                log.debug("cancelling nextSend");
                 boolean result = nextSend.cancel();
-                log.debug("cancel called, return value: {}", result);
+                log.debug("cancelNextSend called, cancel() return value: {}", result);
             }
         }
     }

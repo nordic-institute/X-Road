@@ -22,6 +22,16 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,8 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,12 +53,8 @@ import org.apache.james.mime4j.stream.MimeConfig;
 import org.joda.time.DateTime;
 
 import ee.ria.xroad.common.CodedException;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Parses and handles the downloaded configuration directory.
@@ -254,14 +258,17 @@ public class ConfigurationParser {
                 ConfigurationSignature parameters) throws Exception {
             if (HASH_TO_CERT.containsKey(
                     parameters.getVerificationCertHash())) {
+                log.trace("Return certificate from HASH_TO_CERT map");
                 return HASH_TO_CERT.get(parameters.getVerificationCertHash());
             }
 
             X509Certificate cert = location.getVerificationCert(
                     parameters.getVerificationCertHash(),
                     parameters.getVerificationCertHashAlgoId());
+            log.trace("cert={}", cert);
 
             if (cert != null) {
+                log.trace("Put cert to HASH_TO_CERT map");
                 HASH_TO_CERT.put(parameters.getVerificationCertHash(), cert);
             }
 

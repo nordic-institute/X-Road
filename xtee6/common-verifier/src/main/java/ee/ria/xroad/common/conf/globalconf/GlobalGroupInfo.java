@@ -22,9 +22,8 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import lombok.Data;
-
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+import lombok.Data;
 
 /**
  * Value object containing global group identifier and description.

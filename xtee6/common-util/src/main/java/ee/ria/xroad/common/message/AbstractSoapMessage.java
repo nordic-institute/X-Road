@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.message;
 
+import javax.xml.soap.SOAPMessage;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import javax.xml.soap.SOAPMessage;
 
 /**
  * Base class for SOAP messages.
@@ -41,6 +41,7 @@ public abstract class AbstractSoapMessage<T> implements SoapMessage {
     private final SOAPMessage soap;
     private final boolean isResponse;
     private final boolean isRpcEncoded;
+    private final String contentType;
 
     /**
      * Gets the SOAP header instance for this message.

@@ -29,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
  * Caching configuration directory
  */
 @Slf4j
-public class CachingConfigurationDirectory extends ConfigurationDirectory {
+public class CachingConfigurationDirectory extends ConfigurationDirectoryV2 {
 
   public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
   public static final String PRIVATE_PARAMS = "privateParams";
@@ -86,13 +86,13 @@ public class CachingConfigurationDirectory extends ConfigurationDirectory {
    * @throws Exception if an error occurs while reading parameters
    */
   @Override
-  public synchronized PrivateParameters getPrivate(String instanceId)
+  public synchronized PrivateParametersV2 getPrivate(String instanceId)
       throws Exception {
     final String key = String.format("%s-%s", PRIVATE_PARAMS, instanceId);
     if (!cache.isValid(key)) {
       cache.setValue(key, super.getPrivate(instanceId));
     }
-    return (PrivateParameters) cache.getValue(key);
+    return (PrivateParametersV2) cache.getValue(key);
   }
 
   /**
@@ -103,13 +103,13 @@ public class CachingConfigurationDirectory extends ConfigurationDirectory {
    * @throws Exception if an error occurs while reading parameters
    */
   @Override
-  public synchronized SharedParameters getShared(String instanceId)
+  public synchronized SharedParametersV2 getShared(String instanceId)
       throws Exception {
     final String key = String.format("%s-%s", SHARED_PARAMS, instanceId);
     if (!cache.isValid(key)) {
       cache.setValue(key, super.getShared(instanceId));
     }
-    return (SharedParameters) cache.getValue(key);
+    return (SharedParametersV2) cache.getValue(key);
   }
 
   /**

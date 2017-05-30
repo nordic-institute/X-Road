@@ -52,7 +52,7 @@ def generate_privileges(role, subproject = "center-ui")
   new_privileges = ""
 
   if get_xroad_home().empty?
-    raise "XROAD home must be set!"
+    raise "X-Road home (XROAD_HOME) must be set!"
   end
 
   allowed_roles = get_allowed_roles(subproject)

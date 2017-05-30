@@ -41,12 +41,12 @@ class DirectorySigner
     @content_builder = content_builder
   end
 
-  def sign
+  def sign(version=1)
     Rails.logger.debug("Signing directory with signing key '#{@sign_key_id}' "\
         "and signing algorithm '#{@sign_algo_id}'")
 
     data_boundary = Utils.create_mime_boundary()
-    data = @content_builder.build(data_boundary)
+    data = @content_builder.build(data_boundary, version)
 
     signature = SignerHelper.sign(@sign_key_id, @sign_algo_id, data)
 

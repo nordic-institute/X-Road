@@ -1,0 +1,7 @@
+This directory contains example Zabbix related scripts and configuration files
+that are useful for testing and that are included in the xroad-opmonitor
+package, installed under /usr/share/doc/xroad-opmonitor/examples .
+
+Because the RPM packages may be installed to systems under which Python3 and
+python3-requests are not conveniently available, the sample scripts use
+Python 2.7.

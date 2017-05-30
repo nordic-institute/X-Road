@@ -33,11 +33,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.sun.management.UnixOperatingSystemMXBean;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
+import com.sun.management.UnixOperatingSystemMXBean;
+
 import ee.ria.xroad.common.SystemProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains methods for gathering and retrieving system metrics information.
@@ -103,7 +104,7 @@ public final class SystemMetrics {
             long used = memoryStats.getHeapMemoryUsage().getUsed();
             return ((double) used) / max;
         } catch (InternalError err) {
-            log.error("Error getting heap usage: {}", err);
+            log.error("Error getting heap usage", err);
             return -1;
         }
     }
@@ -158,7 +159,7 @@ public final class SystemMetrics {
 
             return new NetStats(bytesReceived, bytesTransmitted);
         } catch (IOException e) {
-            log.error("Did not manage to collect network statistics:", e);
+            log.error("Did not manage to collect network statistics", e);
             return null;
         }
     }
@@ -188,7 +189,7 @@ public final class SystemMetrics {
 
             return null;
         } catch (IOException e) {
-            log.error("Did not manage to collect CPU statistics:", e);
+            log.error("Did not manage to collect CPU statistics", e);
             return null;
         }
     }
@@ -203,7 +204,7 @@ public final class SystemMetrics {
             long open = getStats().getOpenFileDescriptorCount();
             return max - open;
         } catch (InternalError probablyOutOfFileHandles) {
-            log.error("Error getting free file descriptor count: {}",
+            log.error("Error getting free file descriptor count",
                     probablyOutOfFileHandles);
             return -1;
         }

@@ -83,7 +83,7 @@ https://rubygems.org/gems/activemodel           activemodel             3.2.22  
 https://rubygems.org/gems/activerecord          activerecord            3.2.22          MIT
 https://rubygems.org/gems/activeresource        activeresource          3.2.22          MIT
 https://rubygems.org/gems/activesupport         activesupport           3.2.22          MIT
-https://rubygems.org/gems/addressable           addressable             2.3.8           Apache 2.0
+https://rubygems.org/gems/addressable           addressable             2.4.0           Apache 2.0
 https://rubygems.org/gems/arel                  arel                    3.0.3           MIT
 https://rubygems.org/gems/builder               builder                 3.0.4           MIT
 https://rubygems.org/gems/erubis                erubis                  2.7.0           MIT, LGPL 2.1, 2-clause BSD

@@ -35,7 +35,6 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import lombok.Data;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.language.DefaultTemplateLexer;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
+import lombok.Data;
 
 /**
  * Encapsulates request data.
@@ -52,7 +52,6 @@ public class Request {
     private ClientId client;
     private ServiceId service;
     private String id;
-    private boolean async = false;
 
     private List<RequestTag> content;
 
@@ -67,13 +66,11 @@ public class Request {
      * @param service ID of the service this request is for
      * @param id request ID string
      * @param content list of request tags that should be placed in the body
-     * @param async whether this request is asynchronous
      * @param boundary boundary to use in case of a multipart template
      */
     public Request(String template, ClientId client, ServiceId service,
-            String id, List<RequestTag> content, boolean async,
-            String boundary) {
-        this(template, client, service, id, content, async);
+            String id, List<RequestTag> content, String boundary) {
+        this(template, client, service, id, content);
         this.boundary = boundary;
     }
 
@@ -84,16 +81,14 @@ public class Request {
      * @param service ID of the service this request is for
      * @param id request ID string
      * @param content list of request tags that should be placed in the body
-     * @param async whether this request is asynchronous
      */
     public Request(String template, ClientId client, ServiceId service,
-            String id, List<RequestTag> content, boolean async) {
+            String id, List<RequestTag> content) {
         this.template = template;
         this.client = client;
         this.service = service;
         this.id = id;
         this.content = content;
-        this.async = async;
     }
 
     /**
@@ -109,7 +104,6 @@ public class Request {
         header.put("client", client);
         header.put("service", service);
         header.put("id", id);
-        header.put("async", async);
 
         stringTemplate.setAttribute("xroadNamespace", SoapHeader.NS_XROAD);
         stringTemplate.setAttribute("header", header);

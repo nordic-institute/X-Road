@@ -121,18 +121,6 @@ function initTspActions() {
     }).disable();
 }
 
-function initAsyncActions() {
-    $("#async_edit").click(function() {
-        var params = {
-            base_delay: $("#async_period").val(),
-            max_delay: $("#async_max_period").val(),
-            max_senders: $("#async_parallel").val()
-        };
-
-        $.post(action("async_params_edit"), params, null, "json");
-    });
-}
-
 function initInternalSSLActions() {
     $("#cert_details_dialog").initDialog({
         autoOpen: false,
@@ -198,12 +186,6 @@ function populate() {
             oTsps.fnReplaceData(response.data.tsps);
         }
 
-        if (response.data.async) {
-            $("#async_period").val(response.data.async.base_delay);
-            $("#async_max_period").val(response.data.async.max_delay);
-            $("#async_parallel").val(response.data.async.max_senders);
-        }
-
         if (response.data.internal_ssl_cert) {
             $("#internal_ssl_cert_hash").text(response.data.internal_ssl_cert.hash);
             $("#cert_details, #export_internal_ssl_cert").enable();
@@ -256,6 +238,7 @@ function initTestability() {
         $("#internal_ssl_generate_csr_dialog").parent().attr("data-name", "internal_ssl_generate_csr_dialog");
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
+        $("#tsp_add_dialog").parent().attr("data-name", "tsp_add_dialog");
 }
 
 
@@ -263,7 +246,6 @@ $(document).ready(function() {
     initTables();
     initAnchorActions();
     initTspActions();
-    initAsyncActions();
     initInternalSSLActions();
     initDialogs();
     populate();

@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.common.cert;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
 import java.io.FileInputStream;
 import java.security.cert.X509Certificate;
 
@@ -30,9 +33,6 @@ import org.junit.Test;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.util.CryptoUtils;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
 /**
  * Tests the CertHelper utility class.

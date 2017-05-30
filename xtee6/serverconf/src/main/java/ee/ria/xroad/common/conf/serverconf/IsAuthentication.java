@@ -22,17 +22,16 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
-
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulates the information system authentication method.

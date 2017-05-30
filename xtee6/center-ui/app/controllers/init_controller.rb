@@ -25,7 +25,7 @@ java_import Java::ee.ria.xroad.commonui.SignerProxy
 
 class InitController < ApplicationController
 
-  skip_before_filter :check_conf, :read_server_id
+  skip_before_filter :check_conf
 
   def index
     if request.xhr?

@@ -24,10 +24,9 @@ package ee.ria.xroad.common.monitoring;
 
 import java.io.Serializable;
 
-import lombok.Data;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import lombok.Data;
 
 /**
  * Monitoring info about a message processed by the proxy.

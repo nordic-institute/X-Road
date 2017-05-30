@@ -22,6 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPER_NAME;
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.hibernate.Session;
+
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -31,13 +39,6 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPER_NAME;
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 /**
  * Handles the TaskQueues -- adds tasks to the queue and sends the active queue
  * for time-stamping.

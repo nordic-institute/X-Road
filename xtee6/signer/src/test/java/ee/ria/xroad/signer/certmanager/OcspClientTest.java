@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.io.IOException;
 import java.net.ConnectException;
 import java.security.PrivateKey;
@@ -36,10 +42,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPException;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -57,16 +59,15 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
-
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 
 /**
  * Tests the OCSP client.
@@ -205,12 +206,9 @@ public class OcspClientTest {
         GlobalConf.reload(conf);
 
         thrown.expect(ConnectException.class);
-        try {
-            queryAndUpdateCertStatus(ocspClient, subject);
-            fail("Should fail to query certificate status");
-        } finally {
-            assertFalse(ocspClient.isCachedOcspResponse(hash(subject)));
-        }
+
+        queryAndUpdateCertStatus(ocspClient, subject);
+        fail("Should fail to query certificate status");
     }
 
     /**
@@ -226,12 +224,9 @@ public class OcspClientTest {
         X509Certificate issuer = GlobalConf.getCaCert("EE", subject);
 
         thrown.expect(IOException.class);
-        try {
-            OcspClient.fetchResponse("foobar", subject, issuer, null, null);
-            fail("Should fail to query certificate status");
-        } finally {
-            assertFalse(ocspClient.isCachedOcspResponse(hash(subject)));
-        }
+
+        OcspClient.fetchResponse("foobar", subject, issuer, null, null);
+        fail("Should fail to query certificate status");
     }
 
     /**
@@ -357,11 +352,6 @@ public class OcspClientTest {
         @Override
         void updateCertStatuses(Map<String, OCSPResp> statuses) {
             OCSP_RESPONSES.putAll(statuses);
-        }
-
-        @Override
-        boolean isCachedOcspResponse(String certHash) {
-            return OCSP_RESPONSES.containsKey(certHash);
         }
     }
 

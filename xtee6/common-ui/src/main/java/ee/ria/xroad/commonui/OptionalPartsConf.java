@@ -22,22 +22,20 @@
  */
 package ee.ria.xroad.commonui;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.*;
-
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationConstants;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.conf.globalconf.PrivateParameters;
-import ee.ria.xroad.common.conf.globalconf.SharedParameters;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * Encapsulates optional parts configuration of central server.
@@ -57,11 +55,11 @@ public class OptionalPartsConf {
         KEY_VALIDATION_PROGRAM = "validation-program";
 
         RESERVED_FILE_NAMES = Arrays.asList(
-                PrivateParameters.FILE_NAME_PRIVATE_PARAMETERS,
-                SharedParameters.FILE_NAME_SHARED_PARAMETERS);
+            ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
+            ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         RESERVED_CONTENT_IDENTIFIERS = Arrays.asList(
-                PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS,
-                SharedParameters.CONTENT_ID_SHARED_PARAMETERS);
+            ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS,
+            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
     }
 
     private final Map<String, String> partFileNameToValidationProgram =
@@ -71,6 +69,9 @@ public class OptionalPartsConf {
 
     @Getter
     private final List<OptionalConfPart> allParts = new ArrayList<>();
+
+    @Getter
+    private final List<String> errors = new ArrayList<>();
 
     private final Set<String> existingPartFileNames = new HashSet<>();
 
@@ -173,20 +174,18 @@ public class OptionalPartsConf {
             allParts.add(new OptionalConfPart(partFileName, contentId));
         } catch (IOException e) {
             log.error("Loading optional parts from file '"
-                    + confFile.getAbsolutePath() + "' failed", e);
+                    + confFile.getAbsolutePath() + "' failed: {}",
+                    e.getMessage(), e); // throwable as last object param should work as of SLF4J 1.6.0
 
-            throw new IOException(
-                    "Could not load optional parts configuration: ", e);
+            errors.add(e.getMessage());
         }
     }
 
     private boolean isFileContentWellFormed(
             String partFile, String contentId) {
-        if (StringUtils.isBlank(partFile) || StringUtils.isBlank(contentId)) {
-            return false;
-        }
+        return !(StringUtils.isBlank(partFile)
+                || StringUtils.isBlank(contentId));
 
-        return true;
     }
 
     private void validatePartFileName(String partFileName) {

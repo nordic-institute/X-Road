@@ -22,19 +22,18 @@
  */
 package ee.ria.xroad.confproxy;
 
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-import akka.actor.ActorSystem;
-
 import com.typesafe.config.ConfigFactory;
 
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.signer.protocol.SignerClient;
-
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Main program for the configuration proxy.
@@ -80,7 +79,8 @@ public final class ConfProxyMain {
         log.trace("startup()");
 
         actorSystem = ActorSystem.create("ConfigurationProxy",
-                ConfigFactory.load().getConfig("configuration-proxy"));
+                ConfigFactory.load().getConfig("configuration-proxy")
+                    .withFallback(ConfigFactory.load()));
 
         SignerClient.init(actorSystem);
     }
@@ -95,16 +95,19 @@ public final class ConfProxyMain {
 
         if (args.length > 0) {
             instances = Arrays.asList(args);
+            log.debug("Instances from args: {}", instances);
         } else {
             instances = ConfProxyHelper.availableInstances();
+            log.debug("Instances from available instances: {}", instances);
         }
 
         for (String instance: instances) {
             try {
                 ConfProxy proxy = new ConfProxy(instance);
+                log.info("ConfProxy executing for instance {}", instance);
                 proxy.execute();
             } catch (Exception ex) {
-                log.error("Error when executing configuration-proxy '{}': {}",
+                log.error("Error when executing configuration-proxy '{}'",
                         instance, ex);
             }
         }

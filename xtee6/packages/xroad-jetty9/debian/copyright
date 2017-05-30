@@ -28,7 +28,7 @@ The Debian packaging is:
 # packaged work, as it may make Debian's contributions unacceptable upstream.
 # If you just want it to be GPL version 3, leave the following lines in.
 
-and is licensed under the GPL version 3, 
+and is licensed under the GPL version 3,
 see `/usr/share/common-licenses/GPL-3'.
 
 # Please also look if there are files or directories which have a

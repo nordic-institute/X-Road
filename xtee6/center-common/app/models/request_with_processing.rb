@@ -23,6 +23,7 @@
 
 # Base class for requests that are associated with processing.
 class RequestWithProcessing < Request
+
   belongs_to :request_processing, :autosave => true, :inverse_of => :requests
 
   def self.approve(request_id)

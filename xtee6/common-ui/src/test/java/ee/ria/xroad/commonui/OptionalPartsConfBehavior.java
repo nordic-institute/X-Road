@@ -22,15 +22,20 @@
  */
 package ee.ria.xroad.commonui;
 
-import java.io.IOException;
-import java.util.List;
-
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.ExpectedCodedException;
+import org.hamcrest.core.StringContains;
 import org.junit.Rule;
 import org.junit.Test;
 
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.ExpectedCodedException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -38,6 +43,10 @@ import static org.junit.Assert.assertTrue;
  * Tests to verify correct optional configuration parts behavior.
  */
 public class OptionalPartsConfBehavior {
+    public static final String CONF_DIR = "src/test/resources/configuration-parts";
+    public static final String MESSAGE_CONVERTER_FILE =
+            CONF_DIR + File.separator + "message-converter.ini";
+
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
 
@@ -89,8 +98,7 @@ public class OptionalPartsConfBehavior {
     @Test
     public void shouldGetAllOptionalConfigurationParts() throws IOException {
         // Given
-        String confDir = "src/test/resources/configuration-parts";
-        OptionalPartsConf conf = new OptionalPartsConf(confDir);
+        OptionalPartsConf conf = new OptionalPartsConf(CONF_DIR);
 
         // When
         List<OptionalConfPart> actualOptionalParts = conf.getAllParts();
@@ -105,6 +113,30 @@ public class OptionalPartsConfBehavior {
         assertEquals(2, actualOptionalParts.size());
         assertTrue(actualOptionalParts.contains(expectedFirstPart));
         assertTrue(actualOptionalParts.contains(expectedSecondPart));
+    }
+
+    /**
+     * Test to ensure errors are added when cannot read the configuration parts
+     * file.
+     * @throws IOException in case optional parts directory cannot be read
+     */
+    @Test
+    public void shouldAddErrorsIfCannotReadConfigurationPartFile() throws IOException {
+        // Given
+        corruptPermissions();
+
+        // When
+        OptionalPartsConf conf = new OptionalPartsConf(CONF_DIR);
+
+        // Then
+        assertEquals(1, conf.getAllParts().size());
+
+        List<String> errors = conf.getErrors();
+
+        assertEquals(1, errors.size());
+        assertThat(errors.get(0), containsPermissionDenied());
+
+        restorePermissions();
     }
 
     /**
@@ -175,5 +207,29 @@ public class OptionalPartsConfBehavior {
         thrown.expectError(ErrorCodes.X_MALFORMED_OPTIONAL_PARTS_CONF);
 
         new OptionalPartsConf(confDir);
+    }
+
+    private StringContains containsPermissionDenied() {
+        return new StringContains("(Permission denied)");
+    }
+
+    private void corruptPermissions() throws IOException {
+        File file = new File(MESSAGE_CONVERTER_FILE);
+
+        Files.setPosixFilePermissions(file.toPath(), new HashSet<>());
+    }
+
+    private void restorePermissions() throws IOException {
+        File file = new File(MESSAGE_CONVERTER_FILE);
+
+        HashSet<PosixFilePermission> perms = new HashSet<>();
+        perms.add(PosixFilePermission.OWNER_READ);
+        perms.add(PosixFilePermission.GROUP_READ);
+        perms.add(PosixFilePermission.OTHERS_READ);
+
+        perms.add(PosixFilePermission.OWNER_WRITE);
+        perms.add(PosixFilePermission.GROUP_WRITE);
+
+        Files.setPosixFilePermissions(file.toPath(), perms);
     }
 }

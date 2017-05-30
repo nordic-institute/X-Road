@@ -61,8 +61,8 @@
         $("#group_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            height: 400,
-            width: 450,
+            height: 300,
+            width: 600,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -224,7 +224,7 @@
             autoOpen: false,
             modal: true,
             height: 200,
-            width: 300,
+            width: 600,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
@@ -239,7 +239,8 @@
                       };
 
                       $.post(action("group_description_edit"), params, function(response) {
-                          $("#group_details_description").text(description);
+                          $("#group_details_description").text(response.data.description);
+                          oGroups.fnReplaceData(response.data.groups);
                           $(dialog).dialog("close");
                       }, "json");
                   }
@@ -253,6 +254,8 @@
         });
 
         $("#group_details_dialog #edit").live('click', function() {
+            $("#group_description_edit").val(
+                $("#group_details_description").text());
             $("#group_description_edit_dialog").dialog("open");
         });
     }

@@ -34,8 +34,6 @@ require "java"
 require "common-ui"
 require "center-common"
 
-ENV['SCHEMA'] = CenterCommon::Engine.paths['db'].existent.first + "/schema.rb"
-
 module CenterUi
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.

@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
+import static java.util.Collections.unmodifiableList;
+
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +37,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
@@ -50,10 +55,7 @@ import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
-
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
-import static java.util.Collections.unmodifiableList;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Manages the current state of tokens, their keys and certificates.
@@ -522,6 +524,17 @@ public final class TokenManager {
         log.trace("setKeyFriendlyName({}, {})", keyId, friendlyName);
 
         findKey(keyId).setFriendlyName(friendlyName);
+    }
+
+    /**
+     * Sets the key label.
+     * @param keyId the key id
+     * @param label the label
+     */
+    public static synchronized void setKeyLabel(String keyId, String label) {
+        log.trace("setKeyLabel({}, {})", keyId, label);
+
+        findKey(keyId).setLabel(label);
     }
 
     /**

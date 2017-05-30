@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Set;
@@ -33,9 +36,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You

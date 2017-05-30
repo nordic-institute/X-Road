@@ -1,0 +1,12 @@
+{
+    "jsonrpc": "2.0",
+    "method": "application.create",
+    "params": {
+        "name": "XTEE-CI-XM/GOV/00000000/Center/listMethods/v1",
+        "hostid": "10141"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 1
+}
+
+

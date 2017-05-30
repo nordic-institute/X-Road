@@ -32,15 +32,17 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV1;
 import org.apache.commons.io.FileUtils;
 
 import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- *Provides configuration proxy utility functions.
+ * Provides configuration proxy utility functions.
  */
 @Slf4j
 public final class ConfProxyHelper {
@@ -65,15 +67,20 @@ public final class ConfProxyHelper {
      * @throws Exception if an configuration client error occurs
      */
     public static ConfigurationDirectory downloadConfiguration(
-            final String path, final String sourceAnchor) throws Exception {
+            final String path, final String sourceAnchor, final int version) throws Exception {
         ProcessBuilder pb = new ProcessBuilder(
                 ConfProxyProperties.getDownloadScriptPath(),
-                sourceAnchor, path);
+                sourceAnchor, path, String.format("%d", version));
         pb.redirectErrorStream(true);
         pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        log.debug("Running '{} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path);
+        log.info("Running '{} {} {} {}' ...", ConfProxyProperties.getDownloadScriptPath(), sourceAnchor, path,
+            version);
         runConfClient(pb);
-        return new ConfigurationDirectory(path);
+        if (version != SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+            return new ConfigurationDirectoryV1(path);
+        } else {
+            return new ConfigurationDirectoryV2(path);
+        }
     }
 
     /**
@@ -108,11 +115,11 @@ public final class ConfProxyHelper {
             exitCode = process.waitFor();
 
         } catch (IOException e) {
-            log.error("IOException: {}", e);
+            log.error("IOException", e);
             exitCode = 2;
             throw e;
         } catch (Exception e) {
-            log.error("Undetermined ConfigurationClient exitCode: {}", e);
+            log.error("Undetermined ConfigurationClient exitCode", e);
             //undetermined ConfigurationClient exitCode, fail in 'finally'
             throw e;
         }
@@ -133,7 +140,7 @@ public final class ConfProxyHelper {
                         + exitCode + ")");
             default:
                 throw new Exception("Failed to download GlobalConf "
-                        + "(configucation-client exit code " + exitCode + "), "
+                        + "(configuration-client exit code " + exitCode + "), "
                         + "make sure configuration-client is"
                         + "installed correctly");
         }
@@ -154,8 +161,8 @@ public final class ConfProxyHelper {
     }
 
     /**
-     * Deletes outdated previously generated global configurations,
-     * as defined by the 'validity interval' configuration proxy property.
+     * Deletes outdated previously generated global configurations from configuration target path
+     * e.g. /var/lib/xroad/public, as defined by the 'validity interval' configuration proxy property.
      * @param conf the configuration proxy instance configuration
      * @throws IOException
      * in case an old global configuration could not be deleted
@@ -163,22 +170,30 @@ public final class ConfProxyHelper {
     public static void purgeOutdatedGenerations(final ConfProxyProperties conf)
             throws IOException {
         Path instanceDir = Paths.get(conf.getConfigurationTargetPath());
+        log.debug("Create directories {}", instanceDir);
         Files.createDirectories(instanceDir); //avoid errors if it's not present
         for (String genTime : subDirectoryNames(instanceDir)) {
             Date current = new Date();
-            Date old = new Date(Long.parseLong(genTime));
+            Date old;
+            try {
+                old = new Date(Long.parseLong(genTime));
+            } catch (NumberFormatException e) {
+                log.error("Unable to parse directory name {}", genTime);
+                continue;
+            }
             long diffSeconds = TimeUnit.MILLISECONDS
-                    .toSeconds((current.getTime() - old.getTime()));
+                .toSeconds((current.getTime() - old.getTime()));
             long timeToKeep = Math.min(MAX_CONFIGURATION_LIFETIME_SECONDS,
-                    conf.getValidityIntervalSeconds());
+                conf.getValidityIntervalSeconds());
             if (diffSeconds > timeToKeep) {
                 Path oldPath =
-                        Paths.get(conf.getConfigurationTargetPath(), genTime);
+                    Paths.get(conf.getConfigurationTargetPath(), genTime);
                 FileUtils.deleteDirectory(oldPath.toFile());
+                log.debug("Purge directory {}", oldPath);
             } else {
                 Path valid = instanceDir.resolve(genTime);
                 log.debug("A valid generated configuration exists in '{}'",
-                        valid);
+                    valid);
             }
         }
     }

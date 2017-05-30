@@ -22,13 +22,11 @@
  */
 package ee.ria.xroad.common.conf;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.file.StandardCopyOption;
+import ee.ria.xroad.common.util.AtomicSave;
+import ee.ria.xroad.common.util.FileContentChangeChecker;
+import ee.ria.xroad.common.util.ResourceUtils;
+import ee.ria.xroad.common.util.SchemaValidator;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -36,12 +34,13 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-
-import ee.ria.xroad.common.util.AtomicSave;
-import ee.ria.xroad.common.util.FileContentChangeChecker;
-import ee.ria.xroad.common.util.ResourceUtils;
-import ee.ria.xroad.common.util.SchemaValidator;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.file.StandardCopyOption;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 

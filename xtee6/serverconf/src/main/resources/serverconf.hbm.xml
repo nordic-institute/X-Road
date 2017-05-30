@@ -151,7 +151,7 @@
         <property name="serviceCode" access="field" not-null="true"/>
 
         <many-to-one name="subjectId" access="field"
-            class="ee.ria.xroad.common.identifier.XroadId"
+            class="ee.ria.xroad.common.identifier.XRoadId"
             not-null="true" cascade="save-update" lazy="false"/>
 
         <property name="rightsGiven" access="field" not-null="true"/>

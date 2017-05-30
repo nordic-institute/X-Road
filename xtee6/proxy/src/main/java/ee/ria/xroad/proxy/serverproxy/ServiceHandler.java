@@ -24,7 +24,12 @@ package ee.ria.xroad.proxy.serverproxy;
 
 import java.io.InputStream;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.http.client.HttpClient;
+
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
 interface ServiceHandler {
@@ -35,7 +40,9 @@ interface ServiceHandler {
 
     boolean canHandle(ServiceId requestServiceId, ProxyMessage requestMessage);
 
-    void startHandling() throws Exception;
+    void startHandling(HttpServletRequest servletRequest,
+            ProxyMessage requestMessage, HttpClient opMonitorClient,
+            OpMonitoringData opMonitoringData) throws Exception;
     void finishHandling() throws Exception;
 
     String getResponseContentType();

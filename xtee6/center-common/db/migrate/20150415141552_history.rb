@@ -79,7 +79,7 @@ BEGIN
 
   _history_row = ROW(
     NEXTVAL('history_id_seq'),
-    operation, table_name, record_id, 
+    operation, table_name, record_id,
     field_data.field_key, -- name of the field that was changed
     NULL, -- old value
     NULL, -- new value

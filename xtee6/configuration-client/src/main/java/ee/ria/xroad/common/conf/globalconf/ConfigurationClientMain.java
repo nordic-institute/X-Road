@@ -34,6 +34,7 @@ import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -45,11 +46,11 @@ import java.time.LocalTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.*;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
 
 /**
  * Main program of configuration client.
@@ -58,6 +59,9 @@ import static ee.ria.xroad.common.conf.globalconf.PrivateParameters.CONTENT_ID_P
 public final class ConfigurationClientMain {
 
     private static ConfigurationClientJobListener listener;
+
+    private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
+    private static final int NUM_ARGS_FROM_CONF_PROXY = 2;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -68,6 +72,8 @@ public final class ConfigurationClientMain {
 
     private static final String OPTION_VERIFY_PRIVATE_PARAMS_EXISTS =
             "verifyPrivateParamsExists";
+    private static final String OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE =
+            "verifyAnchorForExternalSource";
 
     private static ConfigurationClient client;
     private static JobManager jobManager;
@@ -89,12 +95,18 @@ public final class ConfigurationClientMain {
         CommandLine cmd = getCommandLine(args);
 
         String[] actualArgs = cmd.getArgs();
-        if (actualArgs.length == 2) {
-            System.exit(download(actualArgs[0], actualArgs[1]));
+        if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
+            // Run configuration client in one-shot mode downloading the specified global configuration version
+            System.exit(download(actualArgs[0], actualArgs[1], actualArgs[2]));
+        } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
+            // Run configuration client in one-shot mode downloading the current global configuration version
+            System.exit(download(actualArgs[0], actualArgs[1],
+                String.format("%d", SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)));
         } else if (actualArgs.length == 1) {
-            System.exit(validate(actualArgs[0],
-                    cmd.hasOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS)));
+            // Run configuration client in validate mode
+            System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
         } else {
+            // Run configuration client in daemon mode
             startDaemon();
         }
     }
@@ -105,14 +117,16 @@ public final class ConfigurationClientMain {
 
         options.addOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS, false,
                 "Verifies that configuration contains private parameters.");
+        options.addOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE, false,
+                "Verifies that configuration contains shared parameters.");
 
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile,
-            String configurationPath) throws Exception {
-        log.trace("Downloading configuration using anchor {} (path = {})",
-                configurationAnchorFile, configurationPath);
+    private static int download(String configurationAnchorFile, String configurationPath,
+                                String version) throws Exception {
+        log.debug("Downloading configuration using anchor {} path = {} version = {})",
+                configurationAnchorFile, configurationPath, version);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 configurationAnchorFile);
@@ -123,13 +137,15 @@ public final class ConfigurationClientMain {
                 new FileNameProviderImpl(configurationPath);
 
         client = new ConfigurationClient(getDummyDownloadedFiles(),
-                        new ConfigurationDownloader(fileNameProvider) {
+            new ConfigurationDownloader(fileNameProvider, Integer.parseInt(version)) {
+
                     @Override
                     void addAdditionalConfigurationSources(
-                            PrivateParameters privateParameters) {
+                            PrivateParametersV2 privateParameters) {
                         // do not download additional sources
                     }
-                }) {
+
+                }, Integer.parseInt(version)) {
             @Override
             void initAdditionalConfigurationSources() {
                 // not needed
@@ -140,25 +156,20 @@ public final class ConfigurationClientMain {
     }
 
     private static int validate(String configurationAnchorFile,
-            boolean verifyPrivate) throws Exception {
+            final ParamsValidator paramsValidator) throws Exception {
         log.trace("Downloading configuration using anchor {}",
                 configurationAnchorFile);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 configurationAnchorFile);
 
-        final AtomicBoolean foundPrivateParams = new AtomicBoolean();
-
         // create configuration that does not persist files to disk
-        ConfigurationDownloader configuration =
-                new ConfigurationDownloader(getDefaultFileNameProvider()) {
+        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void handle(ConfigurationLocation location,
                     ConfigurationFile file) {
-                if (CONTENT_ID_PRIVATE_PARAMETERS.equals(
-                        file.getContentIdentifier())) {
-                    foundPrivateParams.set(true);
-                }
+                paramsValidator.tryMarkValid(file.getContentIdentifier());
 
                 super.handle(location, file);
             }
@@ -175,7 +186,7 @@ public final class ConfigurationClientMain {
         };
 
         client = new ConfigurationClient(getDummyDownloadedFiles(),
-                        configuration) {
+                        configuration, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void initAdditionalConfigurationSources() {
                 // not needed
@@ -190,9 +201,8 @@ public final class ConfigurationClientMain {
         int result = execute();
 
         // Check if downloaded configuration contained private parameters
-        if (result == RETURN_SUCCESS && verifyPrivate
-                && !foundPrivateParams.get()) {
-            return ERROR_CODE_MISSING_PRIVATE_PARAMS;
+        if (result == RETURN_SUCCESS) {
+            return paramsValidator.getExitCode();
         }
 
         return result;
@@ -204,6 +214,7 @@ public final class ConfigurationClientMain {
             return RETURN_SUCCESS;
         } catch (Exception e) {
             log.error("Error when downloading conf", e);
+        
             return ConfigurationClientUtils.getErrorCode(e);
         }
     }
@@ -216,14 +227,15 @@ public final class ConfigurationClientMain {
     }
 
     private static ConfigurationClient createClient() {
-        ConfigurationDownloader configuration =
-                new ConfigurationDownloader(getDefaultFileNameProvider());
+        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
 
         Path downloadedFilesConf =
                 Paths.get(SystemProperties.getConfigurationPath(), "files");
 
-        return new ConfigurationClient(
-                new DownloadedFiles(downloadedFilesConf), configuration);
+        return new ConfigurationClient(new DownloadedFiles(downloadedFilesConf,
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION), configuration,
+            SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
     }
 
     private static FileNameProviderImpl getDefaultFileNameProvider() {
@@ -232,7 +244,7 @@ public final class ConfigurationClientMain {
     }
 
     private static DownloadedFiles getDummyDownloadedFiles() {
-        return new DownloadedFiles(null) {
+        return new DownloadedFiles(null, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
             @Override
             void delete(String file) {
             }
@@ -254,15 +266,12 @@ public final class ConfigurationClientMain {
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 
-        adminPort.addShutdownHook(new Runnable() {
-            @Override
-            public void run() {
-                log.info("Configuration client shutting down...");
-                try {
-                    shutdown();
-                } catch (Exception e) {
-                    log.error("Error while shutting down", e);
-                }
+        adminPort.addShutdownHook(() -> {
+            log.info("Configuration client shutting down...");
+            try {
+                shutdown();
+            } catch (Exception e) {
+                log.error("Error while shutting down", e);
             }
         });
 
@@ -285,7 +294,7 @@ public final class ConfigurationClientMain {
                     log.info("handler /status");
                     JsonUtils.getSerializer().toJson(listener.getStatus(), getParams().response.getWriter());
                 } catch (Exception e) {
-                    log.error("Error getting conf client status {}", e);
+                    log.error("Error getting conf client status", e);
                 }
             }
         });
@@ -374,6 +383,77 @@ public final class ConfigurationClientMain {
         public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
             log.info("job was executed result={}", context.getResult());
             setStatus((DiagnosticsStatus) context.getResult());
+        }
+    }
+
+    private static ParamsValidator getParamsValidator(CommandLine cmd) {
+        if (cmd.hasOption(OPTION_VERIFY_PRIVATE_PARAMS_EXISTS)) {
+            return new ParamsValidator(
+                    CONTENT_ID_PRIVATE_PARAMETERS,
+                    ERROR_CODE_MISSING_PRIVATE_PARAMS);
+        } else if (cmd.hasOption(OPTION_VERIFY_ANCHOR_FOR_EXTERNAL_SOURCE)) {
+            return new SharedParamsValidator(
+                    CONTENT_ID_SHARED_PARAMETERS,
+                    ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
+        } else {
+            return new ParamsValidator(null, 0);
+        }
+    }
+
+    private static class ParamsValidator {
+        protected final AtomicBoolean valid = new AtomicBoolean();
+
+        private final String expectedContentId;
+        private final int exitCodeWhenInvalid;
+
+        ParamsValidator(
+                String expectedContentId, int exitCodeWhenInvalid) {
+            this.expectedContentId = expectedContentId;
+            this.exitCodeWhenInvalid = exitCodeWhenInvalid;
+        }
+
+        void tryMarkValid(String contentId) {
+            log.trace("tryMarkValid({})", contentId);
+
+            if (valid.get()) {
+                return;
+            }
+
+            valid.set(StringUtils.isBlank(expectedContentId)
+                    || StringUtils.equals(expectedContentId, contentId));
+        }
+
+        int getExitCode() {
+            if (valid.get()) {
+                return RETURN_SUCCESS;
+            }
+
+            return exitCodeWhenInvalid;
+        }
+    }
+
+    private static class SharedParamsValidator extends ParamsValidator {
+
+        private final AtomicBoolean privateParametersIncluded =
+                new AtomicBoolean();
+
+        SharedParamsValidator(
+                String expectedContentId, int exitCodeWhenInvalid) {
+            super(expectedContentId, exitCodeWhenInvalid);
+        }
+
+        @Override
+        void tryMarkValid(String contentId) {
+            if (StringUtils.equals(contentId, CONTENT_ID_PRIVATE_PARAMETERS)) {
+                privateParametersIncluded.set(true);
+            }
+
+            if (privateParametersIncluded.get()) {
+                valid.set(false);
+                return;
+            }
+
+            super.tryMarkValid(contentId);
         }
     }
 }

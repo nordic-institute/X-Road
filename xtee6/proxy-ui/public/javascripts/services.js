@@ -59,27 +59,11 @@
         return params;
     }
 
-    function refreshWSDL(newURL, onSuccess) {
-        var params = wsdlParams();
-
-        if (newURL) {
-            params.new_url = newURL;
-        }
-
-        $.post(action("wsdl_refresh"), params, function(response) {
-            oServices.fnReplaceData(response.data);
-            enableActions();
-
-            if (onSuccess) {
-                onSuccess();
-            }
-        }, "json");
-    }
-
     function initWSDLAddDialog() {
         var dialog = $("#wsdl_add_dialog").initDialog({
             autoOpen: false,
             modal: true,
+            height: 200,
             width: 500,
             buttons: [
                 { text: _("common.ok"),
@@ -94,7 +78,7 @@
                           enableActions();
 
                           $(dialog).dialog("close");
-                      }, "json");
+                      }, "json").fail(showOutput);
                   }
                 },
                 { text: _("common.cancel"),
@@ -154,7 +138,7 @@
     }
 
     function initServiceParamsDialog() {
-        var serviceParamsDialog = $("#service_params_dialog").initDialog({
+        var dialog = $("#service_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
             // height: 350,
@@ -191,23 +175,41 @@
             ]
         });
 
-        handleWSDLUrls('#params_url', '#params_sslauth', serviceParamsDialog);
+        $("#params_url", dialog).keyup(function() {
+            enableTLSAuth(oServices.getFocusData().sslauth);
+        });
+    }
+
+    function enableTLSAuth(checked) {
+        var disabled = $("#service_params_dialog #params_url").val()
+            .lastIndexOf("https", 0) !== 0;
+
+        $("#params_sslauth, #params_sslauth_all").prop("disabled", disabled);
+        $("#params_sslauth").prop("checked", checked);
     }
 
     function initWSDLParamsDialog() {
         $("#wsdl_params_dialog").initDialog({
             autoOpen: false,
             modal: true,
-            // height: 200,
+            height: 200,
             width: 700,
             buttons: [
                 { text: _("common.ok"),
                   click: function() {
                       var dialog = this;
+                      var params = {
+                          client_id: $("#details_client_id").val(),
+                          wsdl_id: oServices.getFocusData().wsdl_id,
+                          new_url: $("#params_wsdl_url").val()
+                      };
 
-                      refreshWSDL($("#params_wsdl_url").val(), function() {
+                      $.post(action("wsdl_edit"), params, function(response) {
+                          oServices.fnReplaceData(response.data);
+                          enableActions();
+
                           $(dialog).dialog("close");
-                      });
+                      }, "json").fail(showOutput);;
                   }
                 },
                 { text: _("common.cancel"),
@@ -348,21 +350,8 @@
         });
     }
 
-    function handleWSDLUrls(inpt, check, dialog) {
-        $(inpt, dialog).keyup(function() {
-            if ($(this).val().lastIndexOf("https", 0) === 0) {
-                $(check).prop('disabled', false);
-            } else {
-                $(check).prop('checked', true)
-                    .prop('disabled', true);
-            }
-        });
-
-        $(check).prop("disabled", true);
-    }
-
     function initClientServicesActions() {
-        $("#wsdl_enable").live('click', function() {
+        $("#wsdl_enable").click(function() {
             var params = wsdlParams();
             params.enable = true;
 
@@ -372,11 +361,14 @@
             }, "json");
         });
 
-        $("#wsdl_refresh").live('click', function() {
-            refreshWSDL();
+        $("#wsdl_refresh").click(function() {
+            $.post(action("wsdl_refresh"), wsdlParams(), function(response) {
+                oServices.fnReplaceData(response.data);
+                enableActions();
+            }, "json").fail(showOutput);
         });
 
-        $("#wsdl_delete").live('click', function() {
+        $("#wsdl_delete").click(function() {
             confirm("clients.client_services_tab.delete_wsdls_confirm", null,
                     function() {
                 $.post(action("wsdl_delete"), wsdlParams(), function(response) {
@@ -386,7 +378,7 @@
             });
         });
 
-        $("#service_params").live('click', function() {
+        $("#service_params").click(function() {
             var service = oServices.getFocusData();
 
             if (service.wsdl) {
@@ -403,11 +395,7 @@
                 $("#params_url").val(service.url);
                 $("#params_timeout").val(service.timeout);
 
-                if (service.sslauth) {
-                    $("#params_sslauth").attr("checked", true);
-                } else {
-                    $("#params_sslauth").removeAttr("checked");
-                }
+                enableTLSAuth(service.sslauth);
 
                 $("input[name='params_security_category[]']").removeAttr("checked");
 
@@ -420,7 +408,7 @@
             }
         });
 
-        $("#service_acl").live('click', function() {
+        $("#service_acl").click(function() {
             ACL.openDialog(oServices.getFocusData().service_code);
         });
     }
@@ -434,6 +422,15 @@
         $("button span:contains('Close')").parent().attr("data-name", "close");
         $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
         $("button span:contains('OK')").parent().attr("data-name", "ok");
+    }
+
+    function showOutput(jqXHR) {
+        var response = $.parseJSON(jqXHR.responseText);
+
+        if (response.data.stderr && response.data.stderr.length > 0) {
+            initConsoleOutput(response.data.stderr,
+                _("clients.client_services_tab.wsdl_validator_output"), 500);
+        }
     }
 
     $(document).ready(function() {

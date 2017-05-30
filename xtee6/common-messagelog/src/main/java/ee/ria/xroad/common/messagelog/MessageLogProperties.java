@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 /**
  * Contains constants for messagelog properties.
@@ -40,7 +41,7 @@ public final class MessageLogProperties {
 
     private static final int DEFAULT_KEEP_RECORDS_FOR = 30;
 
-    private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 1800;
+    private static final int DEFAULT_ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = 14400;
 
     private static final int DEFAULT_TIMESTAMP_RECORDS_LIMIT = 10000;
 
@@ -170,7 +171,7 @@ public final class MessageLogProperties {
     }
 
     /**
-     * @return the hash algorithm that is used for hashing in secure log.
+     * @return the hash algorithm that is used for hashing in message log.
      */
     public static String getHashAlg() {
         return System.getProperty(HASH_ALGO_ID, CryptoUtils.SHA512_ID);

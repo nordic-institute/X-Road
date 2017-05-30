@@ -12,38 +12,17 @@ sourceSets {
     }
 }
 
-configurations {
-    xjc
-}
 dependencies {
     compile project(':common-util')
     compile project(':proxy')
     compile project(':monitor-common')
+    compile project(':monitoring-conf')
     compile project(':addons:proxymonitor:common')
     compile 'com.google.guava:guava:19.0'
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
 }
 
 task createDirs() {
     project.ext.schemaTargetDir.mkdirs()
-}
-
-task xjc {
-    println '---- monitoring xjc @ configuration phase'
-    doLast {
-        println '---- monitoring xjc @ execution phase'
-        ant.taskdef(name: 'xjc',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
-        ant.xjc(
-                destdir: project.ext.schemaTargetDir,
-                package: 'ee.ria.xroad.common.conf.globalconf.monitoringparameters',
-                schema: 'build/resources/main/monitoring-conf.xsd',
-                binding: 'build/resources/main/identifiers-bindings.xml'
-        )
-
-    }
 }
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
@@ -61,11 +40,11 @@ licenseMain.enabled = false
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
-xjc.dependsOn createDirs
-xjc.dependsOn processResources
-xjc.mustRunAfter processResources
-
 jar {
+    enabled = false
+}
+
+install {
     enabled = false
 }
 
@@ -75,13 +54,13 @@ shadowJar {
     dependencies {
         include(project(':addons:proxymonitor:common'))
         include(project(':monitor-common'))
+        include(project(':monitoring-conf'))
     }
 }
 
 build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
-compileJava.dependsOn xjc
 compileJava.dependsOn processResources
 
 idea.module {

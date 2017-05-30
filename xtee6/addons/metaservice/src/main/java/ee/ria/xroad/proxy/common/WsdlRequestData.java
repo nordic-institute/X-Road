@@ -27,13 +27,12 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapHeader;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * WSDL request data that is marshalled to and from the message body.

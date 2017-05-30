@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PipedInputStream;
@@ -34,19 +40,17 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import static org.junit.Assert.*;
-
 /**
- * Tests to verify XROAD identifier hashCode and equals methods behavior.
+ * Tests to verify X-Road identifier hashCode and equals methods behavior.
  */
 @RunWith(value = Parameterized.class)
 public class IdentifierEqualsAndHashCodeTest {
 
     private abstract static class DataProvider {
-        abstract XroadId provideVariant1();
-        abstract XroadId provideVariant2();
-        abstract XroadId provideVariant3();
-        abstract XroadId provideVariant4();
+        abstract XRoadId provideVariant1();
+        abstract XRoadId provideVariant2();
+        abstract XRoadId provideVariant3();
+        abstract XRoadId provideVariant4();
     }
 
     private final DataProvider provider;
@@ -68,22 +72,22 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #1 -- ClientId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return ClientId.create(
                                 "EE", "BUSINESS", "member");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return ClientId.create(
                                 "EE", "BUSINESS", "foobar");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return ClientId.create(
                                 "EE", "BUSINESS", "member", "foo");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return ClientId.create(
                                 "EE", "COMPANY", "member");
                     }
@@ -92,22 +96,22 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #2 -- ServiceId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return ServiceId.create(
                                 "EE", "BUSINESS", "member", null, "getState");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return ServiceId.create(
                                 "EE", "BUSINESS", "member", null, "putState");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return ServiceId.create(
                                 "EE", "BUSINESS", "member", "foo", "getState");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return ServiceId.create(
                                 "EE", "COMPANY", "member", null, "getState");
                     }
@@ -116,19 +120,19 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #3 -- CentralServiceId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return CentralServiceId.create("EE", "a");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return CentralServiceId.create("EE", "lorem_ipsum");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return CentralServiceId.create("UK", "blah");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return CentralServiceId.create("EE", "foo");
                     }
                 },
@@ -136,19 +140,19 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #4 -- SecurityCategoryId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return SecurityCategoryId.create("EE", "K1");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return SecurityCategoryId.create("EE", "K2");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return SecurityCategoryId.create("UK", "K3");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return SecurityCategoryId.create("EE", "K4");
                     }
                 },
@@ -156,22 +160,22 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #5 -- SecurityServerId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return SecurityServerId.create(
                                 "EE", "COMPANY", "producer", "server1");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return SecurityServerId.create(
                                 "EE", "COMPANY", "consumer", "server1");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return SecurityServerId.create(
                                 "EE", "BUSINESS", "producer", "server1");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return SecurityServerId.create(
                                 "EE", "COMPANY", "producer", "server3");
                     }
@@ -180,19 +184,19 @@ public class IdentifierEqualsAndHashCodeTest {
             {// Set #6 -- GlobalGroupId
                 new DataProvider() {
                     @Override
-                    XroadId provideVariant1() {
+                    XRoadId provideVariant1() {
                         return GlobalGroupId.create("EE", "G1");
                     }
                     @Override
-                    XroadId provideVariant2() {
+                    XRoadId provideVariant2() {
                         return GlobalGroupId.create("EE", "G2");
                     }
                     @Override
-                    XroadId provideVariant3() {
+                    XRoadId provideVariant3() {
                         return GlobalGroupId.create("UE", "G1");
                     }
                     @Override
-                    XroadId provideVariant4() {
+                    XRoadId provideVariant4() {
                         return GlobalGroupId.create("EE", "G5");
                     }
                 },
@@ -206,8 +210,8 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void shouldBeEqual() {
-        XroadId first = provider.provideVariant1();
-        XroadId second = provider.provideVariant1();
+        XRoadId first = provider.provideVariant1();
+        XRoadId second = provider.provideVariant1();
         assertTrue(first.equals(second));
     }
 
@@ -216,8 +220,8 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void shouldNotBeEqual() {
-        XroadId first = provider.provideVariant1();
-        XroadId second = provider.provideVariant2();
+        XRoadId first = provider.provideVariant1();
+        XRoadId second = provider.provideVariant2();
         assertFalse(first.equals(second));
     }
 
@@ -226,8 +230,8 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void shouldNotBeEqual2() {
-        XroadId first = provider.provideVariant1();
-        XroadId second = provider.provideVariant3();
+        XRoadId first = provider.provideVariant1();
+        XRoadId second = provider.provideVariant3();
         assertFalse(first.equals(second));
     }
 
@@ -236,8 +240,8 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void hashCodeShouldMatch() {
-        XroadId first = provider.provideVariant1();
-        XroadId second = provider.provideVariant1();
+        XRoadId first = provider.provideVariant1();
+        XRoadId second = provider.provideVariant1();
         assertEquals(first.hashCode(), second.hashCode());
     }
 
@@ -246,8 +250,8 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void hashCodeShouldNotMatch() {
-        XroadId first = provider.provideVariant1();
-        XroadId second = provider.provideVariant4();
+        XRoadId first = provider.provideVariant1();
+        XRoadId second = provider.provideVariant4();
         assertNotEquals(first.hashCode(), second.hashCode());
     }
 
@@ -257,7 +261,7 @@ public class IdentifierEqualsAndHashCodeTest {
      */
     @Test
     public void shouldSerializeAndDeserialize() throws Exception {
-        XroadId inputId = provider.provideVariant1();
+        XRoadId inputId = provider.provideVariant1();
 
         PipedInputStream pin = new PipedInputStream();
         PipedOutputStream pos = new PipedOutputStream(pin);

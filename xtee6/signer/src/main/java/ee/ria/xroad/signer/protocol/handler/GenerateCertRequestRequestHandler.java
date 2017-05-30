@@ -22,25 +22,35 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.security.PublicKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import ee.ria.xroad.common.SystemProperties;
-import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.openssl.PEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
@@ -51,10 +61,7 @@ import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles certificate request generations.
@@ -101,13 +108,33 @@ public class GenerateCertRequestRequestHandler
                 message.getKeyUsage());
 
         return new GenerateCertRequestResponse(certReqId,
-                generatedRequest.getEncoded());
+                convert(generatedRequest, message.getFormat()),
+                message.getFormat());
     }
 
     private static PublicKey readPublicKey(String publicKeyBase64)
             throws Exception {
-        byte[] publicKeyBytes = decodeBase64(publicKeyBase64);
-        return readX509PublicKey(publicKeyBytes);
+        return readX509PublicKey(decodeBase64(publicKeyBase64));
+    }
+
+    private static byte[] convert(PKCS10CertificationRequest request,
+            GenerateCertRequest.RequestFormat format) throws Exception {
+        switch (format) {
+            case PEM:
+                return toPem(request);
+            default:
+                return request.getEncoded(); // DER
+        }
+    }
+
+    private static byte[] toPem(PKCS10CertificationRequest req)
+            throws Exception {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (PEMWriter pw = new PEMWriter(new OutputStreamWriter(out))) {
+            pw.writeObject(req);
+        }
+
+        return out.toByteArray();
     }
 
     private class TokenContentSigner implements ContentSigner {

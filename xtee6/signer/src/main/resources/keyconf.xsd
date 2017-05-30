@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- TODO The file name: serverconf.xsd vs localconf.xsd vs proxyconf.xsd vs ... ??? -->
 <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
     xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
@@ -24,7 +23,12 @@
         <sequence>
             <element name="friendlyName" type="string">
                 <annotation>
-                    <documentation>Name that is displayed in UI. Derived from location of the key.</documentation>
+                    <documentation>Name that is displayed in UI.</documentation>
+                </annotation>
+            </element>
+            <element name="label" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Label of the key.</documentation>
                 </annotation>
             </element>
             <element name="keyId" type="string" minOccurs="0">
@@ -79,7 +83,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
     </simpleType>
     <complexType name="CertificateType">
         <sequence>
-            <element minOccurs="0" name="memberId" type="id:XroadClientIdentifierType">
+            <element minOccurs="0" name="memberId" type="id:XRoadClientIdentifierType">
                 <annotation>
                     <documentation>If this certificate belongs to signing key, then this element contains identifier of the member that uses this certificate.</documentation>
                 </annotation>
@@ -140,7 +144,7 @@ The content of the element is base64-encoded PKCS#12 file.</documentation>
     </complexType>
     <complexType name="CertRequestType">
         <sequence>
-            <element minOccurs="0" name="memberId" type="id:XroadClientIdentifierType">
+            <element minOccurs="0" name="memberId" type="id:XRoadClientIdentifierType">
                 <annotation>
                     <documentation>Identifies the member on whose behalf the certificate request was sent. Not present on authentication keys.</documentation>
                 </annotation>

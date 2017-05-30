@@ -1,0 +1,10 @@
+{
+    "jsonrpc": "2.0",
+    "method": "hostinterface.get",
+    "params": {
+        "output": "extend",
+        "hostids": "10141"
+    },
+    "auth": "bfc86d205b447527f705dff4b1a4e70b",
+    "id": 1
+}  

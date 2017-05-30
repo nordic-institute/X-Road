@@ -48,8 +48,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
 
     CustomSSLSocketFactory(SSLContext sslContext,
-                           String[] supportedCipherSuites,
-                           HostnameVerifier hostNameVerifier) {
+            String[] supportedCipherSuites,
+            HostnameVerifier hostNameVerifier) {
         super(sslContext, null, supportedCipherSuites, hostNameVerifier);
     }
 

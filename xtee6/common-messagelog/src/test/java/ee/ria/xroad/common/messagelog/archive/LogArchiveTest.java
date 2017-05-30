@@ -22,7 +22,8 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import java.io.ByteArrayInputStream;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
@@ -33,14 +34,11 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises entire logic of archiving log entries. Actually depends on
@@ -71,8 +69,6 @@ public class LogArchiveTest {
         recordNo = 0;
 
         rotated = false;
-
-        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp/");
     }
 
     // ------------------------------------------------------------------------
@@ -109,7 +105,9 @@ public class LogArchiveTest {
 
     private LogArchiveWriter getWriter() {
         return new LogArchiveWriter(
-                Paths.get("build/slog"), dummyLogArchiveBase()) {
+                Paths.get("build/slog"),
+                Paths.get("build/tmp"),
+                dummyLogArchiveBase()) {
             @Override
             protected WritableByteChannel createArchiveOutput()
                     throws Exception {
@@ -125,7 +123,8 @@ public class LogArchiveTest {
     private LogArchiveBase dummyLogArchiveBase() {
         return new LogArchiveBase() {
             @Override
-            public void markArchiveCreated(DigestEntry lastArchive) throws Exception {
+            public void markArchiveCreated(DigestEntry lastArchive)
+                    throws Exception {
                 // Do nothing.
             }
 
@@ -164,9 +163,5 @@ public class LogArchiveTest {
         record.setTime((long) (Math.random() * 100000L));
 
         return record;
-    }
-
-    private static ByteArrayInputStream is(ByteArrayOutputStream os) {
-        return new ByteArrayInputStream(os.toByteArray());
     }
 }

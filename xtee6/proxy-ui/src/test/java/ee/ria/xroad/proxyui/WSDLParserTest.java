@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxyui;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Collection;
 
 import org.junit.Test;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.proxyui.WSDLParser.ServiceInfo;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests correctness of the WSDL parser.

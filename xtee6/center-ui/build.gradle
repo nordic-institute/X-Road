@@ -6,18 +6,33 @@ clean << {
     project.delete "vendor/engines/common-ui"
     project.delete "vendor/engines/center-common"
     project.delete "db/migrate"
+    project.delete "log/development.log"
+    project.delete "public/javascripts/translations.js"
 }
 
 task copyCommon(type: Copy) {
     into "vendor/engines/common-ui"
     from "../common-ui"
-    exclude '**/build/**'
+    include "Gemfile"
+    include "Rakefile"
+    include "common-ui.gemspec"
+    include "config/"
+    include "lib/**"
+    include "app/**"
+    include "public/**"
 }
 
 task copyCenterCommon << {
     copy {
         into "vendor/engines/center-common"
         from "../center-common"
+        include "Gemfile"
+        include "Rakefile"
+        include "center-common.gemspec"
+        include "config/"
+        include "lib/**"
+        include "app/**"
+        include "db/**"
     }
 
     copy {
@@ -35,8 +50,7 @@ task generateJsTranslations(type: Exec) {
     commandLine = ['jruby', '-S', 'rake', 'i18n:js:export']
 }
 
-// TODO - We might want to get rid of warning at .war file generation. RM task #3316
-// TODO: This should depend on 'generateJsTranslations' as well, but this is currently broken.
+// FUTURE - We might want to get rid of warning at .war file generation. RM task #3316
 task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], type: Exec) {
     commandLine = ['jruby', '-S', 'warble']
 }

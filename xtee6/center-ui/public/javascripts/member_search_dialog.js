@@ -2,7 +2,9 @@
 
     var oMemberSearch;
 
-    function initMemberSearchTable(securityServerCode, onSuccess, allowEmptySelection) {
+    function initMemberSearchTable(
+            securityServerCode, subsystemsOnly, onSuccess) {
+
         var opts = defaultTableOpts();
         opts.bServerSide = true;
         opts.bDestroy = true;
@@ -21,18 +23,25 @@
 
         opts.sAjaxSource = "members/member_search";
         opts.fnDrawCallback = function() {
-            if (!allowEmptySelection && !oMemberSearch.getFocus()) {
+            if (!oMemberSearch.getFocus()) {
                 $("#member_search_select").disable();
             }
         };
 
-        if (securityServerCode) {
-            opts.fnServerParams = function(aoData) {
+        opts.fnServerParams = function(aoData) {
+            if (securityServerCode) {
                 aoData.push({
                     "name": "securityServerCode",
                     "value": securityServerCode
                 });
-            };
+            }
+
+            if (subsystemsOnly) {
+                aoData.push({
+                    "name": "subsystemsOnly",
+                    "value": "true"
+                });
+            }
         }
 
         opts.aaSorting = [[1, 'asc']];
@@ -42,20 +51,19 @@
 
         oMemberSearch.on("click", "tbody tr", function(ev) {
             if (oMemberSearch.setFocus(0, this)) {
-                if (!allowEmptySelection) {
-                    $("#member_search_select").enable();
-                }
+                $("#member_search_select").enable();
             }
         });
 
-        oMemberSearch.on("dblclick", "tbody tr", function(ev) {
+        oMemberSearch.unbind("dblclick")
+                .on("dblclick", "tbody tr", function(ev) {
             $("#member_search_dialog").dialog("close");
             onSuccess(oMemberSearch.fnGetData(this));
         });
     }
 
     MEMBER_SEARCH_DIALOG.open =
-            function(securityServerCode, onSuccess, allowEmptySelection) {
+            function(securityServerCode, subsystemsOnly, onSuccess) {
 
         $("#member_search_dialog").initDialog({
             modal: true,
@@ -65,7 +73,7 @@
             width: 800,
             buttons: [
                 { id: "member_search_select",
-                  text: _("common.ok"),
+                  text: _("common.select"),
                   click: function() {
                       $(this).dialog("close");
                       onSuccess(oMemberSearch.getFocusData());
@@ -77,15 +85,16 @@
                   }
                 }
             ],
-            open: function () {
-                if (!allowEmptySelection) {
-                    $("#member_search_select").disable();
-                }
+            open: function() {
+                $("#member_search_select").disable();
 
-                initMemberSearchTable(
-                    securityServerCode, onSuccess, allowEmptySelection);
+                initMemberSearchTable(securityServerCode, subsystemsOnly, onSuccess);
             }
         });
+
+        $("#member_search_dialog").parent().attr("data-name", "member_search_dialog");
+        $("#member_search_select").attr("data-name", "member_search_select");
+        $("button span:contains('Cancel')").parent().attr("data-name", "cancel");
     }
 
 }(window.MEMBER_SEARCH_DIALOG = window.MEMBER_SEARCH_DIALOG || {}, jQuery));

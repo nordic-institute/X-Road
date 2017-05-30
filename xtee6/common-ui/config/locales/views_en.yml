@@ -31,6 +31,7 @@ en:
     next: "Next"
     ok: "OK"
     refresh: "Refresh"
+    register: "Register"
     remove: "Remove"
     remove_all: "Remove All"
     remove_selected: "Remove Selected"
@@ -57,6 +58,9 @@ en:
     hash: "Hash (%{alg})"
     url: "URL"
 
+  errors:
+    server_unreachable: "Server unreachable. Make sure if server is up and running."
+
   layouts:
     application:
       title: "Security Server Administration"
@@ -81,10 +85,10 @@ en:
       done: "Configuration backup created"
       error: "Error making configuration backup, script exited with status code '%{code}'"
       item:
-        restore_confirm: "Are you sure you want to restore configuration from file '{{file}}'?"
+        restore_confirm: "Restore configuration from file '{{file}}'?"
         delete_confirm: "Are you sure you want to permanently delete configuration backup file '{{file}}'?"
       console_output: "Backup Script Output"
-      activate_hardware_tokens: "Hardware tokens have been logged out. Would you like to log in now?<br/><br/>Note: reloading the token information may take some time. If the installed tokens are not shown or are disabled, please refresh the 'Keys and Certificates' view."
+      token_logout_notice: "During restore, security tokens were logged out from."
       upload_file_title: "Upload New Backup File"
       uploaded_file_exists: "Backup file with name '{{file}}' already exists, do you want to overwrite it?"
 

@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+
 import ch.qos.logback.access.jetty.RequestLogImpl;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
@@ -43,7 +44,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -68,6 +68,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
+
 
 /**
  * Client proxy that handles requests of service clients.
@@ -133,7 +134,7 @@ public class ClientProxy implements StartStop {
             connectionMonitor.setIntervalMilliseconds(
                     SystemProperties.getClientProxyIdleConnectionMonitorInterval());
             connectionMonitor.setConnectionIdleTimeMilliseconds(
-                    SystemProperties.getClientProxyIdleConnectionMonitorTimeout());
+                    SystemProperties.getClientProxyIdleConnectionMonitorIdleTime());
         }
 
         cb.setDefaultRequestConfig(rb.build());
@@ -156,23 +157,17 @@ public class ClientProxy implements StartStop {
 
         SocketConfig.Builder sockBuilder =  SocketConfig.custom().setTcpNoDelay(true);
         sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
-        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientMaxIdleTime());
+        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
         SocketConfig socketConfig = sockBuilder.build();
 
-        if (SystemProperties.isClientUseConnectionPoolForServerConnections()) {
-
-            PoolingHttpClientConnectionManager poolingManager =
-                    new PoolingHttpClientConnectionManager(sfr.build());
-            poolingManager.setMaxTotal(SystemProperties.getProxyPoolTotalMaxConnections());
-            poolingManager.setDefaultMaxPerRoute(SystemProperties.getProxyPoolDefaultMaxConnectionsPerRoute());
-            poolingManager.setDefaultSocketConfig(socketConfig);
-            return poolingManager;
-        } else {
-            BasicHttpClientConnectionManager basicManager =
-                    new BasicHttpClientConnectionManager(sfr.build());
-            basicManager.setSocketConfig(socketConfig);
-            return basicManager;
-        }
+        PoolingHttpClientConnectionManager poolingManager =
+                new PoolingHttpClientConnectionManager(sfr.build());
+        poolingManager.setMaxTotal(SystemProperties.getClientProxyPoolTotalMaxConnections());
+        poolingManager.setDefaultMaxPerRoute(SystemProperties.getClientProxyPoolDefaultMaxConnectionsPerRoute());
+        poolingManager.setDefaultSocketConfig(socketConfig);
+        poolingManager.setValidateAfterInactivity(SystemProperties.
+                getClientProxyValidatePoolConnectionsAfterInactivityMs());
+        return poolingManager;
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory()
@@ -219,6 +214,9 @@ public class ClientProxy implements StartStop {
         log.trace("createClientHttpsConnector({}, {})", hostname, port);
 
         SslContextFactory cf = new SslContextFactory(false);
+        // Note: Don't use restricted chiper suites
+        // (CryptoUtils.INCLUDED_CIPHER_SUITES) between client IS and
+        // client proxy.
         cf.setWantClientAuth(true);
         cf.setSessionCachingEnabled(true);
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
@@ -263,9 +261,7 @@ public class ClientProxy implements StartStop {
 
         handlers.addHandler(logHandler);
 
-        for (Handler handler : getClientHandlers()) {
-            handlers.addHandler(handler);
-        }
+        getClientHandlers().forEach(handlers::addHandler);
 
         server.setHandler(handlers);
     }

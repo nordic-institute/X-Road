@@ -22,9 +22,12 @@
  */
 package ee.ria.xroad.monitor.common.dto;
 
-import lombok.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import java.util.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * Created by hyoty on 24.9.2015.

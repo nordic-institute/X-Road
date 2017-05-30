@@ -22,16 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
 import org.hibernate.Session;
 import org.joda.time.DateTime;
 
 import akka.actor.UntypedActor;
-
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
-
-import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
+import lombok.extern.slf4j.Slf4j;
 
 
 

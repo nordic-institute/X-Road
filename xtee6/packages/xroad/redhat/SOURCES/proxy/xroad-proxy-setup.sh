@@ -47,16 +47,17 @@ db_passwd=`crudini --get ${db_properties} '' serverconf.hibernate.connection.pas
 
 echo "running ${db_name} database migrations"
 cd /usr/share/xroad/db/
-/usr/share/xroad/db/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+/usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
 
 #
 # SELinux policy modification
 #
+if [[ $(getenforce) != "Disabled" ]]; then
+    # allow httpd to act as reverse proxy
+    setsebool -P httpd_can_network_relay 1 || true
+    setsebool -P httpd_can_network_connect 1 || true
 
-# allow httpd to act as reverse proxy
-setsebool -P httpd_can_network_relay 1 || true
-setsebool -P httpd_can_network_connect 1 || true
-
-# allow httpd to connecto to non-standard port 4000
-semanage port -a -t http_port_t  -p tcp 4000 || true
+    # allow httpd to connecto to non-standard port 4000
+    semanage port -a -t http_port_t  -p tcp 4000 || true
+fi
 

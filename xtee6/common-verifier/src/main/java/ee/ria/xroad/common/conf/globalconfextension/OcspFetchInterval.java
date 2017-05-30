@@ -40,7 +40,7 @@ public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
     /**
      * Default value for ocsp fetch interval
      */
-    public static final int OCSP_FETCH_INTERVAL_DEFAULT = 3600;
+    public static final int OCSP_FETCH_INTERVAL_DEFAULT = 1200;
 
     /**
      * Minimum value for ocsp fetch interval

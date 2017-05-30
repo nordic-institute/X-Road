@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 #
+require "shellwords"
 
 java_import Java::ee.ria.xroad.common.SystemProperties
 java_import Java::ee.ria.xroad.common.conf.serverconf.model.AccessRightType
@@ -67,9 +68,10 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
     audit_log_data[:wsdlUrl] = wsdl.url
     audit_log_data[:disabled] = wsdl.disabled
-    audit_log_data[:refreshedDate] = format_time(wsdl.refreshedDate)
+    audit_log_data[:refreshedDate] =
+      Time.at(wsdl.refreshedDate.getTime / 1000).iso8601
 
-    parse_and_check_services(wsdl.url, wsdl)
+    parse_and_check_services(wsdl)
 
     client.wsdl.add(wsdl)
 
@@ -105,12 +107,12 @@ module Clients::Services
     audit_log_data[:wsdlUrls] = []
 
     client.wsdl.each do |wsdl|
-      next unless params[:wsdl_ids].include?(get_wsdl_id(wsdl))
+      next unless params[:wsdl_ids].include?(wsdl.url)
 
       wsdl.disabled = params[:enable].nil?
       wsdl.disabledNotice = params[:wsdl_disabled_notice] if params[:enable].nil?
 
-      audit_log_data[:wsdlUrls] << get_wsdl_id(wsdl)
+      audit_log_data[:wsdlUrls] << wsdl.url
     end
 
 
@@ -119,160 +121,65 @@ module Clients::Services
     render_json(read_services(client))
   end
 
-  def wsdl_refresh
-    if params[:new_url]
-      audit_log("Edit WSDL", audit_log_data = {})
-    else
-      audit_log("Refresh WSDL", audit_log_data = {})
-    end
+  def wsdl_edit
+    audit_log("Edit WSDL", audit_log_data = {})
 
     authorize!(:refresh_wsdl)
 
     validate_params({
       :client_id => [:required],
-      :wsdl_ids => [:required],
-      :new_url => []
+      :wsdl_id => [:required],
+      :new_url => [:required]
     })
 
-    # cannot change more than 1 WSDL URL at a time
-    raise ArgumentError if params[:new_url] && params[:wsdl_ids].size > 1
-
     client = get_client(params[:client_id])
-
     audit_log_data[:clientIdentifier] = client.identifier
 
-    added = {}
-    added_objs = {}
-    deleted = {}
-
-    existing_services = {}
-
     client.wsdl.each do |wsdl|
-      wsdl.service.each do |service|
-        existing_services[get_service_id(service)] = get_wsdl_id(wsdl)
+      if wsdl.url == params[:new_url]
+        raise t('clients.wsdl_exists')
       end
-    end
+    end if params[:wsdl_id] != params[:new_url]
 
-    check_new_url = false
+    wsdls = wsdls_by_urls(client, [params[:wsdl_id]])
+    wsdls[0].url = params[:new_url]
+    wsdls[0].refreshedDate = Date.new
 
-    audit_log_data[:wsdls] = []
+    added_objs, added, deleted = parse_wsdls(client, wsdls)
+    update_wsdls(client, added_objs, deleted)
 
-    # parse each wsdl
-    client.wsdl.each do |wsdl|
-      next unless params[:wsdl_ids].include?(get_wsdl_id(wsdl))
+    serverconf_save
 
-      if params[:new_url]
-        old_wsdl_url = get_wsdl_id(wsdl)
-        wsdl.url = params[:new_url]
-      end
+    audit_log_data[:wsdl] = {
+      :wsdlUrl => params[:wsdl_id],
+      :wsdlUrlNew => params[:new_url],
+      :servicesAdded => added[wsdls[0].url],
+      :servicesDeleted => deleted[wsdls[0].url]
+    }
 
-      params[:wsdl_ids] << get_wsdl_id(wsdl)
+    render_json(read_services(client))
+  end
 
-      wsdl_parse_url = wsdl.url
+  def wsdl_refresh
+    audit_log("Refresh WSDL", audit_log_data = {})
 
-      services_parsed = parse_wsdl(wsdl_parse_url)
+    authorize!(:refresh_wsdl)
 
-      services_old = []
+    validate_params({
+      :client_id => [:required],
+      :wsdl_ids => [:required]
+    })
 
-      wsdl.service.each do |service|
-        services_old << get_service_id(service)
-      end
+    client = get_client(params[:client_id])
+    audit_log_data[:clientIdentifier] = client.identifier
 
-      services_new = []
-      added_objs[get_wsdl_id(wsdl)] = []
+    wsdls = wsdls_by_urls(client, params[:wsdl_ids])
 
-      services_parsed.each do |service_parsed|
-        service_parsed_id =
-          format_service_id(service_parsed.name, service_parsed.version)
+    added_objs, added, deleted = parse_wsdls(client, wsdls, audit_log_data)
+    update_wsdls(client, added_objs, deleted)
 
-        services_new << service_parsed_id
-
-        unless services_old.include?(service_parsed_id)
-          if existing_services.has_key?(service_parsed_id)
-            raise t('clients.service_exists_refresh',
-                    :service => service_parsed_id,
-                    :wsdl1 => get_wsdl_id(wsdl),
-                    :wsdl2 => existing_services[service_parsed_id])
-          end
-
-          added_objs[get_wsdl_id(wsdl)] << service_parsed
-        end
-      end
-
-      added[get_wsdl_id(wsdl)] = services_new - services_old
-      deleted[get_wsdl_id(wsdl)] = services_old - services_new
-
-      logged_wsdl_data = {
-        :wsdlUrl => old_wsdl_url || get_wsdl_id(wsdl),
-        :servicesAdded => added[get_wsdl_id(wsdl)],
-        :servicesDeleted => deleted[get_wsdl_id(wsdl)]
-      }
-
-      if params[:new_url]
-        logged_wsdl_data[:wsdlUrlNew] = get_wsdl_id(wsdl)
-      end
-
-      audit_log_data[:wsdls] << logged_wsdl_data
-    end
-
-    unless added.values.flatten.empty?
-      add_text = t('clients.adding_services',
-                    :added => added.values.join(", "))
-    end
-
-    unless deleted.values.flatten.empty?
-      delete_text = t('clients.deleting_services',
-                    :deleted => deleted.values.join(", "))
-    end
-
-    unless deleted.values.flatten.empty? && added.values.flatten.empty?
-      warn("changed_services", "#{add_text}#{delete_text}")
-    end
-
-    deleted_codes = Set.new
-
-    # write changes to conf
-    client.wsdl.each do |wsdl|
-      services_deleted = []
-
-      deleted[get_wsdl_id(wsdl)].each do |service_id|
-        wsdl.service.each do |service|
-          if get_service_id(service) == service_id
-            services_deleted << service
-            deleted_codes << service.serviceCode
-          end
-        end
-      end if deleted.has_key?(get_wsdl_id(wsdl))
-
-      services_deleted.each do |service|
-        service.wsdl = nil
-        wsdl.service.remove(service)
-        @session.delete(service)
-      end
-
-      added_objs[get_wsdl_id(wsdl)].each do |service_parsed|
-        service = ServiceType.new
-        service.serviceCode = service_parsed.name
-        service.serviceVersion = service_parsed.version
-        service.title = service_parsed.title
-        service.url = service_parsed.url
-        service.timeout = DEFAULT_SERVICE_TIMEOUT
-        service.wsdl = wsdl
-
-        wsdl.service.add(service)
-      end if added_objs.has_key?(get_wsdl_id(wsdl))
-
-      if params[:wsdl_ids].include?(get_wsdl_id(wsdl))
-        wsdl.refreshedDate = Date.new
-      end
-    end
-
-    if deleted_codes.any?
-      remove_access_rights(client.acl, nil, deleted_codes)
-    end
-
-    if check_new_url
-      check_internal_server_certs(client, params[:new_url])
+    wsdls.each do |wsdl|
+      wsdl.refreshedDate = Date.new
     end
 
     serverconf_save
@@ -297,12 +204,12 @@ module Clients::Services
 
     deleted = []
     client.wsdl.each do |wsdl|
-      audit_log_data[:wsdlUrls] << get_wsdl_id(wsdl)
-
-      deleted << wsdl if params[:wsdl_ids].include?(get_wsdl_id(wsdl))
+      deleted << wsdl if params[:wsdl_ids].include?(wsdl.url)
     end
 
     deleted.each do |wsdl|
+      audit_log_data[:wsdlUrls] << wsdl.url
+
       wsdl.client = nil
       client.wsdl.remove(wsdl)
       @session.delete(wsdl)
@@ -339,9 +246,9 @@ module Clients::Services
     audit_log_data[:clientIdentifier] = client.identifier
 
     client.wsdl.each do |wsdl|
-      next unless get_wsdl_id(wsdl) == params[:params_wsdl_id]
+      next unless wsdl.url == params[:params_wsdl_id]
 
-      audit_log_data[:wsdlUrl] = get_wsdl_id(wsdl)
+      audit_log_data[:wsdlUrl] = wsdl.url
       audit_log_data[:services] = []
 
       wsdl.service.each do |service|
@@ -364,7 +271,8 @@ module Clients::Services
           end if params[:params_security_category]
         end
 
-        if params[:params_sslauth_all] || service_match
+        if (params[:params_sslauth_all] || service_match) &&
+            service.url.start_with?("https")
           service.sslAuthentication = !params[:params_sslauth].nil?
         end
 
@@ -502,6 +410,19 @@ module Clients::Services
 
   private
 
+  def wsdls_by_urls(client, wsdl_urls)
+    wsdls = []
+    client.wsdl.each do |wsdl|
+      wsdls << wsdl if wsdl_urls.include?(wsdl.url)
+    end
+
+    if wsdls.length != wsdl_urls.length
+      raise "Some WSDLs were not found"
+    end
+
+    wsdls
+  end
+
   def read_services(client)
     services = []
 
@@ -511,7 +432,7 @@ module Clients::Services
 
       services << {
         :wsdl => true,
-        :wsdl_id => get_wsdl_id(wsdl),
+        :wsdl_id => wsdl.url,
         :service_id => nil,
         :name => name,
         :title => nil,
@@ -532,7 +453,7 @@ module Clients::Services
 
         services << {
           :wsdl => false,
-          :wsdl_id => get_wsdl_id(wsdl),
+          :wsdl_id => wsdl.url,
           :service_id => get_service_id(service),
           :name => get_service_id(service),
           :service_code => service.serviceCode,
@@ -551,10 +472,6 @@ module Clients::Services
     services
   end
 
-  def get_wsdl_id(wsdl)
-    wsdl.url
-  end
-
   def subjects_count(client, service_code)
     i = 0
 
@@ -565,20 +482,131 @@ module Clients::Services
     return i
   end
 
-  def parse_and_check_services(wsdl_parse_url, wsdl)
+  def parse_wsdls(client, wsdls, audit_log_data = nil)
+    # construct a list of existing services mapped to their wsdls
+    existing_services = {}
+    client.wsdl.each do |wsdl|
+      wsdl.service.each do |service|
+        existing_services[get_service_id(service)] = wsdl.url
+      end
+    end
+
+    audit_log_data[:wsdls] = [] if audit_log_data
+
+    added = {}
+    added_objs = {}
+    deleted = {}
+
+    wsdls.each do |wsdl|
+      services_parsed = parse_wsdl(wsdl)
+
+      services_before = []
+      services_after = []
+
+      wsdl.service.each do |service|
+        services_before << get_service_id(service)
+      end
+
+      added_objs[wsdl.url] = []
+
+      services_parsed.each do |service_parsed|
+        service_parsed_id =
+          format_service_id(service_parsed.name, service_parsed.version)
+
+        services_after << service_parsed_id
+
+        unless services_before.include?(service_parsed_id)
+          if existing_services.has_key?(service_parsed_id)
+            raise t('clients.service_exists_refresh',
+                    :service => service_parsed_id,
+                    :wsdl1 => wsdl.url,
+                    :wsdl2 => existing_services[service_parsed_id])
+          end
+
+          added_objs[wsdl.url] << service_parsed
+        end
+      end
+
+      added[wsdl.url] = services_after - services_before
+      deleted[wsdl.url] = services_before - services_after
+
+      audit_log_data[:wsdls] << {
+        :wsdlUrl => wsdl.url,
+        :servicesAdded => added[wsdl.url],
+        :servicesDeleted => deleted[wsdl.url]
+      } if audit_log_data
+    end
+
+    unless added.values.flatten.empty?
+      add_text =
+        t('clients.adding_services', :added => added.values.join(", "))
+    end
+
+    unless deleted.values.flatten.empty?
+      delete_text =
+        t('clients.deleting_services', :deleted => deleted.values.join(", "))
+    end
+
+    unless deleted.values.flatten.empty? && added.values.flatten.empty?
+      warn("changed_services", "#{add_text}#{delete_text}")
+    end
+
+    return added_objs, added, deleted
+  end
+
+  def update_wsdls(client, added_objs, deleted)
+    deleted_codes = Set.new
+
+    client.wsdl.each do |wsdl|
+      services_deleted = []
+
+      deleted[wsdl.url].each do |service_id|
+        wsdl.service.each do |service|
+          if get_service_id(service) == service_id
+            services_deleted << service
+            deleted_codes << service.serviceCode
+          end
+        end
+      end if deleted.has_key?(wsdl.url)
+
+      services_deleted.each do |service|
+        service.wsdl = nil
+        wsdl.service.remove(service)
+        @session.delete(service)
+      end
+
+      added_objs[wsdl.url].each do |service_parsed|
+        service = ServiceType.new
+        service.serviceCode = service_parsed.name
+        service.serviceVersion = service_parsed.version
+        service.title = service_parsed.title
+        service.url = service_parsed.url
+        service.timeout = DEFAULT_SERVICE_TIMEOUT
+        service.wsdl = wsdl
+
+        wsdl.service.add(service)
+      end if added_objs.has_key?(wsdl.url)
+    end
+
+    if deleted_codes.any?
+      remove_access_rights(client.acl, nil, deleted_codes)
+    end
+  end
+
+  def parse_and_check_services(wsdl)
     existing_services = {}
 
     wsdl.client.wsdl.each do |other_wsdl|
-      if get_wsdl_id(other_wsdl) == get_wsdl_id(wsdl)
+      if other_wsdl.url == wsdl.url
         raise t('clients.wsdl_exists')
       end
 
       other_wsdl.service.each do |service|
-        existing_services[get_service_id(service)] = get_wsdl_id(other_wsdl)
+        existing_services[get_service_id(service)] = other_wsdl.url
       end
     end
 
-    parsed_services = parse_wsdl(wsdl_parse_url)
+    parsed_services = parse_wsdl(wsdl)
 
     parsed_services.each do |parsed_service|
       service_id =
@@ -601,8 +629,49 @@ module Clients::Services
     end
   end
 
-  def parse_wsdl(url)
-    WSDLParser::parseWSDL(url)
+  def run_wsdl_validator(url)
+    unless SystemProperties::getWsdlValidatorCommand
+      logger.debug("Skipping WSDL validator, command not set")
+      return
+    end
+
+    command = [
+      "curl -sk #{Shellwords.escape(url)} | #{SystemProperties::getWsdlValidatorCommand} 2>&1 >/dev/null"
+    ]
+
+    logger.debug("Running WSDL validator: #{command}")
+    output = CommonUi::ScriptUtils.run_script(command, false)
+    exitstatus = $?.exitstatus
+
+    logger.debug(" --- Console output - START --- ")
+    output.each { |line| logger.debug(line) }
+    logger.debug(" --- Console output - END --- ")
+
+    logger.debug("WSDL validator finished with exit status '#{exitstatus}'")
+
+    if exitstatus == 127
+      raise t("clients.wsdl_validator_not_found")
+    elsif exitstatus == 126
+      raise t("clients.wsdl_validator_not_executable")
+    elsif exitstatus != 0
+      raise BaseController::ExceptionWithOutput.new(
+        t("clients.wsdl_validation_failed", :wsdl => url), output)
+    elsif output.size > 0
+      warnings = ""
+      output.each do |line|
+        warnings += "#{CGI.escapeHTML(line)}<br/>"
+      end
+
+      warn("wsdl_validation_warnings",
+        t("clients.wsdl_validation_warnings", {:wsdl => url, :warnings => warnings}))
+    end
+  end
+
+  def parse_wsdl(wsdl)
+    # Run WSDLParser before validator to catch various IO errors
+    services = WSDLParser::parseWSDL(wsdl.url)
+    run_wsdl_validator(wsdl.url)
+    services
   rescue Java::ee.ria.xroad.common.CodedException
     logger.error(ExceptionUtils.getStackTrace($!))
 

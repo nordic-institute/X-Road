@@ -29,7 +29,6 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -49,28 +48,12 @@ public abstract class HandlerBase extends AbstractHandler {
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
-        sendErrorResponse(response, ex.getFaultCodeAsQName(), ex.getFaultString(),
-                ex.getFaultActor(), ex.getFaultDetail());
-    }
 
-    /**
-    * Sends SOAP fault message to the other party.
-    * @param response HTTP servlet response for sending the SOAP fault
-    * @param faultCode code of the SOAP fault
-    * @param faultString string of the SOAP fault
-    * @param faultActor actor of the SOAP fault
-    * @param faultDetail detail of the SOAP fault
-    * @throws IOException if an I/O error occurred
-    */
-    public static void sendErrorResponse(HttpServletResponse response,
-                                         QName faultCode, String faultString, String faultActor,
-                                         String faultDetail) throws IOException {
-        String soapMessageXml = SoapFault.createFaultXml(
-                faultCode, faultString, faultActor,
-                faultDetail);
-
+        String faultXml = ex instanceof CodedException.Fault
+                ? ((CodedException.Fault) ex).getFaultXml()
+                : SoapFault.createFaultXml(ex);
         String encoding = MimeUtils.UTF8;
-        byte[] messageBytes = soapMessageXml.getBytes(encoding);
+        byte[] messageBytes = faultXml.getBytes(encoding);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MimeTypes.TEXT_XML);
@@ -78,6 +61,7 @@ public abstract class HandlerBase extends AbstractHandler {
         response.setHeader("SOAPAction", "");
         response.setCharacterEncoding(encoding);
         response.getOutputStream().write(messageBytes);
+
     }
 
     /**

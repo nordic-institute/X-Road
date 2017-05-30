@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.common.ocsp;
 
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;

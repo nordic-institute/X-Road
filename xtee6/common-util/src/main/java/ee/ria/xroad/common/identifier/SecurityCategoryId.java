@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * Security category ID.
  */
 @XmlJavaTypeAdapter(IdentifierTypeConverter.SecurityCategoryIdAdapter.class)
-public final class SecurityCategoryId extends XroadId {
+public final class SecurityCategoryId extends XRoadId {
 
     private final String securityCategory;
 
@@ -37,7 +37,7 @@ public final class SecurityCategoryId extends XroadId {
     }
 
     private SecurityCategoryId(String xRoadInstance, String securityCategory) {
-        super(XroadObjectType.SECURITYCATEGORY, xRoadInstance);
+        super(XRoadObjectType.SECURITYCATEGORY, xRoadInstance);
 
         this.securityCategory = securityCategory;
     }

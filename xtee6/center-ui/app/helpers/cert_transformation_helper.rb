@@ -32,6 +32,7 @@ module CertTransformationHelper
     end
 
     uploaded_bytes = file_param.read
+    file_param.rewind
 
     cert_obj = CommonUi::CertUtils.cert_object(uploaded_bytes)
 
@@ -44,8 +45,6 @@ module CertTransformationHelper
     end
 
     cert_data
-  rescue OpenSSL::OpenSSLError
-    raise t("validation.invalid_cert")
   end
 
   def read_temp_cert(id)
@@ -68,8 +67,8 @@ module CertTransformationHelper
       :serial_number => cert_obj.serial.to_s,
       :subject => cert_obj.subject.to_s,
       :issuer => cert_obj.issuer.to_s,
-      :valid_from => format_time(cert_obj.not_before), # TODO: valid_not_before
-      :expires => format_time(cert_obj.not_after),     # TODO: valid_not_after
+      :valid_from => format_time(cert_obj.not_before),
+      :expires => format_time(cert_obj.not_after),
       :temp_cert_id => cert_id
     }
   end

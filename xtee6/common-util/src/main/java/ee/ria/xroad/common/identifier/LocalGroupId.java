@@ -35,7 +35,7 @@ public final class LocalGroupId extends AbstractGroupId {
     }
 
     private LocalGroupId(String groupCode) {
-        super(XroadObjectType.LOCALGROUP, null, groupCode);
+        super(XRoadObjectType.LOCALGROUP, null, groupCode);
     }
 
     /**

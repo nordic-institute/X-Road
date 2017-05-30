@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- 
+<!--
     Describes a SOAP message sent to the system.
-    
+
     An example of a simple SOAP message:
-    
+
         <?xml version="1.0" encoding="utf-8"?>
         <SOAP-ENV:Envelope
                 xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
@@ -28,7 +28,7 @@
                 <xroad:getState/>
             </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>
-    
+
  -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
     targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns="http://x-road.eu/xsd/xroad.xsd"
@@ -40,17 +40,17 @@
             <xs:documentation>Encapsulates SOAP message header.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="client" type="id:XroadClientIdentifierType">
+            <xs:element name="client" type="id:XRoadClientIdentifierType">
                 <xs:annotation>
-                    <xs:documentation>XROAD identifier for client of the service.</xs:documentation>
+                    <xs:documentation>X-Road identifier for client of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="service" type="id:XroadServiceIdentifierType">
+            <xs:element name="service" type="id:XRoadServiceIdentifierType">
                 <xs:annotation>
-                    <xs:documentation>XROAD identifier of the service.</xs:documentation>
+                    <xs:documentation>X-Road identifier of the service.</xs:documentation>
                 </xs:annotation>
             </xs:element>
-            <xs:element name="securityServer" type="id:XroadSecurityServerIdentifierType" minOccurs="0">
+            <xs:element name="securityServer" type="id:XRoadSecurityServerIdentifierType" minOccurs="0">
                 <xs:annotation>
                     <xs:documentation>XROAD identifier of the security server.</xs:documentation>
                 </xs:annotation>

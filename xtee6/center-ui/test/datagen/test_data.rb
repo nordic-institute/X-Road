@@ -79,7 +79,7 @@ def create_members_and_security_servers
   riigiasutus = create_member_classes[0]
   first_member_code = "12345678"
 
-  first_member = XroadMember.create!(
+  first_member = XRoadMember.create!(
       :member_code => first_member_code,
       :name => "Turvaserveritega liige",
       :member_class => riigiasutus,
@@ -93,7 +93,7 @@ def create_members_and_security_servers
       :xroad_member_id => first_member.id,
       :subsystem_code => "secondSubsystemCode")
 
-  second_member = XroadMember.create!(
+  second_member = XRoadMember.create!(
       :member_code => "87654321",
       :name => "Yhe turvaserveriga liige",
       :member_class => riigiasutus,

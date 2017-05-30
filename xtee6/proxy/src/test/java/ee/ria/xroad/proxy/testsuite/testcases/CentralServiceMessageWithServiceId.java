@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
-
 import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
 import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 /**
  * Sends message with central service id and service id. Expects error.

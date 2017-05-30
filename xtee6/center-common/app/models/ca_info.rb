@@ -42,7 +42,7 @@ class CaInfo < ActiveRecord::Base
 
   def validate_cert_presence
     if !self.cert || self.cert.empty?
-      raise XroadArgumentError.new(:no_ca_cert)
+      raise XRoadArgumentError.new(:no_ca_cert)
     end
   end
 

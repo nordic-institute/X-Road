@@ -22,6 +22,29 @@
  */
 package ee.ria.xroad.common.asic;
 
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_INVALID_MIME_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MANIFEST_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MESSAGE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_ASIC_TIMESTAMP_NOT_FOUND;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ASIC_MANIFEST;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MANIFEST;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MESSAGE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MIMETYPE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIGNATURE;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIG_HASH_CHAIN;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIG_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static org.apache.commons.lang.StringUtils.isBlank;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -36,12 +59,6 @@ import org.apache.commons.io.IOUtils;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.signature.Signature;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.*;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static org.apache.commons.lang.StringUtils.isBlank;
 
 /**
  * Utility methods for dealing wit ASiC containers.

@@ -14,7 +14,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           net-tools, policycoreutils-python
+Requires:           net-tools, policycoreutils-python, tar
 Requires:           xroad-common >= %version, xroad-jetty9 >= %version, rsyslog, postgresql-server, postgresql-contrib
 
 %define src %{_topdir}/..
@@ -45,7 +45,7 @@ mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 
-cp -p %{_sourcedir}/proxy/xroad-{proxy,async,confclient} %{buildroot}/usr/share/xroad/bin/
+cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-proxy-port-redirect.sh %{buildroot}/usr/share/xroad/scripts/
@@ -54,22 +54,17 @@ cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -p %{src}/../../proxy-ui/build/libs/proxy-ui.war %{buildroot}/usr/share/xroad/jlib/webapps/
 cp -p %{src}/../../proxy/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{src}/../../async-sender/build/libs/async-sender-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/proxy-rhel.ini %{buildroot}/etc/xroad/conf.d/proxy.ini
 cp -p %{src}/../default-configuration/proxy-ui.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{src}/../default-configuration/proxy-logback.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{src}/../default-configuration/proxy-ui-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{src}/../default-configuration/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{src}/../default-configuration/async-sender-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{src}/../default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{src}/debian/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
 cp -p %{src}/debian/trusty/proxy_restore_db.sh %{buildroot}/usr/share/xroad/scripts/restore_db.sh
-cp -p %{src}/../../securityserver-LICENSE.txt %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.txt
+cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
-ln -s /usr/share/xroad/jlib/async-sender-1.0.jar %{buildroot}/usr/share/xroad/jlib/async-sender.jar
-ln -s /etc/xroad/conf.d/proxy-ui-logback.xml %{buildroot}/etc/xroad/conf.d/jetty-ui-logback.xml
 ln -s /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/jetty-logback-context-name.xml
 ln -s /usr/share/xroad/bin/xroad-add-admin-user.sh %{buildroot}/usr/bin/xroad-add-admin-user
 
@@ -78,16 +73,11 @@ rm -rf %{buildroot}
 
 %files
 %defattr(-,xroad,xroad,-)
-%config /etc/xroad/services/confclient.conf
 %config /etc/xroad/services/proxy.conf
-%config /etc/xroad/services/async-sender.conf
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/proxy-ui.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
-%config /etc/xroad/conf.d/proxy-ui-logback.xml
-%config /etc/xroad/conf.d/async-sender-logback.xml
 %config /etc/xroad/conf.d/jetty-logback-context-name.xml
-%config /etc/xroad/conf.d/jetty-ui-logback.xml
 %config /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml
 %config /etc/xroad/jetty/clientproxy.xml
 %config /etc/xroad/jetty/contexts-admin/proxy-ui.xml
@@ -96,8 +86,6 @@ rm -rf %{buildroot}
 %config(noreplace) /etc/pam.d/xroad
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
-%attr(644,root,root) %{_unitdir}/xroad-async.service
-%attr(644,root,root) %{_unitdir}/xroad-confclient.service
 
 %config %attr(644,root,root) /etc/logrotate.d/xroad-proxy
 %config %attr(644,root,root) /etc/rsyslog.d/40-xroad.conf
@@ -105,25 +93,24 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/sudoers.d/xroad-proxy
 
 %attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-proxy
-%attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-async
-%attr(540,xroad,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-setup.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh
 %attr(544,root,xroad) /usr/share/xroad/bin/xroad-add-admin-user.sh
 
 /usr/bin/xroad-add-admin-user
-/usr/share/xroad/db/liquibase
-/usr/share/xroad/db/liquibase.jar
+/usr/lib/systemd/system/xroad-async.service
 /usr/share/xroad/db/serverconf-changelog.xml
 /usr/share/xroad/db/serverconf
-/usr/share/xroad/jlib/async-sender*.jar
+/usr/share/xroad/db/backup_and_remove_non-member_permissions.sh
 /usr/share/xroad/jlib/proxy*.jar
 /usr/share/xroad/jlib/webapps/proxy-ui.war
 /usr/share/xroad/scripts/backup_db.sh
 /usr/share/xroad/scripts/restore_db.sh
 /usr/share/xroad/scripts/verify_internal_configuration.sh
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.txt
+/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh
+/usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
+%doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 
 %pre
@@ -136,11 +123,14 @@ if [ $1 -gt 1 ] ; then
     if [ -x /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh ]; then
         /usr/share/xroad/scripts/xroad-proxy-port-redirect.sh disable
     fi
+
+    mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+    rpm -q xroad-proxy --queryformat="%%{version}" &> %{_localstatedir}/lib/rpm-state/%{name}/prev-version
+
 fi
 
 %post
 %systemd_post xroad-proxy.service
-%systemd_post xroad-async.service
 %systemd_post xroad-confclient.service
 
 if [ $1 -eq 1 ] ; then
@@ -161,16 +151,23 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
-sh /usr/share/xroad/scripts/xroad-proxy-setup.sh
+sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
+
+if [ $1 -gt 1 ]; then
+    # upgrade
+    if grep -q "^6\.7\." %{_localstatedir}/lib/rpm-state/%{name}/prev-version; then
+        # 6.7.x -> 6.8 specific migration
+        bash /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh >>/var/log/xroad/proxy-install.log
+    fi
+    rm -rf %{_localstatedir}/lib/rpm-state/%{name}
+fi
 
 %preun
 %systemd_preun xroad-proxy.service
-%systemd_preun xroad-async.service
 %systemd_preun xroad-confclient.service
 
 %postun
 %systemd_postun_with_restart xroad-proxy.service
-%systemd_postun_with_restart xroad-async.service
 %systemd_postun_with_restart xroad-confclient.service
 %systemd_postun_with_restart xroad-jetty9.service
 

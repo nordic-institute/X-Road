@@ -43,10 +43,13 @@ import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.contentTypeWithCharset;
 import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
 
@@ -55,8 +58,7 @@ import static org.eclipse.jetty.http.MimeTypes.TEXT_XML;
  */
 public final class SoapUtils {
 
-    // HTTP header field for async messages that are sent from async-sender
-    public static final String X_IGNORE_ASYNC = "X-Ignore-Async";
+    private static final String[] ALLOWED_MIMETYPES = {TEXT_XML, XOP_XML};
 
     public static final String PREFIX_SOAPENV = "SOAP-ENV";
 
@@ -112,6 +114,14 @@ public final class SoapUtils {
     }
 
     /**
+     * @return ID of the digest algorithm used to calculate SOAP message hashes
+     */
+    public static String getHashAlgoId() {
+        return CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+    }
+
+    /**
+
      * Returns namespace URIs from a SOAPMessage.
      * @param soap soap message from which to retrieve namespace URIs
      * @return a List of namespace URI Strings
@@ -271,7 +281,7 @@ public final class SoapUtils {
 
         byte[] xml = getBytes(soap);
         return (SoapMessageImpl) new SoapParserImpl().parseMessage(xml, soap,
-                charset);
+                charset, request.getContentType());
     }
 
     private static String getServiceCode(
@@ -390,17 +400,6 @@ public final class SoapUtils {
     }
 
     /**
-     * If the given mime type is not text/xml, throws an error.
-     * @param mimeType the mimeType that's expected to be text/xml
-     */
-    public static void validateMimeType(String mimeType) {
-        if (!TEXT_XML.equalsIgnoreCase(mimeType)) {
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Invalid content type: %s", mimeType);
-        }
-    }
-
-    /**
      * Creates a new SOAPMessage object.
      * @param is input stream containing the SOAP object data
      * @param charset the expected charset of the input stream
@@ -426,4 +425,10 @@ public final class SoapUtils {
         }
     }
 
+    static void validateMimeType(String mimeType) {
+        if (!ArrayUtils.contains(ALLOWED_MIMETYPES, mimeType.toLowerCase())) {
+            throw new CodedException(X_INVALID_CONTENT_TYPE,
+                    "Invalid content type: %s", mimeType);
+        }
+    }
 }

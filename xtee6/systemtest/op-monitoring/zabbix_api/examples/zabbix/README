@@ -1,0 +1,58 @@
+This directory contains sample scripts and configuration for setting up Zabbix
+hosts, applications and items for monitoring health data about X-Road services,
+made available by the Operational Monitoring Daemon over JMX.
+
+The data have been generated and the scripts have been tested with Zabbix 3.0.4.
+
+Please see the headers of the scripts for information about dependencies,
+prerequisites and further documentation.
+
+Scripts
+-------
+
+import_sample_host.py:
+  A script for either importing a host based on
+  'sample_operational_monitoring_host.json' using the Zabbix API, or for
+  extracting JSON data about the host from that file, suitable for importing
+  with the Zabbix UI manually.
+
+  The target Zabbix API URL used for importing the sample host must be the full
+  URL of the Zabbix API endpoint of the instance such as
+  http://example.com/zabbix/api_jsonrpc.php
+
+configure_hosts.py:
+  A script for importing bulk applications and items using the file
+  'zabbix_hosts_and_services.json', which should be created based on
+  'zabbix_hosts_and_services.json.sample'.
+  The full set of health data metrics available per service are configured as
+  items under the respective application.
+
+Sample data
+-----------
+
+sample_operational_monitoring_host.json
+  Configuration of a single host with a couple of applications (per service)
+  and a set of items corresponding to the health data available from the
+  Operational Monitoring Daemon. The host can be used as a template to be
+  adjusted and used for cloning other hosts.
+  This is raw JSON data as exported from Zabbix using its API.
+
+zabbix_hosts_and_services.json.sample: 
+  Sample bulk configuration of Zabbix applications (one per X-Road service),
+  for configuring one or more Zabbixes that monitor one or more Operational
+  Monitoring Daemons.
+  To be used as a base for the input to 'configure_hosts.py'.
+
+  The target Zabbix API URL for each host must be the full URL of the Zabbix
+  API endpoint of the instance such as http://example.com/zabbix/api_jsonrpc.php
+
+Obtaining the Authentication Key for Zabbix API
+-----------------------------------------------
+
+Edit the file zabbix_api_login.json.sample with the username and password
+applicable to the given Zabbix instance, and obtain the authentication key using
+curl, for instance:
+
+curl -H "Content-Type: application/json" --data @zabbix_api_login.json.sample \
+  http://example.com/zabbix/api_jsonrpc.php
+

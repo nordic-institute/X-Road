@@ -22,25 +22,43 @@
  */
 package ee.ria.xroad.common.message;
 
+import javax.xml.soap.SOAPMessage;
+
+import lombok.SneakyThrows;
+
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import javax.xml.soap.SOAPMessage;
-
 import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
-import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 
 /**
- * This class represents the XROAD SOAP message.
+ * This class represents the X-Road SOAP message.
  */
 public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
 
+    private byte[] hash;
+
     SoapMessageImpl(byte[] rawXml, String charset, SoapHeader header,
-                    SOAPMessage soap, String serviceName) throws Exception {
+            SOAPMessage soap, String serviceName, boolean isRpcEncoded,
+            String originalContentType) throws Exception {
         super(rawXml, charset, header, soap, isResponseMessage(serviceName),
-                isRpcMessage(soap));
+                isRpcEncoded, originalContentType);
+    }
+
+    /**
+     * Lazy method to retrieve the hash of the message, will calculate it
+     * on the first invocation of the method.
+     * @return hash of the message
+     */
+    @SneakyThrows
+    public byte[] getHash() {
+        if (hash == null) {
+            hash = calculateDigest(SoapUtils.getHashAlgoId(), getBytes());
+        }
+        return hash;
     }
 
     /**
@@ -78,16 +96,6 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
         return getHeader().getSecurityServer();
     }
 
-
-    /**
-     * True if the SOAP message is marked as asynchronous.
-     *
-     * @return boolean
-     */
-    public boolean isAsync() {
-        return getHeader().isAsync();
-    }
-
     /**
      * Gets the query ID from the SOAP message header.
      *
@@ -104,6 +112,30 @@ public class SoapMessageImpl extends AbstractSoapMessage<SoapHeader> {
      */
     public String getUserId() {
         return getHeader().getUserId();
+    }
+
+    /**
+     * Gets the represented party from the SOAP message header.
+     * @return RepresentedParty
+     */
+    public RepresentedParty getRepresentedParty() {
+        return getHeader().getRepresentedParty();
+    }
+
+    /**
+     * Gets the issue from the SOAP message header.
+     * @return String
+     */
+    public String getIssue() {
+        return getHeader().getIssue();
+    }
+
+    /**
+     * Gets the protocol version from the SOAP message header.
+     * @return String
+     */
+    public String getProtocolVersion() {
+        return getHeader().getProtocolVersion().getVersion();
     }
 
 }

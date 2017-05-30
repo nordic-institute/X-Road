@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.cert.ocsp.OCSPResp;
@@ -35,10 +36,10 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
 import ee.ria.xroad.common.message.Soap;
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -74,7 +75,7 @@ public class ProxyMessageEncoderTest {
                 new SignatureData(IOUtils.toString(getQuery("signature.xml")),
                         null, null);
 
-        encoder.soap(message);
+        encoder.soap(message, new HashMap<String, String>());
         encoder.signature(signature);
         encoder.close();
 
@@ -100,7 +101,7 @@ public class ProxyMessageEncoderTest {
         OCSPResp ocsp = getOcsp("src/test/queries/test.ocsp");
 
         encoder.ocspResponse(ocsp);
-        encoder.soap(message);
+        encoder.soap(message, new HashMap<String, String>());
         encoder.signature(signature);
         encoder.close();
 
@@ -127,7 +128,7 @@ public class ProxyMessageEncoderTest {
         InputStream attachment = new ByteArrayInputStream(
                 "Hello, world!".getBytes(StandardCharsets.UTF_8));
 
-        encoder.soap(message);
+        encoder.soap(message, new HashMap<String, String>());
         encoder.attachment(MimeTypes.TEXT_PLAIN, attachment, null);
         encoder.signature(signature);
         encoder.close();
@@ -165,7 +166,7 @@ public class ProxyMessageEncoderTest {
         SoapMessageImpl message = createMessage(getQuery("getstate.query"));
         SoapFault fault = createFault(getQuery("fault.query"));
 
-        encoder.soap(message);
+        encoder.soap(message, new HashMap<String, String>());
         encoder.fault(fault);
         encoder.close();
 
@@ -177,7 +178,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private ProxyMessage decode() throws Exception {
-        ProxyMessage proxyMessage = new ProxyMessage();
+        ProxyMessage proxyMessage = new ProxyMessage("text/xml");
         ProxyMessageDecoder decoder =
                 new ProxyMessageDecoder(proxyMessage, encoder.getContentType(),
                         getHashAlgoId());
@@ -187,7 +188,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapMessageImpl createMessage(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapMessageImpl) {
             return (SoapMessageImpl) soap;
         }
@@ -197,7 +198,7 @@ public class ProxyMessageEncoderTest {
     }
 
     private static SoapFault createFault(InputStream is) throws Exception {
-        Soap soap = new SoapParserImpl().parse(is);
+        Soap soap = new SaxSoapParserImpl().parse(MimeTypes.TEXT_XML_UTF_8, is);
         if (soap instanceof SoapFault) {
             return (SoapFault) soap;
         }

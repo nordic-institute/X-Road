@@ -28,11 +28,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -41,6 +42,7 @@ import ee.ria.xroad.common.util.StartStop;
 import ee.ria.xroad.proxy.clientproxy.ClientProxy;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 
@@ -74,6 +76,13 @@ public final class ProxyTestSuite {
     public static void main(String[] args) throws Exception {
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, "8080");
         System.setProperty(SystemProperties.PROXY_CLIENT_HTTPS_PORT, "8443");
+        System.setProperty(
+                SystemProperties.JETTY_CLIENTPROXY_CONFIGURATION_FILE,
+                "src/test/clientproxy.xml");
+        System.setProperty(
+                SystemProperties.JETTY_SERVERPROXY_CONFIGURATION_FILE,
+                "src/test/serverproxy.xml");
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/");
 
         setUp();
 
@@ -94,6 +103,7 @@ public final class ProxyTestSuite {
 
         try {
             MessageLog.init(actorSystem, jobManager);
+            OpMonitoring.init(actorSystem);
 
             runNormalTestCases(normalTestCases);
             runSslTestCases(sslTestCases);
@@ -128,7 +138,6 @@ public final class ProxyTestSuite {
         ServerConf.reload(new TestServerConf());
         GlobalConf.reload(new TestGlobalConf());
 
-        System.setProperty(SystemProperties.ASYNC_DB_PATH, "build/asyncdb");
         System.setProperty(SystemProperties.PROXY_CLIENT_TIMEOUT, "15000");
         System.setProperty(
                 SystemProperties.DATABASE_PROPERTIES,

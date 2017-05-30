@@ -26,9 +26,10 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.channels.ServerSocketChannel;
 
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.io.nio.SelectChannelEndPoint;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class implements a connector that prevents DoS attacks.
@@ -79,7 +80,7 @@ public class AntiDosConnector extends SelectChannelConnector {
         try {
             delegate.accept(server);
         } catch (Exception err) {
-            log.error("Error accepting connection:", err);
+            log.error("Error accepting connection", err);
             server.close();
         }
     }

@@ -23,22 +23,22 @@
 
 require 'test_helper'
 
-java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidator
+java_import Java::ee.ria.xroad.common.conf.globalconf.SharedParametersSchemaValidatorV2
 
 class SharedParametersGeneratorTest < ActiveSupport::TestCase
 
   # Purpose of this test is to exercise all the logic of
-  # SharedParametersGenerator and check it both via Schema validation as well
+  # SharedParametersGeneratorV2 and check it both via Schema validation as well
   # as visually. Database fixtures are chosen accordingly.
   test "Should generate shared parameters" do
     # Given
-    generator = SharedParametersGenerator.new()
+    generator = SharedParametersGeneratorV2.new()
 
     # When
     xml = generator.generate()
     puts("Generated shared parameters XML:\n#{xml}")
 
     # Then
-    SharedParametersSchemaValidator.validate(xml)
+    SharedParametersSchemaValidatorV2.validate(xml)
   end
 end

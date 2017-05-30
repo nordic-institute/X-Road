@@ -22,7 +22,27 @@
  */
 package ee.ria.xroad.common.signature;
 
-import akka.actor.*;
+import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import org.bouncycastle.operator.OperatorCreationException;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import akka.actor.UntypedActorWithStash;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
 import ee.ria.xroad.common.CodedException;
@@ -33,18 +53,7 @@ import ee.ria.xroad.signer.protocol.message.SignResponse;
 import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.operator.OperatorCreationException;
 import scala.concurrent.Await;
-
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * This class handles batch signing. Batch signatures are created always, if
@@ -281,16 +290,18 @@ public class BatchSigner extends UntypedActor {
         }
 
         private boolean isWorkerBusy() {
-            if (workerBusy) {
-                if (System.currentTimeMillis() - signStartTime
-                        >= DEFAULT_TIMEOUT.duration().length()) {
-                    workerBusy = false;
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Signature creation timed out");
-                }
+            if (isSignatureCreationTimedOut()) {
+                workerBusy = false;
+                throw new CodedException(X_INTERNAL_ERROR,
+                        "Signature creation timed out");
             }
 
             return workerBusy;
+        }
+
+        private boolean isSignatureCreationTimedOut() {
+            return workerBusy && System.currentTimeMillis() - signStartTime
+                    >= DEFAULT_TIMEOUT.duration().length();
         }
 
         private void doCalculateSignature(String keyId,

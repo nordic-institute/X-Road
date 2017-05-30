@@ -21,14 +21,35 @@
 # THE SOFTWARE.
 #
 
+require 'base64'
+
 class BackupController < BaseBackupController
 
+  BACKUP_SCRIPT_NAME = "backup_xroad_center_configuration.sh"
+  RESTORE_SCRIPT_NAME = "restore_xroad_center_configuration.sh"
+
   skip_around_filter :wrap_in_transaction, :only => [:restore]
-  skip_before_filter :check_conf, :read_server_id, :only => [:restore]
+  skip_before_filter :check_conf, :only => [:restore]
 
   upload_callbacks({
     :upload_new => "XROAD_BACKUP.uploadCallback"
   })
+
+  def backup_script_name
+    return BACKUP_SCRIPT_NAME
+  end
+
+  def restore_script_name
+    return RESTORE_SCRIPT_NAME
+  end
+
+  def backup_script_options
+    return backup_restore_script_options
+  end
+
+  def restore_script_options
+    return backup_restore_script_options
+  end
 
   private
 
@@ -42,4 +63,20 @@ class BackupController < BaseBackupController
 
   def after_restore_success
   end
+
+  def backup_restore_script_options
+    script_options = []
+    wrap_in_transaction do
+      # Send input in base64 because we have a problem with passing parameters
+      # using spaces.
+      script_options << "-b"
+      script_options << "-i" <<
+          "#{Base64.strict_encode64(SystemParameter.instance_identifier)}"
+      if CommonSql.ha_configured?
+        script_options << "-n" << "#{Base64.strict_encode64(CommonSql.ha_node_name)}"
+      end
+    end
+    return script_options
+  end
+
 end

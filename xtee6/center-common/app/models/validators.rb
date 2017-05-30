@@ -25,7 +25,7 @@
 module Validators
   STRING_MAX_LENGTH = 255
 
-  class MaxlengthValidator < ActiveModel::Validator 
+  class MaxlengthValidator < ActiveModel::Validator
     def validate(record)
       record.class.columns.each do |each|
         name = each.name.to_sym()

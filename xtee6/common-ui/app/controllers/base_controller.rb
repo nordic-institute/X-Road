@@ -56,6 +56,16 @@ class BaseController < ActionController::Base
     attr_reader :code, :text
   end
 
+  class ExceptionWithOutput < StandardError
+    attr_reader :output
+
+    def initialize(message, output = [])
+      super(message)
+
+      @output = output
+    end
+  end
+
   rescue_from Exception, :with => :render_error
   rescue_from Warning, :with => :render_warning
   rescue_from ValidationError, :with => :render_validation_error
@@ -107,7 +117,7 @@ class BaseController < ActionController::Base
 
     token.tokenInfo.each do |key, val|
       if (key == "Min PIN length" && pin.size < val.to_i) ||
-          (key == "Max PIN length" && pin.size > val.to_i)
+          (key == "Max PIN length" && val.to_i >= 0 && pin.size > val.to_i)
         raise t("activate_token.pin_format_incorrect")
       end
     end
@@ -283,14 +293,14 @@ class BaseController < ActionController::Base
   def render_error_response(exception_message, exception = nil)
     execute_after_rollback_actions
 
-    error(get_full_error_message(exception_message))
+    error(get_full_error_message(exception_message, exception))
 
     # in case of error, only notices from :notice! are rendered
     flash.delete(:notice)
 
     if request.content_type == "multipart/form-data"
       render_upload_callback(false, {
-        :stderr => (exception.stderr if exception.respond_to?(:stderr))
+        :stderr => (exception.output if exception.respond_to?(:output))
       })
       return
     end
@@ -301,7 +311,7 @@ class BaseController < ActionController::Base
       render :json => {
         :messages => flash.discard,
         :data => {
-          :stderr => (exception.stderr if exception.respond_to?(:stderr))
+          :stderr => (exception.output if exception.respond_to?(:output))
         }
       }, :status => 500
     else
@@ -310,7 +320,11 @@ class BaseController < ActionController::Base
     end
   end
 
-  def get_full_error_message(exception_message)
+  def get_full_error_message(exception_message, exception)
+    if exception && exception.is_a?(ValidationError)
+      return exception_message
+    end
+
     controller_name = params[:controller]
     action_name = params[:action]
 

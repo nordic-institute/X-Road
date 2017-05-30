@@ -4,13 +4,13 @@
 usage()
 {
 cat << EOF
-usage: $0 -n intenal -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p] [-c]
+usage: $0 -n <basename> -s "<certificate DN>" [-a "<subjectAltName>"|-f] [-d <path>] [-p] [-c]
 
 generate ssl certificate.
 
 OPTIONS:
    -h      Show this message
-   -n      basename, like 'internal' 
+   -n      basename, like 'internal' or 'nginx'
    -d      working/output directory. default is /etc/xroad/ssl
    -f      fill subjectAltName automatically from hostname and IP addresses
    -S      fill Subject with /CN=`hostname -f` value
@@ -36,42 +36,42 @@ while getopts “hpd:fn:s:Sa:c:” OPTION
 do
     case $OPTION in
       h)
-	usage
-	exit 1
-	;;
+    usage
+    exit 1
+    ;;
      n)
-	NAME=$OPTARG
-	;;
+    NAME=$OPTARG
+    ;;
      f)
-	FILL=1
+    FILL=1
         ;;
      p)
-	P12=1
+    P12=1
         ;;
      d)
-	DIR=$OPTARG
+    DIR=$OPTARG
         ;;
      s)
-	SUBJECT=$OPTARG
-	;;
+    SUBJECT=$OPTARG
+    ;;
      S)
-	SUBJECT="/CN=`hostname -f`"
-	;;
+    SUBJECT="/CN=`hostname -f`"
+    ;;
      a)
-	ALT=$OPTARG
-	;;
+    ALT=$OPTARG
+    ;;
      c)
-	CONF_DIR=$OPTARG
-	;;
+    CONF_DIR=$OPTARG
+    ;;
      :)
-	echo "Option -$OPTARG requires an argument."
-	usage
-	exit 1
-	;;
+    echo "Option -$OPTARG requires an argument."
+    usage
+    exit 1
+    ;;
      ?)
-	usage
-	exit
-	;;
+    usage
+    exit
+    ;;
    esac
 done
 

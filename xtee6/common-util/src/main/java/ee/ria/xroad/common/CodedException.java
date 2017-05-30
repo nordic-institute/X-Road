@@ -25,10 +25,9 @@ package ee.ria.xroad.common;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Exception thrown by proxy business logic. Contains SOAP fault information
@@ -63,7 +62,7 @@ public class CodedException extends RuntimeException implements Serializable {
      */
     public CodedException(String faultCode) {
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
     }
 
     /**
@@ -75,7 +74,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(faultMessage);
 
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
         faultString = faultMessage;
     }
 
@@ -105,7 +104,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(String.format(format, args), cause);
 
         this.faultCode = faultCode;
-        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultDetail = String.valueOf(UUID.randomUUID());
         faultString = String.format(format, args);
 
         setArguments(args);
@@ -122,7 +121,7 @@ public class CodedException extends RuntimeException implements Serializable {
         super(cause);
 
         this.faultCode = faultCode;
-        this.faultDetail = ExceptionUtils.getStackTrace(cause);
+        this.faultDetail = String.valueOf(UUID.randomUUID());
         this.faultString = cause.getMessage();
     }
 
@@ -134,12 +133,13 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param faultDetail the details
      * @return new proxy exception
      */
-    public static CodedException fromFault(QName faultCode, String faultString,
-                                           String faultActor, String faultDetail) {
-        CodedException ret = new Fault(faultCode, faultString);
+    public static CodedException fromFault(String faultCode, String faultString,
+                                           String faultActor, String faultDetail, String faultXml) {
+        Fault ret = new Fault(faultCode, faultString);
 
         ret.faultActor = faultActor;
         ret.faultDetail = faultDetail;
+        ret.faultXml = faultXml;
 
         return ret;
     }
@@ -176,6 +176,27 @@ public class CodedException extends RuntimeException implements Serializable {
 
         return ret;
     }
+
+    /**
+     * Creates new exception with translation code for i18n, arguments and the {@link Throwable} that
+     * caused this exception.
+     * @param faultCode the fault code
+     * @param cause the actual causing {@link Throwable}
+     * @param trCode the translation code
+     * @param faultMessage the message
+     * @param args optional arguments
+     * @return CodedException
+     */
+    public static CodedException tr(String faultCode, Throwable cause, String trCode,
+                                    String faultMessage, Object... args) {
+
+        CodedException ret = new CodedException(faultCode, cause, faultMessage, args);
+
+        ret.translationCode = trCode;
+
+        return ret;
+    }
+
 
     @Override
     public String getMessage() {
@@ -219,9 +240,6 @@ public class CodedException extends RuntimeException implements Serializable {
         }
     }
 
-    public QName getFaultCodeAsQName() {
-        return new QName(faultCode);
-    }
 
     /**
      * Encapsulates error message read from SOAP fault.
@@ -231,20 +249,15 @@ public class CodedException extends RuntimeException implements Serializable {
     public static class Fault extends CodedException implements Serializable {
 
         @Getter
-        private final String namespaceUri;
+        private String faultXml;
+
         /**
          * Creates new fault.
          * @param faultCode the code
          * @param faultString the details
          */
-        public Fault(QName faultCode, String faultString) {
-            super(faultCode.getLocalPart(), faultString);
-            this.namespaceUri = faultCode.getNamespaceURI();
-        }
-
-        @Override
-        public QName getFaultCodeAsQName() {
-            return new QName(namespaceUri, getFaultCode());
+        public Fault(String faultCode, String faultString) {
+            super(faultCode, faultString);
         }
     }
 }

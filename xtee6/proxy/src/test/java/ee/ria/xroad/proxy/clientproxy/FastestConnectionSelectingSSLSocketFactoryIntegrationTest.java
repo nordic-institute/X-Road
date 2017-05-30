@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
@@ -31,7 +34,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -50,9 +52,7 @@ import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
 import ee.ria.xroad.proxy.conf.AuthKeyManager;
-
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Fastest connection selecting SSL socket factory test program.

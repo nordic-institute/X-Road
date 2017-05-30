@@ -22,6 +22,23 @@
  */
 package ee.ria.xroad.common.signature;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
@@ -31,20 +48,10 @@ import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
 import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.MessageFileNames;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.cert.X509Certificate;
-import java.util.*;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 
 /**
  * Tests the signature verifier.
@@ -70,7 +77,7 @@ public class SignatureVerifierTest {
     @Before
     public void setUp() {
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common-util/src/test/resources/globalconf_good");
+                "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
         GlobalConf.reload(new TestGlobalConfImpl(false) {
@@ -89,8 +96,9 @@ public class SignatureVerifierTest {
     @Test
     public void verifyValidSignature() throws Exception {
         List<MessagePart> hashes = new ArrayList<>();
+        byte[] messageBytes = fileToBytes("message-0.xml");
         hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                fileToBytes("message-0.xml")));
+                calculateDigest(SHA512_ID, messageBytes), messageBytes));
 
         SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
         verifier.addParts(hashes);
@@ -286,7 +294,7 @@ public class SignatureVerifierTest {
         thrown.expectError(X_INVALID_SIGNATURE_VALUE);
         List<MessagePart> hashes = new ArrayList<>();
         hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                hash("foo")));
+                hash("foo"), hash("foo")));
 
         SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
         verifier.addParts(hashes);

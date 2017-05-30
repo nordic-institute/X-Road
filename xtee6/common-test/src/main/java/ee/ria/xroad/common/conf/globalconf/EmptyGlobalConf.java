@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.identifier.*;
+
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -29,14 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
 
 /**
  * Implementation of GlobalConfProvider that does nothing but
@@ -50,6 +47,12 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public List<String> getOcspResponderAddresses(X509Certificate org)
+            throws Exception {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<String> getOcspResponderAddressesForCaCertificate(X509Certificate caCert)
             throws Exception {
         return Collections.emptyList();
     }
@@ -117,11 +120,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
-    public String getProviderAddress(X509Certificate authCert) {
-        return null;
-    }
-
-    @Override
     public Collection<String> getProviderAddress(ClientId serviceProvider) {
         return null;
     }
@@ -141,12 +139,6 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public Set<SecurityCategoryId> getProvidedCategories(
             X509Certificate authCert) {
         return Collections.emptySet();
-    }
-
-    @Override
-    public ClientId getSubjectName(String instanceIdentifier,
-            X509Certificate cert) throws Exception {
-        return null;
     }
 
     @Override
@@ -253,6 +245,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public ClientId getServerOwner(SecurityServerId serverId) {
+        return null;
+    }
+
+    @Override
     public boolean isValid() {
         return true;
     }
@@ -261,5 +258,19 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     public List<SecurityServerId> getSecurityServers(
             String... instanceIdentifiers) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public AuthCertificateProfileInfo getAuthCertificateProfileInfo(
+            AuthCertificateProfileInfo.Parameters parameters,
+            X509Certificate cert) throws Exception {
+        return null;
+    }
+
+    @Override
+    public SignCertificateProfileInfo getSignCertificateProfileInfo(
+            SignCertificateProfileInfo.Parameters parametrers,
+            X509Certificate cert) throws Exception {
+        return null;
     }
 }
