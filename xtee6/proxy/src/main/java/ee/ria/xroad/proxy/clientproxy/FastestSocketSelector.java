@@ -137,6 +137,7 @@ class FastestSocketSelector {
             channel.configureBlocking(false);
             try {
                 channel.register(selector, SelectionKey.OP_CONNECT, target);
+
                 if (channel.connect(new InetSocketAddress(target.getHost(),
                         target.getPort()))) { // connected immediately
                     channel.configureBlocking(true);

@@ -22,20 +22,19 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapFault;
+import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.SoapFault;
 
 /**
  * Convenience base class for proxy HTTP handlers.
@@ -50,7 +49,7 @@ public abstract class HandlerBase extends AbstractHandler {
      */
     public static void sendErrorResponse(HttpServletResponse response,
             CodedException ex) throws IOException {
-        sendErrorResponse(response, ex.getFaultCode(), ex.getFaultString(),
+        sendErrorResponse(response, ex.getFaultCodeAsQName(), ex.getFaultString(),
                 ex.getFaultActor(), ex.getFaultDetail());
     }
 
@@ -64,8 +63,8 @@ public abstract class HandlerBase extends AbstractHandler {
     * @throws IOException if an I/O error occurred
     */
     public static void sendErrorResponse(HttpServletResponse response,
-            String faultCode, String faultString, String faultActor,
-            String faultDetail) throws IOException {
+                                         QName faultCode, String faultString, String faultActor,
+                                         String faultDetail) throws IOException {
         String soapMessageXml = SoapFault.createFaultXml(
                 faultCode, faultString, faultActor,
                 faultDetail);

@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import ee.ria.xroad.common.SystemProperties;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -44,6 +45,7 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +75,7 @@ public abstract class AbstractHttpSender implements Closeable {
     protected final HttpContext context = new BasicHttpContext();
 
     protected HttpRequestBase request;
+    protected HttpEntity responseEntity;
 
     protected int timeout = DEFAULT_TIMEOUT;
 
@@ -129,8 +132,7 @@ public abstract class AbstractHttpSender implements Closeable {
         checkResponseStatus(response);
 
         responseHeaders = getResponseHeaders(response);
-
-        HttpEntity responseEntity = getResponseEntity(response);
+        this.responseEntity = getResponseEntity(response);
         responseContentType = getResponseContentType(responseEntity,
                 this.request instanceof HttpGet);
 
@@ -169,8 +171,20 @@ public abstract class AbstractHttpSender implements Closeable {
 
     @Override
     public void close() {
-        if (request != null) {
-            request.releaseConnection();
+        if (SystemProperties.isUseHttpSenderAbortiveClose()) {
+            if (request != null) {
+                request.releaseConnection();
+            }
+        } else {
+            try {
+                // consume and close the stream, returning the connection as reusable into the pool
+                EntityUtils.consume(responseEntity);
+            } catch (IOException e) {
+                // reading/closing the stream failed for whatever reason, the broken connection should be cleaned up by
+                // a pool monitor. Keep the contract set by releaseConnection and don't throw checked exceptions.
+                // Nothing really to be done here anyway.
+                LOG.warn("Closing response entity nicely failed", e);
+            }
         }
     }
 

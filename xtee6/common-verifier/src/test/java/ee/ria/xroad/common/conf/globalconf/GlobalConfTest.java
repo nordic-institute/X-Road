@@ -22,31 +22,23 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.*;
 import ee.ria.xroad.common.util.CryptoUtils;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
@@ -67,7 +59,7 @@ public class GlobalConfTest {
     public static void setUpBeforeClass() throws Exception {
         System.setProperty(SystemProperties.CONFIGURATION_PATH,
                         "../common-util/src/test/resources/globalconf_good");
-        GlobalConf.reload();
+        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectory(getConfigurationPath())));
     }
 
     /**

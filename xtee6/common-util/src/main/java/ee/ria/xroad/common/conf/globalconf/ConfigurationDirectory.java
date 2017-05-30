@@ -26,6 +26,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.ConfProvider;
 import ee.ria.xroad.common.util.AtomicSave;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
@@ -86,7 +87,8 @@ public class ConfigurationDirectory {
     private static final String METADATA_SUFFIX = ".metadata";
 
     @Getter
-    private final Path path;
+    @Setter
+    private Path path;
     private final boolean reloadIfChanged;
 
     private String instanceIdentifier;
@@ -231,7 +233,7 @@ public class ConfigurationDirectory {
      * @param consumer the function instance that should be applied to
      * @throws Exception if an error occurs
      */
-    public synchronized void  eachFile(final Consumer<Path> consumer)
+    protected synchronized void  eachFile(final Consumer<Path> consumer)
             throws Exception {
         Files.walkFileTree(path, new Walker(consumer));
     }
@@ -328,6 +330,14 @@ public class ConfigurationDirectory {
             throw new CodedException(X_OUTDATED_GLOBALCONF, "%s is too old",
                     fileName);
         }
+    }
+
+    /**
+     * Throws exception with error code ErrorCodes.X_OUTDATED_GLOBALCONF if any of the
+     * configuration files is too old.
+     */
+    public void verifyUpToDate() throws Exception {
+        this.eachFile(ConfigurationDirectory::verifyUpToDate);
     }
 
     /**

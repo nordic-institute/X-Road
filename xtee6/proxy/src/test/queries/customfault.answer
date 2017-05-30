@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:foo="http://example.org/foo">
+    <SOAP-ENV:Body>
+        <SOAP-ENV:Fault>
+            <faultcode>foo:FOOCODE</faultcode>
+            <faultstring>STRING</faultstring>
+            <faultactor>ACTOR</faultactor>
+            <detail>
+                <foo:detail>DETAIL</foo:detail>
+            </detail>
+        </SOAP-ENV:Fault>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

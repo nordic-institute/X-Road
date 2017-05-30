@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:foo="http://example.org/foo">
+    <soapenv:Body>
+        <soapenv:Fault>
+            <faultcode>soapenv:Server.CODE</faultcode>
+            <faultstring>STRING</faultstring>
+            <faultactor>ACTOR</faultactor>
+            <detail><foo:detail>DETAIL</foo:detail></detail>
+        </soapenv:Fault>
+    </soapenv:Body>
+</soapenv:Envelope>

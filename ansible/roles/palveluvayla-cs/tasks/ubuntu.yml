@@ -1,0 +1,34 @@
+---
+- name: install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - postgresql
+    - postgresql-contrib
+
+- name: debconf xroad-common
+  debconf:
+    name: xroad-common
+    question: "xroad-common/username"
+    vtype: "string"
+    value: "{{ xroad_ui_user }}"
+
+- name: debconf xroad-center
+  debconf:
+    name: xroad-center
+    question: "{{ item.question }}"
+    vtype: "string" # parametrize if you add a different type of question to item list
+    value: "{{ item.value }}"
+  with_items:
+    - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_eth0['ipv4']['address'] }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_eth0['ipv4']['address'] }},DNS:{{ inventory_hostname }}" }
+    - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/admin-subject",      value: "/CN={{ inventory_hostname }}" }
+    - { question: "xroad-common/username",           value: "{{ xroad_ui_user }}" }
+
+- name: install xroad central server
+  apt:
+    name: xroad-centralserver
+    state: present
+    force: yes

@@ -22,26 +22,20 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import ee.ria.xroad.proxy.serverproxy.IdleConnectionMonitorThread;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -49,6 +43,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -59,12 +54,18 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
-import ee.ria.xroad.common.db.HibernateUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
 
@@ -80,17 +81,13 @@ public class ClientProxy implements StartStop {
     private static final String CLIENTPROXY_HANDLERS =
             SystemProperties.PREFIX + "proxy.clientHandlers";
 
-    // Configuration parameters.
-    // TODO #2576 Make configurable in the future
-    private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
-    private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
-
     static final String CLIENT_HTTP_CONNECTOR_NAME = "ClientConnector";
     static final String CLIENT_HTTPS_CONNECTOR_NAME = "ClientSSLConnector";
 
     private Server server = new Server();
 
     private CloseableHttpClient client;
+    private IdleConnectionMonitorThread connectionMonitor;
 
     /**
      * Constructs and configures a new client proxy.
@@ -120,22 +117,6 @@ public class ClientProxy implements StartStop {
     private void createClient() throws Exception {
         log.trace("createClient()");
 
-        RegistryBuilder<ConnectionSocketFactory> sfr =
-                RegistryBuilder.<ConnectionSocketFactory>create();
-
-        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
-
-        if (SystemProperties.isSslEnabled()) {
-            sfr.register("https", createSSLSocketFactory());
-        }
-
-        PoolingHttpClientConnectionManager cm =
-                new PoolingHttpClientConnectionManager(sfr.build());
-        cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
-        cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
-        cm.setDefaultSocketConfig(
-                SocketConfig.custom().setTcpNoDelay(true).build());
-
         int timeout = SystemProperties.getClientProxyTimeout();
         RequestConfig.Builder rb = RequestConfig.custom();
         rb.setConnectTimeout(timeout);
@@ -143,13 +124,55 @@ public class ClientProxy implements StartStop {
         rb.setStaleConnectionCheckEnabled(false);
 
         HttpClientBuilder cb = HttpClients.custom();
-        cb.setConnectionManager(cm);
+
+        HttpClientConnectionManager connectionManager = getClientConnectionManager();
+        cb.setConnectionManager(connectionManager);
+
+        if (SystemProperties.isClientUseIdleConnectionMonitor()) {
+            connectionMonitor = new IdleConnectionMonitorThread(connectionManager);
+            connectionMonitor.setIntervalMilliseconds(
+                    SystemProperties.getClientProxyIdleConnectionMonitorInterval());
+            connectionMonitor.setConnectionIdleTimeMilliseconds(
+                    SystemProperties.getClientProxyIdleConnectionMonitorTimeout());
+        }
+
         cb.setDefaultRequestConfig(rb.build());
 
         // Disable request retry
         cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
 
         client = cb.build();
+    }
+
+    private HttpClientConnectionManager getClientConnectionManager() throws Exception {
+        RegistryBuilder<ConnectionSocketFactory> sfr =
+                RegistryBuilder.create();
+
+        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
+
+        if (SystemProperties.isSslEnabled()) {
+            sfr.register("https", createSSLSocketFactory());
+        }
+
+        SocketConfig.Builder sockBuilder =  SocketConfig.custom().setTcpNoDelay(true);
+        sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
+        sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientMaxIdleTime());
+        SocketConfig socketConfig = sockBuilder.build();
+
+        if (SystemProperties.isClientUseConnectionPoolForServerConnections()) {
+
+            PoolingHttpClientConnectionManager poolingManager =
+                    new PoolingHttpClientConnectionManager(sfr.build());
+            poolingManager.setMaxTotal(SystemProperties.getProxyPoolTotalMaxConnections());
+            poolingManager.setDefaultMaxPerRoute(SystemProperties.getProxyPoolDefaultMaxConnectionsPerRoute());
+            poolingManager.setDefaultSocketConfig(socketConfig);
+            return poolingManager;
+        } else {
+            BasicHttpClientConnectionManager basicManager =
+                    new BasicHttpClientConnectionManager(sfr.build());
+            basicManager.setSocketConfig(socketConfig);
+            return basicManager;
+        }
     }
 
     private static SSLConnectionSocketFactory createSSLSocketFactory()
@@ -181,8 +204,8 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
-        connector.setMaxIdleTime(0);
+        connector.setSoLingerTime(SystemProperties.getClientProxyConnectorSoLinger());
+        connector.setMaxIdleTime(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());
         server.setSendServerVersion(false);
@@ -216,8 +239,8 @@ public class ClientProxy implements StartStop {
         connector.setHost(hostname);
         connector.setPort(port);
 
-        connector.setSoLingerTime(0);
-        connector.setMaxIdleTime(0);
+        connector.setSoLingerTime(SystemProperties.getClientProxyConnectorSoLinger());
+        connector.setMaxIdleTime(SystemProperties.getClientProxyConnectorMaxIdleTime());
 
         connector.setAcceptors(Runtime.getRuntime().availableProcessors());
 
@@ -274,6 +297,9 @@ public class ClientProxy implements StartStop {
         log.trace("start()");
 
         server.start();
+        if (connectionMonitor != null) {
+            connectionMonitor.start();
+        }
     }
 
     @Override
@@ -288,6 +314,10 @@ public class ClientProxy implements StartStop {
     @Override
     public void stop() throws Exception {
         log.trace("stop()");
+
+        if (connectionMonitor != null) {
+            connectionMonitor.shutdown();
+        }
 
         client.close();
         server.stop();

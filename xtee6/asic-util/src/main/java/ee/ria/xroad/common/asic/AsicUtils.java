@@ -22,13 +22,12 @@
  */
 package ee.ria.xroad.common.asic;
 
+import ee.ria.xroad.common.CodedException;
+import lombok.SneakyThrows;
+
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.X509Certificate;
-
-import lombok.SneakyThrows;
-
-import ee.ria.xroad.common.CodedException;
 
 /**
  * Helper functions for ASIC container verification utilities.
@@ -102,5 +101,20 @@ public final class AsicUtils {
         }
 
         return cause.getMessage();
+    }
+
+    /**
+     * Truncates string to certain length
+     * @return string delimited to given length
+     */
+    public static String truncate(String s, int max) {
+        if (s == null) {
+            return null;
+        }
+        if (s.length() > max) {
+            return s.substring(0, max);
+        } else {
+            return s;
+        }
     }
 }

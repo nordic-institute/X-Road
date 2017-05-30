@@ -1,0 +1,20 @@
+---
+# This playbook initializes X-Road environment
+
+- hosts: cs-servers
+  become: yes
+  become_user: root
+  roles:
+    - palveluvayla-cs
+
+- hosts: cp-servers
+  become: yes
+  become_user: root
+  roles:
+    - palveluvayla-cp
+
+- hosts: ss-servers
+  become: yes
+  become_user: root
+  roles:
+    - palveluvayla-ss

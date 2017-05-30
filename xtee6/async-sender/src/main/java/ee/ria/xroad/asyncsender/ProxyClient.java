@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.asyncsender;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.StartStop;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.http.client.HttpClient;
@@ -42,14 +42,9 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapParserImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.StartStop;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 
@@ -126,8 +121,7 @@ final class ProxyClient implements StartStop {
     private static void checkForFaultResponse(Soap responseSoap) {
         if (responseSoap != null && responseSoap instanceof SoapFault) {
             SoapFault soapFault = (SoapFault) responseSoap;
-            LOG.error("checkForFaultResponse() - got fault message: {}",
-                    soapFault.getXml());
+            LOG.error("checkForFaultResponse() - got fault message: {}", soapFault.getCode());
             throw soapFault.toCodedException();
         }
     }

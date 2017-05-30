@@ -141,7 +141,6 @@ public class AsyncHttpSender extends AbstractHttpSender {
                     futureResponse.get(timeoutSec, TimeUnit.SECONDS);
             handleResponse(response);
         } catch (TimeoutException e) {
-            LOG.trace("Timeout: {}", e);
             cancelRequest();
             throw new CodedException(X_NETWORK_ERROR, "Connection timed out");
         } catch (Exception e) {
@@ -154,10 +153,7 @@ public class AsyncHttpSender extends AbstractHttpSender {
     }
 
     private void handleFailure(Exception cause) {
-        LOG.trace("handleFailure(): {}", cause);
-
         cancelRequest();
-
         throw translateException(cause);
     }
 

@@ -128,7 +128,9 @@ class ServerMessageProcessor extends MessageProcessorBase {
                 getHashAlgoId());
         servletResponse.setContentType(encoder.getContentType());
         servletResponse.addHeader(HEADER_HASH_ALGO_ID, getHashAlgoId());
-        servletResponse.addHeader("Connection", "close");
+        if (SystemProperties.isServerAddCloseHeaderToSSResponse()) {
+            servletResponse.addHeader("Connection", "close");
+        }
     }
 
     @Override
@@ -358,7 +360,6 @@ class ServerMessageProcessor extends MessageProcessorBase {
         try {
             uri = new URI(serviceAddress);
         } catch (URISyntaxException e) {
-            log.error("Malformed service address:{}", e);
             throw new CodedException(X_SERVICE_MALFORMED_URL,
                     "Malformed service address '%s': %s", serviceAddress,
                     e.getMessage());

@@ -1,3 +1,9 @@
+xroad-jetty9 (6.7.13-1) trusty; urgency=low
+
+  * Use jetty 9.3.11.v20160721
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 16 Sep 2016 13:43:59 +0300
+
 xroad-jetty9 (6.7.12-1) trusty; urgency=low
 
   * version bump

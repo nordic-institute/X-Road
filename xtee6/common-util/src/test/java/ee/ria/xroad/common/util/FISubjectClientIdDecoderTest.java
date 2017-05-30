@@ -155,18 +155,6 @@ public class FISubjectClientIdDecoderTest {
         assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
     }
 
-    /**
-     * Test that decoder fails if legacy format is missing a component
-     * @throws GeneralSecurityException when security exception occurs
-     * @throws IOException when I/O error occurs
-     * @throws OperatorCreationException when operator creation fails
-     */
-    @Test(expected = CodedException.class)
-    public void shouldFailIfComponentMissingLegacy() throws GeneralSecurityException, IOException,
-            OperatorCreationException {
-        final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=FI-TEST, CN=1234567-8", keyPair);
-        FISubjectClientIdDecoder.getSubjectClientId(cert);
-    }
 
     /**
      * Test that decoder fails if country code does not match
@@ -195,5 +183,24 @@ public class FISubjectClientIdDecoderTest {
                 pair.getPublic()
         );
         return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
+    }
+
+    /*
+    *
+    * Tests for stone age
+    *
+     */
+
+    /**
+     * Test that FI-DEV stone age decoding succeeds
+     * @throws GeneralSecurityException when security exception occurs
+     * @throws IOException when I/O error occurs
+     * @throws OperatorCreationException when operator creation fails
+     */
+    @Test
+    public void shouldDecodeClientIdStoneAge() throws GeneralSecurityException, IOException, OperatorCreationException {
+        final X509Certificate cert = generateSelfSignedCertificate("C=FI-DEV, O=GOV, CN=0245437-2", keyPair);
+        ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
+        assertEquals(ClientId.create("FI-DEV", "GOV", "0245437-2"), clientId);
     }
 }

@@ -102,7 +102,6 @@ public final class AuthTrustVerifier {
             ocspResponses = getOcspResponses(chain.getEndEntityCert(),
                     serviceProvider, chain.getAllCertsWithoutTrustedRoot());
         } catch (CodedException e) {
-            log.error("Coded exception: {}", e);
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }
 

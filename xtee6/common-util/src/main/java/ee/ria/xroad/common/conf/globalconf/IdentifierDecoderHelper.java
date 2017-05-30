@@ -50,16 +50,12 @@ final class IdentifierDecoderHelper {
         try {
             method = getMethodFromClassName(methodName, X509Certificate.class);
         } catch (ClassNotFoundException e) {
-            log.warn("Could not find identifier decoder: {}", e);
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not find identifier decoder: '%s'", methodName);
         } catch (NoSuchMethodException e) {
-            log.warn("Could not find identifier decoder method: {}", e);
             throw new CodedException(X_INTERNAL_ERROR,
                     "Could not find identifier decoder method: '%s'", methodName);
         } catch (Exception e) {
-            log.error("Could not get identifier decoder method '"
-                    + methodName + "'", e);
             throw new CodedException(X_INTERNAL_ERROR, e);
         }
 

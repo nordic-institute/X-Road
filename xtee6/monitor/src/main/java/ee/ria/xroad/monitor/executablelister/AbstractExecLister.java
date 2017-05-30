@@ -70,8 +70,7 @@ abstract class AbstractExecLister<T> {
 
             ArrayList<String> jmxRepresentation = new ArrayList<>();
             try (BufferedReader input = new BufferedReader(new StringReader(outputs.getOut()))) {
-                List<T> parsedData;
-                parsedData = parseData(input, jmxRepresentation);
+                ArrayList<T> parsedData = parseData(input, jmxRepresentation);
                 ListedData<T> data = new ListedData<T>();
                 data.setParsedData(parsedData);
                 data.setJmxData(jmxRepresentation);
@@ -103,9 +102,9 @@ abstract class AbstractExecLister<T> {
         return outputs;
     }
 
-    private List<T> parseData(BufferedReader input, ArrayList<String> jmxRepresentation) throws IOException {
+    private ArrayList<T> parseData(BufferedReader input, ArrayList<String> jmxRepresentation) throws IOException {
 
-        List<T> parsed = new ArrayList<T>();
+        ArrayList<T> parsed = new ArrayList<T>();
         Splitter splitter = getParsedDataSplitter();
         if (discardFirstDataLineFromParsed()) {
             String discardedHeaderLine = input.readLine();

@@ -85,8 +85,12 @@ abstract class AbstractClientProxyHandler extends HandlerBase {
                 success(processor, start);
             }
 
-            log.info("Request successfully handled ({} ms)",
+            if (log.isTraceEnabled()) {
+                log.info("Request successfully handled ({} ms)",
                     System.currentTimeMillis() - start);
+            } else {
+                log.info("Request successfully handled");
+            }
         } catch (CodedException.Fault | ClientException ex) {
             handled = true;
 

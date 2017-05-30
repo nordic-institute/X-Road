@@ -1,0 +1,10 @@
+.init
+certs/
+csr/
+index.txt
+index.txt.*
+newcerts/
+private/
+serial
+serial.old
+

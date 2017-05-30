@@ -99,7 +99,6 @@ public final class CertHelper {
         try {
             new CertChainVerifier(chain).verify(ocspResponses, new Date());
         } catch (CodedException e) {
-            log.warn("Cert cain verification exception: {}", e);
             // meaningful errors get SSL auth verification prefix
             throw e.withPrefix(X_SSL_AUTH_FAILED);
         }

@@ -1,5 +1,18 @@
 # Change Log
 
+## 6.7.13 - 2016-09-20
+- Fix restoring backup to a new server
+- Add OCSP diagnostics view showing OCSP responder status (admin gui)
+- Fix SOAP Faults only accepting SOAP-ENV namespace prefix
+- Fix out of memory error during messagelog archiving
+- Fix deadlock in timestamper
+- Performace improvements (Globalconf caching and OCSP response validation result caching)
+- OCSP response fetcher improvements
+- Fix security server leaks TCP connections
+- Fix long queryid breaks message archiving
+- Upgrade dependency versions
+- Bug fixes and minor enhancements
+
 ## 6.7.12 - 2016-04-25
 - Fixed security server not starting if xroad-addon-messagelog is not installed
 - Added connection timeouts to configuration client to prevent hanging problems

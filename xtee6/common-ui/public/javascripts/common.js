@@ -717,11 +717,18 @@ function _(str, params, escapeParams) {
 }
 
 function confirm(text, params, success) {
-    var title = _(text + "_title", {
+    confirm_unsafe(confirm_title(text), _(text,params), success);
+}
+
+function confirm_title(text) {
+    return _(text + "_title", {
         defaultValue: _("layouts.application.confirm_title")
     }, false);
+}
 
-    $("#confirm").html(_(text, params)).initDialog({
+/* creates a confirm dialog using title and body as-is. */
+function confirm_unsafe(title, body, success) {
+    $("#confirm").html(body).initDialog({
         title: title,
         autoOpen: true,
         modal: true,
@@ -729,15 +736,15 @@ function confirm(text, params, success) {
         minWidth: 500,
         buttons: [
             { text: _("common.confirm"),
-              id: "confirm",
-              click: function() {
-                  $(this).dialog("close");
-                  success();
-              }},
+                id: "confirm",
+                click: function() {
+                    $(this).dialog("close");
+                    success();
+                }},
             { text: _("common.cancel"),
-              click: function() {
-                  $(this).dialog("close");
-              }}
+                click: function() {
+                    $(this).dialog("close");
+                }}
         ]
     }).siblings(".ui-dialog-titlebar").css("min-width", 500);
 }

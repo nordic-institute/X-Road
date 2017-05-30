@@ -22,48 +22,50 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
+import ee.ria.xroad.common.identifier.*;
+import ee.ria.xroad.common.util.CertUtils;
+import ee.ria.xroad.common.util.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.*;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.CertUtils;
-import ee.ria.xroad.common.util.CryptoUtils;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
+/**
+ * Global configuration implementation
+ */
 @Slf4j
-class GlobalConfImpl implements GlobalConfProvider {
+public class GlobalConfImpl implements GlobalConfProvider {
 
     // Default value used when no configurations are available
     private static final int DEFAULT_OCSP_FRESHNESS = 60;
 
-    private final ConfigurationDirectory confDir;
+    private ConfigurationDirectory confDir;
 
     GlobalConfImpl(boolean reloadIfChanged) {
         try {
-            confDir = new ConfigurationDirectory(getConfigurationPath(),
-                    reloadIfChanged);
+            confDir = new CachingConfigurationDirectory(getConfigurationPath(),
+                reloadIfChanged);
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
+    }
+
+    public GlobalConfImpl(ConfigurationDirectory confDir) {
+        this.confDir = confDir;
     }
 
     // ------------------------------------------------------------------------
@@ -71,7 +73,7 @@ class GlobalConfImpl implements GlobalConfProvider {
     @Override
     public boolean isValid() {
         try {
-            confDir.eachFile(ConfigurationDirectory::verifyUpToDate);
+            confDir.verifyUpToDate();
             return true;
         } catch (Exception e) {
             log.warn("Global configuration is invalid: {}", e);
@@ -266,25 +268,27 @@ class GlobalConfImpl implements GlobalConfProvider {
     public List<String> getOcspResponderAddresses(X509Certificate member)
             throws Exception {
         List<String> responders = new ArrayList<>();
-
         for (SharedParameters p : getSharedParameters()) {
-            List<OcspInfoType> caOcspData = p.getCaCertsAndOcspData().get(
-                    getCaCert(null, member));
+            List<OcspInfoType> caOcspData = null;
+            X509Certificate caCert = null;
+            try {
+                caCert = getCaCert(null, member);
+                caOcspData = p.getCaCertsAndOcspData().get(caCert);
+            } catch (CodedException e) {
+                log.error("Unable to determine OCSP responders: {}", e);
+            }
             if (caOcspData == null) {
                 continue;
             }
-
             caOcspData.stream().map(OcspInfoType::getUrl)
                     .filter(StringUtils::isNotBlank)
                     .map(String::trim)
                     .forEach(responders::add);
         }
-
         String uri = CertUtils.getOcspResponderUriFromCert(member);
         if (uri != null) {
             responders.add(uri.trim());
         }
-
         return responders;
     }
 
@@ -555,6 +559,7 @@ class GlobalConfImpl implements GlobalConfProvider {
 
     @Override
     public void load(String fileName) throws Exception {
+        confDir.setPath(Paths.get(getConfigurationPath()));
         confDir.reload();
     }
 

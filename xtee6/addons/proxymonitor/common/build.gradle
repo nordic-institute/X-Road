@@ -11,8 +11,8 @@ sourceSets {
 }
 
 dependencies {
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
 }
 
 task createDirs() {

@@ -24,10 +24,6 @@ package ee.ria.xroad.signer.certmanager;
 
 import akka.actor.Props;
 import akka.actor.UntypedActorContext;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
@@ -170,33 +166,9 @@ public class OcspResponseManager extends AbstractSignerActor {
 
     void handleIsCachedOcspResponse(IsCachedOcspResponse message)
             throws Exception {
-        log.trace("handleIsCachedOcspResponse()");
-
-        OCSPResp response =
-                responseCache.get(message.getCertHash(), message.getAtDate());
-
+        OCSPResp response = responseCache.get(message.getCertHash(), message.getAtDate());
         TokenManager.setOcspResponse(message.getCertHash(), response);
-
-        Boolean isCached = response != null;
-
-        if (response != null) {
-            log.trace("got response from cache, now verifying validity");
-            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true),
-                    new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
-            X509Certificate subject = SignerUtil.getCertForCertHash(message.getCertHash());
-            X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), subject);
-            try {
-                verifier.verifyValidity(response, subject, issuer);
-                log.trace("verifyValidity succeeded");
-            } catch (Exception e) {
-                log.trace("ocsp verifyValidity failed, exception: {}", e);
-                isCached = Boolean.FALSE;
-            }
-        }
-        log.trace("'{}' (at: {}) cached: {}",
-                new Object[] {message.getCertHash(), message.getAtDate(),
-                    isCached });
-        sendResponse(isCached);
+        sendResponse(Boolean.FALSE);
     }
 
     OCSPResp getResponse(String certHash) throws Exception {

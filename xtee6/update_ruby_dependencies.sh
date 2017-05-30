@@ -8,7 +8,7 @@ then
 fi
 
 source ~/.rvm/scripts/rvm
-rvm use jruby-1.7.22
+rvm use jruby-1.7.25
 
 RUBY_PROJECTS="center-service common-ui center-common proxy-ui center-ui"
 
@@ -18,7 +18,13 @@ do
 
   echo "Re-installing gems in '$each' - start"
 
-  rm -f Gemfile.lock;gem clean;bundle install
+  if [[ "$1" == "--update" ]]
+  then
+      gem clean
+      bundle update
+  else
+      bundle install
+  fi
 
   echo "Re-installing gems in '$each' - finished"
 done

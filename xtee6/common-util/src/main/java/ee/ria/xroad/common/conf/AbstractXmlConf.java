@@ -200,11 +200,9 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
             try {
                 validateMethod.invoke(null, new StreamSource(in));
             } catch (InvocationTargetException e) {
-                log.warn("Validate schema failed: {},", e);
                 throw translateException(e.getCause());
             }
         } catch (NoSuchMethodException e) {
-            log.warn("SchemaValidator: {},", e);
             throw new RuntimeException("SchemaValidator '"
                     + schemaValidator.getName() + "' must implement static "
                         + "method 'void validate(Source)'");

@@ -195,7 +195,6 @@ public class RequestInfo implements Cloneable {
         try {
             rawRequest = (JsonObject) new JsonParser().parse(json);
         } catch (ClassCastException e) {
-            log.error("Json string cannot be parsed: {}", e);
             throw new CorruptQueueException("Json string '" + json
                     + "' cannot be parsed into RequestInfo.");
         }

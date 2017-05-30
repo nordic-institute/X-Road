@@ -56,7 +56,6 @@ public class ImportCertRequestHandler
         try {
             cert = readCertificate(message.getCertData());
         } catch (Exception e) {
-            log.error("Failed to parse certificate", e);
             throw CodedException.tr(X_INCORRECT_CERTIFICATE,
                     "failed_to_parse_cert",
                     "Failed to parse certificate: %s", e.getMessage());

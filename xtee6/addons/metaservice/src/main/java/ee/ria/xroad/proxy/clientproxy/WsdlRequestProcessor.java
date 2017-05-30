@@ -158,7 +158,6 @@ class WsdlRequestProcessor {
                         subsystemCode, serviceCode, version);
             }
         } catch (Exception e) {
-            log.error("Coded exception {}", e);
             throw new CodedException(X_INVALID_REQUEST, e.getMessage());
         }
     }

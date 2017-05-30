@@ -10,7 +10,7 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile 'org.hsqldb:hsqldb:2.3.2'
-    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.1'
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.8'
 
     testCompile files(this.project(':common-util').sourceSets.test.output)
     testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
@@ -27,7 +27,7 @@ fatJar {
     exclude "META-INF/*.DSA"
     exclude "META-INF/*.RSA"
 
-    from rootProject.file("LICENSE.info")
+    from rootProject.file("securityserver-LICENSE.txt")
 
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.proxy.ProxyMain'
@@ -57,6 +57,8 @@ task runProxyMain(type: JavaExec) {
     classpath += files('src/test/resources')
 }
 
+apply plugin: "jacoco"
+
 task runProxyTest(type: JavaExec) {
     jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
@@ -69,6 +71,31 @@ task runProxyTest(type: JavaExec) {
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
+}
+
+jacoco {
+    applyTo runProxyTest
+}
+
+task deleteForeverGrowingJacocoFile(type: Delete) {
+    delete file("$buildDir/jacoco/runProxyTest.exec")
+    // for some reason this jacoco file keeps appending, so we delete it to cleanup
+}
+
+task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
+    // merge jacoco results from normal tests and runProxyTest
+    destinationFile = file("$buildDir/jacoco/test.exec")
+    executionData test, runProxyTest
+}
+
+runProxyTest.doLast {
+    tasks.mergedJacoco.execute()
+    tasks.deleteForeverGrowingJacocoFile.execute()
+}
+
+task mergedCoverageReport(type:JacocoReport){
+    executionData = files("$buildDir/jacoco/test.exec")
+    sourceSets sourceSets.main
 }
 
 task runBatchSigner(type: JavaExec) {

@@ -294,7 +294,6 @@ public class QueueInfo implements Cloneable {
         try {
             rawQueue = (JsonObject) new JsonParser().parse(json);
         } catch (ClassCastException e) {
-            log.error("Json string cannot be parsed: {}", e);
             throw new CorruptQueueException("Json string '" + json
                     + "' cannot be parsed into QueueInfo.");
         }

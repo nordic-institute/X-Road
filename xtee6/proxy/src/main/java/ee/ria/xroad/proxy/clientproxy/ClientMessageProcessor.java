@@ -261,7 +261,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         try {
             decoder.parse(httpSender.getResponseContent());
         } catch (CodedException ex) {
-            log.error("Coded exception: {}", ex);
             throw ex.withPrefix(X_SERVICE_FAILED_X);
         }
 

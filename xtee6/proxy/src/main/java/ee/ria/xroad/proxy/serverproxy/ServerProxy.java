@@ -22,28 +22,17 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.SecureRandom;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.StartStop;
+import ee.ria.xroad.proxy.antidos.AntiDosConnector;
+import ee.ria.xroad.proxy.antidos.AntiDosSslConnector;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.RequestLogHandler;
@@ -52,16 +41,13 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.xml.XmlConfiguration;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.db.HibernateUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.StartStop;
-import ee.ria.xroad.proxy.antidos.AntiDosConnector;
-import ee.ria.xroad.proxy.antidos.AntiDosSslConnector;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.SecureRandom;
 
 /**
  * Server proxy that handles requests of client proxies.
@@ -75,12 +61,6 @@ public class ServerProxy implements StartStop {
 
     // SSL session timeout in seconds
     private static final int SSL_SESSION_TIMEOUT = 600;
-
-    // Configuration parameters.
-    // TODO #2576 Make configurable in the future
-    private static final int CLIENT_TIMEOUT = 30000; // 30 sec.
-    private static final int CLIENT_MAX_TOTAL_CONNECTIONS = 10000;
-    private static final int CLIENT_MAX_CONNECTIONS_PER_ROUTE = 2500;
 
     static final String CLIENT_PROXY_CONNECTOR_NAME = "ClientProxyConnector";
 
@@ -130,51 +110,15 @@ public class ServerProxy implements StartStop {
     private void createClient() throws Exception {
         log.trace("createClient()");
 
-        RegistryBuilder<ConnectionSocketFactory> sfr =
-                RegistryBuilder.<ConnectionSocketFactory>create();
-        sfr.register("http", PlainConnectionSocketFactory.INSTANCE);
-        sfr.register("https", createSSLSocketFactory());
+        HttpClientCreator creator = new HttpClientCreator();
 
-        PoolingHttpClientConnectionManager cm =
-                new PoolingHttpClientConnectionManager(sfr.build());
-        cm.setMaxTotal(CLIENT_MAX_TOTAL_CONNECTIONS);
-        cm.setDefaultMaxPerRoute(CLIENT_MAX_CONNECTIONS_PER_ROUTE);
-        cm.setDefaultSocketConfig(
-                SocketConfig.custom().setTcpNoDelay(true).build());
-
-        RequestConfig.Builder rb = RequestConfig.custom();
-        rb.setConnectTimeout(CLIENT_TIMEOUT);
-        rb.setConnectionRequestTimeout(CLIENT_TIMEOUT);
-        rb.setStaleConnectionCheckEnabled(false);
-
-        HttpClientBuilder cb = HttpClients.custom();
-        cb.setDefaultRequestConfig(rb.build());
-        cb.setConnectionManager(cm);
-
-        // Disable request retry
-        cb.setRetryHandler(new DefaultHttpRequestRetryHandler(0, false));
-
-        connMonitor = new IdleConnectionMonitorThread(cm);
+        connMonitor = new IdleConnectionMonitorThread(creator.getConnectionManager());
         connMonitor.setIntervalMilliseconds(IDLE_MONITOR_INTERVAL);
         connMonitor.setConnectionIdleTimeMilliseconds(IDLE_MONITOR_TIMEOUT);
 
-        client = cb.build();
+        client = creator.getHttpClient();
     }
 
-    private static SSLConnectionSocketFactory createSSLSocketFactory()
-            throws Exception {
-        SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(createServiceKeyManager(),
-                new TrustManager[] {new ServiceTrustManager()},
-                new SecureRandom());
-
-        log.info("SSL context successfully created");
-
-        return new CustomSSLSocketFactory(ctx,
-                SystemProperties.getProxyClientTLSProtocols(),
-                SystemProperties.getProxyClientTLSCipherSuites(),
-                SSLConnectionSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-    }
 
     private void createConnectors() throws Exception {
         log.trace("createConnectors()");
@@ -189,8 +133,9 @@ public class ServerProxy implements StartStop {
         connector.setPort(port);
         connector.setHost(listenAddress);
 
-        connector.setSoLingerTime(0);
-        connector.setMaxIdleTime(0);
+        connector.setSoLingerTime(SystemProperties.getServerProxyConnectorSoLinger());
+        connector.setMaxIdleTime(SystemProperties.getServerProxyConnectorMaxIdleTime());
+
 
         connector.setAcceptors(2 * Runtime.getRuntime().availableProcessors());
 
@@ -198,8 +143,8 @@ public class ServerProxy implements StartStop {
         server.setSendServerVersion(false);
 
         log.info("ClientProxy {} created ({}:{})",
-                new Object[] {connector.getClass().getSimpleName(),
-                    listenAddress, port});
+                new Object[]{connector.getClass().getSimpleName(),
+                        listenAddress, port});
     }
 
     private void createHandlers() {
@@ -257,8 +202,8 @@ public class ServerProxy implements StartStop {
 
     private static SelectChannelConnector createClientProxyConnector() {
         return SystemProperties.isAntiDosEnabled()
-                            ? new AntiDosConnector()
-                            : new SelectChannelConnector();
+                ? new AntiDosConnector()
+                : new SelectChannelConnector();
     }
 
     private static SslSelectChannelConnector createClientProxySslConnector()
@@ -270,23 +215,16 @@ public class ServerProxy implements StartStop {
         cf.setSslSessionTimeout(SSL_SESSION_TIMEOUT);
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {AuthKeyManager.getInstance()},
-                new TrustManager[] {new AuthTrustManager()},
+        ctx.init(new KeyManager[]{AuthKeyManager.getInstance()},
+                new TrustManager[]{new AuthTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
 
         return SystemProperties.isAntiDosEnabled()
-                            ? new AntiDosSslConnector(cf)
-                            : new SslSelectChannelConnector(cf);
+                ? new AntiDosSslConnector(cf)
+                : new SslSelectChannelConnector(cf);
     }
 
-    private static KeyManager[] createServiceKeyManager() throws Exception {
-        InternalSSLKey key = ServerConf.getSSLKey();
-        if (key != null) {
-            return new KeyManager[] {new ServiceKeyManager(key)};
-        }
 
-        return null;
-    }
 }

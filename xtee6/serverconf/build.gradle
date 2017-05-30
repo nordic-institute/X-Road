@@ -21,7 +21,8 @@ dependencies {
 
     schema project(':common-util')
     schema 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
-    schema 'org.hibernate:hibernate-tools:4.3.2.Final'
+    schema 'org.hibernate:hibernate-tools:4.3.5.Final'
+    schema 'commons-collections:commons-collections:3.2.2'
     schema 'ch.qos.logback:logback-classic:1.1.3'
     schema 'org.hsqldb:hsqldb:2.3.2'
 }

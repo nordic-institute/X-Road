@@ -55,6 +55,8 @@ en:
 
     client_select_dialog:
       select_client: "Select Client"
+      filter: "Show only local clients"
+      label_title: "Show members and subsystems registered on this Security Server."
 
     client_details_dialog:
       title: "Client ID: "
@@ -198,11 +200,14 @@ en:
     index:
       global_configuration: "Global Configuration"
       timestamping: "Timestamping"
+      title_ocsp: "OCSP Responders"
+      label_ocsp_cert_service: "Certification Service: "
       service_url: "Service URL"
       status: "Status"
       message: "Message"
       previous_update: "Previous Update"
       next_update: "Next Update"
+      next_update_at_latest: "Next Update no later than"
 
   init:
     index:

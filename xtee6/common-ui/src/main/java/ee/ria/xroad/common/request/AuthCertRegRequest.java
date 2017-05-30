@@ -106,7 +106,6 @@ class AuthCertRegRequest implements ManagementRequest {
         try {
             readCertificate(authCert).checkValidity();
         } catch (Exception e) {
-            log.warn("Authentication certificate is invalid: {}", e);
             throw new CodedException(X_CERT_VALIDATION,
                     "Authentication certificate is invalid: %s",
                     e.getMessage());

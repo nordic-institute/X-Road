@@ -14,8 +14,8 @@ configurations {
 dependencies {
     compile project(':common-util')
     testCompile project(':common-test').sourceSets.main.output
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
 }
 
 task createDirs() {
@@ -34,7 +34,14 @@ task xjc {
                 package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
                 schema: 'build/resources/main/ocsp-nextupdate-conf.xsd'
         )
-
+        ant.taskdef(name: 'xjc2',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+        ant.xjc2(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
+                schema: 'build/resources/main/ocsp-fetchinterval-conf.xsd'
+        )
     }
 }
 

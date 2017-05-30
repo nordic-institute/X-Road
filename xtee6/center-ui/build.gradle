@@ -77,3 +77,18 @@ task checkRubySource(type: Exec) {
 
 check.dependsOn checkRubySource
 build.dependsOn copyDeps
+
+
+def licenseSourceAdds = fileTree('test_pg')
+
+task licenseFormatAdds(type:nl.javadude.gradle.plugins.license.License) {
+    source += licenseSourceAdds
+}
+
+task licenseFormatAddsCheck(type:nl.javadude.gradle.plugins.license.License) {
+    source += licenseSourceAdds
+    check = true
+}
+
+licenseFormat.dependsOn licenseFormatAdds
+licenseTest.dependsOn licenseFormatAddsCheck

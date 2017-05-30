@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
 }
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
@@ -20,10 +20,9 @@ dependencies {
     compile project(':proxy')
     compile project(':monitor-common')
     compile project(':addons:proxymonitor:common')
-    compile 'com.google.guava:guava:18.0'
-
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+    compile 'com.google.guava:guava:19.0'
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
 }
 
 task createDirs() {
