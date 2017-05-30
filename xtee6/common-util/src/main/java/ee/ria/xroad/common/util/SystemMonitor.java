@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.common.util;
 
+import com.sun.management.UnixOperatingSystemMXBean;
+import ee.ria.xroad.common.SystemProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -30,15 +37,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import com.sun.management.UnixOperatingSystemMXBean;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ee.ria.xroad.common.SystemProperties;
 
 /**
  * A simple system monitor that logs system metrics to a file
@@ -49,18 +47,15 @@ public final class SystemMonitor implements StartStop {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(SystemMonitor.class);
-
     private static final String LOG_FILE = "system-monitor.log";
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     private static final String ROW_FORMAT = "%-12s | ";
-
     private static final int QUERY_INTERVAL = 5000;
-
     private final MonitorThread monitorThread = new MonitorThread();
 
     @Override
     public void start() throws Exception {
-        monitorThread.init();
 
         monitorThread.isRunning = true;
         monitorThread.start();
@@ -89,15 +84,21 @@ public final class SystemMonitor implements StartStop {
         private static final double HUNDRED = 100.0;
 
         private UnixOperatingSystemMXBean osStats;
-        private Writer logFile;
         private List<LogColumn> columns = new ArrayList<>();
         boolean isRunning;
 
         @Override
         public void run() {
-            try {
+            osStats = SystemMetrics.getStats();
+
+            createColumns();
+
+            try (Writer logFile = new FileWriter(getLogDirPath() + LOG_FILE)) {
+                logSystemStats(logFile);
+                logHeaders(logFile);
+
                 while (isRunning) {
-                    queryInformation();
+                    queryInformation(logFile);
                     try {
                         sleep(QUERY_INTERVAL);
                     } catch (InterruptedException ex) {
@@ -105,38 +106,35 @@ public final class SystemMonitor implements StartStop {
                         log.warn("System monitor thread was interrupted");
                     }
                 }
-            } finally {
-                IOUtils.closeQuietly(logFile);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
 
-        public void init() throws Exception {
-            osStats = SystemMetrics.getStats();
+        private void logSystemStats(Writer logFile) throws Exception {
+            writeToLog(logFile, "System stats:");
 
-            createColumns();
-
-            logFile = new FileWriter(getLogDirPath() + LOG_FILE);
-            logSystemStats();
-            logHeaders();
-        }
-
-        private void logSystemStats() throws Exception {
-            writeToLog("System stats:");
-
-            writeToLog("\tMax open files: "
+            writeToLog(logFile, "\tMax open files: "
                     + osStats.getMaxFileDescriptorCount());
-            writeToLog("\tProcessors: " + osStats.getAvailableProcessors());
-            writeToLog("\tTotal memory (physical): "
+            writeToLog(logFile, "\tProcessors: " + osStats.getAvailableProcessors());
+            writeToLog(logFile, "\tTotal memory (physical): "
                     + osStats.getTotalPhysicalMemorySize());
 
-            writeToLog("");
+            writeToLog(logFile, "");
         }
 
         private void createColumns() {
-            columns.add(new LogColumn("Time") {
+            columns.add(new LogColumn("Date") {
                 @Override
                 String getValue() {
                     return dateFormat.format(new Date());
+                }
+            });
+
+            columns.add(new LogColumn("Time") {
+                @Override
+                String getValue() {
+                    return timeFormat.format(new Date());
                 }
             });
 
@@ -180,28 +178,28 @@ public final class SystemMonitor implements StartStop {
             // Add other metrics here...
         }
 
-        private void logHeaders() throws IOException {
+        private void logHeaders(Writer logFile) throws IOException {
             StringBuilder header = new StringBuilder(" ");
             for (LogColumn col : columns) {
                 header.append(String.format(ROW_FORMAT, col.name));
             }
-            writeToLog(header.toString());
-            writeToLog(StringUtils.repeat('-', header.length()));
+            writeToLog(logFile, header.toString());
+            writeToLog(logFile, StringUtils.repeat('-', header.length()));
         }
 
-        private void queryInformation() {
+        private void queryInformation(Writer logFile) {
             try {
                 StringBuilder line = new StringBuilder(" ");
                 for (LogColumn col : columns) {
                     line.append(String.format(ROW_FORMAT, col.getValue()));
                 }
-                writeToLog(line.toString());
+                writeToLog(logFile, line.toString());
             } catch (Exception e) {
                 LOG.error("Error writing to log", e);
             }
         }
 
-        private void writeToLog(String line) throws IOException {
+        private void writeToLog(Writer logFile, String line) throws IOException {
             logFile.write(line);
             logFile.write(System.lineSeparator());
             logFile.flush();

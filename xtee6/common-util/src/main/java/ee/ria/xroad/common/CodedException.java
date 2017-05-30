@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+
+import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * Exception thrown by proxy business logic. Contains SOAP fault information
@@ -93,6 +94,26 @@ public class CodedException extends RuntimeException implements Serializable {
     }
 
     /**
+     * Creates new exception with fault code and fault message.
+     * The message is constructed using String.format(). from parameters
+     * format and args.
+     * @param faultCode the fault code
+     * @param format the string format
+     * @param args the arguments
+     */
+    public CodedException(String faultCode, Throwable cause, String format, Object... args) {
+        super(String.format(format, args), cause);
+
+        this.faultCode = faultCode;
+        faultDetail = ExceptionUtils.getStackTrace(this);
+        faultString = String.format(format, args);
+
+        setArguments(args);
+    }
+
+
+
+    /**
      * Creates exception from fault code and cause.
      * @param faultCode the fault code
      * @param cause the cause
@@ -113,8 +134,8 @@ public class CodedException extends RuntimeException implements Serializable {
      * @param faultDetail the details
      * @return new proxy exception
      */
-    public static CodedException fromFault(String faultCode, String faultString,
-            String faultActor, String faultDetail) {
+    public static CodedException fromFault(QName faultCode, String faultString,
+                                           String faultActor, String faultDetail) {
         CodedException ret = new Fault(faultCode, faultString);
 
         ret.faultActor = faultActor;
@@ -198,6 +219,10 @@ public class CodedException extends RuntimeException implements Serializable {
         }
     }
 
+    public QName getFaultCodeAsQName() {
+        return new QName(faultCode);
+    }
+
     /**
      * Encapsulates error message read from SOAP fault.
      * This allows processing faults separately in ClientProxy.
@@ -205,13 +230,21 @@ public class CodedException extends RuntimeException implements Serializable {
     @SuppressWarnings("serial") // does not need to have serial
     public static class Fault extends CodedException implements Serializable {
 
+        @Getter
+        private final String namespaceUri;
         /**
          * Creates new fault.
          * @param faultCode the code
          * @param faultString the details
          */
-        public Fault(String faultCode, String faultString) {
-            super(faultCode, faultString);
+        public Fault(QName faultCode, String faultString) {
+            super(faultCode.getLocalPart(), faultString);
+            this.namespaceUri = faultCode.getNamespaceURI();
+        }
+
+        @Override
+        public QName getFaultCodeAsQName() {
+            return new QName(namespaceUri, getFaultCode());
         }
     }
 }

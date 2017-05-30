@@ -228,16 +228,43 @@
             $("#client_select_dialog").dialog("open");
         });
 
-        $("#client_select_dialog .simple_search_form .search").click(function() {
-            var params = $("#search_member").serialize();
+
+        $("#client_select_dialog .simple_search_form .search").click(updateClientList);
+        $("#search_filter").change(updateClientList);
+    }
+
+    function updateClientList() {
+        var params = $("#search_member").serialize();
+        var filter = $("#search_filter").is(":checked");
+        if(filter) {
+            $.get(action("clients_search"), params, function(response) {
+                $.get(action("clients_refresh"), null, function(r) {
+                    var filtered = response.data.filter(function(res) {
+                        var keep = false;
+                        r.data.forEach(function(t) {
+                            if(t.type === "MEMBER") {
+                                if (res.member_code === t.member_code && res.member_class === t.member_class) {
+                                    keep = true;
+                                }
+                            }
+                        });
+                        return keep;
+                    });
+
+                    oClientsGlobal.fnReplaceData(filtered);
+                    oClientsGlobal.trigger("dialogresizestop");
+                }, "json");
+            }, "json");
+        } else {
             $.get(action("clients_search"), params, function(response) {
                 oClientsGlobal.fnReplaceData(response.data);
                 oClientsGlobal.trigger("dialogresizestop");
             }, "json");
+        }
 
-            return false;
-        });
+        return false;
     }
+
 
     function initClientDetailsDialog() {
         $("#client_details_dialog").initDialog({

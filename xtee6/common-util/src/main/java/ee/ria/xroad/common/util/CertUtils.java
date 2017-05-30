@@ -26,6 +26,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DEROctetString;
@@ -66,6 +67,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.toDERObject;
 /**
  * Contains utility methods for working with certificates.
  */
+@Slf4j
 public final class CertUtils {
 
     private static final int DIGITAL_SIGNATURE_IDX = 0;
@@ -190,6 +192,7 @@ public final class CertUtils {
             return true;
         } catch (CertificateExpiredException
                 | CertificateNotYetValidException ignored) {
+            log.info("Certificate not valid: {}", ignored);
             return false;
         }
     }

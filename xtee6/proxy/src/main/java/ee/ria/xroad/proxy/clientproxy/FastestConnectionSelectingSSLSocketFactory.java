@@ -35,6 +35,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSessionContext;
 import javax.net.ssl.SSLSocket;
 
+import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
@@ -171,7 +172,7 @@ class FastestConnectionSelectingSSLSocketFactory
         }
 
         Socket sslSocket = socketfactory.createSocket(socket,
-                socket.getInetAddress().getHostName(), socket.getPort(), false);
+                socket.getInetAddress().getHostName(), socket.getPort(), SystemProperties.isUseSslSocketAutoClose());
         if (sslSocket instanceof SSLSocket) {
             return (SSLSocket) sslSocket;
         }

@@ -30,11 +30,10 @@ dependencies {
 
     testCompile project(':common-test')
     testCompile project(':common-verifier').sourceSets.test.output
-    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.1'
+    testCompile 'com.typesafe.akka:akka-testkit_2.11:2.4.8'
 
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.6'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.6'
-
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
     //testsuiteCompile project(':common-test')
 }
 
@@ -56,7 +55,7 @@ fatJar {
         attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
     }
 
-    from rootProject.file('LICENSE.info')
+    from rootProject.file('securityserver-LICENSE.txt')
 }
 
 jar.enabled = false

@@ -276,7 +276,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         assertTaskQueueSize(3);
 
         DateTime atTime = new DateTime().minusMinutes(1);
-        logManager.setTimestampFailed(atTime);
+        logManager.setTimestampFailedIfQueueIsEmpty(atTime);
 
         startTimestamping();
         waitForMessageInTaskQueue();
@@ -582,8 +582,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
          * @param atTime
          */
         @Override
-        synchronized void setTimestampFailed(DateTime atTime) {
-            super.setTimestampFailed(atTime);
+        synchronized void setTimestampFailedIfQueueIsEmpty(DateTime atTime) {
+            super.setTimestampFailedIfQueueIsEmpty(atTime);
         }
 
         /**
@@ -634,15 +634,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
         private static CountDownLatch timestampSavedLatch = new CountDownLatch(1);
 
         @Override
-        protected TimestampRecord saveTimestampRecord(
-                TimestampSucceeded message) throws Exception {
+        protected void persistTimestampRecord(Timestamper.TimestampSucceeded message,
+                                                         TimestampRecord timestampRecord) throws Exception {
             if (throwWhenSavingTimestamp != null) {
                 throw throwWhenSavingTimestamp;
             }
 
-            TimestampRecord record = super.saveTimestampRecord(message);
+            super.persistTimestampRecord(message, timestampRecord);
             timestampSavedLatch.countDown();
-            return record;
         }
 
         /**

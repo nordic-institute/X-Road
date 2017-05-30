@@ -22,23 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.soap.SOAPMessage;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.Node;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
@@ -55,6 +38,25 @@ import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.*;
+import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -71,6 +73,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
     private SoapMessageImpl requestMessage;
     private SoapMessageEncoder responseEncoder;
+
+    private HttpClientCreator wsdlHttpClientCreator = new HttpClientCreator();
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -179,8 +183,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
                     "Missing serviceCode in message body");
         }
 
-        String url = getWsdlUrl(requestData.toServiceId(
-                request.getService().getClientId()));
+        ServiceId serviceId = requestData.toServiceId(request.getService().getClientId());
+        String url = getWsdlUrl(serviceId);
         if (url == null) {
             throw new CodedException(X_UNKNOWN_SERVICE,
                     "Could not find wsdl URL for service %s",
@@ -189,7 +193,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
 
         log.info("Downloading WSDL from URL: {}", url);
-        try (InputStream in = getWsdl(url)) {
+        try (InputStream in = getWsdl(url, serviceId)) {
             responseEncoder.soap(SoapUtils.toResponse(request));
             responseEncoder.attachment(MimeTypes.TEXT_XML, in, null);
         }
@@ -234,17 +238,25 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
     }
 
-    private InputStream getWsdl(String url) throws Exception {
-        HttpURLConnection con =
-                (HttpURLConnection) new URL(url).openConnection();
-        con.setDoOutput(true);
-        con.setRequestMethod("GET");
+    private InputStream getWsdl(String url, ServiceId serviceId)
+            throws HttpClientCreator.HttpClientCreatorException, URISyntaxException, IOException {
 
-        if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
+        HttpClient client = wsdlHttpClientCreator.getHttpClient();
+
+        HttpContext httpContext = new BasicHttpContext();
+
+        // ServerMessageProcessor uses the same method to pass the ServiceId to CustomSSLSocketFactory
+        httpContext.setAttribute(ServiceId.class.getName(), serviceId);
+
+        HttpResponse response = client.execute(new HttpGet(new URI(url)), httpContext);
+
+        StatusLine statusLine = response.getStatusLine();
+
+        if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
             throw new RuntimeException("Received HTTP error: "
-                    + con.getResponseCode() + " - " + con.getResponseMessage());
+                    + statusLine.getStatusCode() + " - " + statusLine.getReasonPhrase());
         }
 
-        return con.getInputStream();
+        return response.getEntity().getContent();
     }
 }

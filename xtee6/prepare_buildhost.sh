@@ -9,15 +9,12 @@ sudo apt-get install -y openjdk-8-jdk build-essential git unzip debhelper
 
 cd ~
 
-wget https://services.gradle.org/distributions/gradle-2.4-bin.zip -O gradle-2.4-bin.zip
-unzip gradle-2.4-bin.zip
-
 gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3
 curl -L https://get.rvm.io | bash -s stable 
 source ~/.rvm/scripts/rvm
-rvm install jruby-1.7.22 --binary
-rvm use jruby-1.7.22
-jgem install bundle warbler:1.4.9
+rvm install jruby-1.7.25 --binary
+rvm use jruby-1.7.25
+jgem install jruby-jars:1.7.25 bundle warbler:1.4.9 bundler-audit
 
 mkdir -p /var/tmp/xroad
 

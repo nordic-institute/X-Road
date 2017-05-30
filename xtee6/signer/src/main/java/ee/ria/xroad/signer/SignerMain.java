@@ -26,13 +26,20 @@ import akka.actor.ActorSystem;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.AdminPort;
+import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.signer.certmanager.OcspClientWorker;
+import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
 
 /**
@@ -46,11 +53,13 @@ public final class SignerMain {
             .with(CONF_FILE_PROXY)
             .with(CONF_FILE_SIGNER)
             .load();
+        diagnosticsDefault = new CertificationServiceDiagnostics();
     }
 
     private static ActorSystem actorSystem;
     private static Signer signer;
     private static AdminPort adminPort;
+    private static CertificationServiceDiagnostics diagnosticsDefault;
 
     private SignerMain() {
     }
@@ -74,7 +83,7 @@ public final class SignerMain {
 
         log.info("Starting Signer on port {}...", signerPort);
 
-        adminPort = createAdminPort(signerPort + 1);
+        adminPort = createAdminPort(SystemProperties.getSignerAdminPort());
 
         actorSystem = ActorSystem.create(SIGNER, getConf(signerPort));
         adminPort.start();
@@ -117,6 +126,32 @@ public final class SignerMain {
                     signer.execute();
                 } catch (Exception ex) {
                     log.error("error occurred in execute handler: {}", ex);
+                }
+            }
+        });
+
+        port.addHandler("/status", new AdminPort.SynchronousCallback() {
+            @Override
+            public void run() {
+                log.info("handler /status");
+                CertificationServiceDiagnostics diagnostics = null;
+                try {
+                    Object value = SignerUtil.ask(
+                        actorSystem.actorSelection("/user/" + OCSP_CLIENT), OcspClientWorker.DIAGNOSTICS);
+                    diagnostics = (CertificationServiceDiagnostics) value;
+                    if (diagnostics != null) {
+                        diagnosticsDefault = diagnostics;
+                    }
+                } catch (Exception e) {
+                    log.error("Error getting diagnostics status {}", e);
+                }
+                if (diagnostics == null) {
+                    diagnostics = diagnosticsDefault;
+                }
+                try {
+                    JsonUtils.getSerializer().toJson(diagnostics, getParams().response.getWriter());
+                } catch (IOException e) {
+                    log.error("Error writing response {}", e);
                 }
             }
         });

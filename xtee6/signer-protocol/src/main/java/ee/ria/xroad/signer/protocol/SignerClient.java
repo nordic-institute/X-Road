@@ -97,7 +97,7 @@ public final class SignerClient {
         try {
             return result(Await.result(Patterns.ask(requestProcessor, message, timeout), timeout.duration()));
         } catch (TimeoutException te) {
-            throw connectionTimeoutException();
+            throw connectionTimeoutException(te);
         }
     }
 
@@ -129,8 +129,8 @@ public final class SignerClient {
         }
     }
 
-    private static CodedException connectionTimeoutException() {
-        return new CodedException(X_HTTP_ERROR,
+    private static CodedException connectionTimeoutException(Exception e) {
+        return new CodedException(X_HTTP_ERROR, e,
                 "Connection to Signer (port %s) timed out",
                 SystemProperties.getSignerPort());
     }

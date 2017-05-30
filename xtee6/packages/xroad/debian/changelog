@@ -1,3 +1,19 @@
+xroad (6.7.13-1) trusty; urgency=low
+
+  * Fix restoring backup to a new server
+  * Add OCSP diagnostics view showing OCSP responder status (admin gui)
+  * Fix SOAP Faults only accepting SOAP-ENV namespace prefix
+  * Fix out of memory error during messagelog archiving
+  * Fix deadlock in timestamper
+  * Performace improvements (Globalconf caching and OCSP response validation result caching)
+  * OCSP response fetcher improvements
+  * Fix security server leaks TCP connections
+  * Fix long queryid breaks message archiving
+  * Upgrade dependency versions
+  * Bug fixes and minor enhancements
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 16 Sep 2016 13:41:06 +0300
+
 xroad (6.7.12-1) trusty; urgency=low
 
   * Fixed security server not starting if xroad-addon-messagelog is not installed
@@ -8,13 +24,13 @@ xroad (6.7.12-1) trusty; urgency=low
   * Fixed bug in xroad-create-cluster.sh script that created the certificates with 30 days expiry period
   * Fix software token batch signing setting
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Mon, 25 Apr 2016 14:51:45 +0300
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 25 Apr 2016 14:51:45 +0300
 
 xroad (6.7.11-1) trusty; urgency=low
 
   * Minor documentation changes
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Mon, 8 Feb 2016 16:32:45 +0200
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 8 Feb 2016 16:32:45 +0200
 
 xroad (6.7.10-1) trusty; urgency=low
 
@@ -22,7 +38,7 @@ xroad (6.7.10-1) trusty; urgency=low
   * Security server message exchange performance optimizations
   * Security server environmental monitoring
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Tue, 26 Jan 2016 10:23:45 +0200
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 26 Jan 2016 10:23:45 +0200
 
 xroad (6.7.9-1) trusty; urgency=low
 
@@ -30,7 +46,7 @@ xroad (6.7.9-1) trusty; urgency=low
   * Fix timestamper status when batch timestamping is used
   * Timestamping diagnostics displays status for all defined timestamping services
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com> Fri, 15 Jan 2016 14:41:01 +0200
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Fri, 15 Jan 2016 14:41:01 +0200
 
 xroad (6.7.8-1) trusty; urgency=low
 
@@ -84,7 +100,7 @@ xroad (6.7.3-1) trusty; urgency=low
 xroad (6.7.2-1) trusty; urgency=medium
 
   * Fix nginx configuration (remove X-Frame-Options)
-  
+
  -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Mon, 19 Oct 2015 11:12:56 +0300
 
 xroad (6.7.1-1) trusty; urgency=low
@@ -106,11 +122,11 @@ xroad (6.7.1-1) trusty; urgency=low
 
 xroad (6.7-0) trusty; urgency=low
 
-  * Member Code/Identifier Extractor for Finnish instance 
+  * Member Code/Identifier Extractor for Finnish instance
     o Signing certificate subject DN format supported by the decoder: C=FI,O=<instanceIdentifier>, OU=<memberClass>, CN=<memberCode> (e.g. C=FI, O=FI-DEV, OU=PUB, CN=1234567-8)
-  * Configurable key size for signing and authentication RSA keys 
+  * Configurable key size for signing and authentication RSA keys
     o New configuration parameter signer.key-length (default 2048)
-  * Configurable certificate signing request signing algorithm 
+  * Configurable certificate signing request signing algorithm
     o New configuration parameter signer.csr-signature-algorithm (default: SHA1withRSA)
   * New security server metapackage with default configuration for Finnish instance
     o xroad-securityserver-fi

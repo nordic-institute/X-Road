@@ -1,0 +1,52 @@
+---
+- name: "update apt cache"
+  apt:
+    update_cache: yes
+
+- name: install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - git
+    - curl
+    - apt-transport-https
+    - apt-utils
+    - net-tools
+
+- name: install apt repo key
+  apt_key:
+    url: "{{ubuntu_apt_key}}"
+    state: present
+
+- name: xroad apt repository
+  apt_repository:
+    repo: "{{ubuntu_apt_repo}}"
+    state: present
+
+# ppa doesn't work with debian, only ubuntu
+- name: openjdk and nginx repositories
+  apt_repository:
+    repo: "ppa:{{ item }}"
+  with_items:
+    - openjdk-r/ppa
+    - nginx/stable
+
+- name: enable UTF-8 locales
+  lineinfile:
+    line: "{{ item }}"
+    dest: "/var/lib/locales/supported.d/local"
+    state: present
+    create: yes
+  register: locale_added
+  with_items:
+    - "fi_FI.UTF-8 UTF-8"
+    - "en_US.UTF-8 UTF-8"
+
+- name: generate locales
+  command: "/usr/sbin/locale-gen"
+  when: locale_added.changed
+
+- name: "update apt cache"
+  apt:
+    update_cache: yes

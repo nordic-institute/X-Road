@@ -56,10 +56,10 @@ abstract class AbstractMessageLogTest {
     }
 
     private List<DeadLetter> deadLetters = new ArrayList<DeadLetter>();
-    public synchronized List<DeadLetter> getDeadLetters() {
+    public List<DeadLetter> getDeadLetters() {
         return deadLetters;
     }
-    public synchronized void clearDeadLetters() {
+    public void clearDeadLetters() {
         deadLetters = new ArrayList<DeadLetter>();
     }
     public synchronized void addDeadLetter(DeadLetter d) {

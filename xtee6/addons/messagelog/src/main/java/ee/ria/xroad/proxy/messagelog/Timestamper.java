@@ -43,6 +43,7 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 @Slf4j
 public class Timestamper extends UntypedActor {
 
+
     @Data
     @RequiredArgsConstructor
     @ToString(exclude = "signatureHashes")
@@ -57,9 +58,11 @@ public class Timestamper extends UntypedActor {
         }
     }
 
+    interface TimestampResult { }
+
     @Data
     @ToString(exclude = { "timestampDer", "hashChains" })
-    static final class TimestampSucceeded implements Serializable {
+    static final class TimestampSucceeded implements TimestampResult, Serializable {
         private final Long[] messageRecords;
         private final byte[] timestampDer;
         private final String hashChainResult;
@@ -68,7 +71,7 @@ public class Timestamper extends UntypedActor {
     }
 
     @Data
-    static final class TimestampFailed implements Serializable {
+    static final class TimestampFailed implements TimestampResult, Serializable {
         private final Long[] messageRecords;
         private final Exception cause;
     }

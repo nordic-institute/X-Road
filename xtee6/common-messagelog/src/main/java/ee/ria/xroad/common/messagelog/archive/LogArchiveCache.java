@@ -22,33 +22,22 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Supplier;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
+import ee.ria.xroad.common.messagelog.MessageRecord;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
-import ee.ria.xroad.common.messagelog.MessageRecord;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.SystemProperties.getTempFilesPath;
@@ -199,9 +188,7 @@ class LogArchiveCache implements Closeable {
         byte[] containerBytes = record.toAsicContainer().getBytes();
 
         String archiveFilename =
-                nameGenerator.getArchiveFilename(
-                        record.getQueryId(),
-                        record.isResponse() ? "response" : "request");
+                nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse() ? "response" : "request");
 
         linkingInfoBuilder.addNextFile(archiveFilename, containerBytes);
         archiveFileNames.add(archiveFilename);

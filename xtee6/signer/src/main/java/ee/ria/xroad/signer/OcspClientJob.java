@@ -38,9 +38,18 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
 public class OcspClientJob extends VariableIntervalPeriodicJob {
 
     public static final String CANCEL = "Cancel";
+    public static final String FAILED = "Failed";
+    public static final String SUCCESS = "Success";
+    public static final String RESCHEDULE = "Reschedule";
 
     private static final FiniteDuration INITIAL_DELAY =
-            FiniteDuration.create(100, TimeUnit.MILLISECONDS);
+            FiniteDuration.create(5, TimeUnit.SECONDS);
+
+    private static final int BASIC_DELAY = 10;
+    private int nextDelay = 0;
+    private int currentDelay = 0;
+    private int prevDelay = 0;
+    private boolean failed = false;
 
     OcspClientJob() {
         super(OCSP_CLIENT, OcspClientWorker.EXECUTE);
@@ -53,17 +62,46 @@ public class OcspClientJob extends VariableIntervalPeriodicJob {
 
     @Override
     protected FiniteDuration getNextDelay() {
-        return FiniteDuration.create(
-                OcspClientWorker.getNextOcspFreshnessSeconds(),
+        // Init first round
+        if (currentDelay == 0) {
+            prevDelay = 0;
+            currentDelay = BASIC_DELAY;
+        }
+        // Use fibonacci number serie for counting increasing delay
+        nextDelay = currentDelay + prevDelay;
+
+        if (failed && nextDelay < OcspClientWorker.getNextOcspFetchIntervalSeconds()) {
+            prevDelay = currentDelay;
+            currentDelay = nextDelay;
+            log.debug("Delay for next OCSP refresh: {}", nextDelay);
+            return FiniteDuration.create(nextDelay, TimeUnit.SECONDS);
+        } else {
+            log.debug("Delay for greatest OSCP refresh time: {}", OcspClientWorker.getNextOcspFetchIntervalSeconds());
+            return FiniteDuration.create(
+                OcspClientWorker.getNextOcspFetchIntervalSeconds(),
                 TimeUnit.SECONDS);
+        }
     }
 
     @Override
     public void onReceive(Object incoming) throws Exception {
-        if (incoming.equals(CANCEL)) {
+        if (CANCEL.equals(incoming)) {
             log.debug("received message OcspClientWorker.CANCEL");
             cancelNextSend();
+        } else if (RESCHEDULE.equals(incoming)) {
+            log.debug("received message OcspClientWorker.RESCHEDULE");
+            scheduleNextSend(getNextDelay());
+        } else if (SUCCESS.equals(incoming)) {
+            log.debug("received message OcspClientJob.SUCCESS");
+            failed = false;
+            currentDelay = 0;
+        } else if (FAILED.equals(incoming) && !failed) {
+            log.debug("received message OcspClientJob.FAILED");
+            cancelNextSend();
+            failed = true;
+            scheduleNextSend(getNextDelay());
         } else {
+            log.debug("received unknown message {}", incoming);
             super.onReceive(incoming);
         }
     }

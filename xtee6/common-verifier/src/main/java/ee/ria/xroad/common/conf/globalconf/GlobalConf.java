@@ -64,11 +64,10 @@ public final class GlobalConf {
         if (THREAD_LOCAL.get() != null) {
             return THREAD_LOCAL.get();
         }
-
         if (instance == null) {
+            log.trace("create new GlobalConfImpl");
             instance = new GlobalConfImpl(true);
         }
-
         return instance;
     }
 
@@ -79,13 +78,11 @@ public final class GlobalConf {
      */
     public static void initForCurrentThread() {
         log.trace("initForCurrentThread()");
-
         if (instance == null) {
+            log.trace("create new GlobalConfImpl");
             instance = new GlobalConfImpl(false);
         }
-
         reloadIfChanged();
-
         THREAD_LOCAL.set(instance);
     }
 
@@ -93,9 +90,17 @@ public final class GlobalConf {
      * Reloads the configuration.
      */
     public static synchronized void reload() {
-        log.trace("reload()");
-
-        instance = new GlobalConfImpl(true);
+        if (instance != null) {
+            try {
+                log.trace("reload called");
+                instance.load(null);
+            } catch (Exception e) {
+                throw translateException(e);
+            }
+        } else {
+            log.trace("reload called, create new GlobalConfImpl");
+            instance = new GlobalConfImpl(true);
+        }
     }
 
     /**
@@ -103,8 +108,7 @@ public final class GlobalConf {
      * @param conf the configuration provider instance
      */
     public static void reload(GlobalConfProvider conf) {
-        log.trace("reload({})", conf.getClass());
-
+        log.trace("reload called with parameter class {}", conf.getClass());
         instance = conf;
     }
 
@@ -113,11 +117,10 @@ public final class GlobalConf {
      * file has changed.
      */
     public static synchronized void reloadIfChanged() {
-        log.trace("reloadIfChanged()");
-
+        log.trace("reloadIfChanged called");
         if (instance != null) {
             try {
-                instance.load(null /* ignored */);
+                instance.load(null);
             } catch (Exception e) {
                 throw translateException(e);
             }

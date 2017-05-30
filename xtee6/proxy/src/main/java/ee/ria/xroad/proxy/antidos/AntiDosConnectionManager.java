@@ -150,7 +150,7 @@ class AntiDosConnectionManager<T extends SocketChannelWrapper> {
             return sock;
         }
 
-        log.warn("Insufficient resources, closing connection " + sock);
+        log.error("Insufficient resources, closing connection " + sock);
         try {
             closeConnection(sock);
         } catch (IOException e) {

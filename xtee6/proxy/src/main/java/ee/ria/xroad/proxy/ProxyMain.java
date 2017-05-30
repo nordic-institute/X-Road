@@ -118,9 +118,7 @@ public final class ProxyMain {
                 log.info("{} started", name);
             } catch (Exception e) {
                 log.error(name + " failed to start", e);
-
                 stopServices();
-                System.exit(1);
             }
         }
 

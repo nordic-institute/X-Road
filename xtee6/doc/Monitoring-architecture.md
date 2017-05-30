@@ -102,7 +102,7 @@ Identity of central monitoring client (if any) is configured using central serve
 ```
 One can configure either one member or a member's subsystem to be the central monitoring client. Permission to execute monitoring queries is strictly limited to that single member or subsystem - defining one subsystem to be a monitoring client does **not** grant the corresponding member access to querying monitoring data (and vice versa).  
 
-The optional configuration for monitoring parameters is taken into use by installing package `xroad-securityserver-monitoring`. This package also includes the components that validate the updated xml monitoring configuration.
+The optional configuration for monitoring parameters is taken into use by installing package `xroad-centralserver-monitoring`. This package also includes the components that validate the updated xml monitoring configuration.
 
 To disable central monitoring client altogether, update configuration to one which has no client:
 

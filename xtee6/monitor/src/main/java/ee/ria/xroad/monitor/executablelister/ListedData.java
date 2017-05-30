@@ -27,7 +27,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * ListedData
@@ -36,6 +35,6 @@ import java.util.Collection;
 @Getter
 @Setter
 public class ListedData<T> implements Serializable {
-    Collection<T> parsedData;
+    ArrayList<T> parsedData;
     ArrayList<String> jmxData;
 }

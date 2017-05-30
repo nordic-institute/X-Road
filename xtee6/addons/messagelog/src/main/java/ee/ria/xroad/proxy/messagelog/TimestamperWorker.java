@@ -89,7 +89,7 @@ public class TimestamperWorker extends UntypedActor {
         AbstractTimestampRequest tsRequest =
                 createTimestampRequest(logRecords, signatureHashes);
 
-        Object result = tsRequest.execute(tspUrls);
+        Timestamper.TimestampResult result = tsRequest.execute(tspUrls);
 
         log.info("Timestamped {} message records in {} ms",
                 message.getMessageRecords().length,

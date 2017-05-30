@@ -55,9 +55,9 @@ abstract class AbstractTimestampRequest {
 
     abstract byte[] getRequestData() throws Exception;
 
-    abstract Object result(TimeStampResponse tsResponse, String url) throws Exception;
+    abstract Timestamper.TimestampResult result(TimeStampResponse tsResponse, String url) throws Exception;
 
-    Object execute(List<String> tspUrls) throws Exception {
+    Timestamper.TimestampResult execute(List<String> tspUrls) throws Exception {
         TimeStampRequest tsRequest = createTimestampRequest(getRequestData());
 
         TsRequest req = makeTsRequest(tsRequest, tspUrls);

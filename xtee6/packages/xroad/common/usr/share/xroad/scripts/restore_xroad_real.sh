@@ -35,12 +35,12 @@ fi
 
 if has_command initctl
 then
-    LIST_CMD="initctl list"
+    LIST_CMD="initctl list | grep -E  '^xroad-|^xtee55-' | cut -f 1 -d ' '"
     STOP_CMD="initctl stop"
     START_CMD="initctl start"
 elif has_command systemctl
 then
-    LIST_CMD="systemctl list-units"
+    LIST_CMD="systemctl --plain -qt service list-units | grep -E 'xroad-.*.service\s' | sed 's/^\s*//' | cut -d' ' -f1"
     STOP_CMD="systemctl stop"
     START_CMD="systemctl start"
 else
@@ -49,7 +49,7 @@ fi
 
 echo "STOPING ALL SERVICES EXCEPT JETTY"
 
-SERVICES=$($LIST_CMD | grep -E  "^xroad-|^xtee55-" | grep -v -- -jetty | cut -f 1 -d " "  )
+SERVICES=$(eval $LIST_CMD | grep -v -- -jetty)
 
 for xrdservice in $SERVICES; do  $STOP_CMD $xrdservice  ;done
 
@@ -70,13 +70,38 @@ then
   listf="${listf} /var/lib/xroad/dbdump.dat"
 fi
 
-
 echo -e "Backing up following files to  /var/lib/xroad/conf_prerestore_backup.tar \n ${listf}"
 tar cf /var/lib/xroad/conf_prerestore_backup.tar ${listf}
-rm ${listf}
 
 echo -e "\n-----\n RESTORING CONFIGURATION FROM ${filename}\nRestoring files:\n"
-tar xfv ${filename} -C /
+RESTOREDIR=/var/tmp/xroad/restore
+rm -rf $RESTOREDIR
+mkdir -p $RESTOREDIR
+# Restore to temporary directory and fix permissions before copying
+tar xfv ${filename} -C $RESTOREDIR etc/xroad etc/nginx || die "Extracting backup failed"
+# dbdump is optional
+tar xfv ${filename} -C $RESTOREDIR var/lib/xroad/dbdump.dat
+# keep existing db.properties
+if [ -f /etc/xroad/db.properties ]
+then
+    mv $RESTOREDIR/etc/xroad/db.properties $RESTOREDIR/etc/xroad/db.properties.restored
+    cp /etc/xroad/db.properties $RESTOREDIR/etc/xroad/db.properties
+fi
+chown -R xroad:xroad $RESTOREDIR/*
+
+# remove old configuration files
+rm ${listf}
+
+# restore files
+Z=""
+if cp --help | grep -q "\-Z"; then
+Z="-Z"
+fi
+
+cp -a $Z $RESTOREDIR/etc/xroad -t /etc
+cp -r $Z $RESTOREDIR/etc/nginx -t /etc
+cp -a $Z $RESTOREDIR/var/lib/xroad -t /var/lib
+rm -rf $RESTOREDIR
 
 if [ -x /usr/share/xroad/scripts/restore_db.sh ] &&  [ -e /var/lib/xroad/dbdump.dat ]
 then
@@ -86,7 +111,6 @@ then
    then
     die "Failed to restore database!"
   fi
-
 fi
 
 echo -e "\nRESTARTING SERVICES\n"

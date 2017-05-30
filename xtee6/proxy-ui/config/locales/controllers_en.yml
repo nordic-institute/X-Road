@@ -25,6 +25,10 @@ en:
     error_code_uninitialized: "The configuration client is initializing."
     error_code_timestamp_uninitialized: "Connection ok, no timestamp request made yet."
     error_code_connection_failed: "Connection to configuration client failed. Ensure that xroad-confclient is running."
+    error_code_ocsp_connection_error: "Unable to connect to the OCSP responder."
+    error_code_ocsp_failed: "Unable to fetch response from the OCSP responder."
+    error_code_ocsp_response_invalid: "Unable to parse the OCSP response."
+    error_code_ocsp_uninitialized: "Status request not sent yet."
 
   init:
     not_authorized: "Fatal system error - contact system administrator"

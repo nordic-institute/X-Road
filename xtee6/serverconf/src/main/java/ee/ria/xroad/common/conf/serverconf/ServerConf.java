@@ -50,7 +50,7 @@ public class ServerConf {
      */
     protected static ServerConfProvider getInstance() {
         if (instance == null) {
-            instance = new ServerConfImpl();
+            instance = new CachingServerConfImpl();
         }
 
         return instance;

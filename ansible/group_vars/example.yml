@@ -1,0 +1,2 @@
+xroad_ui_user: grandmaster
+xroad_ui_user_password: "$6$t4Q.aNMTG8RtjaI0$RIgZejI5rs0RoK.yKy4FrgT0VbaR5z3z/q25pSWifFuEoEdctyhLLLFzEOogOc0SxKQSW/1.pdA9itkqVVudr1" # this can be created with command 'mkpasswd -m sha-512'

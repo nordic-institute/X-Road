@@ -1,0 +1,4 @@
+<xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
+    <ocspFetchInterval>500</ocspFetchInterval>
+    <foobar>122</foobar>
+</xro:conf>

@@ -69,13 +69,7 @@ public class TaskQueue extends UntypedActor {
                     Arrays.toString(message.getMessageRecords()));
         }
 
-        sendLogManagerTimestampingStatus(SetTimestampingStatusMessage.Status.SUCCESS);
-        try {
-            sendLogManagerSavedTimestamp(message);
-        } catch (Exception e) {
-            log.error("Failed to send message about storing time-stamp data", e);
-            sendLogManagerTimestampingStatus(SetTimestampingStatusMessage.Status.FAILURE);
-        }
+        sendLogManagerSavedTimestamp(message);
     }
 
     /**
@@ -136,14 +130,48 @@ public class TaskQueue extends UntypedActor {
         return new TimestampTask(messageRecords, signatureHashes);
     }
 
+    /**
+     * @return whether timestamping task queue is empty or not
+     * @throws CannotDetermineTaskQueueSize if queue status could not be determined
+     */
+    public static boolean isTimestampTasksEmpty() throws CannotDetermineTaskQueueSize {
+        try {
+            Long number = doInTransaction(TaskQueue::getTimestampTasksCount);
+            return number.longValue() == 0;
+        } catch (Exception e) {
+            throw new CannotDetermineTaskQueueSize("could not read timestamp task queue status", e);
+        }
+    }
+
+    /**
+     * Thrown if we cannot find out the size of timestamping task queue size (for example
+     * because database is broken)
+     */
+    public static class CannotDetermineTaskQueueSize extends RuntimeException {
+        public CannotDetermineTaskQueueSize(String s, Throwable throwable) {
+            super(s, throwable);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private List<Task> getTimestampTasks(Session session) {
         return session.createQuery(getTaskQueueQuery()).setMaxResults(
                 MessageLogProperties.getTimestampRecordsLimit()).list();
     }
 
+    @SuppressWarnings("unchecked")
+    private static Long getTimestampTasksCount(Session session) {
+        return (Long) session.createQuery(getTaskQueueSizeQuery()).uniqueResult();
+    }
+
     static String getTaskQueueQuery() {
         return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
                 + "from MessageRecord m where m.signatureHash is not null";
     }
+
+    static String getTaskQueueSizeQuery() {
+        return "select COUNT(*) "
+                + "from MessageRecord m where m.signatureHash is not null";
+    }
+
 }

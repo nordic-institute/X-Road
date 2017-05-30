@@ -58,7 +58,6 @@ public abstract class AbstractRequestHandler<T> extends UntypedActor {
                 }
             }
         } catch (ClassCastException e) {
-            log.error("Unexpected message", e);
             handleError(new CodedException(X_INTERNAL_ERROR,
                     "Unexpected message: %s", message.getClass()));
         } catch (Exception e) {

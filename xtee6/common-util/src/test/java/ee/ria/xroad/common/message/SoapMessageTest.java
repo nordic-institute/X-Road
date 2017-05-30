@@ -22,24 +22,22 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPException;
-
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.ExpectedCodedException;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.util.Arrays;
 import org.junit.Rule;
 import org.junit.Test;
 
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.ExpectedCodedException;
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPException;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
@@ -243,8 +241,7 @@ public class SoapMessageTest {
      */
     @Test
     public void faultMessage() throws Exception {
-        String soapFaultXml = SoapFault.createFaultXml(
-                "foo.bar", "baz", "xxx", "yyy");
+        String soapFaultXml = SoapFault.createFaultXml("foo.bar", "baz", "xxx", "yyy");
         Soap message = new SoapParserImpl().parse(
                 new ByteArrayInputStream(soapFaultXml.getBytes()));
 
@@ -252,6 +249,50 @@ public class SoapMessageTest {
 
         SoapFault fault = (SoapFault) message;
         assertEquals("foo.bar", fault.getCode());
+        assertEquals("baz", fault.getString());
+        assertEquals("xxx", fault.getActor());
+        assertEquals("yyy", fault.getDetail());
+    }
+
+    /**
+     * Tests that SoapMessage class understands fault messages.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void faultMessageWithCustomPrefix() throws Exception {
+        String soapFaultXml = SoapFault.createFaultXml(new QName(SoapUtils.NS_SOAPENV, "foo.bar", "SE"),
+                "baz", "xxx", "yyy");
+        Soap message = new SoapParserImpl().parse(
+                new ByteArrayInputStream(soapFaultXml.getBytes()));
+
+        assertTrue(message instanceof SoapFault);
+
+        SoapFault fault = (SoapFault) message;
+        final QName code = fault.getCodeAsQName();
+        assertEquals("foo.bar", code.getLocalPart());
+        assertEquals(SoapUtils.NS_SOAPENV, code.getNamespaceURI());
+        assertEquals("baz", fault.getString());
+        assertEquals("xxx", fault.getActor());
+        assertEquals("yyy", fault.getDetail());
+    }
+
+    /**
+     * Tests that SoapMessage class understands fault messages.
+     * @throws Exception in case of any unexpected errors
+     */
+    @Test
+    public void faultMessageWithCustomNamespace() throws Exception {
+        final QName customCode = new QName("http://example.org", "foo.bar", "foo");
+        String soapFaultXml = SoapFault.createFaultXml(customCode,
+                "baz", "xxx", "yyy");
+        Soap message = new SoapParserImpl().parse(
+                new ByteArrayInputStream(soapFaultXml.getBytes()));
+
+        assertTrue(message instanceof SoapFault);
+
+        SoapFault fault = (SoapFault) message;
+        assertEquals(customCode.getLocalPart(), fault.getCodeAsQName().getLocalPart());
+        assertEquals(customCode.getNamespaceURI(), fault.getCodeAsQName().getNamespaceURI());
         assertEquals("baz", fault.getString());
         assertEquals("xxx", fault.getActor());
         assertEquals("yyy", fault.getDetail());

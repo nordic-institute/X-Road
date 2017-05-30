@@ -1,0 +1,17 @@
+[cs-servers]
+cs1.mydomain.com ansible_ssh_user=ubuntu
+cs2.mydomain.com ansible_ssh_user=ubuntu
+
+[ss-servers]
+ss1.mydomain.com ansible_ssh_user=ubuntu
+ss2.mydomain.com ansible_ssh_user=ubuntu
+rh1.mydomain.com ansible_ssh_user=ec2-user
+rh2.mydomain.com ansible_ssh_user=ec2-user
+
+[cp-servers]
+cp.mydomain.com ansible_ssh_user=ubuntu
+
+[example:children]
+cs-servers
+ss-servers
+cp-servers

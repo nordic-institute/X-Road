@@ -170,13 +170,8 @@ public class LogManager extends AbstractLogManager {
             } else if (message instanceof SetTimestampingStatusMessage) {
                 setTimestampingStatus((SetTimestampingStatusMessage) message);
             } else if (message instanceof SaveTimestampedDataMessage) {
-                try {
-                    SaveTimestampedDataMessage data = (SaveTimestampedDataMessage) message;
-                    saveTimestampRecord(data.getTimestampSucceeded());
-                } catch (Exception e) {
-                    log.error("Failed to save time-stamp record to database", e);
-                    setTimestampFailed(new DateTime());
-                }
+                SaveTimestampedDataMessage data = (SaveTimestampedDataMessage) message;
+                saveTimestampRecord(data.getTimestampSucceeded());
             } else {
                 super.onReceive(message);
             }
@@ -270,8 +265,10 @@ public class LogManager extends AbstractLogManager {
 
     /**
      * Only externally use this method from tests. Otherwise send message to this actor.
+     * Calls "atomic" / synchronized method storeTimestampAndSetStatus, so that we can trust in setTimestampFailed
+     * that task queue remains in same (empty / non-empty) state between checking and setting status.
      */
-    protected TimestampRecord saveTimestampRecord(
+    private TimestampRecord saveTimestampRecord(
             Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
 
@@ -285,10 +282,42 @@ public class LogManager extends AbstractLogManager {
                 ? message.getHashChainResult() : null;
         timestampRecord.setHashChainResult(hashChainResult);
 
-        logRecordManager.saveTimestampRecord(timestampRecord,
-                message.getMessageRecords(), message.getHashChains());
+        storeTimestampAndSetStatus(message, timestampRecord);
 
         return timestampRecord;
+    }
+
+    /**
+     * Stores timestamped records, and sets status to succeeded if everything went as expected.
+     * This method is synchronized so that these two operations are executed atomically and do not disturb each other:
+     * 1) storeTimestampAndSetStatus: stores timestamp records and sets status
+     * 2) setTimestampFailed: reads status, checks existence of unstamped records and sets status
+     * @param message
+     * @param timestampRecord
+     * @throws Exception
+     */
+    private synchronized void storeTimestampAndSetStatus(Timestamper.TimestampSucceeded message,
+                                                         TimestampRecord timestampRecord) throws Exception {
+        try {
+            persistTimestampRecord(message, timestampRecord);
+            setTimestampSucceeded();
+        } catch (Exception e) {
+            log.error("Failed to save time-stamp record to database", e);
+            setTimestampFailedRegardlessOfQueue(new DateTime());
+            throw e;
+        }
+    }
+
+    /**
+     * Extension point for the tests
+     * @param message
+     * @param timestampRecord
+     * @throws Exception
+     */
+    protected void persistTimestampRecord(Timestamper.TimestampSucceeded message,
+                                          TimestampRecord timestampRecord) throws Exception {
+        logRecordManager.saveTimestampRecord(timestampRecord,
+                message.getMessageRecords(), message.getHashChains());
     }
 
     boolean isTimestampFailed() {
@@ -299,21 +328,66 @@ public class LogManager extends AbstractLogManager {
         if (statusMessage.getStatus() == SetTimestampingStatusMessage.Status.SUCCESS) {
             setTimestampSucceeded();
         } else {
-            setTimestampFailed(statusMessage.getAtTime());
+            setTimestampFailedIfQueueIsEmpty(statusMessage.getAtTime());
         }
     }
 
     /**
-     * Only use this method externally from tests. Otherwise send message to this actor.
+     * Only externally use this method from tests. Otherwise send message to this actor.
+     * @param atTime
      */
-    void setTimestampFailed(DateTime atTime) {
+    void setTimestampFailedIfQueueIsEmpty(DateTime atTime) {
+        setTimestampFailed(atTime, true);
+    }
+
+    /**
+     * Override checking the task queue and set status to failed regardless
+     * @param atTime
+     */
+    private void setTimestampFailedRegardlessOfQueue(DateTime atTime) {
+        setTimestampFailed(atTime, false);
+    }
+
+    /**
+     * This method is synchronized so that these two operations are executed atomically and do not disturb each other:
+     * 1) setTimestampFailed: reads status, checks existence of unstamped records and sets status
+     * 2) storeTimestampAndSetStatus: stores timestamp records and sets status
+     * @param atTime
+     * @param verifyQueueSize if we check against timestamping task queue being empty or not
+     */
+    private synchronized void setTimestampFailed(DateTime atTime, boolean verifyQueueSize) {
         if (timestampFailed == null) {
+            if (verifyQueueSize) {
+                // only change status to failed if there are some timestamping statuses in queue
+                // otherwise it is likely that some other request has stamped these requests,
+                // and changing status to failed with empty queue would result in a timestamping
+                if (queueIsKnownToBeEmpty()) {
+                    log.info("ignoring time stamping fail-status since there are no timestamping tasks in the queue "
+                            + "(another time stamping task was successful)");
+                    return;
+                }
+            }
             timestampFailed = atTime;
         }
     }
 
     /**
-     * Only use this method externally from tests. Otherwise send message to this actor.
+     * @return true if task queue is empty,
+     * false if it is not empty OR we cannot determine the size
+     */
+    private boolean queueIsKnownToBeEmpty() {
+        try {
+            if (TaskQueue.isTimestampTasksEmpty()) {
+                return true;
+            }
+        } catch (TaskQueue.CannotDetermineTaskQueueSize e) {
+            log.error("Cannot determine task queue size", e);
+        }
+        return false;
+    }
+
+    /**
+     * Only externally use this method from tests. Otherwise send message to this actor.
      */
     void setTimestampSucceeded() {
         timestampFailed = null;

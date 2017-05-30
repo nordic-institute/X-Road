@@ -1,15 +1,68 @@
-def getRubySourceCheckCommand(def projectPath) {
-    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
-}
-
 buildscript {
-    repositories {
+   repositories {
         jcenter()
     }
 
     dependencies {
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
+        classpath 'org.owasp:dependency-check-gradle:1.4.3'
     }
+}
+
+plugins {
+        id "org.sonarqube" version "2.1-rc3"
+ }
+
+apply plugin: 'idea'
+apply plugin: 'jacoco'
+
+def getRubySourceCheckCommand(def projectPath) {
+    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
+}
+
+repositories {
+    jcenter()
+}
+
+sonarqube {
+    properties {
+        property "sonar.host.url", "http://localhost:9000"
+        property "sonar.projectKey", "xtee6"
+        property "sonar.projectName", "X-Road"
+        property "sonar.projectDescription", "National Data Exchange Layer"
+        property "sonar.projectVersion", "develop"    }
+}
+
+allprojects {
+    apply plugin: 'org.owasp.dependencycheck'
+    dependencyCheck {
+        outputDirectory = "${project.buildDir}/reports/owasp-dependency-check"
+        format = "ALL"
+        analyzers {
+            experimentalEnabled = true
+            archiveEnabled = true
+            jarEnabled = true
+            centralEnabled = true
+            nexusEnabled = false
+            nuspecEnabled = false
+            assemblyEnabled = false
+            pyDistributionEnabled = false
+            pyPackageEnabled = false
+            rubygemsEnabled = true
+            cmakeEnabled = false
+            autoconfEnabled = false
+            composerEnabled = false
+            nodeEnabled = false
+        }
+    }
+
+    sonarqube {
+        properties {
+            property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
+        }
+    }
+
+    task allDependencies(type: DependencyReportTask) {}
 }
 
 subprojects {
@@ -26,6 +79,7 @@ subprojects {
     jacoco {
         toolVersion = "0.7.5.201505241946"
     }
+
 
     repositories {
         mavenCentral()
@@ -93,7 +147,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.1.1"
+        toolVersion = "6.19"
         configFile = new File(rootDir, "doc/checkstyle.xml")
         configProperties.config_loc = "$rootDir/doc"
         ignoreFailures = false
@@ -109,52 +163,54 @@ subprojects {
             xml.enabled true
         }
     }
-}
 
-configure(subprojects.findAll { it.file('LICENSE.txt').exists() }) {
-   
     apply plugin: "license"
-  
+
     license {
-        header project.file('LICENSE.txt')
+        header rootProject.file('LICENSE.txt')
         include '**/*.java'
         include '**/*.rb'
     }
 
-   jar {
-        from project.file('LICENSE.txt')
-   }
-
+    jar {
+        from rootProject.file('LICENSE.txt')
+    }
 }
 
-configure(subprojects.findAll { it.file('LICENSE.txt').exists() && it.name.contains('-ui') }) {
+
+configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common')}) {
 
     apply plugin: "license"
-  
+
+    def sources = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
+
     task licenseFormatUi(type:nl.javadude.gradle.plugins.license.License) {
-        source = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
+        source = sources
     }
-    
+
+    task licenseFormatUiCheck(type:nl.javadude.gradle.plugins.license.License) {
+        source = sources
+        check = true;
+    }
+
     licenseFormat.dependsOn licenseFormatUi
+    licenseTest.dependsOn licenseFormatUiCheck
 }
 
+configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') or it.name.contains('proxy-ui')})) {
+    def licenseSourceAdds = fileTree('lib')
 
-
-apply plugin: 'idea'
-apply plugin: 'sonar-runner'
-apply plugin: 'jacoco'
-
-sonarRunner {
-    sonarProperties {
-        property "sonar.host.url", "http://localhost:9000"
-        property "sonar.jdbc.url", "jdbc:postgresql://localhost/sonar"
-        property "sonar.jdbc.driverClassName", "jdbc:postgresql://localhost/sonar"
-        property "sonar.jdbc.username", "sonar"
-        property "sonar.jdbc.password", "sonar"
+    task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {
+        source += licenseSourceAdds
     }
-}
 
-repositories {
-    jcenter()
+    task licenseFormatLibCheck(type: nl.javadude.gradle.plugins.license.License) {
+        source += licenseSourceAdds
+        check = true
+    }
+
+    licenseFormat.dependsOn licenseFormatLib
+    licenseTest.dependsOn licenseFormatLibCheck
+
 }
 

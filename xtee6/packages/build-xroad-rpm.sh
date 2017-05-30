@@ -11,7 +11,7 @@ CMD=${2-bb}
 rm -rf ${ROOT}/RPMS/*
 
 rpmbuild \
-    --define "xroad_version 6.7.12" \
+    --define "xroad_version 6.7.13" \
     --define "rel $RELEASE" \
     --define "snapshot .$SNAPSHOT" \
     --define "_topdir $ROOT" \

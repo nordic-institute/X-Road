@@ -136,11 +136,9 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
         } catch (CodedExceptionWithHttpStatus ex) {
             throw ex;
         } catch (CodedException ex) {
-            log.error("Coded exception: {}", ex);
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex);
         } catch (Exception ex) {
-            log.error("Internal server error: {}", ex);
             throw new CodedExceptionWithHttpStatus(
                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                     ErrorCodes.X_INTERNAL_ERROR,

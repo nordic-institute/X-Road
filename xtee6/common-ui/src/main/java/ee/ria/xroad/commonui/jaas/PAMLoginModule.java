@@ -86,13 +86,10 @@ public class PAMLoginModule implements LoginModule {
 
             return currentUser != null;
         } catch (IOException e) {
-            log.error("Login failed: {}", e);
             throw new LoginException(e.toString());
         } catch (UnsupportedCallbackException e) {
-            log.error("Login failed: {}", e);
             throw new LoginException(e.toString());
         } catch (Exception e) {
-            log.error("Login error", e);
             throw new LoginException(e.toString());
         }
     }

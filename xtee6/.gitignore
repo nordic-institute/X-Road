@@ -3,7 +3,6 @@ build/
 out/
 *.iml
 *.deb
-Gemfile.lock
 .gradle
 .generators
 vendor/
