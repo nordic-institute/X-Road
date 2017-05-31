@@ -22,15 +22,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -46,17 +40,28 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Base class for a closeable HTTP sender.
  */
-@Slf4j
 public abstract class AbstractHttpSender implements Closeable {
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(AbstractHttpSender.class);
+
     public static final int CHUNKED_LENGTH = -1;
 
     private static final int DEFAULT_TIMEOUT = 30000; // default 30 sec
@@ -122,7 +127,7 @@ public abstract class AbstractHttpSender implements Closeable {
     }
 
     protected void handleResponse(HttpResponse response) throws Exception {
-        log.trace("handleResponse()");
+        LOG.trace("handleResponse()");
 
         checkResponseStatus(response);
 
@@ -178,7 +183,7 @@ public abstract class AbstractHttpSender implements Closeable {
                 // reading/closing the stream failed for whatever reason, the broken connection should be cleaned up by
                 // a pool monitor. Keep the contract set by releaseConnection and don't throw checked exceptions.
                 // Nothing really to be done here anyway.
-                log.warn("Closing response entity nicely failed", e);
+                LOG.warn("Closing response entity nicely failed", e);
             }
         }
     }
@@ -207,8 +212,10 @@ public abstract class AbstractHttpSender implements Closeable {
         return entity;
     }
 
-    protected static StringEntity createStringEntity(String content, String contentType) {
-        return new StringEntity(content, ContentType.create(contentType, MimeUtils.UTF8));
+    protected static StringEntity createStringEntity(String content,
+            String contentType) {
+        return new StringEntity(content, ContentType.create(contentType,
+                StandardCharsets.UTF_8.name()));
     }
 
     protected void checkResponseStatus(HttpResponse response) {
@@ -269,7 +276,7 @@ public abstract class AbstractHttpSender implements Closeable {
 
         @Override
         public boolean streamClosed(InputStream wrapped) throws IOException {
-            log.warn("Stream was closed before EOF was detected");
+            LOG.warn("Stream was closed before EOF was detected");
             return true;
         }
 

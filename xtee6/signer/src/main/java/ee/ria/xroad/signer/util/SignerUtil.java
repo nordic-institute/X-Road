@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.signer.util;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
@@ -35,21 +33,28 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.bind.DatatypeConverter;
 
+import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
+import akka.actor.OneForOneStrategy;
+import akka.actor.SupervisorStrategy;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.SneakyThrows;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import scala.concurrent.Await;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Collection of various utility methods.
@@ -269,4 +274,38 @@ public final class SignerUtil {
         }
         return null;
     }
+
+    /**
+     * @param tokenIdFormat the format of the token ID
+     * @param moduleType module type
+     * @param token pkcs11 token
+     * @return formatted token ID
+     */
+    @SneakyThrows
+    public static String getFormattedTokenId(String tokenIdFormat, String moduleType,
+            iaik.pkcs.pkcs11.Token token) {
+        iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
+        String slotIndex = Long.toString(token.getSlot().getSlotID());
+
+        return tokenIdFormat.replaceAll("\\{moduleType\\}", moduleType)
+                .replaceAll("\\{slotIndex\\}", slotIndex)
+                .replaceAll("\\{serialNumber\\}", tokenInfo.getSerialNumber().trim())
+                .replaceAll("\\{label\\}", tokenInfo.getLabel().trim());
+    }
+
+    /**
+     * @return a supervisor strategy that escalates PKCS11Exceptions to the parent actor
+     */
+    public static OneForOneStrategy createPKCS11ExceptionEscalatingStrategy() {
+        return new OneForOneStrategy(-1, Duration.Inf(),
+            throwable -> {
+                if (throwable instanceof PKCS11Exception) {
+                    return SupervisorStrategy.escalate();
+                } else {
+                    return SupervisorStrategy.resume();
+                }
+            }
+        );
+    }
+
 }
