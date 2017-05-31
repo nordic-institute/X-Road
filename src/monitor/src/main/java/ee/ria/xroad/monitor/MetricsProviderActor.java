@@ -133,6 +133,7 @@ public class MetricsProviderActor extends UntypedActor {
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
         for (CertificateMonitoringInfo cert: c.getDtoData()) {
             MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getId());
+            certBuilder.withMetric(new SimpleMetricDto<>("id", cert.getId()));
             certBuilder.withMetric(new SimpleMetricDto<>("subjectDN", cert.getSubject()));
             certBuilder.withMetric(new SimpleMetricDto<>("issuerDN", cert.getIssuer()));
             certBuilder.withMetric(new SimpleMetricDto<>("status", cert.getStatus()));

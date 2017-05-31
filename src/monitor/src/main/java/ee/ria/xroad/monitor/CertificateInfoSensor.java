@@ -82,6 +82,7 @@ public class CertificateInfoSensor extends AbstractSensor {
      * @throws Exception
      */
     public CertificateInfoSensor() throws Exception {
+        log.info("Creating sensor, measurement interval: {}", getInterval());
         updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }

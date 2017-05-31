@@ -977,7 +977,7 @@ public final class SystemProperties {
     }
 
     /**
-     * @return exec listing sensor interval in seconds, '60' by default.
+     * @return exec listing sensor interval in seconds, 1 day by default.
      */
     public static int getEnvMonitorCertificateInfoSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
