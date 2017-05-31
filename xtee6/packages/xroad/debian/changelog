@@ -1,8 +1,25 @@
-xroad (6.9.3-1) trusty; urgency=low
+xroad (6.9.5) trusty; urgency=low
 
-  * XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing & or < entities.
+  * XTE-293: Security Server: A field set used to generate the token ID of the
+    SSCD has been made configurable.
+  * XTE-333 / Joint development issue #128: Security Server bugfix: Fixed
+    parsing SOAP messages containing &amp; or &lt; entities.
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 22 Mar 2017 14:32:32 +0200
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 27 Mar 2017 16:38:15 +0300
+
+xroad (6.9.4) trusty; urgency=low
+  
+  * XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
+  * XTE-319: Security Server UI bugfix: WSDL deletion caused incorrect ACL removal
+  * XTE-322: Security Server bugfix: a typo in the configuration file proxy.ini (client-timeout)
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 13 Feb 2017 18:36:28 +0200
+
+xroad (6.9.3) trusty; urgency=low
+
+  * PVAYLADEV-691: Hotfix for ExecListingSensor init. (Fixes package listing information, etc)
+
+ -- Sami Kallio <sami.kallio@gofore.com>  Fri, 10 Feb 2017 14:05:11 +0200
 
 xroad (6.9.2) trusty; urgency=low
 

@@ -165,6 +165,8 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 4.  After installing and configuring the driver, the xroad-signer service must be restarted:
 <br>`sudo service xroad-signer restart`
 
+If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in /etc/xroad/devices.ini via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
+
 ## 2.8 Installing the Support for Operational Monitoring
 
 Enabling the operational monitoring functionality on a security server requires installation of one additional package:
