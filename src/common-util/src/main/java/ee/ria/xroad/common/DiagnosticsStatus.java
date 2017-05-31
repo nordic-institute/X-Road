@@ -25,7 +25,6 @@ package ee.ria.xroad.common;
 import java.io.Serializable;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -37,7 +36,7 @@ import lombok.ToString;
 @Getter
 @ToString
 public class DiagnosticsStatus implements Serializable {
-    private static final FormatStyle FORMAT_STYLE = FormatStyle.SHORT;
+    public static final DateTimeFormatter DIAGNOSTICS_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private int returnCode;
     private LocalTime prevUpdate;
     private LocalTime nextUpdate;
@@ -57,9 +56,9 @@ public class DiagnosticsStatus implements Serializable {
 
     /**
      *
-     * @param returnCode
-     * @param prevUpdate
-     * @param description
+     * @param returnCode return code
+     * @param prevUpdate previous update
+     * @param description status description
      */
     public DiagnosticsStatus(int returnCode, LocalTime prevUpdate, String description) {
         this.returnCode = returnCode;
@@ -108,7 +107,7 @@ public class DiagnosticsStatus implements Serializable {
         if (time == null) {
             return "";
         } else {
-            return time.format(DateTimeFormatter.ofLocalizedTime(FORMAT_STYLE));
+            return time.format(DIAGNOSTICS_FORMATTER);
         }
     }
 }
