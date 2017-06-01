@@ -101,7 +101,13 @@ The following sensors produce monitoring data:
   - data: list of installed packages and their versions
   - data is refreshed once per minute
 - `CertificateInfoSensor`
-  - data: information about certificates associated with this security server, including their expiration dates
+  - data: information about certificates associated with this security server
+    - id
+    - issuer DN
+    - subject DN
+    - validity period: not before (ISO 8601 date)
+    - validity period: not after (ISO 8601 date)
+    - status
   - data is refreshed once per day
 
 
