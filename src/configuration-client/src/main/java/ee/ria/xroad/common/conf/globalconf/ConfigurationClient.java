@@ -145,9 +145,14 @@ class ConfigurationClient {
     private void downloadConfigurationFromAdditionalSources() throws Exception {
         log.trace("Downloading configuration from additional sources ({})",
                 additionalSources.size());
+        FederationConfigurationSourceFilter filter =
+                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
 
         for (Set<ConfigurationSource> sources : additionalSources.values()) {
             for (ConfigurationSource source : sources) {
+                if (!filter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
+                    continue;
+                }
                 DownloadResult result =
                         downloader.download(source,
                             ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
