@@ -26,8 +26,8 @@ endif
 override_dh_installinit:
 	dh_installinit --name=xroad-jetty
 
-override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
+#override_dh_gencontrol:
+#	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 
 build: 
 	./download_jetty.sh

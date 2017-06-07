@@ -5,7 +5,7 @@
 
 Name:       xroad-addon-metaservices
 Version:    %{xroad_version}
-Release:    %{rel}%{?snapshot}%{?dist}
+Release:    %{rel}%{?dist}
 Summary:    X-Road AddOn: metaservices
 Group:      Applications/Internet
 License:    MIT

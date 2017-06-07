@@ -9,10 +9,10 @@ DIR=$(cd "$(dirname $0)" && pwd)
 cd $DIR
 set -e
 JETTY=$(head -1 xroad-jetty9/jetty.url)
-RELEASE=0
+RELEASE=1
 DATE=$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')
 HASH=$(git show -s --format=git%h || echo 'local')
-SNAPSHOT=$DATE$HASH
+# SNAPSHOT=$DATE$HASH
 ROOT=${DIR}/xroad-jetty9/redhat
 mkdir -p $ROOT/SOURCES
 cd $ROOT/SOURCES

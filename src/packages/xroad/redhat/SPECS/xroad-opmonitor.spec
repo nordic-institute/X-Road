@@ -9,7 +9,7 @@
 Name:               xroad-opmonitor
 Version:            %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
-Release:            %{rel}%{?snapshot}%{?dist}
+Release:            %{rel}%{?dist}
 Summary:            X-Road operations monitoring daemon
 Group:              Applications/Internet
 License:            MIT

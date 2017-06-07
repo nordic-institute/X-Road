@@ -38,8 +38,8 @@ override_dh_installinit:
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip -z1
 
-override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
+#override_dh_gencontrol:
+#	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 
 # By default, dh_compress compresses files that Debian policy mandates
 # should be compressed. Example files are more user-friendly if these remain

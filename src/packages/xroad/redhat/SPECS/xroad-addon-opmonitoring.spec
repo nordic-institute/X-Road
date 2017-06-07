@@ -5,7 +5,7 @@
 
 Name:       xroad-addon-opmonitoring
 Version:    %{xroad_version}
-Release:    %{rel}%{?snapshot}%{?dist}
+Release:    %{rel}%{?dist}
 Summary:    X-Road AddOn: opmonitoring
 Group:      Applications/Internet
 License:    MIT

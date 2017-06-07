@@ -5,7 +5,7 @@
 
 Name:       xroad-addon-messagelog
 Version:    %{xroad_version}
-Release:    %{rel}%{?snapshot}%{?dist}
+Release:    %{rel}%{?dist}
 Summary:    X-Road AddOn: messagelog
 Group:      Applications/Internet
 License:    MIT

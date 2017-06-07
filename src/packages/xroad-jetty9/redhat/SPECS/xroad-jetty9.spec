@@ -8,7 +8,7 @@
 Name:		xroad-jetty9
 Version:        %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
-Release:        %{rel}%{?snapshot}%{?dist}
+Release:        %{rel}%{?dist}
 Summary:        Jetty9 for X-Road purposes
 Group:          Applications/Internet
 Autoprov:       0
