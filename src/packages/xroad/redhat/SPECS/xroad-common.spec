@@ -6,7 +6,7 @@
 Name:       xroad-common
 Version:    %{xroad_version}
 # release tag, e.g. 0.201508070816.el7 for snapshots and 1.el7 (for final releases)
-Release:    %{rel}%{?dist}
+Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road shared components
 Group:      Applications/Internet
 License:    MIT

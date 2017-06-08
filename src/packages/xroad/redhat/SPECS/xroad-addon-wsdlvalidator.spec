@@ -5,7 +5,7 @@
 
 Name:       xroad-addon-wsdlvalidator
 Version:    %{xroad_version}
-Release:    %{rel}%{?dist}
+Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: wsdlvalidator
 Group:      Applications/Internet
 License:    MIT

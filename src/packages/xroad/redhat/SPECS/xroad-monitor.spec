@@ -5,7 +5,7 @@
 
 Name:               xroad-monitor
 Version:            %{xroad_version}
-Release:            %{rel}%{?dist}
+Release:            %{rel}%{?snapshot}%{?dist}
 Summary:            X-Road Monitoring
 Group:              Applications/Internet
 License:            MIT

@@ -5,14 +5,22 @@ md5 () {
     md5sum $1 | cut -f1 -d ' '
 }
 
+echo "parameter value: $1"
+
+if [[ $1 == "-release" ]] ; then
+  RELEASE=1
+else
+  RELEASE=0
+  DATE=$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')
+  HASH=$(git show -s --format=git%h || echo 'local')
+  SNAPSHOT=.$DATE$HASH
+fi
+
 DIR=$(cd "$(dirname $0)" && pwd)
 cd $DIR
 set -e
 JETTY=$(head -1 xroad-jetty9/jetty.url)
-RELEASE=1
-DATE=$(date --utc --date @$(git show -s --format=%ct || date +%s) +'%Y%m%d%H%M%S')
-HASH=$(git show -s --format=git%h || echo 'local')
-# SNAPSHOT=$DATE$HASH
+
 ROOT=${DIR}/xroad-jetty9/redhat
 mkdir -p $ROOT/SOURCES
 cd $ROOT/SOURCES
@@ -33,6 +41,6 @@ rpmbuild \
     --define "xroad_version 6.16.0" \
     --define "jetty $JETTY" \
     --define "rel $RELEASE" \
-    --define "snapshot .$SNAPSHOT" \
+    --define "snapshot $SNAPSHOT" \
     --define "_topdir $ROOT" \
     -bb SPECS/xroad-jetty9.spec

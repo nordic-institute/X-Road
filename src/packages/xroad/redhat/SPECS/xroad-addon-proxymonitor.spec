@@ -5,7 +5,7 @@
 
 Name:       xroad-addon-proxymonitor
 Version:    %{xroad_version}
-Release:    %{rel}%{?dist}
+Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road addon: proxy monitoring
 Group:      Applications/Internet
 License:    MIT
