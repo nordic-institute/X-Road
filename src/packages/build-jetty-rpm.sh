@@ -5,8 +5,6 @@ md5 () {
     md5sum $1 | cut -f1 -d ' '
 }
 
-echo "parameter value: $1"
-
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
 else
