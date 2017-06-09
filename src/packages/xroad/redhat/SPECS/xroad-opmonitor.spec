@@ -55,6 +55,7 @@ cp -p %{src}/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
+cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
 
 ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 ln -s /usr/share/uxp/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
@@ -84,6 +85,7 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/examples/zabbix/*
+%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre
 

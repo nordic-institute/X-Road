@@ -16,4 +16,4 @@ common/usr/*  usr/
 ../default-configuration/confclient-logback-service.xml etc/xroad/conf.d
 ../../LICENSE.txt usr/share/doc/xroad-common/
 ../../securityserver-LICENSE.info usr/share/doc/xroad-common/
-
+../../../CHANGELOG.md usr/share/doc/xroad-common/

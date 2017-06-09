@@ -28,6 +28,7 @@ cp -a %{src}/addon/proxy/metaservice* %{buildroot}/usr/share/xroad/jlib/addon/pr
 cp -p %{src}/../../addons/metaservice/build/libs/metaservice-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/
+cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
 
 %clean
 rm -rf %{buildroot}
@@ -38,6 +39,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/addon/proxy/metaservices.conf
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %changelog
 

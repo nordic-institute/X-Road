@@ -10,3 +10,4 @@ center/etc/* etc/
 ../../center-service/build/libs/center-service.war usr/share/xroad/jlib/webapps/
 ../../center-ui/build/libs/center-ui.war usr/share/xroad/jlib/webapps/
 ../../centralserver-LICENSE.info usr/share/doc/xroad-center
+../../../CHANGELOG.md usr/share/doc/xroad-center
