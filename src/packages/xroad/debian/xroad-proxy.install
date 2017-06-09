@@ -9,3 +9,4 @@ proxy/usr/* usr/
 ../default-configuration/rsyslog.d/* etc/rsyslog.d/
 ../../LICENSE.txt usr/share/doc/xroad-proxy/
 ../../securityserver-LICENSE.info usr/share/doc/xroad-proxy
+../../../CHANGELOG.md usr/share/doc/xroad-securityserver
