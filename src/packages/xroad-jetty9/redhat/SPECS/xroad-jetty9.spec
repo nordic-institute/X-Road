@@ -37,17 +37,17 @@ Jetty9 modified for X-Road usage. Used by web services.
 
 %build
 rm -rf demo-base
-cp %{SOURCE1} modules/logging.mod
-sed -i'' 's/^resources/#resources/' modules/logging.mod
-sed -i'' 's/^logs/#logs/' modules/logging.mod
+sed -i'' 's/^logback\.version?=1\.1\.7/logback\.version\?=1\.2\.3/' modules/logback-impl.mod
 mv start.ini start.ini.bak
-java -jar start.jar --add-to-start=logging jetty.base=$(pwd)
+echo yes |java -jar start.jar --add-to-start=logging-logback jetty.base=$(pwd)
 
 %install
 ln -s /etc/xroad/jetty/jetty-login.conf etc/login.conf
 ln -s /etc/xroad/jetty/xroad.mod modules/xroad.mod
 rm -f start.ini
 ln -s /etc/xroad/jetty/start.ini start.ini
+rm -f resources/logback.xml
+ln -s /etc/xroad/conf.d/jetty-logback.xml resources/logback.xml
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jetty9

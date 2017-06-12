@@ -22,12 +22,6 @@ JETTY=$(head -1 xroad-jetty9/jetty.url)
 ROOT=${DIR}/xroad-jetty9/redhat
 mkdir -p $ROOT/SOURCES
 cd $ROOT/SOURCES
-md5a=$(cat logging.mod.md5 || echo X)
-md5b=$(md5 logging.mod || echo Y)
-if [[ ! -f logging.mod || "$md5a" != "$md5b" ]]; then
-    curl -sLO "https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod"
-    md5 logging.mod > logging.mod.md5
-fi
 md5a=$(cat jetty.md5 || echo X)
 md5b=$(md5 $(basename $JETTY) || echo Y)
 if [[ ! -f $(basename $JETTY) || "$md5a" != "$md5b" ]]; then
