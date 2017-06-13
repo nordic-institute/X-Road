@@ -72,11 +72,13 @@ See instructions in [src/BUILD.md](src/BUILD.md)
 **More information about X-tee and Palveluväylä**
 
 Estonia - [X-tee (in Estonian)](https://www.ria.ee/ee/x-tee.html)
+
 Finland - [Palveluväylä (in Finnish)](https://esuomi.fi/palveluntarjoajille/palveluvayla/)
 
 **Contact information**
 
 Estonia - [X-tee contacts](https://www.ria.ee)
+
 Finland - [Palveluväylä contacts](https://esuomi.fi/yhteystiedot/)
 
 ## Support disclaimer
