@@ -96,13 +96,11 @@ public class CertificateInfoSensor extends AbstractSensor {
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
 
         SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor = getOrCreateSimpleSensor(
-                new SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>(),
                 metricRegistry,
                 SystemMetricNames.CERTIFICATES);
         certificateSensor.update(data);
 
         SimpleSensor<ArrayList<String>> certificateTextSensor = getOrCreateSimpleSensor(
-                new SimpleSensor<ArrayList<String>>(),
                 metricRegistry,
                 SystemMetricNames.CERTIFICATES_STRINGS);
         certificateTextSensor.update(data.getJmxStringData());
@@ -112,11 +110,10 @@ public class CertificateInfoSensor extends AbstractSensor {
      * Either registers a new sensor to metricRegistry, or reuses already registered one
      */
     private <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(
-            SimpleSensor<T> typeDefiningSensor,
             MetricRegistry metricRegistry,
             String metricName) {
 
-        typeDefiningSensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
+        SimpleSensor<T> typeDefiningSensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
         if (typeDefiningSensor == null) {
             typeDefiningSensor = new SimpleSensor<>();
             metricRegistry.register(metricName, typeDefiningSensor);
