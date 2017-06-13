@@ -39,9 +39,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
 
 /**
@@ -59,6 +61,7 @@ public class HealthCheckPort implements StartStop {
     private final Server server;
     private final StoppableHealthCheckProvider stoppableHealthCheckProvider;
     private final int portNumber;
+    private AtomicBoolean maintenanceMode = new AtomicBoolean(false);
 
     /**
      * Create a new {@link HealthCheckPort} use the implemented {@link StartStop} interface to start/stop it.
@@ -84,6 +87,15 @@ public class HealthCheckPort implements StartStop {
         handlerCollection.addHandler(new HealthCheckHandler(stoppableHealthCheckProvider));
 
         server.setHandler(handlerCollection);
+    }
+
+    public String setMaintenanceMode(boolean targetState) {
+        boolean oldValue = maintenanceMode.getAndSet(targetState);
+        return "Maintenance mode set: " + oldValue + " => " + targetState;
+    }
+
+    public boolean isMaintenanceMode() {
+        return maintenanceMode.get();
     }
 
     @Override
@@ -115,7 +127,7 @@ public class HealthCheckPort implements StartStop {
      * firewall.
      */
     @RequiredArgsConstructor
-    public static class HealthCheckHandler extends AbstractHandler {
+    public class HealthCheckHandler extends AbstractHandler {
 
         private final HealthCheckProvider healthCheckProvider;
 
@@ -124,16 +136,18 @@ public class HealthCheckPort implements StartStop {
                            HttpServletRequest request, HttpServletResponse response)
                 throws IOException, ServletException {
 
-            HealthCheckResult result = healthCheckProvider.get();
-
-            if (result.isOk()) {
-                response.setStatus(SC_OK);
+            if (isMaintenanceMode()) {
+                response.setStatus(SC_SERVICE_UNAVAILABLE);
             } else {
-                response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                IOUtils.copy(new StringReader(result.getErrorMessage().concat("\n")),
-                        response.getOutputStream());
+                HealthCheckResult result = healthCheckProvider.get();
+                if (result.isOk()) {
+                    response.setStatus(SC_OK);
+                } else {
+                    response.setStatus(SC_INTERNAL_SERVER_ERROR);
+                    IOUtils.copy(new StringReader(result.getErrorMessage().concat("\n")),
+                            response.getOutputStream());
+                }
             }
-
             baseRequest.setHandled(true);
         }
     }
