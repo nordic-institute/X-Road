@@ -73,6 +73,13 @@ public class HealthCheckPort implements StartStop {
         createHealthCheckConnector();
     }
 
+    HealthCheckPort(StoppableHealthCheckProvider testProvider, int testPort) {
+        server = new Server(new QueuedThreadPool(THREAD_POOL_SIZE));
+        stoppableHealthCheckProvider = testProvider;
+        portNumber = testPort;
+        createHealthCheckConnector();
+    }
+
     private void createHealthCheckConnector() {
 
         ServerConnector connector = new ServerConnector(server, ACCEPTOR_THREAD_COUNT, SELECTOR_THREAD_COUNT);
