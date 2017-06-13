@@ -22,8 +22,10 @@
  */
 package ee.ria.xroad.monitor;
 
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.actor.UnhandledMessage;
 import com.codahale.metrics.JmxReporter;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
@@ -32,6 +34,7 @@ import com.typesafe.config.ConfigValueFactory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+import ee.ria.xroad.signer.protocol.SignerClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
@@ -60,7 +63,7 @@ public final class MonitorMain {
      *
      * @param args
      */
-    public static void main(String args[]) {
+    public static void main(String args[]) throws Exception {
 
         log.info("Starting X-Road Environmental Monitoring");
         registerShutdownHook();
@@ -82,12 +85,20 @@ public final class MonitorMain {
         }
     }
 
-    private static void initAkka() {
+    private static void initAkka() throws Exception {
         actorSystem = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
+        SignerClient.init(actorSystem);
+
+        ActorRef unhandled = actorSystem.actorOf(Props.create(UnhandledListenerActor.class), "UnhandledListenerActor");
+        actorSystem.eventStream().subscribe(unhandled, UnhandledMessage.class);
+
         actorSystem.actorOf(Props.create(MetricsProviderActor.class), "MetricsProviderActor");
         actorSystem.actorOf(Props.create(SystemMetricsSensor.class), "SystemMetricsSensor");
         actorSystem.actorOf(Props.create(DiskSpaceSensor.class), "DiskSpaceSensor");
         actorSystem.actorOf(Props.create(ExecListingSensor.class), "ExecListingSensor");
+        actorSystem.actorOf(Props.create(CertificateInfoSensor.class), "CertificateInfoSensor");
+
+        log.info("akka init complete");
     }
 
     private static Config loadAkkaConfiguration() {
@@ -102,7 +113,9 @@ public final class MonitorMain {
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                        SystemMetricNames.PACKAGES).contains(name))
+                        SystemMetricNames.PACKAGES,
+                        SystemMetricNames.CERTIFICATES
+                        ).contains(name))
                 .build();
 
         jmxReporter.start();

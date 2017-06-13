@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.executablelister;
+package ee.ria.xroad.monitor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -29,12 +29,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * ListedData
- * @param <T> data type
+ * Sensor data which has different representation for SOAP interface (DTO objects)
+ * and JMX interface (strings)
+ * @param <T> DTO data type
  */
 @Getter
 @Setter
-public class ListedData<T> implements Serializable {
-    ArrayList<T> parsedData;
-    ArrayList<String> jmxData;
+public class JmxStringifiedData<T> implements Serializable {
+    ArrayList<T> dtoData;
+    ArrayList<String> jmxStringData;
 }

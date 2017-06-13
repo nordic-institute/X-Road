@@ -21,7 +21,6 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.monitor;
-
 import akka.actor.ActorIdentity;
 import akka.actor.ActorRef;
 import akka.actor.Identify;

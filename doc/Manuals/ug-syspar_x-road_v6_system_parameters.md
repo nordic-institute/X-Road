@@ -233,6 +233,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | env-monitor              | system-metrics-sensor-interval                                           | 5                                                | Interval of systems metrics sensor in seconds. How often system metrics data is collected.|
 | env-monitor              | disk-space-sensor-interval                                               | 60                                               | Interval of disk space sensor in seconds. How often disk space data is collected.|
 | env-monitor              | exec-listing-sensor-interval                                             | 60                                               | Interval of exec listing sensor in seconds. How often sensor data using external command are collected.|
+| env-monitor              | certificate-info-sensor-interval                                             | 86400                                               | Interval of certificate information sensor in seconds. How often certificate data is collected. The first collection is always done after a delay of 10 seconds. |
 
 
 Central Server System Parameters

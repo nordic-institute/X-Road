@@ -20,52 +20,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.executablelister;
+package ee.ria.xroad.monitor;
 
-import java.io.IOException;
-import java.util.List;
-
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-
-import ee.ria.xroad.monitor.JmxStringifiedData;
-import lombok.extern.slf4j.Slf4j;
+import lombok.*;
 
 /**
- * Created by janne on 5.11.2015.
+ * Created by janne on 11.5.2017.
  */
-@Slf4j
-public class OsInfoLister extends AbstractExecLister<String> {
-
-    private static final String SHOW_OS_INFO_COMMAND = "cat /proc/version";
-    private static final int NUMBER_OF_FIELDS = 1;
-
-    /**
-     * Program entry point
-     */
-    public static void main(String[] args) throws IOException {
-        JmxStringifiedData<String> p = new OsInfoLister().list();
-        System.out.println("raw: " + p.getJmxStringData());
-        System.out.println("parsed: " + p.getDtoData());
-    }
-
-    @Override
-    protected String getCommand() {
-        return SHOW_OS_INFO_COMMAND;
-    }
-
-    @Override
-    protected Splitter getParsedDataSplitter() {
-        return Splitter.on(CharMatcher.NONE);
-    }
-
-    @Override
-    protected int numberOfColumnsToParse() {
-        return NUMBER_OF_FIELDS;
-    }
-
-    @Override
-    protected String parse(List<String> columns) {
-        return columns.get(0);
-    }
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
+public class CertificateMonitoringInfo {
+    private String id;
+    private String issuer;
+    private String subject;
+    private String notBefore;
+    private String notAfter;
+    private String status;
 }

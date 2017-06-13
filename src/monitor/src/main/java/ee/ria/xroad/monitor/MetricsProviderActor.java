@@ -22,21 +22,14 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.io.Serializable;
-import java.util.Map;
-
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.MetricSet;
-import com.codahale.metrics.Snapshot;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Snapshot;
+import com.google.common.collect.Lists;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
@@ -44,9 +37,11 @@ import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.monitor.common.dto.SimpleMetricDto;
-import ee.ria.xroad.monitor.executablelister.ListedData;
 import ee.ria.xroad.monitor.executablelister.PackageInfo;
 import ee.ria.xroad.monitor.executablelister.ProcessInfo;
+
+import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Actor for providing system metrics data
@@ -66,7 +61,8 @@ public class MetricsProviderActor extends UntypedActor {
             for (Map.Entry<String, Histogram> e : metrics.getHistograms().entrySet()) {
                 builder.withMetric(toHistogramDto(e.getKey(), e.getValue().getSnapshot()));
             }
-            // dont handle processes and packages gauges normally, they have have special conversions to dto
+            // dont handle processes, packages and certificates gauges normally,
+            // they have have special conversions to dto
             // *_STRINGS gauges are only for JMX reporting
             for (Map.Entry<String, Gauge> e : metrics.getGauges(
                     (name, metric) ->
@@ -75,7 +71,10 @@ public class MetricsProviderActor extends UntypedActor {
                             SystemMetricNames.XROAD_PROCESSES,
                             SystemMetricNames.XROAD_PROCESS_STRINGS,
                             SystemMetricNames.PACKAGES,
-                            SystemMetricNames.PACKAGE_STRINGS).contains(name))
+                            SystemMetricNames.PACKAGE_STRINGS,
+                            SystemMetricNames.CERTIFICATES,
+                            SystemMetricNames.CERTIFICATES_STRINGS
+                    ).contains(name))
                     .entrySet()) {
                 builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
             }
@@ -85,6 +84,12 @@ public class MetricsProviderActor extends UntypedActor {
                             || SystemMetricNames.XROAD_PROCESSES.equals(name))
                     .entrySet()) {
                 builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
+            }
+
+            for (Map.Entry<String, Gauge> e : metrics.getGauges(
+                    (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name))
+                    .entrySet()) {
+                builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(
@@ -102,15 +107,11 @@ public class MetricsProviderActor extends UntypedActor {
         }
     }
 
-    private Map<String, Metric> getMetricSets(Map<String, Metric> metrics) {
-        return Maps.filterValues(metrics, input -> input instanceof MetricSet);
-    }
-
     private MetricSetDto toProcessMetricSetDto(String name,
-                                        Gauge<ListedData<ProcessInfo>> processSensor) {
-        ListedData<ProcessInfo> p = processSensor.getValue();
+                                        Gauge<JmxStringifiedData<ProcessInfo>> processSensor) {
+        JmxStringifiedData<ProcessInfo> p = processSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (ProcessInfo process: p.getParsedData()) {
+        for (ProcessInfo process: p.getDtoData()) {
             MetricSetDto.Builder processBuilder = new MetricSetDto.Builder(process.getProcessId());
             processBuilder.withMetric(new SimpleMetricDto<>("processId", process.getProcessId()));
             processBuilder.withMetric(new SimpleMetricDto<>("command", process.getCommand()));
@@ -123,11 +124,32 @@ public class MetricsProviderActor extends UntypedActor {
         }
         return mainBuilder.build();
     }
-    private MetricSetDto toPackageMetricSetDto(String name,
-                                        Gauge<ListedData<PackageInfo>> packageSensor) {
-        ListedData<PackageInfo> p = packageSensor.getValue();
+
+
+
+    private MetricSetDto toCertificateMetricSetDTO(String name,
+                                               Gauge<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor) {
+        JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (PackageInfo pac: p.getParsedData()) {
+        for (CertificateMonitoringInfo cert: c.getDtoData()) {
+            MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getId());
+            certBuilder.withMetric(new SimpleMetricDto<>("id", cert.getId()));
+            certBuilder.withMetric(new SimpleMetricDto<>("subjectDN", cert.getSubject()));
+            certBuilder.withMetric(new SimpleMetricDto<>("issuerDN", cert.getIssuer()));
+            certBuilder.withMetric(new SimpleMetricDto<>("status", cert.getStatus()));
+            certBuilder.withMetric(new SimpleMetricDto<>("notBefore", cert.getNotBefore()));
+            certBuilder.withMetric(new SimpleMetricDto<>("notAfter", cert.getNotAfter()));
+            MetricSetDto certDto = certBuilder.build();
+            mainBuilder.withMetric(certDto);
+        }
+        return mainBuilder.build();
+    }
+
+    private MetricSetDto toPackageMetricSetDto(String name,
+                                        Gauge<JmxStringifiedData<PackageInfo>> packageSensor) {
+        JmxStringifiedData<PackageInfo> p = packageSensor.getValue();
+        MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
+        for (PackageInfo pac: p.getDtoData()) {
             mainBuilder.withMetric(new SimpleMetricDto<>(pac.getName(), pac.getVersion()));
         }
         return mainBuilder.build();
