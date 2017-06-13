@@ -87,8 +87,8 @@ Support for members (existing or potential) X-tee (support provided by [RIA](htt
 
 Consultational services for deploing independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
 
-* [http://www.cybernetica.ee](AS Cybernetica)
-* [http://www.aktors.ee](Aktors OÜ)
-* [http://roksnet.com](Roksnet Solutions) 
+* [AS Cybernetica](http://www.cybernetica.ee)
+* [Aktors OÜ](http://www.aktors.ee)
+* [Roksnet Solutions](http://roksnet.com)
  
 No support for X-Road deployment is provided here.
