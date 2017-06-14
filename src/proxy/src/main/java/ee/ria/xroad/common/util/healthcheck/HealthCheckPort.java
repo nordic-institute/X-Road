@@ -52,6 +52,8 @@ import static javax.servlet.http.HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 @Slf4j
 public class HealthCheckPort implements StartStop {
 
+    static final String MAINTENANCE_MESSAGE = "Health check interface is in maintenance mode.";
+
     private static final int SOCKET_MAX_IDLE_MILLIS = 30000;
     private static final int THREAD_POOL_SIZE = 8;
     private static final int ACCEPTOR_THREAD_COUNT = 1;
@@ -96,9 +98,18 @@ public class HealthCheckPort implements StartStop {
         server.setHandler(handlerCollection);
     }
 
+    /**
+     * A setter for the HealthCheckPort maintenance mode
+     * @param targetState boolean value for the intended new state of maintenance mode
+     * @return returns a String representation of the occurred state transition
+     */
     public String setMaintenanceMode(boolean targetState) {
         boolean oldValue = maintenanceMode.getAndSet(targetState);
-        return "Maintenance mode set: " + oldValue + " => " + targetState;
+        return "Maintenance mode set: "
+                + oldValue
+                + " => "
+                + targetState
+                + System.lineSeparator();
     }
 
     public boolean isMaintenanceMode() {
@@ -145,13 +156,14 @@ public class HealthCheckPort implements StartStop {
 
             if (isMaintenanceMode()) {
                 response.setStatus(SC_SERVICE_UNAVAILABLE);
+                response.getWriter().write(MAINTENANCE_MESSAGE.concat(System.lineSeparator()));
             } else {
                 HealthCheckResult result = healthCheckProvider.get();
                 if (result.isOk()) {
                     response.setStatus(SC_OK);
                 } else {
                     response.setStatus(SC_INTERNAL_SERVER_ERROR);
-                    IOUtils.copy(new StringReader(result.getErrorMessage().concat("\n")),
+                    IOUtils.copy(new StringReader(result.getErrorMessage().concat(System.lineSeparator())),
                             response.getOutputStream());
                 }
             }

@@ -22,19 +22,26 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -44,89 +51,39 @@ import static org.mockito.Mockito.*;
  */
 public class MaintenanceModeTest {
 
-    private HealthCheckPort testPort;
-    private StoppableHealthCheckProvider testProvider;
+    private static HealthCheckPort testPort;
+    private static StoppableHealthCheckProvider testProvider;
     private static HttpGet healthCheckGet;
     private static CloseableHttpClient testClient;
 
-    private static final int testPortNumber = 8555;
+    private static final int TEST_PORT_NUMBER = 8555;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
+    /**
+     * Setup for all tests
+     * @throws Exception throws an Exception if unable to setup
+     */
     @BeforeClass
-    public static void setUpBeforeClass() throws URISyntaxException {
+    public static void setUpBeforeClass() throws Exception {
         URI healthCheckURI = new URIBuilder()
                 .setScheme("http")
                 .setHost("localhost")
-                .setPort(testPortNumber)
+                .setPort(TEST_PORT_NUMBER)
                 .build();
 
         healthCheckGet = new HttpGet(healthCheckURI);
         testClient = HttpClients.createDefault();
-    }
 
-    @Before
-    public void setUp() {
         testProvider = mock(StoppableCombinationHealthCheckProvider.class);
-        testPort = new HealthCheckPort(testProvider, testPortNumber);
+        testPort = new HealthCheckPort(testProvider, TEST_PORT_NUMBER);
+        testPort.start();
     }
 
     /**
-     * Tests {@link HealthCheckPort} operation when it's in maintenance mode
-     * - verifies that internal provider does not get called during maintenance mode
-     * - verifies that HTTP status code 503 is returned due to maintenance mode
-     * @throws IOException client and response operation can throw an IOException that should fail the test
+     * Teardown for all tests closing resources initialized prior to running the tests
      */
-    @Test
-    public void maintenanceModeOnShouldPreventProviderCalls() throws IOException {
-        try {
-            testPort.start();
-        } catch (Exception e) {
-            fail("HealthCheckPort start() failed: " + e.getMessage());
-        }
-        testPort.setMaintenanceMode(true);
-        try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
-            verify(testProvider, times(0)).get();
-            assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
-        }
-
-    }
-
-    /**
-     * Tests {@link HealthCheckPort} operation when it's not in maintenance mode
-     * - verifies that internal provider does get called when not in maintenance mode
-     * - verifies that mock provider's OK result gets through HealthCheckPort as HTTP OK when not in maintenance mode
-     * @throws IOException client and response operation can throw an IOException that should fail the test
-     */
-    @Test
-    public void maintenanceModeOffShouldNotAffectProviderCalls() throws IOException {
-
-        when(testProvider.get()).thenReturn(HealthCheckResult.OK);
-
-        try {
-            testPort.start();
-        } catch (Exception e) {
-            fail("HealthCheckPort start() failed: " + e.getMessage());
-        }
-        testPort.setMaintenanceMode(false);
-        try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
-            verify(testProvider, times(1)).get();
-            assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
-        }
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        if (testPort != null) {
-            try {
-                testPort.stop();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     @AfterClass
     public static void afterClassTearDown() {
         if (testClient != null) {
@@ -137,6 +94,57 @@ public class MaintenanceModeTest {
             }
         }
 
+        if (testPort != null) {
+            try {
+                testPort.stop();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
+    @Before
+    public void setUp() throws Exception {
+        when(testProvider.get()).thenReturn(HealthCheckResult.OK);
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        reset(testProvider);
+    }
+
+    /**
+     * Tests {@link HealthCheckPort} operation when it's in maintenance mode
+     * - verifies that internal provider does not get called during maintenance mode
+     * - verifies that HTTP status code 503 with the maintenance message is returned due to maintenance mode
+     * @throws IOException client operation can throw an IOException that should fail the test
+     */
+    @Test
+    public void maintenanceModeOnShouldPreventProviderCalls() throws IOException {
+        testPort.setMaintenanceMode(true);
+        try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
+            verify(testProvider, times(0)).get();
+            assertEquals(HttpServletResponse.SC_SERVICE_UNAVAILABLE, response.getStatusLine().getStatusCode());
+            HttpEntity responseEntity = response.getEntity();
+            assertNotNull("HealthCheckPorts's response did not contain a message", responseEntity);
+            String responseMessage = IOUtils.toString(responseEntity.getContent());
+            assertThat("HealthCheckPorts's response did not contain maintenance message",
+                    responseMessage, containsString(HealthCheckPort.MAINTENANCE_MESSAGE));
+        }
+    }
+
+    /**
+     * Tests {@link HealthCheckPort} operation when it's not in maintenance mode
+     * - verifies that internal provider does get called when not in maintenance mode
+     * - verifies that mock provider's OK result gets through HealthCheckPort as HTTP OK when not in maintenance mode
+     * @throws IOException client operation can throw an IOException that should fail the test
+     */
+    @Test
+    public void maintenanceModeOffShouldNotAffectProviderCalls() throws IOException {
+        testPort.setMaintenanceMode(false);
+        try (CloseableHttpResponse response = testClient.execute(healthCheckGet)) {
+            verify(testProvider, times(1)).get();
+            assertEquals(HttpServletResponse.SC_OK, response.getStatusLine().getStatusCode());
+        }
+    }
 }

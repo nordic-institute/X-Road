@@ -297,12 +297,12 @@ public final class ProxyMain {
                     boolean targetState = Boolean.valueOf(param);
                     result = setHealthCheckMaintenanceMode(targetState);
                 } else {
-                    result = "Invalid parameter 'targetState', request ignored";
+                    result = "Invalid parameter 'targetState', request ignored" + System.lineSeparator();
                 }
 
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(result, response.getWriter());
+                    response.getWriter().write(result);
                 } catch (IOException e) {
                     log.error("Unable to write to provided response, delegated request handling failed, response may"
                             + " be malformed", e);
@@ -314,18 +314,12 @@ public final class ProxyMain {
     }
 
     private static String setHealthCheckMaintenanceMode(boolean targetState) {
-        String result;
-        Optional<StartStop> healthCheckPort = SERVICES.stream()
+        return SERVICES.stream()
                 .filter(HealthCheckPort.class::isInstance)
-                .findFirst();
-
-        if (healthCheckPort.isPresent()) {
-            HealthCheckPort port = (HealthCheckPort) healthCheckPort.get();
-            result = port.setMaintenanceMode(targetState);
-        } else {
-            result = "No health check service found, unable to set mode";
-        }
-        return result;
+                .map(HealthCheckPort.class::cast)
+                .findFirst()
+                .map(port -> port.setMaintenanceMode(targetState))
+                .orElse("No HealthCheckPort found, maintenance mode not set" + System.lineSeparator());
     }
 
     private static void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {
