@@ -1745,7 +1745,8 @@ The federation can be allowed for all X-Road instances that the central server o
 
 To override the default value, edit the file `/etc/xroad/conf.d/local.ini` and add or change the value of the system
 parameter `allowed-federations` for the server component `configuration-client`. To restore the default, either remove
-the system parameter entirely or set the value to `none`.
+the system parameter entirely or set the value to `none`. X-Road services `xroad-confclient` and `xroad-proxy` need to
+be restarted (in that order) for any setting changes to take effect.
 
 Below are some examples for `/etc/xroad/conf.d/local.ini`.
 
