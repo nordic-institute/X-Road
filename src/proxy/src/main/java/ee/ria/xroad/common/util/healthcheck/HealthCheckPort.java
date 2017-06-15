@@ -108,8 +108,7 @@ public class HealthCheckPort implements StartStop {
         return "Maintenance mode set: "
                 + oldValue
                 + " => "
-                + targetState
-                + System.lineSeparator();
+                + targetState;
     }
 
     public boolean isMaintenanceMode() {
@@ -156,7 +155,7 @@ public class HealthCheckPort implements StartStop {
 
             if (isMaintenanceMode()) {
                 response.setStatus(SC_SERVICE_UNAVAILABLE);
-                response.getWriter().write(MAINTENANCE_MESSAGE.concat(System.lineSeparator()));
+                response.getWriter().println(MAINTENANCE_MESSAGE);
             } else {
                 HealthCheckResult result = healthCheckProvider.get();
                 if (result.isOk()) {

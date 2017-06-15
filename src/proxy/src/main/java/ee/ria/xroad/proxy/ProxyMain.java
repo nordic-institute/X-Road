@@ -290,19 +290,15 @@ public final class ProxyMain {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
 
-                String result;
+                String result = "Invalid parameter 'targetState', request ignored";
                 String param = request.getParameter("targetState");
 
                 if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
-                    boolean targetState = Boolean.valueOf(param);
-                    result = setHealthCheckMaintenanceMode(targetState);
-                } else {
-                    result = "Invalid parameter 'targetState', request ignored" + System.lineSeparator();
+                    result = setHealthCheckMaintenanceMode(Boolean.valueOf(param));
                 }
-
                 try {
                     response.setCharacterEncoding("UTF8");
-                    response.getWriter().write(result);
+                    response.getWriter().println(result);
                 } catch (IOException e) {
                     log.error("Unable to write to provided response, delegated request handling failed, response may"
                             + " be malformed", e);
@@ -319,7 +315,7 @@ public final class ProxyMain {
                 .map(HealthCheckPort.class::cast)
                 .findFirst()
                 .map(port -> port.setMaintenanceMode(targetState))
-                .orElse("No HealthCheckPort found, maintenance mode not set" + System.lineSeparator());
+                .orElse("No HealthCheckPort found, maintenance mode not set");
     }
 
     private static void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {

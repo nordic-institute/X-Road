@@ -56,7 +56,7 @@ public class MaintenanceModeTest {
     private static HttpGet healthCheckGet;
     private static CloseableHttpClient testClient;
 
-    private static final int TEST_PORT_NUMBER = 8555;
+    private static final int TEST_PORT_NUMBER = 23555;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -104,12 +104,12 @@ public class MaintenanceModeTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         when(testProvider.get()).thenReturn(HealthCheckResult.OK);
     }
 
     @After
-    public void tearDown() throws IOException {
+    public void tearDown() {
         reset(testProvider);
     }
 
