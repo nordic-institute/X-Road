@@ -58,6 +58,7 @@ import scala.concurrent.Await;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -231,31 +232,32 @@ public final class ProxyMain {
         /**
          * Diganostics for timestamping.
          * First check the connection to timestamp server. If OK, check the status of the previous timestamp request.
-         * If the previous request has failed or connection cannot be made, DiagnosticsStatus tells the reason.
+         * If the previous request has failed or connection cannot be made, DiagnosticsStatus tells the reason. If
+         * LogManager is unavailable, uses the connection check to produce a more informative status.
          */
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
             @Override
             public void handle(HttpServletRequest request, HttpServletResponse response) {
+                log.info("/timestampstatus");
+
+                Map<String, DiagnosticsStatus> result = checkConnectionToTimestampUrl();
+                log.info("result {}", result);
+
+                ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
+
+                Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    log.info("/timestampstatus");
-
-                    Map<String, DiagnosticsStatus> result = checkConnectionToTimestampUrl();
-                    log.info("result {}", result);
-
-                    ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
-
-                    Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                     Map<String, DiagnosticsStatus> statusFromLogManager = (Map<String, DiagnosticsStatus>) Await.result(
                             Patterns.ask(
                                     logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
-                                    timeout.duration());
+                            timeout.duration());
 
                     log.info("statusFromLogManager {}", statusFromLogManager.toString());
 
                     // Use the status either from simple connection check or from LogManager.
                     for (String key : result.keySet()) {
                         // If status exists in LogManager for given timestamp server, and it is successful or if
-                        // simple connection check status is unsuccesful, use the status from LogManager
+                        // simple connection check status is unsuccessful, use the status from LogManager
                         if (statusFromLogManager.get(key) != null
                                 && (DiagnosticsErrorCodes.RETURN_SUCCESS == statusFromLogManager.get(key)
                                 .getReturnCode() && DiagnosticsErrorCodes.RETURN_SUCCESS == result.get(key)
@@ -272,18 +274,33 @@ public final class ProxyMain {
                             result.get(key).setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
                         }
                     }
+                } catch (Exception e) {
+                    log.error("Unable to connect to LogManager, immediate timestamping status unavailable", e);
+                    transmuteErrorCodes(result, DiagnosticsErrorCodes.RETURN_SUCCESS,
+                            DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE);
+                }
 
+                try {
                     response.setCharacterEncoding("UTF8");
                     JsonUtils.getSerializer().toJson(result, response.getWriter());
-
-                } catch (Exception e) {
-                    log.error("Error getting timeout status", e);
+                } catch (IOException e) {
+                    log.error("Unable to write to provided response, delegated request handling failed, response may"
+                            + " be malformed");
                 }
             }
         });
 
         return adminPort;
     }
+
+    private static void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {
+        map.forEach((key, value) -> {
+            if (value != null && oldErrorCode == value.getReturnCode()) {
+                value.setReturnCodeNow(newErrorCode);
+            }
+        });
+    }
+
 
     private static Map<String, DiagnosticsStatus> checkConnectionToTimestampUrl() {
         Map<String, DiagnosticsStatus> statuses = new HashMap<>();

@@ -11,12 +11,13 @@
 
 jetty_url=$(shell cat jetty.url)
 jetty_md5=$(shell md5sum jetty.tgz | cut -f1 -d ' ')
-rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
-
 
 #if DEB_BUILD_OPTIONS has release value set, use package names without git hash
 ifneq (,$(findstring release,$(DEB_BUILD_OPTIONS)))
-rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')
+	version=`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`
+else
+	rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
+	version=`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 endif
 
 
@@ -27,7 +28,7 @@ override_dh_installinit:
 	dh_installinit --name=xroad-jetty
 
 override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
+	dh_gencontrol -- -v$(version)
 
 build: 
 	./download_jetty.sh

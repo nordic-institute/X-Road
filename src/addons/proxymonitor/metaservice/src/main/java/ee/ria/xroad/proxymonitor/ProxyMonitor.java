@@ -51,6 +51,10 @@ public class ProxyMonitor implements AddOn {
         return monitorClient;
     }
 
+    static void setTestClient(MonitorClient testMonitorClient) {
+        ProxyMonitor.monitorClient = testMonitorClient;
+    }
+
     private String getMonitorAddress() {
         int port = DEFAULT_PORT;
         try {

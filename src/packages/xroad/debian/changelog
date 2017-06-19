@@ -1,3 +1,9 @@
+xroad (6.16.0-0) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-securityserver/CHANGELOG.md
+
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Tue, 16 May 2017 10:52:03 +0300
+
 xroad (6.15.0-1) trusty; urgency=low
 
   * PVAYLADEV-621 / XRJD #148 Fix environmental monitoring does not return correct value for open file handles.

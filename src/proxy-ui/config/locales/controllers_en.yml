@@ -20,7 +20,7 @@ en:
     error_code_cannot_download_conf: "Unable to download global configuration. Check network connection to global configuration provider."
     error_code_missing_private_params: "The downloaded global configuration did not contain private parameters."
     error_code_timestamp_request_timed_out: "Connection to the timestamp server timed out. Check the network connection to the timestamp server."
-    error_code_malformed_timestamp_server_url: "Malformed timestamp server ulr. Check the URL."
+    error_code_malformed_timestamp_server_url: "Malformed timestamp server URL. Check the URL."
     error_code_unknown: "Unknown error code."
     error_code_uninitialized: "The configuration client is initializing."
     error_code_timestamp_uninitialized: "Connection ok, no timestamp request made yet."
@@ -29,6 +29,7 @@ en:
     error_code_ocsp_failed: "Unable to fetch response from the OCSP responder."
     error_code_ocsp_response_invalid: "Unable to parse the OCSP response."
     error_code_ocsp_uninitialized: "Status request not sent yet."
+    error_code_logmanager_unavailable: "Unable to obtain message log timestamping status"
 
   init:
     not_authorized: "Fatal system error - contact system administrator"
