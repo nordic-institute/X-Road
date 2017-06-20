@@ -51,9 +51,8 @@ if [[ "$node_type" == "slave" ]]; then
     echo "Skipping database migrations on a slave node"
 else
     echo "running ${db_name} database migrations"
-    export LIQUIBASE_HOME=/usr/share/xroad/db 
-    cd $LIQUIBASE_HOME
-    ${LIQUIBASE_HOME}/liquibase --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
+    cd /usr/share/xroad/db/
+    /usr/share/xroad/db/liquibase.sh --classpath=/usr/share/xroad/jlib/proxy.jar --url="${db_url}?dialect=ee.ria.xroad.common.db.CustomPostgreSQLDialect" --changeLogFile=/usr/share/xroad/db/${db_name}-changelog.xml --password=${db_passwd} --username=${db_user}  update || die "Connection to database has failed, please check database availability and configuration ad ${db_properties} file"
 fi
 
 #

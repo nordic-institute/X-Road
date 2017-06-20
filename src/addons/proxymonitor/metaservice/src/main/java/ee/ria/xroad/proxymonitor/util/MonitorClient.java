@@ -23,10 +23,8 @@
 package ee.ria.xroad.proxymonitor.util;
 
 import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
-import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
@@ -45,16 +43,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public final class MonitorClient {
 
-    private static final String CONFIG_PROPERTY_PORT = "xroad.monitor.port";
-    private static final int DEFAULT_PORT = 2552;
-
-    private static final ActorSystem ACTOR_SYSTEM
-            = ActorSystem.create("MonitorClient", ConfigFactory.load().getConfig("monitor-client"));
     public static final int TIMEOUT_AWAIT = 10;
     public static final int TIMEOUT_REQUEST = 5;
 
-    private final ActorSelection metricsProvider =
-            ACTOR_SYSTEM.actorSelection(getMonitorAddress() + "/user/MetricsProviderActor");
+    private final ActorSelection metricsProvider;
+
+    public MonitorClient(ActorSelection metricsProvider) {
+        this.metricsProvider = metricsProvider;
+    }
 
     /**
      * Get monitoring metrics
@@ -76,14 +72,4 @@ public final class MonitorClient {
         }
     }
 
-    private String getMonitorAddress() {
-        int port = DEFAULT_PORT;
-        try {
-            port = Integer.parseUnsignedInt(System.getProperty(CONFIG_PROPERTY_PORT));
-        } catch (NumberFormatException e) {
-            log.warn(String.format("Could not load configuration property %s - using the default port",
-                    CONFIG_PROPERTY_PORT));
-        }
-        return String.format("akka.tcp://xroad-monitor@127.0.0.1:%d", port);
-    }
 }

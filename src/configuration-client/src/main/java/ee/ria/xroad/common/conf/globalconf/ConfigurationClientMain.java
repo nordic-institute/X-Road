@@ -40,6 +40,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobListener;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalTime;
@@ -277,7 +279,7 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/execute", new AdminPort.SynchronousCallback() {
             @Override
-            public void run() {
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
                 log.info("handler /execute");
                 try {
                     client.execute();
@@ -289,10 +291,11 @@ public final class ConfigurationClientMain {
 
         adminPort.addHandler("/status", new AdminPort.SynchronousCallback() {
             @Override
-            public void run() {
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     log.info("handler /status");
-                    JsonUtils.getSerializer().toJson(listener.getStatus(), getParams().response.getWriter());
+                    response.setCharacterEncoding("UTF8");
+                    JsonUtils.getSerializer().toJson(ConfigurationClientJobListener.getStatus(), response.getWriter());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }

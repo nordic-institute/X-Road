@@ -1,6 +1,17 @@
 # Change Log
 
-## 6.14.0 - 2017.04.13
+## 6.16.0 - 2017-06-12
+- PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
+- PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
+
+## 6.15.0 - 2017-05-12
+- PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
+- PVAYLADEV-621 / XRJD #148 Fix environmental monitoring does not return correct value for open file handles.
+- PVAYLADEV-738 / XRJD #139 Fix concurrency issue in AdminPort synchronous request handling
+- PVAYLADEV-743 Modified cluster configuration to allow only read-only users on slave-nodes
+- PVAYLADEV-724 Make it possible to disable configuration synchronization on a load balancing cluster slave
+
+## 6.14.0 - 2017-04-13
 - XTE-334 / Joint development issue #135: Security Server bugfix: Fixed not correctly functioning timeouts.
 - XTE-337 / Joint development issue #140: Remove X-Road version 5 migration support. **Warning:** Central Server database schema changed, old Central Server backups are not usable.
 - XTE-341 / Joint development issue #142: Security Server: Enable detect connections that have become stale (half-closed) while kept inactive in the connection pool.

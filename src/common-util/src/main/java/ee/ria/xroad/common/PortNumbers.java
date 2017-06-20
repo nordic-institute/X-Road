@@ -66,6 +66,9 @@ public final class PortNumbers {
     /** Port of the operational monitoring daemon. */
     public static final int OP_MONITOR_DAEMON_PORT = 2080;
 
+    /** Proxy actorsystem port */
+    public static final int PROXY_ACTORSYSTEM_PORT = 5567;
+
     private PortNumbers() {
     }
 }

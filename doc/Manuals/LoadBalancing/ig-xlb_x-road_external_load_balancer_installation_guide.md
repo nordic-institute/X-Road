@@ -7,6 +7,7 @@ Doc. ID: IG-XLB
 | Date        | Version     | Description                                             | Author                       |
 |-------------|-------------|---------------------------------------------------------|------------------------------|
 | 22.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
+| 27.4.2017   | 1.1         | Added slave node user group instructions                | Tatu Repo                    |
 
 
 ## Table of Contents
@@ -277,7 +278,16 @@ In order to properly set up the data replication, the slave nodes must be able t
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Start the X-Road services.
+9. If you wish to use the slave security server's admin user interface, you need to implement additional user group restrictions. As noted in step 1, changes to the slave node security server configuration must not be made through its admin user interface, as any such changes would be overwritten by the replication. To disable UI editing privileges for all users, remove the following user groups from the slave security server:
 
+   * `xroad-security-officer`
+   * `xroad-registration-officer`
+   * `xroad-service-administrator`
+   * `xroad-system-administrator`
+
+   After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
+
+   For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#12-references)\].
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
@@ -666,6 +676,9 @@ Group=xroad
 Type=oneshot
 Environment=XROAD_USER=xroad-slave
 Environment=MASTER=<master_host>
+
+ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
+
 ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
@@ -711,6 +724,11 @@ Create a new file: `/etc/init/xroad-sync.conf`:
 env XROAD_USER=xroad-slave
 env MASTER=<master_host>
 task
+
+pre-start script
+  test ! -f /var/tmp/xroad/sync-disabled || { stop; exit 0; }
+end script
+
 script
   su -s /bin/sh -c 'exec "$0" "$@"' xroad -- rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 end script

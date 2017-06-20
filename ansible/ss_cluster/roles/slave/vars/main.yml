@@ -1,0 +1,5 @@
+ui_editor_groups:
+     - xroad-security-officer
+     - xroad-registration-officer
+     - xroad-service-administrator
+     - xroad-system-administrator

@@ -2,9 +2,9 @@
 source compile_env.sh
 
 if [[ -n $1 ]] && [[ $1 == "sonar" ]]; then
-    ./gradlew --stacktrace buildAll runProxyTest dependencyCheck sonarqube
+    ./gradlew --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest dependencyCheck sonarqube
 else
-    ./gradlew --stacktrace buildAll runProxyTest
+    ./gradlew --stacktrace buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest
 fi
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

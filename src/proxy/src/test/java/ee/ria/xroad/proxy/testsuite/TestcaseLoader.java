@@ -83,6 +83,9 @@ final class TestcaseLoader {
             URL resource = resources.nextElement();
             File dir = new File(resource.getFile());
             File[] files = dir.listFiles();
+            if (files == null) {
+                continue;
+            }
             for (File f : files) {
                 String name = f.getName();
                 if (name.endsWith(".class") && !name.contains("$")) {

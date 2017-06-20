@@ -53,7 +53,9 @@ mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/usr/share/xroad/jetty9
 mkdir -p %{buildroot}/var/log/xroad/jetty
 mkdir -p %{buildroot}/usr/share/xroad/webapps
+mkdir -p %{buildroot}/usr/share/xroad/jlib
 cp -aP * %{buildroot}/usr/share/xroad/jetty9
+cp -p %{_topdir}/../../../common-util/build/libs/common-util-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -aP %{_topdir}/../etc %{buildroot}/etc
 mkdir -p %{buildroot}/etc/xroad/jetty/contexts-admin
 cp %{SOURCE2} %{buildroot}%{_bindir}
@@ -71,7 +73,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/*
 %config /etc/xroad/conf.d/jetty-logback.xml
 %attr(664,root,root) /usr/lib/tmpfiles.d/%{name}.conf
-
+/usr/share/xroad/jlib/common-util-1.0.jar
 /usr/share/xroad/jetty9
 %dir /var/log/xroad/jetty
 %dir /usr/share/xroad/webapps
