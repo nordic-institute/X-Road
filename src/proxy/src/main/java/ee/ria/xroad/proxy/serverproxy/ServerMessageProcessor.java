@@ -22,29 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.InputStream;
-import java.io.Writer;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
@@ -76,6 +53,25 @@ import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
+import java.io.InputStream;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
@@ -83,6 +79,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 @Slf4j
@@ -94,6 +91,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
 
     private final List<ServiceHandler> handlers = new ArrayList<>();
 
+    private String originalSoapAction;
     private ProxyMessage requestMessage;
     private ServiceId requestServiceId;
     private SoapMessageImpl responseSoap;
@@ -237,6 +235,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
     private void readMessage() throws Exception {
         log.trace("readMessage()");
 
+        originalSoapAction = validateSoapActionHeader(servletRequest.getHeader(HEADER_ORIGINAL_SOAP_ACTION));
         requestMessage = new ProxyMessage(servletRequest.getHeader(HEADER_ORIGINAL_CONTENT_TYPE)) {
             @Override
             public void soap(SoapMessageImpl soapMessage, Map<String, String> additionalHeaders) throws Exception {
@@ -607,7 +606,7 @@ class ServerMessageProcessor extends MessageProcessorBase {
             sender.setAttribute(ServiceId.class.getName(), requestServiceId);
 
             sender.addHeader("accept-encoding", "");
-
+            sender.addHeader("SOAPAction", originalSoapAction);
             sendRequest(address, sender);
         }
 
