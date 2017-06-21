@@ -6,7 +6,7 @@
 # SECURITY SERVER USER GUIDE
 **X-ROAD 6**
 
-Version: 2.17
+Version: 2.17  
 15.06.2017
 Doc. ID: UG-SS
 
