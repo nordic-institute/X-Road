@@ -959,7 +959,6 @@ The steps are in more detail below, but in short, the procedure is:
       curl -i http://localhost:<health-check-port>
       ```
       See [3.4 Health check service configuration](#34-health-check-service-configuration) for more details.
-      master
 #### 7.2.3 Upgrade a single slave node
 
 Repeat this process for each slave node, one by one.
