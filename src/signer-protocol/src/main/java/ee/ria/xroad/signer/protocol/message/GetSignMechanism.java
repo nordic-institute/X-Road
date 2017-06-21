@@ -20,37 +20,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package ee.ria.xroad.signer.protocol.message;
 
-import akka.actor.Props;
+import java.io.Serializable;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Value;
 
 /**
- * Module manager that supports hardware tokens.
+ * Signer API message.
  */
-@Slf4j
-public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+@Value
+public class GetSignMechanism implements Serializable {
 
-    private static final String DISPATCHER = "module-worker-dispatcher";
+    private static final long serialVersionUID = 1L;
 
-    @Override
-    protected void initializeModule(ModuleType module) {
-        if (module instanceof HardwareModuleType) {
-            initializeHardwareModule((HardwareModuleType) module);
-        } else if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
-        }
-    }
+    private final String keyId;
 
-    private void initializeHardwareModule(HardwareModuleType hardwareModule) {
-        if (!isModuleInitialized(hardwareModule)) {
-            try {
-                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
-            } catch (Exception e) {
-                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
-            }
-        }
-    }
 }

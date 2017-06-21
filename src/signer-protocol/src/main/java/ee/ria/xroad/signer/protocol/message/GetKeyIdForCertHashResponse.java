@@ -32,6 +32,10 @@ import lombok.Value;
 @Value
 public class GetKeyIdForCertHashResponse implements Serializable {
 
+    private static final long serialVersionUID = -506185905371113286L;
+
     private final String keyId;
+
+    private final String signMechanismName;
 
 }

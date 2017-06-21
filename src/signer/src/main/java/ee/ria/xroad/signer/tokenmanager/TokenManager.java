@@ -22,24 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.signer.model.Cert;
-import ee.ria.xroad.signer.model.CertRequest;
-import ee.ria.xroad.signer.model.Key;
-import ee.ria.xroad.signer.model.Token;
-import ee.ria.xroad.signer.protocol.dto.*;
-import ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokensStrategy;
-import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeAddedCertificatesListener;
-import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy;
-import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy.MergeResult;
-import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
-import ee.ria.xroad.signer.tokenmanager.token.TokenType;
-import ee.ria.xroad.signer.util.SignerUtil;
-import ee.ria.xroad.signer.util.TokenAndKey;
-import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +30,31 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.signer.model.Cert;
+import ee.ria.xroad.signer.model.CertRequest;
+import ee.ria.xroad.signer.model.Key;
+import ee.ria.xroad.signer.model.Token;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokensStrategy;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeAddedCertificatesListener;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy;
+import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy.MergeResult;
+import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
+import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+import ee.ria.xroad.signer.util.SignerUtil;
+import ee.ria.xroad.signer.util.TokenAndKey;
 
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
 import static ee.ria.xroad.signer.util.ExceptionHelper.*;
@@ -135,8 +142,6 @@ public final class TokenManager {
         }
     }
 
-
-
     // ------------------------------------------------------------------------
 
     /**
@@ -164,7 +169,7 @@ public final class TokenManager {
      * @return the new token
      */
     public static synchronized TokenInfo createToken(TokenType tokenType) {
-        Token token = new Token(tokenType.getModuleType(), tokenType.getId());
+        Token token = new Token(tokenType.getModuleType(), tokenType.getId(), tokenType.getSignMechanismName());
         token.setModuleId(tokenType.getModuleType());
         token.setReadOnly(tokenType.isReadOnly());
         token.setSerialNumber(tokenType.getSerialNumber());
@@ -482,8 +487,7 @@ public final class TokenManager {
      * @param tokenId   the token id
      * @param available availability flag
      */
-    public static synchronized void setTokenAvailable(String tokenId,
-                                                      boolean available) {
+    public static synchronized void setTokenAvailable(String tokenId, boolean available) {
         log.trace("setTokenAvailable({}, {})", tokenId, available);
 
         findToken(tokenId).setAvailable(available);
@@ -607,8 +611,7 @@ public final class TokenManager {
      * @param publicKeyBase64 the public key base64
      * @return the key info or throws exception if the token cannot be found
      */
-    public static synchronized KeyInfo addKey(String tokenId, String keyId,
-                                              String publicKeyBase64) {
+    public static synchronized KeyInfo addKey(String tokenId, String keyId, String publicKeyBase64) {
         log.trace("addKey({}, {})", tokenId, keyId);
 
         Token token = findToken(tokenId);
@@ -804,8 +807,7 @@ public final class TokenManager {
      * @param tokenId the token id
      * @param info    the token info
      */
-    public static synchronized void setTokenInfo(String tokenId,
-                                                 Map<String, String> info) {
+    public static synchronized void setTokenInfo(String tokenId, Map<String, String> info) {
         findToken(tokenId).setInfo(info);
     }
 
@@ -821,8 +823,7 @@ public final class TokenManager {
 
     // ------------------------------------------------------------------------
 
-    private static <T> Optional<T> forToken(Function<Token, Boolean> tester,
-                                            Function<Token, T> mapper) {
+    private static <T> Optional<T> forToken(Function<Token, Boolean> tester, Function<Token, T> mapper) {
         for (Token token : currentTokens) {
             if (tester.apply(token)) {
                 return Optional.ofNullable(mapper.apply(token));

@@ -35,6 +35,7 @@ public class SignRequestHandler extends AbstractRequestHandler<Sign> {
     @Override
     protected Object handle(Sign message) throws Exception {
         tellToken(message, findTokenIdForKeyId(message.getKeyId()));
+
         return nothing();
     }
 

@@ -38,16 +38,18 @@ import java.util.Map;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
 import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.cert.ocsp.BasicOCSPResp;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.w3c.dom.Attr;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -74,6 +76,7 @@ import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeHex;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.SIG_HASH_CHAIN_RESULT;
+
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -165,19 +168,18 @@ public class AsicContainerVerifier {
 
         verifier.setSignatureResourceResolver(new ResourceResolverSpi() {
             @Override
-            public boolean engineCanResolve(Attr uri, String baseURI) {
-                return asic.hasEntry(uri.getValue());
+            public boolean engineCanResolveURI(ResourceResolverContext context) {
+                return asic.hasEntry(context.attr.getValue());
             }
 
             @Override
-            public XMLSignatureInput engineResolve(Attr uri, String baseURI)
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
                     throws ResourceResolverException {
-                return new XMLSignatureInput(asic.getEntry(uri.getValue()));
+                return new XMLSignatureInput(asic.getEntry(context.attr.getValue()));
             }
         });
 
-        verifier.setHashChainResourceResolver(
-                new HashChainReferenceResolverImpl());
+        verifier.setHashChainResourceResolver(new HashChainReferenceResolverImpl());
     }
 
     private void logUnresolvableHash(String uri, byte[] digestValue) {
@@ -216,8 +218,7 @@ public class AsicContainerVerifier {
         String tsHashChainResult =
                 asic.getEntryAsString(ENTRY_TS_HASH_CHAIN_RESULT);
         if (tsHashChainResult != null) { // batch time-stamp
-            byte[] tsHashChainResultBytes =
-                    tsHashChainResult.getBytes(StandardCharsets.UTF_8);
+            byte[] tsHashChainResultBytes = tsHashChainResult.getBytes(StandardCharsets.UTF_8);
             verifyTimestampHashChain(tsHashChainResultBytes);
             return tsHashChainResultBytes;
         } else {

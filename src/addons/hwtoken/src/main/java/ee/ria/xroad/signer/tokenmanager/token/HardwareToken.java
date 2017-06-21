@@ -51,8 +51,7 @@ public class HardwareToken extends AbstractToken {
 
     @Override
     protected Props createWorker() {
-        return Props.create(HardwareTokenWorker.class,
-                tokenInfo, tokenType).withDispatcher(DISPATCHER);
+        return Props.create(HardwareTokenWorker.class, tokenInfo, tokenType).withDispatcher(DISPATCHER);
     }
 
 }

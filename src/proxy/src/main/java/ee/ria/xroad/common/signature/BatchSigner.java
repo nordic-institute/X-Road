@@ -94,16 +94,15 @@ public class BatchSigner extends UntypedActor {
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public static SignatureData sign(String keyId, String signatureAlgorithmId,
-            SigningRequest request) throws Exception {
+    public static SignatureData sign(String keyId, String signatureAlgorithmId, SigningRequest request)
+            throws Exception {
         if (instance == null) {
             throw new IllegalStateException("BatchSigner is not initialized");
         }
 
         // Send the signing request to the actor instance (itself)
-        return SignerClient.result(Await.result(Patterns.ask(instance,
-                new SigningRequestWrapper(keyId, signatureAlgorithmId, request),
-                DEFAULT_TIMEOUT.duration().length()),
+        return SignerClient.result(Await.result(Patterns.ask(instance, new SigningRequestWrapper(
+                keyId, signatureAlgorithmId, request), DEFAULT_TIMEOUT.duration().length()),
                 DEFAULT_TIMEOUT.duration()));
     }
 
@@ -114,6 +113,7 @@ public class BatchSigner extends UntypedActor {
                 handle((SigningRequestWrapper) message);
             } else {
                 log.trace("unhandled({})", message);
+
                 unhandled(message);
             }
         } catch (Exception e) {
@@ -133,12 +133,12 @@ public class BatchSigner extends UntypedActor {
         }
     }
 
-    private ActorRef getWorker(SigningRequestWrapper signRequest)
-            throws Exception {
+    private ActorRef getWorker(SigningRequestWrapper signRequest) throws Exception {
         // Signing worker based on cert hash.
         String name = calculateCertHexHash(signRequest.getSigningCert());
 
         ActorRef worker = getContext().getChild(name);
+
         if (worker == null) {
             log.trace("Creating new worker for cert '{}'", name);
 
@@ -179,8 +179,7 @@ public class BatchSigner extends UntypedActor {
             }
         }
 
-        private void handleSignRequest(SigningRequestWrapper signRequest)
-                throws Exception {
+        private void handleSignRequest(SigningRequestWrapper signRequest) throws Exception {
             log.trace("handleSignRequest()");
 
             // If we do not know whether batch signing is enabled for the token,
@@ -211,12 +210,9 @@ public class BatchSigner extends UntypedActor {
 
         private void queryBatchSigningEnabled(String keyId) {
             try {
-                batchSigningEnabled =
-                        SignerClient.execute(
-                                new GetTokenBatchSigningEnabled(keyId));
+                batchSigningEnabled = SignerClient.execute(new GetTokenBatchSigningEnabled(keyId));
             } catch (Exception e) {
-                log.error("Failed to query if batch signing is enabled for "
-                        + "token with key {}", keyId, e);
+                log.error("Failed to query if batch signing is enabled for token with key {}", keyId, e);
             }
         }
 
@@ -224,8 +220,7 @@ public class BatchSigner extends UntypedActor {
             log.trace("doBatchSign()");
 
             if (nextSigningCtx == null) {
-                nextSigningCtx = new BatchSignatureCtx(wrapper.getKeyId(),
-                        wrapper.getSignatureAlgorithmId());
+                nextSigningCtx = new BatchSignatureCtx(wrapper.getKeyId(), wrapper.getSignatureAlgorithmId());
             }
 
             nextSigningCtx.add(getSender(), wrapper.getRequest());
@@ -234,14 +229,12 @@ public class BatchSigner extends UntypedActor {
         private void doSign(SigningRequestWrapper wrapper) throws Exception {
             log.trace("doSign()");
 
-            BatchSignatureCtx ctx = new BatchSignatureCtx(wrapper.getKeyId(),
-                    wrapper.getSignatureAlgorithmId());
+            BatchSignatureCtx ctx = new BatchSignatureCtx(wrapper.getKeyId(), wrapper.getSignatureAlgorithmId());
             ctx.add(getSender(), wrapper.getRequest());
 
             workingSigningCtx = ctx;
 
-            doCalculateSignature(ctx.getKeyId(), ctx.getSignatureAlgorithmId(),
-                    ctx.getDataToBeSigned());
+            doCalculateSignature(ctx.getKeyId(), ctx.getSignatureAlgorithmId(), ctx.getDataToBeSigned());
         }
 
         private void handleSignResponse(SignResponse signResponse) {
@@ -276,10 +269,9 @@ public class BatchSigner extends UntypedActor {
 
             workingSigningCtx = nextSigningCtx;
             nextSigningCtx = null;
+
             try {
-                doCalculateSignature(
-                        workingSigningCtx.getKeyId(),
-                        workingSigningCtx.getSignatureAlgorithmId(),
+                doCalculateSignature(workingSigningCtx.getKeyId(), workingSigningCtx.getSignatureAlgorithmId(),
                         workingSigningCtx.getDataToBeSigned());
             } catch (Exception e) {
                 sendResponse(workingSigningCtx, translateException(e));
@@ -292,26 +284,23 @@ public class BatchSigner extends UntypedActor {
         private boolean isWorkerBusy() {
             if (isSignatureCreationTimedOut()) {
                 workerBusy = false;
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "Signature creation timed out");
+
+                throw new CodedException(X_INTERNAL_ERROR, "Signature creation timed out");
             }
 
             return workerBusy;
         }
 
         private boolean isSignatureCreationTimedOut() {
-            return workerBusy && System.currentTimeMillis() - signStartTime
-                    >= DEFAULT_TIMEOUT.duration().length();
+            return workerBusy && System.currentTimeMillis() - signStartTime >= DEFAULT_TIMEOUT.duration().length();
         }
 
-        private void doCalculateSignature(String keyId,
-                String signatureAlgorithmId, byte[] data) throws
-                NoSuchAlgorithmException, IOException, OperatorCreationException {
+        private void doCalculateSignature(String keyId, String signatureAlgorithmId, byte[] data)
+                throws NoSuchAlgorithmException, IOException, OperatorCreationException {
             workerBusy = true;
             signStartTime = System.currentTimeMillis();
 
-            byte[] digest = calculateDigest(
-                    getDigestAlgorithmId(signatureAlgorithmId), data);
+            byte[] digest = calculateDigest(getDigestAlgorithmId(signatureAlgorithmId), data);
 
             // Proxy this request to the Signer.
             SignerClient.execute(new Sign(keyId, signatureAlgorithmId, digest), getSelf());
@@ -323,8 +312,7 @@ public class BatchSigner extends UntypedActor {
             if (workingSigningCtx != null) {
                 try {
                     if (message instanceof SignResponse) {
-                        sendSignatureResponse(workingSigningCtx,
-                                ((SignResponse) message).getSignature());
+                        sendSignatureResponse(workingSigningCtx, ((SignResponse) message).getSignature());
                     } else {
                         sendResponse(workingSigningCtx, message);
                     }
@@ -338,8 +326,7 @@ public class BatchSigner extends UntypedActor {
             }
         }
 
-        private void sendSignatureResponse(BatchSignatureCtx ctx,
-                byte[] signatureValue) throws Exception {
+        private void sendSignatureResponse(BatchSignatureCtx ctx, byte[] signatureValue) throws Exception {
             String signature = ctx.createSignatureXml(signatureValue);
 
             // Each client gets corresponding hash chain -- client index in the
@@ -359,8 +346,7 @@ public class BatchSigner extends UntypedActor {
         private void sendResponse(ActorRef client, Object message) {
             if (client != ActorRef.noSender()) {
                 if (message instanceof CodedException) {
-                    client.tell(((CodedException) message).withPrefix(SIGNER_X),
-                            getSelf());
+                    client.tell(((CodedException) message).withPrefix(SIGNER_X), getSelf());
                 } else {
                     client.tell(message, getSelf());
                 }
@@ -389,8 +375,11 @@ public class BatchSigner extends UntypedActor {
      */
     private static class BatchSignatureCtx extends SignatureCtx {
 
-        @Getter private final List<ActorRef> clients = new ArrayList<>();
-        @Getter private final String keyId;
+        @Getter
+        private final List<ActorRef> clients = new ArrayList<>();
+
+        @Getter
+        private final String keyId;
 
         BatchSignatureCtx(String keyId, String signatureAlgorithmId) {
             super(signatureAlgorithmId);

@@ -49,4 +49,6 @@ public final class KeyInfo implements Serializable {
 
     private final List<CertRequestInfo> certRequests;
 
+    private final String signMechanismName;
+
 }

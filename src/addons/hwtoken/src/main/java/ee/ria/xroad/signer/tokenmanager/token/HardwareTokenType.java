@@ -26,6 +26,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 /**
@@ -52,6 +54,12 @@ public class HardwareTokenType implements TokenType {
     private boolean pinVerificationPerSigning;
 
     private boolean batchSigningEnabled;
+
+    private final String signMechanismName;
+
+    private final PrivKeyAttributes privKeyAttributes;
+
+    private final PubKeyAttributes pubKeyAttributes;
 
     @Override
     public String getId() {

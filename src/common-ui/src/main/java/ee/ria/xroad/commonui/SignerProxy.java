@@ -25,8 +25,7 @@ package ee.ria.xroad.commonui;
 import java.util.Date;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -54,16 +53,13 @@ import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 
 /**
- * Responsible for managing cryptographic tokens (smartcards, HSMs,
- * etc.) through the signer.
+ * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.
  */
+@Slf4j
 public final class SignerProxy {
 
     private SignerProxy() {
     }
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(SignerProxy.class);
 
     public static final String SSL_TOKEN_ID = "0";
 
@@ -73,7 +69,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void initSoftwareToken(char[] password) throws Exception {
-        LOG.trace("Initializing software token");
+        log.trace("Initializing software token");
+
         execute(new InitSoftwareToken(password));
     }
 
@@ -102,11 +99,11 @@ public final class SignerProxy {
      * @param password token password
      * @throws Exception if any errors occur
      */
-    public static void activateToken(String tokenId, char[] password)
-            throws Exception {
+    public static void activateToken(String tokenId, char[] password) throws Exception {
         PasswordStore.storePassword(tokenId, password);
 
-        LOG.trace("Activating token '{}'", tokenId);
+        log.trace("Activating token '{}'", tokenId);
+
         execute(new ActivateToken(tokenId, true));
     }
 
@@ -118,7 +115,8 @@ public final class SignerProxy {
     public static void deactivateToken(String tokenId) throws Exception {
         PasswordStore.storePassword(tokenId, null);
 
-        LOG.trace("Deactivating token '{}'", tokenId);
+        log.trace("Deactivating token '{}'", tokenId);
+
         execute(new ActivateToken(tokenId, false));
     }
 
@@ -128,10 +126,9 @@ public final class SignerProxy {
      * @param friendlyName new friendly name of the token
      * @throws Exception if any errors occur
      */
-    public static void setTokenFriendlyName(String tokenId,
-            String friendlyName) throws Exception {
-        LOG.trace("Setting friendly name '{}' for token '{}'", friendlyName,
-                tokenId);
+    public static void setTokenFriendlyName(String tokenId, String friendlyName) throws Exception {
+        log.trace("Setting friendly name '{}' for token '{}'", friendlyName, tokenId);
+
         execute(new SetTokenFriendlyName(tokenId, friendlyName));
     }
 
@@ -141,10 +138,9 @@ public final class SignerProxy {
      * @param friendlyName new friendly name of the key
      * @throws Exception if any errors occur
      */
-    public static void setKeyFriendlyName(String keyId, String friendlyName)
-            throws Exception {
-        LOG.trace("Setting friendly name '{}' for key '{}'", friendlyName,
-                keyId);
+    public static void setKeyFriendlyName(String keyId, String friendlyName) throws Exception {
+        log.trace("Setting friendly name '{}' for key '{}'", friendlyName, keyId);
+
         execute(new SetKeyFriendlyName(keyId, friendlyName));
     }
 
@@ -156,12 +152,11 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static KeyInfo generateKey(String tokenId, String keyLabel) throws Exception {
-        LOG.trace("Generating key for token '{}'", tokenId);
+        log.trace("Generating key for token '{}'", tokenId);
 
         KeyInfo keyInfo = execute(new GenerateKey(tokenId, keyLabel));
 
-        LOG.trace("Received key with keyId '{}' and public key '{}'",
-                keyInfo.getId(), keyInfo.getPublicKey());
+        log.trace("Received key with keyId '{}' and public key '{}'", keyInfo.getId(), keyInfo.getPublicKey());
 
         return keyInfo;
     }
@@ -177,54 +172,45 @@ public final class SignerProxy {
      * @return byte content of the generated certificate
      * @throws Exception if any errors occur
      */
-    public static byte[] generateSelfSignedCert(String keyId, ClientId memberId,
-            KeyUsageInfo keyUsage, String commonName, Date notBefore,
-            Date notAfter) throws Exception {
-        LOG.trace("Generate self-signed cert for key '{}'", keyId);
-        GenerateSelfSignedCertResponse response =
-                execute(new GenerateSelfSignedCert(keyId, commonName,
-                        notBefore, notAfter, keyUsage, memberId));
+    public static byte[] generateSelfSignedCert(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
+            String commonName, Date notBefore, Date notAfter) throws Exception {
+        log.trace("Generate self-signed cert for key '{}'", keyId);
+
+        GenerateSelfSignedCertResponse response = execute(new GenerateSelfSignedCert(keyId, commonName,
+                notBefore, notAfter, keyUsage, memberId));
 
         byte[] certificateBytes = response.getCertificateBytes();
 
-        LOG.trace("Certificate with length of {} bytes generated",
-                certificateBytes.length);
+        log.trace("Certificate with length of {} bytes generated", certificateBytes.length);
 
         return certificateBytes;
     }
 
     /**
-     * Imports the given byte array as a new certificate with the provided
-     * initial status.
+     * Imports the given byte array as a new certificate with the provided initial status.
      * @param certBytes byte content of the new certificate
      * @param initialStatus initial status of the certificate
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public static String importCert(byte[] certBytes, String initialStatus)
-            throws Exception {
+    public static String importCert(byte[] certBytes, String initialStatus) throws Exception {
         return importCert(certBytes, initialStatus, null);
     }
 
     /**
-     * Imports the given byte array as a new certificate with the provided
-     * initial status and owner client ID.
+     * Imports the given byte array as a new certificate with the provided initial status and owner client ID.
      * @param certBytes byte content of the new certificate
      * @param initialStatus initial status of the certificate
      * @param clientId client ID of the certificate owner
      * @return key ID of the new certificate as a String
      * @throws Exception if any errors occur
      */
-    public static String importCert(byte[] certBytes, String initialStatus,
-            ClientId clientId) throws Exception {
-        LOG.trace("Importing cert from file with length of '{}' bytes",
-                certBytes.length);
+    public static String importCert(byte[] certBytes, String initialStatus, ClientId clientId) throws Exception {
+        log.trace("Importing cert from file with length of '{}' bytes", certBytes.length);
 
-        ImportCertResponse response =
-                execute(new ImportCert(certBytes, initialStatus, clientId));
+        ImportCertResponse response = execute(new ImportCert(certBytes, initialStatus, clientId));
 
-        LOG.trace("Cert imported successfully, keyId received: {}",
-                response.getKeyId());
+        log.trace("Cert imported successfully, keyId received: {}", response.getKeyId());
 
         return response.getKeyId();
     }
@@ -235,7 +221,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void activateCert(String certId) throws Exception {
-        LOG.trace("Activating cert '{}'", certId);
+        log.trace("Activating cert '{}'", certId);
 
         execute(new ActivateCert(certId, true));
     }
@@ -246,7 +232,7 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deactivateCert(String certId) throws Exception {
-        LOG.trace("Deactivating cert '{}'", certId);
+        log.trace("Deactivating cert '{}'", certId);
 
         execute(new ActivateCert(certId, false));
     }
@@ -261,17 +247,14 @@ public final class SignerProxy {
      * @return byte content of the certificate request
      * @throws Exception if any errors occur
      */
-    public static byte[] generateCertRequest(String keyId, ClientId memberId,
-            KeyUsageInfo keyUsage, String subjectName,
+    public static byte[] generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage, String subjectName,
             GenerateCertRequest.RequestFormat format) throws Exception {
-        GenerateCertRequestResponse response =
-                execute(new GenerateCertRequest(keyId, memberId, keyUsage,
-                        subjectName, format));
+        GenerateCertRequestResponse response = execute(new GenerateCertRequest(keyId, memberId, keyUsage, subjectName,
+                format));
 
         byte[] certRequestBytes = response.getCertRequest();
 
-        LOG.trace("Cert request with length of {} bytes generated",
-                certRequestBytes.length);
+        log.trace("Cert request with length of {} bytes generated", certRequestBytes.length);
 
         return certRequestBytes;
     }
@@ -282,7 +265,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deleteCertRequest(String certRequestId) throws Exception {
-        LOG.trace("Deleting cert request '{}'", certRequestId);
+        log.trace("Deleting cert request '{}'", certRequestId);
+
         execute(new DeleteCertRequest(certRequestId));
     }
 
@@ -292,7 +276,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deleteCert(String certId) throws Exception {
-        LOG.trace("Deleting cert '{}'", certId);
+        log.trace("Deleting cert '{}'", certId);
+
         execute(new DeleteCert(certId));
     }
 
@@ -304,7 +289,8 @@ public final class SignerProxy {
      * @throws Exception if any errors occur
      */
     public static void deleteKey(String keyId, boolean deleteFromToken) throws Exception {
-        LOG.trace("Deleting key '{}', from token = ", keyId, deleteFromToken);
+        log.trace("Deleting key '{}', from token = ", keyId, deleteFromToken);
+
         execute(new DeleteKey(keyId, deleteFromToken));
     }
 
@@ -314,9 +300,9 @@ public final class SignerProxy {
      * @param status new status of the certificate
      * @throws Exception if any errors occur
      */
-    public static void setCertStatus(String certId, String status)
-            throws Exception {
-        LOG.trace("Setting cert ('{}') status to '{}'", certId, status);
+    public static void setCertStatus(String certId, String status) throws Exception {
+        log.trace("Setting cert ('{}') status to '{}'", certId, status);
+
         execute(new SetCertStatus(certId, status));
     }
 

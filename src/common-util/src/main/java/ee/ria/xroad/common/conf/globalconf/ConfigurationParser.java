@@ -22,16 +22,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +30,9 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
@@ -50,11 +43,16 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+
 import org.joda.time.DateTime;
 
 import ee.ria.xroad.common.CodedException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_EXPIRE_DATE;
 
 /**
  * Parses and handles the downloaded configuration directory.
@@ -63,8 +61,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ConfigurationParser {
 
     // We cache the certificates we have found for a given hash
-    static final Map<String, X509Certificate> HASH_TO_CERT =
-            new ConcurrentHashMap<>();
+    static final Map<String, X509Certificate> HASH_TO_CERT = new ConcurrentHashMap<>();
 
     private enum ConfigurationPart {
         SIGNED_DATA,
@@ -102,8 +99,8 @@ public class ConfigurationParser {
      * @return list of downloaded files
      * @throws Exception if an error occurs
      */
-    public synchronized Configuration parse(ConfigurationLocation location,
-            String... contentIdentifiersToBeHandled) throws Exception {
+    public synchronized Configuration parse(ConfigurationLocation location, String... contentIdentifiersToBeHandled)
+            throws Exception {
         log.trace("parse");
 
         configuration = new Configuration(location);
@@ -128,15 +125,13 @@ public class ConfigurationParser {
 
     private void verifyIntegrity() {
         if (signedData == null) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Configuration instance %s is missing signed data",
+            throw new CodedException(X_MALFORMED_GLOBALCONF, "Configuration instance %s is missing signed data",
                     getInstanceIdentifier());
         }
 
         if (configuration.getExpirationDate() == null) {
             throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Configuration instance %s is missing signed data "
-                    + "expiration date", getInstanceIdentifier());
+                    "Configuration instance %s is missing signed data expiration date", getInstanceIdentifier());
         }
     }
 
@@ -172,8 +167,7 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void body(BodyDescriptor bd, InputStream is)
-                throws MimeException, IOException {
+        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
             if (nextPart == ConfigurationPart.SIGNED_DATA) {
                 readSignedData(is);
                 nextPart = ConfigurationPart.SIGNATURE;
@@ -197,78 +191,73 @@ public class ConfigurationParser {
 
         protected void verifySignedData(byte[] signature) {
             log.trace("verifySignedData()");
+
             try {
-                ConfigurationSignature parameters =
-                        ConfigurationSignature.of(headers);
+                ConfigurationSignature parameters = ConfigurationSignature.of(headers);
 
                 String algoId = parameters.getSignatureAlgorithmId();
 
-                log.trace("Verifying signed content using signature "
-                        + "algorithm id {}", algoId);
+                log.trace("Verifying signed content using signature algorithm id {}", algoId);
 
-                Signature verifier =
-                        Signature.getInstance(getAlgorithmId(algoId));
+                Signature verifier = Signature.getInstance(getAlgorithmId(algoId), "BC");
 
-                X509Certificate verificationCert =
-                        getVerificationCert(configuration.getLocation(),
-                                parameters);
+                X509Certificate verificationCert = getVerificationCert(configuration.getLocation(), parameters);
+
                 if (verificationCert == null) {
                     throw new CodedException(X_CERT_NOT_FOUND,
-                            "Cannot verify signature of configuration "
-                            + "instance %s: could not find verification "
-                            + "certificate for certificate hash %s",
-                            getInstanceIdentifier(),
-                            parameters.getVerificationCertHash());
+                            "Cannot verify signature of configuration instance %s: could not find verification "
+                                    + "certificate for certificate hash %s",
+                            getInstanceIdentifier(), parameters.getVerificationCertHash());
                 }
 
-                if (!verifySignature(verifier, verificationCert, signature,
-                        signedData)) {
+                if (!verifySignature(verifier, verificationCert, signature, signedData)) {
                     throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                            "Failed to verify signature of configuration "
-                            + "instance %s", getInstanceIdentifier());
+                            "Failed to verify signature of configuration instance %s", getInstanceIdentifier());
                 }
             } catch (Exception e) {
                 throw translateException(e);
             }
         }
 
-        boolean verifySignature(Signature verifier,
-                X509Certificate verificationCert, byte[] signature, byte[] sd) {
+        boolean verifySignature(Signature verifier, X509Certificate verificationCert, byte[] signature, byte[] sd) {
             String cn = verificationCert.getSubjectX500Principal().getName();
+
             try {
                 verifier.initVerify(verificationCert.getPublicKey());
                 verifier.update(sd);
 
                 if (verifier.verify(signature)) {
                     log.trace("Verified signature using certificate {}", cn);
+
                     return true;
                 } else {
-                    log.error("Failed to verify signature using certificate {}",
-                            cn);
+                    log.error("Failed to verify signature using certificate {}", cn);
+
                     return false;
                 }
             } catch (Exception e) {
-                log.error("Error verifying signature using certificate " + cn,
-                        e);
+                log.error("Error verifying signature using certificate {}", cn, e);
+
                 return false;
             }
         }
 
-        X509Certificate getVerificationCert(ConfigurationLocation location,
-                ConfigurationSignature parameters) throws Exception {
-            if (HASH_TO_CERT.containsKey(
-                    parameters.getVerificationCertHash())) {
+        X509Certificate getVerificationCert(ConfigurationLocation location, ConfigurationSignature parameters)
+                throws Exception {
+            if (HASH_TO_CERT.containsKey(parameters.getVerificationCertHash())) {
                 log.trace("Return certificate from HASH_TO_CERT map");
+
                 return HASH_TO_CERT.get(parameters.getVerificationCertHash());
             }
 
-            X509Certificate cert = location.getVerificationCert(
-                    parameters.getVerificationCertHash(),
+            X509Certificate cert = location.getVerificationCert(parameters.getVerificationCertHash(),
                     parameters.getVerificationCertHashAlgoId());
+
             log.trace("cert={}", cert);
 
             if (cert != null) {
                 log.trace("Put cert to HASH_TO_CERT map");
+
                 HASH_TO_CERT.put(parameters.getVerificationCertHash(), cert);
             }
 
@@ -312,8 +301,7 @@ public class ConfigurationParser {
         }
 
         @Override
-        public void body(BodyDescriptor bd, InputStream is)
-                throws MimeException, IOException {
+        public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
             if (nextPart == ContentPart.EXPIRATION_DATE) {
                 parseExpirationDate();
                 verifyConfUpToDate();
@@ -324,26 +312,23 @@ public class ConfigurationParser {
         }
 
         private void parseExpirationDate() {
-            configuration.setExpirationDate(
-                    parseExpireDate(getHeader(HEADER_EXPIRE_DATE)));
+            configuration.setExpirationDate(parseExpireDate(getHeader(HEADER_EXPIRE_DATE)));
         }
 
         private void verifyConfUpToDate() {
             if (configuration.isExpired()) {
-                throw new CodedException(X_OUTDATED_GLOBALCONF,
-                        "Configuration instance %s expired on %s",
-                        getInstanceIdentifier(),
-                        configuration.getExpirationDate());
+                throw new CodedException(X_OUTDATED_GLOBALCONF, "Configuration instance %s expired on %s",
+                        getInstanceIdentifier(), configuration.getExpirationDate());
             }
         }
 
         private void parseContent(InputStream is) {
             log.trace("onContent({})", headers);
+
             try {
-                ConfigurationFile file =
-                        ConfigurationFile.of(headers,
-                                configuration.getExpirationDate(),
-                                IOUtils.toString(is));
+                ConfigurationFile file = ConfigurationFile.of(headers, configuration.getExpirationDate(),
+                        IOUtils.toString(is));
+
                 if (shouldHandleContent(file)) {
                     configuration.getFiles().add(file);
                 } else {
@@ -357,14 +342,12 @@ public class ConfigurationParser {
         private boolean shouldHandleContent(ConfigurationFile f) {
             if (!ArrayUtils.isEmpty(supportedInstanceIdentifiers)
                     && !StringUtils.isBlank(f.getInstanceIdentifier())
-                    && !ArrayUtils.contains(supportedInstanceIdentifiers,
-                            f.getInstanceIdentifier())) {
+                    && !ArrayUtils.contains(supportedInstanceIdentifiers, f.getInstanceIdentifier())) {
                 return false;
             }
 
             return ArrayUtils.isEmpty(contentIdentifiers)
-                    || ArrayUtils.contains(contentIdentifiers,
-                            f.getContentIdentifier());
+                    || ArrayUtils.contains(contentIdentifiers, f.getContentIdentifier());
         }
 
         protected String getHeader(String headerName) {
@@ -374,8 +357,7 @@ public class ConfigurationParser {
 
     private static DateTime parseExpireDate(String expireDateStr) {
         if (StringUtils.isBlank(expireDateStr)) {
-            throw new CodedException(X_MALFORMED_GLOBALCONF,
-                    "Missing header " + HEADER_EXPIRE_DATE);
+            throw new CodedException(X_MALFORMED_GLOBALCONF, "Missing header " + HEADER_EXPIRE_DATE);
         }
 
         return ConfigurationUtils.parseISODateTime(expireDateStr);

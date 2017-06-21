@@ -22,24 +22,24 @@
  */
 package ee.ria.xroad.common.signature;
 
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Signature;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.signedmessage.SigningKey;
 
 /**
  * Signing key that is located in PKCS12 key store.
  */
+@Slf4j
 public class TestSigningKey implements SigningKey {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(TestSigningKey.class);
+    private static final String SIGNING_MECHANISM_NAME = CryptoUtils.CKM_RSA_PKCS_NAME;
 
     /** The private key. */
-    private PrivateKey key;
+    private final PrivateKey key;
 
     /**
      * Creates a new Pkcs12SigningKey with provided key.
@@ -54,27 +54,30 @@ public class TestSigningKey implements SigningKey {
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request,
-            String signatureAlgorithmId) throws Exception {
-        LOG.debug("calculateSignature({})", request);
+    public SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception {
+        log.debug("calculateSignature({}, {})", request, digestAlgoId);
 
-        SignatureCtx ctx = new SignatureCtx(signatureAlgorithmId);
+        SignatureCtx ctx = new SignatureCtx(getSignatureAlgorithmId(digestAlgoId));
         ctx.add(request);
 
         byte[] tbsData = ctx.getDataToBeSigned();
         byte[] signatureValue = sign(ctx.getSignatureAlgorithmId(), tbsData);
 
         String signatureXML = ctx.createSignatureXml(signatureValue);
+
         return ctx.createSignatureData(signatureXML, 0);
     }
 
-    protected byte[] sign(String signatureAlgorithmId, byte[] data)
-            throws Exception {
+    private byte[] sign(String signatureAlgorithmId, byte[] data) throws Exception {
         Signature signature = Signature.getInstance(signatureAlgorithmId);
 
         signature.initSign(key);
         signature.update(data);
 
         return signature.sign();
+    }
+
+    private static String getSignatureAlgorithmId(String digestAlgorithmId) throws NoSuchAlgorithmException {
+        return CryptoUtils.getSignatureAlgorithmId(digestAlgorithmId, SIGNING_MECHANISM_NAME);
     }
 }
