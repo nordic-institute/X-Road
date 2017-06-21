@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.3
+Version: 1.3  
 Doc. ID: IG-XLB
 
 
