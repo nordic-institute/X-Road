@@ -32,7 +32,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ListTokens;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.DateTimeZone;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
