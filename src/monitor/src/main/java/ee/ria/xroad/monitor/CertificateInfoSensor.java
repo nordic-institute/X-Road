@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ListTokens;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTimeZone;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
@@ -41,6 +42,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -57,7 +59,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     private TokenInfoLister tokenInfoLister = new TokenInfoLister();
 
-    private SimpleDateFormat certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    private SimpleDateFormat certificateFormat;
 
     private String formatCertificateDate(Date date) {
         return certificateFormat.format(date);
@@ -83,6 +85,9 @@ public class CertificateInfoSensor extends AbstractSensor {
      */
     public CertificateInfoSensor() throws Exception {
         log.info("Creating sensor, measurement interval: {}", getInterval());
+        certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        certificateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+
         updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
