@@ -22,6 +22,12 @@
  */
 package ee.ria.xroad.common;
 
+import com.sun.xml.bind.api.AccessorException;
+import org.apache.james.mime4j.MimeException;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.UnmarshalException;
+import javax.xml.soap.SOAPException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.SocketException;
@@ -29,14 +35,6 @@ import java.net.UnknownHostException;
 import java.net.UnknownServiceException;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.cert.CertificateException;
-
-import javax.xml.bind.UnmarshalException;
-import javax.xml.soap.SOAPException;
-
-import org.apache.james.mime4j.MimeException;
-import org.xml.sax.SAXException;
-
-import com.sun.xml.bind.api.AccessorException;
 
 /** Enumeration class for various error codes. */
 public final class ErrorCodes {
@@ -98,6 +96,7 @@ public final class ErrorCodes {
     public static final String X_LOGGING_FAILED_X = "LoggingFailed";
     public static final String X_TIMESTAMPING_FAILED_X = "TimestampingFailed";
     public static final String X_INVALID_CONTENT_TYPE = "InvalidContentType";
+    public static final String X_INVALID_SOAPACTION = "InvalidSoapAction";
     public static final String X_INVALID_HTTP_METHOD = "InvalidHttpMethod";
     public static final String X_INVALID_MESSAGE = "InvalidMessage";
     public static final String X_INVALID_SECURITY_SERVER = "InvalidSecurityServer";
