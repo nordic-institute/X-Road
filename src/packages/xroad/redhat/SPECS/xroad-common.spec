@@ -190,6 +190,22 @@ test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
 
+# replace signer configuration property csr-signature-algorithm with csr-signature-digest-algorithm
+local_ini=/etc/xroad/conf.d/local.ini
+if csr_signature_algorithm=`crudini --get ${local_ini} signer csr-signature-algorithm 2>/dev/null`
+then
+    crudini --del ${local_ini} signer csr-signature-algorithm
+    case "$csr_signature_algorithm" in
+        SHA512*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-512;;
+        SHA384*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-384;;
+        SHA256*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-256;;
+        SHA1*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-1;;
+    esac
+fi
+
+# remove default-signature-algorithm
+crudini --del ${local_ini} common default-signature-algorithm 2>/dev/null || :
+
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset
 %systemd_post xroad-signer.service
