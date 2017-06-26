@@ -1,7 +1,8 @@
 # Change Log
 
-## 6.16.0 - SNAPSHOT
-- TBD
+## 6.16.0 - 2017-06-12
+- PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
+- PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
