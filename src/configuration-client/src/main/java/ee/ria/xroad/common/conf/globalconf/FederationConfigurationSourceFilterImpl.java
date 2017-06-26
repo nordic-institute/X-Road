@@ -25,13 +25,9 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.ALL;
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.CUSTOM;
-import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.NONE;
+import static ee.ria.xroad.common.SystemProperties.AllowedFederationMode.*;
 
 /** Implementation of the {@link FederationConfigurationSourceFilter}.
  * Looks at {@link SystemProperties#getConfigurationClientAllowedFederations()} (a comma-separated list of allowed
@@ -55,7 +51,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
     private final String ownInstance;
 
     private SystemProperties.AllowedFederationMode allowedFederationMode = null;
-    private List<String> allowedFederationPartners = null;
+    private Set<String> allowedFederationPartners = null;
 
     FederationConfigurationSourceFilterImpl(String ownInstance) {
         this.ownInstance = ownInstance;
@@ -73,7 +69,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
         }
         switch (allowedFederationMode) {
             case CUSTOM:
-                return allowedFederationPartners.stream().anyMatch(s -> s.equalsIgnoreCase(instanceIdentifier));
+                return allowedFederationPartners.contains(instanceIdentifier);
             case ALL:
                 return true;
             default:
@@ -81,17 +77,17 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
         }
     }
 
-    private List<String> parseAllowedInstances(List<String> initial) {
+    private Set<String> parseAllowedInstances(List<String> initial) {
         if (initial.size() == 0) {
             log.warn("Allowed federations list was empty, is the configuration malformed?");
             allowedFederationMode = NONE;
-            return new ArrayList<>();
+            return Collections.emptySet();
         }
-        List<String> allowedInstances = new ArrayList<>();
+        Set<String> allowedInstances = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (String allowedInstance : initial) {
             if (NONE.name().equalsIgnoreCase(allowedInstance)) {
                 allowedFederationMode = NONE;
-                return new ArrayList<>();
+                return Collections.emptySet();
             } else if (ALL.name().equalsIgnoreCase(allowedInstance)) {
                 allowedFederationMode = ALL;
             } else if (allowedFederationMode != ALL) {

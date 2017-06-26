@@ -168,7 +168,16 @@ public class FederationConfigurationSourceFilterImplTest {
         assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
         assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(false));
         assertThat(filter.shouldDownloadConfigurationFor(own), is(true));
+    }
 
+    @Test
+    public void shouldWorkWithSomeSpecialCharacters() {
+        buildAndSetFilter("ää-ÖÖÖ", "èé-ãâ");
+        FederationConfigurationSourceFilter filter = new FederationConfigurationSourceFilterImpl(DEFAULT_OWN_INSTANCE);
+        assertThat(filter.shouldDownloadConfigurationFor("ÄÄ-ööö"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("ÈÉ-ÃÂ"), is(true));
+        assertThat(filter.shouldDownloadConfigurationFor("dev-fi"), is(false));
+        assertThat(filter.shouldDownloadConfigurationFor(DEFAULT_OWN_INSTANCE), is(true));
     }
 
     private void setFilter(String filter) {
