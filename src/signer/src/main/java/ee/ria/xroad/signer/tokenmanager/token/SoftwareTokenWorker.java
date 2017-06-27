@@ -22,30 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -57,6 +33,8 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
@@ -71,7 +49,12 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.*;
+import static ee.ria.xroad.signer.util.ExceptionHelper.*;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -175,7 +158,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
         log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
-        checkSignatureAlgorithmAndData(signatureAlgorithmId, data);
+        checkSignatureAlgorithm(signatureAlgorithmId);
 
         if (!isTokenActive(tokenId)) {
             throw tokenNotActive(tokenId);
@@ -200,35 +183,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         return signature.sign();
     }
 
-    private static void checkSignatureAlgorithmAndData(String signatureAlgorithmId, byte[] data) throws CodedException {
+    private static void checkSignatureAlgorithm(String signatureAlgorithmId) throws CodedException {
         switch (signatureAlgorithmId) {
             case CryptoUtils.SHA1WITHRSA_ID:
-                if (data.length != CryptoUtils.SHA1_DIGEST_LENGTH) {
-                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
-                            "Invalid data to be signed (length: %d)", data.length);
-                }
-
-                break;
             case CryptoUtils.SHA256WITHRSA_ID:
-                if (data.length != CryptoUtils.SHA256_DIGEST_LENGTH) {
-                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
-                            "Invalid data to be signed (length: %d)", data.length);
-                }
-
-                break;
             case CryptoUtils.SHA384WITHRSA_ID:
-                if (data.length != CryptoUtils.SHA384_DIGEST_LENGTH) {
-                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
-                            "Invalid data to be signed (length: %d)", data.length);
-                }
-
-                break;
             case CryptoUtils.SHA512WITHRSA_ID:
-                if (data.length != CryptoUtils.SHA512_DIGEST_LENGTH) {
-                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
-                            "Invalid data to be signed (length: %d)", data.length);
-                }
-
                 break;
             default:
                 throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",

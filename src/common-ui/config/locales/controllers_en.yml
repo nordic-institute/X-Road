@@ -26,7 +26,6 @@ en:
     pin_incorrect: "PIN incorrect"
     key_not_found_on_token: "Key '%{0}' not found on token '%{1}'"
     unsupported_sign_algorithm: "Unsupported signature algorithm '%{0}'"
-    invalid_data_to_be_signed: "Invalid data to be signed (length: %{0})"
     token_is_readonly: "Token '%{0}' is read only"
     cert_request_wrong_usage: "Cannot add '%{0}' CSR to '%{1}' key"
     csr_not_found: "CSR '%{0}' not found"
