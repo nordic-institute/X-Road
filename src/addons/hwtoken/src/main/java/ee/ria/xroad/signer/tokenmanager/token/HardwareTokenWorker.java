@@ -372,7 +372,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     protected byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
-        log.trace("sign({})", keyId);
+        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
 
         assertActiveSession();
 

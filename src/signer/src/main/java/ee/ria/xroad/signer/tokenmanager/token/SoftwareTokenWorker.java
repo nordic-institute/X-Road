@@ -22,9 +22,7 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
+import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
@@ -62,6 +60,7 @@ import java.util.Map;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -174,7 +173,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     @Override
     protected byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
-        log.trace("sign({})", keyId);
+        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
+
+        checkSignatureAlgorithmAndData(signatureAlgorithmId, data);
 
         if (!isTokenActive(tokenId)) {
             throw tokenNotActive(tokenId);
@@ -190,13 +191,49 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw keyNotFound(keyId);
         }
 
-        log.debug("Signing with key '{}'", keyId);
+        log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
         Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
         signature.initSign(key);
         signature.update(data);
 
         return signature.sign();
+    }
+
+    private static void checkSignatureAlgorithmAndData(String signatureAlgorithmId, byte[] data) throws CodedException {
+        switch (signatureAlgorithmId) {
+            case CryptoUtils.SHA1WITHRSA_ID:
+                if (data.length != CryptoUtils.SHA1_DIGEST_LENGTH) {
+                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
+                            "Invalid data to be signed (length: %d)", data.length);
+                }
+
+                break;
+            case CryptoUtils.SHA256WITHRSA_ID:
+                if (data.length != CryptoUtils.SHA256_DIGEST_LENGTH) {
+                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
+                            "Invalid data to be signed (length: %d)", data.length);
+                }
+
+                break;
+            case CryptoUtils.SHA384WITHRSA_ID:
+                if (data.length != CryptoUtils.SHA384_DIGEST_LENGTH) {
+                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
+                            "Invalid data to be signed (length: %d)", data.length);
+                }
+
+                break;
+            case CryptoUtils.SHA512WITHRSA_ID:
+                if (data.length != CryptoUtils.SHA512_DIGEST_LENGTH) {
+                    throw CodedException.tr(X_INVALID_DATA_TO_BE_SIGNED, "invalid_data_to_be_signed",
+                            "Invalid data to be signed (length: %d)", data.length);
+                }
+
+                break;
+            default:
+                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                        "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+        }
     }
 
     // ------------------------------------------------------------------------
