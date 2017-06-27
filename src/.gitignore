@@ -41,3 +41,4 @@ systemtest/op-monitoring/zabbix_api/zabbix_hosts_and_services.json
 tmp/
 ubuntu-xenial-16.04-cloudimg-console.log
 packages/jetty
+classes/
