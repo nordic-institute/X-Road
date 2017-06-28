@@ -22,13 +22,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
-import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -38,13 +31,23 @@ import java.security.Signature;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.io.IOUtils;
+
 import org.bouncycastle.operator.DigestCalculator;
 
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 
 /**
  * Generates test configuration directory.
@@ -63,24 +66,16 @@ public final class GenerateTestData {
      */
     public static void main(String[] args) throws Exception {
         // simple conf with private & shared params + additional file
-        new TestConfDir("test-conf-simple")
-            .addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
-                    "EE", "/" + PRIVATE_PARAMETERS_XML),
-                    PRIVATE_PARAMETERS_XML)
-            .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS,
-                    "EE", "/" + SHARED_PARAMETERS_XML),
+        new TestConfDir("test-conf-simple").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
+                        "EE", "/" + PRIVATE_PARAMETERS_XML), PRIVATE_PARAMETERS_XML)
+            .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/" + SHARED_PARAMETERS_XML),
                     SHARED_PARAMETERS_XML)
-            .addEntry(new ConfDirEntry("FOO",
-                    "EE", "/foo.xml"),
-                    "/foo.xml")
+            .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
             .save();
 
         // detached conf scenario
-        new TestConfDir("test-conf-detached")
-            .addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
-                    "EE", "/" + PRIVATE_PARAMETERS_XML),
-                    PRIVATE_PARAMETERS_XML)
-            .save();
+        new TestConfDir("test-conf-detached").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
+                        "EE", "/" + PRIVATE_PARAMETERS_XML), PRIVATE_PARAMETERS_XML).save();
     }
 
     @RequiredArgsConstructor
@@ -91,31 +86,31 @@ public final class GenerateTestData {
         private boolean writeExpireDate = true;
 
         TestConfDir addEntry(ConfDirEntry e, String fileName) throws Exception {
-            e.setContent(getFileContent(Paths.get(ROOT, name,
-                    e.getInstanceIdentifier(), fileName)));
+            e.setContent(getFileContent(Paths.get(ROOT, name, e.getInstanceIdentifier(), fileName)));
             entries.add(e);
+
             return this;
         }
 
         void save() throws Exception {
-            String parts = "";
+            StringBuffer parts = new StringBuffer("");
 
             if (writeExpireDate) {
-                parts += "--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n";
+                parts.append("--innerboundary\nExpire-date: 2026-05-20T17:42:55Z\n\n");
             }
 
             for (ConfDirEntry entry : entries) {
-                parts += "\n" + getContentMultipart(entry);
+                parts.append("\n" + getContentMultipart(entry));
             }
 
-            Signature sig = Signature.getInstance("SHA512withRSA");
+            Signature sig = Signature.getInstance(CryptoUtils.SHA512WITHRSA_ID);
             sig.initSign(getSignCert().key);
-            sig.update(parts.getBytes());
+            sig.update(parts.toString().getBytes());
 
-            String topMp = getTopMultipart(parts, encodeBase64(sig.sign()),
+            String topMp = getTopMultipart(parts.toString(), encodeBase64(sig.sign()),
                     hash(getSignCert().cert.getEncoded()));
-            try (FileOutputStream out =
-                    new FileOutputStream(ROOT + name + ".txt")) {
+
+            try (FileOutputStream out = new FileOutputStream(ROOT + name + ".txt")) {
                 out.write(topMp.getBytes());
             }
 
@@ -148,8 +143,8 @@ public final class GenerateTestData {
                + hash(entry.getContent());
     }
 
-    private static String getTopMultipart(String signedContent,
-            String signatureBase64, String verificationCertHashBase64) {
+    private static String getTopMultipart(String signedContent, String signatureBase64,
+            String verificationCertHashBase64) {
         return "Content-Type: multipart/related; charset=UTF-8;boundary=envelopeboundary\n\n"
                 + "--envelopeboundary\n"
                 + "Content-Type: multipart/mixed; charset=UTF-8;boundary=innerboundary\n\n"
@@ -168,12 +163,14 @@ public final class GenerateTestData {
     static String hash(String content) throws Exception {
         DigestCalculator dc = createDigestCalculator("SHA-512");
         IOUtils.write(content, dc.getOutputStream());
+
         return encodeBase64(dc.getDigest());
     }
 
     static String hash(byte[] content) throws Exception {
         DigestCalculator dc = createDigestCalculator("SHA-512");
         IOUtils.write(content, dc.getOutputStream());
+
         return encodeBase64(dc.getDigest());
     }
 

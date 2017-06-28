@@ -101,10 +101,10 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *serviceSecurityServerAddress*
  * *requestSoapSize*
  * *requestMimeSize*
- * *requestAttatchmentCount*
+ * *requestAttachmentCount*
  * *responseSoapSize*
  * *responseMimeSize*
- * *responseAttatchmentCount*
+ * *responseAttachmentCount*
  * *succeeded*
  * *soapFaultCode*
  * *soapFaultString*
@@ -1082,8 +1082,8 @@ properties:
               SOAP request message and attachments data size in bytes)
           type: integer
           minimum: 0
-        requestAttatchmentCount:
-          description: Number of attatchments of the request
+        requestAttachmentCount:
+          description: Number of attachments of the request
           type: integer
           minimum: 0
         responseSoapSize:
@@ -1095,8 +1095,8 @@ properties:
              SOAP response message and attachments data size in bytes)
           type: integer
           minimum: 0
-        responseAttatchmentCount:
-          description: Number of attatchments of the response
+        responseAttachmentCount:
+          description: Number of attachments of the response
           type: integer
           minimum: 0
         succeeded:

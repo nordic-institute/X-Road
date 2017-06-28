@@ -164,6 +164,7 @@ public final class ErrorCodes {
     public static final String X_TOKEN_NOT_AVAILABLE = "TokenNotAvailable";
     public static final String X_TOKEN_READONLY = "TokenReadOnly";
     public static final String X_CANNOT_SIGN = "CannotSign";
+    public static final String X_UNSUPPORTED_SIGN_ALGORITHM = "UnsupportedSignAlgorithm";
     public static final String X_CSR_FAILED =
             "FailedToGenerateCertificateRequest";
     public static final String X_FAILED_TO_GENERATE_R_KEY =

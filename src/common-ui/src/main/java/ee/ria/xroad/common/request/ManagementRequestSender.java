@@ -94,14 +94,11 @@ public final class ManagementRequestSender {
      * @return request ID in the central server database
      * @throws Exception if an error occurs
      */
-    public Integer sendAuthCertRegRequest(SecurityServerId securityServer,
-            String address, byte[] authCert) throws Exception {
-        try (HttpSender sender =
-                ManagementRequestClient.createCentralHttpSender()) {
-            return send(sender, getCentralServiceURI(),
-                    new AuthCertRegRequest(authCert, securityServer.getOwner(),
-                                builder.buildAuthCertRegRequest(
-                                    securityServer, address, authCert)));
+    public Integer sendAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+            throws Exception {
+        try (HttpSender sender = ManagementRequestClient.createCentralHttpSender()) {
+            return send(sender, getCentralServiceURI(), new AuthCertRegRequest(authCert, securityServer.getOwner(),
+                    builder.buildAuthCertRegRequest(securityServer, address, authCert)));
         }
     }
 
@@ -155,10 +152,8 @@ public final class ManagementRequestSender {
         }
     }
 
-    private static Integer send(HttpSender sender, URI address,
-            ManagementRequest req) throws Exception {
-        sender.doPost(address, req.getRequestContent(),
-                CHUNKED_LENGTH, req.getRequestContentType());
+    private static Integer send(HttpSender sender, URI address, ManagementRequest req) throws Exception {
+        sender.doPost(address, req.getRequestContent(), CHUNKED_LENGTH, req.getRequestContentType());
 
         SoapMessageImpl requestMessage = req.getRequestMessage();
 
@@ -166,8 +161,7 @@ public final class ManagementRequestSender {
             log.trace("Request SOAP:\n{}", requestMessage.getXml());
         }
 
-        SoapMessageImpl responseMessage =
-                getResponse(sender, req.getResponseContentType());
+        SoapMessageImpl responseMessage = getResponse(sender, req.getResponseContentType());
 
         if (log.isTraceEnabled()) {
             log.trace("Response SOAP:\n{}", responseMessage.getXml());

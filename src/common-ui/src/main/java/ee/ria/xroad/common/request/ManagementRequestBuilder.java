@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
-import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
-import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
-import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
-
 import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
@@ -34,8 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -45,11 +39,10 @@ import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
+import static ee.ria.xroad.common.request.ManagementRequests.*;
+
+@Slf4j
 final class ManagementRequestBuilder {
-
-    private static final Logger LOG =
-            LoggerFactory.getLogger(ManagementRequestBuilder.class);
-
     private static final ObjectFactory FACTORY = new ObjectFactory();
     private static final JAXBContext JAXB_CTX = initJaxbContext();
 
@@ -63,68 +56,51 @@ final class ManagementRequestBuilder {
 
     // -- Public API methods --------------------------------------------------
 
-    SoapMessageImpl buildAuthCertRegRequest(
-            SecurityServerId securityServer, String address, byte[] authCert)
-                    throws Exception {
-        LOG.debug("buildAuthCertRegRequest(server: {}, address: {})",
-                new Object[] {securityServer, address});
+    SoapMessageImpl buildAuthCertRegRequest(SecurityServerId securityServer, String address, byte[] authCert)
+            throws Exception {
+        log.debug("buildAuthCertRegRequest(server: {}, address: {})", securityServer, address);
 
-        AuthCertRegRequestType request =
-                FACTORY.createAuthCertRegRequestType();
+        AuthCertRegRequestType request = FACTORY.createAuthCertRegRequestType();
         request.setServer(securityServer);
         request.setAddress(address);
         request.setAuthCert(authCert);
 
-        return buildMessage(element(AUTH_CERT_REG,
-                AuthCertRegRequestType.class, request));
+        return buildMessage(element(AUTH_CERT_REG, AuthCertRegRequestType.class, request));
     }
 
-    SoapMessageImpl buildAuthCertDeletionRequest(
-            SecurityServerId securityServer, byte[] authCert)
-                    throws Exception {
-        LOG.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
+    SoapMessageImpl buildAuthCertDeletionRequest(SecurityServerId securityServer, byte[] authCert) throws Exception {
+        log.debug("buildAuthCertDeletionRequest(server: {})", securityServer);
 
-        AuthCertDeletionRequestType request =
-                FACTORY.createAuthCertDeletionRequestType();
+        AuthCertDeletionRequestType request = FACTORY.createAuthCertDeletionRequestType();
         request.setServer(securityServer);
         request.setAuthCert(authCert);
 
-        return buildMessage(element(AUTH_CERT_DELETION,
-                AuthCertDeletionRequestType.class, request));
+        return buildMessage(element(AUTH_CERT_DELETION, AuthCertDeletionRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientRegRequest(
-            SecurityServerId securityServer, ClientId client)
-                    throws Exception {
-        LOG.debug("buildClientRegRequest(server: {}, client: {})",
-                securityServer, client);
+    SoapMessageImpl buildClientRegRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+        log.debug("buildClientRegRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
-        return buildMessage(element(CLIENT_REG,
-                ClientRequestType.class, request));
+        return buildMessage(element(CLIENT_REG, ClientRequestType.class, request));
     }
 
-    SoapMessageImpl buildClientDeletionRequest(
-            SecurityServerId securityServer, ClientId client)
-                    throws Exception {
-        LOG.debug("buildClientDeletionRequest(server: {}, client: {})",
-                securityServer, client);
+    SoapMessageImpl buildClientDeletionRequest(SecurityServerId securityServer, ClientId client) throws Exception {
+        log.debug("buildClientDeletionRequest(server: {}, client: {})", securityServer, client);
 
         ClientRequestType request = FACTORY.createClientRequestType();
         request.setServer(securityServer);
         request.setClient(client);
 
-        return buildMessage(element(CLIENT_DELETION,
-                ClientRequestType.class, request));
+        return buildMessage(element(CLIENT_DELETION, ClientRequestType.class, request));
     }
 
     // -- Private helper methods ----------------------------------------------
 
-    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement)
-            throws Exception {
+    SoapMessageImpl buildMessage(final JAXBElement<?> bodyJaxbElement) throws Exception {
         String serviceCode = bodyJaxbElement.getName().getLocalPart();
         ServiceId service = ServiceId.create(receiver, serviceCode);
 
@@ -140,8 +116,7 @@ final class ManagementRequestBuilder {
 
         // Using a callback for setting SOAP body enables us to
         // marshal the content straight into the body element.
-        builder.setCreateBodyCallback(soapBodyNode ->
-                getMarshaller().marshal(bodyJaxbElement, soapBodyNode));
+        builder.setCreateBodyCallback(soapBodyNode -> getMarshaller().marshal(bodyJaxbElement, soapBodyNode));
 
         return builder.build();
     }
@@ -154,10 +129,8 @@ final class ManagementRequestBuilder {
         return JAXB_CTX.createMarshaller();
     }
 
-    private static <T> JAXBElement<T> element(String name, Class<T> clazz,
-            T value) {
-        return new JAXBElement<>(new QName(SoapHeader.NS_XROAD, name),
-                clazz, null, value);
+    private static <T> JAXBElement<T> element(String name, Class<T> clazz, T value) {
+        return new JAXBElement<>(new QName(SoapHeader.NS_XROAD, name), clazz, null, value);
     }
 
     private static JAXBContext initJaxbContext() {
@@ -167,5 +140,4 @@ final class ManagementRequestBuilder {
             throw new RuntimeException(e);
         }
     }
-
 }

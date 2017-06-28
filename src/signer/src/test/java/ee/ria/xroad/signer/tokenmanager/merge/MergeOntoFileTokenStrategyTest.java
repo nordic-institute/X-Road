@@ -22,7 +22,22 @@
  */
 package ee.ria.xroad.signer.tokenmanager.merge;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.junit.Before;
+import org.junit.Test;
+
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.model.Cert;
 import ee.ria.xroad.signer.model.CertRequest;
 import ee.ria.xroad.signer.model.Key;
@@ -30,14 +45,6 @@ import ee.ria.xroad.signer.model.Token;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy.MergeResult;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
-import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.*;
@@ -67,11 +74,11 @@ public class MergeOntoFileTokenStrategyTest {
     @Test
     public void mergeShouldAddMissingTokens() {
 
-        Token fileToken1 = new Token(SoftwareModuleType.TYPE, "1");
-        Token fileToken2 = new Token(SoftwareModuleType.TYPE, "2");
-        Token memoryToken1 = new Token(SoftwareModuleType.TYPE, "1");
-        Token memoryToken2 = new Token(SoftwareModuleType.TYPE, "2");
-        Token memoryToken3 = new Token(SoftwareModuleType.TYPE, "3");
+        Token fileToken1 = new Token(SoftwareModuleType.TYPE, "1", CryptoUtils.CKM_RSA_PKCS_NAME);
+        Token fileToken2 = new Token(SoftwareModuleType.TYPE, "2", CryptoUtils.CKM_RSA_PKCS_NAME);
+        Token memoryToken1 = new Token(SoftwareModuleType.TYPE, "1", CryptoUtils.CKM_RSA_PKCS_NAME);
+        Token memoryToken2 = new Token(SoftwareModuleType.TYPE, "2", CryptoUtils.CKM_RSA_PKCS_NAME);
+        Token memoryToken3 = new Token(SoftwareModuleType.TYPE, "3", CryptoUtils.CKM_RSA_PKCS_NAME);
 
 
         List<Token> fileList = Arrays.asList(fileToken1, fileToken2);
@@ -94,10 +101,10 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeShouldMergeTokensInLists() {
         final String tokenId = "1124";
 
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId, CryptoUtils.CKM_RSA_PKCS_NAME);
         fileToken.setActive(false);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId, CryptoUtils.CKM_RSA_PKCS_NAME);
         memoryToken.setActive(true);
 
         MergeResult result = testedStrategy.merge(Collections.singletonList(fileToken),
@@ -113,7 +120,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeOnlySpecificFields() {
 
         final String fileTokenId = "1";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, fileTokenId, CryptoUtils.CKM_RSA_PKCS_NAME);
 
         final String fileFriendlyName = "fileFriendlyName";
         fileToken.setFriendlyName(fileFriendlyName);
@@ -135,7 +142,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileToken.setReadOnly(false);
         fileToken.setActive(false);
 
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2");
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, "2", CryptoUtils.CKM_RSA_PKCS_NAME);
 
         final String memModuleId = "memoryModuleId";
         memoryToken.setModuleId(memModuleId);
@@ -180,8 +187,8 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeTokenShouldMergeKeysInTokens() {
 
         final String tokenId = "1123";
-        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId);
-        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId);
+        Token fileToken = new Token(SoftwareModuleType.TYPE, tokenId, CryptoUtils.CKM_RSA_PKCS_NAME);
+        Token memoryToken = new Token(SoftwareModuleType.TYPE, tokenId, CryptoUtils.CKM_RSA_PKCS_NAME);
 
         final String keyId = "1551";
 
@@ -377,7 +384,7 @@ public class MergeOntoFileTokenStrategyTest {
     public void mergeKeyShouldOnlyCopyOverAvailabilityOutOfSingleFields() {
 
         final String fileId = "123t5dssd";
-        final Token fileToken = new Token("fileToken", "fileId");
+        final Token fileToken = new Token("fileToken", "fileId", CryptoUtils.CKM_RSA_PKCS_NAME);
         final Key fileKey = new Key(fileToken, fileId);
 
         final String fileFriendlyName = "d§gsdasd";
@@ -396,7 +403,7 @@ public class MergeOntoFileTokenStrategyTest {
         fileKey.setUsage(fileKeyUsageInfo);
 
         final String memId = "asre111";
-        Key memKey = new Key(new Token("memToken", "memId"), memId);
+        Key memKey = new Key(new Token("memToken", "memId", CryptoUtils.CKM_RSA_PKCS_NAME), memId);
 
         final boolean memAvailable = true;
         assertNotEquals("test setup failure", fileAvailable, memAvailable);
@@ -480,7 +487,6 @@ public class MergeOntoFileTokenStrategyTest {
                         .map(Cert::getOcspResponse)
                         .collect(Collectors.toList()),
                 everyItem(nullValue()));
-
     }
 
     static class TestKeyHelper {

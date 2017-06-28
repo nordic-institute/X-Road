@@ -141,8 +141,8 @@ properties:
           description: Size of the MIME-container of the request (bytes)
           type: integer
           minimum: 0
-        requestAttatchmentCount:
-          description: Number of attatchments of the request
+        requestAttachmentCount:
+          description: Number of attachments of the request
           type: integer
           minimum: 0
         responseSoapSize:
@@ -153,8 +153,8 @@ properties:
           description: Size of the MIME-container of the response (bytes)
           type: integer
           minimum: 0
-        responseAttatchmentCount:
-          description: Number of attatchments of the response
+        responseAttachmentCount:
+          description: Number of attachments of the response
           type: integer
           minimum: 0
         succeeded:

@@ -1,22 +1,23 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.4  
+Version: 1.5  
 Doc. ID: DM-CS
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
-| 15.06.2015 | 0.1         | Initial version                                                              | Martin Lind      |
-| 30.06.2015 | 0.2         | Comments and revisions                                                              | Margus Freudenthal      |
-| 09.07.2015 | 0.3         | Rearrangements for consistency                                                              | Martin Lind      |
-| 28.08.2015 | 0.4         | Corrections according to feedback to first 7 tables.                                                              | Martin Lind      |
-| 01.09.2015 | 0.5         | Better explanations for modifications to all tables.                                                              | Martin Lind      |
-| 09.09.2015 | 0.6         | Made minor editorial changes                                                              | Margus Freudenthal      |
-| 16.09.2015 | 0.7         | Added the descriptions of the fields and procedures related to high availability                                                              | Marju Ignatjeva      |
-| 21.09.2015 | 1.0         | Editorial changes made                                                              | Imbi Nõgisto      |
-| 16.10.2015 | 1.1         | Field cert_profile_info for approved CA-s table and one missing index                                                              | Martin Lind      |
-| 17.10.2015 | 1.2         | Clarified description of the cert_profile_info field                                                              | Margus Freudenthal      |
-| 11.12.2015 | 1.3         | Subsystems can only be clients of security servers                                                              | Siim Annuk      |
-| 02.02.2017 | 1.4         | Update distributed_files and convert to markdown format                                                              | Ilkka Seppälä      |
+| Date       | Version | Description                                             | Author             |
+|------------|---------|---------------------------------------------------------|--------------------|
+| 15.06.2015 | 0.1     | Initial version                                         | Martin Lind        |
+| 30.06.2015 | 0.2     | Comments and revisions                                  | Margus Freudenthal |
+| 09.07.2015 | 0.3     | Rearrangements for consistency                          | Martin Lind        |
+| 28.08.2015 | 0.4     | Corrections according to feedback to first 7 tables     | Martin Lind        |
+| 01.09.2015 | 0.5     | Better explanations for modifications to all tables     | Martin Lind        |
+| 09.09.2015 | 0.6     | Made minor editorial changes                            | Margus Freudenthal |
+| 16.09.2015 | 0.7     | Added the descriptions of the fields and procedures related to high availability | Marju Ignatjeva |
+| 21.09.2015 | 1.0     | Editorial changes made                                  | Imbi Nõgisto       |
+| 16.10.2015 | 1.1     | Field cert_profile_info for approved CA-s table and one missing index | Martin Lind |
+| 17.10.2015 | 1.2     | Clarified description of the cert_profile_info field    | Margus Freudenthal |
+| 11.12.2015 | 1.3     | Subsystems can only be clients of security servers      | Siim Annuk         |
+| 02.02.2017 | 1.4     | Update distributed_files and convert to markdown format | Ilkka Seppälä      |
+| 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId* | Kristo Heero |
 
 ## Table of Contents
 
@@ -766,7 +767,7 @@ System configuration parameter necessary for proper functioning of central serve
 4. centralServerAddress – the DNS name of this central server. The value can be changed in the user interface. In an HA setup, the value is local to each node of the cluster.
 5. instanceIdentifier – the instance identifier of this X-Road instance. Must be globally unique. The value is assigned during the initialization of the central server in the user interface.
 6. authCertRegUrl – URL where security servers can send their authentication certificate registration requests. May contain placeholder %{centralServerAddress} which will be replaced with value of the centralServerAddress system parameter.
-7. confSignAlgoId – identifier of the algorithm that is used for signing the global configuration. Supported values are 'SHA512withRSA', 'SHA256withRSA' and 'SHA384withRSA'.
+7. confSignDigestAlgoId  – identifier of the digest algorithm that is used for signing the global configuration. Supported values are 'SHA-512', 'SHA-384' and 'SHA-256'.
 8. confHashAlgoUri – URI of the algorithm that is used to hash distributable global configuration files. Supported values are http://www.w3.org/2001/04/xmlenc#sha512 and http://www.w3.org/2001/04/xmlenc#sha256.
 9. confSignCertHashAlgoUri – URI of the algorithm that is used to hash global configuration signing certificate. Supported values are http://www.w3.org/2001/04/xmlenc#sha512 and http://www.w3.org/2001/04/xmlenc#sha256.
 10. securityServerOwnersGroup – name of the global group where all the members that get ownership of any security server are automatically added.

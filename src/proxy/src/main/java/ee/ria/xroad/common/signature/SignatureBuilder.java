@@ -77,21 +77,20 @@ public class SignatureBuilder {
     }
 
     /**
-     * Builds signature data using the given signing key and signature algorithm.
+     * Builds signature data using the given signing key and signature digest algorithm.
      * @param signingKey the signing key
-     * @param signatureAlgorithmId ID of the signature algorithm
+     * @param signatureDigestAlgorithmId ID of the signature digest algorithm
      * @return the signature data
      * @throws Exception in case of any errors
      */
-    public SignatureData build(SigningKey signingKey,
-            String signatureAlgorithmId) throws Exception {
+    public SignatureData build(SigningKey signingKey, String signatureDigestAlgorithmId) throws Exception {
         log.trace("Sign, {} part(s)", parts.size());
 
         SigningRequest request = new SigningRequest(signingCert, parts);
         request.getExtraCertificates().addAll(extraCertificates);
         request.getOcspResponses().addAll(ocspResponses);
 
-        return signingKey.calculateSignature(request, signatureAlgorithmId);
+        return signingKey.calculateSignature(request, signatureDigestAlgorithmId);
     }
 
 }

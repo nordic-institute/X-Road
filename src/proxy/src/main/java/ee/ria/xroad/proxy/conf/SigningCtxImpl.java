@@ -47,6 +47,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SigningCtxImpl implements SigningCtx {
 
+    // TODO make it configurable.
+    private static final String DIGEST_ALGORITHM = CryptoUtils.SHA512_ID;
+
     /** The subject id of the signer. */
     private final ClientId subject;
 
@@ -57,8 +60,7 @@ public class SigningCtxImpl implements SigningCtx {
     private final X509Certificate cert;
 
     @Override
-    public SignatureData buildSignature(SignatureBuilder builder)
-            throws Exception {
+    public SignatureData buildSignature(SignatureBuilder builder) throws Exception {
         List<X509Certificate> extraCerts = getIntermediateCaCerts();
         List<OCSPResp> ocspResponses = getOcspResponses(extraCerts);
 
@@ -66,11 +68,10 @@ public class SigningCtxImpl implements SigningCtx {
         builder.addOcspResponses(ocspResponses);
         builder.setSigningCert(cert);
 
-        return builder.build(key, CryptoUtils.SHA512WITHRSA_ID);
+        return builder.build(key, DIGEST_ALGORITHM);
     }
 
-    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception {
+    private List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws Exception {
         List<X509Certificate> allCerts = new ArrayList<>(certs.size() + 1);
         allCerts.add(cert);
         allCerts.addAll(certs);
@@ -79,11 +80,10 @@ public class SigningCtxImpl implements SigningCtx {
     }
 
     private List<X509Certificate> getIntermediateCaCerts() throws Exception {
-        CertChain chain =
-                GlobalConf.getCertChain(subject.getXRoadInstance(), cert);
+        CertChain chain = GlobalConf.getCertChain(subject.getXRoadInstance(), cert);
+
         if (chain == null) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
-                    "Got empty certificate chain for certificate %s",
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Got empty certificate chain for certificate %s",
                     cert.getSerialNumber());
         }
 
