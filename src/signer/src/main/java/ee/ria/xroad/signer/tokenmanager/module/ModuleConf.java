@@ -58,10 +58,10 @@ public final class ModuleConf {
 
     private static final String DEFAULT_TOKEN_ID_FORMAT = "{moduleType}{slotIndex}{serialNumber}{label}";
 
-    // <mechanism name, machanism code>
-    public static final Map<String, Long> SUPPORTED_SIGN_MECHANISMS = createSupportedSignMechanismsMap();
+    // Maps mechanism name to mechanism code of supported sign mechanisms
+    private static final Map<String, Long> SUPPORTED_SIGN_MECHANISMS = createSupportedSignMechanismsMap();
 
-    // <mechanism name, mechanism code>
+    // Maps mechanism name to mechanism code of supported key allowed mechanisms
     private static final Map<String, Long> SUPPORTED_KEY_ALLOWED_MECHANISMS = createSupportedKeyAllowedMechanismMap();
 
     private static final String DEFAULT_SIGN_MECHANISM_NAME = PKCS11Constants.NAME_CKM_RSA_PKCS;
@@ -115,6 +115,13 @@ public final class ModuleConf {
     }
 
     private ModuleConf() {
+    }
+
+    /**
+     * @return sign mechanism code, null in case not supported sign mechanism
+     */
+    public static Long getSupportedSignMechanismCode(String signMechanismName) {
+        return SUPPORTED_SIGN_MECHANISMS.get(signMechanismName);
     }
 
     /**
@@ -215,7 +222,7 @@ public final class ModuleConf {
             signMechanismName = DEFAULT_SIGN_MECHANISM_NAME;
         }
 
-        Long signMechanism = SUPPORTED_SIGN_MECHANISMS.get(signMechanismName);
+        Long signMechanism = getSupportedSignMechanismCode(signMechanismName);
 
         if (signMechanism == null) {
             log.error("Not supported sign mechanism ({}) specified for module ({}), skipping...",

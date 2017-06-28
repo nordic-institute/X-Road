@@ -102,7 +102,7 @@ public class HardwareTokenWorker extends AbstractTokenWorker {
         Map<String, Mechanism> mechanismsByHashAlgorithmId = new HashMap<>();
 
         if (PKCS11Constants.NAME_CKM_RSA_PKCS.equals(signMechanismName)) {
-            Mechanism mechanism = Mechanism.get(ModuleConf.SUPPORTED_SIGN_MECHANISMS.get(signMechanismName));
+            Mechanism mechanism = Mechanism.get(ModuleConf.getSupportedSignMechanismCode(signMechanismName));
 
             mechanismsByHashAlgorithmId.put(CryptoUtils.SHA1WITHRSA_ID, mechanism);
             mechanismsByHashAlgorithmId.put(CryptoUtils.SHA256WITHRSA_ID, mechanism);
