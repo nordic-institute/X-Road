@@ -6,7 +6,6 @@ project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
 configurations {
     xjc
-    bugfixagent
 }
 
 sourceSets {
@@ -14,21 +13,15 @@ sourceSets {
         java.srcDirs = ['src/main/java', 'build/generated-sources']
         resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
     }
-
-    bugfixagent {
-        java.srcDirs = ['src/bugfixagent/java']
-    }
 }
 
 dependencies {
     compile 'javax.validation:validation-api:1.1.0.Final'
-    compile 'io.dropwizard.metrics:metrics-core:3.1.0'
+    compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
 
     compile project(':common-db')
     compile project(':common-op-monitoring')
     compile project(':monitoring-conf')
-
-    bugfixagentCompile 'org.javassist:javassist:3.21.0-GA'
 
     // Using HSQLDB for an in-memory database in tests.
     testCompile 'org.hsqldb:hsqldb:2.3.2'
@@ -78,29 +71,11 @@ task testsJar(type: Jar, dependsOn: testClasses) {
     }
 }
 
-task bugfixagentJar(type: Jar) {
-    archiveName = "metrics-bugfix-agent.jar"
-    manifest {
-        attributes(
-            'Premain-Class': 'ee.ria.xroad.opmonitordaemon.DropwizardBugfixAgent',
-            'Can-Redefine-Classes': 'true',
-            'Can-Retransform-Classes': 'true',
-            'Can-Set-Native-Method-Prefix': 'true',
-            'Implementation-Title': "bugfixagent",
-            'Implementation-Version': rootProject.version
-        )
-    }
-    from {
-        sourceSets.bugfixagent.output.classesDir
-    }
-}
-
 jar.enabled = false
 build.dependsOn shadowJar
 build.dependsOn testsJar
 buildall.dependsOn shadowJar
 buildall.dependsOn testsJar
-shadowJar.dependsOn bugfixagentJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')

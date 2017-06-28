@@ -43,8 +43,8 @@ class SystemParameter < ActiveRecord::Base
   AUTH_CERT_REG_URL = "authCertRegUrl"
   DEFAULT_AUTH_CERT_REG_URL = "https://%{centralServerAddress}:4001/managementservice/"
 
-  CONF_SIGN_ALGO_ID = "confSignAlgoId"
-  DEFAULT_CONF_SIGN_ALGO_ID = CryptoUtils::SHA512WITHRSA_ID
+  CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId"
+  DEFAULT_CONF_SIGN_DIGEST_ALGO_ID = CryptoUtils::SHA512_ID
 
   CONF_HASH_ALGO_URI = "confHashAlgoUri"
   DEFAULT_CONF_HASH_ALGO_URI = DigestMethod.SHA512
@@ -119,8 +119,8 @@ class SystemParameter < ActiveRecord::Base
     get(CENTRAL_SERVER_ADDRESS)
   end
 
-  def self.conf_sign_algo_id
-    get(CONF_SIGN_ALGO_ID)
+  def self.conf_sign_digest_algo_id
+    get(CONF_SIGN_DIGEST_ALGO_ID, DEFAULT_CONF_SIGN_DIGEST_ALGO_ID)
   end
 
   def self.conf_hash_algo_uri
@@ -161,10 +161,7 @@ class SystemParameter < ActiveRecord::Base
     return nil unless provider_class && provider_code
 
     Java::ee.ria.xroad.common.identifier.ClientId.create(
-        instance_identifier,
-        provider_class,
-        provider_code,
-        provider_subsystem)
+        instance_identifier, provider_class, provider_code, provider_subsystem)
   end
 
   def self.security_server_owners_group
@@ -176,12 +173,10 @@ class SystemParameter < ActiveRecord::Base
   end
 
   def self.time_stamping_interval_seconds
-    get(TIME_STAMPING_INTERVAL_SECONDS,
-      DEFAULT_TIME_STAMPING_INTERVAL_SECONDS).to_i()
+    get(TIME_STAMPING_INTERVAL_SECONDS, DEFAULT_TIME_STAMPING_INTERVAL_SECONDS).to_i()
   end
 
   def self.conf_expire_interval_seconds
-    get(CONF_EXPIRE_INTERVAL_SECONDS,
-      DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS).to_i()
+    get(CONF_EXPIRE_INTERVAL_SECONDS, DEFAULT_CONF_EXPIRE_INTERVAL_SECONDS).to_i()
   end
 end

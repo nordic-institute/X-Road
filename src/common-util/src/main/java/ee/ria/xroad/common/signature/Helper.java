@@ -130,12 +130,10 @@ final class Helper {
     }
 
     static Document createDocument() throws Exception {
-        DocumentBuilderFactory documentBuilderFactory =
-                DocumentBuilderFactory.newInstance();
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
 
-        Document document =
-                documentBuilderFactory.newDocumentBuilder().newDocument();
+        Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
 
         // create the root element for XAdES signatures.
         Element root = document.createElementNS(NS_ASIC, ASIC_TAG);
@@ -147,30 +145,25 @@ final class Helper {
         return document;
     }
 
-    static Document parseDocument(String documentXml,
-            boolean namespaceAware) throws Exception {
-        return XmlUtils.parseDocument(new ByteArrayInputStream(
-                documentXml.getBytes(StandardCharsets.UTF_8)), namespaceAware);
+    static Document parseDocument(String documentXml, boolean namespaceAware) throws Exception {
+        return XmlUtils.parseDocument(new ByteArrayInputStream(documentXml.getBytes(StandardCharsets.UTF_8)),
+                namespaceAware);
     }
 
-    static XMLSignature createSignatureElement(Document document)
-            throws Exception {
-        XMLSignature signature = new XMLSignature(document, BASE_URI,
-                XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA512);
+    static XMLSignature createSignatureElement(Document document, String signatureAlgorithmUri) throws Exception {
+        XMLSignature signature = new XMLSignature(document, BASE_URI, signatureAlgorithmUri);
         signature.setId(ID_SIGNATURE);
         document.getDocumentElement().appendChild(signature.getElement());
+
         return signature;
     }
 
     /**
      * Creates and returns a ds:DigestMethod element.
      */
-    static Element createDigestMethodElement(Document doc, String hashMethod)
-            throws Exception {
-        Element digestMethodElement =
-                doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
-        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM,
-                getDigestAlgorithmURI(hashMethod));
+    static Element createDigestMethodElement(Document doc, String hashMethod) throws Exception {
+        Element digestMethodElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTMETHOD);
+        digestMethodElement.setAttribute(Constants._ATT_ALGORITHM, getDigestAlgorithmURI(hashMethod));
 
         return digestMethodElement;
     }
@@ -179,41 +172,33 @@ final class Helper {
      * Creates and returns a ds:DigestValue element.
      */
     static Element createDigestValueElement(Document doc, byte[] hashValue) {
-        Element digestValueElement =
-                doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
+        Element digestValueElement = doc.createElement(PREFIX_DS + Constants._TAG_DIGESTVALUE);
         digestValueElement.setTextContent(encodeBase64(hashValue));
 
         return digestValueElement;
     }
 
     /**
-     * Verifies the digest contained in the digest algorithm and value element
-     * against the provided data.
+     * Verifies the digest contained in the digest algorithm and value element against the provided data.
      * @param digAlgAndValueElement the element that contains the digest method
      *        as the first child and digest value as the second child
      * @param data the data
      */
     static boolean verifyDigest(Element digAlgAndValueElement, byte[] data)
-            throws NoSuchAlgorithmException, IOException,
-            OperatorCreationException {
-        String digestMethod =
-                ((Element) digAlgAndValueElement.getFirstChild()).getAttribute(
-                        ALGORITHM_ATTRIBUTE);
-        String digestValue =
-                digAlgAndValueElement.getLastChild().getTextContent();
+            throws NoSuchAlgorithmException, IOException, OperatorCreationException {
+        String digestMethod = ((Element) digAlgAndValueElement.getFirstChild()).getAttribute(ALGORITHM_ATTRIBUTE);
+        String digestValue = digAlgAndValueElement.getLastChild().getTextContent();
 
         byte[] digest = calculateDigest(getAlgorithmId(digestMethod), data);
-        return MessageDigestAlgorithm.isEqual(
-                decodeBase64(digestValue), digest);
+
+        return MessageDigestAlgorithm.isEqual(decodeBase64(digestValue), digest);
     }
 
     /**
      * Shortcut for adding a reference to a manifest.
      */
-    static void addManifestReference(Manifest manifest, String uri)
-            throws Exception {
-        manifest.addDocument(null, "#" + uri, null,
-                DEFAULT_DIGEST_ALGORITHM_URI, null, null);
+    static void addManifestReference(Manifest manifest, String uri) throws Exception {
+        manifest.addDocument(null, "#" + uri, null, DEFAULT_DIGEST_ALGORITHM_URI, null, null);
     }
 
     /**
@@ -245,8 +230,7 @@ final class Helper {
         xpath.append(PREFIX_XADES);
         xpath.append(OCSP_REF_TAG);
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
-                getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
     }
 
     /**
@@ -279,8 +263,7 @@ final class Helper {
         xpath.append(PREFIX_XADES);
         xpath.append(ENCAPSULATED_OCSP_VALUE_TAG);
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
-                getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
     }
 
     /**
@@ -312,8 +295,7 @@ final class Helper {
         xpath.append(PREFIX_XADES);
         xpath.append(CERT_TAG);
 
-        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(),
-                getNamespaceCtx());
+        return XmlUtils.getElementsXPathNS(objectContainer, xpath.toString(), getNamespaceCtx());
     }
 
     /***
@@ -337,12 +319,11 @@ final class Helper {
      * @throws Exception throws CodedException with code MALFORMED_SIGNATURE
      * if the element cannot be found.
      */
-    static Element getFirstElementByTagName(Document document, String tagName)
-            throws Exception {
+    static Element getFirstElementByTagName(Document document, String tagName) throws Exception {
         Element element = XmlUtils.getFirstElementByTagName(document, tagName);
+
         if (element == null) {
-            throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE,
-                    "Could not find element \"%s\"", tagName);
+            throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, "Could not find element \"%s\"", tagName);
         }
 
         return element;
@@ -363,10 +344,12 @@ final class Helper {
                         return null;
                 }
             }
+
             @Override
             public Iterator<?> getPrefixes(String val) {
                 return null;
             }
+
             @Override
             public String getPrefix(String uri) {
                 return null;

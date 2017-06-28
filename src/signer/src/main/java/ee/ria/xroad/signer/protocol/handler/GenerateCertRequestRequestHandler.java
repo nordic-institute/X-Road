@@ -22,21 +22,19 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
-
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -46,11 +44,9 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
-import akka.actor.ActorRef;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.GenerateCertRequest;
@@ -59,21 +55,22 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
-import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
 /**
  * Handles certificate request generations.
  */
 @Slf4j
-public class GenerateCertRequestRequestHandler
-        extends AbstractRequestHandler<GenerateCertRequest> {
+public class GenerateCertRequestRequestHandler extends AbstractRequestHandler<GenerateCertRequest> {
 
     @Override
     protected Object handle(GenerateCertRequest message) throws Exception {
-        TokenAndKey tokenAndKey =
-                TokenManager.findTokenAndKey(message.getKeyId());
+        TokenAndKey tokenAndKey = TokenManager.findTokenAndKey(message.getKeyId());
+
         if (!TokenManager.isKeyAvailable(tokenAndKey.getKeyId())) {
             throw keyNotAvailable(tokenAndKey.getKeyId());
         }
@@ -82,43 +79,35 @@ public class GenerateCertRequestRequestHandler
                 && !SoftwareTokenType.ID.equals(tokenAndKey.getTokenId())) {
             throw CodedException.tr(X_WRONG_CERT_USAGE,
                     "auth_cert_under_softtoken",
-                    "Authentication certificate requests can only be created"
-                            + " under software tokens");
+                    "Authentication certificate requests can only be created under software tokens");
         }
 
         if (tokenAndKey.getKey().getPublicKey() == null) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Key '%s' has no public key", message.getKeyId());
+            throw new CodedException(X_INTERNAL_ERROR, "Key '%s' has no public key", message.getKeyId());
         }
 
-        PublicKey publicKey =
-                readPublicKey(tokenAndKey.getKey().getPublicKey());
+        PublicKey publicKey = readPublicKey(tokenAndKey.getKey().getPublicKey());
 
-        JcaPKCS10CertificationRequestBuilder certRequestBuilder =
-                new JcaPKCS10CertificationRequestBuilder(
-                        new X500Name(message.getSubjectName()), publicKey);
+        JcaPKCS10CertificationRequestBuilder certRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
+                new X500Name(message.getSubjectName()), publicKey);
 
         ContentSigner signer = new TokenContentSigner(tokenAndKey);
 
-        PKCS10CertificationRequest generatedRequest =
-                certRequestBuilder.build(signer);
+        PKCS10CertificationRequest generatedRequest = certRequestBuilder.build(signer);
 
-        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(),
-                message.getMemberId(), message.getSubjectName(),
-                message.getKeyUsage());
+        String certReqId = TokenManager.addCertRequest(tokenAndKey.getKeyId(), message.getMemberId(),
+                message.getSubjectName(), message.getKeyUsage());
 
-        return new GenerateCertRequestResponse(certReqId,
-                convert(generatedRequest, message.getFormat()),
+        return new GenerateCertRequestResponse(certReqId, convert(generatedRequest, message.getFormat()),
                 message.getFormat());
     }
 
-    private static PublicKey readPublicKey(String publicKeyBase64)
-            throws Exception {
+    private static PublicKey readPublicKey(String publicKeyBase64) throws Exception {
         return readX509PublicKey(decodeBase64(publicKeyBase64));
     }
 
-    private static byte[] convert(PKCS10CertificationRequest request,
-            GenerateCertRequest.RequestFormat format) throws Exception {
+    private static byte[] convert(PKCS10CertificationRequest request, GenerateCertRequest.RequestFormat format)
+            throws Exception {
         switch (format) {
             case PEM:
                 return toPem(request);
@@ -127,9 +116,9 @@ public class GenerateCertRequestRequestHandler
         }
     }
 
-    private static byte[] toPem(PKCS10CertificationRequest req)
-            throws Exception {
+    private static byte[] toPem(PKCS10CertificationRequest req) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
+
         try (PEMWriter pw = new PEMWriter(new OutputStreamWriter(out))) {
             pw.writeObject(req);
         }
@@ -145,18 +134,23 @@ public class GenerateCertRequestRequestHandler
 
         private final TokenAndKey tokenAndKey;
 
+        private final String digestAlgoId;
+        private final String signAlgoId;
+
         private final CountDownLatch latch = new CountDownLatch(1);
 
         private volatile CalculatedSignature signature;
 
-        TokenContentSigner(TokenAndKey tokenAndKey) {
+        TokenContentSigner(TokenAndKey tokenAndKey) throws NoSuchAlgorithmException {
             this.tokenAndKey = tokenAndKey;
+
+            digestAlgoId = SystemProperties.getSignerCsrSignatureDigestAlgorithm();
+            signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, tokenAndKey.getSignMechanism());
         }
 
         @Override
         public AlgorithmIdentifier getAlgorithmIdentifier() {
-            return new DefaultSignatureAlgorithmIdentifierFinder().find(
-                    SystemProperties.getSignerCsrSignatureAlgorithm());
+            return new DefaultSignatureAlgorithmIdentifierFinder().find(signAlgoId);
         }
 
         @Override
@@ -168,20 +162,18 @@ public class GenerateCertRequestRequestHandler
         public byte[] getSignature() {
             log.debug("Calculating signature for certificate request...");
 
-            byte[] tbsData = null;
+            byte[] digest;
+
             try {
-                String digAlgoId = getDigestAlgorithmId(SystemProperties.getSignerCsrSignatureAlgorithm());
-                byte[] digest = calculateDigest(digAlgoId, out.toByteArray());
-                tbsData = SignerUtil.createDataToSign(digest);
+                digest = calculateDigest(digestAlgoId, out.toByteArray());
             } catch (Exception e) {
                 throw new CodedException(X_INTERNAL_ERROR, e);
             }
 
-            ActorRef signatureReceiver = getContext().actorOf(
-                    Props.create(SignatureReceiverActor.class, this));
+            ActorRef signatureReceiver = getContext().actorOf(Props.create(SignatureReceiverActor.class, this));
+
             try {
-                tellToken(new CalculateSignature(getSelf(),
-                        tokenAndKey.getKeyId(), tbsData),
+                tellToken(new CalculateSignature(getSelf(), tokenAndKey.getKeyId(), signAlgoId, digest),
                         tokenAndKey.getTokenId(), signatureReceiver);
 
                 waitForSignature();
@@ -199,8 +191,7 @@ public class GenerateCertRequestRequestHandler
         private void waitForSignature() {
             try {
                 if (!latch.await(SIGNATURE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                    throw new CodedException(X_INTERNAL_ERROR,
-                            "Signature calculation timed out");
+                    throw new CodedException(X_INTERNAL_ERROR, "Signature calculation timed out");
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();

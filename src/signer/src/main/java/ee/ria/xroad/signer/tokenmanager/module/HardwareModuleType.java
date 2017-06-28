@@ -38,8 +38,14 @@ public class HardwareModuleType implements ModuleType {
 
     private final boolean pinVerificationPerSigning;
 
-    private final boolean batchSingingEnabled;
+    private final boolean batchSigningEnabled;
 
     private final boolean forceReadOnly;
+
+    private final String signMechanismName;
+
+    private final PrivKeyAttributes privKeyAttributes;
+
+    private final PubKeyAttributes pubKeyAttributes;
 
 }

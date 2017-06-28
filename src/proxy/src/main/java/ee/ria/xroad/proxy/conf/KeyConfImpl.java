@@ -22,20 +22,14 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.util.CertUtils.getCertHashes;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-
 import java.io.File;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
@@ -55,7 +49,10 @@ import ee.ria.xroad.signer.protocol.message.GetMemberSigningInfo;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.util.CertUtils.getCertHashes;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Encapsulates KeyConf related functionality.
@@ -69,16 +66,14 @@ class KeyConfImpl implements KeyConfProvider {
     @Override
     public SigningCtx getSigningCtx(ClientId clientId) {
         log.debug("Retrieving signing info for member '{}'", clientId);
-        try {
-            MemberSigningInfo signingInfo = SignerClient.execute(
-                    new GetMemberSigningInfo(clientId));
 
-            return createSigningCtx(clientId,
-                    signingInfo.getKeyId(),
-                    signingInfo.getCert().getCertificateBytes());
+        try {
+            MemberSigningInfo signingInfo = SignerClient.execute(new GetMemberSigningInfo(clientId));
+
+            return createSigningCtx(clientId, signingInfo.getKeyId(), signingInfo.getCert().getCertificateBytes(),
+                    signingInfo.getSignMechanismName());
         } catch (Exception e) {
-            throw new CodedException(X_CANNOT_CREATE_SIGNATURE,
-                    "Failed to get signing info for member '%s': %s",
+            throw new CodedException(X_CANNOT_CREATE_SIGNATURE, "Failed to get signing info for member '%s': %s",
                     clientId, e);
         }
     }
@@ -165,9 +160,8 @@ class KeyConfImpl implements KeyConfProvider {
     }
 
     static SigningCtx createSigningCtx(ClientId subject, String keyId,
-            byte[] certBytes) throws Exception {
-        return new SigningCtxImpl(subject, new SignerSigningKey(keyId),
-                readCertificate(certBytes));
+            byte[] certBytes, String signMechanismName) throws Exception {
+        return new SigningCtxImpl(subject, new SignerSigningKey(keyId, signMechanismName), readCertificate(certBytes));
     }
 
     static CertChain getAuthCertChain(String instanceIdentifier,

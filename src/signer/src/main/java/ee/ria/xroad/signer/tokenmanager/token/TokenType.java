@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+
 /**
  * Describes a token type, usually a software or hardware based token.
  */
@@ -61,4 +64,19 @@ public interface TokenType {
      * @return the id of the token
      */
     String getId();
+
+    /**
+     * @return the sign mechanism name
+     */
+    String getSignMechanismName();
+
+    /**
+     * @return the private key attributes
+     */
+    PrivKeyAttributes getPrivKeyAttributes();
+
+    /**
+     * @return the public key attributes
+     */
+    PubKeyAttributes getPubKeyAttributes();
 }

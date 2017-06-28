@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.signer.model;
 
-import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
-import lombok.Data;
-import lombok.ToString;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.Data;
+import lombok.ToString;
+
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 /**
  * Model object representing a key.
@@ -90,11 +91,9 @@ public final class Key {
      * @return the value object
      */
     public KeyInfo toDTO() {
-        return new KeyInfo(
-            available, usage, friendlyName, id, label, publicKey,
-            Collections.unmodifiableList(getCertsAsDTOs()),
-            Collections.unmodifiableList(getCertRequestsAsDTOs())
-        );
+        return new KeyInfo(available, usage, friendlyName, id, label, publicKey,
+                Collections.unmodifiableList(getCertsAsDTOs()), Collections.unmodifiableList(getCertRequestsAsDTOs()),
+                token.getSignMechanismName());
     }
 
     private List<CertificateInfo> getCertsAsDTOs() {
@@ -102,7 +101,6 @@ public final class Key {
     }
 
     private List<CertRequestInfo> getCertRequestsAsDTOs() {
-        return certRequests.stream().map(c -> c.toDTO())
-                .collect(Collectors.toList());
+        return certRequests.stream().map(c -> c.toDTO()).collect(Collectors.toList());
     }
 }

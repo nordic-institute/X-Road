@@ -42,4 +42,11 @@ public final class TokenAndKey {
         return key.getId();
     }
 
+    /**
+     * @return the signing mechanism name
+     */
+    public String getSignMechanism() {
+        return key.getSignMechanismName();
+    }
+
 }

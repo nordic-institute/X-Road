@@ -20,37 +20,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.signer.tokenmanager.module;
+package ee.ria.xroad.signer.protocol.handler;
 
-import akka.actor.Props;
-
-import lombok.extern.slf4j.Slf4j;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
 /**
- * Module manager that supports hardware tokens.
+ * Handles requests for signing mechanism based on key id.
  */
-@Slf4j
-public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
-
-    private static final String DISPATCHER = "module-worker-dispatcher";
+public class GetSignMechanismRequestHandler extends AbstractRequestHandler<GetSignMechanism> {
 
     @Override
-    protected void initializeModule(ModuleType module) {
-        if (module instanceof HardwareModuleType) {
-            initializeHardwareModule((HardwareModuleType) module);
-        } else if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
-        }
-    }
+    protected Object handle(GetSignMechanism message) throws Exception {
+        KeyInfo keyInfo = TokenManager.getKeyInfo(message.getKeyId());
 
-    private void initializeHardwareModule(HardwareModuleType hardwareModule) {
-        if (!isModuleInitialized(hardwareModule)) {
-            try {
-                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
-            } catch (Exception e) {
-                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
-            }
+        if (keyInfo == null) {
+            throw CodedException.tr(ErrorCodes.X_KEY_NOT_FOUND, "key_not_found", "Key '%s' not found",
+                    message.getKeyId());
         }
+
+        return new GetSignMechanismResponse(keyInfo.getSignMechanismName());
     }
 }

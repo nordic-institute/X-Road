@@ -39,35 +39,39 @@ class ConfigurationsGenerator
 
   def initialize
     Rails.logger.debug("Initialize ConfigurationsGenerator")
+
     # Check the minimum central server global configuration version
-    @conf_generators = [ConfV1Generator.new(), ConfV2Generator.new()].select { | generator | generator.getVersion >= SystemProperties::get_minimum_central_server_global_configuration_version}
+    @conf_generators = [ConfV1Generator.new(), ConfV2Generator.new()].select { | generator |
+        generator.getVersion >= SystemProperties::get_minimum_central_server_global_configuration_version}
+
     Rails.logger.debug("Initialization complete")
   end
 
   def create_distributable_configuration
     Rails.logger.debug("Generate configurations")
+
     @conf_generators.each do |generator|
       Rails.logger.debug("Generate v#{generator.getVersion} private parameters")
       private_parameters_xml = generator.generatePrivateParameters()
+
       Rails.logger.debug("Validate v#{generator.getVersion} private parameters")
       generator.validatePrivateParameters(private_parameters_xml)
+
       Rails.logger.debug("Generate v#{generator.getVersion} shared parameters")
       shared_parameters_xml = generator.generateSharedParameters()
+
       Rails.logger.debug("Validate v#{generator.getVersion} shared parameters")
       generator.validateSharedParameters(shared_parameters_xml)
+
       Rails.logger.debug("Save v#{generator.getVersion} private parameters to database")
-      DistributedFiles.save_configuration_part(
-          ConfigurationConstants::CONTENT_ID_PRIVATE_PARAMETERS,
-          ConfigurationConstants::FILE_NAME_PRIVATE_PARAMETERS,
-          private_parameters_xml,
-          generator.getVersion)
+      DistributedFiles.save_configuration_part(ConfigurationConstants::CONTENT_ID_PRIVATE_PARAMETERS,
+          ConfigurationConstants::FILE_NAME_PRIVATE_PARAMETERS, private_parameters_xml, generator.getVersion)
+
       Rails.logger.debug("Save v#{generator.getVersion} shared parameters to database")
-      DistributedFiles.save_configuration_part(
-          ConfigurationConstants::CONTENT_ID_SHARED_PARAMETERS,
-          ConfigurationConstants::FILE_NAME_SHARED_PARAMETERS,
-          shared_parameters_xml,
-          generator.getVersion)
+      DistributedFiles.save_configuration_part(ConfigurationConstants::CONTENT_ID_SHARED_PARAMETERS,
+          ConfigurationConstants::FILE_NAME_SHARED_PARAMETERS, shared_parameters_xml, generator.getVersion)
     end
+
     Rails.logger.info("Configuration generation: success")
   rescue
     Rails.logger.error("Failed to generate global configuration: #{$!.message}")
@@ -76,22 +80,20 @@ class ConfigurationsGenerator
 
   def distribute_configuration
     Rails.logger.debug("Distribute configurations")
+
     init_generated_conf_locations
     save_distributed_files_to_disk
+
     @conf_generators.each do |generator|
-      process_internal_configuration(
-          get_temp_internal_directory,
-          DistributedFiles.get_internal_source_content_identifiers,
-          "/V#{generator.getVersion}",
-          generator.getVersion)
-      process_external_configuration(
-          get_temp_external_directory,
-          [ConfigurationConstants::CONTENT_ID_SHARED_PARAMETERS],
-          "/V#{generator.getVersion}",
-          generator.getVersion)
+      process_internal_configuration(get_temp_internal_directory,
+          DistributedFiles.get_internal_source_content_identifiers, "/V#{generator.getVersion}", generator.getVersion)
+      process_external_configuration(get_temp_external_directory,
+          [ConfigurationConstants::CONTENT_ID_SHARED_PARAMETERS], "/V#{generator.getVersion}", generator.getVersion)
     end
+
     clean_up_old_configurations
     serve_configurations
+
     Rails.logger.info("Configuration distribution: success")
   rescue
     Rails.logger.error("#{$!.message}")
@@ -101,35 +103,40 @@ class ConfigurationsGenerator
   def init_generated_conf_locations
     @generation_timestamp = Time.now().utc().strftime("%Y%m%d%H%M%S%N")
     @conf_locations = Hash.new
+
     @conf_generators.each do |generator|
       new_conf_dir = "#{get_generated_conf_dir()}/V#{generator.getVersion}/#@generation_timestamp"
       FileUtils.mkdir_p(new_conf_dir, :mode => 0755)
       @conf_locations.store(generator.getVersion, new_conf_dir)
     end
+
     Rails.logger.debug("Created configuration directories")
   rescue
-    raise "Failed to initialize generated configuration location: "\
-        "'#{$!.message}'"
+    raise "Failed to initialize generated configuration location: '#{$!.message}'"
   end
 
   def get_generated_conf_dir
-    return \
-        Java::ee.ria.xroad.common.SystemProperties.getCenterGeneratedConfDir()
+    return Java::ee.ria.xroad.common.SystemProperties.getCenterGeneratedConfDir()
   end
 
   # Save distributed files to disk
   def save_distributed_files_to_disk
     @conf_generators.each do |generator|
       Rails.logger.debug("Writing V#{generator.getVersion} configuration to disk")
+
       DistributedFiles.get_all(generator.getVersion).each do |file|
         write_public_copy(file, @conf_locations.fetch(generator.getVersion))
+
         if generator.isCurrentVersion?
           write_local_copy(file)
         end
       end
+
       Rails.logger.debug("Wrote configuration successfully")
     end
+
     write_local_instance
+
     Rails.logger.debug("All configurations were written to disk successfully")
   rescue
     raise "Failed to save configuration to disk: #{$!.message}"
@@ -176,8 +183,7 @@ class ConfigurationsGenerator
     writing_process = Proc.new {|f| f.write(encoded_output)}
     CommonUi::IOUtils.write_public(target_file, writing_process)
   rescue
-    Rails.logger.error("Failed to save distributed file #{target_file} "\
-        "to disk: #{$!.message}")
+    Rails.logger.error("Failed to save distributed file #{target_file} to disk: #{$!.message}")
     raise $!
   end
 
@@ -198,22 +204,15 @@ class ConfigurationsGenerator
 
     Rails.logger.debug("Generating internal conf to: #{target_file}")
 
-    signed_file = sign(
-        signing_key.key_identifier,
-        internal_source_content_identifiers,
-        version)
+    signed_file = sign(signing_key.key_identifier, internal_source_content_identifiers, version)
 
     distribute(signed_file, target_file, signing_key.cert, path_suffix)
 
-    GlobalConfSigningLog.write(
-        "Internal configuration distributed successfully.\n",
-        get_internal_directory)
+    GlobalConfSigningLog.write("Internal configuration distributed successfully.\n", get_internal_directory)
 
     Rails.logger.debug("process_internal_configuration() - finished")
   rescue
-    GlobalConfSigningLog.write(
-        GlobalConfSigningLog.get_exception_ctx($!),
-        get_internal_directory)
+    GlobalConfSigningLog.write(GlobalConfSigningLog.get_exception_ctx($!), get_internal_directory)
 
     raise "Processing internal configuration failed: #{$!.message}"
   end
@@ -225,8 +224,7 @@ class ConfigurationsGenerator
 
     unless signing_key
       if federation_switched_on?
-        raise "Active external signing key must exist if federation is "\
-            "switched on, but there is none."
+        raise "Active external signing key must exist if federation is switched on, but there is none."
       else
         return
       end
@@ -239,21 +237,18 @@ class ConfigurationsGenerator
     signed_file = sign(signing_key.key_identifier, allowed_content_identifiers, version)
     distribute(signed_file, target_file, signing_key.cert, path_suffix)
 
-    GlobalConfSigningLog.write(
-        "External configuration distributed successfully.\n",
-        get_external_directory)
+    GlobalConfSigningLog.write("External configuration distributed successfully.\n", get_external_directory)
 
     Rails.logger.debug("process_external_configuration() - finished")
   rescue
-    GlobalConfSigningLog.write(
-        GlobalConfSigningLog.get_exception_ctx($!),
-        get_external_directory)
+    GlobalConfSigningLog.write(GlobalConfSigningLog.get_exception_ctx($!), get_external_directory)
 
     raise "Processing external configuration failed: #{$!.message}"
   end
 
   def sign(signing_key_id, allowed_content_identifiers = nil, version=1)
     Rails.logger.debug("Generating signed distributed files")
+
     if signing_key_id.blank?
       raise "Cannot sign without signing key!"
     end
@@ -267,6 +262,7 @@ class ConfigurationsGenerator
 
   def distribute(signed_file, target_file, signing_cert, path_suffix)
     Rails.logger.debug("Distributing files to #{target_file}")
+
     if target_file.blank?
       raise "Distribution target file must not be blank!"
     end
@@ -288,20 +284,21 @@ class ConfigurationsGenerator
     @conf_generators.each do |generator|
       internal_directory_path = "#{generated_conf_dir}/V#{generator.getVersion}/#{get_internal_directory}"
       Rails.logger.debug("Serving internal conf on path '#{internal_directory_path}'")
+
       begin
-        FileUtils.mv(
-            "#{generated_conf_dir}/V#{generator.getVersion}/#{get_temp_internal_directory}",
-            internal_directory_path)
+        FileUtils.mv("#{generated_conf_dir}/V#{generator.getVersion}/#{get_temp_internal_directory}",
+                    internal_directory_path)
       rescue
         raise "Failed to serve internal configuration: #{$!.message}"
       end
+
       next unless can_serve_external_directory(generator.getVersion)
       external_directory_path = "#{generated_conf_dir}/V#{generator.getVersion}/#{get_external_directory}"
       Rails.logger.debug("Serving external conf on path '#{external_directory_path}'")
+
       begin
-        FileUtils.mv(
-            "#{generated_conf_dir}/V#{generator.getVersion}/#{get_temp_external_directory}",
-            external_directory_path)
+        FileUtils.mv("#{generated_conf_dir}/V#{generator.getVersion}/#{get_temp_external_directory}",
+                    external_directory_path)
       rescue
         raise "Failed to serve external configuration: #{$!.message}"
       end
@@ -317,14 +314,14 @@ class ConfigurationsGenerator
       old_entries = Dir.glob("#{get_generated_conf_dir()}/V#{generator.getVersion}/*").select do |f|
         File.mtime(f) < (Time.now() - (OLD_CONF_PRESERVING_SECONDS))
       end
+
       old_entries.each do |each|
         next unless is_global_conf_dir?(each)
         FileUtils.remove_entry_secure(each, :force => true)
       end
     end
   rescue
-    Rails.logger.error(
-        "Failed to clean up old configuration, message:\n#{$!.message}")
+    Rails.logger.error("Failed to clean up old configuration, message:\n#{$!.message}")
   end
 
   def is_global_conf_dir?(file)
@@ -335,32 +332,23 @@ class ConfigurationsGenerator
   def get_signer(sign_key_id, allowed_content_identifiers)
     conf_expire_time = Time.now + SystemParameter.conf_expire_interval_seconds
     hash_calculator = HashCalculator.new(SystemParameter.conf_hash_algo_uri)
+    sign_digest_algo_id = SystemParameter::conf_sign_digest_algo_id
 
-    sign_algo_id = SystemParameter::conf_sign_algo_id
+    content_builder = DirectoryContentBuilder.new(conf_expire_time, hash_calculator, @generation_timestamp,
+            allowed_content_identifiers)
 
-    content_builder = DirectoryContentBuilder.new(
-        conf_expire_time,
-        hash_calculator,
-        @generation_timestamp,
-        allowed_content_identifiers)
-
-    return DirectorySigner.new(sign_key_id, sign_algo_id, content_builder)
+    return DirectorySigner.new(sign_key_id, sign_digest_algo_id, content_builder)
   end
 
   def get_distributor(target_file, signing_cert, path_suffix='')
-    hash_calculator =
-        HashCalculator.new(SystemParameter.conf_sign_cert_hash_algo_uri)
+    hash_calculator = HashCalculator.new(SystemParameter.conf_sign_cert_hash_algo_uri)
 
-    SignedDirectoryDistributor.new(
-        "#{get_generated_conf_dir()}#{path_suffix}",
-        target_file,
-        hash_calculator,
-        signing_cert)
+    SignedDirectoryDistributor.new("#{get_generated_conf_dir()}#{path_suffix}", target_file, hash_calculator,
+            signing_cert)
   end
 
   def get_generated_conf_dir
-    return \
-        Java::ee.ria.xroad.common.SystemProperties.getCenterGeneratedConfDir()
+    return Java::ee.ria.xroad.common.SystemProperties.getCenterGeneratedConfDir()
   end
 
   def get_temp_internal_directory
@@ -372,18 +360,15 @@ class ConfigurationsGenerator
   end
 
   def get_internal_directory
-    return \
-        Java::ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory()
+    return Java::ee.ria.xroad.common.SystemProperties.getCenterInternalDirectory()
   end
 
   def get_external_directory
-    return \
-        Java::ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory()
+    return Java::ee.ria.xroad.common.SystemProperties.getCenterExternalDirectory()
   end
 
   def get_local_conf_directory
-    return \
-        Java::ee.ria.xroad.common.SystemProperties.getConfigurationPath()
+    return Java::ee.ria.xroad.common.SystemProperties.getConfigurationPath()
   end
 
   def remove_conf_locations

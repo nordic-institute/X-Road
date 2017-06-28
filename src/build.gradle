@@ -1,5 +1,5 @@
 buildscript {
-   repositories {
+    repositories {
         jcenter()
     }
 
@@ -10,8 +10,8 @@ buildscript {
 }
 
 plugins {
-        id "org.sonarqube" version "2.1-rc3"
- }
+    id "org.sonarqube" version "2.1-rc3"
+}
 
 apply plugin: 'idea'
 apply plugin: 'jacoco'
@@ -70,6 +70,7 @@ subprojects {
 
     ext {
         akkaVersion = "2.4.8"
+        metricsVersion = "3.2.2"
     }
 
     apply plugin: 'eclipse'

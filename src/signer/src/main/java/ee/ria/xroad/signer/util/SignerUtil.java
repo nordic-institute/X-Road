@@ -24,6 +24,7 @@ package ee.ria.xroad.signer.util;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,13 +40,17 @@ import akka.actor.OneForOneStrategy;
 import akka.actor.SupervisorStrategy;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+
 import lombok.SneakyThrows;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
+
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
@@ -54,7 +59,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Collection of various utility methods.
@@ -75,16 +80,34 @@ public final class SignerUtil {
      * @param digest the digest
      * @return the digest prefix bytes for the given digest
      */
-    public static byte[] getDigestInfoPrefix(byte[] digest) {
+    private static byte[] getDigestInfoPrefix(byte[] digest) {
         return DigestPrefixCache.getPrefix(digest);
     }
 
     /**
      * Creates data to be signed from the digest.
      * @param digest the digest
+     * @param signAlgoId sign algorithm id
      * @return the data to be signed
      */
-    public static byte[] createDataToSign(byte[] digest) {
+    public static byte[] createDataToSign(byte[] digest, String signAlgoId) throws NoSuchAlgorithmException {
+        switch (signAlgoId) {
+            case SHA256WITHRSAANDMGF1_ID:
+            case SHA384WITHRSAANDMGF1_ID:
+            case SHA512WITHRSAANDMGF1_ID:
+                return digest; // Nothing to do
+            case SHA1WITHRSA_ID:
+            case SHA256WITHRSA_ID:
+            case SHA384WITHRSA_ID:
+            case SHA512WITHRSA_ID:
+                return createDataToSign(digest);
+            default:
+                throw new NoSuchAlgorithmException("Unknown sign algorithm id: " + signAlgoId);
+        }
+
+    }
+
+    private static byte[] createDataToSign(byte[] digest) {
         byte[] prefix = getDigestInfoPrefix(digest);
         byte[] digestInfo = new byte[prefix.length + digest.length];
 

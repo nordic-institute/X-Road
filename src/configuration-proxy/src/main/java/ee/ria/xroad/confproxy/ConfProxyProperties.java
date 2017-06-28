@@ -53,14 +53,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ConfProxyProperties {
 
-    public static final String ACTIVE_SIGNING_KEY_ID =
-            "active-signing-key-id";
+    public static final String ACTIVE_SIGNING_KEY_ID = "active-signing-key-id";
 
-    public static final String SIGNING_KEY_ID_PREFIX =
-            "signing-key-id-";
+    public static final String SIGNING_KEY_ID_PREFIX = "signing-key-id-";
 
-    public static final String VALIDITY_INTERVAL_SECONDS =
-            "validity-interval-seconds";
+    public static final String VALIDITY_INTERVAL_SECONDS = "validity-interval-seconds";
 
     public static final String CONF_INI = "conf.ini";
     public static final String ANCHOR_XML = "anchor.xml";
@@ -182,11 +179,11 @@ public class ConfProxyProperties {
     }
 
     /**
-     * Gets the id for the configured signature algorithm.
-     * @return the id of the configured signature algorithm.
+     * Gets the id for the configured signature digest algorithm.
+     * @return the id of the configured signature digest algorithm.
      */
-    public final String getSignatureAlgorithmId() {
-        return SystemProperties.getConfigurationProxySignatureAlgorithmId();
+    public final String getSignatureDigestAlgorithmId() {
+        return SystemProperties.getConfigurationProxySignatureDigestAlgorithmId();
     }
 
     /**

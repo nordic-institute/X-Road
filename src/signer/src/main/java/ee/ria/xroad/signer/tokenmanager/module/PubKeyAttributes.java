@@ -22,35 +22,30 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import akka.actor.Props;
+import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
 /**
- * Module manager that supports hardware tokens.
+ * PKCS#11 public key attributes.
  */
-@Slf4j
-public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+@Data
+public class PubKeyAttributes {
+    // True, if this public key can be used for encryption
+    Boolean encrypt;
 
-    private static final String DISPATCHER = "module-worker-dispatcher";
+    // True, if this public key can be used for verification.
+    Boolean verify;
 
-    @Override
-    protected void initializeModule(ModuleType module) {
-        if (module instanceof HardwareModuleType) {
-            initializeHardwareModule((HardwareModuleType) module);
-        } else if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
-        }
-    }
+    // True, if this public key can be used for encryption with recovery.
+    Boolean verifyRecover;
 
-    private void initializeHardwareModule(HardwareModuleType hardwareModule) {
-        if (!isModuleInitialized(hardwareModule)) {
-            try {
-                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
-            } catch (Exception e) {
-                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
-            }
-        }
-    }
+    // True, if this public key can be used for wrapping other keys.
+    Boolean wrap;
+
+    // True, if this public key can be used for wrapping other keys.
+    Boolean trusted;
+
+    // The set of mechanism that can be used with this key.
+    Set<Long> allowedMechanisms;
 }
