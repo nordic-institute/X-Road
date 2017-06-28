@@ -57,7 +57,7 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
         this.ownInstance = ownInstance;
         String filterString = SystemProperties.getConfigurationClientAllowedFederations();
         log.info("The federation filter system property value is: '{}'", filterString);
-        allowedFederationPartners = parseAllowedInstances(Arrays.asList(filterString.split(COMMA_SEPARATOR)));
+        parseAndSetAllowedInstances(Arrays.asList(filterString.split(COMMA_SEPARATOR)));
         log.info("Allowed federation mode {} allows specific X-Road instances: {} ",
                 allowedFederationMode, allowedFederationPartners);
     }
@@ -77,17 +77,19 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
         }
     }
 
-    private Set<String> parseAllowedInstances(List<String> initial) {
+    private void parseAndSetAllowedInstances(List<String> initial) {
         if (initial.size() == 0) {
             log.warn("Allowed federations list was empty, is the configuration malformed?");
             allowedFederationMode = NONE;
-            return Collections.emptySet();
+            allowedFederationPartners = Collections.emptySet();
+            return;
         }
         Set<String> allowedInstances = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (String allowedInstance : initial) {
             if (NONE.name().equalsIgnoreCase(allowedInstance)) {
                 allowedFederationMode = NONE;
-                return Collections.emptySet();
+                allowedFederationPartners = Collections.emptySet();
+                return;
             } else if (ALL.name().equalsIgnoreCase(allowedInstance)) {
                 allowedFederationMode = ALL;
             } else if (allowedFederationMode != ALL) {
@@ -95,6 +97,6 @@ public class FederationConfigurationSourceFilterImpl implements FederationConfig
                 allowedInstances.add(allowedInstance);
             }
         }
-        return allowedInstances;
+        allowedFederationPartners = allowedInstances;
     }
 }
