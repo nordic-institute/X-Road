@@ -119,7 +119,7 @@ public class CertificateInfoSensorTest {
         KeyInfo keyInfo = new KeyInfo(true,
                 null, "friendlyName", "id",
                 "label", "publickey", new ArrayList<CertificateInfo>(),
-                new ArrayList<CertRequestInfo>());
+                new ArrayList<CertRequestInfo>(), "mechanismName");
         keyInfo.getCerts().add(caInfo);
         return keyInfo;
     }

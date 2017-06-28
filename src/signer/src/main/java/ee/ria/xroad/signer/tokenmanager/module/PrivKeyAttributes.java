@@ -22,35 +22,42 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import akka.actor.Props;
+import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Data;
 
 /**
- * Module manager that supports hardware tokens.
+ * PKCS#11 private key attributes.
  */
-@Slf4j
-public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
+@Data
+public class PrivKeyAttributes {
+    // True, if this private key is sensitive.
+    private Boolean sensitive;
 
-    private static final String DISPATCHER = "module-worker-dispatcher";
+    // True, if this private key can be used for encryption.
+    private Boolean decrypt;
 
-    @Override
-    protected void initializeModule(ModuleType module) {
-        if (module instanceof HardwareModuleType) {
-            initializeHardwareModule((HardwareModuleType) module);
-        } else if (module instanceof SoftwareModuleType) {
-            initializeSoftwareModule((SoftwareModuleType) module);
-        }
-    }
+    // True, if this private key can be used for signing.
+    private Boolean sign;
 
-    private void initializeHardwareModule(HardwareModuleType hardwareModule) {
-        if (!isModuleInitialized(hardwareModule)) {
-            try {
-                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
-                initializeModuleWorker(hardwareModule.getType(), props);
-            } catch (Exception e) {
-                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
-            }
-        }
-    }
+    // True, if this private key can be used for signing with recover.
+    private Boolean signRecover;
+
+    // True, if this private key can be used for unwrapping wrapped keys.
+    private Boolean unwrap;
+
+    // True, if this private key can not be extracted from the token.
+    private Boolean extractable;
+
+    // True, if this private key was always sensitive.
+    private Boolean alwaysSensitive;
+
+    // True, if this private key was never extractable.
+    private Boolean neverExtractable;
+
+    // True, if this private key can only be wrapped with a wrapping key having set the attribute trusted to true.
+    private Boolean wrapWithTrusted;
+
+    // The set of mechanism that can be used with this key.
+    Set<Long> allowedMechanisms;
 }

@@ -48,10 +48,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /** Property name of the default digital signature algorithm. */
-    public static final String DEFAULT_SIGNATURE_ALGORITHM =
-            PREFIX + "common.default-signature-algorithm";
-
     /** Current version number of the global configuration **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
 
@@ -299,8 +295,8 @@ public final class SystemProperties {
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
 
-    public static final String SIGNER_CSR_SIGNATURE_ALGORITHM =
-            PREFIX + "signer.csr-signature-algorithm";
+    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM =
+            PREFIX + "signer.csr-signature-digest-algorithm";
 
     public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
             PREFIX + "signer.ocsp-response-retrieval-active";
@@ -384,6 +380,11 @@ public final class SystemProperties {
     public static final String WSDL_VALIDATOR_COMMAND =
             PREFIX + "proxy-ui.wsdl-validator-command";
 
+    /** Property name of the signature digest algorithm ID used for generating authentication certificate
+     *  registration request. */
+    private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
+            PREFIX + "proxy-ui.auth-cert-reg-signature-digest-algorithm-id";
+
     // Proxy & Central monitor agent ------------------------------------------
 
     /** Property name of the proxy monitor agent configuration file. */
@@ -432,9 +433,9 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
             PREFIX + "configuration-proxy.generated-conf-path";
 
-    /** Property name of the confproxy configuration signature algorithm. */
-    public static final String CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID =
-            PREFIX + "configuration-proxy.signature-algorithm-id";
+    /** Property name of the confproxy configuration signature digest algorithm. */
+    public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
+            PREFIX + "configuration-proxy.signature-digest-algorithm-id";
 
     /** Property name of the confproxy configuration file hashing algorithm. */
     public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
@@ -631,6 +632,15 @@ public final class SystemProperties {
         return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
     }
 
+
+    /**
+     * @return signature digest algorithm ID used for generating authentication certificate registration request,
+     * SHA-512 by default.
+     */
+    public static String getAuthCertRegSignatureDigestAlgorithmId() {
+        return System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    }
+
     /**
      * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
      */
@@ -739,12 +749,12 @@ public final class SystemProperties {
     }
 
     /**
-     * Get CSR signature algorithm
+     * Get CSR signature digest algorithm, SHA-256 by default.
      *
      * @return algorithm
      */
-    public static String getSignerCsrSignatureAlgorithm() {
-        return System.getProperty(SIGNER_CSR_SIGNATURE_ALGORITHM, getDefaultSignatureAlgorithm());
+    public static String getSignerCsrSignatureDigestAlgorithm() {
+        return System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM, CryptoUtils.SHA256_ID);
     }
 
     /**
@@ -910,11 +920,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return ID of the signing algorithm the configuration proxy uses when
-     * signing generated global configuration directories, 'SHA512withRSA' by default.
+     * @return ID of the signing digest algorithm the configuration proxy uses when
+     * signing generated global configuration directories, 'SHA-512' by default.
      */
-    public static String getConfigurationProxySignatureAlgorithmId() {
-        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID, CryptoUtils.SHA512WITHRSA_ID);
+    public static String getConfigurationProxySignatureDigestAlgorithmId() {
+        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
     }
 
     /**
@@ -1052,15 +1062,6 @@ public final class SystemProperties {
     public static int getCentralMonitorAgentPort() {
         return Integer.parseInt(System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
-    }
-
-    /**
-     * Global default digital signature algorithm.
-     *
-     * @return algorithm.
-     */
-    public static String getDefaultSignatureAlgorithm() {
-        return System.getProperty(DEFAULT_SIGNATURE_ALGORITHM, CryptoUtils.DEFAULT_SIGNATURE_ALGORITHM);
     }
 
     /**

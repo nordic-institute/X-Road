@@ -74,7 +74,9 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
         if (SLAVE.equals(serverNodeType)) {
             mergeConfiguration();
         }
+
         updateModuleWorkers();
+
         if (!SLAVE.equals(serverNodeType)) {
             persistConfiguration();
         }
@@ -117,22 +119,25 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     }
 
     private void mergeConfiguration() {
-             TokenManager.merge(addedCerts -> {
-                 if (!addedCerts.isEmpty()) {
-                     log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
-                     ServiceLocator.getOcspResponseManager(getContext())
-                             .tell(mapCertListToGetOcspResponses(addedCerts), ActorRef.noSender());
-                 }
-             });
+        TokenManager.merge(addedCerts -> {
+            if (!addedCerts.isEmpty()) {
+                log.info("Requesting OCSP update for new certificates obtained in key configuration merge.");
+
+                ServiceLocator.getOcspResponseManager(getContext()).tell(mapCertListToGetOcspResponses(addedCerts),
+                        ActorRef.noSender());
+            }
+        });
     }
 
     private static GetOcspResponses mapCertListToGetOcspResponses(List<Cert> certs) {
         requireNonNull(certs);
+
         return new GetOcspResponses(certs.stream().map(cert -> {
             try {
                 return CryptoUtils.calculateCertHexHash(cert.getCertificate());
             } catch (Exception e) {
                 log.error("Failed to calculate hash for new certificate {}", cert, e);
+
                 return null;
             }
         }).filter(Objects::nonNull).toArray(String[]::new));
@@ -145,6 +150,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
     private void removeLostModules(Collection<ModuleType> modules) {
         for (ActorRef module : getContext().getChildren()) {
             String moduleId = module.path().name();
+
             if (!containsModule(moduleId, modules)) {
                 deinitializeModuleWorker(moduleId);
             }
@@ -159,6 +165,7 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
 
     void deinitializeModuleWorker(String name) {
         ActorRef worker = getContext().getChild(name);
+
         if (worker != null) {
             log.trace("Stopping module worker for module '{}'", name);
 

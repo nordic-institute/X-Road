@@ -92,8 +92,8 @@ public class SignatureBuilderTest {
         builder.setSigningCert(subjectCert);
         builder.addOcspResponses(Collections.singletonList(ocsp));
 
-        SignatureData data = builder.build(new TestSigningKey(subjectKey),
-                CryptoUtils.SHA512WITHRSA_ID);
+        SignatureData data = builder.build(new TestSigningKey(subjectKey), CryptoUtils.SHA512_ID);
+
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());
         assertNull(data.getHashChainResult());
@@ -121,8 +121,8 @@ public class SignatureBuilderTest {
 
         builder.setSigningCert(subjectCert);
 
-        SignatureData data = builder.build(new TestSigningKey(subjectKey),
-                CryptoUtils.SHA512WITHRSA_ID);
+        SignatureData data = builder.build(new TestSigningKey(subjectKey), CryptoUtils.SHA512_ID);
+
         assertNotNull(data);
         assertNotNull(data.getSignatureXml());
         assertNotNull(data.getHashChainResult());

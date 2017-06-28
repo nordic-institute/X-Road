@@ -22,50 +22,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static ee.ria.xroad.common.signature.Helper.ALGORITHM_ATTRIBUTE;
-import static ee.ria.xroad.common.signature.Helper.CERTIFFICATE_VALUES_TAG;
-import static ee.ria.xroad.common.signature.Helper.CERT_DIGEST_TAG;
-import static ee.ria.xroad.common.signature.Helper.CERT_REFS_TAG;
-import static ee.ria.xroad.common.signature.Helper.CERT_TAG;
-import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
-import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_TAG;
-import static ee.ria.xroad.common.signature.Helper.DATAOBJECTFORMAT_TAG;
-import static ee.ria.xroad.common.signature.Helper.DIGEST_METHOD_TAG;
-import static ee.ria.xroad.common.signature.Helper.DIGEST_VALUE_TAG;
-import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_CERT_ID;
-import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_OCSP_VALUE_TAG;
-import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_X509_CERTIFICATE_TAG;
-import static ee.ria.xroad.common.signature.Helper.ID_ATTRIBUTE;
-import static ee.ria.xroad.common.signature.Helper.ID_SIGNATURE;
-import static ee.ria.xroad.common.signature.Helper.ISSUER_SERIAL_TAG;
-import static ee.ria.xroad.common.signature.Helper.MIMETYPE_TAG;
-import static ee.ria.xroad.common.signature.Helper.NS_SIG_PROP;
-import static ee.ria.xroad.common.signature.Helper.OBJECTREFERENCE_ATTR;
-import static ee.ria.xroad.common.signature.Helper.OCSP_RESPONSE_ID;
-import static ee.ria.xroad.common.signature.Helper.OCSP_VALUES_TAG;
-import static ee.ria.xroad.common.signature.Helper.PREFIX_DS;
-import static ee.ria.xroad.common.signature.Helper.PREFIX_XADES;
-import static ee.ria.xroad.common.signature.Helper.QUALIFYING_PROPS_TAG;
-import static ee.ria.xroad.common.signature.Helper.REVOCATION_VALUES_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_ID;
-import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNED_DATAOBJ_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNED_PROPS_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNED_SIGNATURE_PROPS_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNING_CERTIFICATE_TAG;
-import static ee.ria.xroad.common.signature.Helper.SIGNING_TIME_TAG;
-import static ee.ria.xroad.common.signature.Helper.TARGET_ATTR;
-import static ee.ria.xroad.common.signature.Helper.UNSIGNED_PROPS_TAG;
-import static ee.ria.xroad.common.signature.Helper.UNSIGNED_SIGNATURE_PROPS_TAG;
-import static ee.ria.xroad.common.signature.Helper.URI_ATTRIBUTE;
-import static ee.ria.xroad.common.signature.Helper.X509_ISSUER_NAME_TAG;
-import static ee.ria.xroad.common.signature.Helper.X509_SERIAL_NUMBER_TAG;
-import static ee.ria.xroad.common.signature.Helper.createDocument;
-import static ee.ria.xroad.common.signature.Helper.createSignatureElement;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -82,7 +38,9 @@ import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Base64;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
@@ -90,6 +48,9 @@ import org.w3c.dom.Text;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.XmlUtils;
+
+import static ee.ria.xroad.common.signature.Helper.*;
+import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
  * Encapsulates the AsiC XAdES signature profile. This class creates the
@@ -111,8 +72,7 @@ final class SignatureXmlBuilder {
     private ObjectContainer objectContainer;
     private String documentName;
 
-    SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId)
-            throws Exception {
+    SignatureXmlBuilder(SigningRequest request, String hashAlgorithmId) throws Exception {
         this.signingCert = request.getSigningCert();
         this.extraCertificates.addAll(request.getExtraCertificates());
         this.ocspResponses.addAll(request.getOcspResponses());
@@ -120,13 +80,13 @@ final class SignatureXmlBuilder {
         this.hashAlgorithmURI = getDigestAlgorithmURI(hashAlgorithmId);
     }
 
-    byte[] createDataToBeSigned(String docName,
-            ResourceResolverSpi resourceResolver) throws Exception {
+    byte[] createDataToBeSigned(String docName, ResourceResolverSpi resourceResolver, String signatureAlgorithmUri)
+            throws Exception {
         this.documentName = docName;
 
         document = createDocument();
 
-        signature = createSignatureElement(document);
+        signature = createSignatureElement(document, signatureAlgorithmUri);
         signature.addKeyInfo(signingCert);
 
         signature.addResourceResolver(new IdResolver(document));
@@ -141,17 +101,15 @@ final class SignatureXmlBuilder {
     }
 
     String createSignatureXml(byte[] signatureValue) throws Exception {
-        Element signatureValueElement = XmlUtils.getFirstElementByTagName(
-                document, PREFIX_DS + SIGNATURE_VALUE_TAG);
+        Element signatureValueElement = XmlUtils.getFirstElementByTagName(document, PREFIX_DS + SIGNATURE_VALUE_TAG);
 
         while (signatureValueElement.hasChildNodes()) {
-            signatureValueElement.removeChild(
-                    signatureValueElement.getFirstChild());
+            signatureValueElement.removeChild(signatureValueElement.getFirstChild());
         }
 
         String base64codedValue = Base64.encode(signatureValue);
-        if (base64codedValue.length() > MAX_LINE_LENGTH
-                && !org.apache.xml.security.utils.XMLUtils.ignoreLineBreaks()) {
+
+        if (base64codedValue.length() > MAX_LINE_LENGTH && !org.apache.xml.security.utils.XMLUtils.ignoreLineBreaks()) {
             base64codedValue = "\n" + base64codedValue + "\n";
         }
 
@@ -204,38 +162,28 @@ final class SignatureXmlBuilder {
         Element signedProperties = createXadesElement(SIGNED_PROPS_TAG);
         signedProperties.setAttribute(ID_ATTRIBUTE, id);
 
-        Element signedSignatureProperties = createXadesElement(signedProperties,
-                SIGNED_SIGNATURE_PROPS_TAG);
+        Element signedSignatureProperties = createXadesElement(signedProperties, SIGNED_SIGNATURE_PROPS_TAG);
 
-        Element signingTime = createXadesElement(signedSignatureProperties,
-                SIGNING_TIME_TAG);
+        Element signingTime = createXadesElement(signedSignatureProperties, SIGNING_TIME_TAG);
 
-        Calendar signatureSigningTime =
-                Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        signingTime.setTextContent(
-                DatatypeConverter.printDateTime(signatureSigningTime));
+        Calendar signatureSigningTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        signingTime.setTextContent(DatatypeConverter.printDateTime(signatureSigningTime));
 
-        Element signingCertificate = createXadesElement(
-                signedSignatureProperties, SIGNING_CERTIFICATE_TAG);
+        Element signingCertificate = createXadesElement(signedSignatureProperties, SIGNING_CERTIFICATE_TAG);
 
         Element cert = createXadesElement(signingCertificate, CERT_TAG);
         createCertDigest(signature.getKeyInfo().getX509Certificate(), cert);
 
-        Element signedDataObjectProperties =
-                createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+        Element signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
         createSignedDataObjectProperties(signedDataObjectProperties);
 
-        signature.addDocument("#" + id, null, getHashAlgorithmURI(), null,
-                NS_SIG_PROP);
+        signature.addDocument("#" + id, null, getHashAlgorithmURI(), null, NS_SIG_PROP);
 
         return signedProperties;
     }
 
-    private void createSignedDataObjectProperties(
-            Element signedDataObjectProperties) {
-        Element dataObjectFormat =
-                createXadesElement(signedDataObjectProperties,
-                        DATAOBJECTFORMAT_TAG);
+    private void createSignedDataObjectProperties(Element signedDataObjectProperties) {
+        Element dataObjectFormat = createXadesElement(signedDataObjectProperties, DATAOBJECTFORMAT_TAG);
 
         dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, documentName);
 
@@ -248,25 +196,19 @@ final class SignatureXmlBuilder {
        }
     }
 
-    private void createCertDigest(X509Certificate cert, Element certElement)
-            throws Exception {
+    private void createCertDigest(X509Certificate cert, Element certElement) throws Exception {
         Element certDigest = createXadesElement(certElement, CERT_DIGEST_TAG);
         createCertDigestAlgAndValue(cert, certDigest);
 
-        Element issuerSerial =
-                createXadesElement(certElement, ISSUER_SERIAL_TAG);
+        Element issuerSerial = createXadesElement(certElement, ISSUER_SERIAL_TAG);
         createCertId(cert, issuerSerial);
     }
 
-    private void createCertDigestAlgAndValue(X509Certificate cert,
-            Element element) throws Exception {
-        createDigestAlgAndValue(getHashAlgorithmURI(),
-                digest(cert, getHashAlgorithmId()),
-                element);
+    private void createCertDigestAlgAndValue(X509Certificate cert, Element element) throws Exception {
+        createDigestAlgAndValue(getHashAlgorithmURI(), digest(cert, getHashAlgorithmId()), element);
     }
 
-    private void createDigestAlgAndValue(String algorithmUri,
-            String digest, Element element) throws Exception {
+    private void createDigestAlgAndValue(String algorithmUri, String digest, Element element) throws Exception {
         Element digestMethod = createDsElement(element, DIGEST_METHOD_TAG);
         digestMethod.setAttribute(ALGORITHM_ATTRIBUTE, algorithmUri);
 
@@ -285,8 +227,7 @@ final class SignatureXmlBuilder {
     private Element createUnsignedProperties() throws Exception {
         Element unsignedProperties = createXadesElement(UNSIGNED_PROPS_TAG);
 
-        Element unsignedSignatureProperties = createXadesElement(
-                unsignedProperties, UNSIGNED_SIGNATURE_PROPS_TAG);
+        Element unsignedSignatureProperties = createXadesElement(unsignedProperties, UNSIGNED_SIGNATURE_PROPS_TAG);
 
         if (!extraCertificates.isEmpty()) {
             createCompleteCertificateRefs(unsignedSignatureProperties);
@@ -301,62 +242,50 @@ final class SignatureXmlBuilder {
         return unsignedProperties;
     }
 
-    private void createRevocationValues(Element unsignedSignatureProperties)
-            throws Exception {
-        Element revocationValues = createXadesElement(
-                unsignedSignatureProperties, REVOCATION_VALUES_TAG);
+    private void createRevocationValues(Element unsignedSignatureProperties) throws Exception {
+        Element revocationValues = createXadesElement(unsignedSignatureProperties, REVOCATION_VALUES_TAG);
 
-        Element ocspValues =
-                createXadesElement(revocationValues, OCSP_VALUES_TAG);
+        Element ocspValues = createXadesElement(revocationValues, OCSP_VALUES_TAG);
 
         int c = 1;
+
         for (OCSPResp ocspResp : ocspResponses) {
             createOcspValue(ocspValues, ocspResp, OCSP_RESPONSE_ID + (c++));
         }
     }
 
-    private void createOcspValue(Element ocspValues, OCSPResp ocspResponse,
-            String id) throws IOException {
-        Element encapsulatedOcspValue = createXadesElement(ocspValues,
-                        ENCAPSULATED_OCSP_VALUE_TAG);
+    private void createOcspValue(Element ocspValues, OCSPResp ocspResponse, String id) throws IOException {
+        Element encapsulatedOcspValue = createXadesElement(ocspValues, ENCAPSULATED_OCSP_VALUE_TAG);
         encapsulatedOcspValue.setAttribute(ID_ATTRIBUTE, id);
-        encapsulatedOcspValue.setTextContent(
-                encodeBase64(ocspResponse.getEncoded()));
+        encapsulatedOcspValue.setTextContent(encodeBase64(ocspResponse.getEncoded()));
     }
 
-    private void createCertificateValues(Element unsignedSignatureProperties)
-            throws Exception {
-        Element certificateValues = createXadesElement(
-                unsignedSignatureProperties, CERTIFFICATE_VALUES_TAG);
+    private void createCertificateValues(Element unsignedSignatureProperties) throws Exception {
+        Element certificateValues = createXadesElement(unsignedSignatureProperties, CERTIFFICATE_VALUES_TAG);
 
         int c = 1;
+
         for (X509Certificate cert : extraCertificates) {
-            Element encapsulatedX509Certificate =
-                    createXadesElement(certificateValues,
-                            ENCAPSULATED_X509_CERTIFICATE_TAG);
-            encapsulatedX509Certificate.setTextContent(
-                    encodeBase64(cert.getEncoded()));
-            encapsulatedX509Certificate.setAttribute(ID_ATTRIBUTE,
-                    ENCAPSULATED_CERT_ID + (c++));
+            Element encapsulatedX509Certificate = createXadesElement(certificateValues,
+                    ENCAPSULATED_X509_CERTIFICATE_TAG);
+            encapsulatedX509Certificate.setTextContent(encodeBase64(cert.getEncoded()));
+            encapsulatedX509Certificate.setAttribute(ID_ATTRIBUTE, ENCAPSULATED_CERT_ID + (c++));
         }
     }
 
-    private void createCompleteCertificateRefs(
-            Element unsignedSignatureProperties) throws Exception {
-        Element completeCertificateRefs = createXadesElement(
-                unsignedSignatureProperties, COMPLETE_CERTIFICATE_REFS_TAG);
-        completeCertificateRefs.setAttribute(ID_ATTRIBUTE,
-                COMPLETE_CERTIFICATE_REFS_ID/* + masterHash*/);
+    private void createCompleteCertificateRefs(Element unsignedSignatureProperties) throws Exception {
+        Element completeCertificateRefs = createXadesElement(unsignedSignatureProperties,
+                COMPLETE_CERTIFICATE_REFS_TAG);
+        completeCertificateRefs.setAttribute(ID_ATTRIBUTE, COMPLETE_CERTIFICATE_REFS_ID/* + masterHash*/);
 
-        Element certRefs =
-                createXadesElement(completeCertificateRefs, CERT_REFS_TAG);
+        Element certRefs = createXadesElement(completeCertificateRefs, CERT_REFS_TAG);
 
         // add references to all the extra certificates
         int c = 1;
+
         for (X509Certificate cert : extraCertificates) {
             Element certElement = createXadesElement(certRefs, CERT_TAG);
-            certElement.setAttribute(URI_ATTRIBUTE,
-                    "#" + ENCAPSULATED_CERT_ID + (c++));
+            certElement.setAttribute(URI_ATTRIBUTE, "#" + ENCAPSULATED_CERT_ID + (c++));
             createCertDigest(cert, certElement);
         }
     }
@@ -364,6 +293,7 @@ final class SignatureXmlBuilder {
     private Element createXadesElement(Element parent, String name) {
         Element element = createXadesElement(name);
         parent.appendChild(element);
+
         return element;
     }
 
@@ -374,6 +304,7 @@ final class SignatureXmlBuilder {
     private Element createDsElement(Element parent, String name) {
         Element element = createDsElement(name);
         parent.appendChild(element);
+
         return element;
     }
 
@@ -381,13 +312,11 @@ final class SignatureXmlBuilder {
         return document.createElement(PREFIX_DS + name);
     }
 
-    private static String digest(X509Certificate cert, String method)
-            throws Exception {
+    private static String digest(X509Certificate cert, String method) throws Exception {
         return digest(cert.getEncoded(), method);
     }
 
-    private static String digest(byte[] encoded, String method)
-            throws Exception {
+    private static String digest(byte[] encoded, String method) throws Exception {
         return encodeBase64(calculateDigest(method, encoded));
     }
 }

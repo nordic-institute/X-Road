@@ -22,19 +22,16 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-
 import java.io.InputStream;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import ee.ria.xroad.common.CodedException;
@@ -49,8 +46,9 @@ import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.MimeUtils;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Reads management requests from input stream.
@@ -81,8 +79,7 @@ public final class ManagementRequestHandler {
         return cb.getSoapMessage();
     }
 
-    private static void verifyAuthCertRegRequest(DecoderCallback cb)
-            throws Exception {
+    private static void verifyAuthCertRegRequest(DecoderCallback cb) throws Exception {
         log.info("verifyAuthCertRegRequest");
 
         SoapMessageImpl soap = cb.getSoapMessage();
@@ -91,19 +88,17 @@ public final class ManagementRequestHandler {
         log.info("Verifying auth signature");
 
         X509Certificate authCert = readCertificate(cb.getAuthCert());
-        if (!verifySignature(authCert, cb.getAuthSignature(),
-                cb.getAuthSignatureAlgoId(), dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                    "Auth signature verification failed");
+
+        if (!verifySignature(authCert, cb.getAuthSignature(), cb.getAuthSignatureAlgoId(), dataToVerify)) {
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Auth signature verification failed");
         }
 
         log.info("Verifying owner signature");
 
         X509Certificate ownerCert = readCertificate(cb.getOwnerCert());
-        if (!verifySignature(ownerCert, cb.getOwnerSignature(),
-                cb.getOwnerSignatureAlgoId(), dataToVerify)) {
-            throw new CodedException(X_INVALID_SIGNATURE_VALUE,
-                    "Owner signature verification failed");
+
+        if (!verifySignature(ownerCert, cb.getOwnerSignature(), cb.getOwnerSignatureAlgoId(), dataToVerify)) {
+            throw new CodedException(X_INVALID_SIGNATURE_VALUE, "Owner signature verification failed");
         }
 
         log.info("Verifying owner certificate");
@@ -113,8 +108,7 @@ public final class ManagementRequestHandler {
 
         // verify that the subject id from the certificate matches the one
         // in the request (server id)
-        AuthCertRegRequestType req =
-                ManagementRequestParser.parseAuthCertRegRequest(soap);
+        AuthCertRegRequestType req = ManagementRequestParser.parseAuthCertRegRequest(soap);
 
         ClientId idFromCert = GlobalConf.getSubjectName(
             new SignCertificateProfileInfoParameters(
@@ -129,6 +123,7 @@ public final class ManagementRequestHandler {
         );
 
         ClientId idFromReq = req.getServer().getOwner();
+
         if (!idFromReq.equals(idFromCert)) {
             throw new CodedException(X_INVALID_REQUEST,
                     "Subject identifier (%s) in certificate does not match"
@@ -137,34 +132,31 @@ public final class ManagementRequestHandler {
         }
     }
 
-    private static void verifyCertificate(X509Certificate ownerCert,
-            OCSPResp ownerCertOcsp) throws Exception {
+    private static void verifyCertificate(X509Certificate ownerCert, OCSPResp ownerCertOcsp) throws Exception {
         try {
             ownerCert.checkValidity();
         } catch (Exception e) {
-            throw new CodedException(X_CERT_VALIDATION,
-                    "Owner certificate is invalid: %s", e.getMessage());
+            throw new CodedException(X_CERT_VALIDATION, "Owner certificate is invalid: %s", e.getMessage());
         }
 
-        X509Certificate issuer =
-                GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(),
-                        ownerCert);
+        X509Certificate issuer = GlobalConf.getCaCert(GlobalConf.getInstanceIdentifier(), ownerCert);
         new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
                 new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()))
                 .verifyValidityAndStatus(ownerCertOcsp, ownerCert, issuer);
     }
 
     private static boolean verifySignature(X509Certificate cert,
-            byte[] signatureData, String algorithmId, byte[] dataToVerify)
+            byte[] signatureData, String signatureAlgorithmId, byte[] dataToVerify)
                     throws Exception {
         try {
-            Signature signature = Signature.getInstance(algorithmId);
+            Signature signature = Signature.getInstance(signatureAlgorithmId, "BC");
             signature.initVerify(cert.getPublicKey());
             signature.update(dataToVerify);
 
             return signature.verify(signatureData);
         } catch (Exception e) {
             log.error("Failed to verify signature", e);
+
             throw translateException(e);
         }
     }
@@ -185,25 +177,22 @@ public final class ManagementRequestHandler {
         private byte[] ownerCertOcsp;
 
         @Override
-        public void soap(SoapMessage message,
-                Map<String, String> additionalHeaders) throws Exception {
+        public void soap(SoapMessage message, Map<String, String> additionalHeaders) throws Exception {
             this.soapMessage = (SoapMessageImpl) message;
         }
 
         @Override
-        public void attachment(String contentType, InputStream content,
-                Map<String, String> additionalHeaders) throws Exception {
+        public void attachment(String contentType, InputStream content, Map<String, String> additionalHeaders)
+                throws Exception {
             if (authSignature == null) {
                 log.info("Reading auth signature");
 
-                authSignatureAlgoId =
-                        additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+                authSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
                 authSignature = IOUtils.toByteArray(content);
             } else if (ownerSignature == null) {
                 log.info("Reading security server owner signature");
 
-                ownerSignatureAlgoId =
-                        additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
+                ownerSignatureAlgoId = additionalHeaders.get(MimeUtils.HEADER_SIG_ALGO_ID);
                 ownerSignature = IOUtils.toByteArray(content);
             } else if (authCert == null) {
                 log.info("Reading auth cert");
@@ -218,8 +207,7 @@ public final class ManagementRequestHandler {
 
                 ownerCertOcsp = IOUtils.toByteArray(content);
             } else {
-                throw new CodedException(X_INTERNAL_ERROR,
-                        "Unexpected content in multipart");
+                throw new CodedException(X_INTERNAL_ERROR, "Unexpected content in multipart");
             }
         }
 
@@ -233,34 +221,29 @@ public final class ManagementRequestHandler {
             verifyMessagePart(soapMessage, "Request contains no SOAP message");
 
             String service = soapMessage.getService().getServiceCode();
+
             log.info("Service name: {}", service);
 
             if (ManagementRequests.AUTH_CERT_REG.equalsIgnoreCase(service)) {
-                verifyMessagePart(authSignatureAlgoId,
-                        "Auth signature algorithm id is missing");
+                verifyMessagePart(authSignatureAlgoId, "Auth signature algorithm id is missing");
 
-                verifyMessagePart(authSignature,
-                        "Auth signature is missing");
+                verifyMessagePart(authSignature, "Auth signature is missing");
 
-                verifyMessagePart(ownerSignatureAlgoId,
-                        "Owner signature algorithm id is missing");
+                verifyMessagePart(ownerSignatureAlgoId, "Owner signature algorithm id is missing");
 
-                verifyMessagePart(ownerSignature,
-                        "Owner signature is missing");
+                verifyMessagePart(ownerSignature, "Owner signature is missing");
 
-                verifyMessagePart(authCert,
-                        "Auth certificate is missing");
+                verifyMessagePart(authCert, "Auth certificate is missing");
 
-                verifyMessagePart(ownerCert,
-                        "Owner certificate is missing");
+                verifyMessagePart(ownerCert, "Owner certificate is missing");
 
-                verifyMessagePart(ownerCertOcsp,
-                        "Owner certificate OCSP is missing");
+                verifyMessagePart(ownerCertOcsp, "Owner certificate OCSP is missing");
 
                 try {
                     verifyAuthCertRegRequest(this);
                 } catch (Exception e) {
                     log.error("Failed to verify auth cert reg request", e);
+
                     throw translateException(e);
                 }
             }
@@ -272,9 +255,7 @@ public final class ManagementRequestHandler {
         }
 
         private static void verifyMessagePart(Object value, String message) {
-            if (value == null
-                    || value instanceof String
-                            && ((String) value).isEmpty()) {
+            if (value == null || value instanceof String && ((String) value).isEmpty()) {
                 throw new CodedException(X_INVALID_REQUEST, message);
             }
         }
