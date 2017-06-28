@@ -65,6 +65,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             return PasswordStore.getPassword(tokenId) != null;
         } catch (Exception e) {
             log.error("Error when checking if token is active", e);
+
             return false;
         }
     }
@@ -109,21 +110,23 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
 
             sendSuccessResponse();
         } catch (Exception e) {
-            log.error("Failed to activate token '{}': {}", getWorkerId(),
-                    e.getMessage());
+            log.error("Failed to activate token '{}': {}", getWorkerId(), e.getMessage());
+
             TokenManager.setTokenActive(tokenId, false);
+
             throw customizeException(e);
         }
     }
 
     private void handleGenerateKey(GenerateKey message) throws Exception {
         GenerateKeyResult result;
+
         try {
             result = generateKey(message);
         } catch (Exception e) {
             log.error("Failed to generate key", e);
-            throw translateError(customizeException(e))
-                .withPrefix(X_FAILED_TO_GENERATE_R_KEY);
+
+            throw translateError(customizeException(e)).withPrefix(X_FAILED_TO_GENERATE_R_KEY);
         }
 
         String keyId = result.getKeyId();
@@ -145,6 +148,7 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             deleteKey(message.getKeyId());
         } catch (Exception e) {
             log.error("Failed to delete key '{}'", message.getKeyId(), e);
+
             throw translateError(customizeException(e));
         }
 
@@ -158,39 +162,37 @@ public abstract class AbstractTokenWorker extends AbstractUpdateableActor {
             deleteCert(message.getCertId());
         } catch (Exception e) {
             log.error("Failed to delete cert '{}'", message.getCertId(), e);
+
             throw translateError(customizeException(e));
         }
 
         sendSuccessResponse();
     }
 
-    private void handleCalculateSignature(CalculateSignature signRequest)
-            throws Exception {
+    private void handleCalculateSignature(CalculateSignature signRequest) throws Exception {
         try {
-            byte[] signature =
-                    sign(signRequest.getKeyId(), signRequest.getData());
+            byte data[] = SignerUtil.createDataToSign(signRequest.getDigest(), signRequest.getSignatureAlgorithmId());
+
+            byte[] signature = sign(signRequest.getKeyId(), signRequest.getSignatureAlgorithmId(), data);
             sendResponse(new CalculatedSignature(signRequest, signature, null));
         } catch (Exception e) { // catch-log-rethrow
-            log.error("Error while signing with key '{}'",
-                    signRequest.getKeyId(), e);
-            CodedException tr = translateError(
-                    customizeException(e)).withPrefix(X_CANNOT_SIGN);
+            log.error("Error while signing with key '{}'", signRequest.getKeyId(), e);
+
+            CodedException tr = translateError(customizeException(e)).withPrefix(X_CANNOT_SIGN);
             sendResponse(new CalculatedSignature(signRequest, null, tr));
         }
     }
 
     // ------------------------------------------------------------------------
 
-    protected abstract void activateToken(ActivateToken message)
-            throws Exception;
+    protected abstract void activateToken(ActivateToken message) throws Exception;
 
-    protected abstract GenerateKeyResult generateKey(GenerateKey message)
-            throws Exception;
+    protected abstract GenerateKeyResult generateKey(GenerateKey message) throws Exception;
 
     protected abstract void deleteKey(String keyId) throws Exception;
     protected abstract void deleteCert(String certId) throws Exception;
 
-    protected abstract byte[] sign(String keyId, byte[] data) throws Exception;
+    protected abstract byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception;
 
     // ------------------------------------------------------------------------
 

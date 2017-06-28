@@ -22,11 +22,7 @@
  */
 package ee.ria.xroad.proxy.util;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.http.client.HttpClient;
-
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -34,6 +30,14 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.HttpSender;
 import ee.ria.xroad.proxy.conf.KeyConf;
+import org.apache.http.client.HttpClient;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 
 /**
  * Base class for message processors.
@@ -124,5 +128,33 @@ public abstract class MessageProcessorBase {
 
     protected static String getSecurityServerAddress() {
         return GlobalConf.getSecurityServerAddress(ServerConf.getIdentifier());
+    }
+
+    /**
+     * Validates SOAPAction header value.
+     * Valid header values are: (empty string),(""),("URI-reference")
+     * In addition, this implementation allows missing (null) header.
+     *
+     * @return the argument as-is if it is valid
+     * @throws CodedException if the the argument is invalid
+     * @see <a href="https://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383528">SOAP 1.1</a>
+     */
+    protected static String validateSoapActionHeader(String soapAction) {
+        if (soapAction == null || "".equals(soapAction) || "\"\"".equals(soapAction)) {
+            //allow missing, empty and "" SoapAction
+            return soapAction;
+        }
+
+        final int lastIndex = soapAction.length() - 1;
+        if (lastIndex > 1 && soapAction.charAt(0) == '"' && soapAction.charAt(lastIndex) == '"') {
+            try {
+                // try to parse the URI, ignore result
+                new URI(soapAction.substring(1, lastIndex));
+                return soapAction;
+            } catch (URISyntaxException e) {
+                throw new CodedException(X_INVALID_SOAPACTION, e, "Malformed SOAPAction header");
+            }
+        }
+        throw new CodedException(X_INVALID_SOAPACTION, "Malformed SOAPAction header");
     }
 }

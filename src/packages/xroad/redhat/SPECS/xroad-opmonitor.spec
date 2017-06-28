@@ -44,7 +44,6 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{src}/../../op-monitor-daemon/build/libs/metrics-bugfix-agent.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../../op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
@@ -78,7 +77,6 @@ rm -rf %{buildroot}
 
 /usr/share/xroad/jlib/op-monitor-daemon-*.jar
 /usr/share/xroad/jlib/op-monitor-daemon.jar
-/usr/share/xroad/jlib/metrics-bugfix-agent.jar
 /usr/share/xroad/scripts/generate-opmonitor-certificate.sh
 /usr/bin/generate-opmonitor-certificate
 

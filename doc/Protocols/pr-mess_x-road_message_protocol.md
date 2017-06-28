@@ -6,7 +6,7 @@
 # X-Road: Message Protocol v4.0
 **Technical Specification**
 
-Version: 4.0.18
+Version: 4.0.19
 20.02.2017
 Doc. ID: PR-MESS
 
@@ -34,6 +34,7 @@ Doc. ID: PR-MESS
  16.05.2016 | 4.0.16  | Editorial changes made                                          | Margus Freudenthal
  10.11.2016 | 4.0.17  | Converted to Markdown                                           | Vitali Stupin
  20.02.2016 | 4.0.18  | Adjusted tables and internal links for better output in PDF     | Toomas Mölder
+ 20.06.2017 | 4.0.19  | SOAPAction HTTP header is preserved                             | Jarkko Hyöty
 
 ## Table of Contents
 
@@ -293,7 +294,7 @@ The request message SHOULD NOT contain the `requestHash` field. The response mes
 
 The `requestHash` field SHOULD NOT be described in the service WSDL.
 
-Content-type HTTP header of the client request message is preserved in the security servers and is forwarded to the service. All other HTTP headers of the client request message are not preserved by the security servers and are not forwarded to the service.
+Content-type and SOAPAction HTTP headers of the client request message are preserved in the security servers and forwarded to the service. All other HTTP headers of the client request message are not preserved by the security servers and are not forwarded to the service.
 
 Content-type HTTP header of the service response message is preserved in the security servers and is forwarded to the client. All other HTTP headers of the service response are not preserved by security servers and are not forwarded to the client.
 

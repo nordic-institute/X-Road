@@ -29,6 +29,8 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.signature.SigningRequest;
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,30 +42,38 @@ public class SignerSigningKey implements SigningKey {
     /** The private key ID. */
     private final String keyId;
 
+    /** The sign mechanism name (PKCS#11) */
+    private final String signMechanismName;
+
     /**
      * Creates a new SignerSigningKey with provided keyId.
      * @param keyId the private key ID.
      */
-    public SignerSigningKey(String keyId) {
+    public SignerSigningKey(String keyId, String signMechanismName) {
         if (keyId == null) {
-            throw new IllegalArgumentException("KeyId is must not be null");
+            throw new IllegalArgumentException("KeyId must not be null");
+        }
+
+        if (signMechanismName == null) {
+            throw new IllegalArgumentException("SignMechanismName must not be null");
         }
 
         this.keyId = keyId;
+        this.signMechanismName = signMechanismName;
     }
 
     @Override
-    public SignatureData calculateSignature(SigningRequest request,
-            String algorithmId) throws Exception {
-        log.trace("Calculating signature using algorithm {}", algorithmId);
+    public SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception {
+        String signAlgoId = CryptoUtils.getSignatureAlgorithmId(digestAlgoId, signMechanismName);
+
+        log.trace("Calculating signature using algorithm {}", signAlgoId);
 
         if (SystemProperties.USE_DUMMY_SIGNATURE) {
-            return new SignatureData("dymmySignatureXML",
-                    "dummyHashChainResult", "dummyHashChain");
+            return new SignatureData("dymmySignatureXML", "dummyHashChainResult", "dummyHashChain");
         }
 
         try {
-            return BatchSigner.sign(keyId, algorithmId, request);
+            return BatchSigner.sign(keyId, signAlgoId, request);
         } catch (Exception e) {
             throw translateWithPrefix(X_CANNOT_CREATE_SIGNATURE, e);
         }

@@ -1,7 +1,11 @@
 # Change Log
 
-## 6.16.0 - SNAPSHOT
-- TBD
+## 6.16.0 - 2017-06-20
+- PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
+- PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
+- XTE-349: Fixed some typos related with document PR-OPMON.
+- XTE-335 / Backlog #134: Security Server, Op Monitoring Daemon : Updated Dropwizard to 3.2.2 and removed unnecessary bugfix.
+- XTE-332, XTE-353 / Backlog #129: Security Server, Central Server, Configuration Proxy: Added support for PKCS#11 sign mechanism CKM_RSA_PKCS_PSS and made key creation template configurable.
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.

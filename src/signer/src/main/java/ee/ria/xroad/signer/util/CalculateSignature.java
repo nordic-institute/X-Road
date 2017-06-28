@@ -32,11 +32,12 @@ import lombok.ToString;
  * Message for signature calculation request.
  */
 @Data
-@ToString(exclude = "data")
+@ToString(exclude = "digest")
 public class CalculateSignature implements Serializable {
 
     private final ActorRef receiver;
     private final String keyId;
-    private final byte[] data;
+    private final String signatureAlgorithmId;
+    private final byte[] digest;
 
 }

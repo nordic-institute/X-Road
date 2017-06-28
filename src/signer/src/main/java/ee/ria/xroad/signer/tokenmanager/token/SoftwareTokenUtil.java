@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentSigner;
-import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.security.KeyPair;
@@ -41,8 +38,11 @@ import java.util.List;
 import org.bouncycastle.operator.ContentSigner;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.signer.util.SignerUtil;
+
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 /**
  * Utility methods for software token.
@@ -55,11 +55,13 @@ public final class SoftwareTokenUtil {
 
     static final String P12 = ".p12";
 
+    // TODO make it configurable.
+    private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHRSA_ID;
+
     private static final FilenameFilter P12_FILTER = new FilenameFilter() {
         @Override
         public boolean accept(File dir, String name) {
-            return name != null && !name.startsWith(PIN_FILE)
-                    && name.endsWith(P12);
+            return name != null && !name.startsWith(PIN_FILE) && name.endsWith(P12);
         }
     };
 
@@ -83,6 +85,7 @@ public final class SoftwareTokenUtil {
 
     static List<String> listKeysOnDisk() {
         List<String> keys = new ArrayList<>();
+
         for (String p12File : getKeyDir().list(P12_FILTER)) {
             keys.add(p12File.substring(0, p12File.indexOf(P12)));
         }
@@ -91,13 +94,11 @@ public final class SoftwareTokenUtil {
     }
 
     static File getKeyDir() {
-        return new File(ResourceUtils.getFullPathFromFileName(
-                SystemProperties.getKeyConfFile()));
+        return new File(ResourceUtils.getFullPathFromFileName(SystemProperties.getKeyConfFile()));
     }
 
-    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password)
-            throws Exception {
-        ContentSigner signer = createDefaultContentSigner(kp.getPrivate());
+    static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
+        ContentSigner signer = CryptoUtils.createContentSigner(SIGNATURE_ALGORITHM, kp.getPrivate());
 
         X509Certificate[] certChain = new X509Certificate[1];
         certChain[0] = SignerUtil.createCertificate("KeyHolder", kp, signer);
@@ -105,50 +106,49 @@ public final class SoftwareTokenUtil {
         KeyStore keyStore = KeyStore.getInstance("pkcs12");
         keyStore.load(null, null);
 
-        KeyStore.PrivateKeyEntry pkEntry =
-                new KeyStore.PrivateKeyEntry(kp.getPrivate(), certChain);
+        KeyStore.PrivateKeyEntry pkEntry = new KeyStore.PrivateKeyEntry(kp.getPrivate(), certChain);
 
-        keyStore.setEntry(alias, pkEntry,
-                new KeyStore.PasswordProtection(password));
+        keyStore.setEntry(alias, pkEntry, new KeyStore.PasswordProtection(password));
 
         return keyStore;
     }
 
-    static PrivateKey loadPrivateKey(String keyStoreFile, String alias,
-            char[] password) throws Exception {
+    static PrivateKey loadPrivateKey(String keyStoreFile, String alias, char[] password) throws Exception {
         KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
-
         PrivateKey privateKey = (PrivateKey) ks.getKey(alias, password);
+
         if (privateKey == null) {
             // Could not find private key for given alias, attempt to find
             // key for any alias in the key store
             Enumeration<String> aliases = ks.aliases();
+
             while (aliases.hasMoreElements()) {
-                privateKey = (PrivateKey) ks.getKey(aliases.nextElement(),
-                        password);
+                privateKey = (PrivateKey) ks.getKey(aliases.nextElement(), password);
+
                 if (privateKey != null) {
                     return privateKey;
                 }
             }
 
-            throw new RuntimeException("Private key not found in keystore '"
-                    + keyStoreFile + "', wrong password?");
+            throw new RuntimeException("Private key not found in keystore '" + keyStoreFile + "', wrong password?");
         }
 
         return privateKey;
     }
 
-    static Certificate loadCertificate(String keyStoreFile, String alias,
-            char[] password) throws Exception {
+    static Certificate loadCertificate(String keyStoreFile, String alias, char[] password) throws Exception {
         KeyStore ks = loadPkcs12KeyStore(new File(keyStoreFile), password);
 
         Certificate cert = ks.getCertificate(alias);
+
         if (cert == null) {
             // Could not find certificate for given alias, attempt to find
             // certificate for any alias in the key store
             Enumeration<String> aliases = ks.aliases();
+
             while (aliases.hasMoreElements()) {
                 cert = ks.getCertificate(aliases.nextElement());
+
                 if (cert != null) {
                     return cert;
                 }

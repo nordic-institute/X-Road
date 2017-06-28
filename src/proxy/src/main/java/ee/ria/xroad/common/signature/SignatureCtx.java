@@ -28,15 +28,17 @@ import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
-import org.w3c.dom.Attr;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -53,18 +55,27 @@ import static ee.ria.xroad.common.util.MessageFileNames.*;
  * result with corresponding hash chains.
  */
 @Slf4j
-@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 class SignatureCtx {
 
     private final List<SigningRequest> requests = new ArrayList<>();
 
     @Getter(AccessLevel.PACKAGE)
     private final String signatureAlgorithmId;
+    private final String signatureAlgorithmUri;
+    private final String digestAlgorithmId;
 
     private String hashChainResult;
     private String[] hashChains;
 
     private SignatureXmlBuilder builder;
+
+    @SneakyThrows
+    SignatureCtx(String signatureAlgorithmId) {
+        this.signatureAlgorithmId = signatureAlgorithmId;
+
+        signatureAlgorithmUri = CryptoUtils.getSignatureAlgorithmURI(signatureAlgorithmId);
+        digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
+    }
 
     /**
      * Adds a new signing request to this context.
@@ -76,8 +87,7 @@ class SignatureCtx {
     /**
      * Produces the XML signature from the given signed data.
      */
-    synchronized String createSignatureXml(byte[] signatureValue)
-            throws Exception {
+    synchronized String createSignatureXml(byte[] signatureValue) throws Exception {
         return builder.createSignatureXml(signatureValue);
     }
 
@@ -85,53 +95,43 @@ class SignatureCtx {
      * Returns the signature data for a given signer -- either normal signature
      * or batch signature with corresponding hash chain and hash chain result.
      */
-    synchronized SignatureData createSignatureData(String signature,
-            int signerIndex) {
-        return new SignatureData(signature, hashChainResult,
-                hashChains != null ? hashChains[signerIndex] : null);
+    synchronized SignatureData createSignatureData(String signature, int signerIndex) {
+        return new SignatureData(signature, hashChainResult, hashChains != null ? hashChains[signerIndex] : null);
     }
 
     /**
      * Returns the data to be signed -- if there is only one signing request
-     * and the request is simple message (no attachments), then no hash chain
-     * is used.
+     * and the request is simple message (no attachments), then no hash chain is used.
      */
     synchronized byte[] getDataToBeSigned() throws Exception {
         log.trace("getDataToBeSigned(requests = {})", requests.size());
 
         if (requests.size() == 0) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "No requests in signing context");
+            throw new CodedException(X_INTERNAL_ERROR, "No requests in signing context");
         }
 
         SigningRequest firstRequest = requests.get(0);
 
-        builder = new SignatureXmlBuilder(firstRequest, getHashAlgorithmId());
+        builder = new SignatureXmlBuilder(firstRequest, digestAlgorithmId);
 
         // If only one single hash (message), then no hash chain
         if (requests.size() == 1 && firstRequest.isSingleMessage()) {
-            return builder.createDataToBeSigned(MESSAGE,
-                    createResourceResolver(firstRequest.getParts().get(0)
-                            .getSoap()));
+            return builder.createDataToBeSigned(MESSAGE, createResourceResolver(
+                    firstRequest.getParts().get(0).getSoap()), signatureAlgorithmUri);
         }
 
         buildHashChain();
 
-        byte[] hashChainResultBytes =
-                hashChainResult.getBytes(StandardCharsets.UTF_8);
-        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT,
-                createResourceResolver(hashChainResultBytes));
-    }
+        byte[] hashChainResultBytes = hashChainResult.getBytes(StandardCharsets.UTF_8);
 
-    private String getHashAlgorithmId() throws Exception {
-        return getDigestAlgorithmId(signatureAlgorithmId);
+        return builder.createDataToBeSigned(SIG_HASH_CHAIN_RESULT, createResourceResolver(hashChainResultBytes),
+                signatureAlgorithmUri);
     }
 
     private void buildHashChain() throws Exception {
         log.trace("buildHashChain()");
 
-        HashChainBuilder hashChainBuilder = new HashChainBuilder(
-                getDigestAlgorithmId(signatureAlgorithmId));
+        HashChainBuilder hashChainBuilder = new HashChainBuilder(digestAlgorithmId);
 
         for (SigningRequest request : requests) {
             hashChainBuilder.addInputHash(getHashChainInputs(request));
@@ -150,8 +150,7 @@ class SignatureCtx {
     }
 
     /**
-     * This resource resolver will provide the message or hash chain data
-     * to be digested.
+     * This resource resolver will provide the message or hash chain data to be digested.
      */
     private ResourceResolverSpi createResourceResolver(final byte[] data) {
         if (data == null) {
@@ -160,8 +159,8 @@ class SignatureCtx {
 
         return new ResourceResolverSpi() {
             @Override
-            public boolean engineCanResolve(Attr uri, String baseUri) {
-                switch (uri.getValue()) {
+            public boolean engineCanResolveURI(ResourceResolverContext context) {
+                switch (context.attr.getValue()) {
                     case MessageFileNames.MESSAGE:
                     case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                         return true;
@@ -171,7 +170,7 @@ class SignatureCtx {
             }
 
             @Override
-            public XMLSignatureInput engineResolve(Attr uri, String baseUri)
+            public XMLSignatureInput engineResolveURI(ResourceResolverContext context)
                     throws ResourceResolverException {
                 return new XMLSignatureInput(data);
             }

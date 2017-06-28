@@ -44,9 +44,7 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     @Override
     public SupervisorStrategy supervisorStrategy() {
-        return new OneForOneStrategy(-1, Duration.Inf(),
-            t -> SupervisorStrategy.resume()
-        );
+        return new OneForOneStrategy(-1, Duration.Inf(), t -> SupervisorStrategy.resume());
     }
 
     @Override
@@ -55,6 +53,7 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
             initializeModule();
         } catch (Exception e) {
             log.error("Failed to initialize module", e);
+
             getContext().stop(getSelf());
         }
     }
@@ -73,13 +72,12 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
         try {
             List<TokenType> tokens = listTokens();
 
-            log.trace("Got {} tokens from module '{}'", tokens.size(),
-                    getSelf().path().name());
+            log.trace("Got {} tokens from module '{}'", tokens.size(), getSelf().path().name());
 
             updateTokens(tokens);
         } catch (Exception e) {
-            log.error("Error during update of module "
-                    + getSelf().path().name(), e);
+            log.error("Error during update of module " + getSelf().path().name(), e);
+
             throw e;
         }
     }
@@ -130,12 +128,9 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
     }
 
     private ActorRef createToken(TokenInfo tokenInfo, TokenType tokenType) {
-        log.debug("Adding new token '{}#{}'", tokenType.getModuleType(),
-                tokenInfo.getId());
+        log.debug("Adding new token '{}#{}'", tokenType.getModuleType(), tokenInfo.getId());
 
-        return getContext().watch(
-            getContext().actorOf(props(tokenInfo, tokenType), tokenType.getId())
-        );
+        return getContext().watch(getContext().actorOf(props(tokenInfo, tokenType), tokenType.getId()));
     }
 
     private void destroyToken(ActorRef token) {
@@ -147,8 +142,10 @@ public abstract class AbstractModuleWorker extends AbstractUpdateableActor {
 
     private static TokenInfo getTokenInfo(TokenType tokenType) {
         TokenInfo info = TokenManager.getTokenInfo(tokenType.getId());
+
         if (info != null) {
             TokenManager.setTokenAvailable(tokenType, true);
+
             return info;
         } else {
             return TokenManager.createToken(tokenType);

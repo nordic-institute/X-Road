@@ -22,7 +22,22 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import java.io.IOException;
+import java.net.ConnectException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.LocalTime;
+import java.util.*;
+import java.util.Map.Entry;
+
 import akka.actor.ActorRef;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
@@ -41,23 +56,12 @@ import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPException;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import java.io.IOException;
-import java.net.ConnectException;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.Map.Entry;
+import static java.util.Collections.emptyList;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
-import static java.util.Collections.emptyList;
 
 
 /**
@@ -104,6 +108,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             if (message instanceof Exception) {
                 log.error("received Exception message", ((Exception) message));
             }
+
             unhandled(message);
         }
     }
@@ -200,9 +205,8 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         for (X509Certificate subject : certs) {
             try {
-                OCSPResp status = queryCertStatus(subject,
-                        new OcspVerifierOptions(GlobalConfExtensions
-                                .getInstance().shouldVerifyOcspNextUpdate()));
+                OCSPResp status = queryCertStatus(subject, new OcspVerifierOptions(
+                        GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
                 if (status != null) {
                     String subjectHash = calculateCertHexHash(subject);
                     statuses.put(subjectHash, status);
@@ -212,8 +216,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             } catch (Exception e) {
                 failed = true;
 
-                log.error("Error when querying certificate '"
-                        + subject.getSerialNumber() + "'", e);
+                log.error("Error when querying certificate '{}'", subject.getSerialNumber(), e);
             }
         }
 
@@ -237,6 +240,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             if (!certInfo.isActive()) {
                 // do not download OCSP responses for inactive certificates
                 log.debug("Skipping inactive certificate {}", certInfo.getId());
+
                 continue;
             }
 
@@ -244,6 +248,7 @@ public class OcspClientWorker extends AbstractSignerActor {
                 // do not download OCSP responses for non-registered
                 // certificates
                 log.debug("Skipping non-registered certificate {}", certInfo.getId());
+
                 continue;
             }
 
@@ -253,11 +258,13 @@ public class OcspClientWorker extends AbstractSignerActor {
                 cert = readCertificate(certInfo.getCertificateBytes());
             } catch (Exception e) {
                 log.error("Failed to parse certificate " + certInfo.getId(), e);
+
                 continue;
             }
 
             if (CertUtils.isSelfSigned(cert)) {
                 log.debug("Ignoring self-signed certificate {}", cert.getIssuerX500Principal());
+
                 continue; // ignore self-signed certificates
             }
 
@@ -272,83 +279,85 @@ public class OcspClientWorker extends AbstractSignerActor {
 
         PrivateKey signerKey = OcspClient.getOcspRequestKey(subject);
         X509Certificate signer = OcspClient.getOcspSignerCert();
+        String signAlgoId = OcspClient.getSignAlgorithmId();
 
         List<String> responderURIs = GlobalConf.getOcspResponderAddresses(subject);
+
         log.debug("responder URIs: {}", responderURIs);
+
         if (responderURIs.isEmpty()) {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
         OCSPResp response = null;
+
         for (String responderURI : responderURIs) {
             try {
                 log.debug("Fetching response from: {}", responderURI);
-                response = OcspClient.fetchResponse(responderURI, subject, issuer, signerKey, signer);
+
+                response = OcspClient.fetchResponse(responderURI, subject, issuer, signerKey, signer, signAlgoId);
+
                 if (response != null) {
                     reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now(),
                         LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+
                     break;
                 }
             } catch (OCSPException e) {
                 log.error("Parsing OCSP response from " + responderURI + " failed", e);
-                reportOcspDiagnostics(
-                    issuer,
-                    responderURI,
-                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID,
-                    LocalTime.now(),
-                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
+
+                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID,
+                        LocalTime.now(),
+                        LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             } catch (IOException e) {
                 log.error("Unable to connect to responder at " + responderURI, e);
-                reportOcspDiagnostics(
-                    issuer,
-                    responderURI,
-                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
+
+                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
                     LocalTime.now(),
                     LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             } catch (Exception e) {
                 log.error("Unable to fetch response from responder at " + responderURI, e);
-                reportOcspDiagnostics(
-                    issuer,
-                    responderURI,
-                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
+
+                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
                     LocalTime.now(),
                     LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval()));
             }
         }
         try {
             log.debug("Verifying response: {}", response);
-            OcspVerifier verifier =
-                    new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), verifierOptions);
+
+            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), verifierOptions);
             verifier.verifyValidity(response, subject, issuer);
+
             log.debug("Received OCSP response for certificate '{}'", subject.getSubjectX500Principal());
             log.debug("Verification successful");
+
             return response;
         } catch (Exception e) {
             log.warn("Received OCSP response that failed verification", e);
+
             return null;
         }
     }
 
     private void reportOcspDiagnostics(X509Certificate issuer, String responderURI, int statusCode,
-                                       LocalTime prevUpdate, LocalTime nextUpdate) {
+            LocalTime prevUpdate, LocalTime nextUpdate) {
 
-        OcspResponderStatus responderStatus = new OcspResponderStatus(
-                statusCode,
-                responderURI,
-                prevUpdate,
-                nextUpdate);
+        OcspResponderStatus responderStatus = new OcspResponderStatus(statusCode, responderURI, prevUpdate, nextUpdate);
 
         String subjectName = issuer.getSubjectDN().toString();
 
         CertificationServiceStatus serviceStatus;
 
         Map<String, CertificationServiceStatus> serviceStatusMap = diagnostics.getCertificationServiceStatusMap();
+
         if (!serviceStatusMap.containsKey(subjectName)) {
             serviceStatus = new CertificationServiceStatus(subjectName);
             serviceStatusMap.put(subjectName, serviceStatus);
         } else {
             serviceStatus = serviceStatusMap.get(subjectName);
         }
+
         serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
     }
 
@@ -361,34 +370,36 @@ public class OcspClientWorker extends AbstractSignerActor {
             responses.add(encodeBase64(e.getValue().getEncoded()));
         }
 
-        getOcspResponseManager(getContext()).tell(
-                new SetOcspResponses(
-                        hashes.toArray(new String[statuses.size()]),
-                        responses.toArray(new String[statuses.size()])),
-                        getSelf());
+        getOcspResponseManager(getContext()).tell(new SetOcspResponses(hashes.toArray(
+                new String[statuses.size()]), responses.toArray(new String[statuses.size()])), getSelf());
     }
 
     /**
-     * @return true if the response for given certificate does not exist, is
-     *         expired (in which case it is also removed from cache) or is not
-     *         valid
+     * @return true if the response for given certificate does not exist, is expired (in which case it is also
+     * removed from cache) or is not valid
      */
     boolean shouldFetchResponse(X509Certificate subject) throws Exception {
         if (!CertUtils.isValid(subject)) {
             log.warn("Certificate '{}' is not valid", subject.getSubjectX500Principal());
+
             return false;
         }
 
         String subjectHash = calculateCertHexHash(subject);
+
         try {
             boolean shouldFetchResponse = !isCachedOcspResponse(subjectHash);
+
             log.debug("shouldFetchResponse for cert: {} value: {}", subjectHash, shouldFetchResponse);
+
             return shouldFetchResponse;
         } catch (Exception e) {
             log.debug("shouldFetchResponse encountered an error, returning true ", e);
+
             // Ignore this error, since any kind of failure to get the response
             // or validate it means we should fetch the response from the
             // responder.
+
             return true;
         }
     }
@@ -405,22 +416,28 @@ public class OcspClientWorker extends AbstractSignerActor {
     boolean isCachedOcspResponse(String certHash) throws Exception {
         // Check if the OCSP response is in the cache
         Date atDate = new Date();
-        Object isCachedOcspResponseObject = SignerUtil.ask(
-                getOcspResponseManager(getContext()),
+        Object isCachedOcspResponseObject = SignerUtil.ask(getOcspResponseManager(getContext()),
                 new IsCachedOcspResponse(certHash, atDate));
+
         if (isCachedOcspResponseObject instanceof Exception) {
             Exception e = (Exception) isCachedOcspResponseObject;
+
             log.debug("cannot figure out if IsCachedOcspResponse");
+
             throw e;
         }
+
         Boolean isCachedOcspResponse = (Boolean) isCachedOcspResponseObject;
+
         log.trace("isCachedOcspResponse(certHash: {}, atDate: {}) = {}", certHash, atDate, isCachedOcspResponse);
+
         return isCachedOcspResponse;
     }
 
     private List<X509Certificate> getCertChain(X509Certificate cert) {
         try {
             CertChain chain = GlobalConf.getCertChain(GlobalConf.getInstanceIdentifier(), cert);
+
             if (chain == null) {
                 return Arrays.asList(cert);
             }
@@ -450,11 +467,9 @@ public class OcspClientWorker extends AbstractSignerActor {
                         .filter(responderURI -> !serviceStatus.getOcspResponderStatusMap().containsKey(responderURI))
                         .forEach(responderURI -> {
                             OcspResponderStatus responderStatus = new OcspResponderStatus(
-                                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
-                                    responderURI,
-                                    null,
-                                    LocalTime.now().plusSeconds(GlobalConfExtensions.getInstance()
-                                            .getOcspFetchInterval()));
+                                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, responderURI, null,
+                                    LocalTime.now().plusSeconds(
+                                            GlobalConfExtensions.getInstance().getOcspFetchInterval()));
                             serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
                         });
             } catch (Exception e) {
@@ -468,9 +483,11 @@ public class OcspClientWorker extends AbstractSignerActor {
      */
     public static int getNextOcspFetchIntervalSeconds() {
         int interval = GlobalConfExtensions.getInstance().getOcspFetchInterval();
+
         if (interval < OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN) {
             interval = OcspFetchInterval.OCSP_FETCH_INTERVAL_MIN;
         }
+
         return interval;
     }
 }

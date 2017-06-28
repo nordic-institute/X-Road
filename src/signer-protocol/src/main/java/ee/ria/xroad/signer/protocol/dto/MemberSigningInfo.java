@@ -37,4 +37,6 @@ public class MemberSigningInfo implements Serializable {
     private final String keyId;
 
     private final CertificateInfo cert;
+
+    private final String signMechanismName;
 }

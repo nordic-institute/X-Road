@@ -64,11 +64,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
@@ -285,12 +281,41 @@ public final class ProxyMain {
                     JsonUtils.getSerializer().toJson(result, response.getWriter());
                 } catch (IOException e) {
                     log.error("Unable to write to provided response, delegated request handling failed, response may"
-                            + " be malformed");
+                            + " be malformed", e);
+                }
+            }
+        });
+
+        adminPort.addHandler("/maintenance", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+
+                String result = "Invalid parameter 'targetState', request ignored";
+                String param = request.getParameter("targetState");
+
+                if (param != null && (param.equalsIgnoreCase("true") || param.equalsIgnoreCase("false"))) {
+                    result = setHealthCheckMaintenanceMode(Boolean.valueOf(param));
+                }
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    response.getWriter().println(result);
+                } catch (IOException e) {
+                    log.error("Unable to write to provided response, delegated request handling failed, response may"
+                            + " be malformed", e);
                 }
             }
         });
 
         return adminPort;
+    }
+
+    private static String setHealthCheckMaintenanceMode(boolean targetState) {
+        return SERVICES.stream()
+                .filter(HealthCheckPort.class::isInstance)
+                .map(HealthCheckPort.class::cast)
+                .findFirst()
+                .map(port -> port.setMaintenanceMode(targetState))
+                .orElse("No HealthCheckPort found, maintenance mode not set");
     }
 
     private static void transmuteErrorCodes(Map<String, DiagnosticsStatus> map, int oldErrorCode, int newErrorCode) {

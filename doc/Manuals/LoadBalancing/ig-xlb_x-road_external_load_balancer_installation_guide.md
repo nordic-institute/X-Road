@@ -8,7 +8,7 @@ Doc. ID: IG-XLB
 |-------------|-------------|---------------------------------------------------------|------------------------------|
 | 22.3.2017   | 1.0         | Initial version                                         | Jarkko Hyöty, Olli Lindgren  |
 | 27.4.2017   | 1.1         | Added slave node user group instructions                | Tatu Repo                    |
-
+| 15.6.2017   | 1.2         | Added health check interface maintenance mode           | Tatu Repo                    |
 
 ## Table of Contents
 
@@ -331,6 +331,24 @@ as fresh as possible while avoiding per-request verification. In contrast, verif
 seconds before a new verification is triggered. This should allow for the security server to get up and running after a
 failure or possible reboot before the status is queried again.
 
+Security server's health check interface can also be manually switched to a maintenance mode in order to inform the load
+balancing solution that the security server will be undergoing maintenance and should be removed from active use.
+
+When in maintenance mode the health check interface will only respond with `HTTP 503 Service unavailable` and the message
+`Health check interface is in maintenance mode` and no actual health check diagnostics will be run. Maintenance mode is disabled
+by default and will automatically reset to its default when the proxy service is restarted. 
+
+Maintenance mode can be enabled or disabled by sending `HTTP GET`-request from the target security server to its proxy admin port `5566`.
+The intended new state can be defined using the `targetState` HTTP-parameter:
+
+|Command|URI|
+|---|---|
+|Enable maintenance mode|`http://localhost:5566/maintenance?targetState=true`|
+|Disable maintenance mode|`http://localhost:5566/maintenance?targetState=false`|
+
+Proxy admin port will respond with `200 OK` and a message detailing the actualized maintenance mode state change,
+e.g. `Maintenance mode set: false => true`. In case the maintenance mode state could not be changed, the returned
+message will detail the reason. 
 
 #### 3.4.1 Known check result inconsistencies vs. actual state
 There is a known but rarely and not naturally occurring issue where the health check will report an OK condition for a

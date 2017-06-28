@@ -155,9 +155,8 @@ public final class BatchSignerIntegrationTest {
 
                         log.info("### Calculating signature...");
 
-                        SignatureData signatureData = builder.build(
-                                new SignerSigningKey(KEY_ID),
-                                CryptoUtils.SHA512WITHRSA_ID);
+                        SignatureData signatureData = builder.build(new SignerSigningKey(KEY_ID,
+                                CryptoUtils.CKM_RSA_PKCS_NAME), CryptoUtils.SHA512_ID);
 
                         synchronized (sigIdx) {
                             log.info("### Created signature: "

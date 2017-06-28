@@ -36,14 +36,17 @@ import java.util.Map;
 import javax.xml.transform.dom.DOMSource;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.MissingResourceFailureException;
 import org.apache.xml.security.signature.XMLSignature;
 import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.utils.resolver.ResourceResolverContext;
 import org.apache.xml.security.utils.resolver.ResourceResolverException;
 import org.apache.xml.security.utils.resolver.ResourceResolverSpi;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.w3c.dom.Attr;
+
 import org.w3c.dom.Node;
 
 import ee.ria.xroad.common.CodedException;
@@ -358,8 +361,8 @@ public class SignatureVerifier {
     private class SignatureResourceResolverImpl extends ResourceResolverSpi {
 
         @Override
-        public boolean engineCanResolve(Attr uri, String baseUri) {
-            switch (uri.getValue()) {
+        public boolean engineCanResolveURI(ResourceResolverContext context) {
+            switch (context.attr.getValue()) {
                 case MessageFileNames.MESSAGE:
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return true;
@@ -369,14 +372,15 @@ public class SignatureVerifier {
         }
 
         @Override
-        public XMLSignatureInput engineResolve(Attr uri, String baseUri)
-                throws ResourceResolverException {
-            switch (uri.getValue()) {
+        public XMLSignatureInput engineResolveURI(ResourceResolverContext context) throws ResourceResolverException {
+            switch (context.attr.getValue()) {
                 case MessageFileNames.MESSAGE:
                     MessagePart part = getPart(MessageFileNames.MESSAGE);
+
                     if (part != null && part.getSoap() != null) {
                         return new XMLSignatureInput(part.getSoap());
                     }
+
                     break;
                 case MessageFileNames.SIG_HASH_CHAIN_RESULT:
                     return new XMLSignatureInput(is(hashChainResult));

@@ -21,6 +21,8 @@
 
     <!-- Temporarily disable logger for proxy UI -->
     <logger name="ee.ria.xroad.proxyui" level="OFF" />
+    <!-- Suppress error messages due to missing configuration files -->
+    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

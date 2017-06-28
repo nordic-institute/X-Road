@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
+import lombok.Value;
+
 import java.io.Serializable;
 import java.util.List;
-
-import lombok.Value;
 
 /**
  * Tiny container class to help handle the key list
@@ -42,11 +42,13 @@ public final class KeyInfo implements Serializable {
     private final String id;
 
     private final String label;
-    
+
     private final String publicKey;
 
     private final List<CertificateInfo> certs;
 
     private final List<CertRequestInfo> certRequests;
+
+    private final String signMechanismName;
 
 }

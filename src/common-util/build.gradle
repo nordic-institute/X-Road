@@ -13,7 +13,7 @@ sourceSets {
 dependencies {
     compile 'org.apache.james:apache-mime4j-core:0.7.2'
     compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'org.apache.santuario:xmlsec:1.5.8'
+    compile 'org.apache.santuario:xmlsec:2.0.8'
 
     compile 'org.bouncycastle:bcpkix-jdk15on:1.54'
     compile 'commons-configuration:commons-configuration:1.9'
