@@ -561,8 +561,7 @@ public class MetadataServiceHandlerTest {
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)
             throws IOException, MimeException {
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(headlessContentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(headlessContentType).build();
         MimeStreamParser parser = new MimeStreamParser(config);
         TestMimeContentHandler contentHandler = new TestMimeContentHandler();
         parser.setContentHandler(contentHandler);
@@ -606,7 +605,7 @@ public class MetadataServiceHandlerTest {
                     xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(),
                             SoapHeader.class).getValue();
                 } catch (SOAPException | JAXBException e) {
-                   throw new MimeException(e);
+                    throw new MimeException(e);
                 }
             } else {
                 if (partContentType != null) {

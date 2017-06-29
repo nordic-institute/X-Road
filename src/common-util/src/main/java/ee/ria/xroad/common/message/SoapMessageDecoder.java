@@ -168,8 +168,7 @@ public class SoapMessageDecoder {
     private void readMultipart(InputStream is) throws Exception {
         log.trace("readMultipart");
 
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(contentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(contentType).build();
 
         MimeStreamParser mimeStreamParser = new MimeStreamParser(config);
         mimeStreamParser.setContentHandler(new MultipartHandler());
