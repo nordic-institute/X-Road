@@ -1,35 +1,36 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.20
+Version: 2.21  
 Doc. ID: UG-SYSPAR
 
-| Date       | Version | Description                                                              | Author             |
-|------------|---------|--------------------------------------------------------------------------|--------------------|
-| 29.05.2015 | 1.0     | First draft                                                              | Siim Annuk         |
-| 01.06.2015 | 1.1     | Some corrections done, typos fixed                                       | Siim Annuk         |
-| 30.06.2015 | 1.2     | Minor corrections done                                                   | Vello Hansen, Imbi Nõgisto |
-| 26.08.2015 | 1.3     | Corrections regarding SQL done                                           | Marju Ignatjeva    |
-| 09.09.2015 | 2.0     | Editorial changes made                                                   | Imbi Nõgisto       |
-| 11.09.2015 | 2.1     | Global configuration generation interval added                           | Martin Lind        |
-| 20.09.2015 | 2.2     | Editorial changes made                                                   | Imbi Nõgisto       |
-| 23.09.2015 | 2.3     | Warning added about changing system parameters                           | Siim Annuk         |
-| 24.09.2015 | 2.4     | Note added about setting the *timeStampingIntervalSeconds* system parameter | Siim Annuk      |
-| 07.10.2015 | 2.5     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400 | Kristo Heero |
-| 08.12.2015 | 2.6     | New parameters for configuring signature algorithms and key length, proxy client-side TLS protocols, and software token pin policy | Jarkko Hyöty |
-| 08.12.2015 | 2.7     | Added parameters for toggling SOAP body logging on/off                   | Janne Mattila      |
-| 17.12.2015 | 2.8     | Added monitoring parameters                                              | Ilkka Seppälä      |
-| 28.1.2016  | 2.9     | Added configuration client admin port                                    | Ilkka Seppälä      |
-| 04.10.2016 | 2.10    | Converted to markdown format                                             | Sami Kallio        |
-| 05.10.2016 | 2.11    | Added options for proxy client and server connections. Clarified client-timeout option. | Olli Lindgren |
-| 02.11.2016 | 2.12    | Fix ocspFreshnessSeconds description in system parameters document       | Ilkka Seppälä      |
-| 01.12.2017 | 2.13    | Added documentation for minimum global conf version                      | Sami Kallio        |
-| 20.01.2017 | 2.14    | Added license text and version history                                   | Sami Kallio        |
-| 08.02.2017 | 2.15    | Updated documentation with new environmental monitoring parameters describing sensor intervals | Sami Kallio |
-| 23.02.2017 | 2.16    | Added documentation for OCSP-response retrieval deactivation parameter   | Tatu Repo          |
-| 03.03.2017 | 2.17    | Added new parameter *jetty-ocsp-responder-configuration-file*            | Kristo Heero       |
-| 07.03.2017 | 2.18    | Added new parameters *ocsp-responder-client-connect-timeout* and *ocsp-responder-client-read-timeout* | Kristo Heero |
-| 11.04.2017 | 2.19    | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*. | Kristo Heero |
-| 06.06.2017 | 2.20    | Removed parameter *default-signature-algorithm*, replaced parameters *csr-signature-algorithm* with *csr-signature-digest-algorithm*, *signature-algorithm-id* with *signature-digest-algorithm-id*, and *confSignAlgoId* with *confSignDigestAlgoId*. Added new proxy-ui parameter *auth-cert-reg-signature-digest-algorithm-id*. | Kristo Heero |
+| Date       | Version     | Description                                                                  | Author             |
+|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| 29.05.2015 | 1.0     | First draft                                                                                                                        | Siim Annuk                 |
+| 01.06.2015 | 1.1     | Some corrections done, typos fixed                                                                                                 | Siim Annuk                 |
+| 30.06.2015 | 1.2     | Minor corrections done                                                                                                             | Vello Hansen, Imbi Nõgisto |
+| 26.08.2015 | 1.3     | Corrections regarding SQL done                                                                                                     | Marju Ignatjeva            |
+| 09.09.2015 | 2.0     | Editorial changes made                                                                                                             | Imbi Nõgisto               |
+| 11.09.2015 | 2.1     | Global configuration generation interval added                                                                                     | Martin Lind                |
+| 20.09.2015 | 2.2     | Editorial changes made                                                                                                             | Imbi Nõgisto               |
+| 23.09.2015 | 2.3     | Warning added about changing system parameters                                                                                     | Siim Annuk                 |
+| 24.09.2015 | 2.4     | Note added about setting the *timeStampingIntervalSeconds* system parameter                                                        | Siim Annuk                 |
+| 07.10.2015 | 2.5     | Default value of the parameter *acceptable-timestamp-failure-period* set to 14400                                                  | Kristo Heero               |
+| 8.12.2015  | 2.6     | New parameters for configuring signature algorithms and key length, proxy client-side TLS protocols, and software token pin policy | Jarkko Hyöty               |
+| 8.12.2015  | 2.7     | Added parameters for toggling SOAP body logging on/off                                                                             | Janne Mattila              |
+| 17.12.2015 | 2.8     | Added monitoring parameters                                                                                                        | Ilkka Seppälä              |
+| 28.1.2016  | 2.9     | Added configuration client admin port                                                                                              | Ilkka Seppälä              |
+| 04.10.2016 | 2.10       | Converted to markdown format | Sami Kallio |
+| 05.10.2016 | 2.11       | Added options for proxy client and server connections. Clarified client-timeout option. | Olli Lindgren |
+| 02.11.2016 | 2.12       | Fix ocspFreshnessSeconds description in system parameters document. | Ilkka Seppälä |
+| 01.12.2017 | 2.13       | Added documentation for minimum global conf version | Sami Kallio |
+| 20.01.2017 | 2.14       | Added license text and version history | Sami Kallio |
+| 08.02.2017 | 2.15       | Updated documentation with new environmental monitoring parameters describing sensor intervals | Sami Kallio |
+| 23.02.2017 | 2.16       | Added documentation for OCSP-response retrieval deactivation parameter | Tatu Repo |
+| 03.03.2017 | 2.17        | Added new parameter *jetty-ocsp-responder-configuration-file*                 | Kristo Heero       |
+| 07.03.2017 | 2.18        | Added new parameters *ocsp-responder-client-connect-timeout* and *ocsp-responder-client-read-timeout* | Kristo Heero |
+| 11.04.2017 | 2.19        | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*. | Kristo Heero |
+| 06.06.2017 | 2.20        | Removed parameter *default-signature-algorithm*, replaced parameters *csr-signature-algorithm* with *csr-signature-digest-algorithm*, *signature-algorithm-id* with *signature-digest-algorithm-id*, and *confSignAlgoId* with *confSignDigestAlgoId*. Added new proxy-ui parameter *auth-cert-reg-signature-digest-algorithm-id*. | Kristo Heero |
+| 14.06.2017 | 2.21        | Added new parameter *allowed-federations* for enabling federation in a security server. | Olli Lindgren |
 
 ## Table of Contents
 
@@ -205,6 +206,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | configuration-client | port                                             | 5665                                       | TCP port on which the configuration client process listens. |
 | configuration-client | update-interval                                  | 60                                         | Global configuration download interval in seconds. |
 | configuration-client | admin-port                                       | 5675                                       | TCP port on which the configuration client process listens for admin commands. |
+| configuration-client | allowed-federations                              | none                                               | A comma-separated list of case-insensitive X-Road instances that fetching configuration anchors is allowed for. This enables federation with the listed instances if the X-Road instance is already federated at the central server level . Special value *none*, if present, disables all federation (the default value), while *all* allows all federations if *none* is not present. Example: *allowed-federations=ee,sv* allows federation with example instances *EE* and *Sv* while *allowed-federations=all,none* disables federation. X-Road services `xroad-confclient` and `xroad-proxy` need to be restarted (in that order) for the setting change to take effect.|
 | message-log          | soap-body-logging                                | true (overridden to false in Finnish installation) | Whether SOAP body of the messages should be logged or not.<br/><br/>If true, SOAP messages are logged in original form. If false, SOAP body is cleared of its contents and only has an empty child element inside it. As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of SOAP body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
 | message-log          | enabled-body-logging-local-producer-subsystems   |                                            | Subsystem-specific overrides for SOAP body logging when soap-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which SOAP body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure SOAP body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
 | message-log          | enabled-body-logging-remote-producer-subsystems  |                                            | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |

@@ -9,6 +9,7 @@ dependencies {
 
     compile 'commons-cli:commons-cli:1.2'
 
+    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
     testCompile project(':common-test')
 }
 
