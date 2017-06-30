@@ -77,6 +77,7 @@ rm -rf %{buildroot}
 %defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy.conf
 %config /etc/xroad/conf.d/proxy.ini
+%config /etc/xroad/conf.d/override-rhel-proxy.ini
 %config /etc/xroad/conf.d/proxy-ui.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
 %config /etc/xroad/conf.d/jetty-logback-context-name.xml
