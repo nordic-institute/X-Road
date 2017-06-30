@@ -221,13 +221,13 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
