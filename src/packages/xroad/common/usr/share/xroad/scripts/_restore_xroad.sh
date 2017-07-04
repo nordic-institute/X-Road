@@ -82,6 +82,7 @@ stop_services () {
   select_commands
   XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
   for service in ${XROAD_SERVICES} ; do
+    echo ${STOP_CMD} ${service}
     ${STOP_CMD} ${service}
   done
 }
