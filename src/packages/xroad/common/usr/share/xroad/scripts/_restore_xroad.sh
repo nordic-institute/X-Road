@@ -80,7 +80,8 @@ select_commands () {
 stop_services () {
   echo "STOPPING ALL SERVICES EXCEPT JETTY"
   select_commands
-  XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
+  # XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
+  XROAD_SERVICES="xroad-monitor xroad-confclient xroad-proxy xroad-signer xroad-opmonitor" # xroad-jetty omitted on purpose
   for service in ${XROAD_SERVICES} ; do
     echo ${STOP_CMD} ${service}
     ${STOP_CMD} ${service}
