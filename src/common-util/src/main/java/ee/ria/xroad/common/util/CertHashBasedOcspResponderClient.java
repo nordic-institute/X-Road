@@ -63,10 +63,11 @@ public final class CertHashBasedOcspResponderClient {
 
     /**
      * Creates an GET request to the internal cert hash based OCSP responder and expects an OCSP responses.
+     *
      * @param providerAddress URL of the OCSP response provider
-     * @param hashes certificate hashes for which to get the responses
+     * @param hashes          certificate hashes for which to get the responses
      * @return list of OCSP response objects
-     * @throws IOException if I/O errors occurred
+     * @throws IOException   if I/O errors occurred
      * @throws OCSPException if the response could not be parsed
      */
     public static List<OCSPResp> getOcspResponsesFromServer(String providerAddress, String[] hashes)
@@ -80,9 +81,10 @@ public final class CertHashBasedOcspResponderClient {
 
     /**
      * Creates a GET request to the internal cert hash based OCSP responder and expects OCSP responses.
+     *
      * @param destination URL of the OCSP response provider
      * @return list of OCSP response objects
-     * @throws IOException if I/O errors occurred
+     * @throws IOException   if I/O errors occurred
      * @throws OCSPException if the response could not be parsed
      */
     public static List<OCSPResp> getOcspResponsesFromServer(URL destination) throws IOException, OCSPException {
@@ -101,8 +103,7 @@ public final class CertHashBasedOcspResponderClient {
             throw new IOException(connection.getResponseMessage());
         }
 
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(connection.getContentType());
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(connection.getContentType()).build();
 
         final List<OCSPResp> responses = new ArrayList<>();
         final MimeStreamParser parser = new MimeStreamParser(config);

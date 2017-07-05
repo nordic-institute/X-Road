@@ -11,7 +11,7 @@ sourceSets {
 }
 
 dependencies {
-    compile 'org.apache.james:apache-mime4j-core:0.7.2'
+    compile 'org.apache.james:apache-mime4j-core:0.8.1'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.apache.santuario:xmlsec:2.0.8'
 
@@ -42,7 +42,7 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.6'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:19.0'
 

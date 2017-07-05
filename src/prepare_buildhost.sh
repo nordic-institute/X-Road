@@ -6,7 +6,7 @@ sudo apt-get update
 sudo apt-get install -y curl software-properties-common
 
 REL=$(lsb_release -sr | cut -d'.' -f1)
-JRUBY_VERSION=$(cat .jruby-version || echo "1.7.25")
+JRUBY_VERSION=$(cat .jruby-version || echo "1.7.27")
 
 if [ $REL -lt 16 ]; then
     sudo apt-add-repository -y ppa:openjdk-r/ppa
