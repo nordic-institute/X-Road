@@ -76,6 +76,9 @@ Please fix this and reinstall this package." >&2
 
     chmod 0440 /etc/sudoers.d/xroad-restore
 
+    chmod 0750 /etc/xroad/backup.d
+    chown -R xroad:xroad /etc/xroad/backup.d
+
     #check if java trustAnchor file is non-empty. add certs if neccecary
     JAVACERTS=`find  /etc/ssl/certs/java/ -type f -size +1k -print -quit`
     if [ -z "$JAVACERTS" ] && [ -f /usr/share/ca-certificates-java/ca-certificates-java.jar ]
