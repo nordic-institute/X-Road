@@ -85,8 +85,8 @@ stop_services () {
   for entry in "/etc/xroad/backup.d/"* ; do
     if  [[ -f ${entry} ]] ; then
       servicename=`basename $entry | sed 's/.*_//'`
-      echo ${STOP_CMD} ${service}
-      ${STOP_CMD} ${service}
+      echo ${STOP_CMD} ${servicename}
+      ${STOP_CMD} ${servicename}
     fi
   done
 }
