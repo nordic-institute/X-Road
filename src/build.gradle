@@ -75,6 +75,10 @@ subprojects {
         jettyVersion = "9.4.6.v20170531"
     }
 
+    dependencyCheck {
+        autoUpdate = false
+    }
+
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'maven'
