@@ -26,6 +26,9 @@ die () {
 
 chmod 0440 /etc/sudoers.d/xroad-proxy
 
+chown xroad:xroad /etc/xroad/backup.d/3_xroad-proxy
+chmod 0440 /etc/xroad/backup.d/3_xroad-proxy
+
 case "$1" in
  configure)
 
