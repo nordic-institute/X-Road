@@ -69,7 +69,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/op-monitor.ini
 %config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
-%config /etc/xroad/backup.d/4_xroad-opmonitor
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/4_xroad-opmonitor
 
 /usr/share/xroad/db/op-monitor/
 /usr/share/xroad/db/op-monitor-changelog.xml

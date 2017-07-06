@@ -116,8 +116,8 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/confclient-logback-service.xml
 %config /etc/xroad/ssl/openssl.cnf
 %config /etc/xroad/ssl/rfc3526group15.pem
-%config /etc/xroad/backup.d/0_xroad-confclient
-%config /etc/xroad/backup.d/1_xroad-signer
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/0_xroad-confclient
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/1_xroad-signer
 
 %defattr(-,root,root,-)
 %dir /usr/share/xroad

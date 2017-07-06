@@ -88,7 +88,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/ocsp-responder.xml
 %config /etc/xroad/services/jetty.conf
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
-%config /etc/xroad/backup.d/3_xroad-proxy
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/3_xroad-proxy
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
 
