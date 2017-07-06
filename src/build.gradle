@@ -72,6 +72,7 @@ subprojects {
     ext {
         akkaVersion = "2.4.8"
         metricsVersion = "3.2.2"
+        jettyVersion = "9.4.6.v20170531"
     }
 
     apply plugin: 'eclipse'
