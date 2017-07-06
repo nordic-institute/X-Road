@@ -64,12 +64,10 @@ clear_shared_memory () {
 select_commands () {
   if has_command initctl
   then
-    # LIST_CMD="initctl list | grep -E  '^xroad-|^xtee55-' | cut -f 1 -d ' '"
     STOP_CMD="initctl stop"
     START_CMD="initctl start"
   elif has_command systemctl
   then
-    # LIST_CMD="systemctl --plain -qt service list-units | grep -E 'xroad-.*.service\s' | sed 's/^\s*//' | cut -d' ' -f1"
     STOP_CMD="systemctl stop"
     START_CMD="systemctl start"
   else
@@ -80,8 +78,6 @@ select_commands () {
 stop_services () {
   echo "STOPPING REGISTERED SERVICES"
   select_commands
-  # XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
-  # XROAD_SERVICES="xroad-monitor xroad-confclient xroad-proxy xroad-signer xroad-opmonitor" # xroad-jetty omitted on purpose
   for entry in "/etc/xroad/backup.d/"* ; do
     if  [[ -f ${entry} ]] ; then
       servicename=`basename $entry | sed 's/.*_//'`
