@@ -39,6 +39,7 @@ mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/usr/share/xroad/bin/
 mkdir -p %{buildroot}/etc/xroad/conf.d/
+mkdir -p %{buildroot}/etc/xroad/backup.d/
 mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
@@ -55,6 +56,7 @@ cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
+cp -p %{src}/op-monitor/etc/xroad/backup.d/4_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/4_xroad-opmonitor
 
 ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 ln -s /usr/share/uxp/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
@@ -67,6 +69,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/op-monitor.ini
 %config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
+%config /etc/xroad/backup.d/4_xroad-opmonitor
 
 /usr/share/xroad/db/op-monitor/
 /usr/share/xroad/db/op-monitor-changelog.xml

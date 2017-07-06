@@ -50,6 +50,7 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/signer
 mkdir -p %{buildroot}/var/lib/xroad/backup
+mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/bin/signer-console %{buildroot}/usr/bin/signer-console
 ln -s /usr/share/xroad/jlib/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/signer.jar
@@ -83,6 +84,8 @@ cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase-3.5.1.jar %{buildroot}/usr/share/xroad/db/liquibase-3.5.1.jar
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
 cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
+cp -p %{src}/../../packages/xroad/common/etc/xroad/backup.d/0_xroad-confclient %{buildroot}/etc/xroad/backup.d/0_xroad-confclient
+cp -p %{src}/../../packages/xroad/common/etc/xroad/backup.d/1_xroad-signer %{buildroot}/etc/xroad/backup.d/1_xroad-signer
 
 %clean
 rm -rf %{buildroot}
@@ -113,6 +116,8 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/confclient-logback-service.xml
 %config /etc/xroad/ssl/openssl.cnf
 %config /etc/xroad/ssl/rfc3526group15.pem
+%config /etc/xroad/backup.d/0_xroad-confclient
+%config /etc/xroad/backup.d/1_xroad-signer
 
 %defattr(-,root,root,-)
 %dir /usr/share/xroad
