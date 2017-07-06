@@ -182,9 +182,10 @@ remove_tmp_restore_dir() {
 
 restart_services () {
   echo "RESTARTING REGISTERED SERVICES"
-  for entry in "/etc/xroad/backup.d/"* ; do
-    if  [[ -f ${entry} ]] ; then
-      servicename=`basename $entry | sed 's/.*_//'`
+  files=("/etc/xroad/backup.d/"*)
+  for ((i=${#files[@]}-1; i>=0; i--)); do
+    if  [[ -f ${files[$i]} ]] ; then
+      servicename=`basename ${files[$i]} | sed 's/.*_//'`
       echo ${START_CMD} ${servicename}
       ${START_CMD} ${servicename}
     fi
