@@ -38,7 +38,7 @@ cp -p %{src}/monitor/systemd/%{name}.service %{buildroot}%{_unitdir}
 cp -p %{src}/monitor/systemd/%{name}  %{buildroot}/usr/share/xroad/bin
 cp -p %{src}/../default-configuration/addons/monitor.ini %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
 cp -p %{src}/../default-configuration/addons/monitor-logback.xml %{buildroot}%{_sysconfdir}/xroad/conf.d/addons
-cp -p %{src}/monitor/etc/xroad/backup.d/2_xroad-monitor %{buildroot}%{_sysconfdir}/xroad/backup.d/2_xroad-monitor
+cp -p %{src}/monitor/etc/xroad/backup.d/??_xroad-monitor %{buildroot}%{_sysconfdir}/xroad/backup.d/
 ln -s %{jlib}/monitor-1.0.jar %{buildroot}%{jlib}/monitor.jar
 
 %clean
@@ -49,7 +49,7 @@ rm -rf %{buildroot}
 %config %{_sysconfdir}/xroad/services/monitor.conf
 %config %{_sysconfdir}/xroad/conf.d/addons/monitor.ini
 %config %{_sysconfdir}/xroad/conf.d/addons/monitor-logback.xml
-%attr(0440,xroad,xroad) %config %{_sysconfdir}/xroad/backup.d/2_xroad-monitor
+%attr(0440,xroad,xroad) %config %{_sysconfdir}/xroad/backup.d/??_xroad-monitor
 %attr(644,root,root) %{_unitdir}/xroad-monitor.service
 %{jlib}/monitor-1.0.jar
 %{jlib}/monitor.jar

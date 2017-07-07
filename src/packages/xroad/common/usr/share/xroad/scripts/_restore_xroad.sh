@@ -80,9 +80,9 @@ stop_services () {
   select_commands
   for entry in "/etc/xroad/backup.d/"* ; do
     if  [[ -f ${entry} ]] ; then
-      servicename=`basename $entry | sed 's/.*_//'`
-      echo ${STOP_CMD} ${servicename}
-      ${STOP_CMD} ${servicename}
+      servicename=`basename "$entry" | sed 's/.*_//'`
+      echo ${STOP_CMD} "${servicename}"
+      ${STOP_CMD} "${servicename}"
     fi
   done
 }
@@ -181,9 +181,9 @@ restart_services () {
   files=("/etc/xroad/backup.d/"*)
   for ((i=${#files[@]}-1; i>=0; i--)); do
     if  [[ -f ${files[$i]} ]] ; then
-      servicename=`basename ${files[$i]} | sed 's/.*_//'`
-      echo ${START_CMD} ${servicename}
-      ${START_CMD} ${servicename}
+      servicename=`basename "${files[$i]}" | sed 's/.*_//'`
+      echo ${START_CMD} "${servicename}"
+      ${START_CMD} "${servicename}"
     fi
   done
 }

@@ -2,8 +2,8 @@
 
 set -e
 
-chown xroad:xroad /etc/xroad/backup.d/4_xroad-opmonitor
-chmod 0440 /etc/xroad/backup.d/4_xroad-opmonitor
+chown xroad:xroad /etc/xroad/backup.d/??_xroad-opmonitor
+chmod 0440 /etc/xroad/backup.d/??_xroad-opmonitor
 
 db_name=op-monitor
 db_url=jdbc:postgresql://127.0.0.1:5432/${db_name}

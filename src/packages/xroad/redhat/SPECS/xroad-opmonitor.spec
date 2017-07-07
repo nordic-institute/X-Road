@@ -56,7 +56,7 @@ cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
-cp -p %{src}/op-monitor/etc/xroad/backup.d/4_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/4_xroad-opmonitor
+cp -p %{src}/op-monitor/etc/xroad/backup.d/??_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/
 
 ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 ln -s /usr/share/uxp/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
@@ -69,7 +69,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/op-monitor.ini
 %config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
-%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/4_xroad-opmonitor
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-opmonitor
 
 /usr/share/xroad/db/op-monitor/
 /usr/share/xroad/db/op-monitor-changelog.xml
