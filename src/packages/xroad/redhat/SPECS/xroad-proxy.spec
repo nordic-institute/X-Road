@@ -44,6 +44,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib/webapps
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
+mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
@@ -64,6 +65,7 @@ cp -p %{src}/debian/trusty/proxy_restore_db.sh %{buildroot}/usr/share/xroad/scri
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
+cp -p %{src}/proxy/etc/xroad/backup.d/??_xroad-proxy %{buildroot}/etc/xroad/backup.d/
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/jetty-logback-context-name.xml
@@ -86,6 +88,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/ocsp-responder.xml
 %config /etc/xroad/services/jetty.conf
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
 

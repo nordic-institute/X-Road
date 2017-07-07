@@ -64,12 +64,10 @@ clear_shared_memory () {
 select_commands () {
   if has_command initctl
   then
-    LIST_CMD="initctl list | grep -E  '^xroad-|^xtee55-' | cut -f 1 -d ' '"
     STOP_CMD="initctl stop"
     START_CMD="initctl start"
   elif has_command systemctl
   then
-    LIST_CMD="systemctl --plain -qt service list-units | grep -E 'xroad-.*.service\s' | sed 's/^\s*//' | cut -d' ' -f1"
     STOP_CMD="systemctl stop"
     START_CMD="systemctl start"
   else
@@ -78,11 +76,14 @@ select_commands () {
 }
 
 stop_services () {
-  echo "STOPPING ALL SERVICES EXCEPT JETTY"
+  echo "STOPPING REGISTERED SERVICES"
   select_commands
-  XROAD_SERVICES=$(eval ${LIST_CMD} | grep -v -- -jetty)
-  for service in ${XROAD_SERVICES} ; do
-    ${STOP_CMD} ${service}
+  for entry in "/etc/xroad/backup.d/"* ; do
+    if  [[ -f ${entry} ]] ; then
+      servicename=`basename "$entry" | sed 's/.*_//'`
+      echo ${STOP_CMD} "${servicename}"
+      ${STOP_CMD} "${servicename}"
+    fi
   done
 }
 
@@ -176,9 +177,14 @@ remove_tmp_restore_dir() {
 }
 
 restart_services () {
-  echo "RESTARTING SERVICES"
-  for service in ${XROAD_SERVICES} ; do
-    ${START_CMD} ${service}
+  echo "RESTARTING REGISTERED SERVICES"
+  files=("/etc/xroad/backup.d/"*)
+  for ((i=${#files[@]}-1; i>=0; i--)); do
+    if  [[ -f ${files[$i]} ]] ; then
+      servicename=`basename "${files[$i]}" | sed 's/.*_//'`
+      echo ${START_CMD} "${servicename}"
+      ${START_CMD} "${servicename}"
+    fi
   done
 }
 
