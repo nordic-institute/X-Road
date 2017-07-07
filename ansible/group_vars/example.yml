@@ -1,5 +1,5 @@
 xroad_ui_user: grandmaster
 xroad_ui_user_password: "$6$t4Q.aNMTG8RtjaI0$RIgZejI5rs0RoK.yKy4FrgT0VbaR5z3z/q25pSWifFuEoEdctyhLLLFzEOogOc0SxKQSW/1.pdA9itkqVVudr1" # this can be created with command 'mkpasswd -m sha-512'
 
-# see roles/palveluvayla-ca/defaults/main.yml for other CA-related parameters
-xroad_ca_o: "Palveluvayla Test Organization X"
+# see roles/xroad-ca/defaults/main.yml for other CA-related parameters
+xroad_ca_o: "Xroad Test Organization X"

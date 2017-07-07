@@ -1,6 +1,6 @@
 ---
-xroad_ui_user: "grandmaster"
-xroad_ui_user_password: "$6$t4Q.aNMTG8RtjaI0$RIgZejI5rs0RoK.yKy4FrgT0VbaR5z3z/q25pSWifFuEoEdctyhLLLFzEOogOc0SxKQSW/1.pdA9itkqVVudr1"
+xroad_ui_user: "xrd"
+xroad_ui_user_password: "secret"
 ubuntu_repo_url: "http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current/packages"
 ubuntu_apt_key:  "{{ubuntu_repo_url}}/dists/stable/palveluvayla@gofore.com.asc"
 ubuntu_apt_repo: "deb {{ubuntu_repo_url}} stable main"
