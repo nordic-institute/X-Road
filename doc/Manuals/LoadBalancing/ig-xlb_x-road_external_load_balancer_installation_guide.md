@@ -140,7 +140,7 @@ When external security servers communicate with the cluster, they see only the p
 registered to the global configuration as the security server address. From the caller point of view, this case is analogous
 to making a request to a single security server.
 
-![alt-text](load_balancing_traffic.png)
+![inbound traffic](img/load_balancing_traffic.png)
 
 When a security server makes a request to an external server (security server, OCSP, TSA or a central server), the
 external server sees only the public IP address. Note that depending on the configuration, the public IP address
@@ -148,11 +148,11 @@ might be different from the one used in the previous scenario. It should also be
 independently make requests to OCSP and TSA services as well as to the central server to fetch the global configuration
 as needed.
 
-![alt-text](load_balancing_traffic-2.png)
+![outbound traffic](img/load_balancing_traffic-2.png)
 
 ### 2.3 State replication from the master to the slaves
 
-![alt-text](load_balancing_state_replication.png)
+![state replication](img/load_balancing_state_replication.png)
 
 #### 2.3.1 Replicated state
 
