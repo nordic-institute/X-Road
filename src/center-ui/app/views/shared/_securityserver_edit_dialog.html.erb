@@ -1,12 +1,13 @@
 <%= dialog "securityserver_edit_dialog", t("securityservers.details.title") do %>
   <div id="securityserver_edit_tabs">
-    <ul>
-      <li><a href="#server_details_tab"><%= t 'securityservers.details.legend' %></a></li>
-      <li><a href="#server_clients_tab"><%= t 'securityservers.clients.legend' %></a></li>
-      <li><a href="#server_auth_certs_tab"><%= t 'securityservers.auth_cert.legend' %></a></li>
-      <li><a href="#server_management_requests_tab"><%= t 'management_requests.legend' %></a></li>
-    </ul>
-
+    <div id="tabs_wrapper">
+      <ul>
+        <li><a href="#server_details_tab"><%= t 'securityservers.details.legend' %></a></li>
+        <li><a href="#server_clients_tab"><%= t 'securityservers.clients.legend' %></a></li>
+        <li><a href="#server_auth_certs_tab"><%= t 'securityservers.auth_cert.legend' %></a></li>
+        <li><a href="#server_management_requests_tab"><%= t 'management_requests.legend' %></a></li>
+      </ul>
+    </div>
     <div id="server_details_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:delete_security_server) %>
