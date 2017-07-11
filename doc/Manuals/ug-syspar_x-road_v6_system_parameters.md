@@ -31,6 +31,7 @@ Doc. ID: UG-SYSPAR
 | 11.04.2017 | 2.19        | Changed default values of the proxy parameter *client-timeout* to *30000*, *client-use-fastest-connecting-ssl-socket-autoclose* and *client-use-idle-connection-monitor* to *true*. Added new messagelog parameters *timestamper-client-connect-timeout* and *timestamper-client-read-timeout*. Changed default value of the proxy parameter *pool-validate-connections-after-inactivity-of-millis* to *2000*. | Kristo Heero |
 | 06.06.2017 | 2.20        | Removed parameter *default-signature-algorithm*, replaced parameters *csr-signature-algorithm* with *csr-signature-digest-algorithm*, *signature-algorithm-id* with *signature-digest-algorithm-id*, and *confSignAlgoId* with *confSignDigestAlgoId*. Added new proxy-ui parameter *auth-cert-reg-signature-digest-algorithm-id*. | Kristo Heero |
 | 14.06.2017 | 2.21        | Added new parameter *allowed-federations* for enabling federation in a security server. | Olli Lindgren |
+| 11.07.2017 | 2.22        | Changed connector SO-linger values to -1 as per code changes | Tatu Repo |
 
 ## Table of Contents
 
