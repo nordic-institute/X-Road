@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Comparator;
 
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
@@ -91,9 +92,12 @@ import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 public class SystemPropertiesLoader {
 
     private static final String DEFAULT_PREFIX = SystemProperties.PREFIX;
+    private static final String ADDON_GLOB = "*.ini";
+    private static final String OVERRIDE_GLOB = "override-*.ini";
+    static final Comparator<Path> LOADING_ORDER_COMPARATOR = Comparator.comparing(Path::getFileName);
 
     @Getter
-    private static final class FileWithSections {
+    static final class FileWithSections {
         private final String name;
         private final String[] sections;
         private FileWithSections(String name, String... sections) {
@@ -227,7 +231,8 @@ public class SystemPropertiesLoader {
     }
 
     /**
-     * Does the actual loading of the INI files.
+     * Does the actual loading of the INI files. Glob-defined files are loaded in alphabetical
+     * order based on the filename.
      */
     public void load() {
         if (withCommon) {
@@ -237,18 +242,18 @@ public class SystemPropertiesLoader {
         files.forEach(this::load);
 
         if (withAddOn) {
-            try (DirectoryStream<Path> dir = Files.newDirectoryStream(
-                    Paths.get(SystemProperties.CONF_FILE_ADDON_PATH), "*.ini")) {
-                dir.forEach(path -> load(new FileWithSections(path.toString())));
+            try {
+                Path addOnDir = Paths.get(SystemProperties.CONF_FILE_ADDON_PATH);
+                loadFilesInOrder(addOnDir, ADDON_GLOB, LOADING_ORDER_COMPARATOR);
             } catch (IOException e) {
                 log.error("Cannot load addon configuration", e);
             }
         }
 
         if (withOverrides) {
-            try (DirectoryStream<Path> dir = Files.newDirectoryStream(
-                    Paths.get(SystemProperties.getConfPath(), "conf.d"), "override-*.ini")) {
-                dir.forEach(path -> load(new FileWithSections(path.toString())));
+            try {
+                Path overrideDir = Paths.get(SystemProperties.getConfPath(), "conf.d");
+                loadFilesInOrder(overrideDir, OVERRIDE_GLOB, LOADING_ORDER_COMPARATOR);
             } catch (IOException e) {
                 log.error("Cannot load override configuration", e);
             }
@@ -271,6 +276,20 @@ public class SystemPropertiesLoader {
 
     protected SystemPropertiesLoader(String prefix) {
         this.prefix = prefix;
+    }
+
+    static List<Path> getFilePaths(Path dir, String glob) throws IOException {
+        try (DirectoryStream<Path> dStream = Files.newDirectoryStream(dir, glob)) {
+            List<Path> filePaths = new ArrayList<>();
+            dStream.forEach(filePaths::add);
+            return filePaths;
+        }
+    }
+
+    void loadFilesInOrder(Path dir, String glob, Comparator<Path> comp) throws IOException {
+        getFilePaths(dir, glob).stream()
+                .sorted(comp)
+                .forEach(path -> load(new FileWithSections(path.toString())));
     }
 
     private void load(FileWithSections file) {
