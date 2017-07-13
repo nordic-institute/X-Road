@@ -56,9 +56,8 @@ public class LogManagerTest {
 
     @BeforeClass
     public static void setup() {
-        system = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy")
-                        .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+        system = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
+                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
     }
 
     @AfterClass
