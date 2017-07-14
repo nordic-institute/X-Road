@@ -5,10 +5,12 @@ dependencies {
     compile 'wsdl4j:wsdl4j:1.6.3'
 }
 
-clean << {
-    project.delete "vendor/engines/common-ui"
-    project.delete "log/development.log"
-    project.delete "public/javascripts/translations.js"
+clean {
+    doLast {
+        project.delete "vendor/engines/common-ui"
+        project.delete "log/development.log"
+        project.delete "public/javascripts/translations.js"
+    }
 }
 
 task copyCommon(type: Copy) {

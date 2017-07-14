@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id "org.sonarqube" version "2.1-rc3"
+    id "org.sonarqube" version "2.5"
 }
 
 apply plugin: 'idea'
@@ -250,3 +250,8 @@ task clean(type: Delete) {
         fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
     }
 }
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0.1'
+}
+

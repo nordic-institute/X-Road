@@ -23,24 +23,22 @@ task createDirs() {
 }
 
 task xjc {
-    println '---- verifier xjc @ configuration phase'
+    inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
+    outputs.dir project.ext.schemaTargetDir
+
     doLast {
-        println '---- verifier xjc @ execution phase'
         ant.taskdef(name: 'xjc',
                 classname: 'com.sun.tools.xjc.XJCTask',
                 classpath: configurations.xjc.asPath)
         ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
-                schema: 'build/resources/main/ocsp-nextupdate-conf.xsd'
+                schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
         )
-        ant.taskdef(name: 'xjc2',
-                classname: 'com.sun.tools.xjc.XJCTask',
-                classpath: configurations.xjc.asPath)
-        ant.xjc2(
+        ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
-                schema: 'build/resources/main/ocsp-fetchinterval-conf.xsd'
+                schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
         )
     }
 }

@@ -2,12 +2,14 @@ dependencies {
     compile project(':common-ui')
 }
 
-clean << {
-    project.delete "vendor/engines/common-ui"
-    project.delete "vendor/engines/center-common"
-    project.delete "db/migrate"
-    project.delete "log/development.log"
-    project.delete "public/javascripts/translations.js"
+clean {
+    doLast {
+        project.delete "vendor/engines/common-ui"
+        project.delete "vendor/engines/center-common"
+        project.delete "db/migrate"
+        project.delete "log/development.log"
+        project.delete "public/javascripts/translations.js"
+    }
 }
 
 task copyCommon(type: Copy) {
@@ -22,22 +24,24 @@ task copyCommon(type: Copy) {
     include "public/**"
 }
 
-task copyCenterCommon << {
-    copy {
-        into "vendor/engines/center-common"
-        from "../center-common"
-        include "Gemfile"
-        include "Rakefile"
-        include "center-common.gemspec"
-        include "config/"
-        include "lib/**"
-        include "app/**"
-        include "db/**"
-    }
+task copyCenterCommon {
+    doLast {
+        copy {
+            into "vendor/engines/center-common"
+            from "../center-common"
+            include "Gemfile"
+            include "Rakefile"
+            include "center-common.gemspec"
+            include "config/"
+            include "lib/**"
+            include "app/**"
+            include "db/**"
+        }
 
-    copy {
-        into "db/migrate"
-        from "../center-common/db/migrate"
+        copy {
+            into "db/migrate"
+            from "../center-common/db/migrate"
+        }
     }
 }
 

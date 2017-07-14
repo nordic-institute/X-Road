@@ -7,11 +7,13 @@ dependencies {
     testCompile project(':common-util').sourceSets.test.output
 }
 
-clean << {
-    project.delete "vendor/engines/common-ui"
-    project.delete "vendor/engines/center-common"
-    project.delete "log/development.log"
-    project.delete "db"
+clean {
+    doLast {
+        project.delete "vendor/engines/common-ui"
+        project.delete "vendor/engines/center-common"
+        project.delete "log/development.log"
+        project.delete "db"
+    }
 }
 
 task copyCommon(type: Copy) {
@@ -20,16 +22,17 @@ task copyCommon(type: Copy) {
     exclude '**/build/**'
 }
 
-task copyCenterCommon << {
+task copyCenterCommon {
+    doLast {
+        copy {
+            into "vendor/engines/center-common"
+            from "../center-common"
+        }
 
-    copy {
-        into "vendor/engines/center-common"
-        from "../center-common"
-    }
-
-    copy {
-        into "db/migrate"
-        from "../center-common/db/migrate"
+        copy {
+            into "db/migrate"
+            from "../center-common/db/migrate"
+        }
     }
 }
 

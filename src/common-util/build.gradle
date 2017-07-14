@@ -64,6 +64,10 @@ task createDirs() {
 }
 
 task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
     ant.taskdef(name: 'xjc',
         classname: 'com.sun.tools.xjc.XJCTask',
         classpath: configurations.xjc.asPath)
@@ -137,9 +141,13 @@ task xjc() {
         schema: 'src/main/resources/service-metainfo.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
+    }
 }
 
 task make(type: Exec) {
+    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
+    outputs.dir file('../lib')
+
     workingDir '../'
     commandLine 'make'
 }

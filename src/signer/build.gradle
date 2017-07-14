@@ -71,14 +71,19 @@ task createDirs () {
 }
 
 task xjc () {
-    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+    inputs.file file('src/main/resources/*.xsd')
+    outputs.dir project.ext.schemaTargetDir
+    
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
 
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.keyconf',
-        schema: 'src/main/resources/keyconf.xsd',
-        binding: '../common-util/src/main/resources/identifiers-bindings.xml'
-    )
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.keyconf',
+            schema: 'src/main/resources/keyconf.xsd',
+            binding: '../common-util/src/main/resources/identifiers-bindings.xml'
+        )
+    }
 }
 
 // XXX For running several instances side-by-side, do not use the gradle task --
