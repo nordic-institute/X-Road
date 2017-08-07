@@ -1,0 +1,31 @@
+# X-Road UI (CS and SS) user and passwords
+xroad_ui_user: grandmaster
+xroad_ui_user_password: "$6$t4Q.aNMTG8RtjaI0$RIgZejI5rs0RoK.yKy4FrgT0VbaR5z3z/q25pSWifFuEoEdctyhLLLFzEOogOc0SxKQSW/1.pdA9itkqVVudr1" # this can be created with command 'mkpasswd -m sha-512'
+
+# CA settings
+xroad_ca_dn_country: "EE"
+xroad_ca_o: "X-Road Test"
+xroad_ca_ou: "X-Road Test CA OU"
+xroad_ca_cn: "X-Road Test CA CN"
+xroad_ca_ocsp_o: "X-Road Test"
+xroad_ca_ocsp_ou: "X-Road Test OCSP OU"
+xroad_ca_ocsp_cn: "X-Road Test OCSP CN"
+xroad_ca_tsa_o: "X-Road Test"
+xroad_ca_tsa_ou: "X-Road Test TSA OU"
+xroad_ca_tsa_cn: "X-Road Test TSA CN"
+
+# Default username and password are user:secret
+ssh_username: "user"
+ssh_password: "$6$jDACdh9bz0$4gxDiQr2nYvQy/ASfbKoO38lxx0MnTGjSovgIxi.S1cGfpquyDeAZ3oJtCUzmR8i8YX2pslIQpfNYJDJEITC31"
+
+# SoapUI installation (currently unused)
+soapui_download_path: https://b537910400b7ceac4df0-22e92613740a7dd1247910134033c0d1.ssl.cf5.rackcdn.com/soapui/5.3.0/SoapUI-5.3.0-linux-bin.tar.gz
+soapui_install_path: /home/user
+soapui_archive_filename: SoapUI-x64.tar.gz
+
+# Used for xroad-ee-tests
+xroad_ee_tests_git_path: https://github.com/sluhtoja/X-Road-tests.git
+xroad_ee_tests_local_path: /home/jenkins/
+xroad_ee_tests_root: X-Road-tests
+xroad_ee_tests_path: X-Road-tests/common/xrd-automated-tests/
+xroad_mock_path: X-Road-tests/common/xrd-automated-tests/mock/mock_service/

@@ -1,0 +1,10 @@
+---
+soapui_download_path: https://b537910400b7ceac4df0-22e92613740a7dd1247910134033c0d1.ssl.cf5.rackcdn.com/soapui/5.3.0/SoapUI-5.3.0-linux-bin.tar.gz
+soapui_install_path: /home/user
+soapui_archive_filename: SoapUI-x64.tar.gz
+
+xroad_tests_git_path: https://github.com/sluhtoja/X-Road-tests.git
+xroad_tests_target_path: /home/user
+xroad_tests_install_path: /home/user/X-Road-tests/common/xrd-automated-tests/"
+
+xroad_mock_path: /home/user/X-Road-tests/common/xrd-automated-tests/mock/mock_service/

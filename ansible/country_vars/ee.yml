@@ -1,0 +1,2 @@
+ubuntu_apt_key: "http://xtee1.ci.kit/xmdev/repo.gpg"
+ubuntu_apt_repo: "deb http://xtee1.ci.kit/xmdev/ /"

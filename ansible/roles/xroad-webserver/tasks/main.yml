@@ -1,0 +1,81 @@
+- name: show OS version
+  debug:
+    msg: "OS = {{ ansible_os_family }} "
+
+- name: check that OS = Redhat
+  fail:
+    msg: "This playbook only supports Ubuntu"
+  when: ansible_os_family != "Debian"
+
+- name: nginx-light
+  apt: name=nginx-light state=present
+
+- name: sshd
+  apt: name=openssh-server state=present
+
+- name: git
+  apt: name=git state=present
+
+- name: copy root user directories
+  copy:
+    src: files/{{ item }}
+    dest: /
+    group: "root"
+    owner: "root"
+  with_items:
+#    - "root"
+    - "etc"
+    - "usr"
+
+#- name: set file permissions
+#  file:
+#    mode: 0755
+#    path: "/root/install-scripts/{{ item }}"
+#  with_items:
+#    - "install_config.sh"
+#    - "install_xroad_ee_tests.sh"
+
+- name: restart nginx
+  service:
+    name: nginx
+    state: restarted
+
+# Default password for user is: secret
+- user:
+    name: user
+    password: $6$jDACdh9bz0$4gxDiQr2nYvQy/ASfbKoO38lxx0MnTGjSovgIxi.S1cGfpquyDeAZ3oJtCUzmR8i8YX2pslIQpfNYJDJEITC31
+
+- name: Create 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
+- name: Add sudoers users to wheel group
+  user:
+    name: "{{ item }}"
+    groups: wheel
+    append: yes
+  with_items:
+    - user
+
+- name: download X-Road EE tests
+  shell: git clone {{ xroad_tests_git_path }}
+  args:
+    chdir: /root/
+
+- name: copy WSDL files to nginx directory
+  shell: cp -R /root/X-Road-tests/common/xrd-automated-tests/mock/service_wsdl/* /usr/share/nginx/html/www/
+
+- name: chmod WSDL files
+  shell: chmod 755 -R /usr/share/nginx/html/www/*
+  
+- name: chown WSDL files
+  shell: chown user:user -R /usr/share/nginx/html/www/*
