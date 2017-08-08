@@ -23,17 +23,8 @@
     group: "root"
     owner: "root"
   with_items:
-#    - "root"
     - "etc"
     - "usr"
-
-#- name: set file permissions
-#  file:
-#    mode: 0755
-#    path: "/root/install-scripts/{{ item }}"
-#  with_items:
-#    - "install_config.sh"
-#    - "install_xroad_ee_tests.sh"
 
 - name: restart nginx
   service:
@@ -42,8 +33,8 @@
 
 # Default password for user is: secret
 - user:
-    name: user
-    password: $6$jDACdh9bz0$4gxDiQr2nYvQy/ASfbKoO38lxx0MnTGjSovgIxi.S1cGfpquyDeAZ3oJtCUzmR8i8YX2pslIQpfNYJDJEITC31
+    name: "{{ ssh_username }}"
+    password: "{{ ssh_password }}"
 
 - name: Create 'wheel' group
   group:
@@ -66,13 +57,13 @@
   with_items:
     - user
 
-- name: download X-Road EE tests
-  shell: git clone {{ xroad_tests_git_path }}
+- name: download X-Road Python tests
+  shell: git clone {{ xroad_python_tests_git_path }}
   args:
     chdir: /root/
 
 - name: copy WSDL files to nginx directory
-  shell: cp -R /root/X-Road-tests/common/xrd-automated-tests/mock/service_wsdl/* /usr/share/nginx/html/www/
+  shell: cp -R /root/{{ xroad_mock_wsdl_path }}* /usr/share/nginx/html/www/
 
 - name: chmod WSDL files
   shell: chmod 755 -R /usr/share/nginx/html/www/*

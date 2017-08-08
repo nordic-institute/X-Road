@@ -7,7 +7,6 @@
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
 
-# Default password for user is: secret
 - user:
     name: "{{ ssh_username }}"
     password: "{{ ssh_password }}"
