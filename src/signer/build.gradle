@@ -1,6 +1,8 @@
 plugins {
-    id "eu.appsatori.fatjar" version "0.3"
+  id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
+
+apply plugin: 'application'
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
@@ -46,25 +48,18 @@ dependencies {
 //    testsuiteRuntime.extendsFrom testRuntime
 //}
 
-fatJarPrepareFiles {
-    include '*'
-}
 
-fatJar {
-    exclude "META-INF/*.SF"
-    exclude "META-INF/*.DSA"
-    exclude "META-INF/*.RSA"
+mainClassName = 'ee.ria.xroad.signer.SignerMain'
 
-    manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
-    }
-
-    from rootProject.file('LICENSE.txt')
+shadowJar {
+    classifier = ''
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
 }
 
 jar.enabled = false
-build.dependsOn fatJar
-buildall.dependsOn fatJar
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
 
 task createDirs () {
     project.ext.schemaTargetDir.mkdirs()
@@ -73,7 +68,7 @@ task createDirs () {
 task xjc () {
     inputs.file file('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
-    
+
     doLast {
         ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
 

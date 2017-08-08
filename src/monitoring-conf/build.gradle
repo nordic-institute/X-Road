@@ -15,8 +15,8 @@ dependencies {
     compile project(':common-util')
     compile project(':common-verifier')
 
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
 }
 
 task createDirs() {
@@ -24,9 +24,10 @@ task createDirs() {
 }
 
 task xjc {
-    println '---- monitoring xjc @ configuration phase'
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
     doLast {
-        println '---- monitoring xjc @ execution phase'
         ant.taskdef(name: 'xjc',
                 classname: 'com.sun.tools.xjc.XJCTask',
                 classpath: configurations.xjc.asPath)

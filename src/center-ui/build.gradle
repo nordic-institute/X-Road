@@ -90,6 +90,8 @@ task runPgHaTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
 }
 
 task checkRubySource(type: Exec) {
+    inputs.files fileTree('app') + fileTree('lib')
+    outputs.files file('build/rubocop_report.txt')
     commandLine = getRubySourceCheckCommand("$projectDir")
 }
 

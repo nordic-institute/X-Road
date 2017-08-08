@@ -11,8 +11,8 @@ sourceSets {
 }
 
 dependencies {
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
 
 task createDirs() {
@@ -20,17 +20,22 @@ task createDirs() {
 }
 
 task xjc() {
-    ant.taskdef(name: 'xjc',
-            classname: 'com.sun.tools.xjc.XJCTask',
-            classpath: configurations.xjc.asPath)
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
 
-    // Generate classes for identifiers
-    ant.xjc(
-            destdir: project.ext.schemaTargetDir,
-            package: 'ee.ria.xroad.proxymonitor.message',
-            schema: 'src/main/resources/monitoring.xsd',
-            binding: 'src/main/resources/jaxb-bindings.xml'
-    )
+    doLast {
+        ant.taskdef(name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+
+        // Generate classes for identifiers
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.proxymonitor.message',
+                schema: 'src/main/resources/monitoring.xsd',
+                binding: 'src/main/resources/jaxb-bindings.xml'
+        )
+    }
 
 }
 
