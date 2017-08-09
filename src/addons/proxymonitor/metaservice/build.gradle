@@ -28,7 +28,9 @@ dependencies {
 }
 
 task createDirs() {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {

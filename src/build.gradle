@@ -176,6 +176,7 @@ subprojects {
     checkstyle {
         toolVersion = "6.19"
         configFile = new File(rootDir, "checkstyle.xml")
+        //configDir is still an incubating feature in gradle 4
         //configDir = rootDir
         configProperties.config_loc = "$rootDir"
         ignoreFailures = false
@@ -262,5 +263,5 @@ task clean(type: Delete) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0.2'
+    gradleVersion = '4.1'
 }

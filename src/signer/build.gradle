@@ -62,7 +62,9 @@ build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
 task createDirs () {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc () {

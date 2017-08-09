@@ -20,7 +20,9 @@ dependencies {
 }
 
 task createDirs() {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc {
