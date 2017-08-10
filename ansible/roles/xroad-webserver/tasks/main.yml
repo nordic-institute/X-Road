@@ -57,6 +57,17 @@
   with_items:
     - user
 
+- name: check if git repository has already been downloaded
+  stat: path="/root/{{ xroad_python_tests_root }}"
+  register: git_repo
+  ignore_errors: True
+
+- name: Remove git repository if it exists
+  file:
+    state: absent
+    path: "/root/{{ xroad_python_tests_root }}"
+  when: git_repo.stat.exists
+
 - name: download X-Road Python tests
   shell: git clone {{ xroad_python_tests_git_path }}
   args:
