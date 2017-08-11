@@ -40,16 +40,24 @@ import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import javax.xml.soap.*;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Service handler for proxy monitoring
@@ -58,6 +66,7 @@ import java.util.Collections;
 public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";
+    public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
 
     private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
@@ -100,6 +109,12 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     public void startHandling(HttpServletRequest servletRequest,
             ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
             OpMonitoringData opMonitoringData) throws Exception {
+
+
+
+        log.info("Start handling xml:\n " + proxyRequestMessage.getSoap().getXml());
+
+
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
         // requestInTs and the responseInTs must be equal with the
@@ -123,11 +138,48 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         root.getMetrics().add(version);
 
         if (client != null) {
-            root.getMetrics().add(client.getMetrics());
+            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage)));
         }
 
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
         responseEncoder.soap(result, Collections.emptyMap());
+    }
+
+    /**
+     * Read requested monitoring parameter names from SOAP body. Returns empty list if no explicit metric names defined.
+     *
+     * @param proxyRequestMessage
+     * @return
+     */
+    private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws Exception {
+
+        List<String> metricNames = new ArrayList<>();
+
+        Document doc = parse(proxyRequestMessage);
+        NodeList nl = doc.getElementsByTagName(MONITOR_REQ_PARAM_NODE_NAME);
+
+        for (int i = 0; i < nl.getLength(); i++) {
+            Node n = nl.item(i);
+            String val = n.getFirstChild().getNodeValue();
+            metricNames.add(val);
+            log.info("SOAP body element: " + val);
+        }
+        return metricNames;
+    }
+
+    /**
+     * Create XML DOM representation from input stream.
+     *
+     * @param proxyRequestMessage
+     * @return
+     * @throws Exception
+     */
+    private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        Document doc = db.parse(proxyRequestMessage.getSoapContent());
+        return doc;
     }
 
     @Override

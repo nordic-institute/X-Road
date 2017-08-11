@@ -54,7 +54,10 @@ public class MetricsProviderActor extends UntypedActor {
     public void onReceive(Object o) throws Exception {
 
         if (o instanceof SystemMetricsRequest) {
-            log.info("received SystemMetricsRequest");
+
+            SystemMetricsRequest req = (SystemMetricsRequest) o;
+            log.info("received SystemMetricsRequest:\n" + req);
+
             MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
             final MetricSetDto.Builder builder = new MetricSetDto.Builder("systemMetrics");
 

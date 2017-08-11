@@ -104,7 +104,6 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     public void onReceive(final Object message) {
-
         if (MEASURE_MESSAGE == message) {
             if (agent == null) {
                 identifyAgent();

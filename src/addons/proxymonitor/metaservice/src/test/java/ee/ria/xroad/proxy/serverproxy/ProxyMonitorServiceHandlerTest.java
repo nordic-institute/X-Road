@@ -65,6 +65,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -78,6 +79,7 @@ import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -209,7 +211,7 @@ public class ProxyMonitorServiceHandlerTest {
 
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
-        // the allowed monitoring client from test resources monitoring params
+        // the allowed monitoring client from test resources monitoring metricNames
         final ClientId allowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 "producer");
 
@@ -231,7 +233,7 @@ public class ProxyMonitorServiceHandlerTest {
 
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
-        // the allowed monitoring client from test resources monitoring params
+        // the allowed monitoring client from test resources monitoring metricNames
         final ClientId nonAllowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "COM",
                 "justSomeClient");
 
@@ -262,6 +264,9 @@ public class ProxyMonitorServiceHandlerTest {
                 "testUser", randomUUID().toString());
 
         when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
+        when(mockProxyMessage.getSoapContent()).thenReturn(
+                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
+
 
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
@@ -281,7 +286,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics()).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(anyList())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -342,7 +347,11 @@ public class ProxyMonitorServiceHandlerTest {
                 randomUUID().toString(),
                 new MetricsQueryBuilder(Arrays.asList("proxyVersion", "CommittedVirtualMemory", "DiskSpaceFree")));
 
+
         when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
+        when(mockProxyMessage.getSoapContent()).thenReturn(
+                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
+
 
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
@@ -362,7 +371,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics()).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 

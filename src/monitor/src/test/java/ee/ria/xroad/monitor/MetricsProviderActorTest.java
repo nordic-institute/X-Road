@@ -82,7 +82,7 @@ public class MetricsProviderActorTest {
     public void testSystemMetricsRequest() throws Exception {
         final Props props = Props.create(MetricsProviderActor.class);
         final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
-        Future<Object> future = Patterns.ask(ref, new SystemMetricsRequest(), Timeout.apply(1, TimeUnit.MINUTES));
+        Future<Object> future = Patterns.ask(ref, new SystemMetricsRequest(null), Timeout.apply(1, TimeUnit.MINUTES));
         Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
         assertTrue(future.isCompleted());
         assertTrue(result instanceof SystemMetricsResponse);
