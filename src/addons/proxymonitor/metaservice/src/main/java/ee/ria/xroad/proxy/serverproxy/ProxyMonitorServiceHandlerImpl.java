@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import com.google.gson.*;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
@@ -51,10 +52,11 @@ import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import javax.xml.soap.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +69,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";
     public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
+    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 
     private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
@@ -75,6 +78,29 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
             new ByteArrayOutputStream();
 
     private SoapMessageEncoder responseEncoder;
+
+
+    /**
+     * x
+     */
+    public static class ClassTypeAdapter implements JsonSerializer<Class<?>>, JsonDeserializer<Class<?>> {
+
+        @Override
+        public JsonElement serialize(Class<?> src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.getName());
+        }
+
+        @Override
+        public Class<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            try {
+                return Class.forName(json.getAsString());
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -107,13 +133,11 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
+                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                              OpMonitoringData opMonitoringData) throws Exception {
 
-
-
+        //TODO
         log.info("Start handling xml:\n " + proxyRequestMessage.getSoap().getXml());
-
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -152,17 +176,17 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
      * @return
      */
     private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws Exception {
-
         List<String> metricNames = new ArrayList<>();
 
         Document doc = parse(proxyRequestMessage);
-        NodeList nl = doc.getElementsByTagName(MONITOR_REQ_PARAM_NODE_NAME);
+        NodeList nl = doc.getElementsByTagNameNS(NS_MONITORING, MONITOR_REQ_PARAM_NODE_NAME);
+        log.info("nl length: " + nl.getLength());
 
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
             String val = n.getFirstChild().getNodeValue();
             metricNames.add(val);
-            log.info("SOAP body element: " + val);
+            log.info("Output field name: " + val);
         }
         return metricNames;
     }
@@ -178,8 +202,12 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
-        Document doc = db.parse(proxyRequestMessage.getSoapContent());
-        return doc;
+
+        byte[] bytes = proxyRequestMessage.getSoap().getBytes();
+        log.info("bytes length: " + bytes.length);
+        log.info("bytes:\n" + new String(bytes, proxyRequestMessage.getSoap().getCharset()));
+
+        return db.parse(new ByteArrayInputStream(bytes));
     }
 
     @Override

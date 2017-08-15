@@ -35,7 +35,7 @@ import java.util.List;
  */
 public class MetricsQueryBuilder implements SoapBuilder.SoapBodyCallback {
 
-    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring.xsd";
+    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 
     List<String> metricNames;
 

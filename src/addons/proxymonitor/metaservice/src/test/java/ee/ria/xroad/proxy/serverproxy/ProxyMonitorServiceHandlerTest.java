@@ -90,8 +90,6 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @PrepareForTest(MonitorClient.class)
 public class ProxyMonitorServiceHandlerTest {
 
-    //TODO to SoapHeader as in NS_XROAD?
-    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring.xsd";
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final ClientId DEFAULT_OWNER_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
