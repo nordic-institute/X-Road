@@ -35,6 +35,7 @@ import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +53,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * MetricsProviderActorTest
  */
+@Slf4j
 public class MetricsProviderActorTest {
 
     private static ActorSystem actorSystem;
@@ -107,7 +109,7 @@ public class MetricsProviderActorTest {
 
         Future<Object> future = Patterns.ask(
                 ref,
-                new SystemMetricsRequest(Arrays.asList("SystemCpuLoad", "FreeSwapSpace")),
+                new SystemMetricsRequest(Arrays.asList("testHistogram")),
                 Timeout.apply(1, TimeUnit.MINUTES));
 
         Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
@@ -118,6 +120,7 @@ public class MetricsProviderActorTest {
         Set<MetricDto> dtoSet = metricSetDto.getMetrics();
         assertEquals(1, dtoSet.stream().count());
         MetricDto metricDto = dtoSet.stream().findFirst().get();
+        log.info("metricSetDto: " + metricSetDto);
         assertEquals(metricDto.getName(), "testHistogram");
         assertTrue(metricDto instanceof HistogramDto);
         HistogramDto h = (HistogramDto) metricDto;
