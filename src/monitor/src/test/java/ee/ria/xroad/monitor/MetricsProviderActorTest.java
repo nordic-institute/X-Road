@@ -42,6 +42,7 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -94,7 +95,33 @@ public class MetricsProviderActorTest {
         assertEquals(metricDto.getName(), "testHistogram");
         assertTrue(metricDto instanceof HistogramDto);
         HistogramDto h = (HistogramDto) metricDto;
-        assertEquals(100L, (long)h.getMax());
+        assertEquals(100L, (long) h.getMax());
+        assertEquals(10L, (long) h.getMin());
+        assertEquals(55L, (long) h.getMean());
+    }
+
+    @Test
+    public void testParametrizedSystemMetricsRequest() throws Exception {
+        final Props props = Props.create(MetricsProviderActor.class);
+        final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
+
+        Future<Object> future = Patterns.ask(
+                ref,
+                new SystemMetricsRequest(Arrays.asList("SystemCpuLoad", "FreeSwapSpace")),
+                Timeout.apply(1, TimeUnit.MINUTES));
+
+        Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
+        assertTrue(future.isCompleted());
+        assertTrue(result instanceof SystemMetricsResponse);
+        SystemMetricsResponse response = (SystemMetricsResponse) result;
+        MetricSetDto metricSetDto = response.getMetrics();
+        Set<MetricDto> dtoSet = metricSetDto.getMetrics();
+        assertEquals(1, dtoSet.stream().count());
+        MetricDto metricDto = dtoSet.stream().findFirst().get();
+        assertEquals(metricDto.getName(), "testHistogram");
+        assertTrue(metricDto instanceof HistogramDto);
+        HistogramDto h = (HistogramDto) metricDto;
+        assertEquals(100L, (long) h.getMax());
         assertEquals(10L, (long) h.getMin());
         assertEquals(55L, (long) h.getMean());
     }
