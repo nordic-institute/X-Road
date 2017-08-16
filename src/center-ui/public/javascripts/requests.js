@@ -134,11 +134,13 @@ var XROAD_REQUESTS = function() {
 
     function openRequestDetails() {
         var request = oManagementRequests.getFocusData();
-        var updateTablesCallback = function() {
-            updateTable();
-        }
+        if (request && request.hasOwnProperty("id")) {
+            var updateTablesCallback = function() {
+                updateTable();
+            }
 
-        XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
+            XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
+        }
     }
 
     function getTranslatedRequestType(rawRequestType) {
@@ -152,19 +154,20 @@ var XROAD_REQUESTS = function() {
         focusInput();
         createTranslationAndValueMappings();
 
-        $("#management_requests_all tbody td[class!=dataTables_empty]")
-                .live("click",function(ev) {
+        var requestsTable = $("#management_requests_all");
+        var requestDetailsButton = $("#request_details");
+
+        requestsTable.on("click", "tbody tr", function(ev) {
             if (oManagementRequests.setFocus(0, ev.target.parentNode)) {
                 $(".request-action").enable();
             }
         });
 
-        $("#management_requests_all tbody tr[class!=dataTables_empty]")
-                .live("dblclick", function() {
-            openRequestDetails();
+        requestsTable.on("dblclick", "tbody tr", function() {
+            requestDetailsButton.click();
         });
 
-        $("#request_details").click(function() {
+        requestDetailsButton.click(function() {
             openRequestDetails();
         });
     });

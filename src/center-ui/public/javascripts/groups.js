@@ -86,19 +86,25 @@ var XROAD_GROUPS = function() {
         enableActions();
         focusInput();
 
-        $("#global_groups tbody td").live("click", function(ev) {
+        var groupTable = $("#global_groups");
+        var groupDetailsButton = $("#group_details");
+
+        groupTable.on("click", "tbody tr", function(ev) {
             if (oGlobalGroups.setFocus(0, ev.target.parentNode) &&
-                    $("#add_group_form:visible").length == 0) {
+                    $("#add_group_form:visible").length === 0) {
                 $(".group-action").enable();
             }
         });
 
-        $("#global_groups tbody tr").live("dblclick", function() {
-            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
+        groupTable.on("dblclick", "tbody tr", function() {
+            groupDetailsButton.click();
         });
 
-        $("#group_details").click(function() {
-            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
+        groupDetailsButton.click(function() {
+            var itemData = oGlobalGroups.getFocusData();
+            if (itemData && itemData.hasOwnProperty("id")) {
+                XROAD_GROUP_EDIT.open(itemData);
+            }
         });
 
         $("#group_add_dialog").initDialog({

@@ -17,22 +17,26 @@ var XROAD_TSPS = function() {
         opts.fnDrawCallback = function() {
             XROAD_CENTERUI_COMMON.updateRecordsCount("tsps");
             enableActions();
-        }
+        };
 
         opts.bScrollInfinite = true;
         opts.sAjaxSource = action("tsps_refresh");
 
         opts.aaSorting = [ [2,'desc'] ];
 
-        oTsps = $('#tsps').dataTable(opts);
+        var tspsTable = $("#tsps");
+
+        oTsps = tspsTable.dataTable(opts);
         oTsps.fnSetFilteringDelay(600);
 
-        $("#tsps tbody tr").live("click", function(ev) {
+
+
+        tspsTable.on("click", "tbody tr", function(ev) {
             oTsps.setFocus(0, this);
             enableActions();
         });
 
-        $("#tsps tbody tr").live("dblclick", function(ev) {
+        tspsTable.on("dblclick", "tbody tr", function(ev) {
             $("#tsp_details").click();
         });
     }
@@ -59,13 +63,15 @@ var XROAD_TSPS = function() {
             }
 
             var selected = oTsps.getFocusData();
-            var params = {
-                tsp_id: selected.id
-            };
+            if (selected && selected.hasOwnProperty("id")) {
+                var params = {
+                    tsp_id: selected.id
+                };
 
-            XROAD_URL_AND_CERT_DIALOG.openEditDialog(
-                "tsp", _("tsps.edit_existing"), false,
-                selected.url, true, params);
+                XROAD_URL_AND_CERT_DIALOG.openEditDialog(
+                    "tsp", _("tsps.edit_existing"), false,
+                    selected.url, true, params);
+            }
         });
 
         $("#tsp_delete").click(function() {

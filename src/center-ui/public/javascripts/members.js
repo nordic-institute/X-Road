@@ -90,14 +90,6 @@ var XROAD_MEMBERS = function() {
         enableActions();
         focusInput();
 
-        $("#members tbody td[class!=dataTables_empty]").live("click",
-                function(ev) {
-            if (oMembers.setFocus(0, ev.target.parentNode) &&
-                    $("#add_form:visible").length == 0) {
-                $(".member-action").enable();
-            }
-        });
-
         $("#add").ajaxError(function(ev, xhr) {
             $("#save_ok, #save_cancel").enable();
             $("#fullName, #shortName").removeAttr("readonly");
@@ -127,19 +119,24 @@ var XROAD_MEMBERS = function() {
             $("#member_add_dialog").dialog("open");
         });
 
-        $("#members tbody tr").live("dblclick", function() {
-            XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
+        var membersTable = $("#members");
+
+        membersTable.on("dblclick", "tbody tr", function() {
+            $("#member_details").click();
         });
 
-        $("#members tbody td").live("click", function(ev) {
+        membersTable.on("click", "tbody tr", function(ev) {
             if (oMembers.setFocus(0, ev.target.parentNode) &&
-                $("#add_form:visible").length == 0) {
+                $("#add_form:visible").length === 0) {
                 $(".member-action").enable();
             }
         });
 
         $("#member_details").click(function() {
-            XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
+            var itemData = oMembers.getFocusData();
+            if (itemData && itemData.hasOwnProperty("id")) {
+                XROAD_MEMBER_EDIT.open(itemData);
+            }
         });
         initTestability();
     });
