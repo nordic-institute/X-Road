@@ -78,15 +78,12 @@ var XROAD_CENTRAL_SERVICES = function () {
             }
         });
 
-        servicesTable.on("dblclick", "tbody tr", function() {
+        servicesTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             serviceDetailsButton.click();
         });
 
         serviceDetailsButton.click(function() {
-            var itemData = oCentralServices.getFocusData();
-            if (itemData && itemData.hasOwnProperty("central_service_code")) {
-                XROAD_CENTRAL_SERVICE_EDIT.open(itemData);
-            }
+            XROAD_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
         });
 
         $("#central_service_add").click(function() {

@@ -55,10 +55,10 @@
             }
         });
 
-        oMemberSearch.unbind("dblclick")
-                .on("dblclick", "tbody tr", function(ev) {
+        oMemberSearch.off("dblclick")
+                .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_search_dialog").dialog("close");
-            onSuccess(oMemberSearch.fnGetData(this));
+            onSuccess(oMemberSearch.getFocusData());
         });
     }
 

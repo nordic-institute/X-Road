@@ -64,15 +64,12 @@ var XROAD_SECURITYSERVERS = function() {
             }
         });
 
-        serversTable.on("dblclick", "tbody tr", function() {
+        serversTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#securityserver_edit").click();
         });
 
         $("#securityserver_edit").click(function() {
-            var itemData = oSecurityServers.getFocusData();
-            if (itemData && itemData.hasOwnProperty("owner_name")) {
-                XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
-            }
+            XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
         });
     });
 

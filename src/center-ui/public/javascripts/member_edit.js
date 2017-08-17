@@ -496,7 +496,7 @@ var XROAD_MEMBER_EDIT = function() {
             }
         });
 
-        oAddableUsedServers.unbind("dblclick")
+        oAddableUsedServers.off("dblclick")
                 .on( "dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_securityserver_search_select").click();
         });

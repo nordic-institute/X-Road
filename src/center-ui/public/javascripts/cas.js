@@ -48,7 +48,7 @@ var XROAD_CAS = function() {
             enableActions();
         });
 
-        casTable.on("dblclick", "tbody tr", function() {
+        casTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             caDetailsButton.click();
         });
 
@@ -56,12 +56,8 @@ var XROAD_CAS = function() {
             XROAD_APPROVED_CA_DIALOG.openAddDialog();
         });
 
-        $("#ca_details").click(function() {
-            var itemData = cas.getFocusData();
-            if (itemData && itemData.hasOwnProperty("id")) {
-                XROAD_APPROVED_CA_DIALOG.openEditDialog(itemData);
-            }
-
+        caDetailsButton.click(function() {
+            XROAD_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
         });
 
         $("#ca_delete").click(function() {

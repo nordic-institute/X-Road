@@ -134,13 +134,10 @@ var XROAD_REQUESTS = function() {
 
     function openRequestDetails() {
         var request = oManagementRequests.getFocusData();
-        if (request && request.hasOwnProperty("id")) {
-            var updateTablesCallback = function() {
-                updateTable();
-            }
-
-            XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
-        }
+        var updateTablesCallback = function() {
+            updateTable();
+        };
+        XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
     }
 
     function getTranslatedRequestType(rawRequestType) {
@@ -163,7 +160,7 @@ var XROAD_REQUESTS = function() {
             }
         });
 
-        requestsTable.on("dblclick", "tbody tr", function() {
+        requestsTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             requestDetailsButton.click();
         });
 

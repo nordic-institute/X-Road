@@ -121,7 +121,7 @@ var XROAD_MEMBERS = function() {
 
         var membersTable = $("#members");
 
-        membersTable.on("dblclick", "tbody tr", function() {
+        membersTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_details").click();
         });
 
@@ -133,10 +133,7 @@ var XROAD_MEMBERS = function() {
         });
 
         $("#member_details").click(function() {
-            var itemData = oMembers.getFocusData();
-            if (itemData && itemData.hasOwnProperty("id")) {
-                XROAD_MEMBER_EDIT.open(itemData);
-            }
+            XROAD_MEMBER_EDIT.open(oMembers.getFocusData());
         });
         initTestability();
     });

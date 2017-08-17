@@ -36,7 +36,7 @@ var XROAD_TSPS = function() {
             enableActions();
         });
 
-        tspsTable.on("dblclick", "tbody tr", function(ev) {
+        tspsTable.on("dblclick", "tbody td[class!=dataTables_empty]", function(ev) {
             $("#tsp_details").click();
         });
     }
@@ -61,17 +61,14 @@ var XROAD_TSPS = function() {
             if (!can("view_approved_tsa_details")) {
                 return;
             }
-
             var selected = oTsps.getFocusData();
-            if (selected && selected.hasOwnProperty("id")) {
-                var params = {
-                    tsp_id: selected.id
-                };
+            var params = {
+                tsp_id: selected.id
+            };
 
-                XROAD_URL_AND_CERT_DIALOG.openEditDialog(
-                    "tsp", _("tsps.edit_existing"), false,
-                    selected.url, true, params);
-            }
+            XROAD_URL_AND_CERT_DIALOG.openEditDialog(
+                "tsp", _("tsps.edit_existing"), false,
+                selected.url, true, params);
         });
 
         $("#tsp_delete").click(function() {

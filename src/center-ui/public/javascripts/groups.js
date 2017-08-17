@@ -96,15 +96,12 @@ var XROAD_GROUPS = function() {
             }
         });
 
-        groupTable.on("dblclick", "tbody tr", function() {
+        groupTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             groupDetailsButton.click();
         });
 
         groupDetailsButton.click(function() {
-            var itemData = oGlobalGroups.getFocusData();
-            if (itemData && itemData.hasOwnProperty("id")) {
-                XROAD_GROUP_EDIT.open(itemData);
-            }
+            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
         });
 
         $("#group_add_dialog").initDialog({
