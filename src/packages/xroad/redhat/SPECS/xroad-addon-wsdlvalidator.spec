@@ -24,16 +24,8 @@ Addon for wsdl validation
 %build
 
 %install
-mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/bin/
-mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/doc/
-mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/etc/
-mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
-mkdir -p %{buildroot}/usr/share/xroad/wsdlvalidator/licenses/
-cp -a %{src}/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/bin/* %{buildroot}/usr/share/xroad/wsdlvalidator/bin/
-cp -a %{src}/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/doc/* %{buildroot}/usr/share/xroad/wsdlvalidator/doc/
-cp -a %{src}/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/etc/* %{buildroot}/usr/share/xroad/wsdlvalidator/etc/
-cp -a %{src}/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/jlib/* %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
-cp -a %{src}/addon/wsdlvalidator/usr/share/xroad/wsdlvalidator/licenses/* %{buildroot}/usr/share/xroad/wsdlvalidator/licenses/
+cp -a %{src}/addon/wsdlvalidator/usr %{buildroot}
+cp %{src}/../../addons/wsdlvalidator/build/libs/wsdlvalidator-1.0.jar %{buildroot}/usr/share/xroad/wsdlvalidator/jlib/
 
 %clean
 rm -rf %{buildroot}
@@ -42,7 +34,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /usr/share/xroad/wsdlvalidator
 %attr(755,root,root) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator
-%attr(755,root,root) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
+%attr(750,root,xroad) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 
 %post
 crudini --set /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
