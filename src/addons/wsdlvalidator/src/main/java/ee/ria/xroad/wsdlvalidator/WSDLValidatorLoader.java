@@ -47,7 +47,6 @@ import java.security.cert.X509Certificate;
  * <li>ee.ria.xroad.internalKeyStore</li>
  * <li>ee.ria.xroad.internalKeyStorePassword</li>
  * </ul>
- * The password can be alternatively passed via an environment variable with the same name as the system property.
  *
  * @see org.apache.cxf.tools.validator.WSDLValidator
  */
