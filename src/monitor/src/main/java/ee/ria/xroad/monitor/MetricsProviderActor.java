@@ -132,13 +132,11 @@ public class MetricsProviderActor extends UntypedActor {
         JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
         for (CertificateMonitoringInfo cert: c.getDtoData()) {
-            MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getId());
-            certBuilder.withMetric(new SimpleMetricDto<>("id", cert.getId()));
-            certBuilder.withMetric(new SimpleMetricDto<>("subjectDN", cert.getSubject()));
-            certBuilder.withMetric(new SimpleMetricDto<>("issuerDN", cert.getIssuer()));
-            certBuilder.withMetric(new SimpleMetricDto<>("status", cert.getStatus()));
+            MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getSha1hash());
+            certBuilder.withMetric(new SimpleMetricDto<>("sha1Hash", cert.getSha1hash()));
             certBuilder.withMetric(new SimpleMetricDto<>("notBefore", cert.getNotBefore()));
             certBuilder.withMetric(new SimpleMetricDto<>("notAfter", cert.getNotAfter()));
+            certBuilder.withMetric(new SimpleMetricDto<>("certificateType", cert.getType().name()));
             MetricSetDto certDto = certBuilder.build();
             mainBuilder.withMetric(certDto);
         }

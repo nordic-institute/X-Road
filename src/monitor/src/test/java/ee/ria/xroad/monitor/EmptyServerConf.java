@@ -20,12 +20,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.testsuite;
+package ee.ria.xroad.monitor;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -43,8 +42,6 @@ import static java.util.Collections.emptySet;
  * can extend this class and override only the more interesting methods.
  */
 public class EmptyServerConf implements ServerConfProvider {
-
-    private static final int SERVICE_TIMEOUT = 300;
 
     @Override
     public boolean serviceExists(ServiceId service) {
@@ -78,7 +75,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public int getServiceTimeout(ServiceId service) {
-        return SERVICE_TIMEOUT;
+        return 300;
     }
 
     @Override
@@ -129,7 +126,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public String getMemberStatus(ClientId memberId) {
-        return ClientType.STATUS_REGISTERED;
+        return null;
     }
 
 }

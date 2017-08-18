@@ -20,30 +20,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor;
+package ee.ria.xroad.common.conf.serverconf.dao;
 
-import lombok.*;
+import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
+import org.hibernate.Session;
+
+import java.util.List;
 
 /**
- * Created by janne on 11.5.2017.
+ * Certificate data access object implementation.
  */
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@ToString
-public class CertificateMonitoringInfo {
-    private CertificateType type;
-    private String sha1hash;
-    private String notBefore;
-    private String notAfter;
+public class CertificateDAOImpl extends AbstractDAOImpl<CertificateType> {
 
-    /**
-     * The type of the Certificate
-     */
-    public enum CertificateType {
-        AUTH_OR_SIGN,
-        SECURITY_SERVER_TLS,
-        INTERNAL_IS_CLIENT_TLS
+    public List<CertificateType> findAll(Session session) {
+        return findAll(session, CertificateType.class);
     }
+
 }
