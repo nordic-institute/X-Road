@@ -37,12 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -155,22 +150,14 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     static class InternalTlsExtractor implements CertificateInfoExtractor {
 
-        private static final String CERT_LOCATION = "/etc/xroad/ssl/internal.crt";
-
         @Override
         public List<X509Certificate> getCertificates() {
 
-            Path certPath = Paths.get(CERT_LOCATION);
-
-            if (Files.exists(certPath)) {
-                try (InputStream inputStream = Files.newInputStream(certPath)) {
-                    return Collections.singletonList(CryptoUtils.readCertificate(inputStream));
-                } catch (IOException e) {
-                    log.error("Failed to open internal TLS certificate", e);
-
-                }
+            try {
+                return Collections.singletonList(ServerConf.getSSLKey().getCert());
+            } catch (Exception e) {
+                return Collections.emptyList();
             }
-            return Collections.emptyList();
         }
 
     }
