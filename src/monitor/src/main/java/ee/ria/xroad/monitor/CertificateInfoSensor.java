@@ -140,7 +140,8 @@ public class CertificateInfoSensor extends AbstractSensor {
 
         ArrayList<CertificateMonitoringInfo> dtoRepresentation = new ArrayList<>();
 
-        for (CertificateMonitoringInfo certInfo : certificateInfoCollector.extractToList()) {
+        // we filter out the same certificates here or JMX will have duplicates but the metrics xml will not
+        for (CertificateMonitoringInfo certInfo : certificateInfoCollector.extractToSet()) {
             dtoRepresentation.add(certInfo);
             jmxRepresentation.add(getJxmRepresentationFrom(certInfo));
         }
@@ -195,10 +196,10 @@ public class CertificateInfoSensor extends AbstractSensor {
             return this;
         }
 
-        List<CertificateMonitoringInfo> extractToList() {
+        Set<CertificateMonitoringInfo> extractToSet() {
             return extractors.entrySet().stream()
                     .flatMap((entry -> extractNonEmptyCertsAsStreamFrom(entry.getValue(), entry.getKey())))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
         }
 
         private Stream<CertificateMonitoringInfo> extractNonEmptyCertsAsStreamFrom(CertificateInfoExtractor extractor,

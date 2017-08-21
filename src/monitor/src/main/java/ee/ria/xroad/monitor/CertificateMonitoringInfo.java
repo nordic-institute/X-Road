@@ -32,6 +32,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@EqualsAndHashCode
 public class CertificateMonitoringInfo {
     private CertificateType type;
     private String sha1hash;
