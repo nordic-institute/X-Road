@@ -61,7 +61,7 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     // give signer some time to become available
     private static final FiniteDuration INITIAL_DELAY = Duration.create(10, TimeUnit.SECONDS);
-    private static final String JMX_HEADER = "ID\tISSUER\tSUBJECT\tNOT BEFORE\tNOT AFTER\tSTATUS";
+    private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER";
 
     private CertificateInfoCollector certificateInfoCollector;
 
@@ -275,7 +275,11 @@ public class CertificateInfoSensor extends AbstractSensor {
         if (info.getSha1hash() != null) {
             addWithTab(info.getSha1hash(), b);
         }
+        String type = info.getType().name();
         addWithTab(info.getType().name(), b);
+        if (info.getType() == CertificateType.AUTH_OR_SIGN) {
+            b.append('\t'); // a bit of extra padding for the shorter name
+        }
         addWithTab(info.getNotBefore(), b);
         b.append(info.getNotAfter());
         return b.toString();
