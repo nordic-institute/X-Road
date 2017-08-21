@@ -71,14 +71,14 @@ var XROAD_CENTRAL_SERVICES = function () {
 
         var serviceDetailsButton = $("#central_service_details");
 
-        servicesTable.on("click", "tbody tr", function(ev) {
+        servicesTable
+        .on("click", "tbody tr", function(ev) {
             if (oCentralServices.setFocus(0, ev.target.parentNode) &&
                     $("#central_service_details_form:visible").length === 0) {
                 $(".central_service-action").enable();
             }
-        });
-
-        servicesTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             serviceDetailsButton.click();
         });
 

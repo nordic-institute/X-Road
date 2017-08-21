@@ -121,11 +121,11 @@ var XROAD_MEMBERS = function() {
 
         var membersTable = $("#members");
 
-        membersTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        membersTable
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_details").click();
-        });
-
-        membersTable.on("click", "tbody tr", function(ev) {
+        })
+        .on("click", "tbody tr", function(ev) {
             if (oMembers.setFocus(0, ev.target.parentNode) &&
                 $("#add_form:visible").length === 0) {
                 $(".member-action").enable();

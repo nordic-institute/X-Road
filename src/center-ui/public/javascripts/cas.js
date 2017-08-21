@@ -43,12 +43,12 @@ var XROAD_CAS = function() {
 
         var caDetailsButton = $("#ca_details");
 
-        casTable.on("click", "tbody tr", function() {
+        casTable
+        .on("click", "tbody tr", function() {
             cas.setFocus(0, this);
             enableActions();
-        });
-
-        casTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             caDetailsButton.click();
         });
 

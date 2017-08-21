@@ -154,13 +154,13 @@ var XROAD_REQUESTS = function() {
         var requestsTable = $("#management_requests_all");
         var requestDetailsButton = $("#request_details");
 
-        requestsTable.on("click", "tbody tr", function(ev) {
+        requestsTable
+        .on("click", "tbody tr", function(ev) {
             if (oManagementRequests.setFocus(0, ev.target.parentNode)) {
                 $(".request-action").enable();
             }
-        });
-
-        requestsTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             requestDetailsButton.click();
         });
 

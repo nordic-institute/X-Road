@@ -31,12 +31,12 @@ var XROAD_TSPS = function() {
 
 
 
-        tspsTable.on("click", "tbody tr", function(ev) {
+        tspsTable
+        .on("click", "tbody tr", function(ev) {
             oTsps.setFocus(0, this);
             enableActions();
-        });
-
-        tspsTable.on("dblclick", "tbody td[class!=dataTables_empty]", function(ev) {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function(ev) {
             $("#tsp_details").click();
         });
     }

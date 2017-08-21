@@ -1,4 +1,5 @@
 var XROAD_CONFIGURATION_SOURCE = function() {
+var XROAD_CONFIGURATION_SOURCE = function() {
     var oSigningKeys, oConfParts;
     var tab = "#source_tab";
 

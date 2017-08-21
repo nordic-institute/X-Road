@@ -244,13 +244,12 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
 
         oProviders = providerTable.dataTable(opts);
 
-        providerTable.on("click", "tbody tr", function(ev) {
+        providerTable
+        .on("click", "tbody tr", function(ev) {
             oProviders.setFocus(0, ev.target.parentNode)
-        });
-
-
-        providerTable.off("dblclick")
-            .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .off("dblclick")
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             fillProviderData(oProviders.getFocusData());
             $("#central_service_member_search_dialog").dialog("close");
         });

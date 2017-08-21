@@ -89,14 +89,14 @@ var XROAD_GROUPS = function() {
         var groupTable = $("#global_groups");
         var groupDetailsButton = $("#group_details");
 
-        groupTable.on("click", "tbody tr", function(ev) {
+        groupTable
+        .on("click", "tbody tr", function(ev) {
             if (oGlobalGroups.setFocus(0, ev.target.parentNode) &&
                     $("#add_group_form:visible").length === 0) {
                 $(".group-action").enable();
             }
-        });
-
-        groupTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             groupDetailsButton.click();
         });
 

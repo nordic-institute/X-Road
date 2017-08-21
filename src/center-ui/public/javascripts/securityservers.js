@@ -58,13 +58,13 @@ var XROAD_SECURITYSERVERS = function() {
 
         var serversTable = $("#securityservers");
 
-        serversTable.on("click", "tbody tr", function(ev) {
+        serversTable
+        .on("click", "tbody tr", function(ev) {
             if (oSecurityServers.setFocus(0, ev.target.parentNode)) {
                 $(".securityserver-action").enable();
             }
-        });
-
-        serversTable.on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#securityserver_edit").click();
         });
 
