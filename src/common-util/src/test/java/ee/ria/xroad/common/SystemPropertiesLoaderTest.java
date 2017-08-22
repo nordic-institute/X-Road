@@ -29,6 +29,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -173,6 +174,66 @@ public class SystemPropertiesLoaderTest {
         assertThat(actualFilePaths, is(expectedFilePaths));
     }
 
+    /**
+     * Test loading a mix of existing and non-existing files. Expectation is to receive load calls
+     * for the existing files in entry order.
+     * @throws FileNotFoundException If none of the input files can be loaded
+     * @throws Exception If something goes wrong with capturing calls to load
+     */
+    @Test
+    public void loadMutuallyAlternativeFiles() throws Exception {
+        final List<String> initialFileNames = ImmutableList.of(
+                "no/such.file",
+                "src/test/resources/loading_order_inis/override-x.ini",
+                "this/file/does/not/exist.exe",
+                "src/test/resources/loading_order_inis/override-1.ini",
+                "src/test/resources/loading_order_inis/override-a.ini"
+        );
+
+        final List<String> expectedFileNames = ImmutableList.of(
+          "src/test/resources/loading_order_inis/override-x.ini",
+          "src/test/resources/loading_order_inis/override-1.ini",
+          "src/test/resources/loading_order_inis/override-a.ini"
+        );
+
+        final List<String> actualFileNames = new ArrayList<>();
+
+        SystemPropertiesLoader spy = PowerMockito.spy(SystemPropertiesLoader.create(""));
+
+        PowerMockito.doAnswer(invocation -> {
+            SystemPropertiesLoader.FileWithSections file =
+                    (SystemPropertiesLoader.FileWithSections) invocation.getArguments()[0];
+            actualFileNames.add(file.getName());
+            return null;
+        }).when(spy, "load", Mockito.any(SystemPropertiesLoader.FileWithSections.class));
+
+        spy.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
+
+        assertThat(actualFileNames, is(expectedFileNames));
+    }
+
+    /**
+     * Test loading non-existing files with the mutually alternative file loading mechanism. Expectation is that
+     * FileNotFoundException is thrown listing all the attempted files in the message.
+     * @throws FileNotFoundException Expected exception when loader is unable to find any of the input files
+     */
+    @Test
+    public void loadNonExistingMutuallyAlternativeFiles() throws FileNotFoundException {
+        final List<String> initialFileNames = ImmutableList.of(
+                "no/such.file",
+                "this/file/does/not/exist.exe",
+                "completely/fake/file.ini",
+                "not/even/close/to/finding/this.one"
+        );
+
+        expectedException.expect(FileNotFoundException.class);
+        expectedException.expectMessage("None of the following configuration files were found: "
+                + String.join(", ",  initialFileNames));
+
+        SystemPropertiesLoader testLoader = SystemPropertiesLoader.create("");
+        testLoader.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
+
+    }
 
     private static Map<String, String> load(String[] fileNames,
             String... sectionNames) {
