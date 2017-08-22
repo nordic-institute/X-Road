@@ -36,8 +36,8 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import lombok.extern.slf4j.Slf4j;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -47,13 +47,23 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.*;
 import javax.xml.soap.SOAPMessage;
-import javax.servlet.http.HttpServletRequest;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
@@ -211,7 +221,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
 
         log.info("Downloading WSDL from URL: {}", url);
-        try (InputStream in = getWsdl(url, serviceId)) {
+        try (InputStream in = modifyWsdl(getWsdl(url, serviceId))) {
             responseEncoder.soap(SoapUtils.toResponse(request), new HashMap<>());
             responseEncoder.attachment(MimeTypes.TEXT_XML, in, null);
         }
@@ -254,6 +264,60 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         } catch (JAXBException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
+
+    private static SAXTransformerFactory createSaxTransformerFactory() {
+        try {
+            SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
+//            factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+//            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+//            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+//            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+
+
+            return factory;
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException("unable to create SAX transformer factory", e);
+        }
+    }
+
+    /**
+     * reads a WSDL from input stream, modifies it and returns input stream to the result
+     * @param wsdl
+     * @return
+     */
+    private InputStream modifyWsdl(InputStream wsdl) {
+        try {
+            TransformerHandler serializer = TRANSFORMER_FACTORY.newTransformerHandler();
+            StringWriter writer = new StringWriter();
+            StreamResult result = new StreamResult(writer);
+            serializer.setResult(result);
+
+            OverwriteSoapAddressFilter filter = getModifyWsdlFilter();
+
+            filter.setContentHandler(serializer);
+
+            XMLReader xmlreader = XMLReaderFactory.createXMLReader();
+            xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+            xmlreader.setContentHandler(filter);
+
+            // parse XML, filter it, put end result to a String
+            xmlreader.parse(new InputSource(wsdl));
+            String resultString = writer.toString();
+            log.debug("result of WSDL cleanup: {}", resultString);
+
+            // offer InputStream into processed String
+            return new ByteArrayInputStream(resultString.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException | SAXException | TransformerConfigurationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected OverwriteSoapAddressFilter getModifyWsdlFilter() {
+        return new OverwriteSoapAddressFilter("location", "http://foobar.com");
     }
 
     private InputStream getWsdl(String url, ServiceId serviceId)

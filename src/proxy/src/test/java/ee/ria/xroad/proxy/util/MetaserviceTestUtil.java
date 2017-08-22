@@ -42,6 +42,8 @@ import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
+import javax.wsdl.extensions.ExtensibilityElement;
+import javax.wsdl.extensions.soap.SOAPAddress;
 import javax.xml.bind.*;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -165,6 +167,27 @@ public final class MetaserviceTestUtil {
                 .flatMap(List::stream)
                 .map(bindingOperation -> ((BindingOperation) bindingOperation).getName())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Return all endpoint URLs for the definition
+     * @param definition
+     * @return
+     */
+    public static List<String> parseEndpointUrlsFromWSDLDefinition(Definition definition) {
+        @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
+        List<String> endpointUrls = new ArrayList<>();
+        for (Service service: services) {
+            for (Object portObject: service.getPorts().values()) {
+                Port port = (Port) portObject;
+                for (Object extensibilityElement: port.getExtensibilityElements()) {
+                    if (extensibilityElement instanceof SOAPAddress) {
+                        endpointUrls.add(((SOAPAddress)extensibilityElement).getLocationURI());
+                    }
+                }
+            }
+        }
+        return endpointUrls;
     }
 
 
