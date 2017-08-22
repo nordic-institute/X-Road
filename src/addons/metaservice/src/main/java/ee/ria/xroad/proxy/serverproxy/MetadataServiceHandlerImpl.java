@@ -76,6 +76,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     static final JAXBContext JAXB_CTX = initJaxbCtx();
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
+    public static final String WSDL_ENDPOINT_ADDRESS = "http://example.org/xroad-endpoint";
+
     private final ByteArrayOutputStream responseOut =
             new ByteArrayOutputStream();
 
@@ -83,6 +85,18 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     private SoapMessageEncoder responseEncoder;
 
     private HttpClientCreator wsdlHttpClientCreator = new HttpClientCreator();
+
+    private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
+
+    private static SAXTransformerFactory createSaxTransformerFactory() {
+        try {
+            SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
+            factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
+            return factory;
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException("unable to create SAX transformer factory", e);
+        }
+    }
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -266,24 +280,6 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
     }
 
-    private static final SAXTransformerFactory TRANSFORMER_FACTORY = createSaxTransformerFactory();
-
-    private static SAXTransformerFactory createSaxTransformerFactory() {
-        try {
-            SAXTransformerFactory factory = (SAXTransformerFactory) TransformerFactory.newInstance();
-//            factory.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
-//            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-//            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
-//            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-            factory.setFeature("http://javax.xml.XMLConstants/feature/secure-processing", true);
-
-
-            return factory;
-        } catch (TransformerConfigurationException e) {
-            throw new RuntimeException("unable to create SAX transformer factory", e);
-        }
-    }
-
     /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
      * @param wsdl
@@ -296,7 +292,7 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             StreamResult result = new StreamResult(writer);
             serializer.setResult(result);
 
-            OverwriteSoapAddressFilter filter = getModifyWsdlFilter();
+            OverwriteAttributeFilter filter = getModifyWsdlFilter();
 
             filter.setContentHandler(serializer);
 
@@ -316,8 +312,8 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
         }
     }
 
-    protected OverwriteSoapAddressFilter getModifyWsdlFilter() {
-        return new OverwriteSoapAddressFilter("location", "http://foobar.com");
+    protected OverwriteAttributeFilter getModifyWsdlFilter() {
+        return OverwriteAttributeFilter.createOverwriteSoapAddressFilter(WSDL_ENDPOINT_ADDRESS);
     }
 
     private InputStream getWsdl(String url, ServiceId serviceId)

@@ -77,7 +77,9 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -478,12 +480,12 @@ public class MetadataServiceHandlerTest {
     }
 
     private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
-        private OverwriteSoapAddressFilter testFilter;
+        private OverwriteAttributeFilter testFilter;
         @Override
-        protected OverwriteSoapAddressFilter getModifyWsdlFilter() {
+        protected OverwriteAttributeFilter getModifyWsdlFilter() {
             return testFilter;
         }
-        public void setTestFilter(OverwriteSoapAddressFilter testFilter) {
+        public void setTestFilter(OverwriteAttributeFilter testFilter) {
             this.testFilter = testFilter;
         }
     }
@@ -494,7 +496,7 @@ public class MetadataServiceHandlerTest {
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
         // "replace" with the original value (should produce identical output)
-        handlerToTest.setTestFilter(new OverwriteSoapAddressFilter("location",
+        handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter(
                 "https://172.28.128.2:8084/mocktestServiceBinding"));
 
         // execution
@@ -524,7 +526,7 @@ public class MetadataServiceHandlerTest {
 
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
         TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
-        handlerToTest.setTestFilter(new OverwriteSoapAddressFilter("location", "expected-location"));
+        handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter("expected-location"));
 
         // execution
 
