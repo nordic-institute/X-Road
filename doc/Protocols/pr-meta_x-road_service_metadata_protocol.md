@@ -145,7 +145,7 @@ The body of the request MUST contain an appropriately named empty XML element (e
 Annexes [C.3](#c3-listmethods-request) and [C.5](#c5-allowedmethods-request) contain example request messages for services, respectively.
 
 The body of the response message MUST contain a list of services provided by the service provider (in case of listMethods) or open to the given client (in case of allowedMethods). The response SHALL NOT contain names of the metainfo services. The following snippet contains XML schema of the response body. 
-Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) contain example request messages for listMethods and allowedMethods services, respectively.
+Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) contain example response messages for listMethods and allowedMethods services, respectively.
 ```xml
     <xs:element name="listMethodsResponse" type="MethodListType"/>
     <xs:element name="allowedMethodsResponse" type="MethodListType"/>
