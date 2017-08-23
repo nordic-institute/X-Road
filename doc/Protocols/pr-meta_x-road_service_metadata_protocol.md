@@ -78,7 +78,7 @@ In addition, it is possible to retrieve a list of clients in other, federated X-
 Thus, in order to retrieve a list of clients defined in the X-Road instance `AA`, the request URL is `http://SECURITYSERVER/listClients?xRoadInstance=AA`.
 
 Security server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined below 
-(full XML schema appears in Annex [Annex A](#annex-a-xml-schema-for-messages)). 
+(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages)). 
 Annex [C.1](#c1-listclients-response) contains an example response message.
 
 ```xml
@@ -115,7 +115,7 @@ request URL is `http://SECURITYSERVER/listCentralServices?xRoadInstance=AA`.
 
 Security server MUST respond with content-type `text/xml` and the response MUST contain the 
 `centralServiceList` XML element defined below 
-(full XML schema appears in Annex [Annex A](#annex-a-xml-schema-for-messages))). 
+(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages))). 
 Annex [C.2](#c2-listcentralservices-response) contains an example response message.
 ```xml
     <xs:element name="centralServiceList"
