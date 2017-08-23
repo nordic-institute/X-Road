@@ -50,6 +50,8 @@ import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ext.DefaultHandler2;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.servlet.http.HttpServletRequest;
@@ -281,6 +283,23 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
     }
 
     /**
+     * We need a lexicalHandler for the reader, to catch XML comments.
+     * This just delegates to serializer (TransformerHandler) which is
+     * a lexicalHandler, too
+     */
+    private static class CommentsHandler extends DefaultHandler2 {
+        private LexicalHandler serializer;
+        protected CommentsHandler(LexicalHandler serializer) {
+            super();
+            this.serializer = serializer;
+        }
+        @Override
+        public void comment(char[] ch, int start, int length) throws SAXException {
+            serializer.comment(ch, start, length);
+        }
+    }
+
+    /**
      * reads a WSDL from input stream, modifies it and returns input stream to the result
      * @param wsdl
      * @return
@@ -293,11 +312,12 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
             serializer.setResult(result);
 
             OverwriteAttributeFilter filter = getModifyWsdlFilter();
-
             filter.setContentHandler(serializer);
 
             XMLReader xmlreader = XMLReaderFactory.createXMLReader();
             xmlreader.setFeature("http://xml.org/sax/features/namespace-prefixes", true);
+            xmlreader.setProperty("http://xml.org/sax/properties/lexical-handler",
+                    new CommentsHandler(serializer));
             xmlreader.setContentHandler(filter);
 
             // parse XML, filter it, put end result to a String

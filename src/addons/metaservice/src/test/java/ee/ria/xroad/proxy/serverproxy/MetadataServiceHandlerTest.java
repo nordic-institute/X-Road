@@ -480,13 +480,13 @@ public class MetadataServiceHandlerTest {
     }
 
     private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
-        private OverwriteAttributeFilter testFilter;
+        private OverwriteAttributeFilter filter;
         @Override
         protected OverwriteAttributeFilter getModifyWsdlFilter() {
-            return testFilter;
+            return filter;
         }
         public void setTestFilter(OverwriteAttributeFilter testFilter) {
-            this.testFilter = testFilter;
+            this.filter = testFilter;
         }
     }
 
