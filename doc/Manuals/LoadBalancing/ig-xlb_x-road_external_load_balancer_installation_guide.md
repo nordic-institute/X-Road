@@ -297,7 +297,7 @@ In order to properly set up the data replication, the slave nodes must be able t
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#12-references)\].
-10. It is highly recommended to use autologin-package with Slaves, because inserting PIN-code is needed for Slave to work at all. Installing and using autologin is guided here: [autologin documentation](doc/Manuals/Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
+10. It is highly recommended to use autologin-package with Slaves, because inserting PIN-code is needed for Slave to work at all. Installing and using autologin is guided here: [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
