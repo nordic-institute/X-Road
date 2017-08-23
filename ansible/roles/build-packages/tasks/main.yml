@@ -15,7 +15,7 @@
     env:
         HOME: "/workspace/src/packages"
     volumes: 
-      - ../:/workspace
+      - ..:/workspace
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
-    
+    command: "/workspace/src/deb-docker.sh"

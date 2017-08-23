@@ -37,9 +37,6 @@ build:
 	mv ~/jetty/jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	rm -rf jetty9/demo-base
-	curl -o jetty9/modules/logging.mod -O https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod
-	sed -i'' 's/^resources/#resources/' jetty9/modules/logging.mod
-	sed -i'' 's/1\.0\.7/1\.1\.3/g' jetty9/modules/logging.mod
-	sed -i'' 's/^logs/#logs/' jetty9/modules/logging.mod
+	sed -i'' 's/^logback\.version?=1\.1\.7/logback\.version\?=1\.2\.3/' jetty9/modules/logback-impl.mod
 	mv jetty9/start.ini jetty9/start.ini.bak
-	java -jar jetty9/start.jar --add-to-start=logging jetty.base=jetty9
+	echo yes |java -jar jetty9/start.jar --add-to-start=logging-logback jetty.base=jetty9

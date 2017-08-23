@@ -20,21 +20,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.monitor.executablelister;
+package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.Serializable;
-import java.util.ArrayList;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
-import lombok.Getter;
-import lombok.Setter;
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAPACTION;
 
 /**
- * ListedData
- * @param <T> data type
+ * Check that SOAPAction header is preserved
+ * Result: client receives message.
  */
-@Getter
-@Setter
-public class ListedData<T> implements Serializable {
-    ArrayList<T> parsedData;
-    ArrayList<String> jmxData;
+public class SoapActionMalformedHeader extends MessageTestCase {
+
+    private static final String HEADER_VALUE = "http://example.org/action";
+    /**
+     * Constructs the test case.
+     */
+    public SoapActionMalformedHeader() {
+        requestFileName = "getstate.query";
+        responseFile = "getstate.answer";
+    }
+
+    @Override
+    protected void startUp() throws Exception {
+        super.startUp();
+        addRequestHeader("SOAPAction", HEADER_VALUE);
+    }
+
+    @Override
+    protected void validateFaultResponse(Message receivedResponse) {
+        assertErrorCode(CLIENT_X, X_INVALID_SOAPACTION);
+    }
 }

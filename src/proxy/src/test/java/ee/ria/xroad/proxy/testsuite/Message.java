@@ -72,8 +72,7 @@ public class Message {
         log.debug("new Message({})", contentType);
 
         this.contentType = contentType;
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(contentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(contentType).build();
 
         this.parser = new MimeStreamParser(config);
         parser.setContentHandler(new MessageContentHandler());

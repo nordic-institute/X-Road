@@ -52,8 +52,8 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>
             <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
-        </xrd:service id:objectType="SERVER">
-        <xrd:securityServer>
+        </xrd:service>
+        <xrd:securityServer id:objectType="SERVER">
             <id:xRoadInstance>fdev</id:xRoadInstance>
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>

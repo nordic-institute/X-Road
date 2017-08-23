@@ -221,13 +221,13 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
@@ -334,6 +334,17 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
+
+    public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
+            PREFIX + "configuration-client.allowed-federations";
+
+    /**
+     * A constant to describe the X-Road instances this security server federates with.
+     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
+     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
+     * The configurations for those instances won't be downloaded.
+     */
+    public enum AllowedFederationMode { ALL, NONE, CUSTOM }
 
     // Center -----------------------------------------------------------------
 
@@ -462,6 +473,12 @@ public final class SystemProperties {
     /** Property name of system metrics sensor interval. */
     public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
             PREFIX + "env-monitor.exec-listing-sensor-interval";
+
+    /** Property name of certificate info sensor refresh interval. */
+    public static final String ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL =
+            PREFIX + "env-monitor.certificate-info-sensor-interval";
+
+    public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
     // Cluster node configuration ------------------------------------------ //
 
@@ -783,6 +800,10 @@ public final class SystemProperties {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
     }
 
+    public static String getConfigurationClientAllowedFederations() {
+        return System.getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
+    }
+
     /**
      * @return the HTTP port on which the server proxy OCSP responder is listening, '5577' by default.
      */
@@ -979,6 +1000,14 @@ public final class SystemProperties {
     public static int getEnvMonitorExecListingSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
     }
+
+    /**
+     * @return exec listing sensor interval in seconds, 1 day by default.
+     */
+    public static int getEnvMonitorCertificateInfoSensorInterval() {
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
+    }
+
 
     /**
      * @return path to the file containing network statistics,

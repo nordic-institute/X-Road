@@ -265,9 +265,7 @@ public class ConfigurationParser {
         }
 
         protected void handleSignedData() throws MimeException, IOException {
-            MimeConfig config = new MimeConfig();
-            config.setHeadlessParsing(signedDataContentType);
-
+            MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(signedDataContentType).build();
             MimeStreamParser p = new MimeStreamParser(config);
             p.setContentHandler(new ConfigurationPartContentHandler());
             p.parse(new ByteArrayInputStream(signedData));

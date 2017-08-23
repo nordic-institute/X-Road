@@ -53,6 +53,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -401,6 +402,10 @@ public class MessageTestCase {
                 ByteBuffer.allocate(8).putLong(seed).array());
         dc.getOutputStream().close();
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
+    }
+
+    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
+        // NOP
     }
 
     protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {

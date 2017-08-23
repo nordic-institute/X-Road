@@ -4,11 +4,12 @@
 
 <%= dialog "intermediate_ca_dialog" do %>
   <div id="intermediate_ca_tabs">
-    <ul>
-      <li><a href="#intermediate_ca_cert_tab"><%= t 'approved_cas.ca_certificate' %></a></li>
-      <li><a href="#intermediate_ca_ocsp_responders_tab"><%= t 'approved_cas.ocsp_responders' %></a></li>
-    </ul>
-
+    <div id="tabs_wrapper">
+      <ul>
+        <li><a href="#intermediate_ca_cert_tab"><%= t 'approved_cas.ca_certificate' %></a></li>
+        <li><a href="#intermediate_ca_ocsp_responders_tab"><%= t 'approved_cas.ocsp_responders' %></a></li>
+      </ul>
+    </div>
     <div id="intermediate_ca_cert_tab">
       <table class="details">
         <tr>

@@ -47,10 +47,10 @@ public class ExecListingSensor extends AbstractSensor {
     public <T extends Metric> ExecListingSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        ListedData<ProcessInfo> processes = new ProcessLister().list();
-        ListedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
-        ListedData<PackageInfo> packages = new PackageLister().list();
-        ListedData<String> operatingSystemInfo = new OsInfoLister().list();
+        JmxStringifiedData<ProcessInfo> processes = new ProcessLister().list();
+        JmxStringifiedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
+        JmxStringifiedData<PackageInfo> packages = new PackageLister().list();
+        JmxStringifiedData<String> operatingSystemInfo = new OsInfoLister().list();
         metricRegistry.register(SystemMetricNames.PROCESSES, createParsedMetric(processes));
         metricRegistry.register(SystemMetricNames.PROCESS_STRINGS, createJmxMetric(processes));
         metricRegistry.register(SystemMetricNames.XROAD_PROCESSES, createParsedMetric(xroadProcesses));
@@ -61,41 +61,41 @@ public class ExecListingSensor extends AbstractSensor {
         scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
     }
 
-    private Metric createParsedMetric(ListedData data) {
-        SimpleSensor<ListedData> sensor = new SimpleSensor<>();
+    private Metric createParsedMetric(JmxStringifiedData data) {
+        SimpleSensor<JmxStringifiedData> sensor = new SimpleSensor<>();
         sensor.update(data);
         return sensor;
     }
-    private Metric createJmxMetric(ListedData data) {
+    private Metric createJmxMetric(JmxStringifiedData data) {
         SimpleSensor<ArrayList> sensor = new SimpleSensor<>();
-        sensor.update(data.getJmxData());
+        sensor.update(data.getJmxStringData());
         return sensor;
     }
-    private Metric createOsStringMetric(ListedData<String> data) {
+    private Metric createOsStringMetric(JmxStringifiedData<String> data) {
         SimpleSensor<String> sensor = new SimpleSensor<>();
-        sensor.update(data.getJmxData().get(0));
+        sensor.update(data.getJmxStringData().get(0));
         return sensor;
     }
 
     private void updateMetrics() {
         MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        ListedData<ProcessInfo> processes = new ProcessLister().list();
-        ListedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
-        ListedData<PackageInfo> packages = new PackageLister().list();
-        ListedData<String> operatingSystemInfo = new OsInfoLister().list();
-        String osString = operatingSystemInfo.getJmxData().get(0);
+        JmxStringifiedData<ProcessInfo> processes = new ProcessLister().list();
+        JmxStringifiedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
+        JmxStringifiedData<PackageInfo> packages = new PackageLister().list();
+        JmxStringifiedData<String> operatingSystemInfo = new OsInfoLister().list();
+        String osString = operatingSystemInfo.getJmxStringData().get(0);
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PROCESSES))
                 .update(processes);
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PROCESS_STRINGS))
-                .update(processes.getJmxData());
+                .update(processes.getJmxStringData());
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.XROAD_PROCESSES))
                 .update(xroadProcesses);
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.XROAD_PROCESS_STRINGS))
-                .update(xroadProcesses.getJmxData());
+                .update(xroadProcesses.getJmxStringData());
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PACKAGES))
                 .update(packages);
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PACKAGE_STRINGS))
-                .update(packages.getJmxData());
+                .update(packages.getJmxStringData());
         ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.OS_INFO))
                 .update(osString);
     }

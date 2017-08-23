@@ -22,6 +22,53 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.cert.CertChain;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
+import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RequestHash;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.monitoring.MessageInfo;
+import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
+import ee.ria.xroad.common.monitoring.MonitorAgent;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.ProxyMain;
+import ee.ria.xroad.proxy.conf.KeyConf;
+import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.protocol.ProxyMessage;
+import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
+import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
+import ee.ria.xroad.proxy.util.MessageProcessorBase;
+import lombok.EqualsAndHashCode;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.util.Arrays;
+import org.xml.sax.Attributes;
+import org.xml.sax.helpers.AttributesImpl;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.namespace.QName;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -41,58 +88,16 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.namespace.QName;
-
-import lombok.EqualsAndHashCode;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.protocol.HttpClientContext;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.util.Arrays;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.helpers.AttributesImpl;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
-import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
-import ee.ria.xroad.common.monitoring.MessageInfo;
-import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
-import ee.ria.xroad.common.monitoring.MonitorAgent;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.ProxyMain;
-import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.messagelog.MessageLog;
-import ee.ria.xroad.proxy.protocol.ProxyMessage;
-import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
-import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
-import ee.ria.xroad.proxy.util.MessageProcessorBase;
-
 import static ee.ria.xroad.common.ErrorCodes.*;
 import static ee.ria.xroad.common.SystemProperties.getServerProxyPort;
 import static ee.ria.xroad.common.SystemProperties.isSslEnabled;
 import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.MimeUtils.*;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGO_ID;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_CONTENT_TYPE;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_ORIGINAL_SOAP_ACTION;
+import static ee.ria.xroad.common.util.MimeUtils.HEADER_PROXY_VERSION;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
@@ -126,6 +131,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
     private final IsAuthenticationData clientCert;
 
     /** Holds the incoming request SOAP message. */
+    private volatile String originalSoapAction;
     private volatile SoapMessageImpl requestSoap;
     private volatile ServiceId requestServiceId;
 
@@ -282,6 +288,9 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // service provider
             httpSender.addHeader(HEADER_ORIGINAL_CONTENT_TYPE, servletRequest.getContentType());
 
+            // Preserve the original SOAPAction header
+            httpSender.addHeader(HEADER_ORIGINAL_SOAP_ACTION, originalSoapAction);
+
             try {
                 opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
@@ -437,7 +446,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
         log.trace("sendResponse()");
 
         servletResponse.setStatus(HttpServletResponse.SC_OK);
-        servletResponse.setHeader("SOAPAction", "");
         servletResponse.setCharacterEncoding(MimeUtils.UTF8);
         servletResponse.setContentType(response.getSoapContentType());
 
@@ -584,6 +592,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             SoapMessageDecoder soapMessageDecoder = new SoapMessageDecoder(servletRequest.getContentType(),
                     handler, new RequestSoapParserImpl());
             try {
+                originalSoapAction = validateSoapActionHeader(servletRequest.getHeader("SOAPAction"));
                 soapMessageDecoder.parse(servletRequest.getInputStream());
             } catch (Exception ex) {
                 throw new ClientException(translateException(ex));

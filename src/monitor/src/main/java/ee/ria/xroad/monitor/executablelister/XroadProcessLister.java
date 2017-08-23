@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -43,9 +45,9 @@ public class XroadProcessLister extends ProcessLister {
      * Program entry point
      */
     public static void main(String[] args) throws IOException {
-        ListedData<ProcessInfo> p = new XroadProcessLister().list();
-        System.out.println("raw: " + p.getJmxData());
-        System.out.println("parsed: " + p.getParsedData());
+        JmxStringifiedData<ProcessInfo> p = new XroadProcessLister().list();
+        System.out.println("raw: " + p.getJmxStringData());
+        System.out.println("parsed: " + p.getDtoData());
     }
 
     @Override

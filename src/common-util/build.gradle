@@ -11,7 +11,7 @@ sourceSets {
 }
 
 dependencies {
-    compile 'org.apache.james:apache-mime4j-core:0.7.2'
+    compile 'org.apache.james:apache-mime4j-core:0.8.1'
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.apache.santuario:xmlsec:2.0.8'
 
@@ -23,10 +23,10 @@ dependencies {
     compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
     compile 'xerces:xercesImpl:2.11.0.SP5'
 
-    compile 'org.eclipse.jetty:jetty-server:9.4.2.v20170220'
+    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
 
-    compile 'ch.qos.logback:logback-access:1.1.3'
-    compile 'ch.qos.logback:logback-classic:1.1.3'
+    compile 'ch.qos.logback:logback-access:1.2.3'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
 
     compile ('org.quartz-scheduler:quartz:2.1.6') {
         exclude module: 'c3p0'
@@ -42,10 +42,12 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.6'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:19.0'
 
+    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile project(':common-test').sourceSets.main.output
 

@@ -44,6 +44,8 @@ public final class SystemMetricNames {
     public static final String PACKAGES = "Packages";
     public static final String PACKAGE_STRINGS = "PackagesDump";
     public static final String OS_INFO = "OperatingSystem";
+    public static final String CERTIFICATES = "Certificates";
+    public static final String CERTIFICATES_STRINGS = "CertificatesDump";
 
     private SystemMetricNames() {
     }

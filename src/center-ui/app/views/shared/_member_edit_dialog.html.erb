@@ -1,16 +1,17 @@
 <%= dialog "member_edit_dialog", t("members.edit.title") do %>
   <div class="member_edit_tabs">
-    <ul>
-      <li><a href="#member_details_tab"><%= t 'members.edit.details.legend' %></a></li>
-      <% if can?(:view_member_details) %>
-      <li><a href="#member_owned_servers_tab"><%= t 'members.edit.owned_servers.legend' %></a></li>
-      <li><a href="#member_group_membership_tab"><%= t 'members.edit.global_group_membership.legend' %></a></li>
-      <li><a href="#member_subsystems_tab"><%= t 'members.edit.subsystems.legend' %></a></li>
-      <li><a href="#member_used_servers_tab"><%= t 'members.edit.used_servers.legend' %></a></li>
-      <li><a href="#member_management_requests_tab"><%= t 'management_requests.legend' %></a></li>
-      <% end %>
-    </ul>
-
+    <div id="tabs_wrapper">
+      <ul>
+        <li><a href="#member_details_tab"><%= t 'members.edit.details.legend' %></a></li>
+        <% if can?(:view_member_details) %>
+        <li><a href="#member_owned_servers_tab"><%= t 'members.edit.owned_servers.legend' %></a></li>
+        <li><a href="#member_group_membership_tab"><%= t 'members.edit.global_group_membership.legend' %></a></li>
+        <li><a href="#member_subsystems_tab"><%= t 'members.edit.subsystems.legend' %></a></li>
+        <li><a href="#member_used_servers_tab"><%= t 'members.edit.used_servers.legend' %></a></li>
+        <li><a href="#member_management_requests_tab"><%= t 'management_requests.legend' %></a></li>
+        <% end %>
+      </ul>
+    </div>
     <div id="member_details_tab">
       <div class="ui-tabs-panel-actions">
         <% if can?(:delete_member) %>

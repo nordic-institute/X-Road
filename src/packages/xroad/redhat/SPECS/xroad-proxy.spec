@@ -44,6 +44,7 @@ mkdir -p %{buildroot}/usr/share/xroad/jlib/webapps
 mkdir -p %{buildroot}/usr/share/xroad/bin
 mkdir -p %{buildroot}/etc/logrotate.d
 mkdir -p %{buildroot}/usr/share/doc/%{name}
+mkdir -p %{buildroot}/etc/xroad/backup.d
 
 cp -p %{_sourcedir}/proxy/xroad-proxy %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
@@ -54,16 +55,18 @@ cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
 cp -p %{_sourcedir}/proxy/xroad-*.service %{buildroot}%{_unitdir}
 cp -p %{src}/../../proxy-ui/build/libs/proxy-ui.war %{buildroot}/usr/share/xroad/jlib/webapps/
 cp -p %{src}/../../proxy/build/libs/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{src}/../default-configuration/proxy-rhel.ini %{buildroot}/etc/xroad/conf.d/proxy.ini
+cp -p %{src}/../default-configuration/proxy.ini %{buildroot}/etc/xroad/conf.d
+cp -p %{src}/../default-configuration/override-rhel-proxy.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/proxy-ui.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{src}/../default-configuration/proxy-logback.xml %{buildroot}/etc/xroad/conf.d
-cp -p %{src}/../default-configuration/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d
+cp -p %{src}/../default-configuration/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/rsyslog.d/* %{buildroot}/etc/rsyslog.d/
 cp -p %{src}/debian/xroad-proxy.logrotate %{buildroot}/etc/logrotate.d/xroad-proxy
 cp -p %{src}/debian/trusty/proxy_restore_db.sh %{buildroot}/usr/share/xroad/scripts/restore_db.sh
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
+cp -p %{src}/proxy/etc/xroad/backup.d/??_xroad-proxy %{buildroot}/etc/xroad/backup.d/
 
 ln -s /usr/share/xroad/jlib/proxy-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy.jar
 ln -s /etc/xroad/conf.d/proxy-ui-jetty-logback-context-name.xml %{buildroot}/etc/xroad/conf.d/jetty-logback-context-name.xml
@@ -76,6 +79,7 @@ rm -rf %{buildroot}
 %defattr(0640,xroad,xroad,0751)
 %config /etc/xroad/services/proxy.conf
 %config /etc/xroad/conf.d/proxy.ini
+%config /etc/xroad/conf.d/override-rhel-proxy.ini
 %config /etc/xroad/conf.d/proxy-ui.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
 %config /etc/xroad/conf.d/jetty-logback-context-name.xml
@@ -86,6 +90,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/jetty/ocsp-responder.xml
 %config /etc/xroad/services/jetty.conf
 %config(noreplace) %attr(644,root,root) /etc/pam.d/xroad
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-proxy
 
 %attr(644,root,root) %{_unitdir}/xroad-proxy.service
 

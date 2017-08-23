@@ -8,7 +8,7 @@ dependencies {
     compile project(':common-messagelog')
     compile project(':common-op-monitoring')
 
-    compile 'org.eclipse.jetty:jetty-xml:9.4.2.v20170220'
+    compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
 
     testCompile project(':common-test')
     testCompile 'org.hsqldb:hsqldb:2.3.2'
