@@ -22,7 +22,7 @@ Doc. ID: PR-META
  15.09.2015 | 1.1   | Made minor fixes to schemas                                       | Margus Freudenthal
  16.09.2015 | 2.0   | Final version                                                     | Imbi Nõgisto
  12.10.2015 | 2.1   | Updated identifier names and WSDL examples                        | Ilja Kromonov
- 23.08.2017 | 2.1.6   | Converted to Markdown                                           | Janne Mattila
+ 23.08.2017 | 2.1.6   | Converted to Markdown and added endpoint address replacement    | Janne Mattila
 
 ## Table of Contents
 
@@ -56,7 +56,7 @@ This specification describes methods that can be used by X-Road participants to 
 
 This specification is based on the X-Road protocol \[[PR-MESS](#Ref_PR-MESS)\]. The X-Road protocol specification also defines important concepts used in this text (for example, central service and X-Road identifier). Because this protocol uses HTTP and X-Road protocol as transport mechanisms, the details of message transport and error conditions are not described in this specification.
 
-Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-wsdl-of-a-service) together with annexes [Annex A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-and-allowedmethods-wsdl) contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-and-allowedmethods-wsdl) contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
@@ -75,7 +75,7 @@ In addition, it is possible to retrieve a list of clients in other, federated X-
 
 * `xRoadInstance` – code that identifies the X-Road instance.
 
-Thus, in order to retrieve a list of clients defined in the X-Road instance AA, the request URL is `http://SECURITYSERVER/listClients?xRoadInstance=AA`.
+Thus, in order to retrieve a list of clients defined in the X-Road instance `AA`, the request URL is `http://SECURITYSERVER/listClients?xRoadInstance=AA`.
 
 Security server MUST respond with content-type `text/xml` and the response MUST contain the `clientList` XML element defined below 
 (full XML schema appears in Annex [Annex A](#annex-a-xml-schema-for-messages)). 
@@ -110,7 +110,7 @@ In addition, it is possible to retrieve a list of security servers in other, fed
 
 * `xRoadInstance` – code that identifies the X-Road instance.
 
-Thus, in order to retrieve a list of central services defined in X-Road instance AA, the 
+Thus, in order to retrieve a list of central services defined in X-Road instance `AA`, the 
 request URL is `http://SECURITYSERVER/listCentralServices?xRoadInstance=AA`.
 
 Security server MUST respond with content-type `text/xml` and the response MUST contain the 
@@ -141,7 +141,8 @@ X-Road provides two methods for getting the list of services offered by an X-Roa
 
 Both methods are invoked as regular X-Road services (see specification \[[PR-MESS](#Ref_PR-MESS)\] for details on the X-Road protocol). 
 The service SOAP header MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be either `listMethods` or `allowedMethods`. 
-The body of the request MUST contain an appropriately named empty XML element (either `listMethods` or `allowedMethods`). Annexes C.3 and C.5 contain example request messages for services, respectively.
+The body of the request MUST contain an appropriately named empty XML element (either `listMethods` or `allowedMethods`). 
+Annexes [C.3](#c3-listmethods-request) and [C.5](#c5-allowedmethods-request) contain example request messages for services, respectively.
 
 The body of the response message MUST contain a list of services provided by the service provider (in case of listMethods) or open to the given client (in case of allowedMethods). The response SHALL NOT contain names of the metainfo services. The following snippet contains XML schema of the response body. 
 Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) contain example request messages for listMethods and allowedMethods services, respectively.
@@ -186,6 +187,33 @@ WSDL files for central services are accessed in a similar manner, in this case t
 * `xRoadInstance` – code that identifies the X-Road instance;
 
 * `serviceCode` – code that identifies the central service.
+
+Security server MUST replace endpoint location with value `http://example.org/xroad-endpoint`. 
+This is done for security reasons, to hide the endpoint addresses which often point
+to information systems which should be hidden from the clients, and be accessed only through
+the provider security server.
+
+For example service definition
+
+```xml
+    <wsdl:service name="testService">
+        <wsdl:port binding="tns:testServiceBinding" name="testServicePort">
+            <soap:address location="http://some-server.company.com:8080/testService/Endpoint"/>
+        </wsdl:port>
+    </wsdl:service>
+```
+
+becomes
+
+```xml
+    <wsdl:service name="testService">
+        <wsdl:port binding="tns:testServiceBinding" name="testServicePort">
+            <soap:address location="http://example.org/xroad-endpoint"/>
+        </wsdl:port>
+    </wsdl:service>
+```
+
+when retrieved through the metaservice.
 
 ## Annex A XML Schema for Messages
 
