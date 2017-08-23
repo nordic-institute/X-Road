@@ -5,12 +5,12 @@ buildscript {
 
     dependencies {
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
-        classpath 'org.owasp:dependency-check-gradle:1.4.5.1'
+        classpath 'org.owasp:dependency-check-gradle:2.1.0'
     }
 }
 
 plugins {
-    id "org.sonarqube" version "2.1-rc3"
+    id "org.sonarqube" version "2.5"
 }
 
 apply plugin: 'idea'
@@ -73,6 +73,7 @@ subprojects {
         akkaVersion = "2.4.8"
         metricsVersion = "3.2.2"
         jettyVersion = "9.4.6.v20170531"
+        jaxbVersion = "2.2.11"
     }
 
     dependencyCheck {
@@ -175,6 +176,8 @@ subprojects {
     checkstyle {
         toolVersion = "6.19"
         configFile = new File(rootDir, "checkstyle.xml")
+        //configDir is still an incubating feature in gradle 4
+        //configDir = rootDir
         configProperties.config_loc = "$rootDir"
         ignoreFailures = false
         showViolations = true
@@ -238,15 +241,27 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 }
 
 task clean(type: Delete) {
-    delete "${rootDir}/packages/xroad-jetty9/jetty9/"
-    delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
-    delete "${rootDir}/packages/xroad/debian/xroad-common.xroad-signer.upstart"
-    delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
-    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-confclient.upstart"
-    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
-    delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
+   delete "${rootDir}/packages/xroad-jetty9/jetty9/"
+   delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
+   delete "${rootDir}/packages/xroad/debian/xroad-common.xroad-signer.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-confclient.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
+   delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
+   delete "${rootDir}/packages/xroad/redhat/BUILD"
+   delete "${rootDir}/packages/xroad/redhat/BUILDROOT"
+   delete "${rootDir}/packages/xroad/redhat/RPMS"
+   delete "${rootDir}/packages/xroad-jetty9/redhat/BUILD"
+   delete "${rootDir}/packages/xroad-jetty9/redhat/BUILDROOT"
+   delete "${rootDir}/packages/xroad-jetty9/redhat/RPMS"
 
-    ant.delete {
-        fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
-    }
+   doLast {
+        ant.delete {
+            fileset(dir: file("${rootDir}/packages"), includes: "*.deb, *.changes")
+        }
+   }
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.1'
 }

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ "$(id -nu)" != "xroad" ]
+then
+echo this script must run under xroad user
+exit 1
+fi
+
+. /etc/xroad/services/signer-console.conf
+
+${JAVA_HOME}/bin/java ${SIGNER_CONSOLE_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar $@
+

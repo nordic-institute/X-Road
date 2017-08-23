@@ -1,0 +1,46 @@
+#!/usr/bin/expect
+set XROAD_UTIL_PATH /usr/share/xroad/autologin
+set CUSTOM_SCRIPT $XROAD_UTIL_PATH/custom-fetch-pin.sh
+set DEFAULT_SCRIPT $XROAD_UTIL_PATH/default-fetch-pin.sh
+
+if {[file exists $CUSTOM_SCRIPT]} {
+    set runcmd [list exec $CUSTOM_SCRIPT 2>@stderr]
+} elseif {[file exists $DEFAULT_SCRIPT]} {
+    set runcmd [list exec $DEFAULT_SCRIPT 2>@stderr]
+} else {
+    error "Failed to locate custom-fetch-pin.sh or default-fetch-pin.sh";
+}
+
+if {[catch $runcmd res]} {
+  set ecode [lindex $::errorCode 2]
+  if {$ecode eq 127} {
+    puts "PIN not available, will not attempt to enter PIN code"
+    exit 127
+  } else {
+    error "Failed to run command $runcmd - exit code $ecode"
+  }
+}
+
+set pin $res
+set result 0
+
+spawn $XROAD_UTIL_PATH/signer-console login-token 0
+expect {
+        "PIN:"  {
+                send "$pin\r";
+                exp_continue;
+        } "Signer.TokenNotAvailable" {
+                set result 1
+        } "HttpError" {
+                set result 1
+        } timeout {
+                set result 1
+        } "Signer.PinIncorrect" {
+                set result 127
+                puts stderr "\nFATAL: Incorrect PIN"
+        } eof {
+                ;
+        }
+}
+exit $result
+
