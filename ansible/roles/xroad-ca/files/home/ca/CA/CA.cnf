@@ -112,7 +112,7 @@ commonName                      = Common Name
 countryName_default             = FI
 #stateOrProvinceName_default     = 
 #localityName_default            =
-0.organizationName_default      = Palveluvayla Test
+0.organizationName_default      = Xroad Test
 organizationalUnitName_default  =
 #emailAddress_default            =
 

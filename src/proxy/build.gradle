@@ -1,6 +1,8 @@
 plugins {
-    id "eu.appsatori.fatjar" version "0.3"
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
+
+apply plugin: 'application'
 
 dependencies {
     compile project(':serverconf')
@@ -25,25 +27,17 @@ dependencies {
     testCompile project(':common-verifier').sourceSets.test.output
 }
 
-fatJarPrepareFiles {
-    include '*'
-}
+mainClassName = 'ee.ria.xroad.proxy.ProxyMain'
 
-fatJar {
-    exclude "META-INF/*.SF"
-    exclude "META-INF/*.DSA"
-    exclude "META-INF/*.RSA"
-
+shadowJar {
+    classifier = ''
+    append('reference.conf')
     from rootProject.file("LICENSE.txt")
-
-    manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.proxy.ProxyMain'
-    }
 }
 
 jar.enabled = false
-build.dependsOn fatJar
-buildall.dependsOn fatJar
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
 
 licenseFormatMain.enabled = false
 licenseMain.enabled = false

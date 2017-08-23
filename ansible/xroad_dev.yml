@@ -34,7 +34,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-cs
+    - xroad-cs
   tags:
     - cs
     - install
@@ -43,7 +43,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-cp
+    - xroad-cp
   tags:
     - cp
     - install
@@ -52,7 +52,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-ca
+    - xroad-ca
   tags:
     - ca
     - install
@@ -62,7 +62,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-ss      
+    - xroad-ss
   tags:
     - ss
     - install
