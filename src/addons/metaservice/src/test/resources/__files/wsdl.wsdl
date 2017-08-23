@@ -54,11 +54,11 @@
                   <xsd:element name="name" nillable="true" type="xsd:string"/>
                 </xsd:sequence>
               </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="response">
+            </xsd:element><!-- Elements describing other elements and operations--><xsd:element name="response">
               <xsd:complexType>
                 <xsd:sequence>
                   <xsd:element name="message" type="xsd:string">
+                    <!-- test comment 3 -->
                     <xsd:annotation>
                       <xsd:documentation>Service response</xsd:documentation>
                     </xsd:annotation>
@@ -76,6 +76,7 @@
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="requestheader">
+    <!-- test comment 2 -->
     <wsdl:part name="client" element="xrd:client">
     </wsdl:part>
     <wsdl:part name="service" element="xrd:service">
