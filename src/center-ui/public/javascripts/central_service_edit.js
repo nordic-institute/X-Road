@@ -239,16 +239,17 @@ var XROAD_CENTRAL_SERVICE_EDIT = function() {
         };
 
         opts.aaSorting = [ [1,'asc'] ];
+        var providerTable = $("#central_service_details_providers");
 
-        oProviders = $('#central_service_details_providers').dataTable(opts);
 
-        $("#central_service_details_providers tbody tr").live(
-                "click", function(ev) {
+        oProviders = providerTable.dataTable(opts);
+
+        providerTable
+        .on("click", "tbody tr", function(ev) {
             oProviders.setFocus(0, ev.target.parentNode)
-        });
-
-        $("#central_service_details_providers tbody tr")
-                .unbind("dblclick").live("dblclick", function() {
+        })
+        .off("dblclick")
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             fillProviderData(oProviders.getFocusData());
             $("#central_service_member_search_dialog").dialog("close");
         });
