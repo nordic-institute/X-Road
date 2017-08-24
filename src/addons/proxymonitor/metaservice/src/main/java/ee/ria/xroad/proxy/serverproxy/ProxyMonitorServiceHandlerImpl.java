@@ -22,14 +22,16 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import com.google.gson.*;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.SimpleSoapEncoder;
+import ee.ria.xroad.common.message.SoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -51,12 +53,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -78,29 +77,6 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
             new ByteArrayOutputStream();
 
     private SoapMessageEncoder responseEncoder;
-
-
-    /**
-     * x
-     */
-    public static class ClassTypeAdapter implements JsonSerializer<Class<?>>, JsonDeserializer<Class<?>> {
-
-        @Override
-        public JsonElement serialize(Class<?> src, Type typeOfSrc, JsonSerializationContext context) {
-            return new JsonPrimitive(src.getName());
-        }
-
-        @Override
-        public Class<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
-                throws JsonParseException {
-            try {
-                return Class.forName(json.getAsString());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
 
     @Override
     public boolean shouldVerifyAccess() {
@@ -135,9 +111,6 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     public void startHandling(HttpServletRequest servletRequest,
                               ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
                               OpMonitoringData opMonitoringData) throws Exception {
-
-        //TODO
-        log.info("Start handling xml:\n " + proxyRequestMessage.getSoap().getXml());
 
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
@@ -180,13 +153,11 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
         Document doc = parse(proxyRequestMessage);
         NodeList nl = doc.getElementsByTagNameNS(NS_MONITORING, MONITOR_REQ_PARAM_NODE_NAME);
-        log.info("nl length: " + nl.getLength());
 
         for (int i = 0; i < nl.getLength(); i++) {
             Node n = nl.item(i);
             String val = n.getFirstChild().getNodeValue();
             metricNames.add(val);
-            log.info("Output field name: " + val);
         }
         return metricNames;
     }
@@ -202,11 +173,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setNamespaceAware(true);
         DocumentBuilder db = dbf.newDocumentBuilder();
-
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();
-        log.info("bytes length: " + bytes.length);
-        log.info("bytes:\n" + new String(bytes, proxyRequestMessage.getSoap().getCharset()));
-
         return db.parse(new ByteArrayInputStream(bytes));
     }
 
@@ -262,7 +229,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         marshaller.marshal(object, out);
     }
 
-    static  {
+    static {
         try {
             JAXB_CTX = JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {
