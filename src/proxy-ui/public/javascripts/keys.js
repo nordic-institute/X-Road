@@ -339,7 +339,10 @@ function initDialogs() {
         ]
     });
 
-    $(document).on("dblclick", ".token", function() {
+    var keyTable = $("#keys");
+
+    keyTable
+    .on("dblclick", ".token", function() {
         var row = $(this).closest("tr").get(0);
         var params = {
             token_id: row.dataset.id
@@ -349,9 +352,8 @@ function initDialogs() {
             $("#token_details_dialog .dialog-body").html(data);
             $("#token_details_dialog").dialog("open");
         }, "html");
-    });
-
-    $(document).on("dblclick", ".key", function() {
+    })
+    .on("dblclick", ".key", function() {
         var row = $(this).closest("tr").get(0);
         var params = {
             token_id: row.dataset.parentId,
@@ -362,9 +364,8 @@ function initDialogs() {
             $("#key_details_dialog .dialog-body").html(data);
             $("#key_details_dialog").dialog("open");
         }, "html");
-    });
-
-    $(document).on("dblclick", ".cert-active , .cert-inactive", function() {
+    })
+    .on("dblclick", ".cert-active , .cert-inactive", function() {
         var row = $(this).closest("tr").get(0);
         var data = oKeys.fnGetData(row);
 
