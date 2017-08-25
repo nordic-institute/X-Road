@@ -28,7 +28,10 @@ import ee.ria.xroad.common.conf.monitoringconf.MonitoringConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.SimpleSoapEncoder;
+import ee.ria.xroad.common.message.SoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.ProxyMain;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
@@ -40,16 +43,22 @@ import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
+import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Service handler for proxy monitoring
@@ -58,6 +67,8 @@ import java.util.Collections;
 public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     public static final String SERVICE_CODE = "getSecurityServerMetrics";
+    public static final String MONITOR_REQ_PARAM_NODE_NAME = "outputField";
+    public static final String NS_MONITORING = "http://x-road.eu/xsd/monitoring";
 
     private ProxyMessage requestMessage;
     private static final JAXBContext JAXB_CTX;
@@ -98,8 +109,9 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
 
     @Override
     public void startHandling(HttpServletRequest servletRequest,
-            ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
-            OpMonitoringData opMonitoringData) throws Exception {
+                              ProxyMessage proxyRequestMessage, HttpClient opMonitorClient,
+                              OpMonitoringData opMonitoringData) throws Exception {
+
         // It's required that in case of proxy monitor service (where SOAP
         // message is not forwarded) the requestOutTs must be equal with the
         // requestInTs and the responseInTs must be equal with the
@@ -123,11 +135,44 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         root.getMetrics().add(version);
 
         if (client != null) {
-            root.getMetrics().add(client.getMetrics());
+            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage)));
         }
 
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
         responseEncoder.soap(result, Collections.emptyMap());
+    }
+
+    /**
+     * Read requested monitoring parameter names from SOAP body. Returns empty list if no explicit metric names defined.
+     *
+     * @param proxyRequestMessage
+     * @return
+     */
+    private List<String> getMetricNames(ProxyMessage proxyRequestMessage) throws Exception {
+        List<String> metricNames = new ArrayList<>();
+
+        Document doc = parse(proxyRequestMessage);
+        NodeList nl = doc.getElementsByTagNameNS(NS_MONITORING, MONITOR_REQ_PARAM_NODE_NAME);
+
+        for (int i = 0; i < nl.getLength(); i++) {
+            metricNames.add(nl.item(i).getFirstChild().getNodeValue());
+        }
+        return metricNames;
+    }
+
+    /**
+     * Create XML DOM representation from input stream.
+     *
+     * @param proxyRequestMessage
+     * @return
+     * @throws Exception
+     */
+    private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        dbf.setNamespaceAware(true);
+        DocumentBuilder db = dbf.newDocumentBuilder();
+        byte[] bytes = proxyRequestMessage.getSoap().getBytes();
+        return db.parse(new ByteArrayInputStream(bytes));
     }
 
     @Override
@@ -182,7 +227,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         marshaller.marshal(object, out);
     }
 
-    static  {
+    static {
         try {
             JAXB_CTX = JAXBContext.newInstance(ObjectFactory.class);
         } catch (JAXBException e) {

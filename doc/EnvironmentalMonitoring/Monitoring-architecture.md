@@ -238,7 +238,7 @@ For monitoring queries this is not enough. In a clustered security server config
     <SOAP-ENV:Body>
         <m:getSecurityServerMetrics/>
     </SOAP-ENV:Body>
-</SOAP-ENV:Envelope
+</SOAP-ENV:Envelope>
 ```
 
 The response looks like:
