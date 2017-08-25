@@ -107,7 +107,7 @@ The following sensors produce monitoring data:
     - validity period: not before (ISO 8601 date)
     - validity period: not after (ISO 8601 date)
     - the type of the certificate:
-       - `AUTH_OR_SIGN` for the Security Server Owner (member) certificate (sign) and the Security Server certificate (auth)
+       - `AUTH_OR_SIGN` for the Security Server member certificates (for signing) and the Security Server certificate (for authentication)
        - `INTERNAL_IS_CLIENT_TLS` for the client Information system certificates
        - `SECURITY_SERVER_TLS` for the TLS certificate of the Security server
   - data is refreshed once per day
