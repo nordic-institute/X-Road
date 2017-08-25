@@ -75,7 +75,7 @@
 
     <xs:complexType name="getSecurityServerMetricsType">
         <xs:sequence>
-            <xs:element name="outputSpec" type="tns:OutputSpecType" minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="outputSpec" type="tns:OutputSpecType" minOccurs="0" maxOccurs="1">
                 <xs:annotation>
                     <xs:documentation>The set of the requested environmental data fields</xs:documentation>
                 </xs:annotation>
