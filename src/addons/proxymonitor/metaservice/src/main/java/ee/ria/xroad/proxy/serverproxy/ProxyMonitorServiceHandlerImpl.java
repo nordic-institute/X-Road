@@ -155,9 +155,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         NodeList nl = doc.getElementsByTagNameNS(NS_MONITORING, MONITOR_REQ_PARAM_NODE_NAME);
 
         for (int i = 0; i < nl.getLength(); i++) {
-            Node n = nl.item(i);
-            String val = n.getFirstChild().getNodeValue();
-            metricNames.add(val);
+            metricNames.add(nl.item(i).getFirstChild().getNodeValue());
         }
         return metricNames;
     }

@@ -47,6 +47,16 @@ import java.util.Map;
 public class MetricsProviderActor extends UntypedActor {
 
     private LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    private static final List<String> PACKAGE_OR_CERTIFICATE_METRIC_NAMES = Lists.newArrayList(
+            SystemMetricNames.PROCESSES,
+            SystemMetricNames.PROCESS_STRINGS,
+            SystemMetricNames.XROAD_PROCESSES,
+            SystemMetricNames.XROAD_PROCESS_STRINGS,
+            SystemMetricNames.PACKAGES,
+            SystemMetricNames.PACKAGE_STRINGS,
+            SystemMetricNames.CERTIFICATES,
+            SystemMetricNames.CERTIFICATES_STRINGS
+    );
 
     /**
      * Two phase filter for checking user requested metric names and additional chained filter for
@@ -54,8 +64,8 @@ public class MetricsProviderActor extends UntypedActor {
      */
     public class SystemMetricsFilter implements MetricFilter {
 
-        private List<String> metricNames;
-        private MetricFilter chainedFilter;
+        private final List<String> metricNames;
+        private final MetricFilter chainedFilter;
 
         /**
          * Must match metricNames if not null AND must match chainedFilter if not null.
@@ -150,15 +160,7 @@ public class MetricsProviderActor extends UntypedActor {
     }
 
     private boolean isProcessPackageOrCertificateMetric(String name) {
-        return Lists.newArrayList(SystemMetricNames.PROCESSES,
-                SystemMetricNames.PROCESS_STRINGS,
-                SystemMetricNames.XROAD_PROCESSES,
-                SystemMetricNames.XROAD_PROCESS_STRINGS,
-                SystemMetricNames.PACKAGES,
-                SystemMetricNames.PACKAGE_STRINGS,
-                SystemMetricNames.CERTIFICATES,
-                SystemMetricNames.CERTIFICATES_STRINGS
-        ).contains(name);
+        return PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
     }
 
     private MetricSetDto toProcessMetricSetDto(String name,

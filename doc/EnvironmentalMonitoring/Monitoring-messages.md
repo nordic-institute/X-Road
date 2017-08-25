@@ -36,7 +36,8 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
 
 `Body` element must contain `getSecurityServerMetrics` element. 
 
-Optional `outputSpec` element can be used to define a set of specific environmental monitoring parameters. In this case a set of `outputField` elements are used to define requested metrics. Requested metric names are defined by [Dropwizard Metrics](https://github.com/dropwizard/metrics). Empty or missing `outputSpec` element will request all metrics. `getSecurityServerMetricsResponse` element in response will contain matching metrics.
+Optional `outputSpec` element can be used to define a set of specific environmental monitoring parameters. In this case a set of `outputField` elements are used to define requested metrics. 
+`outputField` elements should match metric names provided by [Dropwizard Metrics](https://github.com/dropwizard/metrics). Empty or missing `outputSpec` element will request all metrics. `getSecurityServerMetricsResponse` element in response will contain matching metrics.
 
 
 
