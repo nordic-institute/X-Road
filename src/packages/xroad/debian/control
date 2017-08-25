@@ -24,7 +24,7 @@ Description: X-Road central server
 Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=${source:Upstream-Version}), curl, unzip, libmhash2
+Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (>=${source:Upstream-Version}), xroad-centralserver-monitoring, curl, unzip, libmhash2
 Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-common (>=${source:Upstream-Version})
 Description: X-Road central server
  X-Road central server programs and utilities
