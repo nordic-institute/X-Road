@@ -56,16 +56,16 @@ var XROAD_SECURITYSERVERS = function() {
         enableActions();
         focusInput();
 
-        $("#securityservers tbody td[class!=dataTables_empty]")
-                .live("click",function(ev) {
+        var serversTable = $("#securityservers");
+
+        serversTable
+        .on("click", "tbody tr", function(ev) {
             if (oSecurityServers.setFocus(0, ev.target.parentNode)) {
                 $(".securityserver-action").enable();
             }
-        });
-
-        $("#securityservers tbody tr")
-                .unbind("dblclick").live("dblclick", function() {
-            XROAD_SECURITYSERVER_EDIT.open(oSecurityServers.getFocusData(), true);
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            $("#securityserver_edit").click();
         });
 
         $("#securityserver_edit").click(function() {

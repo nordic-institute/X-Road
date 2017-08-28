@@ -1,11 +1,27 @@
 # Change Log
 
-## 6.16.0 - 2017-06-20
+## 6.16.0 - 2017-08-17
 - PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
 - PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
 - XTE-349: Fixed some typos related with document PR-OPMON.
 - XTE-335 / Backlog #134: Security Server, Op Monitoring Daemon : Updated Dropwizard to 3.2.2 and removed unnecessary bugfix.
 - XTE-332, XTE-353 / Backlog #129: Security Server, Central Server, Configuration Proxy: Added support for PKCS#11 sign mechanism CKM_RSA_PKCS_PSS and made key creation template configurable.
+- PVAYLADEV-780 / XRJD #146: Updated xroad-jetty to version 9.4.5. Now using jetty logging-logback module and updated logback (both library and jetty module version to 1.2.3). Removed XRoadSizeBasedRollingPolicy from the logback configurations. The policy class remains available (in case someone really wants to use it for awhile still), but will be removed entirely in a future release. Due to the log rolling policy change, the file name of archived files will lose the zip-creation time from the custom policy.
+- PVAYLADEV-807: Added a maintenance mode to the health check interface to force health check to return HTTP status code 503. Mode can be enabled through proxy's admin port.
+- PVAYLADEV-746: Added environment monitoring sensor for certificates which are associated with this security server.
+- PVAYLADEV-717: Added license for IAIK PKCS Wrapper
+- PVAYLADEV-800 / XRJD #71: Security server should preserve and propagate the SOAPAction header from the consumer to the provider.
+- PVAYLADEV-838: Fix Ansible script does not build installation packages
+- PVAYLADEV-804: Added instructions on performing an online rolling upgrade on a security server cluster. See the External Load Balancer documentation (doc id: IG-LXB).
+- PVAYLADEV-834: Updated dependencies to latest stable versions to fix known vulnerabilities (jackson-databind, apache-mime4j-core, JRuby)
+- PVAYLADEV-760 / XRJD #160: Modified connector SO-linger defaults to -1. Additionally moved RHEL-proxy configuration to file override-rhel-proxy.ini and reduced the file to only contain differences to debian-proxy configuration file proxy.ini, that is now also included in RHEL packaging as a baseline configuration. Also modified SystemPropertiesLoader to load glob-defined ini-files in alphabetic order based on the filename.
+- PVAYLADEV-798 / XRJD #170: Fixed the horizontal centering of central server UI tab bars as well as the vertical positioning of the advanced search window tab bar.
+- PVAYLADEV-818: Updated the frontpage of X-Road Github repository (README.md file) to contain more information about the X-Road development.
+- PVAYLADEV-816: Add missing load balancing installation document image source files
+- PVAYLADEV-772: The X-Road restore backup script names the services that need to be restarted so that the service list is always correct and the services are restarted in correct order.
+- PVAYLADEV-797 / XRJD #156: Federation has been disabled by default on the security server level. Federation can be enabled with the system parameter allowed-federations for the configuration-client server component. More information can be found in the Security Server User Guide (Doc. ID: UG-SS) and the System Parameters User Guide (Doc. ID: UG-SYSPAR)
+- PVAYLADEV-868:Added link from ig-xlb_x-road_external_load_balancer_installation_guide.md to /doc/README.md
+- PVAYLADEV-856: Exclude audit.log from automatic log cleanup on reboot
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
