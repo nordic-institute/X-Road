@@ -37,8 +37,18 @@ import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Proxy test suite program.
@@ -98,7 +108,7 @@ public final class ProxyTestSuite {
 
         } finally {
             jobManager.stop();
-            actorSystem.terminate();
+            Await.ready(actorSystem.terminate(), Duration.apply(5, TimeUnit.SECONDS));
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
 
@@ -112,17 +122,13 @@ public final class ProxyTestSuite {
                 sb.append(t.getId()).append("\n");
             }
 
-            log.info("{}", sb.toString());
-
-            if (!failed.isEmpty()) {
-                sb = new StringBuilder("Failed testcases:\n");
-
-                for (MessageTestCase t : failed) {
-                    sb.append("\t").append(t.getId()).append("\n");
-                }
-
-                throw new RuntimeException(sb.toString());
+            if (failed.isEmpty()) {
+                log.info("{}", sb.toString());
+            } else {
+                log.warn("{}", sb.toString());
             }
+
+            System.exit(failed.isEmpty() ? 0 : 1);
         }
     }
 
