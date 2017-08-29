@@ -2,7 +2,7 @@
 
 ---
 
-#X-Road: Use Case Model for Global Configuration Distribution
+# X-Road: Use Case Model for Global Configuration Distribution
 **Analysis**
 
 Version: 1.5
