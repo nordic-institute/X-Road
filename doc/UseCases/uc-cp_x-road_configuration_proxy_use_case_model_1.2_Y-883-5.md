@@ -190,10 +190,9 @@ following actors.
 Relationships between the actors, the system and the use cases are
 described in Figure 1.
 
-![](media/image3.png){width="6.208333333333333in" height="4.6875in"}
+![](img/use_case_diagram_for_the_conf_proxy.PNG)
 
-Figure []{#Ref_Use_case_diagram_for_the_configurat .anchor}1. Use case
-diagram for the configuration proxy
+Figure 1. Use case diagram for the configuration proxy
 
 UC CP\_01: View Proxy Settings
 ------------------------------
