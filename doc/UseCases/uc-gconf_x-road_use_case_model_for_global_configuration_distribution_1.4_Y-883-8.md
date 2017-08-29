@@ -272,7 +272,7 @@ actors.
 Relationships between the actors, systems and use cases are described in
 Figure 1.
 
-![](media/use_case_diagaram_disto_global_conf.png)
+![](img/use_case_diagaram_disto_global_conf.png)
 
 Figure 1. Use case diagram for distributing global configuration
 
