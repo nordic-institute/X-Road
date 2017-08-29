@@ -22,6 +22,24 @@ Doc. ID: UC-TRUST
 25.10.2015   | 1.0     | Editorial changes made                                         | Riin Saarmäe
 04.11.2015   | 1.1     | UC TRUST\_19 added. Minor corrections made.                    | Riin Saarmäe
 
+
+## Version history
+
+ Date       | Version | Description                                                     | Author
+ ---------- | ------- | --------------------------------------------------------------- | --------------------
+ 02.06.2015 | 0.1     | Initial                                                         | Riin Saarmäe
+ 17.08.2015 | 0.2     | Sequence diagram added ([Annex A](#annex-a-sequence-diagram-for-messaging)). Component element added to use cases. Terms and Abbreviations section updated. | Riin Saarmäe
+ 31.08.2015 | 0.3     | Added comments and editorial changes                            | Margus Freudenthal
+ 14.09.2015 | 0.4     | Minor corrections                                               | Riin Saarmäe
+ 20.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
+ 23.09.2015 | 1.1     | Use case [MESS\_09](#310-uc-mess_09-log-message-and-signature-to-message-log) (3.10) and sequence diagram ([Annex A](#annex-a-sequence-diagram-for-messaging)) updated | Riin Saarmäe
+ 08.11.2015 | 1.2     | Renamed *Scope* element to *System*. *Native* (X-Road instance) renamed to *local*. Minor corrections done. | Riin Saarmäe
+ 26.11.2015 | 1.3     | Use cases [MESS\_02](#33-uc-mess_02-process-x-road-soap-request), [MESS\_03](#34-uc-mess_03-process-x-road-request-message), [MESS\_14](#315-uc-mess_14-get-ocsp-responses) and [MESS\_15](#316-uc-mess_15-get-and-verify-ocsp-response) updated.    | Riin Saarmäe
+ 05.02.2016 | 1.4     | XTE-225 - use case [MESS\_04](#35-uc-mess_04-verify-soap-message) updated.                            | Meril Vaht
+ 14.12.2016 | 1.5     | Operational monitoring functionality added                      | Meril Vaht
+ 22.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF, re-numbered and re-bulleted [MESS\_16](#317-uc-mess_16-store-operational-monitoring-data-and-forward-the-data-to-operational-monitoring-daemon)| Toomas Mölder
+
+
 ## Table of Contents
 
 <!-- toc -->
