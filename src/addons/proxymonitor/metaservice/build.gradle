@@ -94,7 +94,8 @@ task runProxymonitorMetaserviceTest(type: JavaExec) {
             '-Dxroad.proxy.client-connector-so-linger=-1',
             '-Dxroad.proxy.client-httpclient-so-linger=-1',
             '-Dxroad.proxy.server-connector-so-linger=-1',
-            '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl'
+            '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
+            '-Dproxy.akka.remote.netty.tcp.port=0'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
