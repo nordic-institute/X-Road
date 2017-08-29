@@ -40,9 +40,7 @@ Table of Contents
   * [1.1 Purpose](#purpose)
   * [1.2 Terms and Abbreviations](#terms-and-abbreviations)
   * [1.3 References](#references)
-
 - [2 Overview](#overview)
-
 - [3 Use Case Model](#use-case-model)
   * [3.1 Security server](#security-server)
     * [3.1.1 Actors](#actors)
@@ -86,7 +84,7 @@ Table of Contents
     * [3.2.7 UC SERVICE\_35: Edit the Description of a Global Group](#uc-service_35-edit-the-description-of-a-global-group)
     * [3.2.8 UC SERVICE\_36: View the Global Group Membership of an X-Road Member](#uc-service_36-view-the-global-group-membership-of-an-x-road-member)
     * [3.2.9 UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group](#uc-service_37-add-an-x-road-member-or-subsystem-to-a-global-group)
-    * [3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group................................................................................................................................](#uc-service_38-remove-an-x-road-member-or-subsystem-from-a-global-group)
+    * [3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group](#uc-service_38-remove-an-x-road-member-or-subsystem-from-a-global-group)
     * [3.2.11 UC SERVICE\_39: Delete a Global Group](#uc-service_39-delete-a-global-group)
     * [3.2.12 UC SERVICE\_40: View Central Services](#uc-service_40-view-central-services)
     * [3.2.13 UC SERVICE\_41: Add a Central Service](#uc-service_41-add-a-central-service)

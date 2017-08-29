@@ -38,9 +38,7 @@ Table of Contents
   * [1.1 Purpose](#purpose)
   * [1.2 Terms and Abbreviations](#terms-and-abbreviations)
   * [1.3 References](#references)
-
 - [2 Overview](#overview)
-
 - [3 Use Case Model](#use-case-model)
   * [3.1 Actors](#actors)
   * [3.2 UC SS\_01: Log In to the Graphical User Interface](#uc-ss_01-log-in-to-the-graphical-user-interface)

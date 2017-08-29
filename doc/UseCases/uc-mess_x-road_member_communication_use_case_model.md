@@ -13,7 +13,6 @@ Doc. ID: UC-MESS
 
 ---
 
-
 ## Version history
 
  Date       | Version | Description                                                     | Author
