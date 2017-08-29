@@ -13,14 +13,13 @@ Doc. ID: UC-TRUST
 
 ## Version history
 
- Date        | Version   | Description                                                                                                                                          | Author
------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------                                                                                                                                     Author
-19.09.2015   | 0.1       | Initial version                                                                                                                                      | Riin Saarmäe
-21.09.2015   | 0.2       | Editorial changes made                                                                                                                               | Imbi Nõgisto
-25.10.2015   | 0.3       | Renamed *Scope* to *System*. Renamed *User* to *CS administrator*. Use cases updated according to system developments. Some typos and terms fixed.   | Riin Saarmäe
-25.10.2015   | 1.0       | Editorial changes made                                                                                                                               | Riin Saarmäe
-04.11.2015   | 1.1       | UC TRUST\_19 added. Minor corrections made.                                                                                                          | Riin Saarmäe
------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------
+ Date        | Version | Description                                                                                                                                          | Author
+------------ | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | --------------                                                                                                                                     Author
+19.09.2015   | 0.1     | Initial version                                                                                                                                      | Riin Saarmäe
+21.09.2015   | 0.2     | Editorial changes made                                                                                                                               | Imbi Nõgisto
+25.10.2015   | 0.3     | Renamed *Scope* to *System*. Renamed *User* to *CS administrator*. Use cases updated according to system developments. Some typos and terms fixed.   | Riin Saarmäe
+25.10.2015   | 1.0     | Editorial changes made                                                                                                                               | Riin Saarmäe
+04.11.2015   | 1.1     | UC TRUST\_19 added. Minor corrections made.                                                                                                          | Riin Saarmäe
 
 ## Table of Contents
 
