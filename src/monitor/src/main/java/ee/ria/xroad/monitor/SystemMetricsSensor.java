@@ -21,7 +21,6 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.monitor;
-
 import akka.actor.ActorIdentity;
 import akka.actor.ActorRef;
 import akka.actor.Identify;
@@ -105,7 +104,6 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     public void onReceive(final Object message) {
-
         if (MEASURE_MESSAGE == message) {
             if (agent == null) {
                 identifyAgent();

@@ -29,6 +29,7 @@ import java.util.List;
 
 import com.google.common.base.Splitter;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -47,9 +48,9 @@ public class PackageLister extends AbstractExecLister<PackageInfo> {
      * Program entry point
      */
     public static void main(String[] args) throws IOException {
-        ListedData<PackageInfo> p = new PackageLister().list();
-        System.out.println("raw: " + p.getJmxData());
-        System.out.println("parsed: " + p.getParsedData());
+        JmxStringifiedData<PackageInfo> p = new PackageLister().list();
+        System.out.println("raw: " + p.getJmxStringData());
+        System.out.println("parsed: " + p.getDtoData());
     }
 
     @Override

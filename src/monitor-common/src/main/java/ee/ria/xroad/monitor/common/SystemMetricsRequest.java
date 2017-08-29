@@ -22,10 +22,24 @@
  */
 package ee.ria.xroad.monitor.common;
 
+import lombok.Data;
+
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Message for requesting system metrics data
  */
+@Data
 public class SystemMetricsRequest implements Serializable {
+
+    // Can be set to null/empty to request all metrics
+    private List<String> metricNames;
+
+    public SystemMetricsRequest() {
+    }
+
+    public SystemMetricsRequest(List<String> metricNames) {
+        this.metricNames = metricNames;
+    }
 }

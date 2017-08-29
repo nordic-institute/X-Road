@@ -91,6 +91,6 @@ var XROAD_CENTERUI_COMMON = function() {
         updateRecordsCount: updateRecordsCount,
         limitDialogHeight: limitDialogHeight,
         getTranslatedRequestType: getTranslatedRequestType,
-        translateRequestType, translateRequestType
+        translateRequestType: translateRequestType
     };
 }();

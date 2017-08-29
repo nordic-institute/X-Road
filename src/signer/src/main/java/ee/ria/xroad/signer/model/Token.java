@@ -85,6 +85,9 @@ public final class Token {
     /** Contains label-value pairs of information about token. */
     private final Map<String, String> tokenInfo = new LinkedHashMap<>();
 
+    /** Signing (PKCS#11) mechanism name. */
+    private final String signMechanismName;
+
     /**
      * Adds a key to this token.
      * @param key the key to add

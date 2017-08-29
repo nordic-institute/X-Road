@@ -33,10 +33,9 @@ public interface SigningKey {
     /**
      * Calculates signature.
      * @param request singing request information
-     * @param signatureAlgorithmId algorithm to use for signing
+     * @param digestAlgoId digest algorithm to use for signing
      * @throws Exception in case of any errors
      * @return the signature data
      */
-    SignatureData calculateSignature(SigningRequest request,
-            String signatureAlgorithmId) throws Exception;
+    SignatureData calculateSignature(SigningRequest request, String digestAlgoId) throws Exception;
 }

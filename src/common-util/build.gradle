@@ -11,9 +11,9 @@ sourceSets {
 }
 
 dependencies {
-    compile 'org.apache.james:apache-mime4j-core:0.7.2'
+    compile 'org.apache.james:apache-mime4j-core:0.8.1'
     compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'org.apache.santuario:xmlsec:1.5.8'
+    compile 'org.apache.santuario:xmlsec:2.0.8'
 
     compile 'org.bouncycastle:bcpkix-jdk15on:1.54'
     compile 'commons-configuration:commons-configuration:1.9'
@@ -23,10 +23,10 @@ dependencies {
     compile 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
     compile 'xerces:xercesImpl:2.11.0.SP5'
 
-    compile 'org.eclipse.jetty:jetty-server:9.4.2.v20170220'
+    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
 
-    compile 'ch.qos.logback:logback-access:1.1.3'
-    compile 'ch.qos.logback:logback-classic:1.1.3'
+    compile 'ch.qos.logback:logback-access:1.2.3'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
 
     compile ('org.quartz-scheduler:quartz:2.1.6') {
         exclude module: 'c3p0'
@@ -42,15 +42,17 @@ dependencies {
     compile "com.typesafe.akka:akka-remote_2.11:$akkaVersion"
     compile "com.typesafe.akka:akka-slf4j_2.11:$akkaVersion"
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.6'
     compile 'com.google.code.gson:gson:2.7'
     compile 'com.google.guava:guava:19.0'
 
+    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
     testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile project(':common-test').sourceSets.main.output
 
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
 }
 
 test {
@@ -58,10 +60,16 @@ test {
 }
 
 task createDirs() {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
     ant.taskdef(name: 'xjc',
         classname: 'com.sun.tools.xjc.XJCTask',
         classpath: configurations.xjc.asPath)
@@ -135,9 +143,13 @@ task xjc() {
         schema: 'src/main/resources/service-metainfo.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
+    }
 }
 
 task make(type: Exec) {
+    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
+    outputs.dir file('../lib')
+
     workingDir '../'
     commandLine 'make'
 }

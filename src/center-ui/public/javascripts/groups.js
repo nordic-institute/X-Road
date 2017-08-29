@@ -86,18 +86,21 @@ var XROAD_GROUPS = function() {
         enableActions();
         focusInput();
 
-        $("#global_groups tbody td").live("click", function(ev) {
+        var groupTable = $("#global_groups");
+        var groupDetailsButton = $("#group_details");
+
+        groupTable
+        .on("click", "tbody tr", function(ev) {
             if (oGlobalGroups.setFocus(0, ev.target.parentNode) &&
-                    $("#add_group_form:visible").length == 0) {
+                    $("#add_group_form:visible").length === 0) {
                 $(".group-action").enable();
             }
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            groupDetailsButton.click();
         });
 
-        $("#global_groups tbody tr").live("dblclick", function() {
-            XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
-        });
-
-        $("#group_details").click(function() {
+        groupDetailsButton.click(function() {
             XROAD_GROUP_EDIT.open(oGlobalGroups.getFocusData());
         });
 

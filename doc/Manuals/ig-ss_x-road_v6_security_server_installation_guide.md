@@ -6,8 +6,7 @@
 # Security Server Installation Guide
 **X-ROAD 6**
 
-Version: 2.8
-13.03.2017
+Version: 2.9  
 Doc. ID: IG-SS
 
 ---
@@ -34,6 +33,7 @@ Doc. ID: IG-SS
  07.12.2016 | 2.6     | Added operational data monitoring packages. 2 GB RAM -&gt; 3 GB RAM |
  23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
+ 25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
 
 ## Table of Contents
 
@@ -51,7 +51,7 @@ Doc. ID: IG-SS
   * [2.5 Installation](#25-installation)
   * [2.6 Post-Installation Checks](#26-post-installation-checks)
   * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  * [2.8 Installing Support for Monitoring](#28-installing-support-for-monitoring)
+  * [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
   * [3.2 Reference Data](#32-reference-data)
@@ -247,13 +247,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in /etc/xroad/devices.ini via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
-### 2.8 Installing Support for Monitoring
+### 2.8 Installing the Support for Environmental Monitoring
 
-Enabling the monitoring functionality on a security server requires installation of one additional package:
-
-    sudo apt-get install xroad-monitor
-
-This installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
 
 ## 3 Security Server Initial Configuration
@@ -402,4 +398,3 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt-get dist-upgrade` commands.
 
 Please note that `xroad-jetty9 package` version can be different from other packages’ versions.
-

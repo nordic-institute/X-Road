@@ -22,32 +22,27 @@
  */
  package ee.ria.xroad.common;
 
+import ch.qos.logback.core.CoreConstants;
+import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
+import ch.qos.logback.core.rolling.RolloverFailure;
+import ch.qos.logback.core.rolling.helper.*;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import ch.qos.logback.core.CoreConstants;
-import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
-import ch.qos.logback.core.rolling.RolloverFailure;
-import ch.qos.logback.core.rolling.helper.CompressionMode;
-import ch.qos.logback.core.rolling.helper.Compressor;
-import ch.qos.logback.core.rolling.helper.FileFilterUtil;
-import ch.qos.logback.core.rolling.helper.FileNamePattern;
-import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
-import ch.qos.logback.core.rolling.helper.RenameUtil;
-
 /**
  * This class is largely a copy of Logback's FixedWindowRollingPolicy.
- *
+ *<p>
  * Replaces '%i' with timestamp and index number (necessary if there already
  * exists log for the same second). For example: '2015-10-12_165611-004'
- *
- * Work-around for problem related to RM task #7900 and Logback bug
- * http://jira.qos.ch/browse/LOGBACK-992
- *
- * FUTURE if Logback bug gets fixed, use TimeBasedRollingPolicy once again and
- * throw away this class.
+ *</p><p>
+ * This class was a work-around for
+ * http://jira.qos.ch/browse/LOGBACK-992<br>
+ *</p>
+ * <b>This class will be removed in a future release.</b>
  */
+@Deprecated
 public class XRoadSizeBasedRollingPolicy extends FixedWindowRollingPolicy {
     static final String FNP_NOT_SET = "The \"FileNamePattern\" property must "
             + "be set before using FixedWindowRollingPolicy. ";

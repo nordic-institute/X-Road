@@ -22,41 +22,47 @@
  */
 package ee.ria.xroad.monitor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.MetricRegistry;
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
 import akka.testkit.TestActorRef;
 import akka.util.Timeout;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.MetricRegistry;
+import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * MetricsProviderActorTest
  */
+@Slf4j
 public class MetricsProviderActorTest {
 
     private static ActorSystem actorSystem;
-    private MetricRegistry metrics;
+    private MetricRegistry metricsRegistry;
+
+    private static final String HISTOGRAM_NAME = "TestHistogram";
+    private static final String GAUGE_NAME = "TestGauge";
 
     /**
      * Before test handler
@@ -64,35 +70,93 @@ public class MetricsProviderActorTest {
     @Before
     public void init() {
         actorSystem = ActorSystem.create("AkkaRemoteServer", ConfigFactory.load());
-        metrics = new MetricRegistry();
-        Histogram testHistogram = metrics.histogram("testHistogram");
+        metricsRegistry = new MetricRegistry();
+
+        Histogram testHistogram = metricsRegistry.histogram(HISTOGRAM_NAME);
         testHistogram.update(100);
         testHistogram.update(10);
-        MetricRegistryHolder.getInstance().setMetrics(metrics);
+
+        //MetricRegistry.MetricSupplier<Gauge> x;
+        Gauge g = metricsRegistry.gauge(GAUGE_NAME, () -> new SimpleSensor<String>("Test gauge String value."));
+
+        MetricRegistryHolder.getInstance().setMetrics(metricsRegistry);
     }
 
+    /**
+     * Shut down actor system and wait for clean up, so that other tests are not disturbed
+     */
     @After
     public void tearDown() {
         actorSystem.shutdown();
+        actorSystem.awaitTermination();
     }
 
     @Test
-    public void testSystemMetricsRequest() throws Exception {
+    public void testAllSystemMetricsRequest() throws Exception {
         final Props props = Props.create(MetricsProviderActor.class);
         final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
-        Future<Object> future = Patterns.ask(ref, new SystemMetricsRequest(), Timeout.apply(1, TimeUnit.MINUTES));
+        Future<Object> future = Patterns.ask(ref, new SystemMetricsRequest(null), Timeout.apply(1, TimeUnit.MINUTES));
         Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
         assertTrue(future.isCompleted());
         assertTrue(result instanceof SystemMetricsResponse);
         SystemMetricsResponse response = (SystemMetricsResponse) result;
         MetricSetDto metricSetDto = response.getMetrics();
         Set<MetricDto> dtoSet = metricSetDto.getMetrics();
+
+        log.info("metricSetDto: " + metricSetDto);
+        assertEquals(2, dtoSet.stream().count());
+
+        for (MetricDto metricDto : dtoSet) {
+
+            // Order of entries is undefined -> Must handle by name
+            switch (metricDto.getName()) {
+                case HISTOGRAM_NAME:
+                    log.info("metricDto: " + metricDto);
+                    assertEquals(HISTOGRAM_NAME, metricDto.getName());
+                    assertTrue(metricDto instanceof HistogramDto);
+                    HistogramDto h = (HistogramDto) metricDto;
+                    assertEquals(100L, (long) h.getMax());
+                    assertEquals(10L, (long) h.getMin());
+                    assertEquals(55L, (long) h.getMean());
+                    break;
+                case GAUGE_NAME:
+                    log.info("metricDto: " + metricDto);
+                    assertEquals(GAUGE_NAME, metricDto.getName());
+                    break;
+                default:
+                    Assert.fail("Unknown metric found in response.");
+            }
+        }
+
+
+    }
+
+    @Test
+    public void testParametrizedSystemMetricsRequest() throws Exception {
+        final Props props = Props.create(MetricsProviderActor.class);
+        final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
+
+        Future<Object> future = Patterns.ask(
+                ref,
+                new SystemMetricsRequest(Arrays.asList(HISTOGRAM_NAME)),
+                Timeout.apply(1, TimeUnit.MINUTES));
+
+        Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
+        assertTrue(future.isCompleted());
+        assertTrue(result instanceof SystemMetricsResponse);
+        SystemMetricsResponse response = (SystemMetricsResponse) result;
+        MetricSetDto metricSetDto = response.getMetrics();
+        Set<MetricDto> dtoSet = metricSetDto.getMetrics();
+
+        log.info("metricSetDto: " + metricSetDto);
         assertEquals(1, dtoSet.stream().count());
+
+        // Note: findFirst() works only because of single result
         MetricDto metricDto = dtoSet.stream().findFirst().get();
-        assertEquals(metricDto.getName(), "testHistogram");
+        assertEquals(HISTOGRAM_NAME, metricDto.getName());
         assertTrue(metricDto instanceof HistogramDto);
         HistogramDto h = (HistogramDto) metricDto;
-        assertEquals(100L, (long)h.getMax());
+        assertEquals(100L, (long) h.getMax());
         assertEquals(10L, (long) h.getMin());
         assertEquals(55L, (long) h.getMean());
     }

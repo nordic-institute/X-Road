@@ -40,8 +40,8 @@ def create_system_parameters
       :value => "EE")
 
   SystemParameter.create(
-      :key => SystemParameter::CONF_SIGN_ALGO_ID,
-      :value => "SHA512withRSA")
+      :key => SystemParameter::CONF_SIGN_DIGEST_ALGO_ID,
+      :value => "SHA-512")
 
   SystemParameter.create(
       :key => SystemParameter::CONF_HASH_ALGO_URI,

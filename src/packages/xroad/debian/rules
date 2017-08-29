@@ -9,14 +9,13 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
-
-
 #if DEB_BUILD_OPTIONS has release value set, use package names without git hash
 ifneq (,$(findstring release,$(DEB_BUILD_OPTIONS)))
-rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')
+	version=`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`
+else
+	rel=$(shell date --utc --date @`git show -s --format=%ct` +'%Y%m%d%H%M%S')$(shell git show -s --format=git%h)
+	version=`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
 endif
-
 
 %:
 	dh  $@
@@ -34,12 +33,13 @@ override_dh_installinit:
 	dh_installinit --name=xroad-confclient
 	dh_installinit --name=xroad-monitor
 	dh_installinit --name=xroad-opmonitor
+	dh_installinit --name=xroad-autologin
 
 override_dh_builddeb:
 	dh_builddeb -- -Zgzip -z1
 
 override_dh_gencontrol:
-	dh_gencontrol -- -v`dpkg-parsechangelog | sed -n -e 's/^Version: //p'`.$(rel)
+	dh_gencontrol -- -v$(version)
 
 # By default, dh_compress compresses files that Debian policy mandates
 # should be compressed. Example files are more user-friendly if these remain

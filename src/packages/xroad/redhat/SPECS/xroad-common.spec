@@ -50,6 +50,7 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/signer
 mkdir -p %{buildroot}/var/lib/xroad/backup
+mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/bin/signer-console %{buildroot}/usr/bin/signer-console
 ln -s /usr/share/xroad/jlib/signer-1.0.jar %{buildroot}/usr/share/xroad/jlib/signer.jar
@@ -82,6 +83,9 @@ cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase-3.5.1.jar %{buildroot}/usr/share/xroad/db/liquibase-3.5.1.jar
 cp -p %{src}/../../packages/xroad/common/usr/share/xroad/db/liquibase.sh %{buildroot}/usr/share/xroad/db/liquibase.sh
+cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
+cp -p %{src}/../../packages/xroad/common/etc/xroad/backup.d/??_xroad-confclient %{buildroot}/etc/xroad/backup.d/
+cp -p %{src}/../../packages/xroad/common/etc/xroad/backup.d/??_xroad-signer %{buildroot}/etc/xroad/backup.d/
 
 %clean
 rm -rf %{buildroot}
@@ -112,6 +116,8 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/confclient-logback-service.xml
 %config /etc/xroad/ssl/openssl.cnf
 %config /etc/xroad/ssl/rfc3526group15.pem
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-confclient
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-signer
 
 %defattr(-,root,root,-)
 %dir /usr/share/xroad
@@ -142,6 +148,7 @@ rm -rf %{buildroot}
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre
 if ! getent passwd xroad > /dev/null; then
@@ -187,6 +194,22 @@ test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*
 chmod -R o=rwX,g=rX,o= /etc/xroad/services/* /etc/xroad/conf.d/*
+
+# replace signer configuration property csr-signature-algorithm with csr-signature-digest-algorithm
+local_ini=/etc/xroad/conf.d/local.ini
+if csr_signature_algorithm=`crudini --get ${local_ini} signer csr-signature-algorithm 2>/dev/null`
+then
+    crudini --del ${local_ini} signer csr-signature-algorithm
+    case "$csr_signature_algorithm" in
+        SHA512*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-512;;
+        SHA384*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-384;;
+        SHA256*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-256;;
+        SHA1*) crudini --set ${local_ini} signer csr-signature-digest-algorithm SHA-1;;
+    esac
+fi
+
+# remove default-signature-algorithm
+crudini --del ${local_ini} common default-signature-algorithm 2>/dev/null || :
 
 #enable xroad services by default
 echo 'enable xroad-*.service' > %{_presetdir}/90-xroad.preset

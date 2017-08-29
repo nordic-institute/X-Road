@@ -28,6 +28,7 @@ cp -p %{src}/addon/proxy/opmonitoring.conf %{buildroot}/usr/share/xroad/jlib/add
 cp -p %{src}/../../addons/op-monitoring/build/libs/op-monitoring-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
+cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-addon-opmonitoring/
 
 %clean
 rm -rf %{buildroot}
@@ -38,6 +39,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %postun
 %systemd_postun_with_restart xroad-proxy.service

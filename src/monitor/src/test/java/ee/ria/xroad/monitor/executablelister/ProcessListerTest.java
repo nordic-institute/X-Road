@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,11 +70,11 @@ public class ProcessListerTest {
                 return fakeOutputs;
             }
         };
-        ListedData<ProcessInfo> data = testProcessLister.list();
-        assertEquals(11, data.getParsedData().size()); // no header row
-        assertEquals(12, data.getJmxData().size()); // header row included
+        JmxStringifiedData<ProcessInfo> data = testProcessLister.list();
+        assertEquals(11, data.getDtoData().size()); // no header row
+        assertEquals(12, data.getJmxStringData().size()); // header row included
 
-        ProcessInfo info = data.getParsedData().iterator().next();
+        ProcessInfo info = data.getDtoData().iterator().next();
         assertEquals("root", info.getUserId());
         assertEquals("7.0", info.getCpuLoad());
         assertEquals("marras05", info.getStartTime());
@@ -81,7 +82,7 @@ public class ProcessListerTest {
         assertEquals("1", info.getProcessId());
         assertEquals("init", info.getCommand());
 
-        String jmxData = data.getJmxData().get(1);
+        String jmxData = data.getJmxStringData().get(1);
         assertEquals("root      7.0 marras05  0.2  1 init", jmxData);
     }
 }

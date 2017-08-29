@@ -127,8 +127,8 @@ class InitController < ApplicationController
       SystemParameter::DEFAULT_AUTH_CERT_REG_URL)
 
     SystemParameter.find_or_initialize(
-      SystemParameter::CONF_SIGN_ALGO_ID,
-      SystemParameter::DEFAULT_CONF_SIGN_ALGO_ID)
+      SystemParameter::CONF_SIGN_DIGEST_ALGO_ID,
+      SystemParameter::DEFAULT_CONF_SIGN_DIGEST_ALGO_ID)
 
     SystemParameter.find_or_initialize(
       SystemParameter::CONF_HASH_ALGO_URI,

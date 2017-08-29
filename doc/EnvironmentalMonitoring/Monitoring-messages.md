@@ -5,10 +5,11 @@ Doc. ID: PR-ENVMONMES
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
-| 15.12.2015 | 1.0       | Initial version               | Ilkka Seppälä         |
-| 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
-| 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
-| 23.2.2017   | 1.3       | Added reference to security server targeting extension | Olli Lindgren|
+| 15.12.2015 | 1.0         | Initial version                                            | Ilkka Seppälä   |
+| 04.01.2017 | 1.1         | Fix documentation links                                    | Ilkka Seppälä   |
+| 20.01.2017 | 1.2         | Added license text, table of contents and version history  | Sami Kallio     |
+| 23.02.2017 | 1.3         | Added reference to security server targeting extension     | Olli Lindgren   |
+| 24.08.2017 | 1.4         | Added outputSpec parameter to getSecurityServerMetrics     | Tomi Tolvanen   |
 
 ## Table of Contents
 
@@ -33,6 +34,13 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 Fetching security server metrics uses the X-Road protocol. The `getSecurityServerMetrics` request requires a `securityServer` header element as specified by the security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\] so that the request can be routed to a specific security server.
 
+`Body` element must contain `getSecurityServerMetrics` element. 
+
+Optional `outputSpec` element can be used to define a set of specific environmental monitoring parameters. In this case a set of `outputField` elements are used to define requested metrics. 
+`outputField` elements should match metric names provided by [Dropwizard Metrics](https://github.com/dropwizard/metrics). Empty or missing `outputSpec` element will request all metrics. `getSecurityServerMetricsResponse` element in response will contain matching metrics.
+
+
+
 ```xml
 <SOAP-ENV:Envelope
 	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
@@ -52,8 +60,8 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>
             <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
-        </xrd:service id:objectType="SERVER">
-        <xrd:securityServer>
+        </xrd:service>
+        <xrd:securityServer id:objectType="SERVER">
             <id:xRoadInstance>fdev</id:xRoadInstance>
             <id:memberClass>GOV</id:memberClass>
             <id:memberCode>1710128-9</id:memberCode>
@@ -66,7 +74,12 @@ Fetching security server metrics uses the X-Road protocol. The `getSecurityServe
     </SOAP-ENV:Header>
 
     <SOAP-ENV:Body>
-        <m:getSecurityServerMetrics/>
+        <m:getSecurityServerMetrics>
+            <m:outputSpec>
+                <m:outputField>OperatingSystem</m:outputField>
+                <m:outputField>Processes</m:outputField>                
+            </m:outputSpec>
+        </m:getSecurityServerMetrics>
     </SOAP-ENV:Body>
 
 </SOAP-ENV:Envelope>

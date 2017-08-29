@@ -1,6 +1,6 @@
 # Test-CA with TSA and OCSP
 
-`roles/palveluvayla-ca/` directory contains a collection of scripts to 
+`roles/xroad-ca/` directory contains a collection of scripts to
 set up an openssl-based test-CA environment for signing certificates 
 and providing TSA and OCSP services during development. 
 The scripts are created for Ubuntu 14.04.
@@ -32,7 +32,7 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 
 ---------------------------------------------
 
-## 1. Contents of the roles/palveluvayla-ca directory
+## 1. Contents of the roles/xroad-ca directory
 
 `files/etc/init` - upstart-jobs for the TSA and OCSP
 
@@ -56,11 +56,11 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 2. Create the following users on the target machine
 	- `ca`
 	- `ocsp`
-3. Copy the following directories from the `roles/palveluvayla-ca/files` directory to target machine root
+3. Copy the following directories from the `roles/xroad-ca/files` directory to target machine root
 	- `etc`
 	- `home`
 	- `usr`
-4. Copy `roles/palveluvayla-ca/templates/init.sh` to `home/ca/CA/`	
+4. Copy `roles/xroad-ca/templates/init.sh` to `home/ca/CA/`
 4. Add user `ocsp` to group `ca`
 5. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
 6. Grant read permission for group `ca` to files under `/home/ca/CA`

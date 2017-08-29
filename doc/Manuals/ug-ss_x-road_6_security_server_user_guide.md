@@ -6,8 +6,8 @@
 # SECURITY SERVER USER GUIDE
 **X-ROAD 6**
 
-Version: 2.16
-20.03.2017  
+Version: 2.17  
+15.06.2017
 Doc. ID: UG-SS
 
 ---
@@ -50,6 +50,7 @@ Doc. ID: UG-SS
  04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
  20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
+ 15.06.2017 | 2.17    | Added [Chapter 17](#17-federation) on federation | Olli Lindgren
 
 ## Table of Contents
 
@@ -146,6 +147,7 @@ Doc. ID: UG-SS
   * [16.1 System Services](#161-system-services)
   * [16.2 Logging configuration](#162-logging-configuration)
   * [16.3 Fault Detail UUID](#163-fault-detail-uuid)
+- [17 Federation](#17-federation)
 
 <!-- tocstop -->
 
@@ -1505,15 +1507,24 @@ If it is absolutely necessary to restore the system from a backup made on a diff
 
 Open the **Management** menu and select **Diagnostics**.
 
-On this page you can examine the statuses of the following services.
+On this page you can examine the statuses of the following services:
 
  Service              | Status           | Message        | Previous Update          | Next Update
 --------------------- | ---------------- | -------------- | ------------------------ | ------------------------
  Global configuration | Green/yellow/red | Status message | The time of the global configuration client’s last run | The estimated time of the global configuration client’s next run
  Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
+ OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
+ 
+To refresh the service statuses click the **Diagnostics** item on the **Management** menu.
 
-To refresh the service statuses click again the **Diagnostics** item on the **Management** menu.
+The status colors indicate the following:
+- **Red indicator** – service cannot be contacted or is not operational
+- **Yellow indicator** – service has been contacted but is yet to have been used to verify its status
+- **Green indicator** – service has been successfully contacted and used to verify it is operational
 
+The status message offers more detailed information on the current status.
+
+If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
 
 ## 15 Operational Monitoring
 
@@ -1723,3 +1734,49 @@ Default settings for logging are the following:
 
 In case a security server encounters an error condition during the message exchange, the security server returns a SOAP Fault message \[[PR-MESS](#Ref_PR-MESS)\] containing a UUID (a universally unique identifier, e.g. `1328e974-4fe5-412c-a4c4-f1ac36f20b14`) as the fault detail to the service client's information system. The UUID can be used to find the details of the occurred error from the `xroad-proxy` log.
 
+## 17 Federation
+
+Federation allows security servers of two different X-Road instances to exchange messages with each other. The instances
+are federated at the central server level. After this, security servers can be configured to opt-in to the federation.
+By default, federation is disabled and configuration data for other X-Road instances will not be downloaded.
+
+The federation can be allowed for all X-Road instances that the central server offers, or a list of specific
+(comma-separated) instances. The default is to allow none. The values are case-insensitive.
+
+To override the default value, edit the file `/etc/xroad/conf.d/local.ini` and add or change the value of the system
+parameter `allowed-federations` for the server component `configuration-client`. To restore the default, either remove
+the system parameter entirely or set the value to `none`. X-Road services `xroad-confclient` and `xroad-proxy` need to
+be restarted (in that order) for any setting changes to take effect.
+
+Below are some examples for `/etc/xroad/conf.d/local.ini`.
+
+To allow federation with all offered X-Road instances:
+```
+[configuration-client]
+allowed-federations=all
+```
+
+To allow federation with specific instances `xe-test` and `ee-test`:
+```
+[configuration-client]
+allowed-federations=xe-test,ee-test
+```
+
+To disable federation, just remove the `allowed-federations` system parameter entirely or use:
+```
+[configuration-client]
+allowed-federations=none
+```
+
+Please note that if the keyword `all` is present in the comma-separated list, it will override the single allowed
+instances. The keyword `none` will override all other values. This means that the following setting will allow all
+federations:
+```
+[configuration-client]
+allowed-federations=xe-test, all, ee-test
+```
+And the following will allow none:
+```
+[configuration-client]
+allowed-federations=xe-test, all, none, ee-test
+```

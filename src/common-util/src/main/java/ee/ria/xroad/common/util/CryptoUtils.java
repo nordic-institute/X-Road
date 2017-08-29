@@ -22,26 +22,30 @@
  */
 package ee.ria.xroad.common.util;
 
-import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA1;
-import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA256;
-import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA384;
-import static org.apache.xml.security.signature.XMLSignature.ALGO_ID_SIGNATURE_RSA_SHA512;
+import com.google.common.base.Splitter;
+import lombok.Getter;
+import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
+import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMWriter;
+import org.bouncycastle.operator.*;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.bouncycastle.util.encoders.Hex;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.crypto.dsig.DigestMethod;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
-import java.security.KeyStore;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Security;
+import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -51,31 +55,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.crypto.dsig.DigestMethod;
-
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMWriter;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.ContentVerifierProvider;
-import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
-import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.DigestCalculatorProvider;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
-import org.bouncycastle.util.encoders.Hex;
-
-import ee.ria.xroad.common.SystemProperties;
-import lombok.Getter;
-import lombok.SneakyThrows;
+import static org.apache.xml.security.signature.XMLSignature.*;
 
 /**
  * This class contains various security and certificate related utility methods.
@@ -98,30 +78,17 @@ public final class CryptoUtils {
 
     /** The list of cipher suites used with TLS. */
     @Getter
-    private static final String[] INCLUDED_CIPHER_SUITES =
-            {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};
+    private static final String[] INCLUDED_CIPHER_SUITES = {"TLS_DHE_RSA_WITH_AES_256_CBC_SHA256"};
 
     /** Global default digest method identifier and URL. */
-    public static final String DEFAULT_DIGEST_ALGORITHM_ID =
-            CryptoUtils.SHA512_ID;
-    public static final String DEFAULT_DIGEST_ALGORITHM_URI =
-            DigestMethod.SHA512;
+    public static final String DEFAULT_DIGEST_ALGORITHM_ID = CryptoUtils.SHA512_ID;
+    public static final String DEFAULT_DIGEST_ALGORITHM_URI = DigestMethod.SHA512;
 
     /** Default digest algorithm id used for calculating certificate hashes. */
-    public static final String DEFAULT_CERT_HASH_ALGORITHM_ID =
-            CryptoUtils.SHA1_ID;
+    public static final String DEFAULT_CERT_HASH_ALGORITHM_ID = CryptoUtils.SHA1_ID;
 
-    /** Default digest algorithm id used for calculating configuration
-        anchor hashes. */
-    public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID =
-            CryptoUtils.SHA224_ID;
-
-    /** Global default digital signature algorithm. */
-    public static final String DEFAULT_SIGNATURE_ALGORITHM =
-            CryptoUtils.SHA1WITHRSA_ID;
-
-    public static final String ALGO_ID_DIGEST_SHA224 =
-            "http://www.w3.org/2001/04/xmldsig-more#sha224";
+    /** Default digest algorithm id used for calculating configuration anchor hashes. */
+    public static final String DEFAULT_ANCHOR_HASH_ALGORITHM_ID = CryptoUtils.SHA224_ID;
 
     /** Hash algorithm identifier constants. */
     public static final String MD5_ID = "MD5";
@@ -143,10 +110,16 @@ public final class CryptoUtils {
     public static final String SHA256WITHRSA_ID = "SHA256withRSA";
     public static final String SHA384WITHRSA_ID = "SHA384withRSA";
     public static final String SHA512WITHRSA_ID = "SHA512withRSA";
+    public static final String SHA256WITHRSAANDMGF1_ID = "SHA256withRSAandMGF1";
+    public static final String SHA384WITHRSAANDMGF1_ID = "SHA384withRSAandMGF1";
+    public static final String SHA512WITHRSAANDMGF1_ID = "SHA512withRSAandMGF1";
+
+    /** PKCS#11 sign mechanisms. */
+    public static final String CKM_RSA_PKCS_NAME = "CKM_RSA_PKCS";
+    public static final String CKM_RSA_PKCS_PSS_NAME = "CKM_RSA_PKCS_PSS";
 
     /** Digest provider instance. */
-    public static final DigestCalculatorProvider DIGEST_PROVIDER =
-            new BcDigestCalculatorProvider();
+    public static final DigestCalculatorProvider DIGEST_PROVIDER = new BcDigestCalculatorProvider();
 
     /** Verification builder instance. */
     public static final JcaContentVerifierProviderBuilder BC_VERIFICATION_BUILDER =
@@ -161,8 +134,7 @@ public final class CryptoUtils {
     public static final KeyFactory KEY_FACTORY;
 
     /** A cache of BouncyCastle algorithm identifiers */
-    private static final Map<String, AlgorithmIdentifier>
-            ALGORITHM_IDENTIFIER_CACHE = new HashMap<>();
+    private static final Map<String, AlgorithmIdentifier> ALGORITHM_IDENTIFIER_CACHE = new HashMap<>();
 
     private CryptoUtils() {
     }
@@ -173,78 +145,54 @@ public final class CryptoUtils {
      *
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
-    public static String getDigestAlgorithmId(String signatureAlgorithm)
-            throws NoSuchAlgorithmException {
+    public static String getDigestAlgorithmId(String signatureAlgorithm) throws NoSuchAlgorithmException {
         switch (signatureAlgorithm) {
             case SHA1WITHRSA_ID:
                 return SHA1_ID;
-            case SHA256WITHRSA_ID:
+            case SHA256WITHRSA_ID: // fall through
+            case SHA256WITHRSAANDMGF1_ID:
                 return SHA256_ID;
-            case SHA384WITHRSA_ID:
+            case SHA384WITHRSA_ID: // fall through
+            case SHA384WITHRSAANDMGF1_ID:
                 return SHA384_ID;
-            case SHA512WITHRSA_ID:
+            case SHA512WITHRSA_ID: // fall through
+            case SHA512WITHRSAANDMGF1_ID:
                 return SHA512_ID;
             default:
-                throw new NoSuchAlgorithmException("Unkown signature algorithm id: "
-                        + signatureAlgorithm);
+                throw new NoSuchAlgorithmException("Unkown signature algorithm id: " + signatureAlgorithm);
         }
     }
 
     /**
-     * @return the signature algorithm identifier for the given algorithm id.
-     * @param digestAlgorithm the algorithm id
-     *
-     * @throws NoSuchAlgorithmException if the algorithm id is unknown
-     */
-    public static String getSignatureAlgorithmId(String digestAlgorithm)
-            throws NoSuchAlgorithmException {
-        switch (digestAlgorithm) {
-            case SHA1_ID:
-                return SHA1WITHRSA_ID;
-            case SHA256_ID:
-                return SHA256WITHRSA_ID;
-            case SHA384_ID:
-                return SHA384WITHRSA_ID;
-            case SHA512_ID:
-                return SHA512WITHRSA_ID;
-            default:
-                throw new NoSuchAlgorithmException("Unkown digest algorithm id: "
-                        + digestAlgorithm);
-
-        }
-    }
-
-    /**
-     * Returns the digest/signature algorithm URI for the given digest/signature
-     * algorithm identifier.
+     * Returns the digest/signature algorithm URI for the given digest/signature algorithm identifier.
      * @param algoId the id of the algorithm
      * @return the URI of the algorithm
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
-    public static String getDigestAlgorithmURI(String algoId)
-            throws NoSuchAlgorithmException {
+    public static String getDigestAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
         switch (algoId) {
             case SHA1_ID:
                 return DigestMethod.SHA1;
+            case SHA224_ID:
+                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224;
             case SHA256_ID:
                 return DigestMethod.SHA256;
+            case SHA384_ID:
+                return MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384;
             case SHA512_ID:
                 return DigestMethod.SHA512;
             default:
-                throw new NoSuchAlgorithmException(
-                        "Unknown algorithm id: " + algoId);
+                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
         }
     }
 
     /**
-     * Returns the digest/signature algorithm URI for the given digest/signature
-     * algorithm identifier.
+     * Returns the digest/signature algorithm URI for the given digest/signature algorithm identifier.
      * @param algoId the id of the algorithm
      * @return the URI of the algorithm
      * @throws NoSuchAlgorithmException if the algorithm id is unknown
      */
-    public static String getSignatureAlgorithmURI(String algoId)
-            throws NoSuchAlgorithmException {
+    public static String getSignatureAlgorithmURI(String algoId) throws NoSuchAlgorithmException {
         switch (algoId) {
             case SHA1WITHRSA_ID:
                 return ALGO_ID_SIGNATURE_RSA_SHA1;
@@ -253,40 +201,91 @@ public final class CryptoUtils {
             case SHA384WITHRSA_ID:
                 return ALGO_ID_SIGNATURE_RSA_SHA384;
             case SHA512WITHRSA_ID:
-                 return ALGO_ID_SIGNATURE_RSA_SHA512;
-             default:
-                 throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
+                return ALGO_ID_SIGNATURE_RSA_SHA512;
+            case SHA256WITHRSAANDMGF1_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA256_MGF1;
+            case SHA384WITHRSAANDMGF1_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA384_MGF1;
+            case SHA512WITHRSAANDMGF1_ID:
+                return ALGO_ID_SIGNATURE_RSA_SHA512_MGF1;
+            default:
+                throw new NoSuchAlgorithmException("Unknown algorithm id: " + algoId);
         }
     }
 
     /**
-     * Returns the digest/signature algorithm identifier for the given
-     * digest/signature algorithm URI.
+     * Returns the digest/signature algorithm identifier for the given digest/signature algorithm URI.
      * @param algoURI the URI of the algorithm
      * @return the identifier of the algorithm
      * @throws NoSuchAlgorithmException if the algorithm URI is unknown
      */
-    public static String getAlgorithmId(String algoURI)
-            throws NoSuchAlgorithmException {
+    public static String getAlgorithmId(String algoURI) throws NoSuchAlgorithmException {
         switch (algoURI) {
-        case DigestMethod.SHA1:
-            return SHA1_ID;
-        case ALGO_ID_DIGEST_SHA224:
-            return SHA224_ID;
-        case DigestMethod.SHA256:
-            return SHA256_ID;
-        case DigestMethod.SHA512:
-            return SHA512_ID;
-        case ALGO_ID_SIGNATURE_RSA_SHA1:
-            return SHA1WITHRSA_ID;
-        case ALGO_ID_SIGNATURE_RSA_SHA256:
-            return SHA256WITHRSA_ID;
-        case ALGO_ID_SIGNATURE_RSA_SHA384:
-            return SHA384WITHRSA_ID;
-        case ALGO_ID_SIGNATURE_RSA_SHA512:
-            return SHA512WITHRSA_ID;
-        default:
-            throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
+            case DigestMethod.SHA1:
+                return SHA1_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA224:
+                return SHA224_ID;
+            case DigestMethod.SHA256:
+                return SHA256_ID;
+            case MessageDigestAlgorithm.ALGO_ID_DIGEST_SHA384:
+                return SHA384_ID;
+            case DigestMethod.SHA512:
+                return SHA512_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA1:
+                return SHA1WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256:
+                return SHA256WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384:
+                return SHA384WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512:
+                return SHA512WITHRSA_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA256_MGF1:
+                return SHA256WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA384_MGF1:
+                return SHA384WITHRSAANDMGF1_ID;
+            case ALGO_ID_SIGNATURE_RSA_SHA512_MGF1:
+                return SHA512WITHRSAANDMGF1_ID;
+            default:
+                throw new NoSuchAlgorithmException("Unknown algorithm URI: " + algoURI);
+        }
+    }
+
+    /**
+     * @return the signature algorithm identifier for the given digest algorithm id and signing mechanism.
+     * @param digestAlgorithmId the digest algorithm id
+     * @param signMechanismName the signing mechanism name
+     *
+     * @throws NoSuchAlgorithmException if the digest algorithm id or signing mechanism is unknown
+     */
+    public static String getSignatureAlgorithmId(String digestAlgorithmId, String signMechanismName)
+            throws NoSuchAlgorithmException {
+        switch (signMechanismName) {
+            case CKM_RSA_PKCS_NAME:
+                switch (digestAlgorithmId) {
+                    case SHA1_ID:
+                        return SHA1WITHRSA_ID;
+                    case SHA256_ID:
+                        return SHA256WITHRSA_ID;
+                    case SHA384_ID:
+                        return SHA384WITHRSA_ID;
+                    case SHA512_ID:
+                        return SHA512WITHRSA_ID;
+                    default:
+                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+                }
+            case CKM_RSA_PKCS_PSS_NAME:
+                switch (digestAlgorithmId) {
+                    case SHA256_ID:
+                        return SHA256WITHRSAANDMGF1_ID;
+                    case SHA384_ID:
+                        return SHA384WITHRSAANDMGF1_ID;
+                    case SHA512_ID:
+                        return SHA512WITHRSAANDMGF1_ID;
+                    default:
+                        throw new NoSuchAlgorithmException("Unknown digest algorithm id: " + digestAlgorithmId);
+                }
+            default:
+                throw new NoSuchAlgorithmException("Unknown signing mechanism: " + signMechanismName);
         }
     }
 
@@ -334,20 +333,8 @@ public final class CryptoUtils {
      * @return a new content signer instance
      * @throws OperatorCreationException if the content signer cannot be created
      */
-    public static ContentSigner createContentSigner(String algorithm,
-            PrivateKey key) throws OperatorCreationException {
+    public static ContentSigner createContentSigner(String algorithm, PrivateKey key) throws OperatorCreationException {
         return new JcaContentSignerBuilder(algorithm).build(key);
-    }
-
-    /**
-     * Creates a new content signer using default algorithm.
-     * @param key the private key
-     * @return a new content signer instance
-     * @throws OperatorCreationException if the content signer cannot be created
-     */
-    public static ContentSigner createDefaultContentSigner(
-            PrivateKey key) throws OperatorCreationException {
-        return createContentSigner(SystemProperties.getDefaultSignatureAlgorithm(), key);
     }
 
     /**
@@ -617,6 +604,17 @@ public final class CryptoUtils {
     public static String calculateCertHexHash(X509Certificate cert)
             throws Exception {
         return hexDigest(DEFAULT_CERT_HASH_ALGORITHM_ID, cert.getEncoded());
+    }
+
+    /**
+     * Calculates digest of the certificate and encodes it as uppercase hex with the given delimiter every 2 characters.
+     * @param cert the certificate
+     * @param delimiter the delimiter to use
+     * @return calculated certificate hex hash String
+     * @throws Exception if any errors occur
+     */
+    public static String calculateDelimitedCertHexHash(X509Certificate cert, String delimiter) throws Exception {
+        return String.join(delimiter, Splitter.fixedLength(2).split(calculateCertHexHash(cert).toUpperCase()));
     }
 
     /**

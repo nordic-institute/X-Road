@@ -23,6 +23,7 @@
 package ee.ria.xroad.signer.tokenmanager.module;
 
 import akka.actor.Props;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -45,12 +46,10 @@ public class HardwareModuleManagerImpl extends DefaultModuleManagerImpl {
     private void initializeHardwareModule(HardwareModuleType hardwareModule) {
         if (!isModuleInitialized(hardwareModule)) {
             try {
-                Props props = Props.create(HardwareModuleWorker.class,
-                        hardwareModule).withDispatcher(DISPATCHER);
+                Props props = Props.create(HardwareModuleWorker.class, hardwareModule).withDispatcher(DISPATCHER);
                 initializeModuleWorker(hardwareModule.getType(), props);
             } catch (Exception e) {
-                log.error("Error initializing hardware module '"
-                        + hardwareModule.getType() + "'", e);
+                log.error("Error initializing hardware module '" + hardwareModule.getType() + "'", e);
             }
         }
     }

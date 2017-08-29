@@ -29,6 +29,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
 import org.apache.commons.lang3.SystemUtils;
 
 import com.google.common.base.Splitter;
@@ -68,7 +69,7 @@ abstract class AbstractExecLister<T> {
         String err;
     }
 
-    public ListedData<T> list() throws ExecListingFailedException {
+    public JmxStringifiedData<T> list() throws ExecListingFailedException {
         validateSupportedOs();
         try {
             ProcessOutputs outputs = executeProcess();
@@ -76,9 +77,9 @@ abstract class AbstractExecLister<T> {
             ArrayList<String> jmxRepresentation = new ArrayList<>();
             try (BufferedReader input = new BufferedReader(new StringReader(outputs.getOut()))) {
                 ArrayList<T> parsedData = parseData(input, jmxRepresentation);
-                ListedData<T> data = new ListedData<T>();
-                data.setParsedData(parsedData);
-                data.setJmxData(jmxRepresentation);
+                JmxStringifiedData<T> data = new JmxStringifiedData<T>();
+                data.setDtoData(parsedData);
+                data.setJmxStringData(jmxRepresentation);
                 return data;
             }
         } catch (IOException ioe) {

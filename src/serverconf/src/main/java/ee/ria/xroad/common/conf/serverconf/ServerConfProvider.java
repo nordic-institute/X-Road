@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
-
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Provides API for implementing configuration providers.
@@ -95,6 +95,11 @@ public interface ServerConfProvider {
      * @throws Exception if an error occurs
      */
     List<X509Certificate> getIsCerts(ClientId client) throws Exception;
+
+
+    /** List all known certificates that are allowed to be used to authenticate
+     * the client information system. */
+    List<X509Certificate> getAllIsCerts();
 
     /**
      * @return the internal SSL cert-key pair.

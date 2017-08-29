@@ -18,7 +18,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-cs
+    - xroad-cs
 
 - hosts: ss-servers, cs-servers, ca-servers
   become: yes
@@ -31,7 +31,7 @@
   become: yes
   become_user: root
   roles:
-    - palveluvayla-ss
+    - xroad-ss
     
 - hosts: ca-servers
   become: yes
@@ -39,5 +39,5 @@
   pre_tasks:
     - raw: apt install openssl
   roles:
-    - role: palveluvayla-ca
+    - role: xroad-ca
       tags: [ 'ca' ]

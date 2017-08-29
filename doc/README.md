@@ -12,8 +12,8 @@ Index of X-Road Documentation
 ### Protocols
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
 - [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx)
-- [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services_1.9_Y-883-29-1.docx)
-- [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol_2.1.5_Y-743-14.docx)
+- [\[PR-MSERV\] Protocol for Management Services](Protocols/pr-mserv_x-road_protocol_for_management_services.md)
+- [\[PR-META\] Service Metadata Protocol](Protocols/pr-meta_x-road_service_metadata_protocol.md)
 - [\[PR-GCONF\] Protocol for Downloading Configuration](Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md)
 
 ### Manuals
@@ -27,6 +27,7 @@ Index of X-Road Documentation
 - [\[UG-SIGDOC\] Signed Document Download and Verification Manual](Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx)
 - [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual_2.0_Y-745-10.docx)
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
+- [\[IG-XLB\] External Load Balancer Installation Guide](Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 
 ### Use Cases
 - [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.docx)

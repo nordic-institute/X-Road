@@ -48,10 +48,6 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PATH =
             PREFIX + "common.configuration-path";
 
-    /** Property name of the default digital signature algorithm. */
-    public static final String DEFAULT_SIGNATURE_ALGORITHM =
-            PREFIX + "common.default-signature-algorithm";
-
     /** Current version number of the global configuration **/
     public static final int CURRENT_GLOBAL_CONFIGURATION_VERSION = 2;
 
@@ -225,13 +221,13 @@ public final class SystemProperties {
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_SERVERPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_SERVERPROXY_SUPPORT_CLIENTS_POOLED_CONNECTIONS = "false";
 
     private static final String DEFAULT_CLIENTPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
-    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "0";
+    private static final String DEFAULT_CLIENTPROXY_CONNECTOR_SO_LINGER = "-1";
 
     private static final String DEFAULT_CLIENTPROXY_HTTPCLIENT_TIMEOUT = "0";
 
@@ -299,8 +295,8 @@ public final class SystemProperties {
     public static final int MIN_SIGNER_KEY_LENGTH = 2048;
     public static final int DEFAULT_SIGNER_KEY_LENGTH = MIN_SIGNER_KEY_LENGTH;
 
-    public static final String SIGNER_CSR_SIGNATURE_ALGORITHM =
-            PREFIX + "signer.csr-signature-algorithm";
+    public static final String SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM =
+            PREFIX + "signer.csr-signature-digest-algorithm";
 
     public static final String OCSP_RESPONSE_RETRIEVAL_ACTIVE =
             PREFIX + "signer.ocsp-response-retrieval-active";
@@ -338,6 +334,17 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
+
+    public static final String CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS =
+            PREFIX + "configuration-client.allowed-federations";
+
+    /**
+     * A constant to describe the X-Road instances this security server federates with.
+     * {@link #CUSTOM} means a list of named, comma-separated X-Road instances to allow.
+     * {@link #ALL} naturally means all and {@link #NONE} means federation is disabled.
+     * The configurations for those instances won't be downloaded.
+     */
+    public enum AllowedFederationMode { ALL, NONE, CUSTOM }
 
     // Center -----------------------------------------------------------------
 
@@ -383,6 +390,11 @@ public final class SystemProperties {
     /** Property name of the WSDL validator command. */
     public static final String WSDL_VALIDATOR_COMMAND =
             PREFIX + "proxy-ui.wsdl-validator-command";
+
+    /** Property name of the signature digest algorithm ID used for generating authentication certificate
+     *  registration request. */
+    private static final String PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID =
+            PREFIX + "proxy-ui.auth-cert-reg-signature-digest-algorithm-id";
 
     // Proxy & Central monitor agent ------------------------------------------
 
@@ -432,9 +444,9 @@ public final class SystemProperties {
     public static final String CONFIGURATION_PROXY_GENERATED_CONF_PATH =
             PREFIX + "configuration-proxy.generated-conf-path";
 
-    /** Property name of the confproxy configuration signature algorithm. */
-    public static final String CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID =
-            PREFIX + "configuration-proxy.signature-algorithm-id";
+    /** Property name of the confproxy configuration signature digest algorithm. */
+    public static final String CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID =
+            PREFIX + "configuration-proxy.signature-digest-algorithm-id";
 
     /** Property name of the confproxy configuration file hashing algorithm. */
     public static final String CONFIGURATION_PROXY_HASH_ALGORITHM_URI =
@@ -461,6 +473,12 @@ public final class SystemProperties {
     /** Property name of system metrics sensor interval. */
     public static final String ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL =
             PREFIX + "env-monitor.exec-listing-sensor-interval";
+
+    /** Property name of certificate info sensor refresh interval. */
+    public static final String ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL =
+            PREFIX + "env-monitor.certificate-info-sensor-interval";
+
+    public static final String ONE_DAY_AS_SECONDS = String.valueOf(24 * 60 * 60);
 
     // Cluster node configuration ------------------------------------------ //
 
@@ -625,6 +643,15 @@ public final class SystemProperties {
         return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
     }
 
+
+    /**
+     * @return signature digest algorithm ID used for generating authentication certificate registration request,
+     * SHA-512 by default.
+     */
+    public static String getAuthCertRegSignatureDigestAlgorithmId() {
+        return System.getProperty(PROXYUI_AUTH_CERT_REG_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
+    }
+
     /**
      * @return path to the directory where query logs are archived, '/var/lib/xroad/' by default.
      */
@@ -733,12 +760,12 @@ public final class SystemProperties {
     }
 
     /**
-     * Get CSR signature algorithm
+     * Get CSR signature digest algorithm, SHA-256 by default.
      *
      * @return algorithm
      */
-    public static String getSignerCsrSignatureAlgorithm() {
-        return System.getProperty(SIGNER_CSR_SIGNATURE_ALGORITHM, getDefaultSignatureAlgorithm());
+    public static String getSignerCsrSignatureDigestAlgorithm() {
+        return System.getProperty(SIGNER_CSR_SIGNATURE_DIGEST_ALGORITHM, CryptoUtils.SHA256_ID);
     }
 
     /**
@@ -771,6 +798,10 @@ public final class SystemProperties {
      */
     public static int getConfigurationClientUpdateIntervalSeconds() {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS, "60"));
+    }
+
+    public static String getConfigurationClientAllowedFederations() {
+        return System.getProperty(CONFIGURATION_CLIENT_ALLOWED_FEDERATIONS, AllowedFederationMode.NONE.name());
     }
 
     /**
@@ -904,11 +935,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return ID of the signing algorithm the configuration proxy uses when
-     * signing generated global configuration directories, 'SHA512withRSA' by default.
+     * @return ID of the signing digest algorithm the configuration proxy uses when
+     * signing generated global configuration directories, 'SHA-512' by default.
      */
-    public static String getConfigurationProxySignatureAlgorithmId() {
-        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_ALGORITHM_ID, CryptoUtils.SHA512WITHRSA_ID);
+    public static String getConfigurationProxySignatureDigestAlgorithmId() {
+        return System.getProperty(CONFIGURATION_PROXY_SIGNATURE_DIGEST_ALGORITHM_ID, CryptoUtils.SHA512_ID);
     }
 
     /**
@@ -969,6 +1000,14 @@ public final class SystemProperties {
     public static int getEnvMonitorExecListingSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_EXEC_LISTING_SENSOR_INTERVAL, "60"));
     }
+
+    /**
+     * @return exec listing sensor interval in seconds, 1 day by default.
+     */
+    public static int getEnvMonitorCertificateInfoSensorInterval() {
+        return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
+    }
+
 
     /**
      * @return path to the file containing network statistics,
@@ -1038,15 +1077,6 @@ public final class SystemProperties {
     public static int getCentralMonitorAgentPort() {
         return Integer.parseInt(System.getProperty(CENTRAL_MONITOR_AGENT_HTTPS_PORT,
                 Integer.toString(PortNumbers.CLIENT_HTTPS_PORT)));
-    }
-
-    /**
-     * Global default digital signature algorithm.
-     *
-     * @return algorithm.
-     */
-    public static String getDefaultSignatureAlgorithm() {
-        return System.getProperty(DEFAULT_SIGNATURE_ALGORITHM, CryptoUtils.DEFAULT_SIGNATURE_ALGORITHM);
     }
 
     /**
