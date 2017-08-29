@@ -264,7 +264,7 @@ manage the security server configuration.
 > 3a.1. System displays the error message “Restore in progress, try
 > again later”.
 >
-> 3a.2. System logs the event “Log in user failed” to the audit log.
+> 3a.2. System logs the event “Log out user” to the audit log.
 >
 > 3a.3. SS administrator selects to reinsert the user name and/or the
 > password. Use case continues from step 3.
