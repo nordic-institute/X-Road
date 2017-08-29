@@ -213,10 +213,9 @@ the following actors:
 The relationships between the actor, system and use cases are described
 in Figure 1.
 
-![](media/image3.png){width="6.208333333333333in" height="3.71875in"}
+![](img/use_case_diagram_for_right_management_in_ss.PNG)
 
-Figure []{#Ref_Use_case_diagram_for_service_and_ac .anchor}1. Use case
-diagram for service and access rights management in the security server
+Figure 1. Use case diagram for service and access rights management in the security server
 
 ### UC SERVICE\_01: View the Service Clients of a Security Server Client
 
