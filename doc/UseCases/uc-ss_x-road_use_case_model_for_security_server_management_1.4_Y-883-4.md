@@ -13,6 +13,8 @@ Doc. ID: UC-SS
 
 ## Version history
 
+<!-- toc -->
+
 Date       | Version | Description                                                     | Author
 ---------- | ------- | --------------------------------------------------------------- | --------------------
 10.09.2015 | 0.1     | Initial version                                                 | Meril Vaht
@@ -25,6 +27,8 @@ Date       | Version | Description                                              
 05.11.2015 | 1.2     | User renamed to SS administrator; UC SS\_01 - UC SS\_05 headings corrected. | Meril Vaht
 30.11.2015 | 1.3     | Use cases updated according to system developments. | Meril Vaht
 16.12.2015 | 1.4     | UC SS\_18, UC SS\_19, UC SS\_20, UC SS\_29, UC SS\_30, UC SS\_31, UC SS\_34, UC SS\_35, UC SS\_38, UC SS\_39 updated. UC SS\_42 added. Editorial changes made. | Meril Vaht
+
+<!-- tocstop -->
 
 Table of Contents
 
