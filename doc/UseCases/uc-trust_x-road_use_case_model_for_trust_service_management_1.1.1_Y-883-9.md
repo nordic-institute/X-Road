@@ -108,15 +108,15 @@ document in addition to the general definition.
 References
 ----------
 
-1.  X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+1.  []{#Ref_Central%20Server%20Installation%20Gu .anchor}\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
-2.  Audit Log Events. Document ID: SPEC-AL.
+2.  []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] Audit Log Events. Document ID: SPEC-AL.
 
-3.  Global Configuration Distribution. Document ID: UC-GCONF.
+3.  []{#Ref_UC-GCONF .anchor}\[UC-GCONF\] Global Configuration Distribution. Document ID: UC-GCONF.
 
-4.  Member Communication. Document ID: UC-MESS.
+4.  []{#Ref_UC-MESS .anchor}\[UC-MESS\] Member Communication. Document ID: UC-MESS.
 
-5.  Internet X.509 Public Key Infrastructure Certificate and Certificate
+5.  []{#Ref_Internet%20X.509%20Public%20Key%20In .anchor}\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate
     Revocation List (CRL) Profile, Internet Engineering Task
     Force, 2008.
 
