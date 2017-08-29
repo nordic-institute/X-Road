@@ -5,8 +5,8 @@
 #X-Road: Use Case Model for Global Configuration Distribution
 **Analysis**
 
-Version: 1.4
-12.02.2016
+Version: 1.5
+29.08.2017
 <!-- 36 pages -->
 Doc. ID: UC-GCONF
 
@@ -27,7 +27,8 @@ Date       | Version | Description                                              
 21.09.2015 |  1.1    |  Minor corrections made                                                                                                                                                                                                                                                             | Imbi Nõgisto
 04.11.2015 |  1.2    |  Renamed *Scope* element to *System*. Renamed *native* to *local*. Added brief description to UC GCONF\_5.                                                                                                                                                                          |  Riin Saarmäe
 16.12.2015 |  1.3    |  GCONF\_11 updated: a label value can be assigned for the key on generation. UC GCONF\_24 updated: the last successful configuration source is used for downloading configuration, if the download from the last successful source fails then the next source is chosen randomly.   | Riin Saarmäe
-12.02.2016 |  1.4    | GCONF\_22 updated: the verification of the instance identifier on configuration anchor file upload added.                                                                                                                                                                           | Meril Vaht
+12.02.2016 |  1.4    |  GCONF\_22 updated: the verification of the instance identifier on configuration anchor file upload added.                                                                                                                                                                           | Meril Vaht
+29.08.2017 | 1.5     |  Changed documentation type from docx to md file |   Lasse Matikainen
 
 Table of Contents
 

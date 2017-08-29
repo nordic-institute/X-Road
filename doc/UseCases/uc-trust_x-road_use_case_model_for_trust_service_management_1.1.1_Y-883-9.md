@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Trust Service Management
 **Analysis**
 
-Version: 1.1
-04.11.2015
+Version: 1.2
+29.08.2017
 <!-- 23 pages-->
 Doc. ID: UC-TRUST
 
@@ -21,6 +21,7 @@ Doc. ID: UC-TRUST
 25.10.2015   | 0.3     | Renamed *Scope* to *System*. Renamed *User* to *CS administrator*. Use cases updated according to system developments. Some typos and terms fixed. | Riin Saarmäe
 25.10.2015   | 1.0     | Editorial changes made                                         | Riin Saarmäe
 04.11.2015   | 1.1     | UC TRUST\_19 added. Minor corrections made.                    | Riin Saarmäe
+29.08.2017   | 1.2     |  Changed documentation type from docx to md file |   Lasse Matikainen
 
 ## Table of Contents
 
@@ -152,8 +153,7 @@ Figure 1.
 
 ![](img/central_server_admin.PNG)
 
-Figure []{#Ref_Use_case_diagram_for_the_federation_ .anchor}1. Use case
-diagram for trust service management
+Figure 1. Use case diagram for trust service management
 
 UC TRUST\_01: View Approved Certification Services
 --------------------------------------------------

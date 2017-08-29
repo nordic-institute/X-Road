@@ -5,8 +5,8 @@
 # X-Road: Use Case Model for Service Management
 **Analysis**
 
-Version: 1.6
-29.12.2015
+Version: 1.7
+29.08.2017
 <!-- 45 pages -->
   
 Doc.ID: UC-SERVICE
@@ -31,6 +31,7 @@ Date       | Version | Description                                              
 27.10.2015 |  1.4    |   Editorial changes made | Meril Vaht
 23.12.2015 |  1.5    |   XTE-117 – WSDL validator (UC SERVICE\_08, UC SERVICE\_09, UC SERVICE\_14 updated; UC SERVICE\_44 added) | Meril Vaht
 29.12.2015 |  1.6    |   Editorial changes made | Meril Vaht
+29.08.2017 |  1.7    |  Changed documentation type from docx to md file |   Lasse Matikainen
 
 <!-- toc -->
 

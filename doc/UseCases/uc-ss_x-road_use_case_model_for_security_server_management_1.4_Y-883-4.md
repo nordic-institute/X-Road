@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.4
-16.12.2015
+Version: 1.5
+29.08.2017
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -27,6 +27,7 @@ Date       | Version | Description                                              
 05.11.2015 | 1.2     | User renamed to SS administrator; UC SS\_01 - UC SS\_05 headings corrected. | Meril Vaht
 30.11.2015 | 1.3     | Use cases updated according to system developments. | Meril Vaht
 16.12.2015 | 1.4     | UC SS\_18, UC SS\_19, UC SS\_20, UC SS\_29, UC SS\_30, UC SS\_31, UC SS\_34, UC SS\_35, UC SS\_38, UC SS\_39 updated. UC SS\_42 added. Editorial changes made. | Meril Vaht
+29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 
 <!-- tocstop -->
 
@@ -216,10 +217,9 @@ following actor:
 The relationships between actors, systems and use cases are described in
 Figure 1.
 
-![](media/image3.png)
+![](img/use_case_diagram_for_security_server_management.PNG)
 
-Figure []{#Ref_Use_case_diagram_for_security_serve .anchor}1. Use case
-diagram for security server management
+Figure 1. Use case diagram for security server management
 
 UC SS\_01: Log In to the Graphical User Interface
 -------------------------------------------------
