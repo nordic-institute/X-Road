@@ -24,31 +24,53 @@
 Table of Contents
 
 [1 Introduction](#introduction)
+
 	[1.1 Terms and Abbreviations](#terms-and-abbreviations)
+
 	[1.2 References](#references)
 	
 [2 Overview](#overview)
 
 [3 Use Case Model](#use-case-model)
+
 	[3.1 Actors](#actors)
+
 	[3.2 UC TRUST\_01: View Approved Certification Services](#uc-trust_01-view-approved-certification-services)
+
 	[3.3 UC TRUST\_02: View the Details of a Certification Service CA](#uc-trust_02-view-the-details-of-a-certification-service-ca)
+
 	[3.4 UC TRUST\_03: View Certificate Details](#uc-trust_03-view-certificate-details)
+
 	[3.5 UC TRUST\_04: View the Settings of a Certification Service](#uc-trust_04-view-the-settings-of-a-certification-service)
+
 	[3.6 UC TRUST\_05: View the OCSP Responders of a CA](#uc-trust_05-view-the-ocsp-responders-of-a-ca)
+
 	[3.7 UC TRUST\_06: View the Intermediate CAs of a Certification Service](#uc-trust_06-view-the-intermediate-cas-of-a-certification-service)
+
 	[3.8 UC TRUST\_07: View the Details of an Intermediate CA](#uc-trust_07-view-the-details-of-an-intermediate-ca)
+
 	[3.9 UC TRUST\_08: Add an Approved Certification Service](#uc-trust_08-add-an-approved-certification-service)
+
 	[3.10 UC TRUST\_09: Edit the Settings of a Certification Service](#uc-trust_09-edit-the-settings-of-a-certification-service)
+
 	[3.11 UC TRUST\_10: Add or Edit an OCSP Responder of a CA](#uc-trust_10-add-or-edit-an-ocsp-responder-of-a-ca)
+
 	[3.12 UC TRUST\_11: Delete an OCSP Responder of a CA](#uc-trust_11-delete-an-ocsp-responder-of-a-ca)
+
 	[3.13 UC TRUST\_12: Add an Intermediate CA to a Certification Service](#uc-trust_12-add-an-intermediate-ca-to-a-certification-service)
+
 	[3.14 UC TRUST\_13: Delete an Intermediate CA](#uc-trust_13-delete-an-intermediate-ca)
+
 	[3.15 UC TRUST\_14: Delete an Approved Certification Service](#uc-trust_14-delete-an-approved-certification-service)
+
 	[3.16 UC TRUST\_15: View Approved Timestamping Services](#uc-trust_15-view-approved-timestamping-services)
+
 	[3.17 UC TRUST\_16: Add an Approved Timestamping Service](#uc-trust_16-add-an-approved-timestamping-service)
+
 	[3.18 UC TRUST\_17: Edit the URL of a Timestamping Server](#uc-trust_17-edit-the-url-of-a-timestamping-server)
+
 	[3.19 UC TRUST\_18: Delete an Approved Timestamping Service](#uc-trust_18-delete-an-approved-timestamping-service)
+
 	[3.20 UC TRUST\_19: Parse User Input](#uc-trust_19-parse-user-input)
 
 License
@@ -145,7 +167,7 @@ includes the following actor.
 Relationships between the actor, system and use cases are described in
 Figure 1.
 
-![](img/central_server_admin.png){width="6.197916666666667in"
+![](img/central_server_admin.PNG){width="6.197916666666667in"
 height="4.052083333333333in"}
 
 Figure []{#Ref_Use_case_diagram_for_the_federation_ .anchor}1. Use case
