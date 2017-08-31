@@ -85,7 +85,6 @@ public class CertificateInfoSensor extends AbstractSensor {
                 .addExtractor(CertificateType.SECURITY_SERVER_TLS, new InternalTlsExtractor())
                 .addExtractor(CertificateType.AUTH_OR_SIGN, new TokenExtractor());
 
-        updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 
@@ -96,34 +95,15 @@ public class CertificateInfoSensor extends AbstractSensor {
      */
     private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) throws Exception {
 
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
+        MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
 
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor = getOrCreateSimpleSensor(
-                metricRegistry,
-                SystemMetricNames.CERTIFICATES);
-        certificateSensor.update(data);
-
-        SimpleSensor<ArrayList<String>> certificateTextSensor = getOrCreateSimpleSensor(
-                metricRegistry,
-                SystemMetricNames.CERTIFICATES_STRINGS);
-        certificateTextSensor.update(data.getJmxStringData());
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.CERTIFICATES)
+                .update(data);
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.CERTIFICATES_STRINGS)
+                .update(data.getJmxStringData());
     }
-
-    /**
-     * Either registers a new sensor to metricRegistry, or reuses already registered one
-     */
-    private <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(
-            MetricRegistry metricRegistry,
-            String metricName) {
-
-        SimpleSensor<T> typeDefiningSensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
-        if (typeDefiningSensor == null) {
-            typeDefiningSensor = new SimpleSensor<>();
-            metricRegistry.register(metricName, typeDefiningSensor);
-        }
-        return typeDefiningSensor;
-    }
-
 
     private JmxStringifiedData<CertificateMonitoringInfo> list() throws Exception {
 

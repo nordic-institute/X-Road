@@ -22,13 +22,19 @@
  */
 package ee.ria.xroad.monitor;
 
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowReservoir;
+
+import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Global access point for {@link MetricRegistry}
  */
 public final class MetricRegistryHolder {
 
+    private static final int MINUTES_IN_HOUR = 60;
     private static final MetricRegistryHolder INSTANCE = new MetricRegistryHolder();
 
     private MetricRegistry metrics;
@@ -58,5 +64,36 @@ public final class MetricRegistryHolder {
      */
     public void setMetrics(MetricRegistry metricRegistry) {
         this.metrics = metricRegistry;
+    }
+
+
+
+    /**
+     * Either registers a new sensor to metricRegistry, or reuses already registered one
+     */
+    public <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
+        SimpleSensor<T> typeDefiningSensor = (SimpleSensor) metrics.getMetrics().get(metricName);
+        if (typeDefiningSensor == null) {
+            typeDefiningSensor = new SimpleSensor<>();
+            metrics.register(metricName, typeDefiningSensor);
+        }
+        return typeDefiningSensor;
+    }
+
+    /**
+     * If histogram doesn't exist, register default
+     */
+    public Histogram getOrCreateHistogram(String metricName) {
+        Histogram histogram = metrics.getHistograms().get(metricName);
+        if (histogram == null) {
+            metrics.register(metricName, createDefaultHistogram());
+        }
+        return histogram;
+    }
+
+
+
+    private Histogram createDefaultHistogram() {
+        return new Histogram(new SlidingTimeWindowReservoir(MINUTES_IN_HOUR, TimeUnit.MINUTES));
     }
 }

@@ -46,14 +46,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SystemMetricsSensor extends AbstractSensor {
 
-    private static final int MINUTES_IN_HOUR = 60;
+
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
     private static final Object MEASURE_MESSAGE = new Object();
     private static final StatsRequest STATS_REQUEST = new StatsRequest();
 
-    private final SimpleSensor<Long> totalPhysicalMemorySize = new SimpleSensor<>();
-    private final SimpleSensor<Long> totalSwapSpaceSize = new SimpleSensor<>();
-    private final SimpleSensor<Long> maxFileDescriptorCount = new SimpleSensor<>();
     private final FiniteDuration interval
             = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
     private final String agentPath =
@@ -67,39 +64,39 @@ public class SystemMetricsSensor extends AbstractSensor {
      */
     public SystemMetricsSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        metricRegistry.register(SystemMetricNames.SYSTEM_CPU_LOAD, createDefaultHistogram());
-        metricRegistry.register(SystemMetricNames.FREE_PHYSICAL_MEMORY, createDefaultHistogram());
-        metricRegistry.register(SystemMetricNames.FREE_SWAP_SPACE, createDefaultHistogram());
-        metricRegistry.register(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT, createDefaultHistogram());
-        metricRegistry.register(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY, createDefaultHistogram());
-        metricRegistry.register(SystemMetricNames.MAX_FILE_DESCRIPTOR_COUNT, maxFileDescriptorCount);
-        metricRegistry.register(SystemMetricNames.TOTAL_SWAP_SPACE, totalPhysicalMemorySize);
-        metricRegistry.register(SystemMetricNames.TOTAL_PHYSICAL_MEMORY, totalPhysicalMemorySize);
-
         identifyAgent();
         scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
-    }
-
-    private Histogram createDefaultHistogram() {
-        return new Histogram(new SlidingTimeWindowReservoir(MINUTES_IN_HOUR, TimeUnit.MINUTES));
     }
 
     /**
      * Update sensor metrics
      */
     private void updateMetrics(StatsResponse stats) {
-        final Map<String, Histogram> histograms = MetricRegistryHolder.getInstance().getMetrics().getHistograms();
-        histograms.get(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT).update(stats.getOpenFileDescriptorCount());
-        histograms.get(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY).update(stats.getCommittedVirtualMemorySize());
-        histograms.get(SystemMetricNames.FREE_SWAP_SPACE).update(stats.getFreeSwapSpaceSize());
-        histograms.get(SystemMetricNames.FREE_PHYSICAL_MEMORY).update(stats.getFreePhysicalMemorySize());
-        histograms.get(SystemMetricNames.SYSTEM_CPU_LOAD)
-                .update((long) (stats.getSystemCpuLoad() * SYSTEM_CPU_LOAD_MULTIPLIER));
-
-        maxFileDescriptorCount.update(stats.getMaxFileDescriptorCount());
-        totalPhysicalMemorySize.update(stats.getTotalPhysicalMemorySize());
-        totalSwapSpaceSize.update(stats.getTotalSwapSpaceSize());
+        MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
+        registryHolder
+                .getOrCreateHistogram(SystemMetricNames.SYSTEM_CPU_LOAD)
+                .update(stats.getOpenFileDescriptorCount() * SYSTEM_CPU_LOAD_MULTIPLIER);
+        registryHolder
+                .getOrCreateHistogram(SystemMetricNames.FREE_PHYSICAL_MEMORY)
+                .update(stats.getFreePhysicalMemorySize());
+        registryHolder
+                .getOrCreateHistogram(SystemMetricNames.FREE_SWAP_SPACE)
+                .update(stats.getFreeSwapSpaceSize());
+        registryHolder
+                .getOrCreateHistogram(SystemMetricNames.OPEN_FILE_DESCRIPTOR_COUNT)
+                .update(stats.getOpenFileDescriptorCount());
+        registryHolder
+                .getOrCreateHistogram(SystemMetricNames.COMMITTED_VIRTUAL_MEMORY)
+                .update(stats.getCommittedVirtualMemorySize());
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.MAX_FILE_DESCRIPTOR_COUNT)
+                .update(stats.getMaxFileDescriptorCount());
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.TOTAL_SWAP_SPACE)
+                .update(stats.getTotalSwapSpaceSize());
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.TOTAL_PHYSICAL_MEMORY)
+                .update(stats.getTotalPhysicalMemorySize());
     }
 
     @Override
