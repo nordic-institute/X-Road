@@ -120,7 +120,7 @@ general system errors that may be encountered in most of the use cases
 described in this document.
 
 The use cases assume that the X-Road software components involved in the
-use cases are installed and initialised (see \[IG-SS\]).
+use cases are installed and initialised (see \[[IG-SS](#Ref_IG-SS)\]).
 
 The use cases including a human actor (the *level* of the use case is
 *user task*) assume, that the actor is logged in to the system and has
@@ -147,27 +147,27 @@ document in addition to the general definition.
 References
 ----------
 
-1.  []{#Ref_Security%20Server%20Installation%20G .anchor}\[IG-SS\]
+1.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\]
     X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
 
-2.  []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] X-Road:
+2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.
 
-3.  []{#Ref_PKCS11 .anchor}\[PKCS11\] PKCS \#11 Cryptographic Token
+3.  <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] PKCS \#11 Cryptographic Token
     Interface Base Specification Version 2.40. Function return values.
     <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/csprd01/pkcs11-base-v2.40-csprd01.html#_Toc372627249>
 
-4.  []{#Ref_X509 .anchor}\[X509\] Internet X.509 Public Key
+4.  <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key
     Infrastructure Certificate and Certificate Revocation List (CRL)
     Profile, Internet Engineering Task Force, 2008.
 
-5.  []{#Ref_UC-MESS .anchor}\[UC-MESS\] X-Road: Use Case Model for
+5.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] X-Road: Use Case Model for
     Member Communication. Document ID: UC-MESS.
 
-6.  \[UC-MEMBER\] X-Road: Use Case Model for Member Management. Document
+6.  <a id="Ref_UC-MEMBER" class="anchor"></a>\[UC-MEMBER\] X-Road: Use Case Model for Member Management. Document
     ID: UC-MEMBER.
 
-7.  []{#Ref_X-Road%3A%20Protocol%20for%20Managem .anchor}\[PR-MSERV\]
+7.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\]
     X-Road: Protocol for Management Services. Document ID: PR-MSERV.
 
 Overview
@@ -287,7 +287,7 @@ is incorrect.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_02: Log Out of the Graphical User Interface
 --------------------------------------------------
@@ -326,7 +326,7 @@ UC SS\_02: Log Out of the Graphical User Interface
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_03: Log a User Out of the Graphical User Interface
 ---------------------------------------------------------
@@ -360,7 +360,7 @@ logged in user has been idle for 30 minutes.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_04: Change the Graphical User Interface Language
 -------------------------------------------------------
@@ -404,7 +404,7 @@ UC SS\_04: Change the Graphical User Interface Language
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_05: View the Installed Software Version
 ----------------------------------------------
@@ -538,7 +538,7 @@ in the security server.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_08: Delete a Timestamping Service
 ----------------------------------------
@@ -581,7 +581,7 @@ from the security server.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_09: View Certificate Details
 -----------------------------------
@@ -616,7 +616,7 @@ certificate.
 
 **Related information**:
 
--   See \[X509\] for detailed information on the contents of
+-   See \[[X509](#Ref_X509)\] for detailed information on the contents of
     certificates.
 
 UC SS\_10: View the Internal TLS Certificate of the Security Server
@@ -716,7 +716,7 @@ certificate.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_12: Export the Internal TLS Certificate of the Security Server
 ---------------------------------------------------------------------
@@ -876,7 +876,7 @@ a.  saves the created backup file to /var/lib/xroad/backup.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_15: Restore Configuration from a Backup File
 ---------------------------------------------------
@@ -987,7 +987,7 @@ backup file.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_16: Download a Backup File
 ---------------------------------
@@ -1062,7 +1062,7 @@ UC SS\_17: Delete a Backup File
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_18: Upload a Backup File
 -------------------------------
@@ -1172,7 +1172,7 @@ configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_19: View the List of Tokens, Keys and Certificates
 ---------------------------------------------------------
@@ -1439,7 +1439,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1497,7 +1497,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1566,7 +1566,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1704,7 +1704,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1743,7 +1743,7 @@ the keys and certificates on the token.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1793,7 +1793,7 @@ use the keys and certificates on the token.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -1866,7 +1866,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC SS\_29: Generate a Certificate Signing Request for a Key
 -----------------------------------------------------------
@@ -1984,7 +1984,7 @@ Use case continues from step 9.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2240,7 +2240,7 @@ step 16.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2305,7 +2305,7 @@ security token.
     “registered”.
 
 12. System gets the OCSP response for the imported certificate (see UC
-    MESS\_15 \[UC-MESS\] for details).
+    MESS\_15 \[[UC-MESS](#Ref_UC-MESS)\] for details).
 
 13. System verifies that a certificate signing request notice
     corresponding to the imported certificate exists in the system
@@ -2470,7 +2470,7 @@ step 14.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2513,7 +2513,7 @@ certificates) or for signing messages (signing certificates).
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2555,7 +2555,7 @@ authentication.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2598,7 +2598,7 @@ certificate for the security server.
 6.  System creates the registration request, finds the management
     service address from the global configuration and sends the request
     to the central server. The contents of the request is described in
-    \[PR-MSERV\].
+    \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 7.  System receives the response message from central server and
     verifies that the response is not an error message.
@@ -2664,7 +2664,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2749,7 +2749,7 @@ configuration. Use case continues form step 7.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2795,7 +2795,7 @@ configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2857,7 +2857,7 @@ token).
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -2965,7 +2965,7 @@ response was an error message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -3039,7 +3039,7 @@ keys that are saved in system configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -3103,7 +3103,7 @@ supported by the token).
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
@@ -3191,10 +3191,10 @@ certificate to “deletion in progress”.
 
 1.  System creates an X-Road SOAP request containing the authentication
     certificate deletion request for the certificate. The contents of
-    the request is described in \[PR-MSERV\].
+    the request is described in \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 2.  System sends the request to the management services' security
-    server: see UC MESS\_02 \[UC-MESS\], where this system acts as both
+    server: see UC MESS\_02 \[[UC-MESS](#Ref_UC-MESS)\], where this system acts as both
     the Client IS and the System; the owner of this security server acts
     as the service client; and the central server acts as the Provider
     IS.

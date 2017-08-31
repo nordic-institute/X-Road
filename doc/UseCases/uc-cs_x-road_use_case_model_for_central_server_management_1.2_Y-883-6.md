@@ -57,22 +57,22 @@ use cases that do not fall under any of the following topics.
 
 -   The use cases for global configuration management and distribution
     are described in the document “X-Road: Use Case Model for Global
-    Configuration Distribution” \[UC-GCONF\].
+    Configuration Distribution” \[[UC-GCONF](#Ref_UC-GCONF)\].
 
 -   The use cases for federating X-Road instances are described in the
     document “X-Road: Use Case Model for Federation” \[UC-FED\].
 
 -   The use cases for the management of X-Road members and security
     servers are described in the document “X-Road: Use Case Model for
-    Member Management” \[UC-MEMBER\].
+    Member Management” \[[UC-MEMBER](#Ref_UC-MEMBER)\].
 
 -   The use cases for the management of global groups and central
     services are described in the document “X-Road: Use Case Model for
-    Service Management” \[UC-SERVICE\].
+    Service Management” \[[UC-SERVICE](#Ref_UC-SERVICE)\].
 
 -   The use cases for the management of certification services and
     timestamping services are described in the document “X-Road: Use
-    Case Model for Trust Service Management” \[UC-TRUST\].
+    Case Model for Trust Service Management” \[[UC-TRUST](#Ref_UC-TRUST)\].
 
 The use cases include verifications that take place, and the main error
 conditions that may be encountered during the described process. The
@@ -81,7 +81,7 @@ general system errors that may be encountered in most of the use cases
 described in this document.
 
 The use cases assume that the X-Road software components involved in the
-use cases are installed and initialised (see \[IG-CS\]).
+use cases are installed and initialised (see \[[IG-CS](#Ref_IG-CS)\]).
 
 The use cases (except for 2.2) including a human actor (the *level* of
 the use case is *user task*) assume that the actor is logged in to the
@@ -96,25 +96,25 @@ The definitions for general X-Road terms can be found at
 References
 ----------
 
-1.  []{#Ref_Central%20Server%20Installation%20Gu .anchor}\[IG-CS\]
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\]
     X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
-2.  []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] X-Road:
+2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.
 
-3.  []{#Ref_UC-GCONF .anchor}\[UC-GCONF\] X-Road: Use Case Model for
+3.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
-4.  []{#Ref_UC-FED .anchor}\[UC-FED\] X-Road: Use Case Model for
+4.  <a id="Ref_UC-FED" class="anchor"></a>\[UC-FED\] X-Road: Use Case Model for
     Federation. Document ID: UC-FED.
 
-5.  []{#Ref_UC-MEMBER .anchor}\[UC-MEMBER\] X-Road: Use Case Model for
+5.  <a id="Ref_UC-MEMBER" class="anchor"></a>\[UC-MEMBER\] X-Road: Use Case Model for
     Member Management. Document ID: UC-MEMBER.
 
-6.  []{#Ref_UC-SERVICE .anchor}\[UC-SERVICE\] X-Road: Use Case Model for
+6.  <a id="Ref_UC-SERVICE" class="anchor"></a>\[UC-SERVICE\] X-Road: Use Case Model for
     Service Management. Document ID: UC-SERVICE.
 
-7.  []{#Ref_UC-TRUST .anchor}\[UC-TRUST\] X-Road: Use Case Model for
+7.  <a id="Ref_UC-TRUST" class="anchor"></a>\[UC-TRUST\] X-Road: Use Case Model for
     Trust Service Management. Document ID: UC-TRUST.
 
 Use Case Model
@@ -202,7 +202,7 @@ is incorrect.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_02: Log Out of the Graphical User Interface
 --------------------------------------------------
@@ -241,7 +241,7 @@ UC CS\_02: Log Out of the Graphical User Interface
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_03: Log a User Out of the Graphical User Interface
 ---------------------------------------------------------
@@ -311,7 +311,7 @@ UC CS\_04: Change the Graphical User Interface Language
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_05: View the Installed Software Version
 ----------------------------------------------
@@ -473,7 +473,7 @@ a.  saves the created backup file to the directory
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_08: Restore Configuration from a Backup File
 ---------------------------------------------------
@@ -592,7 +592,7 @@ backup file.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_09: Download a Backup File
 ---------------------------------
@@ -667,7 +667,7 @@ UC CS\_10: Delete a Backup File
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC CS\_11: Upload a Backup File
 -------------------------------
@@ -775,4 +775,4 @@ configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].

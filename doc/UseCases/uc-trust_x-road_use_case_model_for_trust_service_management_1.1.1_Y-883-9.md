@@ -109,15 +109,15 @@ document in addition to the general definition.
 References
 ----------
 
-1.  []{#Ref_Central%20Server%20Installation%20Gu .anchor}\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
-2.  []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] Audit Log Events. Document ID: SPEC-AL.
+2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Audit Log Events. Document ID: SPEC-AL.
 
-3.  []{#Ref_UC-GCONF .anchor}\[UC-GCONF\] Global Configuration Distribution. Document ID: UC-GCONF.
+3.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] Global Configuration Distribution. Document ID: UC-GCONF.
 
-4.  []{#Ref_UC-MESS .anchor}\[UC-MESS\] Member Communication. Document ID: UC-MESS.
+4.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Member Communication. Document ID: UC-MESS.
 
-5.  []{#Ref_Internet%20X.509%20Public%20Key%20In .anchor}\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate
+5.  <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate
     Revocation List (CRL) Profile, Internet Engineering Task
     Force, 2008.
 
@@ -289,7 +289,7 @@ to CS administrator.
 
 **Related information**:
 
--   See \[X509\] for detailed information on the contents of the
+-   See \[[X509](#Ref_X509)\] for detailed information on the contents of the
     certificate.
 
 UC TRUST\_04: View the Settings of a Certification Service
@@ -600,7 +600,7 @@ certification service and terminates the use case.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_09: Edit the Settings of a Certification Service
 ----------------------------------------------------------
@@ -677,7 +677,7 @@ classpath.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_10: Add or Edit an OCSP Responder of a CA
 ---------------------------------------------------
@@ -776,7 +776,7 @@ responder. Use case continues from step 5.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_11: Delete an OCSP Responder of a CA
 ----------------------------------------------
@@ -818,7 +818,7 @@ from the configuration of an approved certification service.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_12: Add an Intermediate CA to a Certification Service
 ---------------------------------------------------------------
@@ -889,7 +889,7 @@ intermediate CA certificate) and terminates the use case.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_13: Delete an Intermediate CA
 ---------------------------------------
@@ -932,7 +932,7 @@ service.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_14: Delete an Approved Certification Service
 ------------------------------------------------------
@@ -979,7 +979,7 @@ service and terminates the use case.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The certificates issued by the deleted certification service can no
     longer be used in the X-Road system.
@@ -1145,7 +1145,7 @@ certificate already exists.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_17: Edit the URL of a Timestamping Server
 ---------------------------------------------------
@@ -1214,7 +1214,7 @@ has changed.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_18: Delete an Approved Timestamping Service
 -----------------------------------------------------
@@ -1260,7 +1260,7 @@ service and terminates the use case.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 UC TRUST\_19: Parse User Input
 ------------------------------

@@ -128,7 +128,7 @@ general system errors that may be encountered in most of the use cases
 described in this document.
 
 The use cases assume that the X-Road software components involved in the
-use cases are installed and initialised (see \[IG-CS\] and \[IG-SS\]).
+use cases are installed and initialised (see \[[IG-CS](#Ref_IG-CS)\] and \[[IG-SS](#Ref_IG-SS)\]).
 
 The use cases including a human actor (the level of the use case is user
 task) assume, that the actor is logged in to the system and has the
@@ -151,16 +151,16 @@ more services of a security server client.
 References
 ----------
 
-1\. []{#Ref_IG-CS .anchor}\[IG-CS\] X-Road 6. Central Server Installation
+1\. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation
 Guide. Document ID: IG-CS.
 
-2\. []{#Ref_IG-SS .anchor}\[IG-SS\] X-Road 6. Security Server
+2\. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server
 Installation Guide. Document ID: IG-SS.
 
-3\. []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] X-Road:
+3\. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
 Audit Log Events. Document ID: SPEC-AL.
 
-4\. []{#Ref_X-Road%3A%20System%20Parameters .anchor}\[UG-SYSPAR\] X-Road:
+4\. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
 System Parameters. Document ID: UG-SYSPAR.
 
 Overview
@@ -366,7 +366,7 @@ server client's services for a subject.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_04: Add Access Rights for a Service Client
 
@@ -413,7 +413,7 @@ client.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_05: Remove Access Rights from a Service Client
 
@@ -460,7 +460,7 @@ service client.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_06: View the WSDLs of a Security Server Client
 
@@ -759,10 +759,10 @@ configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The system parameters are described in document “X-Road: System
-    Parameters” \[UG-SYSPAR\].
+    Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### UC SERVICE\_09: Edit the Address of a WSDL
 
@@ -841,7 +841,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_10: Download and Parse WSDL
 
@@ -1068,7 +1068,7 @@ WSDL available for the service clients.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events \[SPEC-AL\].
+    Events \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_13: Disable a WSDL
 
@@ -1132,7 +1132,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_14: Refresh a WSDL
 
@@ -1287,10 +1287,10 @@ the current version.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The system parameters are described in document “X-Road: System
-    Parameters” \[UG-SYSPAR\].
+    Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### UC SERVICE\_15: Delete a WSDL
 
@@ -1334,7 +1334,7 @@ server client's list of WSDLs.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_16: View the Access Rights of a Service
 
@@ -1433,7 +1433,7 @@ security server client's service.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_18: Remove Access Rights from a Service
 
@@ -1479,7 +1479,7 @@ rights list of a service.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_19: Edit the Address of a Service
 
@@ -1555,7 +1555,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
 
@@ -1603,7 +1603,7 @@ verification option.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_21: Edit the Timeout Value of a Service
 
@@ -1687,7 +1687,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
 
@@ -1734,7 +1734,7 @@ service to all the services in the WSDL where the service is described.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_23: View the Local Groups of a Security Server Client
 
@@ -1904,7 +1904,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_26: Add Members to a Local Group
 
@@ -1952,7 +1952,7 @@ group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_27: Remove Members from a Local Group
 
@@ -1998,7 +1998,7 @@ group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_28: Edit the Description of a Local Group
 
@@ -2053,7 +2053,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_29: Delete a Local Group
 
@@ -2097,7 +2097,7 @@ the X-Road subsystems that were the members of this group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 Central Server
 --------------
@@ -2285,7 +2285,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_33: Add Members to a Global Group
 
@@ -2331,7 +2331,7 @@ access rights granted for the group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_34: Remove Members from a Global Group
 
@@ -2377,7 +2377,7 @@ global group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_35: Edit the Description of a Global Group
 
@@ -2433,7 +2433,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_36: View the Global Group Membership of an X-Road Member
 
@@ -2536,7 +2536,7 @@ member's subsystem to a global group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group
 
@@ -2583,7 +2583,7 @@ member's subsystem from a global group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_39: Delete a Global Group
 
@@ -2625,7 +2625,7 @@ the X-Road members and subsystems that were the members of this group.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC SERVICE\_40: View Central Services
 
@@ -2767,7 +2767,7 @@ as an X-Road member or subsystem.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_42: Edit the Implementing Service of a Central Service
 
@@ -2842,7 +2842,7 @@ member or subsystem.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
 ### UC SERVICE\_43: Delete a Central Service
 
@@ -2882,4 +2882,4 @@ member or subsystem.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\]
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\]

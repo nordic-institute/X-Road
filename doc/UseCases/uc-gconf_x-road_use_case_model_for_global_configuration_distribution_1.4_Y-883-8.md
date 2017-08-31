@@ -98,7 +98,7 @@ This document does not include use cases for
 
 -   the functionality of the configuration proxy – these use cases are
     described in document “X-Road: Use Case Model for the Configuration
-    Proxy” \[UC-CP\].
+    Proxy” \[[UC-CP](#Ref_UC-CP)\].
 
 The use cases include verifications that take place, and the main error
 conditions that may be encountered during the described process. The
@@ -107,7 +107,7 @@ general system errors that may be encountered in most of the use cases
 described in this document.
 
 The use cases assume that the X-Road software components involved in the
-use cases are installed and initialised (see \[IG-CS\] and \[IG-SS\]).
+use cases are installed and initialised (see \[[IG-CS](#Ref_IG-CS)\] and \[[IG-SS](#Ref_IG-SS)\]).
 
 The use cases including a human actor (the *level* of the use case is
 *user task*) assume, that the actor is logged in to the system and has
@@ -206,32 +206,32 @@ document in addition to the general definition.
 References
 ----------
 
-1.  []{#Ref_IG-CS .anchor}\[IG-CS\] X-Road 6. Central Server
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
 
-2.  []{#Ref_IG-SS .anchor}\[IG-SS\] X-Road 6. Security Server
+2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server
     Installation Guide. Document ID: IG-SS.
 
-3.  []{#Ref_INI .anchor}\[INI\] INI file.
+3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file.
     <http://en.wikipedia.org/wiki/INI_file>
 
-4.  []{#Ref_PKCS11 .anchor}\[PKCS11\] PKCS \#11 Cryptographic Token
+4.  <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] PKCS \#11 Cryptographic Token
     Interface Base Specification Version 2.40. Function return values.
     <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/csprd01/pkcs11-base-v2.40-csprd01.html#_Toc372627249>
 
-5.  []{#Ref_PR-GCONF .anchor}\[PR-GCONF\] X-Road: Protocol for
+5.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
     Downloading Configuration. Document ID: PR-GCONF.
 
-6.  []{#Ref_X-Road%3A%20Audit%20Log%20Events .anchor}\[SPEC-AL\] X-Road:
+6.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.
 
-7.  []{#Ref_UC-CP .anchor}\[UC-CP\] X-Road: Use Case Model for the
+7.  <a id="Ref_UC-CP" class="anchor"></a>\[UC-CP\] X-Road: Use Case Model for the
     Configuration Proxy. Document ID: UC-CP.
 
-8.  []{#Ref_UC-FED .anchor}\[UC-FED\] X-Road: Use Case Model for
+8.  <a id="Ref_UC-FED" class="anchor"></a>\[UC-FED\] X-Road: Use Case Model for
     Federation. Document ID: UC-FED.
 
-9.  []{#Ref_X-Road_System_Parameters .anchor}\[UG-SYSPAR\] X-Road:
+9.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
     System Parameters. Document ID: UG-SYSPAR.
 
 Overview
@@ -408,7 +408,7 @@ configuration clients.
 
 -   The contents and format of the configuration anchor file is
     described in the document “X-Road: Protocol for Downloading
-    Configuration” \[PR-GCONF\].
+    Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_03: Re-Create a Configuration Source Anchor
 
@@ -466,7 +466,7 @@ message.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_04: Describe Optional Configuration Part Data
 
@@ -493,7 +493,7 @@ parameters parts needs to be added to the global configuration.
 
 **Main Success Scenario**:
 
-1.  CS administrator creates an INI file (see \[INI\]) in the
+1.  CS administrator creates an INI file (see \[[INI](#Ref_INI)\]) in the
     /etc/xroad/configuration-parts directory containing the following
     key-value pairs:
 
@@ -518,7 +518,7 @@ parameters parts needs to be added to the global configuration.
     keys respectively as *Content-identifier* and *Content-file-name*
     MIME header values in the configuration directory (for further
     information, please see the document “X-Road: Protocol for
-    Downloading Configuration” \[PR-GCONF\]) and also for displaying
+    Downloading Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\]) and also for displaying
     configuration part information in the GUI.
 
 -   The system uses the value of the validation-program key for finding
@@ -666,7 +666,7 @@ database.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_06: Download a Configuration Part File
 
@@ -705,7 +705,7 @@ file, e.g., to view the contents of the file.
 
 -   The schemas for private parameters and shared parameters are
     described in the document “X-Road: Protocol for Downloading
-    Configuration” \[PR-GCONF\].
+    Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_07: Log In to a Software Security Token
 
@@ -771,7 +771,7 @@ entering the token PIN code.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_08: Log In to a Hardware Security Token
 
@@ -911,7 +911,7 @@ entering the token PIN code.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_09: Log Out of a Software Security Token
 
@@ -959,7 +959,7 @@ token.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_10: Log Out of a Hardware Security Token
 
@@ -1016,7 +1016,7 @@ token.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_11: Add a Configuration Source Signing Key
 
@@ -1139,7 +1139,7 @@ change).
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_12: Activate a Configuration Source Signing Key
 
@@ -1201,7 +1201,7 @@ uses for signing configuration provided by the source.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_13: Delete a Configuration Source Signing Key
 
@@ -1266,7 +1266,7 @@ key.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_14: View System Parameters
 
@@ -1378,7 +1378,7 @@ service requests, configuration download requests).
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 ### UC GCONF\_16: Parse User Input
 
@@ -1488,7 +1488,7 @@ configuration source.
 
 -   The schema for the configuration anchor file can be found in the
     document “X-Road: Protocol for Downloading Configuration”
-    \[PR-GCONF\].
+    \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_18: Generate Configuration
 
@@ -1611,7 +1611,7 @@ reason than the ones stated in extensions 1a and 1b.
 
 -   The contents of the signed directory and the schemas for private
     parameters and shared parameters are described in the document
-    “X-Road: Protocol for Downloading Configuration” \[PR-GCONF\].
+    “X-Road: Protocol for Downloading Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 -   The error messages are logged to /var/log/xroad/jetty/jetty.log.
 
@@ -1893,12 +1893,12 @@ reasons other than the ones listed in extensions 7b-d.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[PR-SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The format of the configuration anchor and the configuration
     directory and the protocol for downloading the configuration are
     described in the document “X-Road: Protocol for Downloading
-    Configuration” \[PR-GCONF\].
+    Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_23: Update Configuration 
 
@@ -1960,12 +1960,12 @@ sources terminated with an error.
 **Related information**:
 
 -   The system parameters are described in document “X-Road: System
-    Parameters” \[UG-SYSPAR\].
+    Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 -   The format of the configuration anchor and configuration directory,
     and the protocol for downloading the configuration are described in
     the document “X-Road: Protocol for Downloading Configuration”
-    \[PR-GCONF\].
+    \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 ### UC GCONF\_24: Download Configuration from a Configuration Source
 

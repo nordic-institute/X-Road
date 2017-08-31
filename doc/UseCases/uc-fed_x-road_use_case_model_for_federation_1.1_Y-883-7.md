@@ -64,7 +64,7 @@ general system errors that may be encountered in most of the use cases
 described in this document.
 
 The use cases assume that the X-Road software components involved in the
-use cases are installed and initialised (see \[IG-CS\]).
+use cases are installed and initialised (see \[[IG-CS](#Ref_IG-CS)\]).
 
 The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system and has
@@ -165,16 +165,16 @@ document in addition to the general definition.
 References
 ----------
 
-1.  []{#Ref_IG-CS .anchor}\[IG-CS\] X-Road 6. Central Server
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
 
-2.  []{#Ref_PR-GCONF .anchor}\[PR-GCONF\] X-Road: Protocol for
+2.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
     Downloading Configuration. Document ID: PR-GCONF.
 
-3.  []{#Ref_SPEC-AL .anchor}\[SPEC-AL\] X-Road: Audit Log Events.
+3.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road: Audit Log Events.
     Document ID: SPEC-AL.
 
-4.  []{#Ref_UC-GCONG .anchor}\[UC-GCONF\] X-Road: Use Case Model for
+4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
 Overview
@@ -199,9 +199,9 @@ To end a federation relationship with an X-Road instance, the trusted
 anchor of that instance must be deleted from the central server.
 
 For more information on configuration distribution please see the
-documents “X-Road: Protocol for Downloading Configuration” \[PR-GCONF\]
+documents “X-Road: Protocol for Downloading Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\]
 and “X-Road: Use Case Model for Global Configuration Distribution”
-\[UC-GCONF\].
+\[[UC-GCONF](#Ref_UC-GCONF)\].
 
 Use Case Model
 ==============
@@ -419,12 +419,12 @@ exists in the system configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
 -   The format of the configuration anchor and the configuration
     directory and the protocol for downloading the configuration are
     described in the document “X-Road: Protocol for Downloading
-    Configuration” \[PR-GCONF\].
+    Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 UC FED\_03: Download and Validate Configuration
 -----------------------------------------------
@@ -727,4 +727,4 @@ configuration.
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
-    Events” \[SPEC-AL\].
+    Events” \[[SPEC-AL](#Ref_SPEC-AL)\].

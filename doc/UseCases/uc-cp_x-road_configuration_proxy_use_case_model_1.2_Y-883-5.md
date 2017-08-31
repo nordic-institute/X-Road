@@ -142,17 +142,17 @@ document in addition to the general definition.
 References
 ----------
 
-1.  []{#Ref_PKCS11 .anchor}\[PKCS11\] PKCS \#11 Cryptographic Token
+1.  <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] PKCS \#11 Cryptographic Token
     Interface Base Specification Version 2.40. Function return values.
     <http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/csprd01/pkcs11-base-v2.40-csprd01.html#_Toc372627249>
 
-2.  []{#Ref_PR-GCONF .anchor}\[PR-GCONF\] X-Road: Protocol for
+2.  <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] X-Road: Protocol for
     Downloading Configuration. Document ID: PR-GCONF.
 
-3.  \[[]{#Ref_UG-CP .anchor}UG-CP\] X-Road: Configuration Proxy Manual.
+3.  <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] X-Road: Configuration Proxy Manual.
     Document ID: UG-CP.
 
-4.  []{#Ref_UC-GCONF .anchor}\[UC-GCONF\] X-Road: Use Case Model for
+4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
 Overview
@@ -197,7 +197,7 @@ Figure 1. Use case diagram for the configuration proxy
 UC CP\_01: View Proxy Settings
 ------------------------------
 
-**System**: []{#magicparlabel-7226 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -277,12 +277,12 @@ available.
 
 **Related information**:
 
--   See \[UG-CP\] for details.
+-   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_02: Create Proxy Instance
 --------------------------------
 
-**System**: []{#magicparlabel-72261 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -324,12 +324,12 @@ specified identifier are available on the file system.
 
 -   By default the settings directory is located at
     /etc/xroad/confproxy/&lt;INSTANCE&gt;, where &lt;INSTANCE&gt; is the
-    provided instance identifier. See \[UG-CP\] for details.
+    provided instance identifier. See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_03: Edit Settings File
 -----------------------------
 
-**System**: []{#magicparlabel-722611 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -373,12 +373,12 @@ the operation of the configuration proxy.
 -   By default the settings file is located at
     /etc/xroad/confproxy/&lt;INSTANCE&gt;/conf.ini, where
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
-    See \[UG-CP\] for details.
+    See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_04: Generate Configuration Source Anchor
 -----------------------------------------------
 
-**System**: []{#magicparlabel-7226111 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -459,12 +459,12 @@ system:
 
 **Related information:**
 
--   See \[UG-CP\] for details.
+-   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_05: Log In to a Software Security Token
 ----------------------------------------------
 
-**System:** []{#magicparlabel-72261112 .anchor}Configuration proxy
+**System:** Configuration proxy
 
 **Level:** User task
 
@@ -544,14 +544,14 @@ is inaccessible).
 
 > 3-4a.1. System displays the error message: “Login failed: X”, where
 > “X” is the error code from the PKCS \#11 cryptographic token interface
-> (see \[PKCS11\]) and terminates the use case.
+> (see \[[PKCS11](#Ref_PKCS11)\]) and terminates the use case.
 
 **Related information**: -
 
 UC CP\_07: Log Out of Software Security Token
 ---------------------------------------------
 
-**System:** []{#magicparlabel-722611121 .anchor}Configuration proxy
+**System:** Configuration proxy
 
 **Level:** User task
 
@@ -618,14 +618,14 @@ token.
 
 > 2a.1. System displays the error message: “Logout failed: X”, where “X”
 > is the error code from the PKCS \#11 cryptographic token interface
-> \[PKCS11\] and terminates the use case.
+> \[[PKCS11](#Ref_PKCS11)\] and terminates the use case.
 
 **Related information**: -
 
 UC CP\_09: Add Configuration Source Signing Key
 -----------------------------------------------
 
-**System**: []{#magicparlabel-7226111211 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -685,7 +685,7 @@ instance (e.g., as a part of performing a regular key change).
 UC CP\_10: Activate Configuration Source Signing Key
 ----------------------------------------------------
 
-**System**: []{#magicparlabel-72261112111 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -724,12 +724,12 @@ configuration.
 -   By default the settings file is located at
     /etc/xroad/confproxy/&lt;INSTANCE&gt;/conf.ini, where
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
-    See \[UG-CP\] for details.
+    See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_11: Delete Configuration Source Signing Key 
 ---------------------------------------------------
 
-**System**: []{#magicparlabel-722611121111 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -777,12 +777,12 @@ this proxy instance.
 
 **Related information**:
 
--   See \[UG-CP\] for details.
+-   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_12: View Trusted Anchor
 ------------------------------
 
-**System**: []{#magicparlabel-7226111211111 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -816,12 +816,12 @@ provided by the governing agency.
 -   By default the anchor file is located at
     /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml, where
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
-    See \[UG-CP\] for details.
+    See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_13: Upload Trusted Anchor
 --------------------------------
 
-**System**: []{#magicparlabel-7226111211112 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -852,12 +852,12 @@ provider sends updated configuration anchor.
 -   By default the anchor file is located at
     /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml, where
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
-    See \[UG-CP\] for details.
+    See \[[UG-CP](#Ref_UG-CP)\] for details.
 
 UC CP\_14: Test Configuration
 -----------------------------
 
-**System**: []{#magicparlabel-7226111211113 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: User task
 
@@ -883,11 +883,11 @@ proxy instance has been setup correctly.
 
 2.  CP administrator runs the configuration download script providing it
     with the generated anchor and a directory for placing the downloaded
-    configuration (see \[UG-CP\] for details).
+    configuration (see \[[UG-CP](#Ref_UG-CP)\] for details).
 
 3.  The configuration is downloaded from the configuration source: UC
     GCONF\_21: Download Configuration from a Configuration Source
-    \[UC-GCONF\].
+   \[[UC-GCONF](#Ref_UC-GCONF)\].
 
 4.  CP administrator verifies that configuration download (see 3.16) and
     configuration directory generation (see 3.17) were successful.
@@ -902,7 +902,7 @@ proxy instance has been setup correctly.
 UC CP\_15: Update Configuration
 -------------------------------
 
-**System**: []{#magicparlabel-72261112111131 .anchor}Configuration proxy
+**System**: Configuration proxy
 
 **Level**: System
 
@@ -926,7 +926,7 @@ the configuration directory distributed to the configuration clients.
 **Main Success Scenario**:
 
 1.  System downloads the configuration: UC GCONF\_21: Download
-    Configuration from a Configuration Source \[UC-GCONF\].
+    Configuration from a Configuration Source \[[UC-GCONF](#Ref_UC-GCONF)\].
 
 2.  System generates the configuration directory: 3.17.
 
@@ -939,17 +939,17 @@ the configuration directory distributed to the configuration clients.
 **Related information**:
 
 -   By default the *cron* job is executed every
-    minute.[]{#__DdeLink__157278_156184579 .anchor}
+    minute. 
 
 -   The format of the configuration anchor and configuration directory,
     and the protocol for downloading the configuration are described in
     the document “X-Road: Protocol for Downloading Configuration”
-    \[PR-GCONF\].
+    \[[PR-GCONF](#Ref_PR-GCONF)\].
 
 UC CP\_16: Generate Configuration Directory
 -------------------------------------------
 
-**System**: []{#magicparlabel-722611121111311 .anchor}Configuration
+**System**: Configuration
 proxy
 
 **Level**: Subfunction
