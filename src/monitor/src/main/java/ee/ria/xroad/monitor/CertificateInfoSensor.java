@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -37,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

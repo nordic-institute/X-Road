@@ -25,9 +25,6 @@ import akka.actor.ActorIdentity;
 import akka.actor.ActorRef;
 import akka.actor.Identify;
 import akka.actor.Terminated;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SlidingTimeWindowReservoir;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
@@ -36,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**

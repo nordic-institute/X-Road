@@ -23,7 +23,6 @@
 package ee.ria.xroad.monitor;
 
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.executablelister.*;

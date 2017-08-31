@@ -23,11 +23,7 @@
 package ee.ria.xroad.monitor;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import com.codahale.metrics.MetricRegistry;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
