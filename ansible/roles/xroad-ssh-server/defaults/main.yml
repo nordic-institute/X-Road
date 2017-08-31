@@ -1,0 +1,4 @@
+---
+# Default username and password are user:secret
+ssh_username: "user"
+ssh_password: "$6$jDACdh9bz0$4gxDiQr2nYvQy/ASfbKoO38lxx0MnTGjSovgIxi.S1cGfpquyDeAZ3oJtCUzmR8i8YX2pslIQpfNYJDJEITC31"

@@ -1,38 +1,36 @@
 ---
 # This playbook initializes X-Road automation environment
 
-
+# LXD host should be initialized and configured to run X-Road Python tests (xroad-ee-tests)
 - hosts: lxd-servers
   roles:
     - role: init-lxd
+    - role: xroad-python-tests
 
-- hosts: ss-servers, cs-servers, ca-servers
+# All LXD containers should have Python 2 installed
+- hosts: ss-servers, cs-servers, ca-servers, web-servers
   become: yes
   become_user: root
   gather_facts: no
   pre_tasks:
     - name: 'Install python2'
       raw: apt-get -y install python
-    
+
+# Initialize Central Server(s)
 - hosts: cs-servers
   become: yes
   become_user: root
   roles:
     - xroad-cs
 
-- hosts: ss-servers, cs-servers, ca-servers
-  become: yes
-  become_user: root
-  gather_facts: no
-  pre_tasks:
-    - raw: apt-get -y install python
-
+# Initialize Security Servers
 - hosts: ss-servers
   become: yes
   become_user: root
   roles:
     - xroad-ss
-    
+
+# Initialize Certificate Authority
 - hosts: ca-servers
   become: yes
   become_user: root
@@ -41,3 +39,24 @@
   roles:
     - role: xroad-ca
       tags: [ 'ca' ]
+
+# Install and configure SSH server for all servers
+- hosts: ss-servers, cs-servers, ca-servers
+  become: yes
+  become_user: root
+  gather_facts: yes
+  pre_tasks:
+    - raw: apt-get -y install python
+  roles:
+    - xroad-ssh-server
+
+# Initialize web and mock server
+- hosts: web-servers
+  become: yes
+  become_user: root
+  gather_facts: yes
+  pre_tasks:
+    - raw: apt-get -y install python
+  roles:
+    - xroad-webserver
+    - xroad-mockserver

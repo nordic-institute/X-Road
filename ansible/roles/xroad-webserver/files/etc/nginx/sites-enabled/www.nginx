@@ -1,0 +1,13 @@
+server {
+        listen 8080 default_server;
+
+        root /usr/share/nginx/html;
+        index index.html index.htm;
+
+        # Make site accessible from http://localhost/
+        server_name localhost;
+
+        location / {
+        }
+}
+
