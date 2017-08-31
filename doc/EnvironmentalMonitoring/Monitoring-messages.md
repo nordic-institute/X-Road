@@ -3,8 +3,8 @@
 Version: 1.3  
 Doc. ID: PR-ENVMONMES
 
-| Date       | Version     | Description                                                                  | Author             |
-|------------|-------------|------------------------------------------------------------------------------|--------------------|
+| Date       | Version     | Description                                                | Author          |
+|------------|-------------|------------------------------------------------------------|-----------------|
 | 15.12.2015 | 1.0         | Initial version                                            | Ilkka Seppälä   |
 | 04.01.2017 | 1.1         | Fix documentation links                                    | Ilkka Seppälä   |
 | 20.01.2017 | 1.2         | Added license text, table of contents and version history  | Sami Kallio     |
@@ -34,12 +34,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 Fetching security server metrics uses the X-Road protocol. The `getSecurityServerMetrics` request requires a `securityServer` header element as specified by the security server targeting extension for the X-Road message protocol \[[PR-TARGETSS](#Ref_PR-TARGETSS)\] so that the request can be routed to a specific security server.
 
-`Body` element must contain `getSecurityServerMetrics` element. 
+`Body` element must contain the `getSecurityServerMetrics` element.
 
-Optional `outputSpec` element can be used to define a set of specific environmental monitoring parameters. In this case a set of `outputField` elements are used to define requested metrics. 
-`outputField` elements should match metric names provided by [Dropwizard Metrics](https://github.com/dropwizard/metrics). Empty or missing `outputSpec` element will request all metrics. `getSecurityServerMetricsResponse` element in response will contain matching metrics.
-
-
+An optional `outputSpec` child element can be used to request a subset of the metrics. The `outputSpec` consists of zero or more `outputField` elements referring to the `name` element of a metric in the `metricSet` named _systemMetrics_. Empty or missing `outputSpec` requests all available metrics. 
 
 ```xml
 <SOAP-ENV:Envelope
@@ -77,7 +74,7 @@ Optional `outputSpec` element can be used to define a set of specific environmen
         <m:getSecurityServerMetrics>
             <m:outputSpec>
                 <m:outputField>OperatingSystem</m:outputField>
-                <m:outputField>Processes</m:outputField>                
+                <m:outputField>TotalPhysicalMemory</m:outputField>
             </m:outputSpec>
         </m:getSecurityServerMetrics>
     </SOAP-ENV:Body>
@@ -87,6 +84,7 @@ Optional `outputSpec` element can be used to define a set of specific environmen
 
 ### Response
 
+The response `Body` contains one `getSecurityServerMetricsResponse` element which contains one `metricSet` as direct child. The name of the top level set is the security server identifier. The set contains a _proxyVersion_ `stringMetric` and a _systemMetrics_ `metricSet`. The _systemMetrics_ set contains the requested metrics.
 
 ```xml
 <SOAP-ENV:Envelope
@@ -135,12 +133,7 @@ Optional `outputSpec` element can be used to define a set of specific environmen
                   <m:name>TotalPhysicalMemory</m:name>
                   <m:value>2097684480</m:value>
                </m:numericMetric>
-               <m:numericMetric>
-                  <m:name>TotalSwapSpace</m:name>
-                  <m:value>2097684480</m:value>
-               </m:numericMetric>
             </m:metricSet>
-            ...          
          </m:metricSet>
       </m:getSecurityServerMetricsResponse>
    </SOAP-ENV:Body>
