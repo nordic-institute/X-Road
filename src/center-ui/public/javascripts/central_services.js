@@ -67,18 +67,22 @@ var XROAD_CENTRAL_SERVICES = function () {
         enableActions();
         focusInput();
 
-        $("#central_services tbody tr").live("click", function(ev) {
+        var servicesTable = $("#central_services");
+
+        var serviceDetailsButton = $("#central_service_details");
+
+        servicesTable
+        .on("click", "tbody tr", function(ev) {
             if (oCentralServices.setFocus(0, ev.target.parentNode) &&
-                    $("#central_service_details_form:visible").length == 0) {
+                    $("#central_service_details_form:visible").length === 0) {
                 $(".central_service-action").enable();
             }
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            serviceDetailsButton.click();
         });
 
-        $("#central_services tbody tr").live("dblclick", function() {
-            XROAD_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
-        });
-
-        $("#central_service_details").click(function() {
+        serviceDetailsButton.click(function() {
             XROAD_CENTRAL_SERVICE_EDIT.open(oCentralServices.getFocusData());
         });
 

@@ -14,7 +14,8 @@ dependencies {
     testCompile 'wsdl4j:wsdl4j:1.6.3'
     testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
     testCompile 'org.apache.httpcomponents:httpmime:4.5.2'
-
+    testCompile 'org.xmlunit:xmlunit-core:2.2.1'
+    testCompile 'org.xmlunit:xmlunit-matchers:2.2.1'
 
 
 }
@@ -37,7 +38,8 @@ task runMetaserviceTest(type: JavaExec) {
             '-Dxroad.proxy.client-httpclient-so-linger=-1',
             '-Dxroad.proxy.server-connector-so-linger=-1',
             '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.MetadataServiceHandlerImpl',
-            '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler'
+            '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
+            '-Dproxy.akka.remote.netty.tcp.port=0'
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath

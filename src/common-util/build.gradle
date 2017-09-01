@@ -51,8 +51,8 @@ dependencies {
     testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile project(':common-test').sourceSets.main.output
 
-    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
 }
 
 test {
@@ -60,10 +60,16 @@ test {
 }
 
 task createDirs() {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
     ant.taskdef(name: 'xjc',
         classname: 'com.sun.tools.xjc.XJCTask',
         classpath: configurations.xjc.asPath)
@@ -137,9 +143,13 @@ task xjc() {
         schema: 'src/main/resources/service-metainfo.xsd',
         binding: 'src/main/resources/identifiers-bindings.xml'
     )
+    }
 }
 
 task make(type: Exec) {
+    inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
+    outputs.dir file('../lib')
+
     workingDir '../'
     commandLine 'make'
 }

@@ -8,15 +8,15 @@ Standards-Version: 3.8.3
 Package: xroad-centralserver-monitoring
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-centralserver (>=${source:Upstream-Version})
+Depends: xroad-center (>=${source:Upstream-Version})
 Pre-depends:
 Description: Monitoring client configuration for X-Road central
- This meta-package adds optional global monitoring configuration file.
+ X-Road global monitoring configuration file.
 
 Package: xroad-centralserver
 Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
-Depends: xroad-center
+Depends: xroad-center (>=${source:Upstream-Version}), xroad-centralserver-monitoring (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road central server
  This is meta-package of X-Road central server.
@@ -124,4 +124,12 @@ Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
 Pre-depends: postgresql, postgresql-contrib
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
+
+Package: xroad-autologin
+Architecture: all
+Depends: ${misc:Depends}, expect, xroad-common (>=${source:Upstream-Version})
+Replaces: aux-xroad-autologin (<< 1.4-1)
+Conflicts: aux-xroad-autologin (<< 1.4-1)
+Description: Automatic token pin code entry
+ Optional utility that automatically enters the software token pin code on xroad-signer start
 

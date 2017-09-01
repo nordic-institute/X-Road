@@ -33,6 +33,7 @@ dependencies {
 
     compile project(':monitor-common')
     compile project(':signer-protocol')
+    compile project(':serverconf')
 
     // The production code uses the SLF4J logging API at compile time
     compile 'org.slf4j:slf4j-api:1.7.12'

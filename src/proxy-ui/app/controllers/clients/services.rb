@@ -636,7 +636,7 @@ module Clients::Services
     end
 
     command = [
-      "curl -sk #{Shellwords.escape(url)} | #{SystemProperties::getWsdlValidatorCommand} 2>&1 >/dev/null"
+      "#{SystemProperties::getWsdlValidatorCommand} #{Shellwords.escape(url)} 2>&1 >/dev/null"
     ]
 
     logger.info("Running WSDL validator: #{command}")

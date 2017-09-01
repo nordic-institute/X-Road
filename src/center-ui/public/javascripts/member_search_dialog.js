@@ -49,16 +49,16 @@
         oMemberSearch = $("#member_search").dataTable(opts);
         oMemberSearch.fnSetFilteringDelay(600);
 
-        oMemberSearch.on("click", "tbody tr", function(ev) {
+        oMemberSearch
+        .on("click", "tbody tr", function(ev) {
             if (oMemberSearch.setFocus(0, this)) {
                 $("#member_search_select").enable();
             }
-        });
-
-        oMemberSearch.unbind("dblclick")
-                .on("dblclick", "tbody tr", function(ev) {
+        })
+        .off("dblclick")
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_search_dialog").dialog("close");
-            onSuccess(oMemberSearch.fnGetData(this));
+            onSuccess(oMemberSearch.getFocusData());
         });
     }
 

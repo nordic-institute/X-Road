@@ -22,42 +22,25 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SERVERCONF;
-import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.dao.*;
+import ee.ria.xroad.common.conf.serverconf.model.*;
+import ee.ria.xroad.common.db.TransactionCallback;
+import ee.ria.xroad.common.identifier.*;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Session;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
-import ee.ria.xroad.common.db.TransactionCallback;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.LocalGroupId;
-import ee.ria.xroad.common.identifier.SecurityCategoryId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XRoadId;
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Server conf implementation.
@@ -194,6 +177,15 @@ public class ServerConfImpl implements ServerConfProvider {
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
         return tx(session -> new ClientDAOImpl().getIsCerts(session,
                 client).stream().map(c -> readCertificate(c.getData()))
+                .collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<X509Certificate> getAllIsCerts() {
+        return tx(session -> new CertificateDAOImpl()
+                .findAll(session)
+                .stream()
+                .map(c -> readCertificate(c.getData()))
                 .collect(Collectors.toList()));
     }
 

@@ -32,11 +32,19 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@EqualsAndHashCode
 public class CertificateMonitoringInfo {
-    private String id;
-    private String issuer;
-    private String subject;
+    private CertificateType type;
+    private String sha1hash;
     private String notBefore;
     private String notAfter;
-    private String status;
+
+    /**
+     * The type of the Certificate
+     */
+    public enum CertificateType {
+        AUTH_OR_SIGN,
+        SECURITY_SERVER_TLS,
+        INTERNAL_IS_CLIENT_TLS
+    }
 }

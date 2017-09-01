@@ -384,15 +384,17 @@
         ];
         opts.asRowId = ["code"];
 
-        oGroups = $("#groups").dataTable(opts);
+        var groupTable = $("#groups");
 
-        $("#groups tbody tr").live("click", function() {
+        oGroups = groupTable.dataTable(opts);
+
+        groupTable
+        .on("click", "tbody tr", function() {
             oGroups.setFocus(0, this);
             enableGroupsActions();
-        });
-
-        $("#groups tbody tr").live("dblclick", function() {
-            oGroups.setFocus(0, this);
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function(ev) {
+            oGroups.setFocus(0, ev.target.parentNode);
             enableGroupsActions();
             $("#group_details").click();
         });

@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
@@ -27,23 +27,26 @@ dependencies {
     testCompile 'org.hsqldb:hsqldb:2.3.2'
     testCompile 'commons-cli:commons-cli:1.2'
 
-    xjc 'com.sun.xml.bind:jaxb-impl:2.2.7'
-    xjc 'com.sun.xml.bind:jaxb-xjc:2.2.7'
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
 }
 
 task createDirs() {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
     doLast {
-        println '---- op-monitor-daemon xjc @ configuration phase'
         ant.taskdef(name: 'xjc',
                 classname: 'com.sun.tools.xjc.XJCTask',
                 classpath: configurations.xjc.asPath)
 
         // Generate classes for query operational data and health data messages.
-        println '---- op-monitor-daemon xjc @ execution phase'
         ant.xjc(
                 destdir: project.ext.schemaTargetDir,
                 package: 'ee.ria.xroad.opmonitordaemon.message',

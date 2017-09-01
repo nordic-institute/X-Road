@@ -249,7 +249,7 @@ In order to properly set up the data replication, the slave nodes must be able t
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Disable support for client-side pooled connections (HTTP connection persistence) in `/etc/xroad/conf.d/local.ini`
-    * Because the load balancing works at TCP level, disabling persistent HTTP connections is recommended so that the load balancer can evenly distribute the traffic. 
+    * Because the load balancing works at TCP level, disabling persistent HTTP connections is recommended so that the load balancer can evenly distribute the traffic.
 
       ```
       [proxy]
@@ -297,6 +297,7 @@ In order to properly set up the data replication, the slave nodes must be able t
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#12-references)\].
+10. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
@@ -345,7 +346,7 @@ balancing solution that the security server will be undergoing maintenance and s
 
 When in maintenance mode the health check interface will only respond with `HTTP 503 Service unavailable` and the message
 `Health check interface is in maintenance mode` and no actual health check diagnostics will be run. Maintenance mode is disabled
-by default and will automatically reset to its default when the proxy service is restarted. 
+by default and will automatically reset to its default when the proxy service is restarted.
 
 Maintenance mode can be enabled or disabled by sending `HTTP GET`-request from the target security server to its proxy admin port `5566`.
 The intended new state can be defined using the `targetState` HTTP-parameter:
@@ -357,7 +358,7 @@ The intended new state can be defined using the `targetState` HTTP-parameter:
 
 Proxy admin port will respond with `200 OK` and a message detailing the actualized maintenance mode state change,
 e.g. `Maintenance mode set: false => true`. In case the maintenance mode state could not be changed, the returned
-message will detail the reason. 
+message will detail the reason.
 
 #### 3.4.1 Known check result inconsistencies vs. actual state
 There is a known but rarely and not naturally occurring issue where the health check will report an OK condition for a

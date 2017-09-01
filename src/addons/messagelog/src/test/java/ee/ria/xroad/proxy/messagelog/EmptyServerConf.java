@@ -22,13 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.Set;
-
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
@@ -36,6 +29,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Implementation of ServerConfProvider that does nothing but return nulls. You
@@ -85,6 +85,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<X509Certificate> getIsCerts(ClientId client) throws Exception {
+        return emptyList();
+    }
+
+    @Override
+    public List<X509Certificate> getAllIsCerts() {
         return emptyList();
     }
 
