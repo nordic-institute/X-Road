@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.List;
-
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import lombok.extern.slf4j.Slf4j;
+
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Configuration of the current proxy server.
@@ -206,6 +206,16 @@ public class ServerConf {
         log.trace("getIsCerts({})", client);
 
         return getInstance().getIsCerts(client);
+    }
+
+    /**
+     * @return the list of certificates that are allowed to be used to
+     * authenticate all client information systems.
+     * @throws Exception if an error occurs
+     */
+    public static List<X509Certificate> getAllIsCerts() {
+        log.trace("getAllIsCerts()");
+        return getInstance().getAllIsCerts();
     }
 
     /**

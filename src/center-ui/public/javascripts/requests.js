@@ -136,8 +136,7 @@ var XROAD_REQUESTS = function() {
         var request = oManagementRequests.getFocusData();
         var updateTablesCallback = function() {
             updateTable();
-        }
-
+        };
         XROAD_REQUEST_EDIT.open(request, updateTablesCallback);
     }
 
@@ -152,19 +151,20 @@ var XROAD_REQUESTS = function() {
         focusInput();
         createTranslationAndValueMappings();
 
-        $("#management_requests_all tbody td[class!=dataTables_empty]")
-                .live("click",function(ev) {
+        var requestsTable = $("#management_requests_all");
+        var requestDetailsButton = $("#request_details");
+
+        requestsTable
+        .on("click", "tbody tr", function(ev) {
             if (oManagementRequests.setFocus(0, ev.target.parentNode)) {
                 $(".request-action").enable();
             }
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            requestDetailsButton.click();
         });
 
-        $("#management_requests_all tbody tr[class!=dataTables_empty]")
-                .live("dblclick", function() {
-            openRequestDetails();
-        });
-
-        $("#request_details").click(function() {
+        requestDetailsButton.click(function() {
             openRequestDetails();
         });
     });

@@ -61,8 +61,30 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    <xs:complexType name="getSecurityServerMetricsType">
-        <xs:sequence/>
+
+
+    <xs:complexType name="OutputSpecType">
+        <xs:sequence>
+            <xs:element name="outputField" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                <xs:annotation>
+                    <xs:documentation>Name of the operational data field</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
     </xs:complexType>
+
+    <xs:complexType name="getSecurityServerMetricsType">
+        <xs:sequence>
+            <xs:element name="outputSpec" type="tns:OutputSpecType" minOccurs="0" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>The set of the requested environmental data fields</xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
     <xs:element name="getSecurityServerMetrics" type="tns:getSecurityServerMetricsType"/>
+
+
+
 </schema>

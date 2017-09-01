@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.21  
+Version: 2.23  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -32,7 +32,8 @@ Doc. ID: UG-SYSPAR
 | 06.06.2017 | 2.20        | Removed parameter *default-signature-algorithm*, replaced parameters *csr-signature-algorithm* with *csr-signature-digest-algorithm*, *signature-algorithm-id* with *signature-digest-algorithm-id*, and *confSignAlgoId* with *confSignDigestAlgoId*. Added new proxy-ui parameter *auth-cert-reg-signature-digest-algorithm-id*. | Kristo Heero |
 | 14.06.2017 | 2.21        | Added new parameter *allowed-federations* for enabling federation in a security server. | Olli Lindgren |
 | 11.07.2017 | 2.22        | Changed connector SO-linger values to -1 as per code changes | Tatu Repo |
-| 31.08.2017 | 2.23        | Moved ocsp-cache-path and enforce-token-pin-policy from under proxy to under signer and added them to central server and configuration proxy lists | Tatu Repo |
+| 18.08.2017 | 2.23        | Update wsdl-validator-command description | Jarkko Hyöty |
+| 31.08.2017 | 2.24        | Moved ocsp-cache-path and enforce-token-pin-policy from under proxy to under signer and added them to central server and configuration proxy lists | Tatu Repo |
 
 ## Table of Contents
 
@@ -190,7 +191,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | proxy                | health-check-port                                | 0 (disabled)                               | The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.|
 | proxy                | health-check-interface                           | 0.0.0.0                                    | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | proxy                | actorsystem-port                                 | 5567                                       | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
-| proxy-ui             | wsdl-validator-command                           |                                            | The command to validate the given X-Road service WSDL. The command script must:<br/>a) read the WSDL from the standard input (*stdin*),<br/>b) return exit code 0 on success,<br/>c) return exit code 0 and write warnings to the standard error (*stderr*), if warnings occurs,<br/>d) return exit code other then 0 and write error messages to the standard error (*stderr*), if errors occurs.<br/>Defaults to no operation. |
+| proxy-ui             | wsdl-validator-command                           |                                            | The command to validate the given X-Road service WSDL. The command script must:<br/>a) read the WSDL from the URI given as an argument or from standard input (*stdin*) if no arguments are given,<br/>b) return exit code 0 on success,<br/>c) return exit code 0 and write warnings to the standard error (*stderr*), if warnings occurs,<br/>d) return exit code other then 0 and write error messages to the standard error (*stderr*), if errors occurs.<br/>Defaults to no operation. |
 | proxy-ui             | auth-cert-reg-signature-digest-algorithm-id      | SHA-512                                    | Signature digest algorithm used for generating authentication certificate registration request.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 | signer               | ocsp-cache-path                                  | /var/cache/xroad                           | Absolute path to the directory where the cached OCSP responses are stored. |
 | signer               | enforce-token-pin-policy                         | false                                      | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |

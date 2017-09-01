@@ -39,20 +39,24 @@ var XROAD_CAS = function() {
 
         enableActions();
 
-        $("#cas").on("click", "tbody tr", function() {
+        var casTable = $("#cas");
+
+        var caDetailsButton = $("#ca_details");
+
+        casTable
+        .on("click", "tbody tr", function() {
             cas.setFocus(0, this);
             enableActions();
-        });
-
-        $("#cas").on("dblclick", "tbody tr", function() {
-            XROAD_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            caDetailsButton.click();
         });
 
         $("#ca_add").click(function() {
             XROAD_APPROVED_CA_DIALOG.openAddDialog();
         });
 
-        $("#ca_details").click(function() {
+        caDetailsButton.click(function() {
             XROAD_APPROVED_CA_DIALOG.openEditDialog(cas.getFocusData());
         });
 

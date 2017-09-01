@@ -17,22 +17,26 @@ var XROAD_TSPS = function() {
         opts.fnDrawCallback = function() {
             XROAD_CENTERUI_COMMON.updateRecordsCount("tsps");
             enableActions();
-        }
+        };
 
         opts.bScrollInfinite = true;
         opts.sAjaxSource = action("tsps_refresh");
 
         opts.aaSorting = [ [2,'desc'] ];
 
-        oTsps = $('#tsps').dataTable(opts);
+        var tspsTable = $("#tsps");
+
+        oTsps = tspsTable.dataTable(opts);
         oTsps.fnSetFilteringDelay(600);
 
-        $("#tsps tbody tr").live("click", function(ev) {
+
+
+        tspsTable
+        .on("click", "tbody tr", function(ev) {
             oTsps.setFocus(0, this);
             enableActions();
-        });
-
-        $("#tsps tbody tr").live("dblclick", function(ev) {
+        })
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function(ev) {
             $("#tsp_details").click();
         });
     }
@@ -57,7 +61,6 @@ var XROAD_TSPS = function() {
             if (!can("view_approved_tsa_details")) {
                 return;
             }
-
             var selected = oTsps.getFocusData();
             var params = {
                 tsp_id: selected.id

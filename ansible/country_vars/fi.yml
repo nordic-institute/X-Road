@@ -1,0 +1,2 @@
+ubuntu_apt_key: "https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
+ubuntu_apt_repo: "deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"

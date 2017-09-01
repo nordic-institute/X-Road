@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import java.util.List;
-
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
+
+import java.util.List;
 
 class AbstractDAOImpl<T> {
 
@@ -52,7 +52,7 @@ class AbstractDAOImpl<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<T> findAll(Session session, Class<T> clazz) throws Exception {
+    public List<T> findAll(Session session, Class<T> clazz) {
         Query query = session.createQuery("from " + clazz.getName());
         return query.list();
     }

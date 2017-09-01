@@ -1,0 +1,49 @@
+# Configure servers that use X-Road repository
+[xroad-servers]
+xroad-lxd-cs ansible_connection=lxd
+xroad-lxd-ss0 ansible_connection=lxd
+xroad-lxd-ss1 ansible_connection=lxd
+xroad-lxd-ss2 ansible_connection=lxd
+
+# Configure X-Road repository
+[xroad-servers:vars]
+# You may define variables for all X-Road servers (central and security) here
+
+# Configure central servers
+[cs-servers]
+xroad-lxd-cs ansible_connection=lxd
+
+[cs-servers:vars]
+# You may define variables for Central Servers here
+
+[ca-servers]
+xroad-lxd-ca ansible_connection=lxd
+
+[ca-servers:vars]
+# You may define variables for Certificate Authority here
+
+[ss-servers]
+xroad-lxd-ss0 ansible_connection=lxd
+xroad-lxd-ss1 ansible_connection=lxd
+xroad-lxd-ss2 ansible_connection=lxd
+
+[ss-servers:vars]
+# You may define variables for Security Servers here
+
+[web-servers]
+xroad-lxd-web ansible_connection=lxd
+
+[lxd-servers]
+localhost ansible_connection=local
+
+[compile-servers]
+localhost ansible_connection=local
+
+[global]
+xroad-lxd-cs ansible_connection=lxd
+xroad-lxd-ca ansible_connection=lxd
+xroad-lxd-ss0 ansible_connection=lxd
+xroad-lxd-ss1 ansible_connection=lxd
+xroad-lxd-ss2 ansible_connection=lxd
+xroad-lxd-web ansible_connection=lxd
+localhost ansible_connection=local

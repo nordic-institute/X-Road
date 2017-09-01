@@ -28,19 +28,28 @@ import akka.testkit.TestActorRef;
 import com.codahale.metrics.MetricRegistry;
 import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
+import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
+import ee.ria.xroad.monitor.CertificateInfoSensor.TokenInfoLister;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.protocol.dto.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
+import static ee.ria.xroad.monitor.CertificateInfoSensor.CERT_HEX_DELIMITER;
+import static ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType.AUTH_OR_SIGN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * CertificateInfoSensorTest
@@ -52,16 +61,12 @@ public class CertificateInfoSensorTest {
     private TokenInfo caTokenInfo;
     private TokenInfo tspTokenInfo;
 
-    private static final String CA_CERT_ID = "CA_CERT_ID";
-    private static final String TSP_CERT_ID = "TSP_CERT_ID";
+    private static String caCertId;
+    private static String tspCertId;
     private static final String CA_NOT_BEFORE = "2014-09-29T09:41:37Z";
     private static final String CA_NOT_AFTER = "2024-09-26T09:41:37Z";
-    private static final String CA_ISSUER = "EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE";
-    private static final String CA_SUBJECT = "EMAILADDRESS=aaa@bbb.ccc, CN=Cyber, OU=ITO, O=Cybernetica, C=EE";
     private static final String TSP_NOT_BEFORE = "2012-11-29T11:53:06Z";
     private static final String TSP_NOT_AFTER = "2014-11-29T11:53:06Z";
-    private static final String TSP_ISSUER = "C=SE, O=EJBCA Sample, CN=AdminCA1";
-    private static final String TSP_SUBJECT = "CN=timestamp1";
 
     /**
      * Before test handler
@@ -76,14 +81,18 @@ public class CertificateInfoSensorTest {
         X509Certificate caCert = TestCertUtil.getCaCert();
         X509Certificate tspCert = TestCertUtil.getTspCert();
 
-        CertificateInfo caInfo = createTestCertificateInfo(caCert, CA_CERT_ID);
-        CertificateInfo tspInfo = createTestCertificateInfo(tspCert, TSP_CERT_ID);
+        CertificateInfo caInfo = createTestCertificateInfo(caCert);
+        caCertId = caInfo.getId();
+        CertificateInfo tspInfo = createTestCertificateInfo(tspCert);
+        tspCertId = tspInfo.getId();
 
         KeyInfo caKeyInfo = createTestKeyInfo(caInfo);
         KeyInfo tspKeyInfo = createTestKeyInfo(tspInfo);
 
         caTokenInfo = createTestTokenInfo(caKeyInfo);
         tspTokenInfo = createTestTokenInfo(tspKeyInfo);
+
+        ServerConf.reload(new EmptyServerConf());
 
     }
 
@@ -124,14 +133,14 @@ public class CertificateInfoSensorTest {
         return keyInfo;
     }
 
-    private CertificateInfo createTestCertificateInfo(X509Certificate cert, String id)
-            throws CertificateEncodingException {
+    private CertificateInfo createTestCertificateInfo(X509Certificate cert)
+            throws Exception {
         CertificateInfo cInfo = new CertificateInfo(
                 null,
                 false,
                 false,
                 "status",
-                id,
+                CryptoUtils.calculateDelimitedCertHexHash(cert, CERT_HEX_DELIMITER),
                 cert.getEncoded(),
                 null);
         return cInfo;
@@ -146,12 +155,16 @@ public class CertificateInfoSensorTest {
                 "testActorRef");
 
         CertificateInfoSensor sensor = ref.underlyingActor();
-        sensor.setTokenInfoLister(new CertificateInfoSensor.TokenInfoLister() {
-            @Override
-            List<TokenInfo> listTokens() throws Exception {
-                return Arrays.asList(caTokenInfo, tspTokenInfo);
-            };
-        });
+
+        CertificateInfoCollector collector = new CertificateInfoCollector()
+                .addExtractor(AUTH_OR_SIGN, new TokenExtractor(new TokenInfoLister() {
+                    @Override
+                    List<TokenInfo> listTokens() throws Exception {
+                        return Arrays.asList(caTokenInfo, tspTokenInfo);
+                    }
+                }));
+
+        sensor.setCertificateInfoCollector(collector);
 
         sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
         Map result = metrics.getMetrics();
@@ -165,23 +178,51 @@ public class CertificateInfoSensorTest {
         assertNotNull(certificatesAsText);
         assertEquals(2, certificates.getValue().getDtoData().size());
         assertEquals(3, certificatesAsText.getValue().size()); // header line + 2 certs
-        CertificateMonitoringInfo caInfo = getCertificateInfo(certificates.getValue().getDtoData(), CA_CERT_ID);
+        CertificateMonitoringInfo caInfo = getCertificateInfo(certificates.getValue().getDtoData(), caCertId);
         assertEquals(CA_NOT_AFTER, caInfo.getNotAfter());
         assertEquals(CA_NOT_BEFORE, caInfo.getNotBefore());
-        assertEquals(CA_ISSUER, caInfo.getIssuer());
-        assertEquals(CA_SUBJECT, caInfo.getSubject());
-        CertificateMonitoringInfo tspInfo = getCertificateInfo(certificates.getValue().getDtoData(), TSP_CERT_ID);
+        CertificateMonitoringInfo tspInfo = getCertificateInfo(certificates.getValue().getDtoData(), tspCertId);
         assertEquals(TSP_NOT_AFTER, tspInfo.getNotAfter());
         assertEquals(TSP_NOT_BEFORE, tspInfo.getNotBefore());
-        assertEquals(TSP_ISSUER, tspInfo.getIssuer());
-        assertEquals(TSP_SUBJECT, tspInfo.getSubject());
         log.info("testing done");
     }
 
+    @Test
+    public void testFailingCertExtractionSystemMetricsRequest() throws Exception {
+
+        final Props props = Props.create(CertificateInfoSensor.class);
+        final TestActorRef<CertificateInfoSensor> ref = TestActorRef.create(actorSystem, props,
+                "testActorRef");
+
+        X509Certificate mockCert = mock(X509Certificate.class, Mockito.RETURNS_DEEP_STUBS);
+        when(mockCert.getEncoded()).thenThrow(new IllegalStateException("some random exception"));
+        when(mockCert.getIssuerDN().getName()).thenReturn("DN");
+
+        CertificateInfoSensor sensor = ref.underlyingActor();
+
+        CertificateInfoCollector collector = new CertificateInfoCollector()
+                .addExtractor(AUTH_OR_SIGN, () -> Collections.singletonList(mockCert));
+
+        sensor.setCertificateInfoCollector(collector);
+
+        sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
+        Map result = metrics.getMetrics();
+        assertEquals(2, result.entrySet().size()); // certs & jmx certs
+        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
+                (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
+                        result.get(SystemMetricNames.CERTIFICATES);
+        SimpleSensor<ArrayList<String>> certificatesAsText = (SimpleSensor<ArrayList<String>>)
+                result.get(SystemMetricNames.CERTIFICATES_STRINGS);
+        assertNotNull(certificates);
+        assertNotNull(certificatesAsText);
+        assertEquals(0, certificates.getValue().getDtoData().size());
+        assertEquals(1, certificatesAsText.getValue().size()); // header line + 0 certs
+    }
+
     private CertificateMonitoringInfo getCertificateInfo(ArrayList<CertificateMonitoringInfo> dtoData,
-                                                         String caCertId) {
+                                                         String certId) {
         return dtoData.stream()
-                .filter(c -> caCertId.equals(c.getId()))
+                .filter(c -> certId.equals(c.getSha1hash()))
                 .findAny()
                 .get();
     }

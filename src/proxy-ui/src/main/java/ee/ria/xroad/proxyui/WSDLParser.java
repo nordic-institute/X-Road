@@ -339,7 +339,7 @@ public final class WSDLParser {
             };
 
             SSLContext ctx = SSLContext.getInstance("SSL");
-            ctx.init(null, trustAllCerts, new SecureRandom());
+            ctx.init(new KeyManager[]{new ClientSslKeyManager()}, trustAllCerts, new SecureRandom());
 
             conn.setSSLSocketFactory(ctx.getSocketFactory());
             conn.setHostnameVerifier(new HostnameVerifier() {
