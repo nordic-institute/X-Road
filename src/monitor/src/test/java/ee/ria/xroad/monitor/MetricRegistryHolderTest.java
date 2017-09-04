@@ -9,7 +9,7 @@ import static junit.framework.TestCase.fail;
  * MetricsRegistryHolderTest
  */
 @Slf4j
-public class MetricRegistryHolderTest{
+public class MetricRegistryHolderTest {
 
     @Test
     public void testGetOrCreateSimpleSensor() {
