@@ -64,8 +64,8 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
 The purpose of this document is to describe the processes concerning the
 management of approved trust services in the X-Road central server.
@@ -83,8 +83,8 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-Terms and Abbreviations
------------------------
+1.1 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -106,8 +106,8 @@ document in addition to the general definition.
     data before a certain point of time without the possibility that the
     owner can backdate the timestamps.
 
-References
-----------
+1.2 References
+--------------
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
@@ -121,8 +121,8 @@ References
     Revocation List (CRL) Profile, Internet Engineering Task
     Force, 2008.
 
-Overview
-========
+2 Overview
+==========
 
 The certification services and timestamping services approved by the
 X-Road governing agency provide trust services for the members of an
@@ -136,11 +136,11 @@ The security servers verify that the certificates, OCSP responses and timestamps
 used in the communication process between the X-Road members are provided 
 by approved trust services.
 
-Use Case Model
-==============
+3 Use Case Model
+================
 
-Actors
-------
+3.1 Actors
+----------
 
 The use case model for trust service management in the central server
 includes the following actor.
@@ -155,8 +155,8 @@ Figure 1.
 
 Figure 1. Use case diagram for trust service management
 
-UC TRUST\_01: View Approved Certification Services
---------------------------------------------------
+3.2 UC TRUST\_01: View Approved Certification Services
+------------------------------------------------------
 
 **System**: Central server
 
@@ -190,20 +190,20 @@ displayed to CS administrator.
 
     -   The validity period of the service CA certificate.
 
-> The following user action options are displayed:
-
--   add an approved certification service: 3.9;
-
--   view the details of an approved certification service: 3.3;
-
--   delete an approved certification service: 3.15.
+    The following user action options are displayed:
+    
+    -   add an approved certification service: 3.9;
+    
+    -   view the details of an approved certification service: 3.3;
+    
+    -   delete an approved certification service: 3.15.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_02: View the Details of a Certification Service CA
-------------------------------------------------------------
+3.3 UC TRUST\_02: View the Details of a Certification Service CA
+----------------------------------------------------------------
 
 **System**: Central server
 
@@ -238,24 +238,24 @@ displayed to CS administrator.
 
     -   the validity period of the certification service CA certificate.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   view the details of the certification service CA certificate: 3.4;
-
--   view the settings of the certification service CA: 3.5;
-
--   view the OCSP responders configured for the certification service
-    CA: 3.6;
-
--   view the intermediate CAs configured for the certification service:
-    3.7.
+    -   view the details of the certification service CA certificate: 3.4;
+    
+    -   view the settings of the certification service CA: 3.5;
+    
+    -   view the OCSP responders configured for the certification service
+        CA: 3.6;
+    
+    -   view the intermediate CAs configured for the certification service:
+        3.7.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_03: View Certificate Details
---------------------------------------
+3.3 UC TRUST\_03: View Certificate Details
+------------------------------------------
 
 **System**: Central server
 
@@ -292,8 +292,8 @@ to CS administrator.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of the
     certificate.
 
-UC TRUST\_04: View the Settings of a Certification Service
-----------------------------------------------------------
+3.4 UC TRUST\_04: View the Settings of a Certification Service
+--------------------------------------------------------------
 
 **System**: Central server
 
@@ -329,16 +329,16 @@ displayed to CS administrator.
         certificate profile for certificates issued by the certification
         service.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   edit the settings of the certification service: 3.10.
+    -   edit the settings of the certification service: 3.10.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_05: View the OCSP Responders of a CA
-----------------------------------------------
+3.5 UC TRUST\_05: View the OCSP Responders of a CA
+--------------------------------------------------
 
 **System**: Central server
 
@@ -367,23 +367,23 @@ displayed to CS administrator.
 
     -   the URL of the OCSP server.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   add an OCSP responder for the CA: 3.11;
-
--   view the details of the OCSP responder certificate (if a certificate
-    has been uploaded for this OCSP responder): 3.4;
-
--   edit the information of an OCSP responder: 3.11;
-
--   delete an OCSP responder from the CA: 3.12.
+    -   add an OCSP responder for the CA: 3.11;
+    
+    -   view the details of the OCSP responder certificate (if a certificate
+        has been uploaded for this OCSP responder): 3.4;
+    
+    -   edit the information of an OCSP responder: 3.11;
+    
+    -   delete an OCSP responder from the CA: 3.12.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_06: View the Intermediate CAs of a Certification Service
-------------------------------------------------------------------
+3.6 UC TRUST\_06: View the Intermediate CAs of a Certification Service
+----------------------------------------------------------------------
 
 **System**: Central server
 
@@ -417,20 +417,20 @@ CS administrator.
 
     -   The validity period of the intermediate CA certificate.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   add an intermediate CA: 3.13;
-
--   view the details of an intermediate CA: 3.8;
-
--   delete an intermediate CA: 3.14.
+    -   add an intermediate CA: 3.13;
+    
+    -   view the details of an intermediate CA: 3.8;
+    
+    -   delete an intermediate CA: 3.14.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_07: View the Details of an Intermediate CA
-----------------------------------------------------
+3.7 UC TRUST\_07: View the Details of an Intermediate CA
+--------------------------------------------------------
 
 **System**: Central server
 
@@ -464,18 +464,18 @@ displayed to CS administrator.
 
     -   the validity period of the intermediate CA certificate.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   view the details of the intermediate CA certificate: 3.4;
-
--   view the OCSP responders configured for the intermediate CA: 3.6.
+    -   view the details of the intermediate CA certificate: 3.4;
+    
+    -   view the OCSP responders configured for the intermediate CA: 3.6.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_08: Add an Approved Certification Service
----------------------------------------------------
+3.8 UC TRUST\_08: Add an Approved Certification Service
+-------------------------------------------------------
 
 **System**: Central server
 
@@ -545,56 +545,30 @@ agency for providing certification services to X-Road members.
 
 **Extensions**:
 
-3a. The uploaded file is not in DER or PEM format.
+- 3a. The uploaded file is not in DER or PEM format.
+    - 3a.1. System displays the error message: “Failed to upload service CA certificate: Incorrect file format. Only PEM and DER files allowed.”
+    - 3a.2. CS administrator selects to reselect and upload the certification service CA certificate. Use case continues from step 3.
+        - 3a.2a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message: “Failed to upload service CA
-> certificate: Incorrect file format. Only PEM and DER files allowed.”
->
-> 3a.2. CS administrator selects to reselect and upload the
-> certification service CA certificate. Use case continues from step 3.
->
-> 3a.2a. CS administrator selects to terminate the use case.
+- 5a. CS administrator selects not to edit the certification service settings and terminates the use case.
 
-5a. CS administrator selects not to edit the certification service
-settings and terminates the use case.
+- 6a. The parsing of the user input terminated with an error message.
+    - 6a.1. System displays the termination message of the parsing process.
+    - 6a.2. System logs the event “Add certification service failed” to the audit log.
+    - 6a.3. CS administrator selects to reinsert the certificate profile class name. Use case continues from step 6.
+        - 6a.3a. CS administrator selects to terminate the use case.
 
-6a. The parsing of the user input terminated with an error message.
+- 7a. System did not find the inserted certificate profile class on the classpath.
+    - 7a.1. System displays the error message “Certificate profile with name 'X' does not exist.”, where “X” is the inserted class name.
+    - 7a.2. System logs the event “Add certification service failed” to the audit log.
+    - 7a.3. CS administrator selects to reinsert the certificate profile class name. Use case continues from step 6.
+        - 7a.3a. CS administrator selects to terminate the use case.
 
-> 6a.1. System displays the termination message of the parsing process.
->
-> 6a.2. System logs the event “Add certification service failed” to the
-> audit log.
->
-> 6a.3. CS administrator selects to reinsert the certificate profile
-> class name. Use case continues from step 6.
->
-> 3a.3a. CS administrator selects to terminate the use case.
+- 10a. CS administrator selects not to add OCSP responders to the certification service CA (the OCSP responder information is included in the certification service CA certificate).
+    - 10a.1. CS administrator terminates the use case.
+        - 10a.1a. CS administrator selects to add intermediate CAs for the certification service. Use case continues from step 11.
 
-7a. System did not find the inserted certificate profile class on the
-classpath.
-
-> 7a.1. System displays the error message “Certificate profile with name
-> 'X' does not exist.”, where “X” is the inserted class name.
->
-> 7a.2. System logs the event “Add certification service failed” to the
-> audit log.
->
-> 7a.3. CS administrator selects to reinsert the certificate profile
-> class name. Use case continues from step 6.
->
-> 7a.3a. CS administrator selects to terminate the use case.
-
-10a. CS administrator selects not to add OCSP responders to the
-certification service CA (the OCSP responder information is included in
-the certification service CA certificate).
-
-> 10a.1. CS administrator terminates the use case.
->
-> 10a.1a. CS administrator selects to add intermediate CAs for the
-> certification service. Use case continues from step 11.
-
-11a. CS administrator selects not to add intermediate CAs for the
-certification service and terminates the use case.
+- 11a. CS administrator selects not to add intermediate CAs for the certification service and terminates the use case.
 
 **Related information**:
 
@@ -602,8 +576,8 @@ certification service and terminates the use case.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_09: Edit the Settings of a Certification Service
-----------------------------------------------------------
+3.10 3.9 UC TRUST\_09: Edit the Settings of a Certification Service
+-------------------------------------------------------------------
 
 **System**: Central server
 
@@ -647,31 +621,17 @@ profile for the certification service, need to be set or changed.
 
 **Extensions**:
 
-3a. The parsing of the user input terminated with an error message.
+- 3a. The parsing of the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Edit certification service settings failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the certificate profile class name. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Edit certification service settings
-> failed” to the audit log.
->
-> 3a.3. CS administrator selects to reinsert the certificate profile
-> class name. Use case continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. System did not find the inserted certificate profile class on the
-classpath.
-
-> 4a.1. System displays the error message “Certificate profile with name
-> 'X' does not exist.”, where “X” is the inserted class name.
->
-> 4a.2. System logs the event “Edit certification service settings
-> failed” to the audit log.
->
-> 4a.3. CS administrator selects to reinsert the certificate profile
-> class name. Use case continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. System did not find the inserted certificate profile class on the classpath.
+    - 4a.1. System displays the error message “Certificate profile with name 'X' does not exist.”, where “X” is the inserted class name.
+    - 4a.2. System logs the event “Edit certification service settings failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the certificate profile class name. Use case continues from step 3.
+        - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -679,8 +639,8 @@ classpath.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_10: Add or Edit an OCSP Responder of a CA
----------------------------------------------------
+3.11 UC TRUST\_10: Add or Edit an OCSP Responder of a CA
+--------------------------------------------------------
 
 **System**: Central server
 
@@ -730,47 +690,24 @@ provider.
 
 **Extensions**:
 
-3a. CS administrator selects not to upload a certificate for the OCSP
-responder. Use case continues from step 5.
+- 3a. CS administrator selects not to upload a certificate for the OCSP responder. Use case continues from step 5.
 
-4a. The uploaded file is not in DER or PEM format.
+- 4a. The uploaded file is not in DER or PEM format.
+    - 4a.1. System displays the error message: “Failed to upload OCSP responder certificate: Incorrect file format. Only PEM and DER files allowed.”.
+    - 4a.2. CS administrator selects to reselect and upload the certificate file. Use case continues from step 4.
+        - 4a.2a. CS administrator selects to terminate the use case.
 
-> 4a.1. System displays the error message: “Failed to upload OCSP
-> responder certificate: Incorrect file format. Only PEM and DER files
-> allowed.”.
->
-> 4a.2. CS administrator selects to reselect and upload the certificate
-> file. Use case continues from step 4.
->
-> 4a.2a. CS administrator selects to terminate the use case.
+- 5a. The parsing of the user input terminated with an error message.
+    - 5a.1. System displays the termination message of the parsing process.
+    - 5a.2. System logs the event “Add OCSP responder of certification service failed” or “Edit OCSP responder failed”, depending on whether the OCSP responder was added or edited, to the audit log.
+    - 5a.3. CS administrator selects to reinsert the URL. Use case continues from step 3.
+        - 5a.3a. CS administrator selects to terminate the use case.
 
-5a. The parsing of the user input terminated with an error message.
-
-> 5a.1. System displays the termination message of the parsing process.
->
-> 5a.2. System logs the event “Add OCSP responder of certification
-> service failed” or “Edit OCSP responder failed”, depending on whether
-> the OCSP responder was added or edited, to the audit log.
->
-> 5a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 5a.3a. CS administrator selects to terminate the use case.
-
-6a. The URL is malformed.
-
-> 6a.1. System displays the error message: “'X' is an invalid URL,
-> examples of valid URL-s: 'http://www.example.com',
-> 'https://www.example.com' ”, where “X” is the inserted URL.
->
-> 6a.2. System logs the event “Add OCSP responder of certification
-> service failed” or “Edit OCSP responder failed”, depending on whether
-> the OCSP responder was added or edited, to the audit log.
->
-> 6a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 6a.3a. CS administrator selects to terminate the use case.
+- 6a. The URL is malformed.
+    - 6a.1. System displays the error message: “'X' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com' ”, where “X” is the inserted URL.
+    - 6a.2. System logs the event “Add OCSP responder of certification service failed” or “Edit OCSP responder failed”, depending on whether the OCSP responder was added or edited, to the audit log.
+    - 6a.3. CS administrator selects to reinsert the URL. Use case continues from step 3.
+        - 6a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -778,8 +715,8 @@ responder. Use case continues from step 5.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_11: Delete an OCSP Responder of a CA
-----------------------------------------------
+3.12 UC TRUST\_11: Delete an OCSP Responder of a CA
+---------------------------------------------------
 
 **System**: Central server
 
@@ -820,8 +757,8 @@ from the configuration of an approved certification service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_12: Add an Intermediate CA to a Certification Service
----------------------------------------------------------------
+3.13 UC TRUST\_12: Add an Intermediate CA to a Certification Service
+--------------------------------------------------------------------
 
 **System**: Central server
 
@@ -867,23 +804,13 @@ for a certification service.
 
 **Extensions**:
 
-3a. The selected file is not in DER or PEM format.
+- 3a. The selected file is not in DER or PEM format.
+    - 3a.1. System displays the error message: “Failed to upload intermediate CA certificate: Incorrect file format. Only PEM and DER files allowed.”
+    - 3a.2. System logs the event “Add intermediate CA failed” to the audit log.
+    - 3a.2. CS administrator selects to reselect and upload the intermediate CA certificate. Use case continues from step 3.
+        - 3a.2a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message: “Failed to upload
-> intermediate CA certificate: Incorrect file format. Only PEM and DER
-> files allowed.”
->
-> 3a.2. System logs the event “Add intermediate CA failed” to the audit
-> log.
->
-> 3a.2. CS administrator selects to reselect and upload the intermediate
-> CA certificate. Use case continues from step 3.
->
-> 3a.2a. CS administrator selects to terminate the use case.
-
-6a. CS administrator selects not to add OCSP responders to the
-intermediate CA (the OCSP responder information is included in the
-intermediate CA certificate) and terminates the use case.
+- 6a. CS administrator selects not to add OCSP responders to the intermediate CA (the OCSP responder information is included in the intermediate CA certificate) and terminates the use case.
 
 **Related information**:
 
@@ -891,8 +818,8 @@ intermediate CA certificate) and terminates the use case.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_13: Delete an Intermediate CA
----------------------------------------
+3.14 UC TRUST\_13: Delete an Intermediate CA
+--------------------------------------------
 
 **System**: Central server
 
@@ -934,8 +861,8 @@ service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_14: Delete an Approved Certification Service
-------------------------------------------------------
+3.15 UC TRUST\_14: Delete an Approved Certification Service
+-----------------------------------------------------------
 
 **System**: Central server
 
@@ -972,8 +899,7 @@ the system configuration.
 
 **Extensions**:
 
-3a. CS administrator selects not to delete the approved certification
-service and terminates the use case.
+- 3a. CS administrator selects not to delete the approved certification service and terminates the use case.
 
 **Related information**:
 
@@ -984,8 +910,8 @@ service and terminates the use case.
 -   The certificates issued by the deleted certification service can no
     longer be used in the X-Road system.
 
-UC TRUST\_15: View Approved Timestamping Services
--------------------------------------------------
+3.16 UC TRUST\_15: View Approved Timestamping Services
+------------------------------------------------------
 
 **System**: Central server
 
@@ -1018,23 +944,23 @@ displayed to CS administrator.
 
     -   The validity period of the certificate of the TSA.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   add an approved timestamping service: 3.17;
-
--   view the details of a TSA certificate: 3.4;
-
--   edit the timestamping server URL of an approved timestamping
-    service: 3.18;
-
--   delete an approved timestamping service: 3.19.
+    -   add an approved timestamping service: 3.17;
+    
+    -   view the details of a TSA certificate: 3.4;
+    
+    -   edit the timestamping server URL of an approved timestamping
+        service: 3.18;
+    
+    -   delete an approved timestamping service: 3.19.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC TRUST\_16: Add an Approved Timestamping Service
---------------------------------------------------
+3.17 UC TRUST\_16: Add an Approved Timestamping Service
+-------------------------------------------------------
 
 **System**: Central server
 
@@ -1087,59 +1013,29 @@ agency for providing timestamping services to X‑Road members.
 
 **Extensions**:
 
-4a. The uploaded file is not in DER or PEM format.
+- 4a. The uploaded file is not in DER or PEM format.
+    - 4a.1. System displays the error message: “Failed to upload approved TSA certificate: Incorrect file format. Only PEM and DER files allowed.”.
+    - 4a.2. CS administrator selects to reselect and upload the certificate file. Use case continues from step 4.
+        - 4a.2a. CS administrator selects to terminate the use case.
 
-> 4a.1. System displays the error message: “Failed to upload approved
-> TSA certificate: Incorrect file format. Only PEM and DER files
-> allowed.”.
->
-> 4a.2. CS administrator selects to reselect and upload the certificate
-> file. Use case continues from step 4.
->
-> 4a.2a. CS administrator selects to terminate the use case.
+- 5a. The parsing of the user input terminated with an error message.
+    - 5a.1. System displays the termination message of the parsing process.
+    - 5a.2. System logs the event “Add timestamping service failed” to the audit log.
+    - 5a.3. CS administrator selects to reinsert the URL. Use case continues  from step 5.
+        - 5a.3a. CS administrator selects to terminate the use case.
 
-5a. The parsing of the user input terminated with an error message.
+- 6a. The URL is malformed.
+    - 6a.1. System displays the error message: “Timestamping server URL 'X' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'”, where “X” is the inserted URL.
+    - 6a.2. System logs the event “Add timestamping service failed” to the audit log.
+    - 6a.3. CS administrator selects to reinsert the URL. Use case continues from step 5.
+        - 6a.3a. CS administrator selects to terminate the use case.
 
-> 5a.1. System displays the termination message of the parsing process.
->
-> 5a.2. System logs the event “Add timestamping service failed” to the
-> audit log.
->
-> 5a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 5.
->
-> 5a.3a. CS administrator selects to terminate the use case.
-
-6a. The URL is malformed.
-
-> 6a.1. System displays the error message: “Timestamping server URL 'X'
-> is an invalid URL, examples of valid URL-s: 'http://www.example.com',
-> 'https://www.example.com'”, where “X” is the inserted URL.
->
-> 6a.2. System logs the event “Add timestamping service failed” to the
-> audit log.
->
-> 6a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 5.
->
-> 6a.3a. CS administrator selects to terminate the use case.
-
-7a. An approved timestamping service with the inserted URL and
-certificate already exists.
-
-> 7a.1. System displays the error message “An approved timestamping
-> service with the inserted URL and certificate already exists”.
->
-> 7a.2. System logs the event “Add timestamping service failed” to the
-> audit log.
->
-> 7a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 5.
->
-> 7a.3a. CS administrator selects to reselect and upload the certificate
-> file. Use case continues from step 4.
->
-> 7a.3b. CS administrator selects to terminate the use case.
+- 7a. An approved timestamping service with the inserted URL and certificate already exists.
+    - 7a.1. System displays the error message “An approved timestamping service with the inserted URL and certificate already exists”.
+    - 7a.2. System logs the event “Add timestamping service failed” to the audit log.
+    - 7a.3. CS administrator selects to reinsert the URL. Use case continues from step 5.
+        - 7a.3a. CS administrator selects to reselect and upload the certificate file. Use case continues from step 4.
+        - 7a.3b. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -1147,8 +1043,8 @@ certificate already exists.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_17: Edit the URL of a Timestamping Server
----------------------------------------------------
+3.18 UC TRUST\_17: Edit the URL of a Timestamping Server
+--------------------------------------------------------
 
 **System**: Central server
 
@@ -1184,31 +1080,17 @@ has changed.
 
 **Extensions**:
 
-3a. The parsing of the user input terminated with an error message.
+- 3a. The parsing of the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Edit timestamping service failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the URL. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Edit timestamping service failed” to the
-> audit log.
->
-> 3a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. The URL is malformed.
-
-> 4a.1. System displays the error message: “Timestamping server URL 'X'
-> is an invalid URL, examples of valid URL-s: 'http://www.example.com',
-> 'https://www.example.com'”, where “X” is the inserted URL.
->
-> 4a.2. System logs the event “Edit timestamping service failed” to the
-> audit log.
->
-> 4a.3. CS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. The URL is malformed.
+    - 4a.1. System displays the error message: “Timestamping server URL 'X' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'”, where “X” is the inserted URL.
+    - 4a.2. System logs the event “Edit timestamping service failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the URL. Use case continues from step 3.
+    - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -1216,8 +1098,8 @@ has changed.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_18: Delete an Approved Timestamping Service
------------------------------------------------------
+3.19 UC TRUST\_18: Delete an Approved Timestamping Service
+----------------------------------------------------------
 
 **System**: Central server
 
@@ -1253,8 +1135,7 @@ the system configuration.
 
 **Extensions**:
 
-3a. CS administrator selects not to delete the approved timestamping
-service and terminates the use case.
+- 3a. CS administrator selects not to delete the approved timestamping service and terminates the use case.
 
 **Related information**:
 
@@ -1262,8 +1143,8 @@ service and terminates the use case.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC TRUST\_19: Parse User Input
-------------------------------
+3.20 UC TRUST\_19: Parse User Input
+-----------------------------------
 
 **System**: Central server
 
@@ -1303,15 +1184,10 @@ are not empty.
 
 **Extensions**:
 
-2a. One or more mandatory fields are not filled.
+- 2a. One or more mandatory fields are not filled.
+    - 2a.1. Use case terminates with the error message “Missing parameter: 'X'”, where “X” is the name of the missing parameter.
 
-> 2a.1. Use case terminates with the error message “Missing parameter:
-> 'X'”, where “X” is the name of the missing parameter.
-
-3a. The user input exceeds 255 symbols.
-
-> 3a.1. Use case terminates with the error message “Parameter X input
-> exceeds 255 characters”, where “X” is the name of the parameter that
-> had more than 255 characters inserted.
+- 3a. The user input exceeds 255 symbols.
+    - 3a.1. Use case terminates with the error message “Parameter X input exceeds 255 characters”, where “X” is the name of the parameter that had more than 255 characters inserted.
 
 **Related information**: -

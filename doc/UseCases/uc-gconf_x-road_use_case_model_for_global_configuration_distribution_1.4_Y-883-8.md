@@ -74,11 +74,11 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
-Purpose
--------
+1.1 Purpose
+-----------
 
 The purpose of this document is to describe:
 
@@ -113,8 +113,8 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume, that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-Terms and Abbreviations
------------------------
+1.2 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -203,8 +203,8 @@ document in addition to the general definition.
     in the various configuration files held in the file system of an
     X-Road component.
 
-References
-----------
+1.3 References
+--------------
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
@@ -234,8 +234,8 @@ References
 9.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
     System Parameters. Document ID: UG-SYSPAR.
 
-Overview
-========
+2 Overview
+==========
 
 The X-Road security servers periodically download global configuration
 distributed by the configuration providers. The global configuration is
@@ -251,8 +251,8 @@ providers to the security server owners via out of band means.
 The configuration providers ensure the integrity of the distributed
 configuration by signing the configuration directory.
 
-Actors
-------
+2.1 Actors
+----------
 
 The use case model for downloading configuration includes the following
 actors.
@@ -277,10 +277,10 @@ Figure 1.
 
 Figure 1. Use case diagram for distributing global configuration
 
-Central Server Use Cases
+2.2 Central Server Use Cases
 ------------------------
 
-### UC GCONF\_01: View a Configuration Source 
+### 2.2.1 UC GCONF\_01: View a Configuration Source 
 
 **System**: Central server
 
@@ -330,48 +330,46 @@ information.
 
         -   the key generation date and time.
 
-> The key currently used to sign configuration is displayed is
-> emphasised.\
-> Only the keys that have a certificate associated with them are
-> displayed.
+    The key currently used to sign configuration is displayed is
+    emphasised.\ Only the keys that have a certificate associated with them are displayed.
 
--   List of configuration part files distributed by the source. For each
-    configuration part, the following information is displayed:
+    -   List of configuration part files distributed by the source. For each
+     configuration part, the following information is displayed:
 
     -   name of the configuration part file,
 
     -   content identifier of the configuration part,
 
     -   date and time when the configuration part file was last updated.
+    
+    The following user action options are displayed:
 
-> The following user action options are displayed:
-
--   download the configuration source anchor file: 2.2.2;
-
--   re-create the configuration source anchor file: 2.2.3;
-
--   add a configuration signing key: 2.2.11;
-
--   delete a configuration signing key: 2.2.13;
-
--   activate a configuration signing key: 2.2.12;
-
--   log in to a security token holding a configuration signing key:
-    2.2.7 or 2.2.8;
-
--   log out of a security token holding a configuration signing key:
-    2.2.9 or 2.2.10;
-
--   download a configuration part file: 2.2.6;
-
--   upload an optional configuration part file: 2.2.5, in case the
-    optional part is described in the system: 2.2.4.
+    -   download the configuration source anchor file: 2.2.2;
+    
+    -   re-create the configuration source anchor file: 2.2.3;
+    
+    -   add a configuration signing key: 2.2.11;
+    
+    -   delete a configuration signing key: 2.2.13;
+    
+    -   activate a configuration signing key: 2.2.12;
+    
+    -   log in to a security token holding a configuration signing key:
+        2.2.7 or 2.2.8;
+    
+    -   log out of a security token holding a configuration signing key:
+        2.2.9 or 2.2.10;
+    
+    -   download a configuration part file: 2.2.6;
+    
+    -   upload an optional configuration part file: 2.2.5, in case the
+        optional part is described in the system: 2.2.4.
 
 **Extensions**: -
 
 **Related information**: -
 
-### UC GCONF\_02: Download a Configuration Source Anchor File
+### 2.2.2 UC GCONF\_02: Download a Configuration Source Anchor File
 
 **System**: Central server
 
@@ -410,7 +408,7 @@ configuration clients.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_03: Re-Create a Configuration Source Anchor
+### 2.2.3 UC GCONF\_03: Re-Create a Configuration Source Anchor
 
 **System**: Central server
 
@@ -451,16 +449,9 @@ anchor for a configuration source.
 
 **Extensions**:
 
-2a. The process of generating the anchor terminated with an error
-message.
-
-> 2a.1. System displays the error message: “X configuration anchor
-> generation failed: Y”, where “X” is the type of the configuration
-> source (internal or external) and “Y” is the reason for the failure.
->
-> 2a.2. System logs the event “Re-create internal configuration anchor
-> failed” or “Re-create external configuration anchor failed”, depending
-> on the configuration source, to the audit log. Use case terminates.
+- 2a. The process of generating the anchor terminated with an error message.
+    - 2a.1. System displays the error message: “X configuration anchor generation failed: Y”, where “X” is the type of the configuration source (internal or external) and “Y” is the reason for the failure.
+    - 2a.2. System logs the event “Re-create internal configuration anchor failed” or “Re-create external configuration anchor failed”, depending on the configuration source, to the audit log. Use case terminates.
 
 **Related information**:
 
@@ -468,7 +459,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_04: Describe Optional Configuration Part Data
+### 2.2.4 UC GCONF\_04: Describe Optional Configuration Part Data
 
 **System**: Central server
 
@@ -531,7 +522,7 @@ parameters parts needs to be added to the global configuration.
     parameters are added, edited and deleted by software installation or
     update packages.
 
-### UC GCONF\_05: Upload an Optional Configuration Part File
+### 2.2.5 UC GCONF\_05: Upload an Optional Configuration Part File
 
 **System**: Central server
 
@@ -581,83 +572,39 @@ the system.
 
 **Extensions**:
 
-3a. A validator is not described for this configuration part.
+- 3a. A validator is not described for this configuration part.
+    - 3a.1. Use case continues from step 5.
 
-3a.1. Use case continues from step 5.
+- 3b. The system is unable to find the described validation program.
+    - 3b.1. System displays the error message: “Failed to upload configuration part: Validation program 'X' does not exist in the file system.”, where “X” is the validation program path described for this configuration part.
+    - 3b.2. System logs the event “Upload configuration part failed” to the audit log.
+    - 3b.3. CS administrator selects to reinsert the path to the configuration part file. Use case continues from step 3.
+        - 3b.3a. CS administrator selects to terminate the use case.
 
-3b. The system is unable to find the described validation program.
+- 3c. The communication with the validation program closed unexpectedly.
+    - 3c.1. System displays the error message: “Validation program 'X' ended prematurely, make sure if it does the right thing.”, where “X” is the validation program path described for this configuration part.
+    - 3c.2. System logs the event “Upload configuration part failed” to the audit log.
+    - 3c.3. CS administrator selects to reinsert the path to the configuration part file. Use case continues from step 3.
+        - 3c.3a. CS administrator selects to terminate the use case.
 
-> 3b.1. System displays the error message: “Failed to upload
-> configuration part: Validation program 'X' does not exist in the file
-> system.”, where “X” is the validation program path described for this
-> configuration part.
->
-> 3b.2. System logs the event “Upload configuration part failed” to the
-> audit log.
->
-> 3b.3. CS administrator selects to reinsert the path to the
-> configuration part file. Use case continues from step 3.
->
-> 3b.3a. CS administrator selects to terminate the use case.
+- 3d. An error occurred while running the validation program.
+    - 3d.1. System displays the error message: “IO error occurred when running validation program 'X', message: 'Y'”, where “X” is the validation program path described for this configuration part and “Y” is the description of the error.
+    - 3d.2. System logs the event “Upload configuration part failed” to the audit log.
+    - 3d.3. CS administrator selects to reinsert the path to the configuration part file. Use case continues from step 3.
+        - 3d.3a. CS administrator selects to terminate the use case.
 
-3c. The communication with the validation program closed unexpectedly.
+- 4a. The validation succeeded with validation errors.
+    - 4a.1. System displays the error message: “Failed to upload configuration part: Validation of configuration file with content identifier 'X' failed.”, where “X” is the content identifier of the optional configuration part CS administrator chose to upload, and the validation errors.
+    - 4a.2. System logs the event “Upload configuration part failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the path to the configuration part file. Use case continues from step 3.
+        - 4a.3a. CS administrator selects to terminate the use case.
 
-> 3c.1. System displays the error message: “Validation program 'X' ended
-> prematurely, make sure if it does the right thing.”, where “X” is the
-> validation program path described for this configuration part.
->
-> 3c.2. System logs the event “Upload configuration part failed” to the
-> audit log.
->
-> 3c.3. CS administrator selects to reinsert the path to the
-> configuration part file. Use case continues from step 3.
->
-> 3c.3a. CS administrator selects to terminate the use case.
+- 4b. The validation succeeded with validation warnings.
+    - 4b.1. System displays the message: “Configuration file for content identifier 'X' uploaded with some warnings.”, where “X” is the content identifier of the optional configuration part CS administrator chose to upload, and the validation warnings.
+    - 4b.2. Use case continues from step 6.
 
-3d. An error occurred while running the validation program.
-
-> 3d.1. System displays the error message: “IO error occurred when
-> running validation program 'X', message: 'Y'”, where “X” is the
-> validation program path described for this configuration part and “Y”
-> is the description of the error.
->
-> 3d.2. System logs the event “Upload configuration part failed” to the
-> audit log.
->
-> 3d.3. CS administrator selects to reinsert the path to the
-> configuration part file. Use case continues from step 3.
->
-> 3d.3a. CS administrator selects to terminate the use case.
-
-4a. The validation succeeded with validation errors.
-
-> 4a.1. System displays the error message: “Failed to upload
-> configuration part: Validation of configuration file with content
-> identifier 'X' failed.”, where “X” is the content identifier of the
-> optional configuration part CS administrator chose to upload, and the
-> validation errors.
->
-> 4a.2. System logs the event “Upload configuration part failed” to the
-> audit log.
->
-> 4a.3. CS administrator selects to reinsert the path to the
-> configuration part file. Use case continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
-
-4b. The validation succeeded with validation warnings.
-
-> 4b.1. System displays the message: “Configuration file for content
-> identifier 'X' uploaded with some warnings.”, where “X” is the content
-> identifier of the optional configuration part CS administrator chose
-> to upload, and the validation warnings.
->
-> 4b.2. Use case continues from step 6.
-
-6a. No previous file for this optional part exists in the system's
-database.
-
-> 6a.1. System saves the uploaded file.
+- 6a. No previous file for this optional part exists in the system's database.
+    - 6a.1. System saves the uploaded file.
 
 **Related information**:
 
@@ -668,7 +615,7 @@ database.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_06: Download a Configuration Part File
+### 2.2.6 UC GCONF\_06: Download a Configuration Part File
 
 **System**: Central server
 
@@ -707,7 +654,7 @@ file, e.g., to view the contents of the file.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_07: Log In to a Software Security Token
+### 2.2.7 UC GCONF\_07: Log In to a Software Security Token
 
 **System**: Central server
 
@@ -745,27 +692,17 @@ entering the token PIN code.
 
 **Extensions**:
 
-3a. The parsing of the user input terminated with an error message.
+- 3a. The parsing of the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Log in to token failed” to the audit log.
+    - 3a.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Log in to token failed” to the audit log.
->
-> 3a.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. The entered PIN code is incorrect:
-
-> 4a.1. System displays the error message: “PIN incorrect”.
->
-> 4a.2. System logs the event “Log in to token failed” to the audit log.
->
-> 4a.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. The entered PIN code is incorrect:
+    - 4a.1. System displays the error message: “PIN incorrect”.
+    - 4a.2. System logs the event “Log in to token failed” to the audit log.
+    - 4a.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -773,7 +710,7 @@ entering the token PIN code.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_PR-GCONF)\].
 
-### UC GCONF\_08: Log In to a Hardware Security Token
+### 2.2.8 UC GCONF\_08: Log In to a Hardware Security Token
 
 **System**: Central server
 
@@ -823,89 +760,47 @@ entering the token PIN code.
 
 **Extensions**:
 
-3a. The parsing of the user input terminated with an error message.
+- 3a. The parsing of the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Log in to token failed” to the audit log.
+    - 3a.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Log in to token failed” to the audit log.
->
-> 3a.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
+- 4-6a. The login attempt failed (e.g., incorrect PIN was entered).
+    - 4-6a.1. System displays the error message: “Login failed: X”, where “X” is the error code from the PKCS \#11 cryptographic token interface (see \[PKCS11\]).
+    - 4-6a.2. System logs the event “Log in to token failed” to the audit log.
+    - 4-6a.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 4-6a.3a. CS administrator selects to terminate the use case.
 
-4-6a. The login attempt failed (e.g., incorrect PIN was entered).
+- 4b. The token is inaccessible.
+    - 4b.1. System displays the error message: “Token 'X' not available”, where “X” is the identifier of the security token.
+    - 4b.2. System logs the event “Log in to token failed” to the audit log.
+    - 4-6a.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 4-6a.3a. CS administrator selects to terminate the use case.
 
-> 4-6a.1. System displays the error message: “Login failed: X”, where
-> “X” is the error code from the PKCS \#11 cryptographic token interface
-> (see \[PKCS11\]).
->
-> 4-6a.2. System logs the event “Log in to token failed” to the audit
-> log.
->
-> 4-6a.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 4-6a.3a. CS administrator selects to terminate the use case.
+- 4b. The security token is locked (too many incorrect PIN entries).
+    - 4b.1. System displays the error message: “PIN locked”.
+    - 4b.2. System logs the event “Log in to token failed” to the audit log.
+    - 4b.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 4b.3a. CS administrator selects to terminate the use case.
 
-4b. The token is inaccessible.
+- 5b. The format of the entered PIN code is not acceptable for the token.
+    - 5b.1. System displays the error message: “PIN format incorrect”.
+    - 5b.2. System logs the event “Log in to token failed” to the audit log.
+    - 5b.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 5b.3a. CS administrator selects to terminate the use case.
 
-> 4b.1. System displays the error message: “Token 'X' not available”,
-> where “X” is the identifier of the security token.
->
-> 4b.2. System logs the event “Log in to token failed” to the audit log.
->
-> 4-6a.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 4-6a.3a. CS administrator selects to terminate the use case.
+- 6b. The entered PIN code is incorrect and one login attempt is left.
+    - 6b.1. System displays the error message: “Login failed: CKR\_PIN\_INCORRECT, tries left: 1”.
+    - 6b.2. System logs the event “Log in to token failed” to the audit log.
+    - 6b.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+    - 6b.3a. CS administrator selects to terminate the use case.
 
-4b. The security token is locked (too many incorrect PIN entries).
-
-> 4b.1. System displays the error message: “PIN locked”.
->
-> 4b.2. System logs the event “Log in to token failed” to the audit log.
->
-> 4b.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 4b.3a. CS administrator selects to terminate the use case.
-
-5b. The format of the entered PIN code is not acceptable for the token.
-
-> 5b.1. System displays the error message: “PIN format incorrect”.
->
-> 5b.2. System logs the event “Log in to token failed” to the audit log.
->
-> 5b.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 5b.3a. CS administrator selects to terminate the use case.
-
-6b. The entered PIN code is incorrect and one login attempt is left.
-
-> 6b.1. System displays the error message: “Login failed:
-> CKR\_PIN\_INCORRECT, tries left: 1”.
->
-> 6b.2. System logs the event “Log in to token failed” to the audit log.
->
-> 6b.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 6b.3a. CS administrator selects to terminate the use case.
-
-6c. The entered PIN code is incorrect and no login attempts are left
-(i.e., the token is locked).
-
-> 6c.1. System displays the error message: “Login failed:
-> CKR\_PIN\_INCORRECT. PIN locked.”.
->
-> 6c.2. System logs the event “Log in to token failed” to the audit log.
->
-> 6c.3. CS administrator selects to re-enter the PIN code. Use case
-> continues from step 3.
->
-> 6b.3a. CS administrator selects to terminate the use case.
+- 6c. The entered PIN code is incorrect and no login attempts are left (i.e., the token is locked).
+    - 6c.1. System displays the error message: “Login failed: CKR\_PIN\_INCORRECT. PIN locked.”.
+    - 6c.2. System logs the event “Log in to token failed” to the audit log.
+    - 6c.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
+        - 6b.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -913,7 +808,7 @@ entering the token PIN code.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_09: Log Out of a Software Security Token
+### 2.2.9 UC GCONF\_09: Log Out of a Software Security Token
 
 **System**: Central server
 
@@ -961,7 +856,7 @@ token.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_10: Log Out of a Hardware Security Token
+### 2.2.10 UC GCONF\_10: Log Out of a Hardware Security Token
 
 **System**: Central server
 
@@ -1001,16 +896,10 @@ token.
 
 **Extensions**:
 
-2a. The logout attempt failed (e.g., token is inaccessible).
-
-> 2a.1. System displays the error message: “Logout failed: X”, where “X”
-> is the error code from the PKCS \#11 cryptographic token interface
-> \[PKCS11\].
->
-> 2a.2. System logs the event “Log out from token failed” to the audit
-> log.
->
-> 2a.3. Use case terminates.
+- 2a. The logout attempt failed (e.g., token is inaccessible).
+    - 2a.1. System displays the error message: “Logout failed: X”, where “X” is the error code from the PKCS \#11 cryptographic token interface \[PKCS11\].
+    - 2a.2. System logs the event “Log out from token failed” to the audit log.
+    - 2a.3. Use case terminates.
 
 **Related information**:
 
@@ -1018,7 +907,7 @@ token.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_11: Add a Configuration Source Signing Key
+### 2.2.11 UC GCONF\_11: Add a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -1077,63 +966,31 @@ change).
 
 > 3a.1. CS administrator terminates the use case.
 
-4a. Key generation fails because the token is not logged in to.
+- 4a. Key generation fails because the token is not logged in to.
+    - 4a.1. System initiates the use case 2.2.7 or 2.2.8, depending on the type of the selected token.
+    - 4a.2. System verifies that the log in process ended successfully. Use case continues from step 4.
+        - 4a.2a. The log in process terminated with an error condition.
+            - 4a.2a.1. CS administrator selects to reselect a security token. Use case continues from step 4.
+                - 4a.2a.1a. CS administrator selects to terminate the use case.
 
-> 4a.1. System initiates the use case 2.2.7 or 2.2.8, depending on the
-> type of the selected token.
->
-> 4a.2. System verifies that the log in process ended successfully. Use
-> case continues from step 4.
->
-> 4a.2a. The log in process terminated with an error condition.
->
-> 4a.2a.1. CS administrator selects to reselect a security token. Use
-> case continues from step 4.
->
-> 4a.2a.1a. CS administrator selects to terminate the use case.
+- 4b. Key generation fails.
+    - 4b.1. System displays an error message: “Failed to generate signing key: X”, where “X” is the description of the error. If the key generation failed on a hardware security token, then “X” is the error code from the PKCS \#11 cryptographic token interface \[PKCS11\].
+    - 4b.2. System logs the event “Generate internal configuration signing key failed” or “Generate external configuration signing key failed”, depending of the configuration source, to the audit log.
+    - 4b.3. CS administrator selects to reselect a security token. Use case continues from step 4.
+        - 4b.3a. CS administrator selects to terminate the use case.
 
-4b. Key generation fails.
+- 5a. Generation of the self-signed certificate fails:
+    - 5a.1. System deletes the generated key.
+        - 5a.1a. Key deletion fails.
+            - 5a.1a.1. Use case continues from step 5a.2.
+    - 5a.2. System displays the error message: “Failed to generate signing key: X”, where “X” is the description of the error.
+    - 5a.3. System logs the event “Generate internal configuration signing key failed” or “Generate external configuration signing key failed”, depending of the configuration source, to the audit log.
+    - 5a.4. CS administrator selects to reselect a security token. Use case continues from step 4.
+        - 5a.4a. CS administrator selects to terminate the use case.
 
-> 4b.1. System displays an error message: “Failed to generate signing
-> key: X”, where “X” is the description of the error. If the key
-> generation failed on a hardware security token, then “X” is the error
-> code from the PKCS \#11 cryptographic token interface \[PKCS11\].
->
-> 4b.2. System logs the event “Generate internal configuration signing
-> key failed” or “Generate external configuration signing key failed”,
-> depending of the configuration source, to the audit log.
->
-> 4b.3. CS administrator selects to reselect a security token. Use case
-> continues from step 4.
->
-> 4b.3a. CS administrator selects to terminate the use case.
-
-5a. Generation of the self-signed certificate fails:
-
-> 5a.1. System deletes the generated key.
->
-> 5a.1a. Key deletion fails.
->
-> 5a.1a.1. Use case continues from step 5a.2.
->
-> 5a.2. System displays the error message: “Failed to generate signing
-> key: X”, where “X” is the description of the error.
->
-> 5a.3. System logs the event “Generate internal configuration signing
-> key failed” or “Generate external configuration signing key failed”,
-> depending of the configuration source, to the audit log.
->
-> 5a.4. CS administrator selects to reselect a security token. Use case
-> continues from step 4.
->
-> 5a.4a. CS administrator selects to terminate the use case.
-
-7a. The selected source does not have an active key.
-
-> 7a.1. System marks the key as active and starts using the key for
-> signing the configuration provided by the source.
->
-> 7a.2. Use case continues from step 8.
+- 7a. The selected source does not have an active key.
+    - 7a.1. System marks the key as active and starts using the key for signing the configuration provided by the source.
+    - 7a.2. Use case continues from step 8.
 
 **Related information**:
 
@@ -1141,7 +998,7 @@ change).
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_12: Activate a Configuration Source Signing Key
+### 2.2.12 UC GCONF\_12: Activate a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -1182,20 +1039,13 @@ uses for signing configuration provided by the source.
 
 **Extensions**:
 
-3a. CS administrator cancels the key activation.
+- 3a. CS administrator cancels the key activation.
+    - 3a.1. System terminates use case.
 
-> 3a.1. System terminates use case.
-
-4a. The key to be activated is not accessible.
-
-> 4a.1. System displays the error message: “Failed to activate signing
-> key: token or key not available”.
->
-> 4a.2. System logs the event “Activate internal configuration signing
-> key failed” or “Activate external configuration signing key failed”,
-> depending of the configuration source, to the audit log.
->
-> 4a.3. Use case terminates.
+- 4a. The key to be activated is not accessible.
+    - 4a.1. System displays the error message: “Failed to activate signing key: token or key not available”.
+    - 4a.2. System logs the event “Activate internal configuration signing key failed” or “Activate external configuration signing key failed”, depending of the configuration source, to the audit log.
+    - 4a.3. Use case terminates.
 
 **Related information**:
 
@@ -1203,7 +1053,7 @@ uses for signing configuration provided by the source.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_13: Delete a Configuration Source Signing Key
+### 2.2.13 UC GCONF\_13: Delete a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -1252,15 +1102,11 @@ key.
 
 **Extensions**:
 
-3a. CS administrator cancels the key deletion.
+- 3a. CS administrator cancels the key deletion.
+    - 3a1. System terminates use case.
 
-> 3a1. System terminates use case.
-
-7a. System fails to delete the signing key form the security token.
-
-> 7a.1. System displays the error message: “Failed to delete key from
-> token 'X': Y”, where “X” is the identifier of the token and “Y” is the
-> error details.
+- 7a. System fails to delete the signing key form the security token.
+    - 7a.1. System displays the error message: “Failed to delete key from token 'X': Y”, where “X” is the identifier of the token and “Y” is the error details.
 
 **Related information**:
 
@@ -1268,7 +1114,7 @@ key.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_14: View System Parameters
+### 2.2.14 UC GCONF\_14: View System Parameters
 
 **System**: Central server
 
@@ -1298,15 +1144,15 @@ administrator.
 
     -   the address of the central server.
 
-> The following user action options are displayed:
+    The following user action options are displayed:
 
--   edit the address of the central server: 2.2.15.
+    -   edit the address of the central server: 2.2.15.
 
 **Extensions**: -
 
 **Related information**: -
 
-### UC GCONF\_15: Edit the Address of the Central Server
+### 2.2.15 UC GCONF\_15: Edit the Address of the Central Server
 
 **System**: Central server
 
@@ -1349,30 +1195,17 @@ service requests, configuration download requests).
 
 **Extensions**:
 
-3a. The parsing of the user input terminated with an error message.
+- 3a. The parsing of the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Edit central server address failed” to the audit log.
+    - 3a.3. User selects to reinsert the address. Use case continues from step 3.
+        - 3a.3a. User selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Edit central server address failed” to
-> the audit log.
->
-> 3a.3. User selects to reinsert the address. Use case continues from
-> step 3.
->
-> 3a.3a. User selects to terminate the use case.
-
-4a. The inserted address is not valid.
-
-> 4a.1. System displays the error message: “Central server address must
-> be DNS name or IP address”.
->
-> 4a.2. System logs the event “Edit central server address failed” to
-> the audit log.
->
-> 4a.3. User selects to reinsert the address. Use case continues from
-> step 3.
->
-> 4a.3a. User selects to terminate the use case.
+- 4a. The inserted address is not valid.
+    - 4a.1. System displays the error message: “Central server address must be DNS name or IP address”.
+    - 4a.2. System logs the event “Edit central server address failed” to the audit log.
+    - 4a.3. User selects to reinsert the address. Use case continues from step 3.
+        - 4a.3a. User selects to terminate the use case.
 
 **Related information**:
 
@@ -1380,7 +1213,7 @@ service requests, configuration download requests).
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC GCONF\_16: Parse User Input
+### 2.2.16 UC GCONF\_16: Parse User Input
 
 **System**: Central server
 
@@ -1416,20 +1249,15 @@ are not empty.
 
 **Extensions**:
 
-2a. One or more mandatory fields are not filled.
+- 2a. One or more mandatory fields are not filled.
+    - 2a.1. Use case terminates with the error message “Missing parameter: 'X'”, where “X” is the name of the missing parameter.
 
-> 2a.1. Use case terminates with the error message “Missing parameter:
-> 'X'”, where “X” is the name of the missing parameter.
-
-3a. The user input exceeds 255 symbols.
-
-> 3a.1. Use case terminates with the error message “Parameter X input
-> exceeds 255 characters”, where “X” is the name of the parameter that
-> had more than 255 characters inserted.
+- 3a. The user input exceeds 255 symbols.
+    - 3a.1. Use case terminates with the error message “Parameter X input exceeds 255 characters”, where “X” is the name of the parameter that had more than 255 characters inserted.
 
 **Related information: -**
 
-### UC GCONF\_17: Generate a Configuration Anchor
+### 2.2.17 UC GCONF\_17: Generate a Configuration Anchor
 
 **System**: Central server
 
@@ -1476,13 +1304,8 @@ are saved in the system configuration.
 
 **Extensions**:
 
-1a. System did not find any configuration signing keys for the
-configuration source.
-
-> 1a.1. System displays the error message: “X configuration anchor
-> generation failed: No configuration signing keys configured”, where
-> “X” stands for either “Internal” or “External”, depending on the
-> configuration source. Use case terminates.
+- 1a. System did not find any configuration signing keys for the configuration source.
+    - 1a.1. System displays the error message: “X configuration anchor generation failed: No configuration signing keys configured”, where “X” stands for either “Internal” or “External”, depending on the configuration source. Use case terminates.
 
 **Related information**:
 
@@ -1490,7 +1313,7 @@ configuration source.
     document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_18: Generate Configuration
+### 2.2.18 UC GCONF\_18: Generate Configuration
 
 **System**: Central server
 
@@ -1543,66 +1366,29 @@ server configuration file /etc/cron.d/xroad-center*.*
 
 **Extensions**:
 
-1a. The generation of the configuration part files failed because the
-central server address is not configured.
+- 1a. The generation of the configuration part files failed because the central server address is not configured.
+    - 1a.1. System logs the error message “Failed to generate valid global configuration: No authentication service registration URL present. Central server may have not been initialized”.
+    - 1a.2. System displays the error message “Global configuration generation failing since 'X'”, where “X” is the time and date since when the system has not been able to generate distributable global configuration.
+    - 1a.3. Use case terminates.
 
-> 1a.1. System logs the error message “Failed to generate valid global
-> configuration: No authentication service registration URL present.
-> Central server may have not been initialized”.
->
-> 1a.2. System displays the error message “Global configuration
-> generation failing since 'X'”, where “X” is the time and date since
-> when the system has not been able to generate distributable global
-> configuration.
->
-> 1a.3. Use case terminates.
+- 1b. The generation of the configuration part files failed because the management service provider is not configured.
+    - 1b.1. System logs the error message “Failed to generate valid global configuration: Management services provider is not configured”.
+    - 1b.2. System displays the error message “Global configuration generation failing since 'X'”, where “X” is the time and date since when the system has not been able to generate distributable global configuration.
+    - 1b.3. Use case terminates.
 
-1b. The generation of the configuration part files failed because the
-management service provider is not configured.
+- 1c. The generation of the configuration part files failed for any other reason than the ones stated in extensions 1a and 1b.
+    - 1c.1. System logs the error message “Failed to generate valid global configuration: X”, where “X” is the technical system error message.
+    - 1c.2. System displays the error message “Global configuration generation failing since 'X'”, where “X” is the time and date since when the system has not been able to generate distributable global configuration.
+    - 1c.3. Use case terminates.
 
-> 1b.1. System logs the error message “Failed to generate valid global
-> configuration: Management services provider is not configured”.
->
-> 1b.2. System displays the error message “Global configuration
-> generation failing since 'X'”, where “X” is the time and date since
-> when the system has not been able to generate distributable global
-> configuration.
->
-> 1b.3. Use case terminates.
+- 2a. The validation of the configuration part files failed.
+    - 2a.1. System logs the error message “Failed to generate valid global configuration: X”, where “X” is the XML Schema validator specific error message.
+    - 2a.2. System displays the error message “Global configuration generation failing since 'X'”, where “X” is the time and date since when the system has not been able to generate distributable global configuration.
+    - 2a.3. Use case terminates.
 
-1c. The generation of the configuration part files failed for any other
-reason than the ones stated in extensions 1a and 1b.
-
-> 1c.1. System logs the error message “Failed to generate valid global
-> configuration: X”, where “X” is the technical system error message.
->
-> 1c.2. System displays the error message “Global configuration
-> generation failing since 'X'”, where “X” is the time and date since
-> when the system has not been able to generate distributable global
-> configuration.
->
-> 1c.3. Use case terminates.
-
-2a. The validation of the configuration part files failed.
-
-> 2a.1. System logs the error message “Failed to generate valid global
-> configuration: X”, where “X” is the XML Schema validator specific
-> error message.
->
-> 2a.2. System displays the error message “Global configuration
-> generation failing since 'X'”, where “X” is the time and date since
-> when the system has not been able to generate distributable global
-> configuration.
->
-> 2a.3. Use case terminates.
-
-3-5a. The building or signing of the configuration directory failed.
-
-> 3-5a.1. System logs the error message “Failed to generate global
-> configuration: X”, where “X” is the description of the error that
-> occurred.
->
-> 3-5a.3. Use case terminates.
+- 3-5a. The building or signing of the configuration directory failed.
+    - 3-5a.1. System logs the error message “Failed to generate global configuration: X”, where “X” is the description of the error that occurred.
+    - 3-5a.3. Use case terminates.
 
 **Related information**:
 
@@ -1615,7 +1401,7 @@ reason than the ones stated in extensions 1a and 1b.
 
 -   The error messages are logged to /var/log/xroad/jetty/jetty.log.
 
-### UC GCONF\_19: Handle a Configuration Download Request 
+### 2.2.19 UC GCONF\_19: Handle a Configuration Download Request 
 
 **System**: Central server
 
@@ -1646,16 +1432,15 @@ configuration part file) or an error message.
 
 **Extensions**:
 
-2a. Request cannot be served.
-
-> 2a1. System responds with an error message.
+- 2a. Request cannot be served.
+    - 2a1. System responds with an error message.
 
 **Related information**: -
 
-Security Server Use Cases 
---------------------------
+2.3 Security Server Use Cases 
+-----------------------------
 
-### UC GCONF\_20: View the Configuration Anchor Information
+### 2.3.1 UC GCONF\_20: View the Configuration Anchor Information
 
 **System**: Security server
 
@@ -1688,18 +1473,18 @@ provided by the governing agency.
     -   The SHA-224 hash value of the configuration anchor.
 
     -   The generation date and time (UTC) of the configuration anchor.
+    
+    The following user action options are displayed:
 
-> The following user action options are displayed:
+    -   download the configuration anchor file: 2.3.2;
 
--   download the configuration anchor file: 2.3.2;
-
--   upload a configuration anchor file: 2.3.3.
+    -   upload a configuration anchor file: 2.3.3.
 
 **Extensions**: -
 
 **Related information**: -
 
-### UC GCONF\_21: Download the Configuration Anchor File
+### 2.3.2 UC GCONF\_21: Download the Configuration Anchor File
 
 **System**: Security server
 
@@ -1733,7 +1518,7 @@ configuration anchor file or to store the file to an external location.
 
 **Related information**: -
 
-### UC GCONF\_22: Upload a Configuration Anchor File
+### 2.3.3 UC GCONF\_22: Upload a Configuration Anchor File
 
 **System**: Security server
 
@@ -1794,100 +1579,48 @@ integrity of the anchor.
 **Extensions**:
 
 3a. The selected file is not a valid configuration anchor file.
+    - 3a.1. System displays the error message: “Configuration anchor import failed: invalid anchor file”.
+    - 3a.2. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 3a.2a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message: “Configuration anchor import
-> failed: invalid anchor file”.
->
-> 3a.2. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 3a.2a. SS administrator selects to terminate the use case.
+- 4a. The instance identifier in the anchor file does not correspond to the instance identifier of the security server.
+    - 4a.1. System displays the error message: “Configuration anchor upload failed: unexpected instance identifier found in anchor”.
+    - 4a.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
-4a. The instance identifier in the anchor file does not correspond to
-the instance identifier of the security server.
+- 6a. SS administrator cancels the import.
+    - 6a.2. Use case terminates.
 
-> 4a.1. System displays the error message: “Configuration anchor upload
-> failed: unexpected instance identifier found in anchor”.
->
-> 4a.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 4a.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
+- 7a. Downloading of the internal configuration fails.
+    - 7a.1. System displays the error message: “Configuration source cannot be reached, check source URL in uploaded anchor file”.
+    - 7a.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 7a.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 7a.3a. SS administrator selects to terminate the use case.
 
-6a. SS administrator cancels the import.
+- 7b. The downloaded internal configuration is expired.
+    - 7b.1. System displays the error message: “Configuration from source is out of date”.
+    - 7b.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 7b.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 7b.3a. SS administrator selects to terminate the use case.
 
-> 6a.2. Use case terminates.
+- 7c. Verification of the signature value of the downloaded internal configuration failed.
+    - 7c.1. System displays the error message: “Signature of configuration cannot be verified”.
+    - 7c.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 7c.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 7c.3a. SS administrator selects to terminate the use case.
 
-7a. Downloading of the internal configuration fails.
+- 7d. The downloaded internal configuration directory does not contain private parameters.
+    - 7d.1. System displays the error message: “Configuration anchor import failed: invalid anchor file”.
+    - 7d.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 7d.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 7d.3a. SS administrator selects to terminate the use case.
 
-> 7a.1. System displays the error message: “Configuration source cannot
-> be reached, check source URL in uploaded anchor file”.
->
-> 7a.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 7a.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 7a.3a. SS administrator selects to terminate the use case.
-
-7b. The downloaded internal configuration is expired.
-
-> 7b.1. System displays the error message: “Configuration from source is
-> out of date”.
->
-> 7b.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 7b.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 7b.3a. SS administrator selects to terminate the use case.
-
-7c. Verification of the signature value of the downloaded internal
-configuration failed.
-
-> 7c.1. System displays the error message: “Signature of configuration
-> cannot be verified”.
->
-> 7c.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 7c.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 7c.3a. SS administrator selects to terminate the use case.
-
-7d. The downloaded internal configuration directory does not contain
-private parameters.
-
-> 7d.1. System displays the error message: “Configuration anchor import
-> failed: invalid anchor file”.
->
-> 7d.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 7d.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 7d.3a. SS administrator selects to terminate the use case.
-
-7e. The verification of the downloaded internal configuration fails for
-reasons other than the ones listed in extensions 7b-d.
-
-> 7e.1. System displays the error message: “Configuration from source
-> failed verification”.
->
-> 7e.2. System logs the event “Upload configuration anchor failed” to
-> the audit log.
->
-> 7e.3. SS administrator selects to reinsert the path to the
-> configuration anchor file. Use case continues from step 3.
->
-> 7e.3a. SS administrator selects to terminate the use case.
+- 7e. The verification of the downloaded internal configuration fails for reasons other than the ones listed in extensions 7b-d.
+    - 7e.1. System displays the error message: “Configuration from source failed verification”.
+    - 7e.2. System logs the event “Upload configuration anchor failed” to the audit log.
+    - 7e.3. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
+        - 7e.3a. SS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -1900,7 +1633,7 @@ reasons other than the ones listed in extensions 7b-d.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_23: Update Configuration 
+### 2.3.4 UC GCONF\_23: Update Configuration 
 
 **System**: Security server
 
@@ -1942,20 +1675,14 @@ configuration.
 
 **Extensions**:
 
-1a. Internal configuration download terminates with an error.
+- 1a. Internal configuration download terminates with an error.
+    - 1a.1. Use case terminates.
 
-> 1a.1. Use case terminates.
+- 2a. System did not find any configuration anchors pointing to external configuration sources from the private parameters part (i.e., the X-Road instance is not currently federated with any other X-Road instances).
+    - 2a.1. Use case continues from step 3.
 
-2a. System did not find any configuration anchors pointing to external
-configuration sources from the private parameters part (i.e., the X-Road
-instance is not currently federated with any other X-Road instances).
-
-> 2a.1. Use case continues from step 3.
-
-2b. Downloading configuration from one or more external configuration
-sources terminated with an error.
-
-> 2b.1. Use case continues from step 3.
+- 2b. Downloading configuration from one or more external configuration sources terminated with an error.
+    - 2b.1. Use case continues from step 3.
 
 **Related information**:
 
@@ -1967,7 +1694,7 @@ sources terminated with an error.
     the document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### UC GCONF\_24: Download Configuration from a Configuration Source
+### 2.3.5 UC GCONF\_24: Download Configuration from a Configuration Source
 
 **System**: Security server
 
@@ -2026,82 +1753,42 @@ files.
 
 **Extensions**:
 
-1a. System cannot find the configuration anchor.
+- 1a. System cannot find the configuration anchor.
+    - 1a.1. System logs the error message: “Cannot download configuration,anchor file X does not exist”, where “X” is the anchor file name.
 
-> 1a.1. System logs the error message: “Cannot download configuration,
-> anchor file X does not exist”, where “X” is the anchor file name.
+- 2a. Download from the last successful configuration source address fails.
+    - 2a.1. System downloads the signed configuration directory by making a HTTP GET request to a random configuration download address found in the configuration anchor, excluding the address(es) from where the configuration download failed.
+        - 2a.1a. Downloading the configuration failed. Use case continues from step 2a.
+        - 2a.1b. Downloading failed from every configuration source addresses listed in the configuration anchor.
+            - 2a.1a.1. System logs the error message: “Failed to download configuration from any configuration location: X” (where “X” is the list of configuration source addresses that were tried). Use case terminates.
+    - 2a.2. Use case continues from step 3.
 
-2a. Download from the last successful configuration source address
-fails.
+- 4a. Parsing of the configuration directory resulted in an error (e.g., the value of the MIME header *Content-transfer-encoding* was found not to be “base64”).
+    - 4a.1. System logs the error message. Use case terminates.
 
-> 2a.1. System downloads the signed configuration directory by making a
-> HTTP GET request to a random configuration download address found in
-> the configuration anchor, excluding the address(es) from where the
-> configuration download failed.
->
-> 2a.1a. Downloading the configuration failed. Use case continues from
-> step 2a.
->
-> 2a.1b. Downloading failed from every configuration source addresses
-> listed in the configuration anchor.
->
-> 2a.1a.1. System logs the error message: “Failed to download
-> configuration from any configuration location: X” (where “X” is the
-> list of configuration source addresses that were tried). Use case
-> terminates.
->
-> 2a.2. Use case continues from step 3.
+- 4b. The configuration directory is missing the *Expire-date* header.
+    - 4b.1. System logs the error message: “Configuration instance X is missing signed data expiration date” (where “X” is the instance identifier of the configuration). Use case terminates.
 
-4a. Parsing of the configuration directory resulted in an error (e.g.,
-the value of the MIME header *Content-transfer-encoding* was found not
-to be “base64”).
+- 4c. The downloaded configuration is not signed.
+    - 4c.1. System logs the error message: “Configuration instance X is missing signed data” (where “X” is the instance identifier of the configuration). Use case terminates.
 
-4a.1. System logs the error message. Use case terminates.
+- 4d. The downloaded configuration is expired.
+    - 4d.1. System logs the error message: “Configuration instance X expired on Y” (where “X” is the instance identifier of the configuration and “Y” is the expiration date and time of the downloaded configuration directory). Use case terminates.
 
-4b. The configuration directory is missing the *Expire-date* header.
+- 5a. The signature verification process terminated with an error condition.
+    - 5a.1. Use case terminates.
 
-> 4b.1. System logs the error message: “Configuration instance X is
-> missing signed data expiration date” (where “X” is the instance
-> identifier of the configuration). Use case terminates.
+- 6a. The downloading of a configuration part file terminated with an error condition.
+    - 6a.1. Use case terminates.
 
-4c. The downloaded configuration is not signed.
+- 7a. System encounters an error while saving the downloaded files.
+    - 7a.1. System logs the error message: “Failed to sync downloaded files list” and restores the previous state of the configuration file set. Use case terminates.
 
-> 4c.1. System logs the error message: “Configuration instance X is
-> missing signed data” (where “X” is the instance identifier of the
-> configuration). Use case terminates.
+- 8b. No configuration files were downloaded.
+    - 8b.1. Use case continues from step 9.
 
-4d. The downloaded configuration is expired.
-
-> 4d.1. System logs the error message: “Configuration instance X expired
-> on Y” (where “X” is the instance identifier of the configuration and
-> “Y” is the expiration date and time of the downloaded configuration
-> directory). Use case terminates.
-
-5a. The signature verification process terminated with an error
-condition.
-
-> 5a.1. Use case terminates.
-
-6a. The downloading of a configuration part file terminated with an
-error condition.
-
-> 6a.1. Use case terminates.
-
-7a. System encounters an error while saving the downloaded files.
-
-> 7a.1. System logs the error message: “Failed to sync downloaded files
-> list” and restores the previous state of the configuration file set.
-> Use case terminates.
-
-8b. No configuration files were downloaded.
-
-> 8b.1. Use case continues from step 9.
-
-9a. System finds one or more configuration files that originate from the
-used configuration source but are not described in the configuration
-source.
-
-> 9a.1. System deletes the configuration files.
+- 9a. System finds one or more configuration files that originate from the used configuration source but are not described in the configuration source.
+    - 9a.1. System deletes the configuration files.
 
 **Related information**:
 
@@ -2143,28 +1830,18 @@ configuration directory using the configuration source anchor.
 
 **Extensions**:
 
-2a. System cannot find the verification certificate needed to verify the
-signature.
+- 2a. System cannot find the verification certificate needed to verify the signature.
+    - 2a.1. System logs the error message: “Cannot verify signature of configuration instance X: could not find verification certificate for certificate hash Y” (where “X” is the instance identifier of the configuration and “Y” is the hash value of the verification certificate that was used to sign the configuration directory). Use case terminates.
 
-> 2a.1. System logs the error message: “Cannot verify signature of
-> configuration instance X: could not find verification certificate for
-> certificate hash Y” (where “X” is the instance identifier of the
-> configuration and “Y” is the hash value of the verification
-> certificate that was used to sign the configuration directory). Use
-> case terminates.
-
-3a. Signature verification fails.
-
-> 3a.1. System logs the error message: “Failed to verify signature of
-> configuration instance X” (where “X” is the instance identifier of the
-> configuration directory). Use case terminates.
+- 3a. Signature verification fails.
+    - 3a.1. System logs the error message: “Failed to verify signature of configuration instance X” (where “X” is the instance identifier of the configuration directory). Use case terminates.
 
 **Related information**:
 
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-### UC GCONF\_26: Handle a Configuration Part of the Configuration Directory
+### 2.3.6 UC GCONF\_26: Handle a Configuration Part of the Configuration Directory
 
 **System**: Security server
 
@@ -2217,42 +1894,23 @@ the latest version of the file from the configuration source.
 
 **Extensions**:
 
-1a. System cannot find a stored file corresponding to the configuration
-part.
+- 1a. System cannot find a stored file corresponding to the configuration part.
+    -  1a.1. Use case continues from step 3.
 
-> 1a.1. Use case continues from step 3.
+- 2a. The hash values are equal.
+    - 2a.1. Use-case terminates.
 
-2a. The hash values are equal.
+- 3a. The downloading of the file failed.
+    - 3a.1. System logs the error message describing the reason of the failure. Use-case terminates.
 
-> 2a.1. Use-case terminates.
+- 4a. The hash values differ.
+    - 4a.1. System logs the error message: “Failed to verify content integrity X” (where “X” is the *Content-identifier* or *Content-location* MIME header value of the configuration part). Use case terminates.
 
-3a. The downloading of the file failed.
+- 5a. The *Content-identifier* value is neither *PRIVATE-PARAMETERS* nor *SHARED-PARAMETERS*.
+    - 5a.1. Use-case terminates.
 
-> 3a.1. System logs the error message describing the reason of the
-> failure. Use-case terminates.
-
-4a. The hash values differ.
-
-> 4a.1. System logs the error message: “Failed to verify content
-> integrity X” (where “X” is the *Content-identifier* or
-> *Content-location* MIME header value of the configuration part). Use
-> case terminates.
-
-5a. The *Content-identifier* value is neither *PRIVATE-PARAMETERS* nor
-*SHARED-PARAMETERS*.
-
-> 5a.1. Use-case terminates.
-
-5b. The instance identifier value in the downloaded configuration file
-differs from the *instance* parameter value of the *Content-identifier*
-MIME header.
-
-> 5b.1. System logs the error message: “Content part X has invalid
-> instance identifier (expected Y, but was Z)” (where “X” is the
-> *Content-identifier* or *Content-location* MIME header value of the
-> configuration part; “Y” is the *instance* parameter value; and “Z” is
-> the instance identifier value in the downloaded configuration file).
-> Use case terminates.
+- 5b. The instance identifier value in the downloaded configuration file differs from the *instance* parameter value of the *Content-identifier* MIME header.
+    - 5b.1. System logs the error message: “Content part X has invalid instance identifier (expected Y, but was Z)” (where “X” is the *Content-identifier* or *Content-location* MIME header value of the configuration part; “Y” is the *instance* parameter value; and “Z” is the instance identifier value in the downloaded configuration file). Use case terminates.
 
 **Related information**:
 

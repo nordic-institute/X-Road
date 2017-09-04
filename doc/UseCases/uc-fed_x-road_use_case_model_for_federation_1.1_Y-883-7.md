@@ -48,11 +48,11 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
-Purpose
--------
+1.1 Purpose
+-----------
 
 The purpose of this document is to describe the use cases concerning the
 federation of X-Road instances.
@@ -70,8 +70,8 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-Terms and Abbreviations
------------------------
+1.2 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -162,8 +162,8 @@ document in addition to the general definition.
     Trusted anchors are distributed to the configuration clients of the
     local X-Road system as a part of private parameters.
 
-References
-----------
+1.2 References
+--------------
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
@@ -177,8 +177,8 @@ References
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
-Overview
-========
+2 Overview
+==--======
 
 The trust federation of X-Road instances allows for the members of one
 X-Road instance to use the services provided by members of the other
@@ -203,11 +203,11 @@ documents “X-Road: Protocol for Downloading Configuration” \[[PR-GCONF](#Ref
 and “X-Road: Use Case Model for Global Configuration Distribution”
 \[[UC-GCONF](#Ref_UC-GCONF)\].
 
-Use Case Model
-==============
+3 Use Case Model
+================
 
-Actors
-------
+3.1 Actors
+----------
 
 The use case model for the federation of X-Road systems includes the
 following actors.
@@ -225,8 +225,8 @@ described in Figure 1.
 ![](img/use_case_diagarm_for_federation_of_xroad_systems.PNG)
 Figure 1. Use case diagram for the federation of X-Road systems
 
-UC FED\_01: View Trusted Anchors 
----------------------------------
+3.2 UC FED\_01: View Trusted Anchors
+------------------------------------
 
 **System**: Central server
 
@@ -259,21 +259,21 @@ administrator.
     -   the SHA-224 hash value of the trusted anchor file;
 
     -   the generation date and time (UTC) of the trusted anchor file.
+        
+         The following user action options are displayed:
 
-> The following user action options are displayed:
-
--   upload a trusted anchor: 3.3;
-
--   download a trusted anchor: 3.7;
-
--   delete a trusted anchor: 3.8.
+    -   upload a trusted anchor: 3.3;
+    
+    -   download a trusted anchor: 3.7;
+    
+    -   delete a trusted anchor: 3.8.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC FED\_02: Upload a Trusted Anchor 
-------------------------------------
+3.3 UC FED\_02: Upload a Trusted Anchor
+---------------------------------------
 
 **System**: Central server
 
@@ -334,86 +334,47 @@ availability setup changes).
 
 **Extensions**:
 
-3a. The selected file is not a valid configuration anchor file.
+- 3a. The selected file is not a valid configuration anchor file.
+    - 3a.1. System displays the error message: “Failed to upload trusted anchor: Incorrect file structure.”.
+    - 3a.2. CS administrator selects to reselect the configuration anchor file. Use case continues from step 3.
+    - 3a.2a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message: “Failed to upload trusted
-> anchor: Incorrect file structure.”.
->
-> 3a.2. CS administrator selects to reselect the configuration anchor
-> file. Use case continues from step 3.
->
-> 3a.2a. CS administrator selects to terminate the use case.
+- 4a. The anchor points to a configuration source of the local X-Road instance.
+    - 4a.1. System displays the error message: “Failed to upload trusted anchor: Anchors originating from this instance are not supported as trusted anchors.”.
+    - 4a.2. CS administrator selects to reselect the configuration anchor file. Use case continues from step 3.
+    - 4a.2a. CS administrator selects to terminate the use case.
 
-4a. The anchor points to a configuration source of the local X-Road
-instance.
+- 6a. CS administrator selects to terminate the use case.
 
-> 4a.1. System displays the error message: “Failed to upload trusted
-> anchor: Anchors originating from this instance are not supported as
-> trusted anchors.”.
->
-> 4a.2. CS administrator selects to reselect the configuration anchor
-> file. Use case continues from step 3.
->
-> 4a.2a. CS administrator selects to terminate the use case.
+- 7a. Downloading of the configuration fails.
+    - 7a.1. System displays the error message: “Failed to save uploaded trusted anchor: Configuration source cannot be reached, check source URL in uploaded anchor file”.
+    - 7a.2. System logs the event “Add trusted anchor failed” the audit log.
+    - 7a.3. Use case terminates.
 
-6a. CS administrator selects to terminate the use case.
+- 7b. The downloaded configuration is expired.
+    - 7b.1. System displays the error message: “Failed to save uploaded trusted anchor: Configuration from source is out of date”.
+    - 7b.2. System logs the event “Add trusted anchor failed” the audit log.
+    - 7b.3. Use case terminates.
 
-7a. Downloading of the configuration fails.
-
-> 7a.1. System displays the error message: “Failed to save uploaded
-> trusted anchor: Configuration source cannot be reached, check source
-> URL in uploaded anchor file”.
->
-> 7a.2. System logs the event “Add trusted anchor failed” the audit log.
->
-> 7a.3. Use case terminates.
-
-7b. The downloaded configuration is expired.
-
-> 7b.1. System displays the error message: “Failed to save uploaded
-> trusted anchor: Configuration from source is out of date”.
->
-> 7b.2. System logs the event “Add trusted anchor failed” the audit log.
->
-> 7b.3. Use case terminates.
-
-7c. Verification of the signature value of the downloaded configuration
+- 7c. Verification of the signature value of the downloaded configuration
 failed.
+    - 7c.1. System displays the error message: “Failed to save uploaded trusted anchor: Signature of configuration cannot be verified”.
+    - 7c.2. System logs the event “Add trusted anchor failed” the audit log.
+    - 7c.3. Use case terminates.
 
-> 7c.1. System displays the error message: “Failed to save uploaded
-> trusted anchor: Signature of configuration cannot be verified”.
->
-> 7c.2. System logs the event “Add trusted anchor failed” the audit log.
->
-> 7c.3. Use case terminates.
+- 7d. The downloaded configuration directory contains private parameters configuration part (i.e., the configuration anchor points to an internal configuration source).
+    - 7d.1. System displays the error message: “Failed to upload trusted anchor: Anchor points to an internal configuration source. Only external configuration source anchors are supported as trusted anchors.”.
+    - 7d.2. System logs the event “Add trusted anchor failed” the audit log.
+    - 7d.3. Use case terminates.
 
-7d. The downloaded configuration directory contains private parameters
-configuration part (i.e., the configuration anchor points to an internal
-configuration source).
-
-> 7d.1. System displays the error message: “Failed to upload trusted
-> anchor: Anchor points to an internal configuration source. Only
-> external configuration source anchors are supported as trusted
-> anchors.”.
->
-> 7d.2. System logs the event “Add trusted anchor failed” the audit log.
->
-> 7d.3. Use case terminates.
-
-7e. Verification of the downloaded configuration fails for reasons other
+- 7e. Verification of the downloaded configuration fails for reasons other
 than the ones listed in extensions 7b-d.
+    - 7e.1. System displays the error message: “Failed to save uploaded trusted anchor: Configuration from source failed verification”.
+    - 7e.2. System logs the event “Add trusted anchor failed” the audit log.
+    - 7e.3. Use case terminates.
 
-> 7e.1. System displays the error message: “Failed to save uploaded
-> trusted anchor: Configuration from source failed verification”.
->
-> 7e.2. System logs the event “Add trusted anchor failed” the audit log.
->
-> 7e.3. Use case terminates.
-
-8a. No anchor with the same instance identifier as the uploaded one
-exists in the system configuration.
-
-> 8a.1. System saves the uploaded anchor to system configuration.
+- 8a. No anchor with the same instance identifier as the uploaded one exists in the system configuration.
+    - 8a.1. System saves the uploaded anchor to system configuration.
 
 **Related information:**
 
@@ -426,8 +387,8 @@ exists in the system configuration.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-UC FED\_03: Download and Validate Configuration
------------------------------------------------
+3.4 UC FED\_03: Download and Validate Configuration
+---------------------------------------------------
 
 **System**: Central server
 
@@ -469,64 +430,37 @@ configuration files described in the configuration directory.
 
 **Extensions**:
 
-2a. Download from a configuration source address fails.
+- 2a. Download from a configuration source address fails.
+    - 2a.1. System downloads the signed configuration directory by making aHTTP GET request to the next randomly chosen configuration source address found in the configuration anchor.
+        - 2a.1a. Downloading failed from every configuration source addresses listed in the configuration anchor.
+        - 2a.1a.1. System logs the error message: “Failed to download configuration from any configuration location: X” (where “X” is the list of configuration source addresses that were tried). Use case terminates.
+    -  2a.2. Use case continues from step 3.
 
-> 2a.1. System downloads the signed configuration directory by making a
-> HTTP GET request to the next randomly chosen configuration source
-> address found in the configuration anchor.
->
-> 2a.1a. Downloading failed from every configuration source addresses
-> listed in the configuration anchor.
->
-> 2a.1a.1. System logs the error message: “Failed to download
-> configuration from any configuration location: X” (where “X” is the
-> list of configuration source addresses that were tried). Use case
-> terminates.
->
-> 2a.2. Use case continues from step 3.
+- 3a. Parsing of the configuration directory resulted in an error (e.g., the value of the MIME header *Content-transfer-encoding* was found not to be “base64”).
+    - 3a.1. System logs the error message. Use case terminates.
 
-3a. Parsing of the configuration directory resulted in an error (e.g.,
-the value of the MIME header *Content-transfer-encoding* was found not
-to be “base64”).
+- 3b. The configuration directory is missing the *Expire-date* header.
+    - 3b.1. System logs the error message: “Configuration instance X is missing signed data expiration date” (where “X” is the instance identifier of the configuration). Use case terminates.
 
-3a.1. System logs the error message. Use case terminates.
+- 3c. The downloaded configuration is not signed. System logs the error message: “Configuration instance X is missing  signed data” (where “X” is the instance identifier of the configuration). Use case terminates.
 
-3b. The configuration directory is missing the *Expire-date* header.
+- 3d. The downloaded configuration is expired.
+    - 3d.1. System logs the error message: “Configuration instance X expired on Y” (where “X” is the instance identifier of the configuration and “Y” is the expiration date and time of the downloaded configuration directory). Use case terminates.
 
-> 3b.1. System logs the error message: “Configuration instance X is
-> missing signed data expiration date” (where “X” is the instance
-> identifier of the configuration). Use case terminates.
-
-3c. The downloaded configuration is not signed.
-
-> System logs the error message: “Configuration instance X is missing
-> signed data” (where “X” is the instance identifier of the
-> configuration). Use case terminates.
-
-3d. The downloaded configuration is expired.
-
-> 3d.1. System logs the error message: “Configuration instance X expired
-> on Y” (where “X” is the instance identifier of the configuration and
-> “Y” is the expiration date and time of the downloaded configuration
-> directory). Use case terminates.
-
-4a. The signature verification process terminated with an error
+- 4a. The signature verification process terminated with an error
 condition.
+    -  4a.1. Use case terminates.
 
-> 4a.1. Use case terminates.
-
-5a. The downloading of a configuration part terminated with an error
-condition.
-
-> 5a.1. Use case terminates.
+- 5a. The downloading of a configuration part terminated with an error condition.
+    - 5a.1. Use case terminates.
 
 **Related information**:
 
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-UC FED\_04: Verify the Signature of the Configuration Directory
----------------------------------------------------------------
+3.5 UC FED\_04: Verify the Signature of the Configuration Directory
+-------------------------------------------------------------------
 
 **System**: Central server
 
@@ -561,29 +495,19 @@ configuration directory using the configuration source anchor.
 
 **Extensions**:
 
-2a. System cannot find the verification certificate needed to verify the
-signature.
+- 2a. System cannot find the verification certificate needed to verify the signature.
+    - 2a.1. System logs the error message: “Cannot verify signature of configuration instance X: could not find verification certificate for certificate hash Y” (where “X” is the instance identifier of the configuration and “Y” is the hash value of the verification certificate that was used to sign the configuration directory). Use case terminates.
 
-> 2a.1. System logs the error message: “Cannot verify signature of
-> configuration instance X: could not find verification certificate for
-> certificate hash Y” (where “X” is the instance identifier of the
-> configuration and “Y” is the hash value of the verification
-> certificate that was used to sign the configuration directory). Use
-> case terminates.
-
-3a. Signature verification fails.
-
-> 3a.1. System logs the error message: “Failed to verify signature of
-> configuration instance X” (where “X” is the instance identifier of the
-> configuration directory). Use case terminates.
+- 3a. Signature verification fails.
+    - 3a.1. System logs the error message: “Failed to verify signature of configuration instance X” (where “X” is the instance identifier of the configuration directory). Use case terminates.
 
 **Related information**:
 
--   The error messages are logged to
-    /var/log/xroad/configuration-client.log.
+- The error messages are logged to
+  /var/log/xroad/configuration-client.log.
 
-UC FED\_05: Download a Configuration Part File
-----------------------------------------------
+3.6 UC FED\_05: Download a Configuration Part File
+--------------------------------------------------
 
 **System**: Central server
 
@@ -620,36 +544,22 @@ file.
 
 **Extensions**:
 
-1a. The downloading of the file failed.
+- 1a. The downloading of the file failed.
+    - 1a.1. System logs the error message describing the reason of the failure. Use-case terminates.
 
-> 1a.1. System logs the error message describing the reason of the
-> failure. Use-case terminates.
+- 2a. The hash values differ.
+    - 2a.1. System logs the error message: “Failed to verify content integrity X” (where “X” is the *Content-identifier* or *Content-location* MIME header value of the configuration part). Use case terminates.
 
-2a. The hash values differ.
-
-> 2a.1. System logs the error message: “Failed to verify content
-> integrity X” (where “X” is the *Content-identifier* or
-> *Content-location* MIME header value of the configuration part). Use
-> case terminates.
-
-3a. The instance identifier value in the downloaded configuration file
-differs from the *instance* parameter value of the *Content-identifier*
-MIME header.
-
-> 3a.1. System logs the error message: “Content part X has invalid
-> instance identifier (expected Y, but was Z)” (where “X” is the
-> *Content-identifier* or *Content-location* MIME header value of the
-> configuration part; “Y” is the *instance* parameter value; and “Z” is
-> the instance identifier value in the downloaded configuration file).
-> Use case terminates.
+- 3a. The instance identifier value in the downloaded configuration file differs from the *instance* parameter value of the *Content-identifier* MIME header.
+    - 3a.1. System logs the error message: “Content part X has invalid instance identifier (expected Y, but was Z)” (where “X” is the *Content-identifier* or *Content-location* MIME header value of the configuration part; “Y” is the *instance* parameter value; and “Z” is the instance identifier value in the downloaded configuration file). Use case terminates.
 
 **Related information**:
 
--   The error messages are logged to
-    /var/log/xroad/configuration-client.log.
+- The error messages are logged to 
+  /var/log/xroad/configuration-client.log.
 
-UC FED\_06: Download a Trusted Anchor 
---------------------------------------
+3.7 UC FED\_06: Download a Trusted Anchor 
+-----------------------------------------
 
 **System**: Central server
 
@@ -682,8 +592,8 @@ configuration anchor file or to store the file to an external location.
 
 **Related information**: -
 
-UC FED\_07: Delete a Trusted Anchor 
-------------------------------------
+3.8 UC FED\_07: Delete a Trusted Anchor 
+---------------------------------------
 
 **System**: Central server
 
@@ -721,7 +631,7 @@ configuration.
 
 **Extensions**:
 
-3a. CS administrator selects to terminate the use case.
+- 3a. CS administrator selects to terminate the use case.
 
 **Related information:**
 

@@ -49,8 +49,8 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
 The purpose of this document is to describe the general central server
 use cases that do not fall under any of the following topics.
@@ -87,14 +87,14 @@ The use cases (except for 2.2) including a human actor (the *level* of
 the use case is *user task*) assume that the actor is logged in to the
 system and has the access rights required to carry out the use case.
 
-Terms and Abbreviations
------------------------
+1.1 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
 
-References
-----------
+1.2 References
+--------------
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\]
     X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
@@ -117,11 +117,11 @@ References
 7.  <a id="Ref_UC-TRUST" class="anchor"></a>\[UC-TRUST\] X-Road: Use Case Model for
     Trust Service Management. Document ID: UC-TRUST.
 
-Use Case Model
-==============
+2 Use Case Model
+================
 
-Actors
-------
+2.1 Actors
+----------
 
 The use case model for central server management includes the following
 actor.
@@ -136,8 +136,8 @@ described in Figure 1.
 
 Figure 1. Use case diagram for central server management
 
-UC CS\_01: Log In to the Graphical User Interface
--------------------------------------------------
+2.2 UC CS\_01: Log In to the Graphical User Interface
+-----------------------------------------------------
 
 **System**: Central server
 
@@ -174,29 +174,17 @@ manage the central server configuration.
 
 **Extensions**:
 
-3a. The system is currently undergoing the system restore process.
+- 3a. The system is currently undergoing the system restore process.
+    - 3a.1. System displays the error message “Restore in progress, try again later”.
+    - 3a.2. System logs the event “Log in user failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the username and/or the password. Use case continues from step 3.
+    - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “Restore in progress, try
-> again later”.
->
-> 3a.2. System logs the event “Log in user failed” to the audit log.
->
-> 3a.3. CS administrator selects to reinsert the username and/or the
-> password. Use case continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. The user with the inserted username does not exist or the password
-is incorrect.
-
-> 4a.1. System displays the error message “Authentication failed”.
->
-> 4a.2. System logs the event “Log in user failed” to the audit log.
->
-> 4a.3. CS administrator selects to reinsert the username and/or the
-> password. Use case continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. The user with the inserted username does not exist or the password is incorrect.
+    - 4a.1. System displays the error message “Authentication failed”.
+    - 4a.2. System logs the event “Log in user failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the username and/or the password. Use case continues from step 3.
+    - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
@@ -204,8 +192,8 @@ is incorrect.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_02: Log Out of the Graphical User Interface
---------------------------------------------------
+2.3 UC CS\_02: Log Out of the Graphical User Interface
+------------------------------------------------------
 
 **System**: Central server
 
@@ -243,8 +231,8 @@ UC CS\_02: Log Out of the Graphical User Interface
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_03: Log a User Out of the Graphical User Interface
----------------------------------------------------------
+2.4 UC CS\_03: Log a User Out of the Graphical User Interface
+-------------------------------------------------------------
 
 **System**: Central server
 
@@ -273,8 +261,8 @@ logged in user has been idle for 30 minutes.
 
 **Related information**: -
 
-UC CS\_04: Change the Graphical User Interface Language
--------------------------------------------------------
+2.5 UC CS\_04: Change the Graphical User Interface Language
+-----------------------------------------------------------
 
 **System**: Central server
 
@@ -313,8 +301,8 @@ UC CS\_04: Change the Graphical User Interface Language
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_05: View the Installed Software Version
-----------------------------------------------
+2.6 UC CS\_05: View the Installed Software Version
+--------------------------------------------------
 
 **System**: Central server
 
@@ -346,8 +334,8 @@ software.
 
 **Related information**: -
 
-UC CS\_06: View the List of Configuration Backup Files
-------------------------------------------------------
+2.7 UC CS\_06: View the List of Configuration Backup Files
+----------------------------------------------------------
 
 **System**: Central server
 
@@ -378,24 +366,24 @@ backup files.
 
     -   the file name of the backup file.
 
-> The following user action options are displayed:
+        The following user action options are displayed:
 
--   back up configuration: 2.8;
-
--   upload a backup file: 2.12;
-
--   download a backup file: 2.10;
-
--   restore system configuration from a backup file: 2.9;
-
--   delete a backup file: 2.11.
+    -   back up configuration: 2.8;
+    
+    -   upload a backup file: 2.12;
+    
+    -   download a backup file: 2.10;
+    
+    -   restore system configuration from a backup file: 2.9;
+    
+    -   delete a backup file: 2.11.
 
 **Extensions**: -
 
 **Related information**: -
 
-UC CS\_07: Back Up Configuration
---------------------------------
+2.8 UC CS\_07: Back Up Configuration
+------------------------------------
 
 **System**: Central server
 
@@ -430,24 +418,23 @@ configuration.
     b.  creates the backup file containing the database dump file and
         the following directories:
 
-    -   /etc/xroad/
+        -   /etc/xroad/
+    
+        -   /etc/nginx/sites-enabled/
+            and includes the following information as a label in the created .tar file:
 
-    -   /etc/nginx/sites-enabled/
+        -   the type of the server (“central” for central servers),
+        
+        -   the version of the central server software,
+        
+        -   the X-Road instance identifier,
+        
+        -   the node name if the central server is a part of a high availability
+        
+            cluster;
 
-> and includes the following information as a label in the created .tar
-> file:
-
--   the type of the server (“central” for central servers),
-
--   the version of the central server software,
-
--   the X-Road instance identifier,
-
--   the node name if the central server is a part of a high availability
-    > cluster;
-
-a.  saves the created backup file to the directory
-    /var/lib/xroad/backup.
+    c.  saves the created backup file to the directory
+        /var/lib/xroad/backup.
 
 <!-- -->
 
@@ -458,16 +445,10 @@ a.  saves the created backup file to the directory
 
 **Extensions**:
 
-3a. Backing up the central server configuration failed.
-
-> 3a.1. System displays the error message “Error making configuration
-> backup, script exited with status code 'X'” (where “X” is the exit
-> code of the backup script) and the output of the backup script.
->
-> 3a.2. System logs the event “Back up configuration failed” to the
-> audit log.
->
-> 3a.3. Use case terminates.
+- 3a. Backing up the central server configuration failed.
+    - 3a.1. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
+    - 3a.2. System logs the event “Back up configuration failed” to the audit log.
+    - 3a.3. Use case terminates.
 
 **Related information**:
 
@@ -475,8 +456,8 @@ a.  saves the created backup file to the directory
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_08: Restore Configuration from a Backup File
----------------------------------------------------
+2.9 UC CS\_08: Restore Configuration from a Backup File
+-------------------------------------------------------
 
 **System**: Central server
 
@@ -514,51 +495,42 @@ configuration to a previously backed up state.
         -   verifies that the server type in the label corresponds to
             the type of the server that is being restored;
 
-> *Note: System verifies only the server type and ignores the rest of
-> the information in the label in case the restore script is called from
-> the CLI with the -F option.*
-
--   verifies that the server software version in the label is compatible
-    with the installed software version of the server that is being
-    restored;
-
--   verifies that the instance identifier in the label corresponds to
-    the instance identifier of the central server that is being
-    restored;
-
--   verifies that the node name in the label corresponds to the node
-    name of the central server that is being restored if the restored
-    server is a part of a high availability cluster.
-
-a.  Clears the shared memory;
-
-b.  stops all system services, except for xroad-jetty;
-
-c.  creates a pre-restore backup of the system configuration (step 2 of
-    2.8) to /var/lib/xroad/conf\_prerestore\_backup.tar (the pre-restore
-    backup file is overwritten on each restore);
-
-d.  deletes the content of the following directories:
-
--   /etc/xroad/
-
--   /etc/nginx/sites-enabled/
-
-a.  restores the contents of the directories
-
-    -   /etc/xroad/
-
-    -   /etc/nginx/sites-enabled/
-
-> from the backup file;
-
-a.  writes the database dump from the backup file to
-    /var/lib/xroad/dbdump.dat;
-
-b.  restores the database data from the dump file
-    /var/lib/xroad/dbdump.dat.
-
-c.  starts the system services that were previously stopped.
+    > *Note: System verifies only the server type and ignores the rest of
+    > the information in the label in case the restore script is called from
+    > the CLI with the -F option.*
+    
+        -   verifies that the server software version in the label is compatible
+            with the installed software version of the server that is being
+            restored;
+            
+        -   verifies that the instance identifier in the label corresponds to
+            the instance identifier of the central server that is being
+            restored;
+            
+        -   verifies that the node name in the label corresponds to the node
+            name of the central server that is being restored if the restored
+            server is a part of a high availability cluster.
+            
+    c.  Clears the shared memory;
+    
+    d.  stops all system services, except for xroad-jetty;
+    
+    e.  creates a pre-restore backup of the system configuration (step 2 of 2.8) to /var/lib/xroad/conf\_prerestore\_backup.tar (the pre-restore backup file is overwritten on each restore);
+    
+    f.  deletes the content of the following directories:
+        -   /etc/xroad/
+        -   /etc/nginx/sites-enabled/
+    
+    g.  restores the contents of the directories
+        - /etc/xroad/
+        - /etc/nginx/sites-enabled/
+        from the backup file;
+        
+    h.  writes the database dump from the backup file to /var/lib/xroad/dbdump.dat;
+    
+    i.  restores the database data from the dump file /var/lib/xroad/dbdump.dat.
+    
+    j.  starts the system services that were previously stopped.
 
 <!-- -->
 
@@ -570,21 +542,13 @@ c.  starts the system services that were previously stopped.
 
 **Extensions**:
 
-3a. CS administrator cancels the restoring of the configuration from the
-backup file.
+- 3a. CS administrator cancels the restoring of the configuration from the backup file.
+    - 3a.1. Use case terminates.
 
-> 3a.1. Use case terminates.
-
-4a. Restoring the central server configuration failed.
-
-> 4a.1. System displays the error message “Restoring configuration from
-> file 'X' failed.” (where “X” is the file name of the backup file) and
-> the output of the restore script.
->
-> 4a.2. System logs the event “Restore configuration failed” to the
-> audit log.
->
-> 4a.3. Use case terminates.
+- 4a. Restoring the central server configuration failed.
+    - 4a.1. System displays the error message “Restoring configuration from file 'X' failed.” (where “X” is the file name of the backup file) and the output of the restore script.
+    - 4a.2. System logs the event “Restore configuration failed” to the audit log.
+    - 4a.3. Use case terminates.
 
 **Related information**:
 
@@ -594,8 +558,8 @@ backup file.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_09: Download a Backup File
----------------------------------
+2.10 UC CS\_09: Download a Backup File
+--------------------------------------
 
 **System**: Central server
 
@@ -625,8 +589,8 @@ UC CS\_09: Download a Backup File
 
 **Related information**: -
 
-UC CS\_10: Delete a Backup File
--------------------------------
+2.11 UC CS\_10: Delete a Backup File
+------------------------------------
 
 **System**: Central server
 
@@ -659,9 +623,8 @@ UC CS\_10: Delete a Backup File
 
 **Extensions**:
 
-3a. CS administrator cancels the deleting of the backup file.
-
-> 3a.1. Use case terminates.
+- 3a. CS administrator cancels the deleting of the backup file.
+    - 3a.1. Use case terminates.
 
 **Related information**:
 
@@ -669,8 +632,8 @@ UC CS\_10: Delete a Backup File
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-UC CS\_11: Upload a Backup File
--------------------------------
+2.12 UC CS\_11: Upload a Backup File
+------------------------------------
 
 **System**: Central server
 
@@ -711,63 +674,30 @@ central server.
 
 **Extensions**:
 
-3a. The file name contains invalid characters.
+- 3a. The file name contains invalid characters.
+    - 3a.1. System displays the error message “Failed to upload new backup file: Filename 'X' contains invalid characters. Valid characters include: (A-Z), (a-z), (0-9), (\_), (.), (-).'” (where “X” is the file name of the uploaded file).
+    - 3a.2. System logs the event “Upload backup file failed” to the audit log.
+    - 3a.3. CS administrator selects to reselect the backup file. Use casecontinues from step 3.
+    - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “Failed to upload new backup
-> file: Filename 'X' contains invalid characters. Valid characters
-> include: (A-Z), (a-z), (0-9), (\_), (.), (-).'” (where “X” is the file
-> name of the uploaded file).
->
-> 3a.2. System logs the event “Upload backup file failed” to the audit
-> log.
->
-> 3a.3. CS administrator selects to reselect the backup file. Use case
-> continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
+- 4a. The file extension is not .tar.
+    - 4a.1. System displays the error message “Failed to upload new backup file: Uploaded file name 'X' has invalid extension, valid ones are 'tar'” (where “X” is the file name of the uploaded file).
+    - 4a.2. System logs the event “Upload backup file failed” to the audit log.
+    - 4a.3. CS administrator selects to reselect the backup file. Use case continues from step 3.
+    - 4a.3a. CS administrator selects to terminate the use case.
 
-4a. The file extension is not .tar.
+- 5a. The content of the file is not in valid format.
+    - 5a.1. System displays the error message “Failed to upload new backup file: Content of uploaded file must be in tar format”.
+    - 5a.2. System logs the event “Upload backup file failed” to the audit log.
+    - 5a.3. CS administrator selects to reselect the backup file. Use casecontinues from step 3.
+    - 5a.3a. CS administrator selects to terminate the use case.
 
-> 4a.1. System displays the error message “Failed to upload new backup
-> file: Uploaded file name 'X' has invalid extension, valid ones are
-> 'tar'” (where “X” is the file name of the uploaded file).
->
-> 4a.2. System logs the event “Upload backup file failed” to the audit
-> log.
->
-> 4a.3. CS administrator selects to reselect the backup file. Use case
-> continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
-
-5a. The content of the file is not in valid format.
-
-> 5a.1. System displays the error message “Failed to upload new backup
-> file: Content of uploaded file must be in tar format”.
->
-> 5a.2. System logs the event “Upload backup file failed” to the audit
-> log.
->
-> 5a.3. CS administrator selects to reselect the backup file. Use case
-> continues from step 3.
->
-> 5a.3a. CS administrator selects to terminate the use case.
-
-6a. A backup file with the same file name is saved in the system
-configuration.
-
-> 6a.1. System displays the message “Backup file with name 'X' already
-> exists, do you want to overwrite it?” (where “X” is the file name of
-> the uploaded file) and prompts for confirmation.
->
-> 6a.2. CS administrator confirms. Use case continues from step 7.
->
-> 6a.2a. CS administrator cancels the upload.
->
-> 6a.2a.1. CS administrator selects to reselect the backup file. Use
-> case continues from step 3.
->
-> 6a.2a.1a. CS administrator selects to terminate the use case.
+- 6a. A backup file with the same file name is saved in the system configuration.
+    - 6a.1. System displays the message “Backup file with name 'X' alreadyexists, do you want to overwrite it?” (where “X” is the file name ofthe uploaded file) and prompts for confirmation.
+    - 6a.2. CS administrator confirms. Use case continues from step 7.
+    - 6a.2a. CS administrator cancels the upload.
+    - 6a.2a.1. CS administrator selects to reselect the backup file. Use case continues from step 3.
+    - 6a.2a.1a. CS administrator selects to terminate the use case.
 
 **Related information**:
 

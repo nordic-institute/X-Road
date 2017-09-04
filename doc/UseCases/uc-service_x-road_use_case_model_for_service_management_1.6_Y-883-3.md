@@ -101,11 +101,11 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
-Purpose
--------
+1.1 Purpose
+-----------
 
 The purpose of this document is to describe the management of services
 and access rights in X-Road security servers and central server,
@@ -134,8 +134,8 @@ The use cases including a human actor (the level of the use case is user
 task) assume, that the actor is logged in to the system and has the
 access rights required to carry out the use case.
 
-Terms and Abbreviations
------------------------
+1.2 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -148,8 +148,8 @@ document in addition to the general definition.
 group or global access rights group that has access rights to one or
 more services of a security server client.
 
-References
-----------
+1.3 References
+--------------
 
 1\. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation
 Guide. Document ID: IG-CS.
@@ -163,8 +163,8 @@ Audit Log Events. Document ID: SPEC-AL.
 4\. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
 System Parameters. Document ID: UG-SYSPAR.
 
-Overview
-========
+2 Overview
+==========
 
 There are two possibilities for access rights management in a security
 server:
@@ -196,13 +196,13 @@ the central server. A central service defines an alternative identifier,
 that does not depend on the current service provider, for an X-Road
 service.
 
-Use Case Model
-==============
+3 Use Case Model
+================
 
-Security server
----------------
+3.1 Security server
+-------------------
 
-### Actors
+### 3.1.1 Actors
 
 The X-Road security server service management use case model includes
 the following actors:
@@ -217,7 +217,7 @@ in Figure 1.
 
 Figure 1. Use case diagram for service and access rights management in the security server
 
-### UC SERVICE\_01: View the Service Clients of a Security Server Client
+### 3.1.2 UC SERVICE\_01: View the Service Clients of a Security Server Client
 
 **System**: Security server
 
@@ -252,18 +252,17 @@ security server client.
 
     -   the X-Road identifier of the service client.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   add a service client to the security server client: 3.1.4;
-
--   view a service client's access rights: 3.1.3.
+    -   add a service client to the security server client: 3.1.4;
+    
+    -   view a service client's access rights: 3.1.3.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_02: View the Access Rights of a Service Client
+### 3.1.3 UC SERVICE\_02: View the Access Rights of a Service Client
 
 **System**: Security server
 
@@ -300,18 +299,17 @@ rights.
     -   the date of when the access right of this service was granted to
         the service client.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   add service access rights for the service client: 3.1.5;
-
--   remove access rights from the service client: 3.1.6.
+    -   add service access rights for the service client: 3.1.5;
+    
+    -   remove access rights from the service client: 3.1.6.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_03: Add a Service Client to a Security Server Client
+### 3.1.4 UC SERVICE\_03: Add a Service Client to a Security Server Client
 
 **System**: Security server
 
@@ -368,7 +366,7 @@ server client's services for a subject.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_04: Add Access Rights for a Service Client
+### 3.1.5 UC SERVICE\_04: Add Access Rights for a Service Client
 
 **System**: Security server
 
@@ -415,7 +413,7 @@ client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_05: Remove Access Rights from a Service Client
+### 3.1.6 UC SERVICE\_05: Remove Access Rights from a Service Client
 
 **System**: Security server
 
@@ -462,7 +460,7 @@ service client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_06: View the WSDLs of a Security Server Client
+### 3.1.7 UC SERVICE\_06: View the WSDLs of a Security Server Client
 
 **System**: Security server
 
@@ -498,28 +496,27 @@ client's WSDLs.
     -   the status of the WSDL – the inactive WSDLs are marked as
         “disabled”.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   view the services of the security server client: 3.1.8;
-
--   add a WSDL to the security server client: 3.1.9;
-
--   edit the address of a WSDL: 3.1.10;
-
--   enable a WSDL: 3.1.14;
-
--   disable a WSDL: 3.1.15;
-
--   refresh a WSDL: 3.1.16;
-
--   delete a WSDL: 3.1.17.
+    -   view the services of the security server client: 3.1.8;
+    
+    -   add a WSDL to the security server client: 3.1.9;
+    
+    -   edit the address of a WSDL: 3.1.10;
+    
+    -   enable a WSDL: 3.1.14;
+    
+    -   disable a WSDL: 3.1.15;
+    
+    -   refresh a WSDL: 3.1.16;
+    
+    -   delete a WSDL: 3.1.17.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_07: View the Services of a Security Server Client
+### 3.1.8 UC SERVICE\_07: View the Services of a Security Server Client
 
 **System**: Security server
 
@@ -565,25 +562,24 @@ server client's services.
     -   the date of when the WSDL containing the description of the
         service was last refreshed.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   view the access rights of a service: 3.1.18;
-
--   edit the timeout value of a service: 3.1.23;
-
--   edit the address of a service: 3.1.21;
-
--   set the option to verify internal TLS certificate 3.1.22;
-
--   apply the parameter value of one service to all the services in the
-    WSDL: 3.1.24.
+    -   view the access rights of a service: 3.1.18;
+    
+    -   edit the timeout value of a service: 3.1.23;
+    
+    -   edit the address of a service: 3.1.21;
+    
+    -   set the option to verify internal TLS certificate 3.1.22;
+    
+    -   apply the parameter value of one service to all the services in the
+        WSDL: 3.1.24.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_08: Add a WSDL to a Security Server Client
+### 3.1.9 UC SERVICE\_08: Add a WSDL to a Security Server Client
 
 **System**: Security server
 
@@ -642,118 +638,56 @@ client.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Add WSDL failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 3a.3a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “X” (where “X” is the
-> termination message from the parsing process).
->
-> 3a.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
+- 4a. The inserted URL already exists.
+    - 4a.1. System displays the error message “Failed to add WSDL: WSDL address already exists.”.
+    - 4a.2. System logs the event “Add WSDL failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
-4a. The inserted URL already exists.
+- 5a. The process of downloading and parsing the WSDL file terminated with an error message.
+    - 5a.1. System displays the error message “Failed to add WSDL: X” (where “X” is the termination message from the downloading and parsing process).
+    - 5a.2. System logs the event “Add WSDL failed” to the audit log.
+    - 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
-> 4a.1. System displays the error message “Failed to add WSDL: WSDL
-> address already exists.”.
->
-> 4a.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
+- 6a. The location of the WSDL validator is not set.
+    - 6a.1. System skips the process of validation.
+    - 6a.2. Use case continues from step 7.
 
-5a. The process of downloading and parsing the WSDL file terminated with
-an error message.
+- 6b. The process of validating the WSDL file was terminated with an error message.
+    - 6b.1. System displays the WSDL validator output describing the reason of the failure, and the error message from the validation process.
+    - 6b.2. System logs the event “Add WSDL failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 6b.3a. SS administrator selects to terminate the use case.
 
-> 5a.1. System displays the error message “Failed to add WSDL: X” (where
-> “X” is the termination message from the downloading and parsing
-> process).
->
-> 5a.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 5a.3a. SS administrator selects to terminate the use case.
+- 6c. The process of validating the WSDL file was finished with a warning message.
+    - 6c.1. System prompts the warning message from the validation process. “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue? (where “X” is the URL of the WSDL and “Y” is the message from the validation process).
+    - 6c.2. SS administrator chooses to continue with adding the WSDL. Use case continues from step 7.
+        - 6c.2a. SS administrator selects to terminate the use case.
 
-6a. The location of the WSDL validator is not set.
+- 6d. The address of the WSDL validator program is incorrect and system was not able to run the validation program.
+    - 6d.1. System displays the error message “Running WSDL validator failed. Command not found.”.
+    - 6d.2. System logs the event “Add WSDL failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 6b.3a. SS administrator selects to terminate the use case.
 
-> 6a.1. System skips the process of validation.
->
-> 6a.2. Use case continues from step 7.
+- 6e. The address of the WSDL validator refers to non-executable file and system was not able to run the validation program.
+    - 6e.1. System displays the error message “Running WSDL validator failed. Command not executable.”.
+    - 6e.2. System logs the event “Add WSDL failed” to the audit log.
+    - 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 6b.3a. SS administrator selects to terminate the use case.
 
-6b. The process of validating the WSDL file was terminated with an error
-message.
-
-> 6b.1. System displays the WSDL validator output describing the reason
-> of the failure, and the error message from the validation process.
->
-> 6b.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 6b.3a. SS administrator selects to terminate the use case.
-
-6c. The process of validating the WSDL file was finished with a warning
-message.
-
-> 6c.1. System prompts the warning message from the validation process.
-> “WSDL ('X') validation gave the following warnings: 'Y'. Do you want
-> to continue? (where “X” is the URL of the WSDL and “Y” is the message
-> from the validation process).
->
-> 6c.2. SS administrator chooses to continue with adding the WSDL. Use
-> case continues from step 7.
->
-> 6c.2a. SS administrator selects to terminate the use case.
-
-6d. The address of the WSDL validator program is incorrect and system
-was not able to run the validation program.
-
-> 6d.1. System displays the error message “Running WSDL validator
-> failed. Command not found.”.
->
-> 6d.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 6b.3a. SS administrator selects to terminate the use case.
-
-6e. The address of the WSDL validator refers to non-executable file and
-system was not able to run the validation program.
-
-> 6e.1. System displays the error message “Running WSDL validator
-> failed. Command not executable.”.
->
-> 6e.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 6b.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 6b.3a. SS administrator selects to terminate the use case.
-
-7a. A service with the same service code and version values as a service
-read from the WSDL file was found for this client in the system
-configuration.
-
-> 7a.1. System displays the error message "Failed to add WSDL: Duplicate
-> service. Service 'X' already exists in WSDL 'Y'" (where “X” is the
-> code.version of the service and “Y” is the URL of the existing WSDL
-> where the duplicate service was found).
->
-> 7a.2. System logs the event “Add WSDL failed” to the audit log.
->
-> 7a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 7a.3a. SS administrator selects to terminate the use case.
+- 7a. A service with the same service code and version values as a service read from the WSDL file was found for this client in the system configuration.
+    - 7a.1. System displays the error message "Failed to add WSDL: Duplicate service. Service 'X' already exists in WSDL 'Y'" (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL where the duplicate service was found).
+    - 7a.2. System logs the event “Add WSDL failed” to the audit log.
+    - 7a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 7a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -764,7 +698,7 @@ configuration.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### UC SERVICE\_09: Edit the Address of a WSDL
+### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL
 
 **System**: Security server
 
@@ -799,43 +733,23 @@ configuration.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Edit WSDL failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+    - 3a.3a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “X” (where “X” is the
-> termination message from the parsing process).
->
-> 3a.2. System logs the event “Edit WSDL failed” to the audit log.
->
-> 3a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
+- 4a. The inserted URL already exists.
+    - 4a.1. System displays the error message “Failed to edit WSDL: WSDL address already exists.”.
+    - 4a.2. System logs the event “Edit WSDL failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
-4a. The inserted URL already exists.
-
-> 4a.1. System displays the error message “Failed to edit WSDL: WSDL
-> address already exists.”.
->
-> 4a.2. System logs the event “Edit WSDL failed” to the audit log.
->
-> 4a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
-
-5a. The process of refreshing the WSDL file terminated with an error
-message.
-
-> 5a.1. System displays the error message “Failed to edit WSDL: 'X'”
-> (where “X” is the termination message from the refreshing process).
->
-> 5a.2. System logs the event “Edit WSDL failed” to the audit log.
->
-> 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use
-> case continues from step 3.
->
-> 5a.3a. SS administrator selects to terminate the use case.
+- 5a. The process of refreshing the WSDL file terminated with an error message.
+    - 5a.1. System displays the error message “Failed to edit WSDL: 'X'” (where “X” is the termination message from the refreshing process).
+    - 5a.2. System logs the event “Edit WSDL failed” to the audit log.
+    - 5a.3. SS administrator selects to reinsert the URL of the WSDL. Use case continues from step 3.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -843,7 +757,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_10: Download and Parse WSDL
+### 3.1.11 UC SERVICE\_10: Download and Parse WSDL
 
 **System**: Security server
 
@@ -893,25 +807,17 @@ given URL and reads the service descriptions from the WSDL file.
 
 **Extensions**:
 
-1a. The URL is malformed.
+- 1a. The URL is malformed.
+    - 1a.1. Use case terminates with the error message “Malformed URL. WSDL URL must point to a WSDL file.”.
 
-> 1a.1. Use case terminates with the error message “Malformed URL. WSDL
-> URL must point to a WSDL file.”.
+- 2a. Downloading of the WSDL file failed.
+    - 2a.1. Use case terminates with the error message “Downloading WSDL failed. WSDL URL must point to a WSDL file.”.
 
-2a. Downloading of the WSDL file failed.
+- 2b. The URL points to data that is not a valid XML file.
+    - 2b.1. Use case terminates with the error message “Incorrect file structure. WSDL URL must point to a WSDL file.”.
 
-> 2a.1. Use case terminates with the error message “Downloading WSDL
-> failed. WSDL URL must point to a WSDL file.”.
-
-2b. The URL points to data that is not a valid XML file.
-
-> 2b.1. Use case terminates with the error message “Incorrect file
-> structure. WSDL URL must point to a WSDL file.”.
-
-3a. The validation of the WSDL failed.
-
-> 3a.1. Use case terminates with an error message describing the
-> validation exception.
+- 3a. The validation of the WSDL failed.
+    - 3a.1. Use case terminates with an error message describing the validation exception.
 
 **Related** **information**: -
 
@@ -946,28 +852,18 @@ described by the system parameter *wsdl-validator-command*.
 
 **Extensions**:
 
-1a. Validation errors were detected by WSDL validation program while
-validating the WSDL file.
+- 1a. Validation errors were detected by WSDL validation program while validating the WSDL file.
+    - 1a.1. Use case terminates with an error message “WSDL ('X') validation failed” and displays the WSDL validator output „Y” (where 'X' is the URL of the WSDL and 'Y' is the reason of the failure).
 
-> 1a.1. Use case terminates with an error message “WSDL ('X') validation
-> failed” and displays the WSDL validator output „Y” (where 'X' is the
-> URL of the WSDL and 'Y' is the reason of the failure).
+- 1b. Warnings were detected by WSDL validation program while validating the WSDL file.
+    - 1b.1. Use case terminates with a warning message “'X'” (where 'X' is the warning message).
 
-1b. Warnings were detected by WSDL validation program while validating
-the WSDL file.
-
-> 1b.1. Use case terminates with a warning message “'X'” (where 'X' is
-> the warning message).
-
-1c. The validation program crashed while validating the WSDL file.
-
-> 1c.1. Use case terminates with an error message “WSDL ('X') validation
-> failed” and displays the WSDL validator output „Y” (where 'X' is the
-> URL of the WSDL and 'Y' is the reason of the failure).
+- 1c. The validation program crashed while validating the WSDL file.
+    - 1c.1. Use case terminates with an error message “WSDL ('X') validation failed” and displays the WSDL validator output „Y” (where 'X' is the URL of the WSDL and 'Y' is the reason of the failure).
 
 **Related** **information**: -
 
-### UC SERVICE\_11: Parse User Input
+### 3.1.12 UC SERVICE\_11: Parse User Input
 
 **System**: Security server, central server
 
@@ -1018,19 +914,15 @@ that the input is well formatted.
 
 **Extensions**:
 
-2a. One or more mandatory fields are not filled.
+- 2a. One or more mandatory fields are not filled.
+    - 2a.1. Use case terminates with the error message “Missing parameter: 'X'” (where “X” is the name of the missing parameter).
 
-> 2a.1. Use case terminates with the error message “Missing parameter:
-> 'X'” (where “X” is the name of the missing parameter).
-
-3a. The user input exceeds 255 characters.
-
-> 3a.1. Use case terminates with the error message "Parameter 'X' input
-> exceeds 255 characters" (where “X” is the name of the parameter).
+- 3a. The user input exceeds 255 characters.
+    - 3a.1. Use case terminates with the error message "Parameter 'X' input exceeds 255 characters" (where “X” is the name of the parameter).
 
 **Related** **information**: -
 
-### UC SERVICE\_12: Enable a WSDL
+### 3.1.13 UC SERVICE\_12: Enable a WSDL
 
 **System**: Security server
 
@@ -1070,7 +962,7 @@ WSDL available for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_13: Disable a WSDL
+### 3.1.14 UC SERVICE\_13: Disable a WSDL
 
 **System**: Security server
 
@@ -1113,20 +1005,13 @@ WSDL unavailable for the service clients.
 
 **Extensions**:
 
-3a. SS administrator terminates the use case.
+- 3a. SS administrator terminates the use case.
 
-4a. The process of parsing the user input terminated with an error
-message.
-
-> 4a.1. System displays the error message “X” (where “X” is the
-> termination message from the parsing process).
->
-> 4a.2. System logs the event “Disable WSDL failed” to the audit log.
->
-> 4a.3. SS administrator selects to reinsert the message. Use case
-> continues from step 4.
->
-> 4a.3a. SS administrator selects to terminate the use case.
+- 4a. The process of parsing the user input terminated with an error message.
+    - 4a.1. System displays the error message “X” (where “X” is the termination message from the parsing process).
+    - 4a.2. System logs the event “Disable WSDL failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the message. Use case continues from step 4.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -1134,7 +1019,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_14: Refresh a WSDL
+### 3.1.15 UC SERVICE\_14: Refresh a WSDL
 
 **System**: Security server
 
@@ -1183,105 +1068,49 @@ reloads the WSDL file from the WSDL address.
 
 **Extensions**:
 
-2a. The process of downloading and parsing the WSDL file terminated with
-an error message.
+- 2a. The process of downloading and parsing the WSDL file terminated with an error message.
+    - 2a.1. System displays the error message “X” (where “X” is the termination message from the downloading and parsing process).
+    - 2a.2. System logs the event “Refresh WSDL failed” to the audit log.
+        - 2a.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+    - 2a.3. Use case terminates.
 
-> 2a.1. System displays the error message “X” (where “X” is the
-> termination message from the downloading and parsing process).
->
-> 2a.2. System logs the event “Refresh WSDL failed” to the audit log.
->
-> 2a.2a. The process of refreshing the WSDL was triggered from the use
-> case 3.1.10. Use case terminates.
->
-> 2a.3. Use case terminates.
+- 3a. The location of the WSDL validator is not set.
+    - 3a.1. System skips the process of validation.
+    - 3a.2. Use case continues from step 4.
 
-3a. The location of the WSDL validator is not set.
+- 3b. The process of validating the WSDL file was terminated with an error message.
+    - 3b.1. System displays WSDL validator output describing the reason of the failure, and the error message from the validation process.
+    - 3b.2. System logs the event “Refresh WSDL failed” to the audit log.
+        - 3b.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10 . Use case terminates.
+    - 3b.3. Use case terminates.
 
-> 3a.1. System skips the process of validation.
->
-> 3a.2. Use case continues from step 4.
+- 3c. The process of validating the WSDL file was finished with a warning message.
+    - 3c.1. System prompts the warning message “WSDL ('X') validation gave the following warnings: 'Y'. Do you want to continue?” (where “X” is the URL of the WSDL and “Y” is the message from the validation process).
+    - 3c.2. SS administrator chooses to continue with the refreshing process. Use case continues from step 4.
+        - 3c.2a. SS administrator selects to terminate the use case.
 
-3b. The process of validating the WSDL file was terminated with an error
-message.
+- 3d. The address of the WSDL validator program is incorrect and system was not able to run the validation program.
+    - 3d.1. System displays the error message “Running WSDL validator failed. Command not found.”.
+    - 3d.2. System logs the event “Refresh WSDL failed” to the audit log.
+        - 3d.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+    - 3d.3. Use case terminates.
 
-> 3b.1. System displays WSDL validator output describing the reason of
-> the failure, and the error message from the validation process.
->
-> 3b.2. System logs the event “Refresh WSDL failed” to the audit log.
->
-> 3b.2a. The process of refreshing the WSDL was triggered from the use
-> case 3.1.10 . Use case terminates.
->
-> 3b.3. Use case terminates.
+- 3e. The address of the WSDL validator refers to non-executable file and system was not able to run the validation program.
+    - 3e.1. System displays the error message “Running WSDL validator failed. Command not executable.”.
+    - 3e.2. System logs the event “Refresh WSDL failed” to the audit log.
+        - 3e.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10 . Use case terminates.
+    - 3e.3. Use case terminates.
 
-3c. The process of validating the WSDL file was finished with a warning
-message.
+- 4a. A service with the same service code and version values as a service read from the WSDL file is described in another WSDL of the service client.
+    - 4a.1. System displays the error message “Duplicate service. Service 'X' already exists in WSDL 'Y'” (where “X” is the code.version of the service and “Y” is the URL of the existing WSDL where the duplicate service was found).
+    - 4a.2. System logs the event “Refresh WSDL failed” to the audit log.
+        - 4a.2a. The process of refreshing the WSDL was triggered from the use case 3.1.10. Use case terminates.
+    - 4a.3. Use case terminates.
 
-> 3c.1. System prompts the warning message “WSDL ('X') validation gave
-> the following warnings: 'Y'. Do you want to continue?” (where “X” is
-> the URL of the WSDL and “Y” is the message from the validation
-> process).
->
-> 3c.2. SS administrator chooses to continue with the refreshing
-> process. Use case continues from step 4.
->
-> 3c.2a. SS administrator selects to terminate the use case.
-
-3d. The address of the WSDL validator program is incorrect and system
-was not able to run the validation program.
-
-> 3d.1. System displays the error message “Running WSDL validator
-> failed. Command not found.”.
->
-> 3d.2. System logs the event “Refresh WSDL failed” to the audit log.
->
-> 3d.2a. The process of refreshing the WSDL was triggered from the use
-> case 3.1.10. Use case terminates.
->
-> 3d.3. Use case terminates.
-
-3e. The address of the WSDL validator refers to non-executable file and
-system was not able to run the validation program.
-
-> 3e.1. System displays the error message “Running WSDL validator
-> failed. Command not executable.”.
->
-> 3e.2. System logs the event “Refresh WSDL failed” to the audit log.
->
-> 3e.2a. The process of refreshing the WSDL was triggered from the use
-> case 3.1.10 . Use case terminates.
->
-> 3e.3. Use case terminates.
-
-4a. A service with the same service code and version values as a service
-read from the WSDL file is described in another WSDL of the service
-client.
-
-> 4a.1. System displays the error message “Duplicate service. Service
-> 'X' already exists in WSDL 'Y'” (where “X” is the code.version of the
-> service and “Y” is the URL of the existing WSDL where the duplicate
-> service was found).
->
-> 4a.2. System logs the event “Refresh WSDL failed” to the audit log.
->
-> 4a.2a. The process of refreshing the WSDL was triggered from the use
-> case 3.1.10. Use case terminates.
->
-> 4a.3. Use case terminates.
-
-5a. The composition of the services in the downloaded WSDL differ from
-the current version.
-
-> 5a.1. System prompts the warning “Adding services: 'X' Deleting
-> services: 'Y'” (where “X” and “Y” is the list of the service codes
-> that have been added to or removed from the WSDL) and asks for
-> confirmation to continue.
->
-> 5a.2. SS administrator selects to continue with the refreshing
-> process. Use case continues from step 6.
->
-> 5a.2a. SS administrator selects to terminate the use case.
+- 5a. The composition of the services in the downloaded WSDL differ from the current version.
+    - 5a.1. System prompts the warning “Adding services: 'X' Deleting services: 'Y'” (where “X” and “Y” is the list of the service codes that have been added to or removed from the WSDL) and asks for confirmation to continue.
+    - 5a.2. SS administrator selects to continue with the refreshing process. Use case continues from step 6.
+        - 5a.2a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -1292,7 +1121,7 @@ the current version.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### UC SERVICE\_15: Delete a WSDL
+### 3.1.16 UC SERVICE\_15: Delete a WSDL
 
 **System**: Security server
 
@@ -1328,7 +1157,7 @@ server client's list of WSDLs.
 
 **Extensions**:
 
-3a. SS administrator terminates the use case.
+- 3a. SS administrator terminates the use case.
 
 **Related** **information**:
 
@@ -1336,7 +1165,7 @@ server client's list of WSDLs.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_16: View the Access Rights of a Service
+### 3.1.17 UC SERVICE\_16: View the Access Rights of a Service
 
 **System**: Security server
 
@@ -1374,18 +1203,17 @@ security server client's service.
 
     -   the date of when the access right to the service was granted.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   add access rights to the service: 3.1.19;
-
--   remove subjects from the access rights list of the service: 3.1.20.
+    -   add access rights to the service: 3.1.19;
+    
+    -   remove subjects from the access rights list of the service: 3.1.20.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_17: Add Access Rights to a Service
+### 3.1.18 UC SERVICE\_17: Add Access Rights to a Service
 
 **System**: Security server
 
@@ -1435,7 +1263,7 @@ security server client's service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_18: Remove Access Rights from a Service
+### 3.1.19 UC SERVICE\_18: Remove Access Rights from a Service
 
 **System**: Security server
 
@@ -1481,7 +1309,7 @@ rights list of a service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_19: Edit the Address of a Service
+### 3.1.20 UC SERVICE\_19: Edit the Address of a Service
 
 **System**: Security server
 
@@ -1520,36 +1348,20 @@ service.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the termination message from the parsing process.
+    - 3a.2. System logs the event “Edit service parameters failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the URL. Use case continues from step 3.
+    - 3a.3a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message from the parsing
-> process.
->
-> 3a.2. System logs the event “Edit service parameters failed” to the
-> audit log.
->
-> 3a.3. SS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
+- 4a. SS administrator inserted an invalid URL.
+    - 4a.1. System displays the error message “Invalid URL format, must begin with 'http' or 'https'”.
+    - 4a.2. System logs the event “Edit service parameters failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the URL. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
-4a. SS administrator inserted an invalid URL.
-
-> 4a.1. System displays the error message “Invalid URL format, must
-> begin with 'http' or 'https'”.
->
-> 4a.2. System logs the event “Edit service parameters failed” to the
-> audit log.
->
-> 4a.3. SS administrator selects to reinsert the URL. Use case continues
-> from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
-
-5a. The protocol part of the URL is “http”.
-
-> 5a.1. Use case continues from step 6.
+- 5a. The protocol part of the URL is “http”.
+    - 5a.1. Use case continues from step 6.
 
 **Related** **information**:
 
@@ -1557,7 +1369,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
+### 3.1.21 UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
 
 **System**: Security server
 
@@ -1605,7 +1417,7 @@ verification option.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_21: Edit the Timeout Value of a Service
+### 3.1.22 UC SERVICE\_21: Edit the Timeout Value of a Service
 
 **System**: Security server
 
@@ -1641,47 +1453,24 @@ value.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the termination message from the parsing process.
+    - 3a.2. System logs the event “Edit service parameters failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the timeout value. Use case continues from step 3.
+        - 3a.3a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message from the parsing
-> process.
->
-> 3a.2. System logs the event “Edit service parameters failed” to the
-> audit log.
->
-> 3a.3. SS administrator selects to reinsert the timeout value. Use case
-> continues from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
+- 4a. The inserted timeout value is 0.
+    - 4a.1. System displays a warning message “A timeout value of zero is interpreted as an infinite timeout.” and asks for confirmation for continuing.
+    - 4a.2. SS administrator selects to reinsert the timeout value. Use case continues from step 3.
+        - 4a.2a. SS administrator selects to terminate the use case.
+        - 4a.2b. SS administrator chooses to continue.
+            - 4a.2b.1. Use case continues from step 5.
 
-4a. The inserted timeout value is 0.
-
-> 4a.1. System displays a warning message “A timeout value of zero is
-> interpreted as an infinite timeout.” and asks for confirmation for
-> continuing.
->
-> 4a.2. SS administrator selects to reinsert the timeout value. Use case
-> continues from step 3.
->
-> 4a.2a. SS administrator selects to terminate the use case.
->
-> 4a.2b. SS administrator chooses to continue.
->
-> 4a.2b.1. Use case continues from step 5.
-
-4b. The inserted timeout value is not a positive integer.
-
-> 4b.1. System displays the error message “Timeout value must be a
-> positive integer.”
->
-> 4b.2. System logs the event “Edit service parameters failed” to the
-> audit log.
->
-> 4a.3. SS administrator selects to reinsert the timeout value. Use case
-> continues from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
+- 4b. The inserted timeout value is not a positive integer.
+    - 4b.1. System displays the error message “Timeout value must be a positive integer.”
+    - 4b.2. System logs the event “Edit service parameters failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the timeout value. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -1689,7 +1478,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
+### 3.1.23 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
 
 **System**: Security server
 
@@ -1736,7 +1525,7 @@ service to all the services in the WSDL where the service is described.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_23: View the Local Groups of a Security Server Client
+### 3.1.24 UC SERVICE\_23: View the Local Groups of a Security Server Client
 
 **System**: Security server
 
@@ -1773,18 +1562,17 @@ security server client.
 
     -   the date of when the local group was last updated.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the following actions:
 
--   view the members of a local group: 3.1.26;
-
--   add a local group for the security server client: 3.1.27.
+    -   view the members of a local group: 3.1.26;
+    
+    -   add a local group for the security server client: 3.1.27.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_24: View the Details of a Local Group
+### 3.1.25 UC SERVICE\_24: View the Details of a Local Group
 
 **System**: Security server
 
@@ -1820,22 +1608,21 @@ group.
 
     -   the date of when the member was added to the local group.
 
-> The SS administrator has a possibility to choose amongst the following
-> actions:
+    The SS administrator has a possibility to choose amongst the followingactions:
 
--   add group members to the local group: 3.1.28;
-
--   remove group members from the local group: 3.1.29;
-
--   edit the description of the local group: 3.1.30;
-
--   delete the local group: 3.1.31.
+    -   add group members to the local group: 3.1.28;
+    
+    -   remove group members from the local group: 3.1.29;
+    
+    -   edit the description of the local group: 3.1.30;
+    
+    -   delete the local group: 3.1.31.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_25: Add a Local Group for a Security Server Client
+### 3.1.26 UC SERVICE\_25: Add a Local Group for a Security Server Client
 
 **System**: Security server
 
@@ -1876,29 +1663,17 @@ server client.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the termination message of the parsing process.
+    - 3a.2. System logs the event “Add group failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the group information. Use case continues from step 3.
+        - 3a.3a. SS administrator selects to terminate the use case.
 
-> 3a.1. System displays the termination message of the parsing process.
->
-> 3a.2. System logs the event “Add group failed” to the audit log.
->
-> 3a.3. SS administrator selects to reinsert the group information. Use
-> case continues from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
-
-4a. SS administrator inserted a group code that already exists.
-
-> 4a.1. System displays the error message “A group with code 'X' already
-> exists” (where “X” is the group code).
->
-> 4a.2. System logs the event “Add group failed” to the audit log.
->
-> 4a.3. SS administrator selects to reinsert the group code. Use case
-> continues from step 3.
->
-> 4a.3a. SS administrator selects to terminate the use case.
+- 4a. SS administrator inserted a group code that already exists.
+    - 4a.1. System displays the error message “A group with code 'X' already exists” (where “X” is the group code).
+    - 4a.2. System logs the event “Add group failed” to the audit log.
+    - 4a.3. SS administrator selects to reinsert the group code. Use case continues from step 3.
+        - 4a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -1906,7 +1681,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_26: Add Members to a Local Group
+### 3.1.27 UC SERVICE\_26: Add Members to a Local Group
 
 **System**: Security server
 
@@ -1954,7 +1729,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_27: Remove Members from a Local Group
+### 3.1.28 UC SERVICE\_27: Remove Members from a Local Group
 
 **System**: Security server
 
@@ -2000,7 +1775,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_28: Edit the Description of a Local Group
+### 3.1.29 UC SERVICE\_28: Edit the Description of a Local Group
 
 **System**: Security server
 
@@ -2035,19 +1810,11 @@ group.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
-
-> 3a.1. System displays the termination message from the parsing
-> process.
->
-> 3a.2. System logs the event “Edit group description failed” to the
-> audit log.
->
-> 3a.3. SS administrator selects to reinsert the group description. Use
-> case continues from step 3.
->
-> 3a.3a. SS administrator selects to terminate the use case.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the termination message from the parsing process.
+    - 3a.2. System logs the event “Edit group description failed” to the audit log.
+    - 3a.3. SS administrator selects to reinsert the group description. Use case continues from step 3.
+        - 3a.3a. SS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -2055,7 +1822,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_29: Delete a Local Group
+### 3.1.30 UC SERVICE\_29: Delete a Local Group
 
 **System**: Security server
 
@@ -2099,10 +1866,10 @@ the X-Road subsystems that were the members of this group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-Central Server
+3.2 Central Server
 --------------
 
-### Actors
+### 3.2.1 Actors
 
 The X-Road central server service management use case model includes the
 following actor:
@@ -2113,13 +1880,11 @@ following actor:
 The relationships between the actor, system and use cases are described
 in Figure 2.
 
-![](media/image4.png){width="6.208333333333333in"
-height="4.364583333333333in"}
+![](img/central_server_use_case_diagram_for_service_and_access_right_management.PNG)
 
-Figure []{#Ref_Central_server_use_case_diagram_for .anchor}2. Central
-server use case diagram for service and access rights management
+Figure 2. Central server use case diagram for service and access rights management
 
-### UC SERVICE\_30: View Global Groups
+### 3.2.2 UC SERVICE\_30: View Global Groups
 
 **System**: Central server
 
@@ -2154,18 +1919,17 @@ administrator.
 
     -   the date and time of when the global group was last updated.
 
-> The CS administrator has a possibility to choose amongst the following
-> actions:
+    The CS administrator has a possibility to choose amongst the following actions:
 
--   view the members of a global group: 3.2.3;
-
--   add a global group: 3.2.4.
+    -   view the members of a global group: 3.2.3;
+    
+    -   add a global group: 3.2.4.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_31: View the Details of a Global Group
+### 3.2.3 UC SERVICE\_31: View the Details of a Global Group
 
 **System**: Central server
 
@@ -2202,22 +1966,21 @@ group.
     -   the date and time of when the member was added to the global
         group.
 
-> The CS administrator has a possibility to choose amongst the following
-> actions:
+    The CS administrator has a possibility to choose amongst the following actions:
 
--   add members to the global group: 3.2.5;
-
--   remove group members from the global group: 3.2.6;
-
--   edit the description of the global group: 3.2.7;
-
--   delete the global group: 3.2.11.
+    -   add members to the global group: 3.2.5;
+    
+    -   remove group members from the global group: 3.2.6;
+    
+    -   edit the description of the global group: 3.2.7;
+    
+    -   delete the global group: 3.2.11.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_32: Add a Global Group
+### 3.2.4 UC SERVICE\_32: Add a Global Group
 
 **System**: Central server
 
@@ -2254,32 +2017,17 @@ central server.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “Failed to add global group: 'X'” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Add global group failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the group information. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “Failed to add global group:
-> 'X'” (where “X” is the termination message from the parsing process).
->
-> 3a.2. System logs the event “Add global group failed” to the audit
-> log.
->
-> 3a.3. CS administrator selects to reinsert the group information. Use
-> case continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. CS administrator inserted a group code that already exists.
-
-> 4a.1. System displays the error message “Failed to add global group:
-> group code 'X' has already been taken” (where “X” is the group code).
->
-> 4a.2. System logs the event “Add global group failed” to the audit
-> log.
->
-> 4a.3. CS administrator selects to reinsert the group code. Use case
-> continues from step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. CS administrator inserted a group code that already exists.
+    - 4a.1. System displays the error message “Failed to add global group: group code 'X' has already been taken” (where “X” is the group code).
+    - 4a.2. System logs the event “Add global group failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the group code. Use case continues from step 3.
+        - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -2287,7 +2035,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_33: Add Members to a Global Group
+### 3.2.5 UC SERVICE\_33: Add Members to a Global Group
 
 **System**: Central server
 
@@ -2333,7 +2081,7 @@ access rights granted for the group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_34: Remove Members from a Global Group
+### 3.2.6 UC SERVICE\_34: Remove Members from a Global Group
 
 **System**: Central server
 
@@ -2379,7 +2127,7 @@ global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_35: Edit the Description of a Global Group
+### 3.2.7 UC SERVICE\_35: Edit the Description of a Global Group
 
 **System**: Central server
 
@@ -2415,19 +2163,11 @@ global group.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
-
-> 3a.1. System displays the error message “'X'” (where “X” is the
-> termination message from the parsing process).
->
-> 3a.2. System logs the event “Edit global group description failed” to
-> the audit log.
->
-> 3a.3. CS administrator selects to reinsert the group description. Use
-> case continues from step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “'X'” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Edit global group description failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the group description. Use case continues from step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -2435,7 +2175,7 @@ message.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_36: View the Global Group Membership of an X-Road Member
+### 3.2.8 UC SERVICE\_36: View the Global Group Membership of an X-Road Member
 
 **System**: Central server
 
@@ -2472,21 +2212,20 @@ member belongs to.
     -   the code of the member's subsystem, if the member has joined the
         group as a subsystem.
 
-> The CS administrator has a possibility to choose amongst the following
-> actions:
+    The CS administrator has a possibility to choose amongst the following actions:
 
--   add the member or member's subsystem to a group: 3.2.9;
-
--   view the details of the global group the member or member's
-    subsystem belongs to: 3.2.3;
-
--   remove the member or a member's subsystem from a group: 3.2.10;
+    -   add the member or member's subsystem to a group: 3.2.9;
+    
+    -   view the details of the global group the member or member's
+        subsystem belongs to: 3.2.3;
+    
+    -   remove the member or a member's subsystem from a group: 3.2.10;
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group
+### 3.2.9 UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group
 
 **System**: Central server
 
@@ -2538,7 +2277,7 @@ member's subsystem to a global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group
+### 3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group
 
 **System**: Central server
 
@@ -2585,7 +2324,7 @@ member's subsystem from a global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_39: Delete a Global Group
+### 3.2.11 UC SERVICE\_39: Delete a Global Group
 
 **System**: Central server
 
@@ -2619,7 +2358,7 @@ the X-Road members and subsystems that were the members of this group.
 
 **Extensions**:
 
-3a. CS administrator terminates the use case.
+- 3a. CS administrator terminates the use case.
 
 **Related** **information**:
 
@@ -2627,7 +2366,7 @@ the X-Road members and subsystems that were the members of this group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### UC SERVICE\_40: View Central Services
+### 3.2.12 UC SERVICE\_40: View Central Services
 
 **System**: Central server
 
@@ -2659,20 +2398,19 @@ services.
 
     -   the X-Road identifier of the implementing service.
 
-> The CS administrator has a possibility to choose amongst the following
-> actions:
+    The CS administrator has a possibility to choose amongst the following actions:
 
--   add a central service: 3.2.13;
-
--   change the implementing service of a central service: 3.2.14;
-
--   delete a central service: 3.2.15.
+    -   add a central service: 3.2.13;
+    
+    -   change the implementing service of a central service: 3.2.14;
+    
+    -   delete a central service: 3.2.15.
 
 **Extensions**: -
 
 **Related** **information**: -
 
-### UC SERVICE\_41: Add a Central Service
+### 3.2.13 UC SERVICE\_41: Add a Central Service
 
 **System**: Central server
 
@@ -2718,50 +2456,23 @@ the central server.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “Failed to save central service: 'X'” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Add central service failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the central service information. Use case continues form step 3.
+        - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “Failed to save central
-> service: 'X'” (where “X” is the termination message from the parsing
-> process).
->
-> 3a.2. System logs the event “Add central service failed” to the audit
-> log.
->
-> 3a.3. CS administrator selects to reinsert the central service
-> information. Use case continues form step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
+- 4a. A central service with the inserted central service code already exists.
+    - 4a.1. System displays the error message “Failed to save central service: central service code 'X' has already been taken”, where “X” is the inserted code.
+    - 4a.2. System logs the event “Add central service failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the code of the central service. Use case continues form step 3.
+        - 4a.3.a. CS administrator selects to terminate the use case.
 
-4a. A central service with the inserted central service code already
-exists.
-
-> 4a.1. System displays the error message “Failed to save central
-> service: central service code 'X' has already been taken”, where “X”
-> is the inserted code.
->
-> 4a.2. System logs the event “Add central service failed” to the audit
-> log.
->
-> 4a.3. CS administrator selects to reinsert the code of the central
-> service. Use case continues form step 3.
->
-> 4a.3.a. CS administrator selects to terminate the use case.
-
-5a. The provider of the inserted implementing service is not registered
-as an X-Road member or subsystem.
-
-> 5a.1. System displays the error message “Failed to save central
-> service: Provider with ID 'X' not found” (where “X” is the X-Road
-> identifier of the inserted implementing service provider).
->
-> 5a.2. System logs the event “Add central service failed” to the audit
-> log.
->
-> 5a.3. CS administrator selects to reinsert the implementing service
-> identifier. Use case continues form step 3.
->
-> 5a.3a. CS administrator selects to terminate the use case.
+- 5a. The provider of the inserted implementing service is not registered as an X-Road member or subsystem.
+    - 5a.1. System displays the error message “Failed to save central service: Provider with ID 'X' not found” (where “X” is the X-Road identifier of the inserted implementing service provider).
+    - 5a.2. System logs the event “Add central service failed” to the audit log.
+    - 5a.3. CS administrator selects to reinsert the implementing service identifier. Use case continues form step 3.
+        - 5a.3a. CS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -2769,7 +2480,7 @@ as an X-Road member or subsystem.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_42: Edit the Implementing Service of a Central Service
+### 3.2.14 UC SERVICE\_42: Edit the Implementing Service of a Central Service
 
 **System**: Central server
 
@@ -2808,35 +2519,17 @@ a central service.
 
 **Extensions**:
 
-3a. The process of parsing the user input terminated with an error
-message.
+- 3a. The process of parsing the user input terminated with an error message.
+    - 3a.1. System displays the error message “Failed to update central service: 'X'” (where “X” is the termination message from the parsing process).
+    - 3a.2. System logs the event “Edit central service failed” to the audit log.
+    - 3a.3. CS administrator selects to reinsert the X-Road identifier of the implementing service. Use case continues form step 3.
+    - 3a.3a. CS administrator selects to terminate the use case.
 
-> 3a.1. System displays the error message “Failed to update central
-> service: 'X'” (where “X” is the termination message from the parsing
-> process).
->
-> 3a.2. System logs the event “Edit central service failed” to the audit
-> log.
->
-> 3a.3. CS administrator selects to reinsert the X-Road identifier of
-> the implementing service. Use case continues form step 3.
->
-> 3a.3a. CS administrator selects to terminate the use case.
-
-4a. The provider of the inserted implementing service is not an X-Road
-member or subsystem.
-
-> 4a.1. System displays the error message “Failed to update central
-> service: Provider with ID 'X' not found” (where “X” is the X-Road
-> identifier of the inserted implementing service provider).
->
-> 4a.2. System logs the event “Edit central service failed” to the audit
-> log.
->
-> 4a.3. CS administrator selects to reinsert the implementing service
-> identifier. Use case continues form step 3.
->
-> 4a.3a. CS administrator selects to terminate the use case.
+- 4a. The provider of the inserted implementing service is not an X-Road member or subsystem.
+    - 4a.1. System displays the error message “Failed to update central service: Provider with ID 'X' not found” (where “X” is the X-Road identifier of the inserted implementing service provider).
+    - 4a.2. System logs the event “Edit central service failed” to the audit log.
+    - 4a.3. CS administrator selects to reinsert the implementing service identifier. Use case continues form step 3.
+    - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related** **information**:
 
@@ -2844,7 +2537,7 @@ member or subsystem.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### UC SERVICE\_43: Delete a Central Service
+### 3.2.15 UC SERVICE\_43: Delete a Central Service
 
 **System**: Central server
 
@@ -2876,7 +2569,7 @@ member or subsystem.
 
 **Extensions**:
 
-3a. CS administrator terminates the use case.
+- 3a. CS administrator terminates the use case.
 
 **Related** **information**:
 

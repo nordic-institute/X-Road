@@ -57,11 +57,11 @@ This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-Introduction
-============
+1 Introduction
+==============
 
-Purpose
--------
+1.1 Purpose
+-----------
 
 The purpose of this document is to describe the use cases concerning the
 configuration proxy.
@@ -77,8 +77,8 @@ The use cases assume that the configuration proxy software is installed
 The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system.
 
-Terms and Abbreviations
------------------------
+1.2 Terms and Abbreviations
+---------------------------
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -139,8 +139,8 @@ document in addition to the general definition.
     configuration source and has been uploaded to the configuration
     proxy.
 
-References
-----------
+1.3 References
+--------------
 
 1.  <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] PKCS \#11 Cryptographic Token
     Interface Base Specification Version 2.40. Function return values.
@@ -155,8 +155,8 @@ References
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
-Overview
-========
+2 Overview
+==========
 
 The configuration proxy acts as an intermediary between X-Road servers
 in the matters of global configuration exchange.
@@ -168,11 +168,11 @@ distribute it in a secure way.
 The configuration proxy can be configured to mediate several global
 configurations (from multiple configuration sources).
 
-Use Case Model
-==============
+3 Use Case Model
+================
 
-Actors
-------
+3.1 Actors
+----------
 
 The use case model for the X-Road configuration proxy includes the
 following actors.
@@ -194,8 +194,8 @@ described in Figure 1.
 
 Figure 1. Use case diagram for the configuration proxy
 
-UC CP\_01: View Proxy Settings
-------------------------------
+3.2 UC CP\_01: View Proxy Settings
+----------------------------------
 
 **System**: Configuration proxy
 
@@ -234,53 +234,26 @@ configured configuration proxy instances.
 
 **Extensions**:
 
-1a. CP administrator selects to view the settings for a specific proxy
-instance.
+-  1a. CP administrator selects to view the settings for a specific proxy instance.
+    - 1a.1. System displays information from step 2 for the requested instance only.
 
-> 1a.1. System displays information from step 2 for the requested
-> instance only.
+-  1b. CP administrator selects to view the settings for a proxy instance that does not exist.
+    - 1b.1. System notifies CP administrator with the error message “Configuration for proxy instance '&lt;INSTANCE&gt;' does not exist.”, &lt;INSTANCE&gt; being the identifier of the proxy instance.
 
-1b. CP administrator selects to view the settings for a proxy instance
-that does not exist.
+-  1c. The configuration file for a configuration proxy instance is missing:
+    -  1c.1. System notifies CP administrator with the error message “'conf.ini' could not be loaded for proxy '&lt;INSTANCE&gt;': 'conf.ini' does not exist.”, &lt;INSTANCE&gt; being the identifier of the proxy instance.
 
-> 1b.1. System notifies CP administrator with the error message
-> “Configuration for proxy instance '&lt;INSTANCE&gt;' does not exist.”,
-> &lt;INSTANCE&gt; being the identifier of the proxy instance.
-
-1c. The configuration file for a configuration proxy instance is
-missing:
-
-> 1c.1. System notifies CP administrator with the error message
-> “'conf.ini' could not be loaded for proxy '&lt;INSTANCE&gt;':
-> 'conf.ini' does not exist.”, &lt;INSTANCE&gt; being the identifier of
-> the proxy instance.
-
-2a. Only partial configuration information for a proxy instance is
-available.
-
-> 2a.1. The settings are displayed with additional error messages. The
-> settings information may contain one or more of the following
-> messages:
-
--   trusted anchor is invalid or missing - “'anchor.xml' could not be
-    > loaded: IOError: /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml
-    > (No such file or directory)”, &lt;INSTANCE&gt; being the
-    > identifier of the proxy instance;
-
--   the active signing key has not been configured -
-    > “active-signing-key-id: NOT CONFIGURED (add
-    > 'active-signing-key-id' to 'conf.ini')”;
-
--   configuration validity interval has not been configured - “Validity
-    > interval: NOT CONFIGURED (add 'validity-interval-seconds' to
-    > 'conf.ini')”;
+-  2a. Only partial configuration information for a proxy instance is available.
+    -  2a.1. The settings are displayed with additional error messages. The settings information may contain one or more of the following messages:
+        -   trusted anchor is invalid or missing - “'anchor.xml' could not be loaded: IOError: /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml (No such file or directory)”, &lt;INSTANCE&gt; being the identifier of the proxy instance;
+        -   the active signing key has not been configured - “active-signing-key-id: NOT CONFIGURED (add 'active-signing-key-id' to 'conf.ini')”;
+        -   configuration validity interval has not been configured - “Validity interval: NOT CONFIGURED (add 'validity-interval-seconds' to 'conf.ini')”;
 
 **Related information**:
-
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_02: Create Proxy Instance
---------------------------------
+3.3 UC CP\_02: Create Proxy Instance
+------------------------------------
 
 **System**: Configuration proxy
 
@@ -313,12 +286,8 @@ specified identifier are available on the file system.
 
 **Extensions**:
 
-1a. Proxy instance with the specified identifier already exists:
-
-> 1a.1. System notifies CP administrator with the error message
-> “Configuration for instance '&lt;INSTANCE&gt;' already exists,
-> aborting.”, &lt;INSTANCE&gt; being the provided instance identifier,
-> and terminates the use case.
+- 1a. Proxy instance with the specified identifier already exists:
+    - 1a.1. System notifies CP administrator with the error message “Configuration for instance '&lt;INSTANCE&gt;' already exists, aborting.”, &lt;INSTANCE&gt; being the provided instance identifier, and terminates the use case.
 
 **Related information**:
 
@@ -326,8 +295,8 @@ specified identifier are available on the file system.
     /etc/xroad/confproxy/&lt;INSTANCE&gt;, where &lt;INSTANCE&gt; is the
     provided instance identifier. See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_03: Edit Settings File
------------------------------
+3.4 UC CP\_03: Edit Settings File
+---------------------------------
 
 **System**: Configuration proxy
 
@@ -375,8 +344,8 @@ the operation of the configuration proxy.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_04: Generate Configuration Source Anchor
------------------------------------------------
+3.5 UC CP\_04: Generate Configuration Source Anchor
+---------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -422,47 +391,27 @@ anchor for a configuration proxy instance.
 
 **Extensions**:
 
-1b. CP administrator selects to generate a configuration anchor for a
-proxy instance that does not exist:
+- 1b. CP administrator selects to generate a configuration anchor for a proxy instance that does not exist:
+    - 1b.1. System notifies CP administrator with the error message “Configuration for proxy instance '&lt;INSTANCE&gt;' does not exist.”, &lt;INSTANCE&gt; being the identifier of the proxy instance. The use case terminates.
 
-> 1b.1. System notifies CP administrator with the error message
-> “Configuration for proxy instance '&lt;INSTANCE&gt;' does not exist.”,
-> &lt;INSTANCE&gt; being the identifier of the proxy instance. The use
-> case terminates.
+- 2a. The source anchor for the proxy instance does not exist:
+    - 2a.1. System notifies CP administrator with the error message “Could not load source anchor: IOError: /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml (No such file or directory)”, &lt;INSTANCE&gt; being the identifier of the proxy instance. The use case terminates.
 
-2a. The source anchor for the proxy instance does not exist:
+- 2b. The configuration proxy address has not been configured:
+    - 2b.1. System notifies CP administrator with the error message “configuration-proxy.address has not been configured in 'local.ini'!”. The use case terminates.
 
-> 2a.1. System notifies CP administrator with the error message “Could
-> not load source anchor: IOError:
-> /etc/xroad/confproxy/&lt;INSTANCE&gt;/anchor.xml (No such file or
-> directory)”, &lt;INSTANCE&gt; being the identifier of the proxy
-> instance. The use case terminates.
+- 2c. No signing keys have been configured for the proxy instance:
+    - 2c.1. System notifies CP administrator with the error message “No signing keys configured!”. The use case terminates.
 
-2b. The configuration proxy address has not been configured:
-
-> 2b.1. System notifies CP administrator with the error message
-> “configuration-proxy.address has not been configured in 'local.ini'!”.
-> The use case terminates.
-
-2c. No signing keys have been configured for the proxy instance:
-
-> 2c.1. System notifies CP administrator with the error message “No
-> signing keys configured!”. The use case terminates.
-
-3a. CP administrator does not have permission to write to the file
-system:
-
-> 3a.1. System notifies CP administrator with the error message “Cannot
-> write anchor to '&lt;FILE&gt;', permission denied.”, &lt;FILE&gt;
-> being the file path provided by CP administrator. The use case
-> terminates.
+- 3a. CP administrator does not have permission to write to the file system:
+    - 3a.1. System notifies CP administrator with the error message “Cannot write anchor to '&lt;FILE&gt;', permission denied.”, &lt;FILE&gt; being the file path provided by CP administrator. The use case terminates.
 
 **Related information:**
 
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_05: Log In to a Software Security Token
-----------------------------------------------
+3.6 UC CP\_05: Log In to a Software Security Token
+--------------------------------------------------
 
 **System:** Configuration proxy
 
@@ -492,15 +441,13 @@ token available to the system.
 
 **Extensions:**
 
-3a. The entered PIN code is incorrect:
-
-> 3a.1. System displays the error message: “PIN incorrect” and
-> terminates the use case.
+- 3a. The entered PIN code is incorrect:
+    - 3a.1. System displays the error message: “PIN incorrect” and terminates the use case.
 
 **Related information:** -
 
-UC CP\_06: Log In to a Hardware Security Token
-----------------------------------------------
+3.7 UC CP\_06: Log In to a Hardware Security Token
+--------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -539,17 +486,13 @@ token available to the system.
 
 **Extensions**:
 
-3-4a. The login attempt failed (e.g., incorrect PIN was inserted, token
-is inaccessible).
-
-> 3-4a.1. System displays the error message: “Login failed: X”, where
-> “X” is the error code from the PKCS \#11 cryptographic token interface
-> (see \[[PKCS11](#Ref_PKCS11)\]) and terminates the use case.
+- 3-4a. The login attempt failed (e.g., incorrect PIN was inserted, token is inaccessible).
+    - 3-4a.1. System displays the error message: “Login failed: X”, where “X” is the error code from the PKCS \#11 cryptographic token interface (see \[[PKCS11](#Ref_PKCS11)\]) and terminates the use case.
 
 **Related information**: -
 
-UC CP\_07: Log Out of Software Security Token
----------------------------------------------
+3.8 UC CP\_07: Log Out of Software Security Token
+-------------------------------------------------
 
 **System:** Configuration proxy
 
@@ -585,8 +528,8 @@ token.
 
 **Related information**: -
 
-UC CP\_08: Log Out of a Hardware Security Token
------------------------------------------------
+3.9 UC CP\_08: Log Out of a Hardware Security Token
+---------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -614,16 +557,13 @@ token.
 
 **Extensions**:
 
-2a. The logout attempt failed (e.g., token is inaccessible).
-
-> 2a.1. System displays the error message: “Logout failed: X”, where “X”
-> is the error code from the PKCS \#11 cryptographic token interface
-> \[[PKCS11](#Ref_PKCS11)\] and terminates the use case.
+- 2a. The logout attempt failed (e.g., token is inaccessible).
+    - 2a.1. System displays the error message: “Logout failed: X”, where “X” is the error code from the PKCS \#11 cryptographic token interface \[[PKCS11](#Ref_PKCS11)\] and terminates the use case.
 
 **Related information**: -
 
-UC CP\_09: Add Configuration Source Signing Key
------------------------------------------------
+3.10 UC CP\_09: Add Configuration Source Signing Key
+----------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -662,28 +602,19 @@ instance (e.g., as a part of performing a regular key change).
 
 **Extensions**:
 
-2a. Key generation fails.
+- 2a. Key generation fails.
+    - 2a.1. System displays an error message: “Failed to generate signing key: X”, where “X” is the description of the error. If the key generation failed on a hardware security token, then “X” is the error code from the PKCS \#11 cryptographic token interface \[PKCS11\].
 
-> 2a.1. System displays an error message: “Failed to generate signing
-> key: X”, where “X” is the description of the error. If the key
-> generation failed on a hardware security token, then “X” is the error
-> code from the PKCS \#11 cryptographic token interface \[PKCS11\].
-
-2b. Generation of the self-signed certificate fails:
-
-> 2b.1. System deletes the generated key.
->
-> 2b.1a. Key deletion fails.
->
-> 2b.1a.1. Use case continues from step 2b.2.
->
-> 2b.2. System displays the error message: “Failed to generate signing
-> key: X”, where “X” is the description of the error.
+- 2b. Generation of the self-signed certificate fails:
+    - 2b.1. System deletes the generated key.
+    - 2b.1a. Key deletion fails.
+    - 2b.1a.1. Use case continues from step 2b.2.
+    - 2b.2. System displays the error message: “Failed to generate signing  key: X”, where “X” is the description of the error.
 
 **Related information**: -
 
-UC CP\_10: Activate Configuration Source Signing Key
-----------------------------------------------------
+3.11 UC CP\_10: Activate Configuration Source Signing Key
+---------------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -726,8 +657,8 @@ configuration.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_11: Delete Configuration Source Signing Key 
----------------------------------------------------
+3.12 UC CP\_11: Delete Configuration Source Signing Key 
+-------------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -761,26 +692,18 @@ key.
 
 **Extensions**:
 
-1a. CP administrator selects to delete an active configuration source
-signing key.
+- 1a. CP administrator selects to delete an active configuration source signing key.
+    - 1a.1. System notifies CP administrator with the error message “Not allowed to delete an active signing key!”. The use case terminates.
 
-> 1a.1. System notifies CP administrator with the error message “Not
-> allowed to delete an active signing key!”. The use case terminates.
-
-1b. CP administrator selects to delete a key that does not belong to
-this proxy instance.
-
-> 1b.1. System notifies CP administrator with the error message “The key
-> ID '&lt;KEY\_ID&gt;' could not be found in 'conf.ini'.”, where
-> &lt;KEY\_ID&gt; is the id of the key to be deleted. The use case
-> terminates.
+- 1b. CP administrator selects to delete a key that does not belong to this proxy instance.
+    - 1b.1. System notifies CP administrator with the error message “The key ID '&lt;KEY\_ID&gt;' could not be found in 'conf.ini'.”, where &lt;KEY\_ID&gt; is the id of the key to be deleted. The use case terminates.
 
 **Related information**:
 
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_12: View Trusted Anchor
-------------------------------
+3.13 UC CP\_12: View Trusted Anchor
+-----------------------------------
 
 **System**: Configuration proxy
 
@@ -818,8 +741,8 @@ provided by the governing agency.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_13: Upload Trusted Anchor
---------------------------------
+3.14 UC CP\_13: Upload Trusted Anchor
+-------------------------------------
 
 **System**: Configuration proxy
 
@@ -854,8 +777,8 @@ provider sends updated configuration anchor.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-UC CP\_14: Test Configuration
------------------------------
+3.15 UC CP\_14: Test Configuration
+----------------------------------
 
 **System**: Configuration proxy
 
@@ -899,8 +822,8 @@ proxy instance has been setup correctly.
 -   The specific commands used to test the configuration of a proxy
     instance are described in the configuration proxy manual \[UG-CP\].
 
-UC CP\_15: Update Configuration
--------------------------------
+3.16 UC CP\_15: Update Configuration
+------------------------------------
 
 **System**: Configuration proxy
 
@@ -932,9 +855,8 @@ the configuration directory distributed to the configuration clients.
 
 **Extensions:**
 
-1a. Configuration download terminates with an error.
-
-> 1a.1. Use case terminates.
+- 1a. Configuration download terminates with an error.
+    - 1a.1. Use case terminates.
 
 **Related information**:
 
@@ -946,8 +868,8 @@ the configuration directory distributed to the configuration clients.
     the document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-UC CP\_16: Generate Configuration Directory
--------------------------------------------
+3.17 UC CP\_16: Generate Configuration Directory
+------------------------------------------------
 
 **System**: Configuration
 proxy
@@ -993,8 +915,8 @@ is being distributed to configuration clients.
 
 **Related information**: -
 
-UC CP\_17: Handle a Configuration Download Request
---------------------------------------------------
+3.18 UC CP\_17: Handle a Configuration Download Request
+-------------------------------------------------------
 
 **System**: Configuration proxy
 
@@ -1020,13 +942,12 @@ configuration part file) or an error message.
 
 1.  Configuration client requests to download the signed configuration
     directory or a configuration part file.
-
+    
 2.  System responds with the requested files.
 
 **Extensions**:
 
-2a. Request cannot be served.
-
-> 2a.1. System responds with an error message.
+- 2a. Request cannot be served.
+    - 2a.1. System responds with an error message.
 
 **Related information**: -
