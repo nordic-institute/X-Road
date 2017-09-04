@@ -41,8 +41,21 @@ public class MetricRegistryHolderTest {
             holder.getOrCreateSimpleSensor("Testi");
             holder.getOrCreateSimpleSensor("Testi");
         } catch (Exception e) {
-            fail("Exception should not have thrwon.");
+            fail("Exception should not have been thrwon!");
         }
 
+    }
+
+    @Test
+    public void testGetOrCreateHistogram() {
+
+        try {
+            MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
+            holder.getOrCreateHistogram("Test");
+            holder.getOrCreateHistogram("Test");
+        } catch (Exception e) {
+            fail("Exception should not have been thrown!");
+        }
+        
     }
 }
