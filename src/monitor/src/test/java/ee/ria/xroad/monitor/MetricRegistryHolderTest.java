@@ -1,7 +1,26 @@
 package ee.ria.xroad.monitor;
 
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+
+import static junit.framework.TestCase.fail;
+
 /**
- * Created by joni.laurila on 04/09/17.
+ * MetricsRegistryHolderTest
  */
-public class MetricRegistryHolderTest {
+@Slf4j
+public class MetricRegistryHolderTest{
+
+    @Test
+    public void testGetOrCreateSimpleSensor() {
+
+        try {
+            MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
+            holder.getOrCreateSimpleSensor("Testi");
+            holder.getOrCreateSimpleSensor("Testi");
+        } catch (Exception e) {
+            fail("Exception should not have thrwon.");
+        }
+
+    }
 }
