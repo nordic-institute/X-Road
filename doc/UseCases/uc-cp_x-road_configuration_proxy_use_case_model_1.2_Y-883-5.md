@@ -41,7 +41,7 @@ Table of Contents
     * [3.8 UC CP\_07: Log Out of Software Security Token](#38-uc-cp_07-log-out-of-software-security-token)
     * [3.9 UC CP\_08: Log Out of a Hardware Security Token](#39-uc-cp_08-log-out-of-a-hardware-security-token)
     * [3.10 UC CP\_09: Add Configuration Source Signing Key](#310-uc-cp_09-add-configuration-source-signing-key)
-    * [3.11 UC CP\_10: Activate Configuration Source Signing Key](311-#uc-cp_10-activate-configuration-source-signing-key)
+    * [3.11 UC CP\_10: Activate Configuration Source Signing Key](#311-uc-cp_10-activate-configuration-source-signing-key)
     * [3.12 UC CP\_11: Delete Configuration Source Signing Key](#312-uc-cp_11-delete-configuration-source-signing-key)
     * [3.13 UC CP\_12: View Trusted Anchor](#313-uc-cp_12-view-trusted-anchor)
     * [3.14 UC CP\_13: Upload Trusted Anchor](#314-uc-cp_13-upload-trusted-anchor)
