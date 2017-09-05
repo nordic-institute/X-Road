@@ -25,6 +25,8 @@ package ee.ria.xroad.monitor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -38,8 +40,8 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            holder.getOrCreateSimpleSensor("Testi");
-            holder.getOrCreateSimpleSensor("Testi");
+            assertEquals(holder.getOrCreateSimpleSensor("Testi"),
+                    holder.getOrCreateSimpleSensor("Testi"));
         } catch (Exception e) {
             fail("Exception should not have been thrwon!");
         }
@@ -51,11 +53,11 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            holder.getOrCreateHistogram("Test");
-            holder.getOrCreateHistogram("Test");
+            assertEquals(holder.getOrCreateHistogram("Test"),
+                    holder.getOrCreateHistogram("Test"));
         } catch (Exception e) {
             fail("Exception should not have been thrown!");
         }
-        
+
     }
 }
