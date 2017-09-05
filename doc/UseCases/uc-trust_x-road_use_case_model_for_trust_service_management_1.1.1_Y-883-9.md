@@ -252,7 +252,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.3 UC TRUST\_03: View Certificate Details
+3.4 UC TRUST\_03: View Certificate Details
 ------------------------------------------
 
 **System**: Central server
@@ -290,7 +290,7 @@ to CS administrator.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of the
     certificate.
 
-3.4 UC TRUST\_04: View the Settings of a Certification Service
+3.5 UC TRUST\_04: View the Settings of a Certification Service
 --------------------------------------------------------------
 
 **System**: Central server
@@ -335,7 +335,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.5 UC TRUST\_05: View the OCSP Responders of a CA
+3.6 UC TRUST\_05: View the OCSP Responders of a CA
 --------------------------------------------------
 
 **System**: Central server
@@ -380,7 +380,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.6 UC TRUST\_06: View the Intermediate CAs of a Certification Service
+3.7 UC TRUST\_06: View the Intermediate CAs of a Certification Service
 ----------------------------------------------------------------------
 
 **System**: Central server
@@ -427,7 +427,7 @@ CS administrator.
 
 **Related information**: -
 
-3.7 UC TRUST\_07: View the Details of an Intermediate CA
+3.8 UC TRUST\_07: View the Details of an Intermediate CA
 --------------------------------------------------------
 
 **System**: Central server
@@ -472,7 +472,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.8 UC TRUST\_08: Add an Approved Certification Service
+3.9 UC TRUST\_08: Add an Approved Certification Service
 -------------------------------------------------------
 
 **System**: Central server
@@ -574,7 +574,7 @@ agency for providing certification services to X-Road members.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.10 3.9 UC TRUST\_09: Edit the Settings of a Certification Service
+3.10 UC TRUST\_09: Edit the Settings of a Certification Service
 -------------------------------------------------------------------
 
 **System**: Central server
