@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import com.codahale.metrics.Histogram;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
@@ -40,6 +39,10 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
+            SimpleSensor<Long> first = holder.getOrCreateSimpleSensor("Testi");
+            log.info("First {]", first);
+            SimpleSensor<Long> second = holder.getOrCreateSimpleSensor("Testi");
+            log.info("First {}, Second {}", first, second);
             assertEquals(holder.getOrCreateSimpleSensor("Testi"),
                     holder.getOrCreateSimpleSensor("Testi"));
         } catch (Exception e) {
@@ -53,10 +56,8 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            Histogram first = holder.getOrCreateHistogram("Testi");
-            Histogram second = holder.getOrCreateHistogram("Testi");
-            log.info("First {}, Second {}", first, second);
-            assertEquals(first, second);
+            assertEquals(holder.getOrCreateHistogram("Testi"),
+                    holder.getOrCreateHistogram("Testi"));
         } catch (Exception e) {
             fail("Exception should not have been thrown!");
         }
