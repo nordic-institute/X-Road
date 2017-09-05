@@ -39,12 +39,8 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            SimpleSensor<Long> first = holder.getOrCreateSimpleSensor("Testi");
-            log.info("First {]", first);
-            SimpleSensor<Long> second = holder.getOrCreateSimpleSensor("Testi");
-            log.info("First {}, Second {}", first, second);
-            assertEquals(holder.getOrCreateSimpleSensor("Testi"),
-                    holder.getOrCreateSimpleSensor("Testi"));
+            assertEquals(holder.getOrCreateSimpleSensor("Sensor"),
+                    holder.getOrCreateSimpleSensor("Sensor"));
         } catch (Exception e) {
             fail("Exception should not have been thrwon!");
         }
@@ -56,8 +52,8 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            assertEquals(holder.getOrCreateHistogram("Testi"),
-                    holder.getOrCreateHistogram("Testi"));
+            assertEquals(holder.getOrCreateHistogram("Histogram"),
+                    holder.getOrCreateHistogram("Histogram"));
         } catch (Exception e) {
             fail("Exception should not have been thrown!");
         }
