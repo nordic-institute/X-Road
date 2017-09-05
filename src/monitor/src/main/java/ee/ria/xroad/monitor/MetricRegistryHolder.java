@@ -86,7 +86,8 @@ public final class MetricRegistryHolder {
     public Histogram getOrCreateHistogram(String metricName) {
         Histogram histogram = metrics.getHistograms().get(metricName);
         if (histogram == null) {
-            metrics.register(metricName, createDefaultHistogram());
+            histogram = createDefaultHistogram();
+            metrics.register(metricName, histogram);
         }
         return histogram;
     }

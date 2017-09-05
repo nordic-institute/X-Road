@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.monitor;
 
+import com.codahale.metrics.Histogram;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
 import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 
 /**
@@ -53,8 +53,10 @@ public class MetricRegistryHolderTest {
 
         try {
             MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
-            assertEquals(holder.getOrCreateHistogram("Test"),
-                    holder.getOrCreateHistogram("Test"));
+            Histogram first = holder.getOrCreateHistogram("Testi");
+            Histogram second = holder.getOrCreateHistogram("Testi");
+            log.info("First {}, Second {}", first, second);
+            assertEquals(first, second);
         } catch (Exception e) {
             fail("Exception should not have been thrown!");
         }
