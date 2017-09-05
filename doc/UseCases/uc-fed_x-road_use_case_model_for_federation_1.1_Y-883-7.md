@@ -162,7 +162,7 @@ document in addition to the general definition.
     Trusted anchors are distributed to the configuration clients of the
     local X-Road system as a part of private parameters.
 
-1.2 References
+1.3 References
 --------------
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
@@ -178,7 +178,7 @@ document in addition to the general definition.
     Global Configuration Distribution. Document ID: UC-GCONF.
 
 2 Overview
-==--======
+==========
 
 The trust federation of X-Road instances allows for the members of one
 X-Road instance to use the services provided by members of the other

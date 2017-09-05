@@ -61,7 +61,7 @@ Table of Contents
   * [3.18 UC SS\_17: Delete a Backup File](#318-uc-ss_17-delete-a-backup-file)
   * [3.19 UC SS\_18: Upload a Backup File](#319-uc-ss_18-upload-a-backup-file)
   * [3.20 UC SS\_19: View the List of Tokens, Keys and Certificates](#320-uc-ss_19-view-the-list-of-tokens-keys-and-certificates)
-  * [3.21 UC SS\_20: View the Details of a Token](#321uc-ss_20-view-the-details-of-a-token)
+  * [3.21 UC SS\_20: View the Details of a Token](#321-uc-ss_20-view-the-details-of-a-token)
   * [3.22 UC SS\_21: View the Details of a Key](#322-uc-ss_21-view-the-details-of-a-key)
   * [3.23 UC SS\_22: Edit the Friendly Name of a Token](#323-uc-ss_22-edit-the-friendly-name-of-a-token)
   * [3.24 UC SS\_23: Edit the Friendly Name of a Key](#324-uc-ss_23-edit-the-friendly-name-of-a-key)
@@ -558,7 +558,7 @@ from the security server.
 
 **Extensions**: -
 
-[]{#__RefHeading__84681_116057917 .anchor}**Related information**:
+**Related information**:
 
 -   The audit log is located at /var/log/xroad/audit.log. The data set
     of audit log records is described in the document “X-Road: Audit Log
@@ -1623,8 +1623,8 @@ use the keys and certificates on the token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-UC SS\_28: Generate a Key
--------------------------
+3.29 UC SS\_28: Generate a Key
+------------------------------
 
 **System**: Security server
 
@@ -2710,8 +2710,8 @@ are not empty.
 
 **Related information:** -
 
-UC SS\_42: Unregister an Authentication Certificate on Key Deletion
--------------------------------------------------------------------
+3.43 UC SS\_42: Unregister an Authentication Certificate on Key Deletion
+------------------------------------------------------------------------
 
 **System**: Security server
 

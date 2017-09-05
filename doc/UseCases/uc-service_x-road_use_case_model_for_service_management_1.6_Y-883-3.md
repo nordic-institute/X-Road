@@ -821,7 +821,7 @@ given URL and reads the service descriptions from the WSDL file.
 
 **Related** **information**: -
 
-### UC SERVICE\_44: Validate a WSDL
+### 3.1.12 UC SERVICE\_44: Validate a WSDL
 
 **System**: Security server
 
@@ -863,7 +863,7 @@ described by the system parameter *wsdl-validator-command*.
 
 **Related** **information**: -
 
-### 3.1.12 UC SERVICE\_11: Parse User Input
+### 3.1.13 UC SERVICE\_11: Parse User Input
 
 **System**: Security server, central server
 
@@ -922,7 +922,7 @@ that the input is well formatted.
 
 **Related** **information**: -
 
-### 3.1.13 UC SERVICE\_12: Enable a WSDL
+### 3.1.14 UC SERVICE\_12: Enable a WSDL
 
 **System**: Security server
 
@@ -962,7 +962,7 @@ WSDL available for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.14 UC SERVICE\_13: Disable a WSDL
+### 3.1.15 UC SERVICE\_13: Disable a WSDL
 
 **System**: Security server
 
@@ -1019,7 +1019,7 @@ WSDL unavailable for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.15 UC SERVICE\_14: Refresh a WSDL
+### 3.1.16 UC SERVICE\_14: Refresh a WSDL
 
 **System**: Security server
 
@@ -1121,7 +1121,7 @@ reloads the WSDL file from the WSDL address.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### 3.1.16 UC SERVICE\_15: Delete a WSDL
+### 3.1.17 UC SERVICE\_15: Delete a WSDL
 
 **System**: Security server
 
@@ -1165,7 +1165,7 @@ server client's list of WSDLs.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.17 UC SERVICE\_16: View the Access Rights of a Service
+### 3.1.18 UC SERVICE\_16: View the Access Rights of a Service
 
 **System**: Security server
 
@@ -1213,7 +1213,7 @@ security server client's service.
 
 **Related** **information**: -
 
-### 3.1.18 UC SERVICE\_17: Add Access Rights to a Service
+### 3.1.19 UC SERVICE\_17: Add Access Rights to a Service
 
 **System**: Security server
 
@@ -1263,7 +1263,7 @@ security server client's service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.19 UC SERVICE\_18: Remove Access Rights from a Service
+### 3.1.20 UC SERVICE\_18: Remove Access Rights from a Service
 
 **System**: Security server
 
@@ -1309,7 +1309,7 @@ rights list of a service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.20 UC SERVICE\_19: Edit the Address of a Service
+### 3.1.21 UC SERVICE\_19: Edit the Address of a Service
 
 **System**: Security server
 
@@ -1369,7 +1369,7 @@ service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.21 UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
+### 3.1.22 UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
 
 **System**: Security server
 
@@ -1417,7 +1417,7 @@ verification option.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.22 UC SERVICE\_21: Edit the Timeout Value of a Service
+### 3.1.23 UC SERVICE\_21: Edit the Timeout Value of a Service
 
 **System**: Security server
 
@@ -1478,7 +1478,7 @@ value.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.23 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
+### 3.1.24 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
 
 **System**: Security server
 
@@ -1525,7 +1525,7 @@ service to all the services in the WSDL where the service is described.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.24 UC SERVICE\_23: View the Local Groups of a Security Server Client
+### 3.1.25 UC SERVICE\_23: View the Local Groups of a Security Server Client
 
 **System**: Security server
 
@@ -1572,7 +1572,7 @@ security server client.
 
 **Related** **information**: -
 
-### 3.1.25 UC SERVICE\_24: View the Details of a Local Group
+### 3.1.26 UC SERVICE\_24: View the Details of a Local Group
 
 **System**: Security server
 
@@ -1622,7 +1622,7 @@ group.
 
 **Related** **information**: -
 
-### 3.1.26 UC SERVICE\_25: Add a Local Group for a Security Server Client
+### 3.1.27 UC SERVICE\_25: Add a Local Group for a Security Server Client
 
 **System**: Security server
 
@@ -1681,7 +1681,7 @@ server client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.27 UC SERVICE\_26: Add Members to a Local Group
+### 3.1.28 UC SERVICE\_26: Add Members to a Local Group
 
 **System**: Security server
 
@@ -1729,7 +1729,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.28 UC SERVICE\_27: Remove Members from a Local Group
+### 3.1.29 UC SERVICE\_27: Remove Members from a Local Group
 
 **System**: Security server
 
@@ -1775,7 +1775,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.29 UC SERVICE\_28: Edit the Description of a Local Group
+### 3.1.30 UC SERVICE\_28: Edit the Description of a Local Group
 
 **System**: Security server
 
@@ -1822,7 +1822,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.30 UC SERVICE\_29: Delete a Local Group
+### 3.1.31 UC SERVICE\_29: Delete a Local Group
 
 **System**: Security server
 

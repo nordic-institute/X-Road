@@ -38,9 +38,9 @@ Table of Contents
     * [2.7 UC CS\_06: View the List of Configuration Backup Files](#27-uc-cs_06-view-the-list-of-configuration-backup-files)
     * [2.8 UC CS\_07: Back Up Configuration](#28-uc-cs_07-back-up-configuration)
     * [2.9 UC CS\_08: Restore Configuration from a Backup File](#29-uc-cs_08-restore-configuration-from-a-backup-file)
-    * [2.10 UC CS\_09: Download a Backup File](#310-uc-cs_09-download-a-backup-file)
-    * [2.11 UC CS\_10: Delete a Backup File](#311-uc-cs_10-delete-a-backup-file)
-    * [2.12 UC CS\_11: Upload a Backup File](#312-uc-cs_11-upload-a-backup-file)
+    * [2.10 UC CS\_09: Download a Backup File](#210-uc-cs_09-download-a-backup-file)
+    * [2.11 UC CS\_10: Delete a Backup File](#211-uc-cs_10-delete-a-backup-file)
+    * [2.12 UC CS\_11: Upload a Backup File](#212-uc-cs_11-upload-a-backup-file)
 
 License
 =======

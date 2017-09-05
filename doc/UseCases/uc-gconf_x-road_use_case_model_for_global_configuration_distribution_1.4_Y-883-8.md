@@ -962,9 +962,8 @@ change).
 
 **Extensions**:
 
-3a. The desired token is not on the list:
-
-> 3a.1. CS administrator terminates the use case.
+- 3a. The desired token is not on the list:
+    - 3a.1. CS administrator terminates the use case.
 
 - 4a. Key generation fails because the token is not logged in to.
     - 4a.1. System initiates the use case 2.2.7 or 2.2.8, depending on the type of the selected token.
@@ -1578,7 +1577,7 @@ integrity of the anchor.
 
 **Extensions**:
 
-3a. The selected file is not a valid configuration anchor file.
+- 3a. The selected file is not a valid configuration anchor file.
     - 3a.1. System displays the error message: “Configuration anchor import failed: invalid anchor file”.
     - 3a.2. SS administrator selects to reinsert the path to the configuration anchor file. Use case continues from step 3.
         - 3a.2a. SS administrator selects to terminate the use case.
