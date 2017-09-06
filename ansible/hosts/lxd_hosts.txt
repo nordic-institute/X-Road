@@ -27,6 +27,15 @@ xroad-lxd-ss2 ansible_connection=lxd
 ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
 ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
 
+[ss-servers:children]
+centos-ss
+
+[centos-ss]
+xroad-rh2
+
+[centos-ss:vars]
+ansible_connection=lxd
+
 [lxd-servers]
 localhost ansible_connection=local
 

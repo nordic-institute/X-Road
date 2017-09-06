@@ -1,0 +1,17 @@
+- name:  Create /xroad directory
+  file: path=/xroad state=directory mode=0755
+
+- name: Copy to security server
+  copy: src={{item}} dest=/xroad/ force=no
+  with_fileglob:
+    - ../src/packages/xroad-*deb
+
+- name: Ensure dpkg-dev
+  become: yes
+  apt: name=dpkg-dev state=present
+
+- name: Scan new packages
+  become: yes
+  shell: dpkg-scanpackages . /dev/null | gzip -c9 > Packages.gz
+  args:
+    chdir: /xroad

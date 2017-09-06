@@ -1,0 +1,19 @@
+- name: Install epel repo
+  yum:
+    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+
+- name: Create local repo configuration file
+  template:
+    src: "xroad-local.repo.j2"
+    dest: "/etc/yum.repos.d/xroad-local.repo"
+    owner: root
+    group: root
+    mode: 0644
+  tags: centos-repo
+
+- name: Create / update repo
+  become: yes
+  command: createrepo /xroad/CentOS/7/local
+  args:
+    chdir: /xroad/CentOS/7/local
+  tags: centos-repo

@@ -1,0 +1,4 @@
+---
+- name: Ensure host is using python 2 (Ubuntu)
+  become: yes
+  raw: apt-get -y install python

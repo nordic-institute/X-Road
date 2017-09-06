@@ -1,6 +1,6 @@
 
-- name: Ensure a started container
-  with_inventory_hostnames: all:!lxd-servers
+- name: Ready all Ubuntu 14.04 containers
+  with_inventory_hostnames: all:!lxd-servers:!centos-ss
   lxd_container:
     name: "{{item}}"
     state: started
@@ -13,4 +13,18 @@
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
-    
+
+- name: Ready all CentOS 7 containers
+  with_inventory_hostnames: centos-ss
+  lxd_container:
+    name: "{{item}}"
+    state: started
+    source:
+      type: image
+      mode: pull
+      server: https://images.linuxcontainers.org
+      protocol: lxd
+      alias: centos/7/amd64
+    profiles: ["default"]
+    wait_for_ipv4_addresses: true
+    timeout: 600

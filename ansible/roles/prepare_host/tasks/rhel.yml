@@ -1,0 +1,4 @@
+---
+- name: Ensure host is using python 2 (CentOS)
+  become: yes
+  raw: yum -y install python
