@@ -23,7 +23,7 @@ Date       | Version | Description                                              
 14.12.2015 |  1.2    |   UC CP\_06 fixed                                                                                               | Riin Saarmäe
 29.08.2017 |  1.3    |   Changed documentation type from docx to md file |   Lasse Matikainen
 
-Table of Contents
+## Table of Contents
 
 - [1 Introduction](#1-introduction)
     * [1.1 Purpose](#11-purpose)
@@ -50,18 +50,15 @@ Table of Contents
     * [3.17 UC CP\_16: Generate Configuration Directory](#317-uc-cp_16-generate-configuration-directory)
     * [3.18 UC CP\_17: Handle a Configuration Download Request](#318-uc-cp_17-handle-a-configuration-download-request)
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
-1.1 Purpose
------------
+### 1.1 Purpose
 
 The purpose of this document is to describe the use cases concerning the
 configuration proxy.
@@ -77,8 +74,7 @@ The use cases assume that the configuration proxy software is installed
 The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system.
 
-1.2 Terms and Abbreviations
----------------------------
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -139,8 +135,7 @@ document in addition to the general definition.
     configuration source and has been uploaded to the configuration
     proxy.
 
-1.3 References
---------------
+### 1.3 References
 
 1.  <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] PKCS \#11 Cryptographic Token
     Interface Base Specification Version 2.40. Function return values.
@@ -155,8 +150,7 @@ document in addition to the general definition.
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
-2 Overview
-==========
+## 2 Overview
 
 The configuration proxy acts as an intermediary between X-Road servers
 in the matters of global configuration exchange.
@@ -168,11 +162,9 @@ distribute it in a secure way.
 The configuration proxy can be configured to mediate several global
 configurations (from multiple configuration sources).
 
-3 Use Case Model
-================
+## 3 Use Case Model
 
-3.1 Actors
-----------
+### 3.1 Actors
 
 The use case model for the X-Road configuration proxy includes the
 following actors.
@@ -194,8 +186,7 @@ described in Figure 1.
 
 Figure 1. Use case diagram for the configuration proxy
 
-3.2 UC CP\_01: View Proxy Settings
-----------------------------------
+### 3.2 UC CP\_01: View Proxy Settings
 
 **System**: Configuration proxy
 
@@ -252,8 +243,7 @@ configured configuration proxy instances.
 **Related information**:
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.3 UC CP\_02: Create Proxy Instance
-------------------------------------
+### 3.3 UC CP\_02: Create Proxy Instance
 
 **System**: Configuration proxy
 
@@ -295,8 +285,7 @@ specified identifier are available on the file system.
     /etc/xroad/confproxy/&lt;INSTANCE&gt;, where &lt;INSTANCE&gt; is the
     provided instance identifier. See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.4 UC CP\_03: Edit Settings File
----------------------------------
+### 3.4 UC CP\_03: Edit Settings File
 
 **System**: Configuration proxy
 
@@ -344,8 +333,7 @@ the operation of the configuration proxy.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.5 UC CP\_04: Generate Configuration Source Anchor
----------------------------------------------------
+### 3.5 UC CP\_04: Generate Configuration Source Anchor
 
 **System**: Configuration proxy
 
@@ -410,8 +398,7 @@ anchor for a configuration proxy instance.
 
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.6 UC CP\_05: Log In to a Software Security Token
---------------------------------------------------
+### 3.6 UC CP\_05: Log In to a Software Security Token
 
 **System:** Configuration proxy
 
@@ -446,8 +433,7 @@ token available to the system.
 
 **Related information:** -
 
-3.7 UC CP\_06: Log In to a Hardware Security Token
---------------------------------------------------
+### 3.7 UC CP\_06: Log In to a Hardware Security Token
 
 **System**: Configuration proxy
 
@@ -491,8 +477,7 @@ token available to the system.
 
 **Related information**: -
 
-3.8 UC CP\_07: Log Out of Software Security Token
--------------------------------------------------
+### 3.8 UC CP\_07: Log Out of Software Security Token
 
 **System:** Configuration proxy
 
@@ -528,8 +513,7 @@ token.
 
 **Related information**: -
 
-3.9 UC CP\_08: Log Out of a Hardware Security Token
----------------------------------------------------
+### 3.9 UC CP\_08: Log Out of a Hardware Security Token
 
 **System**: Configuration proxy
 
@@ -562,8 +546,7 @@ token.
 
 **Related information**: -
 
-3.10 UC CP\_09: Add Configuration Source Signing Key
-----------------------------------------------------
+### 3.10 UC CP\_09: Add Configuration Source Signing Key
 
 **System**: Configuration proxy
 
@@ -613,8 +596,7 @@ instance (e.g., as a part of performing a regular key change).
 
 **Related information**: -
 
-3.11 UC CP\_10: Activate Configuration Source Signing Key
----------------------------------------------------------
+### 3.11 UC CP\_10: Activate Configuration Source Signing Key
 
 **System**: Configuration proxy
 
@@ -657,8 +639,7 @@ configuration.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.12 UC CP\_11: Delete Configuration Source Signing Key 
--------------------------------------------------------
+### 3.12 UC CP\_11: Delete Configuration Source Signing Key
 
 **System**: Configuration proxy
 
@@ -702,8 +683,7 @@ key.
 
 -   See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.13 UC CP\_12: View Trusted Anchor
------------------------------------
+### 3.13 UC CP\_12: View Trusted Anchor
 
 **System**: Configuration proxy
 
@@ -741,8 +721,7 @@ provided by the governing agency.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.14 UC CP\_13: Upload Trusted Anchor
--------------------------------------
+### 3.14 UC CP\_13: Upload Trusted Anchor
 
 **System**: Configuration proxy
 
@@ -777,8 +756,7 @@ provider sends updated configuration anchor.
     &lt;INSTANCE&gt; is the name of the configuration proxy instance.
     See \[[UG-CP](#Ref_UG-CP)\] for details.
 
-3.15 UC CP\_14: Test Configuration
-----------------------------------
+### 3.15 UC CP\_14: Test Configuration
 
 **System**: Configuration proxy
 
@@ -822,8 +800,7 @@ proxy instance has been setup correctly.
 -   The specific commands used to test the configuration of a proxy
     instance are described in the configuration proxy manual \[UG-CP\].
 
-3.16 UC CP\_15: Update Configuration
-------------------------------------
+### 3.16 UC CP\_15: Update Configuration
 
 **System**: Configuration proxy
 
@@ -868,8 +845,7 @@ the configuration directory distributed to the configuration clients.
     the document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-3.17 UC CP\_16: Generate Configuration Directory
-------------------------------------------------
+### 3.17 UC CP\_16: Generate Configuration Directory
 
 **System**: Configuration
 proxy
@@ -915,8 +891,7 @@ is being distributed to configuration clients.
 
 **Related information**: -
 
-3.18 UC CP\_17: Handle a Configuration Download Request
--------------------------------------------------------
+### 3.18 UC CP\_17: Handle a Configuration Download Request
 
 **System**: Configuration proxy
 

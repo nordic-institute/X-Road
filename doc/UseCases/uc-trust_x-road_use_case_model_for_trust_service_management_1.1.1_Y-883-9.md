@@ -55,15 +55,13 @@ Doc. ID: UC-TRUST
 
 <!-- tocstop -->
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
 The purpose of this document is to describe the processes concerning the
 management of approved trust services in the X-Road central server.
@@ -81,8 +79,7 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-1.1 Terms and Abbreviations
----------------------------
+### 1.1 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -104,8 +101,7 @@ document in addition to the general definition.
     data before a certain point of time without the possibility that the
     owner can backdate the timestamps.
 
-1.2 References
---------------
+### 1.2 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
 
@@ -119,8 +115,7 @@ document in addition to the general definition.
     Revocation List (CRL) Profile, Internet Engineering Task
     Force, 2008.
 
-2 Overview
-==========
+## 2 Overview
 
 The certification services and timestamping services approved by the
 X-Road governing agency provide trust services for the members of an
@@ -134,11 +129,9 @@ The security servers verify that the certificates, OCSP responses and timestamps
 used in the communication process between the X-Road members are provided 
 by approved trust services.
 
-3 Use Case Model
-================
+## 3 Use Case Model
 
-3.1 Actors
-----------
+### 3.1 Actors
 
 The use case model for trust service management in the central server
 includes the following actor.
@@ -153,8 +146,7 @@ Figure 1.
 
 Figure 1. Use case diagram for trust service management
 
-3.2 UC TRUST\_01: View Approved Certification Services
-------------------------------------------------------
+### 3.2 UC TRUST\_01: View Approved Certification Services
 
 **System**: Central server
 
@@ -200,8 +192,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.3 UC TRUST\_02: View the Details of a Certification Service CA
-----------------------------------------------------------------
+### 3.3 UC TRUST\_02: View the Details of a Certification Service CA
 
 **System**: Central server
 
@@ -252,8 +243,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.4 UC TRUST\_03: View Certificate Details
-------------------------------------------
+### 3.4 UC TRUST\_03: View Certificate Details
 
 **System**: Central server
 
@@ -290,8 +280,7 @@ to CS administrator.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of the
     certificate.
 
-3.5 UC TRUST\_04: View the Settings of a Certification Service
---------------------------------------------------------------
+### 3.5 UC TRUST\_04: View the Settings of a Certification Service
 
 **System**: Central server
 
@@ -335,8 +324,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.6 UC TRUST\_05: View the OCSP Responders of a CA
---------------------------------------------------
+### 3.6 UC TRUST\_05: View the OCSP Responders of a CA
 
 **System**: Central server
 
@@ -380,8 +368,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.7 UC TRUST\_06: View the Intermediate CAs of a Certification Service
-----------------------------------------------------------------------
+### 3.7 UC TRUST\_06: View the Intermediate CAs of a Certification Service
 
 **System**: Central server
 
@@ -427,8 +414,7 @@ CS administrator.
 
 **Related information**: -
 
-3.8 UC TRUST\_07: View the Details of an Intermediate CA
---------------------------------------------------------
+### 3.8 UC TRUST\_07: View the Details of an Intermediate CA
 
 **System**: Central server
 
@@ -472,8 +458,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.9 UC TRUST\_08: Add an Approved Certification Service
--------------------------------------------------------
+### 3.9 UC TRUST\_08: Add an Approved Certification Service
 
 **System**: Central server
 
@@ -574,8 +559,7 @@ agency for providing certification services to X-Road members.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.10 UC TRUST\_09: Edit the Settings of a Certification Service
--------------------------------------------------------------------
+### 3.10 UC TRUST\_09: Edit the Settings of a Certification Service
 
 **System**: Central server
 
@@ -637,8 +621,7 @@ profile for the certification service, need to be set or changed.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.11 UC TRUST\_10: Add or Edit an OCSP Responder of a CA
---------------------------------------------------------
+### 3.11 UC TRUST\_10: Add or Edit an OCSP Responder of a CA
 
 **System**: Central server
 
@@ -713,8 +696,7 @@ provider.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.12 UC TRUST\_11: Delete an OCSP Responder of a CA
----------------------------------------------------
+### 3.12 UC TRUST\_11: Delete an OCSP Responder of a CA
 
 **System**: Central server
 
@@ -755,8 +737,7 @@ from the configuration of an approved certification service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.13 UC TRUST\_12: Add an Intermediate CA to a Certification Service
---------------------------------------------------------------------
+### 3.13 UC TRUST\_12: Add an Intermediate CA to a Certification Service
 
 **System**: Central server
 
@@ -816,8 +797,7 @@ for a certification service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.14 UC TRUST\_13: Delete an Intermediate CA
---------------------------------------------
+### 3.14 UC TRUST\_13: Delete an Intermediate CA
 
 **System**: Central server
 
@@ -859,8 +839,7 @@ service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.15 UC TRUST\_14: Delete an Approved Certification Service
------------------------------------------------------------
+### 3.15 UC TRUST\_14: Delete an Approved Certification Service
 
 **System**: Central server
 
@@ -908,8 +887,7 @@ the system configuration.
 -   The certificates issued by the deleted certification service can no
     longer be used in the X-Road system.
 
-3.16 UC TRUST\_15: View Approved Timestamping Services
-------------------------------------------------------
+### 3.16 UC TRUST\_15: View Approved Timestamping Services
 
 **System**: Central server
 
@@ -957,8 +935,7 @@ displayed to CS administrator.
 
 **Related information**: -
 
-3.17 UC TRUST\_16: Add an Approved Timestamping Service
--------------------------------------------------------
+### 3.17 UC TRUST\_16: Add an Approved Timestamping Service
 
 **System**: Central server
 
@@ -1041,8 +1018,7 @@ agency for providing timestamping services to X‑Road members.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.18 UC TRUST\_17: Edit the URL of a Timestamping Server
---------------------------------------------------------
+### 3.18 UC TRUST\_17: Edit the URL of a Timestamping Server
 
 **System**: Central server
 
@@ -1096,8 +1072,7 @@ has changed.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.19 UC TRUST\_18: Delete an Approved Timestamping Service
-----------------------------------------------------------
+### 3.19 UC TRUST\_18: Delete an Approved Timestamping Service
 
 **System**: Central server
 
@@ -1141,8 +1116,7 @@ the system configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.20 UC TRUST\_19: Parse User Input
------------------------------------
+### 3.20 UC TRUST\_19: Parse User Input
 
 **System**: Central server
 

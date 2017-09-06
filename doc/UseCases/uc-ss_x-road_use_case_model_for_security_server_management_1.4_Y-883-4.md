@@ -31,7 +31,7 @@ Date       | Version | Description                                              
 
 <!-- tocstop -->
 
-Table of Contents
+## Table of Contents
 
 <!-- toc -->
 
@@ -87,18 +87,15 @@ Table of Contents
 
 <!-- tocstop -->
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
-1.1 Purpose
------------
+### 1.1 Purpose
 
 The purpose of this document is to describe the management of the
 security server including:
@@ -126,8 +123,7 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume, that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-1.2 Terms and Abbreviations
----------------------------
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -144,8 +140,7 @@ document in addition to the general definition.
     server for a certain approved certification authority for signing a
     public key and associated information.
 
-1.3 References
---------------
+### 1.3 References
 
 1.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\]
     X-Road 6. Security Server Installation Guide. Document ID: IG-SS.
@@ -170,8 +165,7 @@ document in addition to the general definition.
 7.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\]
     X-Road: Protocol for Management Services. Document ID: PR-MSERV.
 
-2 Overview
-==========
+## 2 Overview
 
 Timestamping services are used to preserve the evidence value of the
 messages exchanged over the X-Road (see \[UC-MESS\]). The timestamping
@@ -190,11 +184,9 @@ Backing up the system configuration ensures that in case of system
 failure, the system configuration can be restored to a previously backed
 up state.
 
-3 Use Case Model
-================
+## 3 Use Case Model
 
-3.1 Actors
-----------
+### 3.1 Actors
 
 The X-Road security server management use case model includes the
 following actor:
@@ -221,8 +213,7 @@ Figure 1.
 
 Figure 1. Use case diagram for security server management
 
-3.2 UC SS\_01: Log In to the Graphical User Interface
------------------------------------------------------
+### 3.2 UC SS\_01: Log In to the Graphical User Interface
 
 **System**: Security server
 
@@ -277,8 +268,7 @@ manage the security server configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.3 UC SS\_02: Log Out of the Graphical User Interface
-------------------------------------------------------
+### 3.3 UC SS\_02: Log Out of the Graphical User Interface
 
 **System**: Security server
 
@@ -316,8 +306,7 @@ manage the security server configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.4 UC SS\_03: Log a User Out of the Graphical User Interface
--------------------------------------------------------------
+### 3.4 UC SS\_03: Log a User Out of the Graphical User Interface
 
 **System**: Security server
 
@@ -350,8 +339,7 @@ logged in user has been idle for 30 minutes.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.5 UC SS\_04: Change the Graphical User Interface Language
------------------------------------------------------------
+### 3.5 UC SS\_04: Change the Graphical User Interface Language
 
 **System**: Security server
 
@@ -394,8 +382,7 @@ logged in user has been idle for 30 minutes.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.6 UC SS\_05: View the Installed Software Version
---------------------------------------------------
+### 3.6 UC SS\_05: View the Installed Software Version
 
 **System**: Security server
 
@@ -427,8 +414,7 @@ installed software.
 
 **Related information**: -
 
-3.7 UC SS\_06: View Timestamping Services
------------------------------------------
+### 3.7 UC SS\_06: View Timestamping Services
 
 **System**: Security server
 
@@ -470,8 +456,7 @@ services.
 
 **Related information:** -
 
-3.8 UC SS\_07: Add a Timestamping Service
------------------------------------------
+### 3.8 UC SS\_07: Add a Timestamping Service
 
 **System**: Security server
 
@@ -521,8 +506,7 @@ used by the security server to timestamp message log records.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.9 UC SS\_08: Delete a Timestamping Service
---------------------------------------------
+### 3.9 UC SS\_08: Delete a Timestamping Service
 
 **System**: Security server
 
@@ -564,8 +548,7 @@ from the security server.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.10 UC SS\_09: View Certificate Details
-----------------------------------------
+### 3.10 UC SS\_09: View Certificate Details
 
 **System**: Security server
 
@@ -600,8 +583,7 @@ certificate.
 -   See \[[X509](#Ref_X509)\] for detailed information on the contents of
     certificates.
 
-3.11 UC SS\_10: View the Internal TLS Certificate of the Security Server
-------------------------------------------------------------------------
+### 3.11 UC SS\_10: View the Internal TLS Certificate of the Security Server
 
 **System**: Security server
 
@@ -642,8 +624,7 @@ information.
 
 **Related information**: -
 
-3.12 UC SS\_11: Generate a New TLS Key and Certificate for the Security Server
-------------------------------------------------------------------------------
+### 3.12 UC SS\_11: Generate a New TLS Key and Certificate for the Security Server
 
 **System**: Security server
 
@@ -695,8 +676,7 @@ used for TLS connections with the client information systems.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.13 UC SS\_12: Export the Internal TLS Certificate of the Security Server
---------------------------------------------------------------------------
+### 3.13 UC SS\_12: Export the Internal TLS Certificate of the Security Server
 
 **System**: Security server
 
@@ -730,8 +710,7 @@ certificate.
 
 **Related information**: -
 
-3.14 UC SS\_13: View the List of Configuration Backup Files
------------------------------------------------------------
+### 3.14 UC SS\_13: View the List of Configuration Backup Files
 
 **System**: Security server
 
@@ -778,8 +757,7 @@ backup files.
 
 **Related information**: -
 
-3.15 UC SS\_14: Back Up Configuration
--------------------------------------
+### 3.15 UC SS\_14: Back Up Configuration
 
 **System**: Security server
 
@@ -847,8 +825,7 @@ configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.16 UC SS\_15: Restore Configuration from a Backup File
--------------------------------------------------------
+### 3.16 UC SS\_15: Restore Configuration from a Backup File
 
 **System**: Security server
 
@@ -948,8 +925,7 @@ configuration to a previously backed up state.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.17 UC SS\_16: Download a Backup File
--------------------------------------
+### 3.17 UC SS\_16: Download a Backup File
 
 **System**: Security server
 
@@ -979,8 +955,7 @@ configuration to a previously backed up state.
 
 **Related information**: -
 
-3.18 UC SS\_17: Delete a Backup File
------------------------------------
+### 3.18 UC SS\_17: Delete a Backup File
 
 **System**: Security server
 
@@ -1022,8 +997,7 @@ configuration to a previously backed up state.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.19 UC SS\_18: Upload a Backup File
-------------------------------------
+### 3.19 UC SS\_18: Upload a Backup File
 
 **System**: Security server
 
@@ -1099,8 +1073,7 @@ security server.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.20 UC SS\_19: View the List of Tokens, Keys and Certificates
---------------------------------------------------------------
+### 3.20 UC SS\_19: View the List of Tokens, Keys and Certificates
 
 **System**: Security server
 
@@ -1198,8 +1171,7 @@ certificates.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.21 UC SS\_20: View the Details of a Token
--------------------------------------------
+### 3.21 UC SS\_20: View the Details of a Token
 
 **System**: Security server
 
@@ -1243,8 +1215,7 @@ token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.22 UC SS\_21: View the Details of a Key
------------------------------------------
+### 3.22 UC SS\_21: View the Details of a Key
 
 **System**: Security server
 
@@ -1288,8 +1259,7 @@ administrator.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.23 UC SS\_22: Edit the Friendly Name of a Token
--------------------------------------------------
+### 3.23 UC SS\_22: Edit the Friendly Name of a Token
 
 **System**: Security server
 
@@ -1338,8 +1308,7 @@ security token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.24 UC SS\_23: Edit the Friendly Name of a Key
------------------------------------------------
+### 3.24 UC SS\_23: Edit the Friendly Name of a Key
 
 **System**: Security server
 
@@ -1388,8 +1357,7 @@ key.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.25 UC SS\_24: Log In to a Software Token
-------------------------------------------
+### 3.25 UC SS\_24: Log In to a Software Token
 
 **System**: Security server
 
@@ -1445,8 +1413,7 @@ token available to the system.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.26 UC SS\_25: Log In to a Hardware Token
-------------------------------------------
+### 3.26 UC SS\_25: Log In to a Hardware Token
 
 **System**: Security server
 
@@ -1540,8 +1507,7 @@ token available to the system.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.27 UC SS\_26: Log Out of a Software Token
--------------------------------------------
+### 3.27 UC SS\_26: Log Out of a Software Token
 
 **System**: Security server
 
@@ -1579,8 +1545,7 @@ the keys and certificates on the token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.28 UC SS\_27: Log Out of a Hardware Token
--------------------------------------------
+### 3.28 UC SS\_27: Log Out of a Hardware Token
 
 **System**: Security server
 
@@ -1623,8 +1588,7 @@ use the keys and certificates on the token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.29 UC SS\_28: Generate a Key
-------------------------------
+### 3.29 UC SS\_28: Generate a Key
 
 **System**: Security server
 
@@ -1680,8 +1644,7 @@ token.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-3.30 UC SS\_29: Generate a Certificate Signing Request for a Key
-----------------------------------------------------------------
+### 3.30 UC SS\_29: Generate a Certificate Signing Request for a Key
 
 **System**: Security server
 
@@ -1794,8 +1757,7 @@ request.
     member the CSR was generated for in the format member\_&lt;*instance
     identifier&gt;\_&lt;member class&gt;\_&lt;member code&gt;*.
 
-3.31 UC SS\_30: Import a Certificate from Local File System
------------------------------------------------------------
+### 3.31 UC SS\_30: Import a Certificate from Local File System
 
 **System**: Security server
 
@@ -1953,8 +1915,7 @@ local file system.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.32 UC SS\_31: Import a Certificate from a Security Token
-----------------------------------------------------------
+### 3.32 UC SS\_31: Import a Certificate from a Security Token
 
 **System**: Security server
 
@@ -2035,8 +1996,7 @@ security token.
     - 3a.1. System displays the error message describing the encountered error.
     - 3a.2. System logs the event “Import certificate from token failed” to the audit log.
     - 3a.3. SS administrator selects to reselect the file. Use case continues from step 3.
-
-- 3a.3a. SS administrator selects to terminate the use case.
+       - 3a.3a. SS administrator selects to terminate the use case.
 
 - 3b. The imported certificate is an authentication certificate. Use case continues from step 5.
 
@@ -2050,8 +2010,7 @@ security token.
     - 5a.1. System displays the error message “Failed to import certificate: Could not find key corresponding to the certificate.”.
     - 5a.2. System logs the event “Import certificate from token failed” to the audit log.
     - 5a.3. SS administrator selects to reselect the file. Use case continues from step 3.
-
-5a.3a. SS administrator selects to terminate the use case.
+        - 5a.3a. SS administrator selects to terminate the use case.
 
 - 6a. The certificate already exists under the key.
     - 6a.1. System displays the error message “Failed to import certificate: Certificate already exists under key 'X'” (where “X” is the friendly name of the key).
@@ -2063,7 +2022,7 @@ security token.
     - 7a.1. System displays the error message “Failed to import certificate: Authentication certificate cannot be imported to signing keys”.
     - 7a.2. System logs the event “Import certificate from token failed” to the audit log.
     - 7a.3. SS administrator selects to reselect the file. Use case continues from step 3.
-    - 7a.3a. SS administrator selects to terminate the use case.
+        - 7a.3a. SS administrator selects to terminate the use case.
 
 - 7b. SS administrator tried to import a signing certificate for an authentication key.
     - 7b.1. System displays the error message “Failed to import certificate: 'X'” (where 'X' is the reason of the failure).
@@ -2105,8 +2064,7 @@ security token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.33 UC SS\_32: Activate a Certificate
---------------------------------------
+### 3.33 UC SS\_32: Activate a Certificate
 
 **System**: Security server
 
@@ -2148,8 +2106,7 @@ certificates) or for signing messages (signing certificates).
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.34 UC SS\_33: Disable a Certificate
--------------------------------------
+### 3.34 UC SS\_33: Disable a Certificate
 
 **System**: Security server
 
@@ -2190,8 +2147,7 @@ authentication.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.35 UC SS\_34: Register an Authentication Certificate
-------------------------------------------------------
+### 3.35 UC SS\_34: Register an Authentication Certificate
 
 **System**: Security server
 
@@ -2273,8 +2229,7 @@ certificate for the security server.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.36 UC SS\_35: Delete a Key from the System Configuration
-----------------------------------------------------------
+### 3.36 UC SS\_35: Delete a Key from the System Configuration
 
 **System**: Security server
 
@@ -2347,8 +2302,7 @@ configuration.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.37 UC SS\_36: Delete a Key from a Software Token
---------------------------------------------------
+### 3.37 UC SS\_36: Delete a Key from a Software Token
 
 **System**: Security server
 
@@ -2393,8 +2347,7 @@ configuration.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.38 UC SS\_37: Delete a Key from a Hardware Token
---------------------------------------------------
+### 3.38 UC SS\_37: Delete a Key from a Hardware Token
 
 **System**: Security server
 
@@ -2448,8 +2401,7 @@ token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.39 UC SS\_38: Unregister an Authentication Certificate
---------------------------------------------------------
+### 3.39 UC SS\_38: Unregister an Authentication Certificate
 
 **System**: Security server
 
@@ -2535,8 +2487,7 @@ certificate is “registered” or “registration in progress”.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.40 UC SS\_39: Delete Certificate or a Certificate Signing Request Notice from System Configuration
-----------------------------------------------------------------------------------------------------
+### 3.40 UC SS\_39: Delete Certificate or a Certificate Signing Request Notice from System Configuration
 
 **System**: Security server
 
@@ -2600,8 +2551,7 @@ certificate signing request notice from system configuration.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.41 UC SS\_40: Delete a Certificate from Hardware Token
---------------------------------------------------------
+### 3.41 UC SS\_40: Delete a Certificate from Hardware Token
 
 **System**: Security server
 
@@ -2657,8 +2607,7 @@ hardware token.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-3.42 UC SS\_41: Parse User Input
---------------------------------
+### 3.42 UC SS\_41: Parse User Input
 
 **System**: Security server
 
@@ -2710,8 +2659,7 @@ are not empty.
 
 **Related information:** -
 
-3.43 UC SS\_42: Unregister an Authentication Certificate on Key Deletion
-------------------------------------------------------------------------
+### 3.43 UC SS\_42: Unregister an Authentication Certificate on Key Deletion
 
 **System**: Security server
 

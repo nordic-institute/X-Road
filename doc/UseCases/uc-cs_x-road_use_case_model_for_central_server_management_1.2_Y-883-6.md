@@ -23,7 +23,7 @@ Date       | Version | Description                                              
 13.12.2015 |  1.2    |   Restore clears the shared memory (UC CS\_08)                                                                                            |   Riin Saarmäe
 29.08.2017 |  1.2    |  Changed documentation type from docx to md file | Lasse Matikainen
 
-Table of Contents
+## Table of Contents
 
 - [1 Introduction](#1-introduction)
     * [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
@@ -42,15 +42,13 @@ Table of Contents
     * [2.11 UC CS\_10: Delete a Backup File](#211-uc-cs_10-delete-a-backup-file)
     * [2.12 UC CS\_11: Upload a Backup File](#212-uc-cs_11-upload-a-backup-file)
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
 The purpose of this document is to describe the general central server
 use cases that do not fall under any of the following topics.
@@ -87,14 +85,12 @@ The use cases (except for 2.2) including a human actor (the *level* of
 the use case is *user task*) assume that the actor is logged in to the
 system and has the access rights required to carry out the use case.
 
-1.1 Terms and Abbreviations
----------------------------
+### 1.1 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
 
-1.2 References
---------------
+### 1.2 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\]
     X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
@@ -117,11 +113,9 @@ The definitions for general X-Road terms can be found at
 7.  <a id="Ref_UC-TRUST" class="anchor"></a>\[UC-TRUST\] X-Road: Use Case Model for
     Trust Service Management. Document ID: UC-TRUST.
 
-2 Use Case Model
-================
+## 2 Use Case Model
 
-2.1 Actors
-----------
+### 2.1 Actors
 
 The use case model for central server management includes the following
 actor.
@@ -136,8 +130,7 @@ described in Figure 1.
 
 Figure 1. Use case diagram for central server management
 
-2.2 UC CS\_01: Log In to the Graphical User Interface
------------------------------------------------------
+### 2.2 UC CS\_01: Log In to the Graphical User Interface
 
 **System**: Central server
 
@@ -192,8 +185,7 @@ manage the central server configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.3 UC CS\_02: Log Out of the Graphical User Interface
-------------------------------------------------------
+### 2.3 UC CS\_02: Log Out of the Graphical User Interface
 
 **System**: Central server
 
@@ -231,8 +223,7 @@ manage the central server configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.4 UC CS\_03: Log a User Out of the Graphical User Interface
--------------------------------------------------------------
+### 2.4 UC CS\_03: Log a User Out of the Graphical User Interface
 
 **System**: Central server
 
@@ -261,8 +252,7 @@ logged in user has been idle for 30 minutes.
 
 **Related information**: -
 
-2.5 UC CS\_04: Change the Graphical User Interface Language
------------------------------------------------------------
+### 2.5 UC CS\_04: Change the Graphical User Interface Language
 
 **System**: Central server
 
@@ -301,8 +291,7 @@ logged in user has been idle for 30 minutes.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.6 UC CS\_05: View the Installed Software Version
---------------------------------------------------
+### 2.6 UC CS\_05: View the Installed Software Version
 
 **System**: Central server
 
@@ -334,8 +323,7 @@ software.
 
 **Related information**: -
 
-2.7 UC CS\_06: View the List of Configuration Backup Files
-----------------------------------------------------------
+### 2.7 UC CS\_06: View the List of Configuration Backup Files
 
 **System**: Central server
 
@@ -382,8 +370,7 @@ backup files.
 
 **Related information**: -
 
-2.8 UC CS\_07: Back Up Configuration
-------------------------------------
+### 2.8 UC CS\_07: Back Up Configuration
 
 **System**: Central server
 
@@ -456,8 +443,7 @@ configuration.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.9 UC CS\_08: Restore Configuration from a Backup File
--------------------------------------------------------
+### 2.9 UC CS\_08: Restore Configuration from a Backup File
 
 **System**: Central server
 
@@ -495,9 +481,7 @@ configuration to a previously backed up state.
         -   verifies that the server type in the label corresponds to
             the type of the server that is being restored;
 
-    > *Note: System verifies only the server type and ignores the rest of
-    > the information in the label in case the restore script is called from
-    > the CLI with the -F option.*
+        *Note: System verifies only the server type and ignores the rest of the information in the label in case the restore script is called from the CLI with the -F option.*
     
         -   verifies that the server software version in the label is compatible
             with the installed software version of the server that is being
@@ -558,8 +542,7 @@ configuration to a previously backed up state.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.10 UC CS\_09: Download a Backup File
---------------------------------------
+### 2.10 UC CS\_09: Download a Backup File
 
 **System**: Central server
 
@@ -589,8 +572,7 @@ configuration to a previously backed up state.
 
 **Related information**: -
 
-2.11 UC CS\_10: Delete a Backup File
-------------------------------------
+### 2.11 UC CS\_10: Delete a Backup File
 
 **System**: Central server
 
@@ -632,8 +614,7 @@ configuration to a previously backed up state.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-2.12 UC CS\_11: Upload a Backup File
-------------------------------------
+### 2.12 UC CS\_11: Upload a Backup File
 
 **System**: Central server
 

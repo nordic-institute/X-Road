@@ -30,7 +30,7 @@ Date       | Version | Description                                              
 12.02.2016 |  1.4    |  GCONF\_22 updated: the verification of the instance identifier on configuration anchor file upload added.                                                                                                                                                                           | Meril Vaht
 29.08.2017 | 1.5     |  Changed documentation type from docx to md file |   Lasse Matikainen
 
-Table of Contents
+## Table of Contents
 
 - [1 Introduction](#1-introduction)
     * [1.1 Purpose](#11-purpose)
@@ -67,18 +67,15 @@ Table of Contents
         * [2.3.6 UC GCONF\_25: Verify the Signature of the Configuration Directory](#236-uc-gconf_25-verify-the-signature-of-the-configuration-directory)
         * [2.3.7 UC GCONF\_26: Handle a Configuration Part of the Configuration Directory](#237-uc-gconf_26-handle-a-configuration-part-of-the-configuration-directory)
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
-1.1 Purpose
------------
+### 1.1 Purpose
 
 The purpose of this document is to describe:
 
@@ -113,8 +110,7 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume, that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-1.2 Terms and Abbreviations
----------------------------
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -203,8 +199,7 @@ document in addition to the general definition.
     in the various configuration files held in the file system of an
     X-Road component.
 
-1.3 References
---------------
+### 1.3 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
@@ -234,8 +229,7 @@ document in addition to the general definition.
 9.  <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
     System Parameters. Document ID: UG-SYSPAR.
 
-2 Overview
-==========
+## 2 Overview
 
 The X-Road security servers periodically download global configuration
 distributed by the configuration providers. The global configuration is
@@ -251,8 +245,7 @@ providers to the security server owners via out of band means.
 The configuration providers ensure the integrity of the distributed
 configuration by signing the configuration directory.
 
-2.1 Actors
-----------
+### 2.1 Actors
 
 The use case model for downloading configuration includes the following
 actors.
@@ -277,10 +270,9 @@ Figure 1.
 
 Figure 1. Use case diagram for distributing global configuration
 
-2.2 Central Server Use Cases
-------------------------
+### 2.2 Central Server Use Cases
 
-### 2.2.1 UC GCONF\_01: View a Configuration Source 
+#### 2.2.1 UC GCONF\_01: View a Configuration Source 
 
 **System**: Central server
 
@@ -369,7 +361,7 @@ information.
 
 **Related information**: -
 
-### 2.2.2 UC GCONF\_02: Download a Configuration Source Anchor File
+#### 2.2.2 UC GCONF\_02: Download a Configuration Source Anchor File
 
 **System**: Central server
 
@@ -408,7 +400,7 @@ configuration clients.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.2.3 UC GCONF\_03: Re-Create a Configuration Source Anchor
+#### 2.2.3 UC GCONF\_03: Re-Create a Configuration Source Anchor
 
 **System**: Central server
 
@@ -459,7 +451,7 @@ anchor for a configuration source.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.4 UC GCONF\_04: Describe Optional Configuration Part Data
+#### 2.2.4 UC GCONF\_04: Describe Optional Configuration Part Data
 
 **System**: Central server
 
@@ -522,7 +514,7 @@ parameters parts needs to be added to the global configuration.
     parameters are added, edited and deleted by software installation or
     update packages.
 
-### 2.2.5 UC GCONF\_05: Upload an Optional Configuration Part File
+#### 2.2.5 UC GCONF\_05: Upload an Optional Configuration Part File
 
 **System**: Central server
 
@@ -615,7 +607,7 @@ the system.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.2.6 UC GCONF\_06: Download a Configuration Part File
+#### 2.2.6 UC GCONF\_06: Download a Configuration Part File
 
 **System**: Central server
 
@@ -654,7 +646,7 @@ file, e.g., to view the contents of the file.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.2.7 UC GCONF\_07: Log In to a Software Security Token
+#### 2.2.7 UC GCONF\_07: Log In to a Software Security Token
 
 **System**: Central server
 
@@ -710,7 +702,7 @@ entering the token PIN code.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_PR-GCONF)\].
 
-### 2.2.8 UC GCONF\_08: Log In to a Hardware Security Token
+#### 2.2.8 UC GCONF\_08: Log In to a Hardware Security Token
 
 **System**: Central server
 
@@ -808,7 +800,7 @@ entering the token PIN code.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.9 UC GCONF\_09: Log Out of a Software Security Token
+#### 2.2.9 UC GCONF\_09: Log Out of a Software Security Token
 
 **System**: Central server
 
@@ -856,7 +848,7 @@ token.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.10 UC GCONF\_10: Log Out of a Hardware Security Token
+#### 2.2.10 UC GCONF\_10: Log Out of a Hardware Security Token
 
 **System**: Central server
 
@@ -907,7 +899,7 @@ token.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.11 UC GCONF\_11: Add a Configuration Source Signing Key
+#### 2.2.11 UC GCONF\_11: Add a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -997,7 +989,7 @@ change).
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.12 UC GCONF\_12: Activate a Configuration Source Signing Key
+#### 2.2.12 UC GCONF\_12: Activate a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -1052,7 +1044,7 @@ uses for signing configuration provided by the source.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.13 UC GCONF\_13: Delete a Configuration Source Signing Key
+#### 2.2.13 UC GCONF\_13: Delete a Configuration Source Signing Key
 
 **System**: Central server
 
@@ -1113,7 +1105,7 @@ key.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.14 UC GCONF\_14: View System Parameters
+#### 2.2.14 UC GCONF\_14: View System Parameters
 
 **System**: Central server
 
@@ -1151,7 +1143,7 @@ administrator.
 
 **Related information**: -
 
-### 2.2.15 UC GCONF\_15: Edit the Address of the Central Server
+#### 2.2.15 UC GCONF\_15: Edit the Address of the Central Server
 
 **System**: Central server
 
@@ -1212,7 +1204,7 @@ service requests, configuration download requests).
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 2.2.16 UC GCONF\_16: Parse User Input
+#### 2.2.16 UC GCONF\_16: Parse User Input
 
 **System**: Central server
 
@@ -1256,7 +1248,7 @@ are not empty.
 
 **Related information: -**
 
-### 2.2.17 UC GCONF\_17: Generate a Configuration Anchor
+#### 2.2.17 UC GCONF\_17: Generate a Configuration Anchor
 
 **System**: Central server
 
@@ -1312,7 +1304,7 @@ are saved in the system configuration.
     document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.2.18 UC GCONF\_18: Generate Configuration
+#### 2.2.18 UC GCONF\_18: Generate Configuration
 
 **System**: Central server
 
@@ -1400,7 +1392,7 @@ server configuration file /etc/cron.d/xroad-center*.*
 
 -   The error messages are logged to /var/log/xroad/jetty/jetty.log.
 
-### 2.2.19 UC GCONF\_19: Handle a Configuration Download Request 
+#### 2.2.19 UC GCONF\_19: Handle a Configuration Download Request 
 
 **System**: Central server
 
@@ -1436,10 +1428,9 @@ configuration part file) or an error message.
 
 **Related information**: -
 
-2.3 Security Server Use Cases 
------------------------------
+### 2.3 Security Server Use Cases 
 
-### 2.3.1 UC GCONF\_20: View the Configuration Anchor Information
+#### 2.3.1 UC GCONF\_20: View the Configuration Anchor Information
 
 **System**: Security server
 
@@ -1483,7 +1474,7 @@ provided by the governing agency.
 
 **Related information**: -
 
-### 2.3.2 UC GCONF\_21: Download the Configuration Anchor File
+#### 2.3.2 UC GCONF\_21: Download the Configuration Anchor File
 
 **System**: Security server
 
@@ -1517,7 +1508,7 @@ configuration anchor file or to store the file to an external location.
 
 **Related information**: -
 
-### 2.3.3 UC GCONF\_22: Upload a Configuration Anchor File
+#### 2.3.3 UC GCONF\_22: Upload a Configuration Anchor File
 
 **System**: Security server
 
@@ -1632,7 +1623,7 @@ integrity of the anchor.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.3.4 UC GCONF\_23: Update Configuration 
+#### 2.3.4 UC GCONF\_23: Update Configuration 
 
 **System**: Security server
 
@@ -1693,7 +1684,7 @@ configuration.
     the document “X-Road: Protocol for Downloading Configuration”
     \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-### 2.3.5 UC GCONF\_24: Download Configuration from a Configuration Source
+#### 2.3.5 UC GCONF\_24: Download Configuration from a Configuration Source
 
 **System**: Security server
 
@@ -1794,7 +1785,7 @@ files.
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-### 2.3.6 UC GCONF\_25: Verify the Signature of the Configuration Directory
+#### 2.3.6 UC GCONF\_25: Verify the Signature of the Configuration Directory
 
 **System**: Security server
 
@@ -1840,7 +1831,7 @@ configuration directory using the configuration source anchor.
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-### 2.3.7 UC GCONF\_26: Handle a Configuration Part of the Configuration Directory
+#### 2.3.7 UC GCONF\_26: Handle a Configuration Part of the Configuration Directory
 
 **System**: Security server
 

@@ -35,7 +35,7 @@ Date       | Version | Description                                              
 
 <!-- toc -->
 
-Table of Contents
+## Table of Contents
 
 - [1 Introduction](#1-introduction)
   * [1.1 Purpose](#11-purpose)
@@ -94,18 +94,15 @@ Table of Contents
 
 <!-- tocstop -->
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
-1.1 Purpose
------------
+### 1.1 Purpose
 
 The purpose of this document is to describe the management of services
 and access rights in X-Road security servers and central server,
@@ -134,8 +131,7 @@ The use cases including a human actor (the level of the use case is user
 task) assume, that the actor is logged in to the system and has the
 access rights required to carry out the use case.
 
-1.2 Terms and Abbreviations
----------------------------
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -148,8 +144,7 @@ document in addition to the general definition.
 group or global access rights group that has access rights to one or
 more services of a security server client.
 
-1.3 References
---------------
+### 1.3 References
 
 1\. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation
 Guide. Document ID: IG-CS.
@@ -163,8 +158,7 @@ Audit Log Events. Document ID: SPEC-AL.
 4\. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
 System Parameters. Document ID: UG-SYSPAR.
 
-2 Overview
-==========
+## 2 Overview
 
 There are two possibilities for access rights management in a security
 server:
@@ -196,13 +190,11 @@ the central server. A central service defines an alternative identifier,
 that does not depend on the current service provider, for an X-Road
 service.
 
-3 Use Case Model
-================
+## 3 Use Case Model
 
-3.1 Security server
--------------------
+### 3.1 Security server
 
-### 3.1.1 Actors
+#### 3.1.1 Actors
 
 The X-Road security server service management use case model includes
 the following actors:
@@ -217,7 +209,7 @@ in Figure 1.
 
 Figure 1. Use case diagram for service and access rights management in the security server
 
-### 3.1.2 UC SERVICE\_01: View the Service Clients of a Security Server Client
+#### 3.1.2 UC SERVICE\_01: View the Service Clients of a Security Server Client
 
 **System**: Security server
 
@@ -262,7 +254,7 @@ security server client.
 
 **Related** **information**: -
 
-### 3.1.3 UC SERVICE\_02: View the Access Rights of a Service Client
+#### 3.1.3 UC SERVICE\_02: View the Access Rights of a Service Client
 
 **System**: Security server
 
@@ -309,7 +301,7 @@ rights.
 
 **Related** **information**: -
 
-### 3.1.4 UC SERVICE\_03: Add a Service Client to a Security Server Client
+#### 3.1.4 UC SERVICE\_03: Add a Service Client to a Security Server Client
 
 **System**: Security server
 
@@ -366,7 +358,7 @@ server client's services for a subject.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.5 UC SERVICE\_04: Add Access Rights for a Service Client
+#### 3.1.5 UC SERVICE\_04: Add Access Rights for a Service Client
 
 **System**: Security server
 
@@ -413,7 +405,7 @@ client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.6 UC SERVICE\_05: Remove Access Rights from a Service Client
+#### 3.1.6 UC SERVICE\_05: Remove Access Rights from a Service Client
 
 **System**: Security server
 
@@ -460,7 +452,7 @@ service client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.7 UC SERVICE\_06: View the WSDLs of a Security Server Client
+#### 3.1.7 UC SERVICE\_06: View the WSDLs of a Security Server Client
 
 **System**: Security server
 
@@ -516,7 +508,7 @@ client's WSDLs.
 
 **Related** **information**: -
 
-### 3.1.8 UC SERVICE\_07: View the Services of a Security Server Client
+#### 3.1.8 UC SERVICE\_07: View the Services of a Security Server Client
 
 **System**: Security server
 
@@ -579,7 +571,7 @@ server client's services.
 
 **Related** **information**: -
 
-### 3.1.9 UC SERVICE\_08: Add a WSDL to a Security Server Client
+#### 3.1.9 UC SERVICE\_08: Add a WSDL to a Security Server Client
 
 **System**: Security server
 
@@ -698,7 +690,7 @@ client.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL
+#### 3.1.10 UC SERVICE\_09: Edit the Address of a WSDL
 
 **System**: Security server
 
@@ -757,7 +749,7 @@ client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.11 UC SERVICE\_10: Download and Parse WSDL
+#### 3.1.11 UC SERVICE\_10: Download and Parse WSDL
 
 **System**: Security server
 
@@ -821,7 +813,7 @@ given URL and reads the service descriptions from the WSDL file.
 
 **Related** **information**: -
 
-### 3.1.12 UC SERVICE\_44: Validate a WSDL
+#### 3.1.12 UC SERVICE\_44: Validate a WSDL
 
 **System**: Security server
 
@@ -863,7 +855,7 @@ described by the system parameter *wsdl-validator-command*.
 
 **Related** **information**: -
 
-### 3.1.13 UC SERVICE\_11: Parse User Input
+#### 3.1.13 UC SERVICE\_11: Parse User Input
 
 **System**: Security server, central server
 
@@ -922,7 +914,7 @@ that the input is well formatted.
 
 **Related** **information**: -
 
-### 3.1.14 UC SERVICE\_12: Enable a WSDL
+#### 3.1.14 UC SERVICE\_12: Enable a WSDL
 
 **System**: Security server
 
@@ -962,7 +954,7 @@ WSDL available for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.15 UC SERVICE\_13: Disable a WSDL
+#### 3.1.15 UC SERVICE\_13: Disable a WSDL
 
 **System**: Security server
 
@@ -1019,7 +1011,7 @@ WSDL unavailable for the service clients.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.16 UC SERVICE\_14: Refresh a WSDL
+#### 3.1.16 UC SERVICE\_14: Refresh a WSDL
 
 **System**: Security server
 
@@ -1121,7 +1113,7 @@ reloads the WSDL file from the WSDL address.
 -   The system parameters are described in document “X-Road: System
     Parameters” \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
-### 3.1.17 UC SERVICE\_15: Delete a WSDL
+#### 3.1.17 UC SERVICE\_15: Delete a WSDL
 
 **System**: Security server
 
@@ -1165,7 +1157,7 @@ server client's list of WSDLs.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.18 UC SERVICE\_16: View the Access Rights of a Service
+#### 3.1.18 UC SERVICE\_16: View the Access Rights of a Service
 
 **System**: Security server
 
@@ -1213,7 +1205,7 @@ security server client's service.
 
 **Related** **information**: -
 
-### 3.1.19 UC SERVICE\_17: Add Access Rights to a Service
+#### 3.1.19 UC SERVICE\_17: Add Access Rights to a Service
 
 **System**: Security server
 
@@ -1309,7 +1301,7 @@ rights list of a service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.21 UC SERVICE\_19: Edit the Address of a Service
+#### 3.1.21 UC SERVICE\_19: Edit the Address of a Service
 
 **System**: Security server
 
@@ -1369,7 +1361,7 @@ service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.22 UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
+#### 3.1.22 UC SERVICE\_20: Set the Option to Verify TLS Certificate of a Service
 
 **System**: Security server
 
@@ -1417,7 +1409,7 @@ verification option.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.23 UC SERVICE\_21: Edit the Timeout Value of a Service
+#### 3.1.23 UC SERVICE\_21: Edit the Timeout Value of a Service
 
 **System**: Security server
 
@@ -1478,7 +1470,7 @@ value.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.24 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
+#### 3.1.24 UC SERVICE\_22: Apply the Parameter Value of a Service to All the Services in the WSDL
 
 **System**: Security server
 
@@ -1525,7 +1517,7 @@ service to all the services in the WSDL where the service is described.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.25 UC SERVICE\_23: View the Local Groups of a Security Server Client
+#### 3.1.25 UC SERVICE\_23: View the Local Groups of a Security Server Client
 
 **System**: Security server
 
@@ -1572,7 +1564,7 @@ security server client.
 
 **Related** **information**: -
 
-### 3.1.26 UC SERVICE\_24: View the Details of a Local Group
+#### 3.1.26 UC SERVICE\_24: View the Details of a Local Group
 
 **System**: Security server
 
@@ -1622,7 +1614,7 @@ group.
 
 **Related** **information**: -
 
-### 3.1.27 UC SERVICE\_25: Add a Local Group for a Security Server Client
+#### 3.1.27 UC SERVICE\_25: Add a Local Group for a Security Server Client
 
 **System**: Security server
 
@@ -1681,7 +1673,7 @@ server client.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.28 UC SERVICE\_26: Add Members to a Local Group
+#### 3.1.28 UC SERVICE\_26: Add Members to a Local Group
 
 **System**: Security server
 
@@ -1729,7 +1721,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.29 UC SERVICE\_27: Remove Members from a Local Group
+#### 3.1.29 UC SERVICE\_27: Remove Members from a Local Group
 
 **System**: Security server
 
@@ -1775,7 +1767,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.1.30 UC SERVICE\_28: Edit the Description of a Local Group
+#### 3.1.30 UC SERVICE\_28: Edit the Description of a Local Group
 
 **System**: Security server
 
@@ -1822,7 +1814,7 @@ group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.1.31 UC SERVICE\_29: Delete a Local Group
+#### 3.1.31 UC SERVICE\_29: Delete a Local Group
 
 **System**: Security server
 
@@ -1866,10 +1858,9 @@ the X-Road subsystems that were the members of this group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-3.2 Central Server
---------------
+### 3.2 Central Server
 
-### 3.2.1 Actors
+#### 3.2.1 Actors
 
 The X-Road central server service management use case model includes the
 following actor:
@@ -1884,7 +1875,7 @@ in Figure 2.
 
 Figure 2. Central server use case diagram for service and access rights management
 
-### 3.2.2 UC SERVICE\_30: View Global Groups
+#### 3.2.2 UC SERVICE\_30: View Global Groups
 
 **System**: Central server
 
@@ -1929,7 +1920,7 @@ administrator.
 
 **Related** **information**: -
 
-### 3.2.3 UC SERVICE\_31: View the Details of a Global Group
+#### 3.2.3 UC SERVICE\_31: View the Details of a Global Group
 
 **System**: Central server
 
@@ -1980,7 +1971,7 @@ group.
 
 **Related** **information**: -
 
-### 3.2.4 UC SERVICE\_32: Add a Global Group
+#### 3.2.4 UC SERVICE\_32: Add a Global Group
 
 **System**: Central server
 
@@ -2035,7 +2026,7 @@ central server.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.2.5 UC SERVICE\_33: Add Members to a Global Group
+#### 3.2.5 UC SERVICE\_33: Add Members to a Global Group
 
 **System**: Central server
 
@@ -2081,7 +2072,7 @@ access rights granted for the group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.2.6 UC SERVICE\_34: Remove Members from a Global Group
+#### 3.2.6 UC SERVICE\_34: Remove Members from a Global Group
 
 **System**: Central server
 
@@ -2127,7 +2118,7 @@ global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.2.7 UC SERVICE\_35: Edit the Description of a Global Group
+#### 3.2.7 UC SERVICE\_35: Edit the Description of a Global Group
 
 **System**: Central server
 
@@ -2175,7 +2166,7 @@ global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.2.8 UC SERVICE\_36: View the Global Group Membership of an X-Road Member
+#### 3.2.8 UC SERVICE\_36: View the Global Group Membership of an X-Road Member
 
 **System**: Central server
 
@@ -2225,7 +2216,7 @@ member belongs to.
 
 **Related** **information**: -
 
-### 3.2.9 UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group
+#### 3.2.9 UC SERVICE\_37: Add an X-Road Member or Subsystem to a Global Group
 
 **System**: Central server
 
@@ -2277,7 +2268,7 @@ member's subsystem to a global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group
+#### 3.2.10 UC SERVICE\_38: Remove an X-Road Member or Subsystem from a Global Group
 
 **System**: Central server
 
@@ -2324,7 +2315,7 @@ member's subsystem from a global group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.2.11 UC SERVICE\_39: Delete a Global Group
+#### 3.2.11 UC SERVICE\_39: Delete a Global Group
 
 **System**: Central server
 
@@ -2366,7 +2357,7 @@ the X-Road members and subsystems that were the members of this group.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\].
 
-### 3.2.12 UC SERVICE\_40: View Central Services
+#### 3.2.12 UC SERVICE\_40: View Central Services
 
 **System**: Central server
 
@@ -2410,7 +2401,7 @@ services.
 
 **Related** **information**: -
 
-### 3.2.13 UC SERVICE\_41: Add a Central Service
+#### 3.2.13 UC SERVICE\_41: Add a Central Service
 
 **System**: Central server
 
@@ -2480,7 +2471,7 @@ the central server.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.2.14 UC SERVICE\_42: Edit the Implementing Service of a Central Service
+#### 3.2.14 UC SERVICE\_42: Edit the Implementing Service of a Central Service
 
 **System**: Central server
 
@@ -2537,7 +2528,7 @@ a central service.
     of audit log records is described in the document “X-Road: Audit Log
     Events” \[[SPEC-AL](#Ref_SPEC-AL)\]
 
-### 3.2.15 UC SERVICE\_43: Delete a Central Service
+#### 3.2.15 UC SERVICE\_43: Delete a Central Service
 
 **System**: Central server
 

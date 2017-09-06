@@ -24,7 +24,7 @@ Doc. ID: UC-FED
 29.08.2017  | 1.2     |  Changed documentation type from docx to md file |   Lasse Matikainen
 
 
-Table of Contents
+## Table of Contents
 
 - [1 Introduction](#1-introduction)
     * [1.1 Purpose](#11-purpose)
@@ -41,18 +41,15 @@ Table of Contents
     * [3.7 UC FED\_06: Download a Trusted Anchor](#37-uc-fed_06-download-a-trusted-anchor)
     * [3.8 UC FED\_07: Delete a Trusted Anchor](#38-uc-fed_07-delete-a-trusted-anchor)
 
-License
-=======
+## License
 
 This work is licensed under the Creative Commons Attribution-ShareAlike
 3.0 Unported License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-sa/3.0/.
 
-1 Introduction
-==============
+## 1 Introduction
 
-1.1 Purpose
------------
+### 1.1 Purpose
 
 The purpose of this document is to describe the use cases concerning the
 federation of X-Road instances.
@@ -70,8 +67,7 @@ The use cases including a human actor (the *level* of the use case is
 *user task*) assume that the actor is logged in to the system and has
 the access rights required to carry out the use case.
 
-1.2 Terms and Abbreviations
----------------------------
+### 1.2 Terms and Abbreviations
 
 The definitions for general X-Road terms can be found at
 <https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
@@ -162,8 +158,7 @@ document in addition to the general definition.
     Trusted anchors are distributed to the configuration clients of the
     local X-Road system as a part of private parameters.
 
-1.3 References
---------------
+### 1.3 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server
     Installation Guide. Document ID: IG-CS.
@@ -177,8 +172,7 @@ document in addition to the general definition.
 4.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] X-Road: Use Case Model for
     Global Configuration Distribution. Document ID: UC-GCONF.
 
-2 Overview
-==========
+## 2 Overview
 
 The trust federation of X-Road instances allows for the members of one
 X-Road instance to use the services provided by members of the other
@@ -203,11 +197,9 @@ documents “X-Road: Protocol for Downloading Configuration” \[[PR-GCONF](#Ref
 and “X-Road: Use Case Model for Global Configuration Distribution”
 \[[UC-GCONF](#Ref_UC-GCONF)\].
 
-3 Use Case Model
-================
+## 3 Use Case Model
 
-3.1 Actors
-----------
+### 3.1 Actors
 
 The use case model for the federation of X-Road systems includes the
 following actors.
@@ -225,8 +217,7 @@ described in Figure 1.
 ![](img/use_case_diagarm_for_federation_of_xroad_systems.PNG)
 Figure 1. Use case diagram for the federation of X-Road systems
 
-3.2 UC FED\_01: View Trusted Anchors
-------------------------------------
+### 3.2 UC FED\_01: View Trusted Anchors
 
 **System**: Central server
 
@@ -272,8 +263,7 @@ administrator.
 
 **Related information**: -
 
-3.3 UC FED\_02: Upload a Trusted Anchor
----------------------------------------
+### 3.3 UC FED\_02: Upload a Trusted Anchor
 
 **System**: Central server
 
@@ -356,8 +346,7 @@ availability setup changes).
     - 7b.2. System logs the event “Add trusted anchor failed” the audit log.
     - 7b.3. Use case terminates.
 
-- 7c. Verification of the signature value of the downloaded configuration
-failed.
+- 7c. Verification of the signature value of the downloaded configuration failed.
     - 7c.1. System displays the error message: “Failed to save uploaded trusted anchor: Signature of configuration cannot be verified”.
     - 7c.2. System logs the event “Add trusted anchor failed” the audit log.
     - 7c.3. Use case terminates.
@@ -367,8 +356,7 @@ failed.
     - 7d.2. System logs the event “Add trusted anchor failed” the audit log.
     - 7d.3. Use case terminates.
 
-- 7e. Verification of the downloaded configuration fails for reasons other
-than the ones listed in extensions 7b-d.
+- 7e. Verification of the downloaded configuration fails for reasons other than the ones listed in extensions 7b-d.
     - 7e.1. System displays the error message: “Failed to save uploaded trusted anchor: Configuration from source failed verification”.
     - 7e.2. System logs the event “Add trusted anchor failed” the audit log.
     - 7e.3. Use case terminates.
@@ -387,8 +375,7 @@ than the ones listed in extensions 7b-d.
     described in the document “X-Road: Protocol for Downloading
     Configuration” \[[PR-GCONF](#Ref_PR-GCONF)\].
 
-3.4 UC FED\_03: Download and Validate Configuration
----------------------------------------------------
+### 3.4 UC FED\_03: Download and Validate Configuration
 
 **System**: Central server
 
@@ -459,8 +446,7 @@ condition.
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-3.5 UC FED\_04: Verify the Signature of the Configuration Directory
--------------------------------------------------------------------
+### 3.5 UC FED\_04: Verify the Signature of the Configuration Directory
 
 **System**: Central server
 
@@ -506,8 +492,7 @@ configuration directory using the configuration source anchor.
 - The error messages are logged to
   /var/log/xroad/configuration-client.log.
 
-3.6 UC FED\_05: Download a Configuration Part File
---------------------------------------------------
+### 3.6 UC FED\_05: Download a Configuration Part File
 
 **System**: Central server
 
@@ -558,8 +543,7 @@ file.
 - The error messages are logged to 
   /var/log/xroad/configuration-client.log.
 
-3.7 UC FED\_06: Download a Trusted Anchor 
------------------------------------------
+### 3.7 UC FED\_06: Download a Trusted Anchor 
 
 **System**: Central server
 
@@ -592,8 +576,7 @@ configuration anchor file or to store the file to an external location.
 
 **Related information**: -
 
-3.8 UC FED\_07: Delete a Trusted Anchor 
----------------------------------------
+### 3.8 UC FED\_07: Delete a Trusted Anchor 
 
 **System**: Central server
 
