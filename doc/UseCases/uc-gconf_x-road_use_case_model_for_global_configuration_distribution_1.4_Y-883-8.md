@@ -1794,7 +1794,7 @@ files.
 -   The error messages are logged to
     /var/log/xroad/configuration-client.log.
 
-### 2.3.7 UC GCONF\_25: Verify the Signature of the Configuration Directory
+### 2.3.6 UC GCONF\_25: Verify the Signature of the Configuration Directory
 
 **System**: Security server
 
