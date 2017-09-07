@@ -88,9 +88,9 @@ task xjc () {
 // Instead, use the .jar in the build/libs directory:
 // java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
 task runSignerMain(type: JavaExec) {
-    jvmArgs '-Dxroad.signer.key-configuration-file=build/tmp/keyconf.xml',
+    jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
-        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good',
+        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good_v2',
         '-Dxroad.common.temp-files-path=build/tmp/',
         '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',

@@ -22,6 +22,33 @@
  */
 package ee.ria.xroad.common.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.RSAPublicKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.bind.DatatypeConverter;
+import javax.xml.crypto.dsig.DigestMethod;
+
 import com.google.common.base.Splitter;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -34,26 +61,16 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMWriter;
-import org.bouncycastle.operator.*;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.ContentVerifierProvider;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.DigestCalculatorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.util.encoders.Hex;
-
-import javax.xml.bind.DatatypeConverter;
-import javax.xml.crypto.dsig.DigestMethod;
-import java.io.*;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.spec.RSAPublicKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.apache.xml.security.signature.XMLSignature.*;
 
