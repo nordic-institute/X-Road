@@ -1,19 +1,24 @@
+---
 - name: Install epel repo
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
 
-- name: Create local repo configuration file
-  template:
-    src: "xroad-local.repo.j2"
-    dest: "/etc/yum.repos.d/xroad-local.repo"
-    owner: root
-    group: root
-    mode: 0644
-  tags: centos-repo
-
 - name: Create / update repo
   become: yes
   command: createrepo /xroad/CentOS/7/local
+  when: xroad_package_src == "local"
   args:
     chdir: /xroad/CentOS/7/local
   tags: centos-repo
+
+- name: Setup the correct repository for X-Road installation
+  yum_repository:
+    name: xroad-repository
+    description: Repository for installing X-Road packages
+    baseurl: "{{ xroad_repo_baseurl }}"
+    gpgcheck: "{{ xroad_repo_gpgcheck }}"
+    gpgkey: "{{ xroad_repo_gpgkey }}"
+    gpgcakey: "{{ xroad_repo_gpgcakey }}"
+    repo_gpgcheck: "{{ xroad_repo_gpgcheck }}"
+    state: present
+    enabled: yes

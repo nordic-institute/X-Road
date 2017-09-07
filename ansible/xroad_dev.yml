@@ -1,5 +1,5 @@
 ---
-# This playbook compiles X-Road and installs the compiled version
+# This playbook compiles X-Road and installs the compiled packages to the defined host inventory
 
 - hosts: lxd-servers
   roles:
@@ -52,8 +52,7 @@
   tags:
     - ca
     - install
-    
- 
+
 - hosts: ss-servers
   become: yes
   become_user: root
@@ -62,3 +61,13 @@
   tags:
     - ss
     - install
+  vars:
+    #local package repository configuration for centos
+    #xroad_repo_template: xroad-local.repo.j2
+    #xroad_repo_dest: /etc/yum.repos.d/xroad-local.repo
+    xroad_package_src: local
+    xroad_repo_baseurl: file:///xroad/CentOS/$releasever/local
+    xroad_repo_gpgcheck: no
+    xroad_repo_gpgkey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg
+    xroad_repo_gpgcakey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg
+    xroad_repo_repogpgcheck: no

@@ -7,9 +7,9 @@
     source:
       type: image
       mode: pull
-      server: https://images.linuxcontainers.org
-      protocol: lxd
-      alias: ubuntu/trusty/amd64
+      server: https://cloud-images.ubuntu.com/releases
+      protocol: simplestreams
+      alias: "{{ ubuntu_releasever }}"
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
@@ -24,7 +24,7 @@
       mode: pull
       server: https://images.linuxcontainers.org
       protocol: lxd
-      alias: centos/7/amd64
+      alias: centos/{{centos_releasever}}/amd64
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600

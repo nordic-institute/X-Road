@@ -1,50 +1,21 @@
-- name:  Create /xroad directory
-  file:
-    path: /{{item.0}}/{{item.1}}/{{item.2}}/{{item.3}}/{{item.4}}/{{item.5}}
-    state: directory
-    mode: 0755
-  with_nested:
-    - ['xroad']
-    - ['CentOS']
-    - ['7']
-    - ['local']
-    - ['noarch','x86_64']
-    - ['RPMS']
-  tags: centos-init, centos-dir
-
-- name: Install relevant util packages
-  become: yes
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - curl
-    - createrepo
-    - yum-plugin-protectbase
-    - cronie
-    - tar
-  tags: centos-init
-
+---
 - name: Copy noarch packages
-  copy: src={{item}} dest=/xroad/CentOS/7/local/noarch/RPMS/ force=no
+  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/noarch/RPMS/ force=no
   with_fileglob:
     - ../src/packages/xroad/redhat/RPMS/noarch/xroad-*rpm
-  tags: centos-cp, centos-init, centos-update
 
 - name: Copy x86_64 packages
-  copy: src={{item}} dest=/xroad/CentOS/7/local/x86_64/RPMS/ force=no
+  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/x86_64/RPMS/ force=no
   with_fileglob:
     - ../src/packages/xroad/redhat/RPMS/x86_64/xroad-*rpm
-  tags: rhelcp, centos-init, centos-update
 
 - name: Copy jetty9 packages
-  copy: src={{item}} dest=/xroad/CentOS/7/local/x86_64/RPMS force=no
+  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/x86_64/RPMS force=no
   with_fileglob:
     - ../src/packages/xroad-jetty9/redhat/RPMS/x86_64/xroad-*rpm
-  tags: rhelcp, centos-init, centos-update
 
 - name: Clear yum cache
   become: yes
   command: yum clean all
-  tags: centos-init, centos-update
-
+  args:
+    warn: no

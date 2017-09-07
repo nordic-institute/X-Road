@@ -1,23 +1,12 @@
 ---
-# This playbook initializes X-Road environment
-
+# This playbook installs an X-Road environment to the defined host inventory from a remote package repository
 
 - hosts: lxd-servers
   roles:
     - role: init-lxd
   tags:
     - init
-    
-- hosts: ss-servers, cs-servers, cp-servers, ca-servers
-  become: yes
-  become_user: root
-  gather_facts: no
-  pre_tasks:
-    - name: 'Install python2'
-      raw: apt-get -y install python
-  tags:
-    - init
-    
+
 - hosts: cs-servers
   become: yes
   become_user: root
@@ -34,13 +23,6 @@
   tags:
     - cp
 
-- hosts: ss-servers, cs-servers, cp-servers, ca-servers
-  become: yes
-  become_user: root
-  gather_facts: no
-  pre_tasks:
-    - raw: apt-get -y install python
-
 - hosts: ss-servers
   become: yes
   become_user: root
@@ -48,7 +30,17 @@
     - xroad-ss
   tags:
     - ss
-    
+  vars:
+      #remote package repository configuration for centos
+      #xroad_repo_template: palveluvayla.repo.j2
+      #xroad_repo_dest: /etc/yum.repos.d/palveluvayla.repo
+      xroad_package_src: remote
+      xroad_repo_baseurl: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-test-current/stable
+      xroad_repo_gpgcheck: yes
+      xroad_repo_gpgkey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg
+      xroad_repo_gpgcakey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg
+      xroad_repo_repogpgcheck: yes
+
 - hosts: ca-servers
   become: yes
   become_user: root

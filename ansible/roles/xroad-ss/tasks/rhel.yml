@@ -1,9 +1,8 @@
 ---
 - name: install xroad security server packages
-  yum:
-    name: xroad-securityserver-fi
-    state: present
-    update_cache: yes
+  command: yum -y install xroad-securityserver-fi
+  args:
+    warn: no
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"

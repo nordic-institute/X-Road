@@ -1,4 +1,11 @@
 ---
-- name: Ensure host is using python 2 (CentOS)
+- name: Install relevant util packages
   become: yes
-  raw: yum -y install python
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - createrepo
+    - cronie
+    - tar
