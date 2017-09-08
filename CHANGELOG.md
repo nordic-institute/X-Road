@@ -29,7 +29,7 @@
 - PVAYLADEV-797 / XRJD #156: Federation has been disabled by default on the security server level. Federation can be enabled with the system parameter allowed-federations for the configuration-client server component. More information can be found in the Security Server User Guide (Doc. ID: UG-SS) and the System Parameters User Guide (Doc. ID: UG-SYSPAR)
 - PVAYLADEV-868:Added link from ig-xlb_x-road_external_load_balancer_installation_guide.md to /doc/README.md
 - PVAYLADEV-856: Exclude audit.log from automatic log cleanup on reboot
-- XTE-248: Security Server: Fixed (backward compatible) signed document creation according to XAdES and ASiC standards.
+- XTE-248 / Backlog #55: Security Server: Fixed creation of signed documents (backward compatible) to follow e-signature standards (XAdES, ASiC).
 - XTE-330 / Backlog #127: Security Server: Added support for "NEE" member class in certificates provided by SK ID Solutions AS.
 - XTE-357 / Backlog #164: Security Server: Fixed temporary files removal in error situations.
 
