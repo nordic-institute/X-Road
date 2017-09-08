@@ -1,6 +1,4 @@
-- name:  Create /xroad directory
-  file: path=/xroad state=directory mode=0755
-
+---
 - name: Copy to security server
   copy: src={{item}} dest=/xroad/ force=no
   with_fileglob:

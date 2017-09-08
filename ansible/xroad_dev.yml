@@ -9,16 +9,10 @@
 
 - hosts: compile-servers
   roles:
-    #- compile
-    #- build-packages
+    - compile
+    - build-packages
   tags: 
     - compile
-
-- hosts: ss-servers, cs-servers, cp-servers
-  roles:
-    - prepare_host
-  tags:
-    - init
 
 - hosts: ss-servers, cs-servers, cp-servers
   roles:

@@ -35,7 +35,7 @@
       #xroad_repo_template: palveluvayla.repo.j2
       #xroad_repo_dest: /etc/yum.repos.d/palveluvayla.repo
       xroad_package_src: remote
-      xroad_repo_baseurl: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-test-current/stable
+      xroad_repo_baseurl: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/stable
       xroad_repo_gpgcheck: yes
       xroad_repo_gpgkey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg
       xroad_repo_gpgcakey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg

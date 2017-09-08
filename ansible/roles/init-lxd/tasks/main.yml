@@ -1,5 +1,5 @@
 
-- name: Ready all Ubuntu 14.04 containers
+- name: Ready all Ubuntu {{ubuntu_releasever}} containers
   with_inventory_hostnames: all:!lxd-servers:!centos-ss
   lxd_container:
     name: "{{item}}"
@@ -14,7 +14,7 @@
     wait_for_ipv4_addresses: true
     timeout: 600
 
-- name: Ready all CentOS 7 containers
+- name: Ready all CentOS {{centos_releasever}} containers
   with_inventory_hostnames: centos-ss
   lxd_container:
     name: "{{item}}"

@@ -1,14 +1,22 @@
 ---
-- name: Install epel repo
+- name: Install required packages
+  become: yes
   yum:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - epel-release
+    - curl
+    - createrepo
+    - cronie
+    - tar
 
 - name: Create / update repo
   become: yes
-  command: createrepo /xroad/CentOS/7/local
+  command: createrepo /xroad/CentOS/{{centos_releasever}}/local
   when: xroad_package_src == "local"
   args:
-    chdir: /xroad/CentOS/7/local
+    chdir: /xroad/CentOS/{{centos_releasever}}/local
   tags: centos-repo
 
 - name: Setup the correct repository for X-Road installation
