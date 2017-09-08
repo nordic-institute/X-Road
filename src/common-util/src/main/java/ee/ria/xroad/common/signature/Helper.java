@@ -60,7 +60,7 @@ final class Helper {
     static final String XMLNS_XSI = "xmlns:xsi";
     static final String XMLNS_XADES = "xmlns:xades";
 
-    static final String NS_ASIC = "http://uri.etsi.org/02918/v1.1.1#";
+    static final String NS_ASIC = "http://uri.etsi.org/02918/v1.2.1#";
     static final String NS_DS = "http://www.w3.org/2000/09/xmldsig#";
     static final String NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     static final String NS_XADES = "http://uri.etsi.org/01903/v1.3.2#";
