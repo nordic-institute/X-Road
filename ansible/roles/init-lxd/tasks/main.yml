@@ -1,4 +1,3 @@
-
 - name: Ensure a started container
   with_inventory_hostnames: all:!lxd-servers
   lxd_container:
@@ -13,4 +12,18 @@
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
-    
+
+- name: Check if Python2 is installed in container
+  with_inventory_hostnames: all:!lxd-servers
+  delegate_to: "{{item}}"
+  raw: dpkg -s python
+  register: python_check_is_installed
+  failed_when: python_check_is_installed.rc not in [0,1]
+  changed_when: false
+
+- name: Install Python2 in container
+  delegate_to: "{{item.item}}"
+  raw: apt-get update && apt-get install -y python
+  when: item.rc == 1
+  with_items:
+    - "{{python_check_is_installed.results}}"
