@@ -1064,7 +1064,7 @@ has changed.
     - 4a.1. System displays the error message: “Timestamping server URL 'X' is an invalid URL, examples of valid URL-s: 'http://www.example.com', 'https://www.example.com'”, where “X” is the inserted URL.
     - 4a.2. System logs the event “Edit timestamping service failed” to the audit log.
     - 4a.3. CS administrator selects to reinsert the URL. Use case continues from step 3.
-    - 4a.3a. CS administrator selects to terminate the use case.
+        - 4a.3a. CS administrator selects to terminate the use case.
 
 **Related information**:
 
