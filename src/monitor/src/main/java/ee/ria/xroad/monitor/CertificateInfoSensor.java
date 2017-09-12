@@ -83,6 +83,7 @@ public class CertificateInfoSensor extends AbstractSensor {
                 .addExtractor(CertificateType.SECURITY_SERVER_TLS, new InternalTlsExtractor())
                 .addExtractor(CertificateType.AUTH_OR_SIGN, new TokenExtractor());
 
+        updateOrRegisterData(new JmxStringifiedData<>());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 

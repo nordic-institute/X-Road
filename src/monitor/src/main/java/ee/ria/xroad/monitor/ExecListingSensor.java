@@ -46,6 +46,7 @@ public class ExecListingSensor extends AbstractSensor {
      */
     public <T extends Metric> ExecListingSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
+        updateMetrics();
         scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
     }
 

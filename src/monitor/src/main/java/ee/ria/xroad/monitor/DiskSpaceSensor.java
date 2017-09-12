@@ -42,6 +42,7 @@ public class DiskSpaceSensor extends AbstractSensor {
 
     public DiskSpaceSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
+        updateMetrics();
         scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
     }
 

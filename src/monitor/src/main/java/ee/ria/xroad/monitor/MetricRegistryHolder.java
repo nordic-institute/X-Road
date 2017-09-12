@@ -69,27 +69,17 @@ public final class MetricRegistryHolder {
 
 
     /**
-     * Either registers a new sensor to metricRegistry, or reuses already registered one
+     * Either registers a new sensor to metricRegistry, or reuses already registered one.
      */
     public <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
-        SimpleSensor<T> typeDefiningSensor = (SimpleSensor) metrics.getMetrics().get(metricName);
-        if (typeDefiningSensor == null) {
-            typeDefiningSensor = new SimpleSensor<>();
-            metrics.register(metricName, typeDefiningSensor);
-        }
-        return typeDefiningSensor;
+        return (SimpleSensor) metrics.gauge(metricName, () -> new SimpleSensor<>());
     }
 
     /**
-     * If histogram doesn't exist, register default
+     * If histogram doesn't exist, register default. Thread safety isn't guaranteed.
      */
     public Histogram getOrCreateHistogram(String metricName) {
-        Histogram histogram = metrics.getHistograms().get(metricName);
-        if (histogram == null) {
-            histogram = createDefaultHistogram();
-            metrics.register(metricName, histogram);
-        }
-        return histogram;
+        return metrics.histogram(metricName, this::createDefaultHistogram);
     }
 
 
