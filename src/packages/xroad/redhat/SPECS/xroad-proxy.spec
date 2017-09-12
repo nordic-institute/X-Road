@@ -170,6 +170,26 @@ if [ $1 -gt 1 ]; then
     rm -rf %{_localstatedir}/lib/rpm-state/%{name}
 fi
 
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE=$(crudini --get $1 $2 $3 2>/dev/null)
+    if [ ${MIGRATION_VALUE} ];
+        then
+            crudini --set $1 $4 $5 ${MIGRATION_VALUE}
+            echo Configuration migration: $2.$3 "->" $4.$5
+            crudini --del $1 $2 $3
+    fi
+}
+
+#migrating possible local configuration for modified configuration values (for version 6.17.0)
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
+
 %preun
 %systemd_preun xroad-proxy.service
 %systemd_preun xroad-confclient.service
