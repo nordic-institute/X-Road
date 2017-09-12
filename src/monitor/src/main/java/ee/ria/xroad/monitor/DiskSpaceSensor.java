@@ -39,7 +39,9 @@ import scala.concurrent.duration.FiniteDuration;
 @Slf4j
 public class DiskSpaceSensor extends AbstractSensor {
 
-
+    /**
+     * Constructor
+     */
     public DiskSpaceSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
         updateMetrics();
