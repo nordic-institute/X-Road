@@ -28,8 +28,6 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.ListTokens;
 import lombok.extern.slf4j.Slf4j;
@@ -37,9 +35,10 @@ import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
 import java.security.cert.X509Certificate;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,17 +53,11 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     // give signer some time to become available
     private static final FiniteDuration INITIAL_DELAY = Duration.create(10, TimeUnit.SECONDS);
-    private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER";
+    private static final String JMX_HEADER = "SHA1HASH\t\t\t\t\t\t\tCERT TYPE\t\tNOT BEFORE\t\tNOT AFTER\t\tACTIVE";
 
     private CertificateInfoCollector certificateInfoCollector;
 
     public static final String CERT_HEX_DELIMITER = ":";
-
-    static class TokenInfoLister {
-        List<TokenInfo> listTokens() throws Exception {
-            return SignerClient.execute(new ListTokens());
-        }
-    }
 
     public void setCertificateInfoCollector(CertificateInfoCollector collector) {
         this.certificateInfoCollector = collector;
@@ -72,26 +65,22 @@ public class CertificateInfoSensor extends AbstractSensor {
 
     /**
      * Create new CertificateInfoSensor
-     *
-     * @throws Exception
      */
-    public CertificateInfoSensor() throws Exception {
+    public CertificateInfoSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
 
         certificateInfoCollector = new CertificateInfoCollector()
-                .addExtractor(CertificateType.INTERNAL_IS_CLIENT_TLS, ServerConf::getAllIsCerts)
-                .addExtractor(CertificateType.SECURITY_SERVER_TLS, new InternalTlsExtractor())
-                .addExtractor(CertificateType.AUTH_OR_SIGN, new TokenExtractor());
+                .addExtractor(new InternalServerCertificateExtractor())
+                .addExtractor(new InternalTlsExtractor())
+                .addExtractor(new TokenExtractor());
 
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 
     /**
      * Update existing metric with the data, or register metric as a new (with the data)
-     *
-     * @param data
      */
-    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) throws Exception {
+    private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) {
 
         MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
 
@@ -103,9 +92,8 @@ public class CertificateInfoSensor extends AbstractSensor {
                 .update(data.getJmxStringData());
     }
 
-    private JmxStringifiedData<CertificateMonitoringInfo> list() throws Exception {
-
-        log.debug("listing certificate data");
+    private JmxStringifiedData<CertificateMonitoringInfo> list() {
+        log.trace("listing certificate data");
 
         // The lists need to implement Serializable
         ArrayList<String> jmxRepresentation = new ArrayList<>();
@@ -113,7 +101,6 @@ public class CertificateInfoSensor extends AbstractSensor {
 
         ArrayList<CertificateMonitoringInfo> dtoRepresentation = new ArrayList<>();
 
-        // we filter out the same certificates here or JMX will have duplicates but the metrics xml will not
         for (CertificateMonitoringInfo certInfo : certificateInfoCollector.extractToSet()) {
             dtoRepresentation.add(certInfo);
             jmxRepresentation.add(getJxmRepresentationFrom(certInfo));
@@ -122,115 +109,121 @@ public class CertificateInfoSensor extends AbstractSensor {
         JmxStringifiedData<CertificateMonitoringInfo> listedData = new JmxStringifiedData<>();
         listedData.setJmxStringData(jmxRepresentation);
         listedData.setDtoData(dtoRepresentation);
-        log.debug("got listedData {}", listedData);
+
+        if (log.isTraceEnabled()) {
+            log.trace("got listedData {}", listedData);
+        }
         return listedData;
     }
 
-    static class InternalTlsExtractor implements CertificateInfoExtractor {
+    abstract static class CertificateInfoExtractor {
+        abstract Stream<CertificateMonitoringInfo> getCertificates();
+
+        static Stream<CertificateMonitoringInfo> convertToMonitoringInfo(X509Certificate certificate,
+                                                                         CertificateType certificateType,
+                                                                         boolean active) {
+            try {
+                return Stream.of(new CertificateMonitoringInfo(
+                        certificateType,
+                        CryptoUtils.calculateDelimitedCertHexHash(certificate, CERT_HEX_DELIMITER),
+                        DateTimeFormatter.ISO_INSTANT.format(certificate.getNotBefore().toInstant()),
+                        DateTimeFormatter.ISO_INSTANT.format(certificate.getNotAfter().toInstant()),
+                        active
+                ));
+            } catch (Exception e) {
+                log.error("Extracting monitoring information failed for certificate type {} with certificate {}",
+                        certificateType, certificate.getIssuerDN().getName());
+                return Stream.empty();
+            }
+
+        }
+
+    }
+
+    static class InternalTlsExtractor extends CertificateInfoExtractor {
 
         @Override
-        public List<X509Certificate> getCertificates() {
-
+        public Stream<CertificateMonitoringInfo> getCertificates() {
             try {
-                return Collections.singletonList(ServerConf.getSSLKey().getCert());
+                return convertToMonitoringInfo(
+                        ServerConf.getSSLKey().getCert(),
+                        CertificateType.SECURITY_SERVER_TLS,
+                        true);
             } catch (Exception e) {
-                return Collections.emptyList();
+                return Stream.empty();
             }
         }
 
     }
 
-    @FunctionalInterface
-    interface CertificateInfoExtractor {
-        List<X509Certificate> getCertificates();
-    }
+    static class InternalServerCertificateExtractor extends CertificateInfoExtractor {
 
-    static class CertificateInfoCollector {
-
-        private DateFormat certificateFormat;
-        private Map<CertificateType, CertificateInfoExtractor> extractors = new HashMap<>();
-
-
-        CertificateInfoCollector() {
-            certificateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            certificateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        }
-
-        CertificateInfoCollector addExtractor(CertificateType type, CertificateInfoExtractor extractor) {
-            extractors.put(type, extractor);
-            return this;
-        }
-
-        Set<CertificateMonitoringInfo> extractToSet() {
-            return extractors.entrySet().stream()
-                    .flatMap((entry -> extractNonEmptyCertsAsStreamFrom(entry.getValue(), entry.getKey())))
-                    .collect(Collectors.toSet());
-        }
-
-        private Stream<CertificateMonitoringInfo> extractNonEmptyCertsAsStreamFrom(CertificateInfoExtractor extractor,
-                                                                                   CertificateType certificateType) {
-            return extractor.getCertificates().stream().map(cert -> {
-                try {
-                    return convertToMonitoringInfo(cert, certificateType);
-                } catch (Exception e) {
-                    log.error("Extracting monitoring information failed for certificate type {} with certificate {}",
-                            certificateType, cert.getIssuerDN().getName());
-                }
-                return null;
-            }).filter(Objects::nonNull);
-
-        }
-
-        private CertificateMonitoringInfo convertToMonitoringInfo(X509Certificate certificate,
-                                                                  CertificateType certificateType) throws Exception {
-            CertificateMonitoringInfo certificateInfo = new CertificateMonitoringInfo();
-            certificateInfo.setNotAfter(certificateFormat.format(certificate.getNotAfter()));
-            certificateInfo.setNotBefore(certificateFormat.format(certificate.getNotBefore()));
-            certificateInfo.setSha1hash(CryptoUtils
-                    .calculateDelimitedCertHexHash(certificate, CERT_HEX_DELIMITER));
-            certificateInfo.setType(certificateType);
-            return certificateInfo;
+        @Override
+        public Stream<CertificateMonitoringInfo> getCertificates() {
+            return ServerConf.getAllIsCerts().stream()
+                    .flatMap(c -> convertToMonitoringInfo(c, CertificateType.INTERNAL_IS_CLIENT_TLS, true));
         }
 
     }
 
-    static class TokenExtractor implements CertificateInfoExtractor {
+    static class TokenExtractor extends CertificateInfoExtractor {
 
-        private TokenInfoLister tokenInfoLister = new TokenInfoLister();
+        @FunctionalInterface
+        interface Lister {
+            List<TokenInfo> listTokens() throws Exception;
+        }
 
-        /** Constructor for test purposes
+        private final Lister tokenInfoLister;
+
+        /**
+         * Constructor for test purposes
+         *
          * @param tokenInfoLister
          */
-        TokenExtractor(TokenInfoLister tokenInfoLister) {
+        TokenExtractor(Lister tokenInfoLister) {
             this.tokenInfoLister = tokenInfoLister;
         }
 
         TokenExtractor() {
-            tokenInfoLister = new TokenInfoLister();
+            tokenInfoLister = () -> SignerClient.execute(new ListTokens());
         }
 
         @Override
-        public List<X509Certificate> getCertificates() {
-            List<TokenInfo> tokens;
+        public Stream<CertificateMonitoringInfo> getCertificates() {
+            Stream<TokenInfo> tokens;
             try {
-                tokens = tokenInfoLister.listTokens();
+                tokens = tokenInfoLister.listTokens().stream();
             } catch (Exception e) {
-                return Collections.emptyList();
+                tokens = Stream.empty();
             }
-
-            List<X509Certificate> certs = new ArrayList<>();
-
-            for (TokenInfo token : tokens) {
-                for (KeyInfo keyInfo : token.getKeyInfo()) {
-                    for (CertificateInfo certInfo : keyInfo.getCerts()) {
-                        byte[] certBytes = certInfo.getCertificateBytes();
-                        X509Certificate cert = CryptoUtils.readCertificate(certBytes);
-                        certs.add(cert);
-                    }
-                }
-            }
-            return certs;
+            return tokens
+                    .flatMap(t -> t.getKeyInfo().stream())
+                    .flatMap(k -> k.getCerts().stream())
+                    .flatMap(c -> convertToMonitoringInfo(
+                            CryptoUtils.readCertificate(c.getCertificateBytes()),
+                            CertificateType.AUTH_OR_SIGN,
+                            c.isActive()));
         }
+    }
+
+    static class CertificateInfoCollector {
+
+        private List<CertificateInfoExtractor> extractors = new ArrayList<>();
+
+        CertificateInfoCollector() {
+        }
+
+        CertificateInfoCollector addExtractor(CertificateInfoExtractor extractor) {
+            extractors.add(extractor);
+            return this;
+        }
+
+        Set<CertificateMonitoringInfo> extractToSet() {
+            return extractors.stream()
+                    .flatMap(entry -> entry.getCertificates())
+                    .collect(Collectors.toSet());
+        }
+
     }
 
     /**
@@ -241,13 +234,13 @@ public class CertificateInfoSensor extends AbstractSensor {
         if (info.getSha1hash() != null) {
             addWithTab(info.getSha1hash(), b);
         }
-        String type = info.getType().name();
         addWithTab(info.getType().name(), b);
         if (info.getType() == CertificateType.AUTH_OR_SIGN) {
             b.append('\t'); // a bit of extra padding for the shorter name
         }
         addWithTab(info.getNotBefore(), b);
-        b.append(info.getNotAfter());
+        addWithTab(info.getNotAfter(), b);
+        b.append(info.isActive());
         return b.toString();
     }
 
