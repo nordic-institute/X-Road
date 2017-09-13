@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.monitor;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
@@ -71,12 +72,18 @@ public final class MetricRegistryHolder {
     /**
      * Either registers a new sensor to metricRegistry, or reuses already registered one.
      */
+    @SuppressWarnings("unchecked")
     public <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
-        return (SimpleSensor) metrics.gauge(metricName, () -> new SimpleSensor<>());
+        final Gauge sensor = metrics.gauge(metricName, SimpleSensor::new);
+        if (sensor instanceof SimpleSensor) {
+            return (SimpleSensor<T>) sensor;
+        }
+        throw new IllegalArgumentException(metricName + " is already used for a different type of metric");
     }
 
     /**
-     * If histogram doesn't exist, register default. Thread safety isn't guaranteed.
+     * Either registers a new default histogram to metricRegistry, or reuses already registered one.
+     * throws an IllegalArgumentException if a metric with the same name but a different type exists
      */
     public Histogram getOrCreateHistogram(String metricName) {
         return metrics.histogram(metricName, this::createDefaultHistogram);

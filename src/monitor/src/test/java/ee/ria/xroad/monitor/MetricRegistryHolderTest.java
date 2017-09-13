@@ -59,4 +59,11 @@ public class MetricRegistryHolderTest {
         }
 
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testTypeConflict() {
+        final MetricRegistryHolder holder = MetricRegistryHolder.getInstance();
+        holder.getMetrics().gauge("test", () -> () -> 42L);
+        holder.getOrCreateSimpleSensor("test");
+    }
 }
