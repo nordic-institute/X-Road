@@ -62,7 +62,8 @@ public class SignatureVerifierTest {
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
     /** The correct member name used in the test data. */
-    private static final ClientId CORRECT_MEMBER = createClientId("Test Org");
+    private static final ClientId TEST_ORG_ID = createClientId("Test Org");
+    private static final ClientId CONSUMER_ID = createClientId("consumer");
 
     @Rule
     public ExpectedCodedException thrown = ExpectedCodedException.none();
@@ -76,14 +77,13 @@ public class SignatureVerifierTest {
      */
     @Before
     public void setUp() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common-util/src/test/resources/globalconf_good_v2");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
+
         GlobalConf.reload(new TestGlobalConfImpl(false) {
             @Override
-            public X509Certificate getCaCert(String instanceIdentifier,
-                    X509Certificate memberCert) throws Exception {
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
                 return TestCertUtil.getCaCert();
             }
         });
@@ -95,15 +95,7 @@ public class SignatureVerifierTest {
      */
     @Test
     public void verifyValidSignature() throws Exception {
-        List<MessagePart> hashes = new ArrayList<>();
-        byte[] messageBytes = fileToBytes("message-0.xml");
-        hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                calculateDigest(SHA512_ID, messageBytes), messageBytes));
-
-        SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
-        verifier.addParts(hashes);
-
-        verifier.verify(createClientId("consumer"), CORRECT_VALIDATION_DATE);
+        verifyValidSignature("../common-test/src/test/signatures/sign-0.xml");
     }
 
     /**
@@ -112,7 +104,7 @@ public class SignatureVerifierTest {
      */
     @Test
     public void verifyValidSignatureHashChain() throws Exception {
-        Resolver resolver = null;
+        Resolver resolver;
 
         resolver = new Resolver() {
             @Override
@@ -124,13 +116,33 @@ public class SignatureVerifierTest {
                     return super.resolve(uri);
                 }
             }
-        }
-            .withHashChain("hash-chain-1.xml")
-            .withMessage("message-1.xml");
+        }.withHashChain("src/test/signatures/hash-chain-1.xml")
+                .withMessage("src/test/signatures/message-1.xml");
 
-        createSignatureVerifier("batch-sig.xml",
-                "hash-chain-result.xml", resolver)
-            .verify(createClientId("consumer"), CORRECT_VALIDATION_DATE);
+        createSignatureVerifier("src/test/signatures/batch-sig.xml", "src/test/signatures/hash-chain-result.xml",
+                resolver).verify(CONSUMER_ID, CORRECT_VALIDATION_DATE);
+    }
+
+    /**
+     * Tests that verifying backward compatible (not conforming to specification) valid signature succeeds.
+     * @throws Exception if error occurs
+     */
+    @Test
+    public void verifyValidBackwardCompatibleSignature() throws Exception {
+        verifyValidSignature("../common-test/src/test/signatures/sign-0-old-format.xml");
+    }
+
+    private void verifyValidSignature(String signatureFileName) throws Exception {
+        List<MessagePart> hashes = new ArrayList<>();
+        byte[] messageBytes = fileToBytes("../common-test/src/test/signatures/message-0.xml");
+
+        hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID, calculateDigest(SHA512_ID, messageBytes),
+                messageBytes));
+
+        SignatureVerifier verifier = createSignatureVerifier(signatureFileName);
+        verifier.addParts(hashes);
+
+        verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
@@ -140,7 +152,8 @@ public class SignatureVerifierTest {
     @Test
     public void emptySignature() throws Exception {
         thrown.expectError(X_INVALID_XML);
-        createSignatureVerifier("empty.xml");
+
+        createSignatureVerifier("src/test/signatures/empty.xml");
     }
 
     /**
@@ -150,7 +163,8 @@ public class SignatureVerifierTest {
     @Test
     public void noXadesSignature() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        createSignatureVerifier("no-signature.xml");
+
+        createSignatureVerifier("src/test/signatures/sign-0-no-signature.xml");
     }
 
     /**
@@ -160,7 +174,8 @@ public class SignatureVerifierTest {
     @Test
     public void noObjectContainer() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        createSignatureVerifier("no-objectcontainer.xml");
+
+        createSignatureVerifier("src/test/signatures/sign-0-no-objectcontainer.xml");
     }
 
     /**
@@ -170,43 +185,44 @@ public class SignatureVerifierTest {
     @Test
     public void malformedXml() throws Exception {
         thrown.expectError(X_INVALID_XML);
-        createSignatureVerifier("malformed-xml.xml");
+
+        createSignatureVerifier("src/test/signatures/sign-0-malformed-xml.xml");
     }
 
     /**
-     * Tests that validating against the schema fails if the XML does not
-     * satisfy the schema. Just changed the name of one element for now.
+     * Tests that validating against the schema fails if the XML does not satisfy the schema.
+     * Just changed the name of one element for now.
      * @throws Exception if error occurs
      */
     @Test
     public void schemaValidationFail() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier = createSignatureVerifier("schema-fail.xml");
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-schema-fail.xml");
         verifier.verify(null, null);
     }
 
     /**
-     * Tests that verification fails if signing certificate is
-     * not in the signature.
+     * Tests that verification fails if signing certificate is not in the signature.
      * @throws Exception if error occurs
      */
     @Test
     public void noSigningCertificate() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier =
-                createSignatureVerifier("no-signing-cert.xml");
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-no-signing-cert.xml");
         verifier.verify(null, null);
     }
 
     /**
-     * Tests that verifying the signer name fails if provided with an invalid
-     * signer name.
+     * Tests that verifying the signer name fails if provided with an invalid signer name.
      * @throws Exception if error occurs
      */
     @Test
     public void invalidSignerName() throws Exception {
         thrown.expectError(X_INCORRECT_CERTIFICATE);
-        SignatureVerifier verifier = createSignatureVerifier("good.xml");
+
+        SignatureVerifier verifier = createSignatureVerifier("../common-test/src/test/signatures/sign-0.xml");
         verifier.verify(createClientId("FOORBAR"), null);
     }
 
@@ -217,9 +233,9 @@ public class SignatureVerifierTest {
     @Test
     public void invalidSignatureValue() throws Exception {
         thrown.expectError(X_INVALID_SIGNATURE_VALUE);
-        SignatureVerifier verifier =
-                createSignatureVerifier("invalid-signature-value.xml");
-        verifier.verify(CORRECT_MEMBER, null);
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-invalid-signature-value.xml");
+        verifier.verify(CONSUMER_ID, null);
     }
 
     /**
@@ -228,8 +244,8 @@ public class SignatureVerifierTest {
      */
     //@Test
     public void extraCerts() throws Exception {
-        SignatureVerifier verifier = createSignatureVerifier("extra-certs.xml");
-        verifier.verify(CORRECT_MEMBER, CORRECT_VALIDATION_DATE);
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs.xml");
+        verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
@@ -240,48 +256,45 @@ public class SignatureVerifierTest {
     @Test
     public void extraCertsMissingId() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier = createSignatureVerifier(
-                "extra-certs-missing-id.xml");
-        verifier.verify(CORRECT_MEMBER, CORRECT_VALIDATION_DATE);
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-missing-id.xml");
+        verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
-     * Test that when an encapsulated certificate element is missing,
-     * exception is thrown.
+     * Test that when an encapsulated certificate element is missing, exception is thrown.
      * @throws Exception if error occurs
      */
     @Test
     public void extraCertsMissingCert() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier = createSignatureVerifier(
-                "extra-certs-missing-cert.xml");
-        verifier.verify(CORRECT_MEMBER, CORRECT_VALIDATION_DATE);
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-missing-cert.xml");
+        verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
-     * Test that when an encapsulated certificate has its digest mangled,
-     * exception is thrown.
+     * Test that when an encapsulated certificate has its digest mangled, exception is thrown.
      * @throws Exception if error occurs
      */
     @Test
     public void extraCertsDigestInvalid() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier = createSignatureVerifier(
-                "extra-certs-digest-invalid.xml");
-        verifier.verify(CORRECT_MEMBER, CORRECT_VALIDATION_DATE);
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/extra-certs-digest-invalid.xml");
+        verifier.verify(TEST_ORG_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
-     * Tests that if the signature contains no OCSP responses,
-     * exception is thrown.
+     * Tests that if the signature contains no OCSP responses, exception is thrown.
      * @throws Exception if error occurs
      */
     @Test
     public void ocspNoResponses() throws Exception {
         thrown.expectError(X_MALFORMED_SIGNATURE);
-        SignatureVerifier verifier = createSignatureVerifier(
-                "ocsp-no-responses.xml");
-        verifier.verify(CORRECT_MEMBER, CORRECT_VALIDATION_DATE);
+
+        SignatureVerifier verifier = createSignatureVerifier("src/test/signatures/sign-0-ocsp-no-responses.xml");
+        verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE);
     }
 
     /**
@@ -292,30 +305,27 @@ public class SignatureVerifierTest {
     @Test
     public void invalidAttachmentHash() throws Exception {
         thrown.expectError(X_INVALID_SIGNATURE_VALUE);
-        List<MessagePart> hashes = new ArrayList<>();
-        hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
-                hash("foo"), hash("foo")));
 
-        SignatureVerifier verifier = createSignatureVerifier("sig-0.xml");
+        List<MessagePart> hashes = new ArrayList<>();
+        hashes.add(new MessagePart(MessageFileNames.MESSAGE, SHA512_ID, hash("foo"), hash("foo")));
+
+        SignatureVerifier verifier = createSignatureVerifier("../common-test/src/test/signatures/sign-0.xml");
         verifier.addParts(hashes);
 
-        verifier.verify(createClientId("consumer"), CORRECT_VALIDATION_DATE);
+        verifier.verify(CONSUMER_ID, CORRECT_VALIDATION_DATE);
     }
 
     // ------------------------------------------------------------------------
 
-    private static SignatureVerifier createSignatureVerifier(String file)
-            throws Exception {
-        return new SignatureVerifier(signature(file));
+    private static SignatureVerifier createSignatureVerifier(String signaturePath) throws Exception {
+        return new SignatureVerifier(signature(signaturePath));
     }
 
-    private static SignatureVerifier createSignatureVerifier(
-            String signatureFileName, String hashChainResultFileName,
+    private static SignatureVerifier createSignatureVerifier(String signatureFileName, String hashChainResultFileName,
             HashChainReferenceResolver resolver) throws Exception {
         Signature signature = signature(signatureFileName);
 
-        SignatureVerifier verifier = new SignatureVerifier(signature,
-                loadFile(hashChainResultFileName), null);
+        SignatureVerifier verifier = new SignatureVerifier(signature, loadFile(hashChainResultFileName), null);
 
         verifier.setHashChainResourceResolver(resolver);
 
@@ -337,11 +347,10 @@ public class SignatureVerifierTest {
     }
 
     private static InputStream file(String fileName) throws IOException {
-        return new FileInputStream("src/test/signatures/" + fileName);
+        return new FileInputStream(fileName);
     }
 
-    private static Signature signature(String signatureFileName)
-            throws Exception {
+    private static Signature signature(String signatureFileName) throws Exception {
         try (InputStream file = file(signatureFileName)) {
             return new Signature(file);
         }
@@ -351,6 +360,7 @@ public class SignatureVerifierTest {
         Calendar cal = Calendar.getInstance();
         cal.clear(); // Let's clear the current time.
         cal.set(year, month, day);
+
         return cal.getTime();
     }
 
@@ -372,6 +382,7 @@ public class SignatureVerifierTest {
 
         Resolver add(String name, String file) {
             resources.put(name, file);
+
             return this;
         }
 
