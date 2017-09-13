@@ -177,12 +177,12 @@ fi
 #4 new_section
 #5 new_key
 function migrate_conf_value {
-    MIGRATION_VALUE=$(crudini --get $1 $2 $3 2>/dev/null)
-    if [ ${MIGRATION_VALUE} ];
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null)"
+    if [ "${MIGRATION_VALUE}" ];
         then
-            crudini --set $1 $4 $5 ${MIGRATION_VALUE}
-            echo Configuration migration: $2.$3 "->" $4.$5
-            crudini --del $1 $2 $3
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+            crudini --del "$1" "$2" "$3"
     fi
 }
 
