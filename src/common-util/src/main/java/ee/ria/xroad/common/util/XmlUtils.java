@@ -24,6 +24,7 @@ package ee.ria.xroad.common.util;
 
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.Optional;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -39,13 +40,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.c14n.Canonicalizer;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains various XML-related utility methods.
@@ -57,29 +57,24 @@ public final class XmlUtils {
     }
 
     /**
-     * Creates a new document object from the given input stream containing
-     * the document XML.
+     * Creates a new document object from the given input stream containing the document XML.
      * @param documentXml the input stream containing the XML
      * @return the created document object
      * @throws Exception if an error occurs
      */
-    public static Document parseDocument(InputStream documentXml)
-            throws Exception {
+    public static Document parseDocument(InputStream documentXml) throws Exception {
         return parseDocument(documentXml, true);
     }
 
     /**
-     * Creates a new document object from the given input stream containing
-     * the document XML.
+     * Creates a new document object from the given input stream containing the document XML.
      * @param documentXml the input stream containing the XML
      * @param namespaceAware flag indicating namespace awareness
      * @return the created document object
      * @throws Exception if an error occurs
      */
-    public static Document parseDocument(InputStream documentXml,
-            boolean namespaceAware) throws Exception {
-        DocumentBuilderFactory documentBuilderFactory =
-                DocumentBuilderFactory.newInstance();
+    public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(namespaceAware);
 
         return documentBuilderFactory.newDocumentBuilder().parse(documentXml);
@@ -97,6 +92,7 @@ public final class XmlUtils {
         Result result = new StreamResult(writer);
         Transformer t = TransformerFactory.newInstance().newTransformer();
         t.transform(source, result);
+
         return writer.toString();
     }
 
@@ -104,28 +100,22 @@ public final class XmlUtils {
      * Returns the first element matching the given tag name.
      * @param doc the document from which to search the element
      * @param tagName the name of the tag to match
-     * @return the element or null if the element cannot be found
+     * @return optional containing the element or empty if the element cannot be found
      */
-    public static Element getFirstElementByTagName(Document doc,
-            String tagName) {
+    public static Optional<Element> getFirstElementByTagName(Document doc, String tagName) {
         NodeList nodes = doc.getElementsByTagName(tagName);
-        if (nodes.getLength() > 0) {
-            return (Element) nodes.item(0);
-        }
-        return null;
+
+        return nodes.getLength() > 0 ? Optional.ofNullable((Element) nodes.item(0)) : Optional.empty();
     }
 
     /**
-     * Returns an element matching the given xpath expression and using the
-     * specified namespace context.
+     * Returns an element matching the given xpath expression and using the specified namespace context.
      * @param parent the parent element from which to search
      * @param xpathExpr the xpath expression
      * @param nsCtx the namespace context (can be null)
-     * @return the element or null if the element cannot be found or the xpath
-     *         expression is invalid
+     * @return the element or null if the element cannot be found or the xpath expression is invalid
      */
-    public static Element getElementXPathNS(Element parent, String xpathExpr,
-            NamespaceContext nsCtx) {
+    public static Element getElementXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
@@ -134,25 +124,22 @@ public final class XmlUtils {
                 xpath.setNamespaceContext(nsCtx);
             }
 
-            return (Element) xpath.evaluate(
-                    xpathExpr, parent, XPathConstants.NODE);
+            return (Element) xpath.evaluate(xpathExpr, parent, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             log.warn("Element not found with getElementXPathNS {}", e);
+
             return null;
         }
     }
 
     /**
-     * Returns a list of elements matching the given xpath expression and using
-     * the specified namespace context.
+     * Returns a list of elements matching the given xpath expression and using the specified namespace context.
      * @param parent the parent element from which to search
      * @param xpathExpr the xpath expression
      * @param nsCtx the namespace context (can be null)
-     * @return the elements or null if the element cannot be found or the xpath
-     *         expression is invalid
+     * @return the elements or null if the element cannot be found or the xpath expression is invalid
      */
-    public static NodeList getElementsXPathNS(Element parent, String xpathExpr,
-            NamespaceContext nsCtx) {
+    public static NodeList getElementsXPathNS(Element parent, String xpathExpr, NamespaceContext nsCtx) {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
@@ -161,10 +148,10 @@ public final class XmlUtils {
                 xpath.setNamespaceContext(nsCtx);
             }
 
-            return (NodeList) xpath.evaluate(
-                    xpathExpr, parent, XPathConstants.NODESET);
+            return (NodeList) xpath.evaluate(xpathExpr, parent, XPathConstants.NODESET);
         } catch (XPathExpressionException e) {
             log.warn("Element not found with getElementXPathNS {}", e);
+
             return null;
         }
     }
@@ -184,25 +171,24 @@ public final class XmlUtils {
         try {
             XPathFactory factory = XPathFactory.newInstance();
             XPath xpath = factory.newXPath();
-            return (Element) xpath.evaluate("//*[@Id = '" + id + "']",
-                    doc, XPathConstants.NODE);
+
+            return (Element) xpath.evaluate("//*[@Id = '" + id + "']", doc, XPathConstants.NODE);
         } catch (XPathExpressionException e) {
             log.warn("Element not found with getElementXPathNS {}", e);
+
             return null;
         }
     }
 
     /**
-     * Calculates and return the result of canonicalization of the specified
-     * node, using the specified canonicalization method.
-     * @param algorithmUri the URI of the canonicalization algorithm that is
-     *        known to the class Canonicalizer.
+     * Calculates and return the result of canonicalization of the specified node, using the specified
+     * canonicalization method.
+     * @param algorithmUri the URI of the canonicalization algorithm that is known to the class Canonicalizer.
      * @param node the node to canonicalize
      * @return the c14n result.
      * @throws Exception if any errors occur
      */
-    public static byte[] canonicalize(String algorithmUri, Node node)
-            throws Exception {
+    public static byte[] canonicalize(String algorithmUri, Node node) throws Exception {
         return Canonicalizer.getInstance(algorithmUri).canonicalizeSubtree(node);
     }
 
@@ -223,17 +209,14 @@ public final class XmlUtils {
      * @return printed document in String form
      * @throws Exception if any errors occur
      */
-    public static String prettyPrintXml(Document document, String charset)
-            throws Exception {
+    public static String prettyPrintXml(Document document, String charset) throws Exception {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
-        Transformer transformer =
-                TransformerFactory.newInstance().newTransformer();
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
-        transformer.setOutputProperty(
-                "{http://xml.apache.org/xslt}indent-amount", "4");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
         transformer.transform(new DOMSource(document), output);
 
         return output.getWriter().toString().trim();

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.TimeZone;
 
 import javax.xml.bind.DatatypeConverter;
+import javax.xml.crypto.dsig.DigestMethod;
 
 import org.apache.xml.security.exceptions.XMLSecurityException;
 import org.apache.xml.security.signature.ObjectContainer;
@@ -53,10 +54,20 @@ import static ee.ria.xroad.common.signature.Helper.*;
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
 /**
- * Encapsulates the AsiC XAdES signature profile. This class creates the
- * signature used in signing the messages.
+ * Encapsulates the AsiC XAdES signature profile. This class creates the signature used in signing the messages.
  */
 final class SignatureXmlBuilder {
+
+    private static final String SIGNATURE_POLICY_IDENTIFIER = "urn:oid:1.3.6.1.4.1.3516.16.2";
+    private static final String SIGNATURE_POLICY_DESCRIPTION =
+            "Profile for High Performance Digital Signatures (version 1.2)";
+    private static final String SIGNATURE_POLICY_DIGEST_METHOD = DigestMethod.SHA512;
+    private static final String SIGNATURE_POLICY_SHA512_DIGEST =
+            "BuO0EDNfkxSVlUbxCzmQPzX1AUF1/xx9ytWHk3/6SAOePxQiniEfDYk+90QeYb3lWpV3Izhuz9fKaYyE+lTcXw==";
+    private static final String SIGNATURE_POLICY_QUALIFIER_SPURI = "https://repo.cyber.ee/dsig-profile-1.2.pdf";
+
+    // The identifier is an Object IDentifier encoded as an URN.
+    private static final String OID_AS_URN = "OIDAsURN";
 
     private static final int MAX_LINE_LENGTH = 76;
 
@@ -92,7 +103,7 @@ final class SignatureXmlBuilder {
         signature.addResourceResolver(new IdResolver(document));
         signature.addResourceResolver(resourceResolver);
 
-        signature.addDocument(docName, null, getHashAlgorithmURI());
+        signature.addDocument(docName, null, getHashAlgorithmURI(), getSignatureRefereceIdForMessage(), null);
 
         createObjectContainer();
         createQualifyingProperties();
@@ -101,7 +112,8 @@ final class SignatureXmlBuilder {
     }
 
     String createSignatureXml(byte[] signatureValue) throws Exception {
-        Element signatureValueElement = XmlUtils.getFirstElementByTagName(document, PREFIX_DS + SIGNATURE_VALUE_TAG);
+        Element signatureValueElement = XmlUtils.getFirstElementByTagName(document, PREFIX_DS + SIGNATURE_VALUE_TAG)
+                .orElseThrow(() -> elementNotFound(PREFIX_DS + SIGNATURE_VALUE_TAG));
 
         while (signatureValueElement.hasChildNodes()) {
             signatureValueElement.removeChild(signatureValueElement.getFirstChild());
@@ -162,30 +174,77 @@ final class SignatureXmlBuilder {
         Element signedProperties = createXadesElement(SIGNED_PROPS_TAG);
         signedProperties.setAttribute(ID_ATTRIBUTE, id);
 
-        Element signedSignatureProperties = createXadesElement(signedProperties, SIGNED_SIGNATURE_PROPS_TAG);
+        createSignedSignatureProperties(signedProperties);
+        createSignedDataObjectProperties(signedProperties);
 
-        Element signingTime = createXadesElement(signedSignatureProperties, SIGNING_TIME_TAG);
-
-        Calendar signatureSigningTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        signingTime.setTextContent(DatatypeConverter.printDateTime(signatureSigningTime));
-
-        Element signingCertificate = createXadesElement(signedSignatureProperties, SIGNING_CERTIFICATE_TAG);
-
-        Element cert = createXadesElement(signingCertificate, CERT_TAG);
-        createCertDigest(signature.getKeyInfo().getX509Certificate(), cert);
-
-        Element signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
-        createSignedDataObjectProperties(signedDataObjectProperties);
-
-        signature.addDocument("#" + id, null, getHashAlgorithmURI(), null, NS_SIG_PROP);
+        signature.addDocument("#" + id, null, getHashAlgorithmURI(), getSignatureReferenceIdForSignedProperties(),
+                NS_SIG_PROP);
 
         return signedProperties;
     }
 
-    private void createSignedDataObjectProperties(Element signedDataObjectProperties) {
-        Element dataObjectFormat = createXadesElement(signedDataObjectProperties, DATAOBJECTFORMAT_TAG);
+    private void createSignedSignatureProperties(Element signedProperties) throws Exception {
+        Element signedSignatureProperties = createXadesElement(signedProperties, SIGNED_SIGNATURE_PROPS_TAG);
 
-        dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, documentName);
+        createSigningTime(signedSignatureProperties);
+        createSigningCertificate(signedSignatureProperties);
+        createSignaturePolicyIdentifier(signedSignatureProperties);
+    }
+
+    private void createSigningTime(Element signedSignatureProperties) {
+        Element signingTime = createXadesElement(signedSignatureProperties, SIGNING_TIME_TAG);
+        Calendar signatureSigningTime = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+        signingTime.setTextContent(DatatypeConverter.printDateTime(signatureSigningTime));
+    }
+
+    private void createSigningCertificate(Element signedSignatureProperties) throws Exception {
+        Element signingCertificate = createXadesElement(signedSignatureProperties, SIGNING_CERTIFICATE_TAG);
+        Element cert = createXadesElement(signingCertificate, CERT_TAG);
+
+        createCertDigestAndIssuerSerial(signature.getKeyInfo().getX509Certificate(), cert);
+    }
+
+    private void createSignaturePolicyIdentifier(Element signedSignatureProperties) throws Exception {
+        Element signaturePolicyIdentifier = createXadesElement(signedSignatureProperties,
+                SIGNATURE_POLICY_IDENTIFIER_TAG);
+        Element signaturePolicyId = createXadesElement(signaturePolicyIdentifier, SIGNATURE_POLICY_ID_TAG);
+
+        createSigPolicyId(signaturePolicyId);
+        createSigPolicyHash(signaturePolicyId);
+        createSigPolicyQualifiers(signaturePolicyId);
+    }
+
+    private void createSigPolicyId(Element signaturePolicyId) {
+        Element sigPolicyId = createXadesElement(signaturePolicyId, SIG_POLICY_ID_TAG);
+
+        Element identifier = createXadesElement(sigPolicyId, IDENTIFIER_TAG);
+        identifier.setAttribute(QUALIFIER_ATTR, OID_AS_URN);
+        identifier.setTextContent(SIGNATURE_POLICY_IDENTIFIER);
+
+        Element description = createXadesElement(sigPolicyId, DESCRIPTION_TAG);
+        description.setTextContent(SIGNATURE_POLICY_DESCRIPTION);
+    }
+
+    private void createSigPolicyHash(Element signaturePolicyId) throws Exception {
+        Element sigPolicyHash = createXadesElement(signaturePolicyId, SIG_POLICY_HASH_TAG);
+
+        createDigestAlgAndValue(SIGNATURE_POLICY_DIGEST_METHOD, SIGNATURE_POLICY_SHA512_DIGEST, sigPolicyHash);
+    }
+
+    private void createSigPolicyQualifiers(Element signaturePolicyId) {
+        Element sigPolicyQualifiers = createXadesElement(signaturePolicyId, SIG_POLICY_QUALIFIERS_TAG);
+        Element sigPolicyQualifier = createXadesElement(sigPolicyQualifiers, SIG_POLICY_QUALIFIER_TAG);
+        Element spuri = createXadesElement(sigPolicyQualifier, SPURI_TAG);
+
+        spuri.setTextContent(SIGNATURE_POLICY_QUALIFIER_SPURI);
+    }
+
+    private void createSignedDataObjectProperties(Element signedProperties) {
+        Element signedDataObjectProperties = createXadesElement(signedProperties, SIGNED_DATAOBJ_TAG);
+
+        Element dataObjectFormat = createXadesElement(signedDataObjectProperties, DATAOBJECTFORMAT_TAG);
+        dataObjectFormat.setAttribute(OBJECTREFERENCE_ATTR, "#" + getSignatureRefereceIdForMessage());
 
         Element mimeType = createXadesElement(dataObjectFormat, MIMETYPE_TAG);
 
@@ -196,7 +255,7 @@ final class SignatureXmlBuilder {
        }
     }
 
-    private void createCertDigest(X509Certificate cert, Element certElement) throws Exception {
+    private void createCertDigestAndIssuerSerial(X509Certificate cert, Element certElement) throws Exception {
         Element certDigest = createXadesElement(certElement, CERT_DIGEST_TAG);
         createCertDigestAlgAndValue(cert, certDigest);
 
@@ -226,7 +285,6 @@ final class SignatureXmlBuilder {
 
     private Element createUnsignedProperties() throws Exception {
         Element unsignedProperties = createXadesElement(UNSIGNED_PROPS_TAG);
-
         Element unsignedSignatureProperties = createXadesElement(unsignedProperties, UNSIGNED_SIGNATURE_PROPS_TAG);
 
         if (!extraCertificates.isEmpty()) {
@@ -244,7 +302,6 @@ final class SignatureXmlBuilder {
 
     private void createRevocationValues(Element unsignedSignatureProperties) throws Exception {
         Element revocationValues = createXadesElement(unsignedSignatureProperties, REVOCATION_VALUES_TAG);
-
         Element ocspValues = createXadesElement(revocationValues, OCSP_VALUES_TAG);
 
         int c = 1;
@@ -286,7 +343,7 @@ final class SignatureXmlBuilder {
         for (X509Certificate cert : extraCertificates) {
             Element certElement = createXadesElement(certRefs, CERT_TAG);
             certElement.setAttribute(URI_ATTRIBUTE, "#" + ENCAPSULATED_CERT_ID + (c++));
-            createCertDigest(cert, certElement);
+            createCertDigestAndIssuerSerial(cert, certElement);
         }
     }
 

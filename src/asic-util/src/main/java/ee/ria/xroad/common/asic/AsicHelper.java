@@ -22,29 +22,6 @@
  */
 package ee.ria.xroad.common.asic;
 
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_INVALID_MIME_TYPE;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MANIFEST_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MESSAGE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_MIME_TYPE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_SIGNATURE_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_ASIC_TIMESTAMP_NOT_FOUND;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_ASIC_MANIFEST;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MANIFEST;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MESSAGE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_MIMETYPE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIGNATURE;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIG_HASH_CHAIN;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_SIG_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TIMESTAMP;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.ENTRY_TS_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.asic.AsicContainerEntries.MIMETYPE;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static org.apache.commons.lang.StringUtils.isBlank;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -60,26 +37,31 @@ import org.apache.commons.io.IOUtils;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.signature.Signature;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.asic.AsicContainerEntries.*;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+
 /**
  * Utility methods for dealing wit ASiC containers.
- *
- * XXX: Currently class declaration is public in order to facilitate testing.
  */
-public final class AsicHelper {
+final class AsicHelper {
 
     private AsicHelper() {
     }
 
     static AsicContainer read(InputStream is) throws Exception {
         Map<String, String> entries = new HashMap<>();
-
         ZipInputStream zip = new ZipInputStream(is);
-
         ZipEntry zipEntry;
+
         while ((zipEntry = zip.getNextEntry()) != null) {
             for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
                 if (matches(expectedEntry, zipEntry.getName())) {
                     String data;
+
                     if (ENTRY_TIMESTAMP.equalsIgnoreCase(zipEntry.getName())) {
                         data = encodeBase64(getBinaryData(zip));
                     } else {
@@ -87,6 +69,7 @@ public final class AsicHelper {
                     }
 
                     entries.put(zipEntry.getName(), data);
+
                     break;
                 }
             }
@@ -95,12 +78,12 @@ public final class AsicHelper {
         return new AsicContainer(entries);
     }
 
-    static void write(AsicContainer asic, ZipOutputStream zip)
-            throws Exception {
+    static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
         zip.setComment("mimetype=" + MIMETYPE);
 
         for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
-            String name = null;
+            String name;
+
             if (expectedEntry instanceof String) {
                 name = (String) expectedEntry;
             } else if (expectedEntry instanceof Pattern) {
@@ -110,6 +93,7 @@ public final class AsicHelper {
             }
 
             String data = asic.get(name);
+
             if (data != null) {
                 if (ENTRY_TIMESTAMP.equalsIgnoreCase(name)) {
                     // If the timestamp is batch timestamp, add the timestamp.tst
@@ -125,7 +109,7 @@ public final class AsicHelper {
         }
     }
 
-    static boolean matches(Object expectedEntry, String name) {
+    private static boolean matches(Object expectedEntry, String name) {
         if (expectedEntry instanceof String) {
             return ((String) expectedEntry).equalsIgnoreCase(name);
         } else if (expectedEntry instanceof Pattern) {
@@ -137,13 +121,11 @@ public final class AsicHelper {
 
     static void verifyMimeType(String mimeType) throws Exception {
         if (isBlank(mimeType)) {
-            throw fileEmptyException(X_ASIC_MIME_TYPE_NOT_FOUND,
-                    ENTRY_MIMETYPE);
+            throw fileEmptyException(X_ASIC_MIME_TYPE_NOT_FOUND, ENTRY_MIMETYPE);
         }
 
         if (!MIMETYPE.equalsIgnoreCase(mimeType)) {
-            throw new CodedException(X_ASIC_INVALID_MIME_TYPE,
-                    "Invalid mime type: %s", mimeType);
+            throw new CodedException(X_ASIC_INVALID_MIME_TYPE, "Invalid mime type: %s", mimeType);
         }
     }
 
@@ -153,22 +135,18 @@ public final class AsicHelper {
         }
     }
 
-    static void verifySignature(String signature, String hashChainResult,
-            String hashChain) {
+    static void verifySignature(String signature, String hashChainResult, String hashChain) {
         if (isBlank(signature)) {
-            throw fileEmptyException(X_ASIC_SIGNATURE_NOT_FOUND,
-                    ENTRY_SIGNATURE);
+            throw fileEmptyException(X_ASIC_SIGNATURE_NOT_FOUND, ENTRY_SIGNATURE);
         }
 
         verifyHashChainEntries(ENTRY_SIG_HASH_CHAIN_RESULT, hashChainResult,
                 ENTRY_SIG_HASH_CHAIN, hashChain);
     }
 
-    static void verifyTimestamp(String timestamp, String hashChainResult,
-            String hashChain) {
+    static void verifyTimestamp(String timestamp, String hashChainResult, String hashChain) {
         if (isNotNullAndIsBlank(timestamp)) {
-            throw fileEmptyException(X_ASIC_TIMESTAMP_NOT_FOUND,
-                    ENTRY_TIMESTAMP);
+            throw fileEmptyException(X_ASIC_TIMESTAMP_NOT_FOUND, ENTRY_TIMESTAMP);
         }
 
         verifyHashChainEntries(ENTRY_TS_HASH_CHAIN_RESULT, hashChainResult,
@@ -177,49 +155,42 @@ public final class AsicHelper {
 
     static void verifyManifest(String manifest, String asicManifest) {
         if (isNotNullAndIsBlank(manifest)) {
-            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND,
-                    ENTRY_MANIFEST);
+            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND, ENTRY_MANIFEST);
         }
 
         if (isNotNullAndIsBlank(asicManifest)) {
-            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND,
-                    ENTRY_ASIC_MANIFEST);
+            throw fileEmptyException(X_ASIC_MANIFEST_NOT_FOUND, ENTRY_ASIC_MANIFEST);
         }
     }
 
-    static void verifyHashChainEntries(String hashChainResultEntryName,
-            String hashChainResult, String hashChainEntryName,
-            String hashChain) {
+    private static void verifyHashChainEntries(String hashChainResultEntryName, String hashChainResult,
+            String hashChainEntryName, String hashChain) {
         if (isBlank(hashChainResult) && isBlank(hashChain)) {
             return;
         }
 
         if (isBlank(hashChainResult)) {
-            throw fileEmptyException(X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND,
-                    hashChainResultEntryName);
+            throw fileEmptyException(X_ASIC_HASH_CHAIN_RESULT_NOT_FOUND, hashChainResultEntryName);
         }
 
         if (isBlank(hashChain)) {
-            throw fileEmptyException(X_ASIC_HASH_CHAIN_NOT_FOUND,
-                    hashChainEntryName);
+            throw fileEmptyException(X_ASIC_HASH_CHAIN_NOT_FOUND, hashChainEntryName);
         }
     }
 
-    static String getData(ZipInputStream zip) throws Exception {
+    private static String getData(ZipInputStream zip) throws Exception {
         return IOUtils.toString(zip, StandardCharsets.UTF_8);
     }
 
-    static byte[] getBinaryData(ZipInputStream zip) throws Exception {
+    private static byte[] getBinaryData(ZipInputStream zip) throws Exception {
         return IOUtils.toByteArray(zip);
     }
 
-    static void addEntry(ZipOutputStream zip, String name, String data)
-            throws IOException {
+    private static void addEntry(ZipOutputStream zip, String name, String data) throws IOException {
         addEntry(zip, name, data.getBytes(StandardCharsets.UTF_8));
     }
 
-    static void addEntry(ZipOutputStream zip, String name, byte[] data)
-            throws IOException {
+    private static void addEntry(ZipOutputStream zip, String name, byte[] data) throws IOException {
         zip.putNextEntry(new ZipEntry(name));
         zip.write(data);
     }
@@ -232,9 +203,9 @@ public final class AsicHelper {
         return name;
     }
 
-    static String readTimestampFromSignatureXml(String signatureXml)
-            throws Exception {
+    static String readTimestampFromSignatureXml(String signatureXml) throws Exception {
         Signature signature = new Signature(signatureXml);
+
         return signature.getSignatureTimestamp();
     }
 
@@ -242,9 +213,7 @@ public final class AsicHelper {
         return string != null && isBlank(string);
     }
 
-    private static CodedException fileEmptyException(String errorCode,
-            String fileName) {
-        throw new CodedException(errorCode, "%s not found or is empty",
-                fileName);
+    private static CodedException fileEmptyException(String errorCode, String fileName) {
+        throw new CodedException(errorCode, "%s not found or is empty", fileName);
     }
 }
