@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -37,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.io.Serializable;
 import java.security.cert.X509Certificate;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -85,7 +83,6 @@ public class CertificateInfoSensor extends AbstractSensor {
                 .addExtractor(CertificateType.SECURITY_SERVER_TLS, new InternalTlsExtractor())
                 .addExtractor(CertificateType.AUTH_OR_SIGN, new TokenExtractor());
 
-        updateOrRegisterData(new JmxStringifiedData());
         scheduleSingleMeasurement(INITIAL_DELAY, new CertificateInfoMeasure());
     }
 
@@ -96,34 +93,15 @@ public class CertificateInfoSensor extends AbstractSensor {
      */
     private void updateOrRegisterData(JmxStringifiedData<CertificateMonitoringInfo> data) throws Exception {
 
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
+        MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
 
-        SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor = getOrCreateSimpleSensor(
-                metricRegistry,
-                SystemMetricNames.CERTIFICATES);
-        certificateSensor.update(data);
-
-        SimpleSensor<ArrayList<String>> certificateTextSensor = getOrCreateSimpleSensor(
-                metricRegistry,
-                SystemMetricNames.CERTIFICATES_STRINGS);
-        certificateTextSensor.update(data.getJmxStringData());
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.CERTIFICATES)
+                .update(data);
+        registryHolder
+                .getOrCreateSimpleSensor(SystemMetricNames.CERTIFICATES_STRINGS)
+                .update(data.getJmxStringData());
     }
-
-    /**
-     * Either registers a new sensor to metricRegistry, or reuses already registered one
-     */
-    private <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(
-            MetricRegistry metricRegistry,
-            String metricName) {
-
-        SimpleSensor<T> typeDefiningSensor = ((SimpleSensor) metricRegistry.getMetrics().get(metricName));
-        if (typeDefiningSensor == null) {
-            typeDefiningSensor = new SimpleSensor<>();
-            metricRegistry.register(metricName, typeDefiningSensor);
-        }
-        return typeDefiningSensor;
-    }
-
 
     private JmxStringifiedData<CertificateMonitoringInfo> list() throws Exception {
 
