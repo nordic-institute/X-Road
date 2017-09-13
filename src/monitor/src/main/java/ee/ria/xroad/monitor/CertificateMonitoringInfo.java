@@ -38,6 +38,7 @@ public class CertificateMonitoringInfo {
     private String sha1hash;
     private String notBefore;
     private String notAfter;
+    private boolean active;
 
     /**
      * The type of the Certificate

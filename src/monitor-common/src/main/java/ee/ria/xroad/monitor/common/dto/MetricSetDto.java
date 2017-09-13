@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.monitor.common.dto;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+
+import java.io.Serializable;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Created by hyoty on 24.9.2015.
@@ -53,8 +54,14 @@ public final class MetricSetDto extends MetricDto {
         public Builder(String name) {
             this.name = name;
         }
-        public void withMetric(MetricDto metric) {
+        public Builder withMetric(MetricDto metric) {
             metrics.add(metric);
+            return this;
+        }
+
+        public <T extends Serializable> Builder withSimpleMetric(String name, T value) {
+            metrics.add(new SimpleMetricDto<>(name, value));
+            return this;
         }
 
         /**

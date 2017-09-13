@@ -169,14 +169,14 @@ public class MetricsProviderActor extends UntypedActor {
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
         for (ProcessInfo process : p.getDtoData()) {
             MetricSetDto.Builder processBuilder = new MetricSetDto.Builder(process.getProcessId());
-            processBuilder.withMetric(new SimpleMetricDto<>("processId", process.getProcessId()));
-            processBuilder.withMetric(new SimpleMetricDto<>("command", process.getCommand()));
-            processBuilder.withMetric(new SimpleMetricDto<>("cpuLoad", process.getCpuLoad()));
-            processBuilder.withMetric(new SimpleMetricDto<>("memUsed", process.getMemUsed()));
-            processBuilder.withMetric(new SimpleMetricDto<>("startTime", process.getStartTime()));
-            processBuilder.withMetric(new SimpleMetricDto<>("userId", process.getUserId()));
-            MetricSetDto processDto = processBuilder.build();
-            mainBuilder.withMetric(processDto);
+            mainBuilder.withMetric(processBuilder
+                    .withSimpleMetric("processId", process.getProcessId())
+                    .withSimpleMetric("command", process.getCommand())
+                    .withSimpleMetric("cpuLoad", process.getCpuLoad())
+                    .withSimpleMetric("memUsed", process.getMemUsed())
+                    .withSimpleMetric("startTime", process.getStartTime())
+                    .withSimpleMetric("userId", process.getUserId())
+                    .build());
         }
         return mainBuilder.build();
     }
@@ -187,14 +187,15 @@ public class MetricsProviderActor extends UntypedActor {
             Gauge<JmxStringifiedData<CertificateMonitoringInfo>> certificateSensor) {
         JmxStringifiedData<CertificateMonitoringInfo> c = certificateSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
-        for (CertificateMonitoringInfo cert: c.getDtoData()) {
+        for (CertificateMonitoringInfo cert : c.getDtoData()) {
             MetricSetDto.Builder certBuilder = new MetricSetDto.Builder("certificate-" + cert.getSha1hash());
-            certBuilder.withMetric(new SimpleMetricDto<>("sha1Hash", cert.getSha1hash()));
-            certBuilder.withMetric(new SimpleMetricDto<>("notBefore", cert.getNotBefore()));
-            certBuilder.withMetric(new SimpleMetricDto<>("notAfter", cert.getNotAfter()));
-            certBuilder.withMetric(new SimpleMetricDto<>("certificateType", cert.getType().name()));
-            MetricSetDto certDto = certBuilder.build();
-            mainBuilder.withMetric(certDto);
+            mainBuilder.withMetric(certBuilder
+                    .withSimpleMetric("sha1Hash", cert.getSha1hash())
+                    .withSimpleMetric("notBefore", cert.getNotBefore())
+                    .withSimpleMetric("notAfter", cert.getNotAfter())
+                    .withSimpleMetric("certificateType", cert.getType().name())
+                    .withSimpleMetric("active", cert.isActive())
+                    .build());
         }
         return mainBuilder.build();
     }
@@ -204,7 +205,7 @@ public class MetricsProviderActor extends UntypedActor {
         JmxStringifiedData<PackageInfo> p = packageSensor.getValue();
         MetricSetDto.Builder mainBuilder = new MetricSetDto.Builder(name);
         for (PackageInfo pac : p.getDtoData()) {
-            mainBuilder.withMetric(new SimpleMetricDto<>(pac.getName(), pac.getVersion()));
+            mainBuilder.withSimpleMetric(pac.getName(), pac.getVersion());
         }
         return mainBuilder.build();
     }
