@@ -14,7 +14,7 @@
 - name: Create / update repo
   become: yes
   command: createrepo /xroad/CentOS/{{centos_releasever}}/local
-  when: xroad_package_src == "local"
+  when: package_source == "local"
   args:
     chdir: /xroad/CentOS/{{centos_releasever}}/local
   tags: centos-repo
@@ -23,10 +23,10 @@
   yum_repository:
     name: xroad-repository
     description: Repository for installing X-Road packages
-    baseurl: "{{ xroad_repo_baseurl }}"
-    gpgcheck: "{{ xroad_repo_gpgcheck }}"
-    gpgkey: "{{ xroad_repo_gpgkey }}"
-    gpgcakey: "{{ xroad_repo_gpgcakey }}"
-    repo_gpgcheck: "{{ xroad_repo_gpgcheck }}"
+    baseurl: "{{ rhel_repo_baseurl }}"
+    gpgcheck: "{{ rhel_repo_gpgcheck }}"
+    gpgkey: "{{ rhel_repo_gpgkey }}"
+    gpgcakey: "{{ rhel_repo_gpgcakey }}"
+    repo_gpgcheck: "{{ rhel_repo_gpgcheck }}"
     state: present
     enabled: yes

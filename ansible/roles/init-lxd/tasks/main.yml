@@ -13,6 +13,8 @@
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
+  tags:
+    - ubuntu-container-init
 
 - name: Ready all CentOS {{centos_releasever}} containers
   with_inventory_hostnames: centos-ss
@@ -28,3 +30,5 @@
     profiles: ["default"]
     wait_for_ipv4_addresses: true
     timeout: 600
+  tags:
+    - centos-container-init

@@ -23,6 +23,7 @@
   apt_key:
     url: "{{ubuntu_apt_key}}"
     state: present
+  when: package_source == "remote"
 
 - name: xroad apt repository
   apt_repository:

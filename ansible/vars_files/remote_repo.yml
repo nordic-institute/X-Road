@@ -1,0 +1,11 @@
+---
+package_source: "remote"
+ubuntu_repo_url: "http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current/packages"
+ubuntu_apt_key:  "{{ubuntu_repo_url}}/dists/stable/palveluvayla@gofore.com.asc"
+ubuntu_apt_repo: "deb {{ubuntu_repo_url}} stable main"
+
+rhel_repo_baseurl: "http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/stable"
+rhel_repo_gpgcheck: "yes"
+rhel_repo_gpgkey: "http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg"
+rhel_repo_gpgcakey: "http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg"
+rhel_repo_repogpgcheck: "yes"

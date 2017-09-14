@@ -28,6 +28,8 @@
   tags:
     - cs
     - install
+  vars_files:
+    - vars_files/local_repo.yml
     
 - hosts: cp-servers
   become: yes
@@ -37,6 +39,8 @@
   tags:
     - cp
     - install
+  vars_files:
+    - vars_files/local_repo.yml
 
 - hosts: ca-servers
   become: yes
@@ -55,13 +59,5 @@
   tags:
     - ss
     - install
-  vars:
-    #local package repository configuration for centos
-    #xroad_repo_template: xroad-local.repo.j2
-    #xroad_repo_dest: /etc/yum.repos.d/xroad-local.repo
-    xroad_package_src: local
-    xroad_repo_baseurl: file:///xroad/CentOS/$releasever/local
-    xroad_repo_gpgcheck: no
-    xroad_repo_gpgkey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg
-    xroad_repo_gpgcakey: http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg
-    xroad_repo_repogpgcheck: no
+  vars_files:
+    - vars_files/local_repo.yml
