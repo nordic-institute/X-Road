@@ -149,7 +149,7 @@ esac
 #4 new_section
 #5 new_key
 function migrate_conf_value {
-    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null)"
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
     if [ "${MIGRATION_VALUE}" ];
         then
             crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
