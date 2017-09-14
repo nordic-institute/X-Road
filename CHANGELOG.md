@@ -32,6 +32,8 @@
 - XTE-248 / Backlog #55: Security Server: Fixed creation of signed documents (backward compatible) to follow e-signature standards (XAdES, ASiC).
 - XTE-330 / Backlog #127: Security Server: Added support for "NEE" member class in certificates provided by SK ID Solutions AS.
 - XTE-357 / Backlog #164: Security Server: Fixed temporary files removal in error situations.
+- PVAYLADEV-933: Fixed build failure on clean machine
+- PVAYLADEV-934: Fixed problem in wsdlvalidator install paths
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
