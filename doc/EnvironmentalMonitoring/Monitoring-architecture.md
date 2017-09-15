@@ -110,6 +110,7 @@ The following sensors produce monitoring data:
        - `AUTH_OR_SIGN` for the Security Server member certificates (for signing) and the Security Server certificate (for authentication)
        - `INTERNAL_IS_CLIENT_TLS` for the client Information system certificates
        - `SECURITY_SERVER_TLS` for the TLS certificate of the Security server
+    - is the certificate active (true/false)
   - data is refreshed once per day
 
 
