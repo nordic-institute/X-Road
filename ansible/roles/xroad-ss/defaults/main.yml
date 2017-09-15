@@ -1,0 +1,13 @@
+---
+#defines variant packages for security servers, variant denoted by the string after _
+xroad_fi:
+  - xroad-securityserver-fi
+  - xroad-securityserver
+  - xroad-common
+  - xroad-proxy
+  - xroad-jetty9
+  - xroad-monitor
+  - xroad-addon-messagelog
+  - xroad-addon-metaservices
+  - xroad-addon-proxymonitor
+  - xroad-addon-wsdlvalidator #added in 6.16

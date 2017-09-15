@@ -1,40 +1,21 @@
 [cs-servers]
 xroad-lxd-cs ansible_connection=lxd
 
-[cs-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
 [cp-servers]
 xroad-lxd-cp ansible_connection=lxd
 
-[cp-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
 [ca-servers]
 xroad-lxd-ca ansible_connection=lxd
-
-[ca-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
 
 [ss-servers]
 xroad-lxd-ss1 ansible_connection=lxd
 xroad-lxd-ss2 ansible_connection=lxd
 
-[ss-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
 [ss-servers:children]
 centos-ss
 
 [centos-ss]
-xroad-rh2
-
-[centos-ss:vars]
-ansible_connection=lxd
+xroad-lxd-rh-ss1 ansible_connection=lxd
 
 [lxd-servers]
 localhost ansible_connection=local

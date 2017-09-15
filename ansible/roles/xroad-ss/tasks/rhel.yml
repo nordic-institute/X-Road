@@ -1,8 +1,17 @@
 ---
-- name: install xroad security server packages
-  command: yum -y install xroad-securityserver-fi
+
+- name: makecache for repo key assume yes
+  command: yum -y makecache
   args:
     warn: no
+
+# dependencies are followed per version number; in development use version does not change -> update needs to be forced
+- name: install / update xroad security server packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    "{{ vars['xroad_' + variant] }}"
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"

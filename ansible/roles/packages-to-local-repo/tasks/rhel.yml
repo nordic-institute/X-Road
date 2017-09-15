@@ -1,17 +1,9 @@
 ---
-- name: Copy noarch packages
-  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/noarch/RPMS/ force=no
+- name: Copy RPM packages
+  copy: src={{item}} dest=/xroad/local/RPMS/ force=no
   with_fileglob:
     - ../src/packages/xroad/redhat/RPMS/noarch/xroad-*rpm
-
-- name: Copy x86_64 packages
-  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/x86_64/RPMS/ force=no
-  with_fileglob:
     - ../src/packages/xroad/redhat/RPMS/x86_64/xroad-*rpm
-
-- name: Copy jetty9 packages
-  copy: src={{item}} dest=/xroad/CentOS/{{centos_releasever}}/local/x86_64/RPMS force=no
-  with_fileglob:
     - ../src/packages/xroad-jetty9/redhat/RPMS/x86_64/xroad-*rpm
 
 - name: Clear yum cache

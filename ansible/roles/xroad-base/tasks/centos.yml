@@ -13,10 +13,10 @@
 
 - name: Create / update repo
   become: yes
-  command: createrepo /xroad/CentOS/{{centos_releasever}}/local
+  command: createrepo /xroad/local
   when: package_source == "local"
   args:
-    chdir: /xroad/CentOS/{{centos_releasever}}/local
+    chdir: /xroad/local
   tags: centos-repo
 
 - name: Setup the correct repository for X-Road installation
