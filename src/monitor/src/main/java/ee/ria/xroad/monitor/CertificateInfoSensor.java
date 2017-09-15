@@ -150,7 +150,7 @@ public class CertificateInfoSensor extends AbstractSensor {
                         CertificateType.SECURITY_SERVER_TLS,
                         true);
             } catch (Exception e) {
-                return Stream.empty();
+                throw new SensorException(e);
             }
         }
 
@@ -194,7 +194,7 @@ public class CertificateInfoSensor extends AbstractSensor {
             try {
                 tokens = tokenInfoLister.listTokens().stream();
             } catch (Exception e) {
-                tokens = Stream.empty();
+                throw new SensorException(e);
             }
             return tokens
                     .flatMap(t -> t.getKeyInfo().stream())
