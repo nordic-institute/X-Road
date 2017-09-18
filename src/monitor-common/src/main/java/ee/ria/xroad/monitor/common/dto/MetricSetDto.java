@@ -59,8 +59,8 @@ public final class MetricSetDto extends MetricDto {
             return this;
         }
 
-        public <T extends Serializable> Builder withSimpleMetric(String name, T value) {
-            metrics.add(new SimpleMetricDto<>(name, value));
+        public <T extends Serializable> Builder withSimpleMetric(String metricName, T value) {
+            metrics.add(new SimpleMetricDto<>(metricName, value));
             return this;
         }
 
