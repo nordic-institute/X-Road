@@ -23,7 +23,6 @@
 package ee.ria.xroad.monitor;
 
 import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.executablelister.*;
@@ -41,63 +40,59 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ExecListingSensor extends AbstractSensor {
 
+    private MetricRegistryHolder registryHolder;
     /**
      * Constructor
      */
     public <T extends Metric> ExecListingSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        JmxStringifiedData<ProcessInfo> processes = new ProcessLister().list();
-        JmxStringifiedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
-        JmxStringifiedData<PackageInfo> packages = new PackageLister().list();
-        JmxStringifiedData<String> operatingSystemInfo = new OsInfoLister().list();
-        metricRegistry.register(SystemMetricNames.PROCESSES, createParsedMetric(processes));
-        metricRegistry.register(SystemMetricNames.PROCESS_STRINGS, createJmxMetric(processes));
-        metricRegistry.register(SystemMetricNames.XROAD_PROCESSES, createParsedMetric(xroadProcesses));
-        metricRegistry.register(SystemMetricNames.XROAD_PROCESS_STRINGS, createJmxMetric(xroadProcesses));
-        metricRegistry.register(SystemMetricNames.PACKAGES, createParsedMetric(packages));
-        metricRegistry.register(SystemMetricNames.PACKAGE_STRINGS, createJmxMetric(packages));
-        metricRegistry.register(SystemMetricNames.OS_INFO, createOsStringMetric(operatingSystemInfo));
+        updateMetrics();
         scheduleSingleMeasurement(getInterval(), new ProcessMeasure());
     }
 
-    private Metric createParsedMetric(JmxStringifiedData data) {
-        SimpleSensor<JmxStringifiedData> sensor = new SimpleSensor<>();
+    private void createOrUpdateMetricPair(String parsedName, String jmxName, JmxStringifiedData data) {
+        createOrUpdateParsedMetric(parsedName, data);
+        createJmxMetric(jmxName, data);
+    }
+
+    private void createOrUpdateParsedMetric(String metricName, JmxStringifiedData data) {
+        SimpleSensor<JmxStringifiedData> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
         sensor.update(data);
-        return sensor;
     }
-    private Metric createJmxMetric(JmxStringifiedData data) {
-        SimpleSensor<ArrayList> sensor = new SimpleSensor<>();
+
+    private void createJmxMetric(String metricName, JmxStringifiedData data) {
+        SimpleSensor<ArrayList> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
         sensor.update(data.getJmxStringData());
-        return sensor;
     }
-    private Metric createOsStringMetric(JmxStringifiedData<String> data) {
-        SimpleSensor<String> sensor = new SimpleSensor<>();
+
+    private void createOsStringMetric(String metricName, JmxStringifiedData<String> data) {
+        SimpleSensor<String> sensor = registryHolder.getOrCreateSimpleSensor(metricName);
         sensor.update(data.getJmxStringData().get(0));
-        return sensor;
+
     }
 
     private void updateMetrics() {
-        MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-        JmxStringifiedData<ProcessInfo> processes = new ProcessLister().list();
-        JmxStringifiedData<ProcessInfo> xroadProcesses = new XroadProcessLister().list();
-        JmxStringifiedData<PackageInfo> packages = new PackageLister().list();
-        JmxStringifiedData<String> operatingSystemInfo = new OsInfoLister().list();
-        String osString = operatingSystemInfo.getJmxStringData().get(0);
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PROCESSES))
-                .update(processes);
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PROCESS_STRINGS))
-                .update(processes.getJmxStringData());
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.XROAD_PROCESSES))
-                .update(xroadProcesses);
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.XROAD_PROCESS_STRINGS))
-                .update(xroadProcesses.getJmxStringData());
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PACKAGES))
-                .update(packages);
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.PACKAGE_STRINGS))
-                .update(packages.getJmxStringData());
-        ((SimpleSensor) metricRegistry.getMetrics().get(SystemMetricNames.OS_INFO))
-                .update(osString);
+        registryHolder = MetricRegistryHolder.getInstance();
+
+        createOrUpdateMetricPair(
+                SystemMetricNames.PROCESSES,
+                SystemMetricNames.PROCESS_STRINGS,
+                new ProcessLister().list()
+        );
+
+        createOrUpdateMetricPair(
+                SystemMetricNames.XROAD_PROCESSES,
+                SystemMetricNames.XROAD_PROCESS_STRINGS,
+                new XroadProcessLister().list()
+        );
+
+        createOrUpdateMetricPair(
+                SystemMetricNames.PACKAGES,
+                SystemMetricNames.PACKAGE_STRINGS,
+                new PackageLister().list()
+        );
+
+        createOsStringMetric(SystemMetricNames.OS_INFO, new OsInfoLister().list());
     }
 
     @Override

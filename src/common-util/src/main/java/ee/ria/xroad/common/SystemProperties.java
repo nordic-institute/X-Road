@@ -108,9 +108,9 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_LISTEN_PORT =
             PREFIX + "proxy.server-listen-port";
 
-    /** Property name of the cached OCSP response path. */
+    /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH =
-            PREFIX + "proxy.ocsp-cache-path";
+            PREFIX + "signer.ocsp-cache-path";
 
     /** Property name of the Ocsp Responder port. */
     public static final String OCSP_RESPONDER_PORT =
@@ -152,8 +152,8 @@ public final class SystemProperties {
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PREFIX + "proxy.client-tls-ciphers";
 
-    private static final String PROXY_ENFORCE_TOKEN_PIN_POLICY =
-            PREFIX + "proxy.enforce-token-pin-policy";
+    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
+            PREFIX + "signer.enforce-token-pin-policy";
 
     public static final String SERVER_CONF_CACHE_PERIOD =
             PREFIX + "proxy.server-conf-cache-period";
@@ -1116,7 +1116,7 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(PROXY_ENFORCE_TOKEN_PIN_POLICY, "false"));
+        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY, "false"));
     }
 
     /**

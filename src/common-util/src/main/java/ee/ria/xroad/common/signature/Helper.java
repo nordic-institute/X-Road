@@ -22,13 +22,6 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +44,8 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import static ee.ria.xroad.common.util.CryptoUtils.*;
+
 /**
  * Local helper class for constructing Xades signatures.
  */
@@ -65,7 +60,7 @@ final class Helper {
     static final String XMLNS_XSI = "xmlns:xsi";
     static final String XMLNS_XADES = "xmlns:xades";
 
-    static final String NS_ASIC = "http://uri.etsi.org/02918/v1.1.1#";
+    static final String NS_ASIC = "http://uri.etsi.org/02918/v1.2.1#";
     static final String NS_DS = "http://www.w3.org/2000/09/xmldsig#";
     static final String NS_XSI = "http://www.w3.org/2001/XMLSchema-instance";
     static final String NS_XADES = "http://uri.etsi.org/01903/v1.3.2#";
@@ -88,6 +83,16 @@ final class Helper {
     static final String CERT_DIGEST_TAG = "CertDigest";
     static final String SIGNING_CERTIFICATE_TAG = "SigningCertificate";
     static final String SIGNING_TIME_TAG = "SigningTime";
+    static final String SIGNATURE_POLICY_IDENTIFIER_TAG = "SignaturePolicyIdentifier";
+    static final String SIGNATURE_POLICY_ID_TAG = "SignaturePolicyId";
+    static final String SIG_POLICY_ID_TAG = "SigPolicyId";
+    static final String IDENTIFIER_TAG = "Identifier";
+    static final String QUALIFIER_ATTR = "Qualifier";
+    static final String DESCRIPTION_TAG = "Description";
+    static final String SIG_POLICY_HASH_TAG = "SigPolicyHash";
+    static final String SIG_POLICY_QUALIFIERS_TAG = "SigPolicyQualifiers";
+    static final String SIG_POLICY_QUALIFIER_TAG = "SigPolicyQualifier";
+    static final String SPURI_TAG = "SPURI";
     static final String SIGNED_SIGNATURE_PROPS_TAG = "SignedSignatureProperties";
     static final String SIGNED_PROPS_TAG = "SignedProperties";
     static final String ID_ATTRIBUTE = "Id";
@@ -119,6 +124,7 @@ final class Helper {
     static final String ID_TS_ROOT_MANIFEST = "ts-root-manifest";
     static final String ID_TS_MANIFEST = "ts-manifest";
     static final String ID_SIGNATURE = "signature";
+    static final String SIGNATURE_REFERENCE_ID = ID_SIGNATURE + "-reference-";
     static final String SIG_MANIFEST = "sig-manifest-";
     static final String SIGNATURE_VALUE_ID = "signature-value";
     static final String ENCAPSULATED_CERT_ID = "encapsulated-cert-";
@@ -127,6 +133,14 @@ final class Helper {
     static final String COMPLETE_CERTIFICATE_REFS_ID = "complete-certificate-refs";
 
     private Helper() {
+    }
+
+    static String getSignatureRefereceIdForMessage() {
+        return SIGNATURE_REFERENCE_ID + "0";
+    }
+
+    static String getSignatureReferenceIdForSignedProperties() {
+        return SIGNATURE_REFERENCE_ID + "1";
     }
 
     static Document createDocument() throws Exception {
@@ -234,8 +248,7 @@ final class Helper {
     }
 
     /**
-     * Returns a node list of EncapsulatedOCSPValue elements using
-     * XPath evaluation.
+     * Returns a node list of EncapsulatedOCSPValue elements using XPath evaluation.
      */
     static NodeList getEncapsulatedOCSPValueElements(Element objectContainer) {
         // the EncapsulatedOCSPValues are located in the XML:
@@ -316,17 +329,15 @@ final class Helper {
      * Returns the first element by tag name.
      * @param document the document
      * @param tagName the tag name
-     * @throws Exception throws CodedException with code MALFORMED_SIGNATURE
-     * if the element cannot be found.
+     * @throws Exception throws CodedException with code MALFORMED_SIGNATURE if the element cannot be found.
      */
     static Element getFirstElementByTagName(Document document, String tagName) throws Exception {
-        Element element = XmlUtils.getFirstElementByTagName(document, tagName);
+        return XmlUtils.getFirstElementByTagName(document, tagName)
+                .orElseThrow(() -> elementNotFound(tagName));
+    }
 
-        if (element == null) {
-            throw new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, "Could not find element \"%s\"", tagName);
-        }
-
-        return element;
+    static CodedException elementNotFound(String elementTag) {
+        return new CodedException(ErrorCodes.X_MALFORMED_SIGNATURE, "Could not find element \"%s\"", elementTag);
     }
 
     private static NamespaceContext getNamespaceCtx() {

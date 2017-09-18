@@ -22,11 +22,6 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import static org.bouncycastle.util.Arrays.areEqual;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.security.cert.X509Certificate;
 
 import javax.security.auth.x500.X500Principal;
@@ -34,6 +29,7 @@ import javax.security.auth.x500.X500Principal;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
@@ -41,22 +37,22 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import static org.bouncycastle.util.Arrays.areEqual;
+import static org.junit.Assert.*;
+
 /**
  * Tests the implementation of SkKlass3CertificateProfileInfoProvider.
  */
 public class SkKlass3CertificateProfileInfoProviderTest {
 
     /**
-     * Tests whether getting expected subject fields of auth and sing profile
-     * succeeds as expected.
+     * Tests whether getting expected subject fields of auth and sing profile succeeds as expected.
      */
     @Test
     public void returnsCorrectSubjectFields() {
         DnFieldDescription[] expected = {
-            new DnFieldDescriptionImpl("SN", "Serial Number (SN)", "bar")
-                    .setReadOnly(true),
-            new DnFieldDescriptionImpl("CN", "Common Name (CN)", "foobar")
-                    .setReadOnly(true)
+            new DnFieldDescriptionImpl("SN", "Serial Number (SN)", "bar").setReadOnly(true),
+            new DnFieldDescriptionImpl("CN", "Common Name (CN)", "foobar").setReadOnly(true)
         };
 
         assertTrue(areEqual(expected, getSignProfile().getSubjectFields()));
@@ -115,6 +111,26 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         assertEquals("XX", parts.getXRoadInstance());
         assertEquals("NGO", parts.getMemberClass());
         assertEquals("96543212", parts.getMemberCode());
+
+        parts = id("2.5.4.97=NTREE-16543212");
+        assertEquals("XX", parts.getXRoadInstance());
+        assertEquals("COM", parts.getMemberClass());
+        assertEquals("16543212", parts.getMemberCode());
+
+        parts = id("2.5.4.97=GO:EE-86543212");
+        assertEquals("XX", parts.getXRoadInstance());
+        assertEquals("GOV", parts.getMemberClass());
+        assertEquals("86543212", parts.getMemberCode());
+
+        parts = id("2.5.4.97=NP:EE-96543212");
+        assertEquals("XX", parts.getXRoadInstance());
+        assertEquals("NGO", parts.getMemberClass());
+        assertEquals("96543212", parts.getMemberCode());
+
+        parts = id("2.5.4.97=NP:FI-96543212");
+        assertEquals("XX", parts.getXRoadInstance());
+        assertEquals("NEE", parts.getMemberClass());
+        assertEquals("NP:FI-96543212", parts.getMemberCode());
     }
 
     /**
@@ -147,14 +163,22 @@ public class SkKlass3CertificateProfileInfoProviderTest {
         fail();
     }
 
+    @Test
+    public void getSubjectIdentifier() throws Exception {
+        X509Certificate cert = TestCertUtil.getCert("/NTREE.pem");
+        ClientId clientId = getSignProfile().getSubjectIdentifier(cert);
+
+        assertEquals("XX", clientId.getXRoadInstance());
+        assertEquals("COM", clientId.getMemberClass());
+        assertEquals("10747013", clientId.getMemberCode());
+    }
+
     // ------------------------------------------------------------------------
 
     private ClientId id(String name) throws Exception {
         X509Certificate mockCert = Mockito.mock(X509Certificate.class);
 
-        Mockito.when(mockCert.getSubjectX500Principal()).thenReturn(
-            new X500Principal(name)
-        );
+        Mockito.when(mockCert.getSubjectX500Principal()).thenReturn(new X500Principal(name));
 
         return getSignProfile().getSubjectIdentifier(mockCert);
     }
@@ -164,16 +188,17 @@ public class SkKlass3CertificateProfileInfoProviderTest {
     }
 
     private SignCertificateProfileInfo getSignProfile() {
-        return provider().getSignCertProfile(
-                new SignCertificateProfileInfo.Parameters() {
+        return provider().getSignCertProfile(new SignCertificateProfileInfo.Parameters() {
             @Override
             public ClientId getClientId() {
                 return ClientId.create("XX", "foo", "bar");
             }
+
             @Override
             public String getMemberName() {
                 return "foobar";
             }
+
             @Override
             public SecurityServerId getServerId() {
                 return null;
@@ -182,12 +207,12 @@ public class SkKlass3CertificateProfileInfoProviderTest {
     }
 
     private AuthCertificateProfileInfo getAuthProfile() {
-        return provider().getAuthCertProfile(
-                new AuthCertificateProfileInfo.Parameters() {
+        return provider().getAuthCertProfile(new AuthCertificateProfileInfo.Parameters() {
             @Override
             public SecurityServerId getServerId() {
                 return SecurityServerId.create("XX", "foo", "bar", "server");
             }
+
             @Override
             public String getMemberName() {
                 return "foobar";

@@ -6,9 +6,9 @@
 # X-Road: Service Metadata Protocol v2.1
 **Technical Specification**
 
-Version: 2.1.6
-23.08.2017
-Doc. ID: PR-META
+Version: 2.1.6  
+23.08.2017  
+Doc. ID: PR-META  
 
 ---
 
@@ -17,11 +17,11 @@ Doc. ID: PR-META
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 04.08.2015 | 0.8   | Initial version                                                   | Siim Annuk
- 09.09.2015 | 1.0   | Editorial changes made                                            | Imbi Nõgisto
- 15.09.2015 | 1.1   | Made minor fixes to schemas                                       | Margus Freudenthal
- 16.09.2015 | 2.0   | Final version                                                     | Imbi Nõgisto
- 12.10.2015 | 2.1   | Updated identifier names and WSDL examples                        | Ilja Kromonov
+ 04.08.2015 | 0.8     | Initial version                                                 | Siim Annuk
+ 09.09.2015 | 1.0     | Editorial changes made                                          | Imbi Nõgisto
+ 15.09.2015 | 1.1     | Made minor fixes to schemas                                     | Margus Freudenthal
+ 16.09.2015 | 2.0     | Final version                                                   | Imbi Nõgisto
+ 12.10.2015 | 2.1     | Updated identifier names and WSDL examples                      | Ilja Kromonov
  23.08.2017 | 2.1.6   | Converted to Markdown and added endpoint address replacement    | Janne Mattila
 
 ## Table of Contents
@@ -115,7 +115,7 @@ request URL is `http://SECURITYSERVER/listCentralServices?xRoadInstance=AA`.
 
 Security server MUST respond with content-type `text/xml` and the response MUST contain the 
 `centralServiceList` XML element defined below 
-(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages))). 
+(full XML schema appears in Annex [A](#annex-a-xml-schema-for-messages)). 
 Annex [C.2](#c2-listcentralservices-response) contains an example response message.
 ```xml
     <xs:element name="centralServiceList"

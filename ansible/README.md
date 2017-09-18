@@ -37,6 +37,14 @@ Ansible searches for variables from `group_vars/example.yml` when initializing h
 ansible-playbook -i hosts/example_xroad_hosts.txt xroad_init.yml
 ```
 
+This installs or updates **all X-Road related packages** to latest versions **from package repositories**. 
+
+For X-Road's own packages, repository is either
+`http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current` 
+or 
+`http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current`
+unless overridden using Ansible variables. 
+
 ## 4. Development using LXD
 
 On Linux it is possible to use the LXD container hypervisor for fast testing and development.
@@ -54,7 +62,7 @@ sudo lxd init (use bridge network configuration and turn on nat)
 ```
 Study the files hosts/lxd_hosts.txt and hosts/lxd_hosts_from_local.txt and change repository and host names if needed. The LXD hosts are first created with the name given. Under group lxd-servers is the host, normally localhost.
 
-Install ansible to local LXD containers from public repository with:
+Install packages to local LXD containers from public repository with:
 
 ```
 ansible-playbook  -i hosts/lxd_hosts.txt xroad_init.yml
@@ -67,6 +75,18 @@ First make sure that docker and docker-py are installed. Docker is used for buil
 ```
 ansible-playbook  -i hosts/lxd_hosts_from_local.txt xroad_dev.yml
 ```
+
+This updates **all X-Road related packages to latest versions**, using **locally built X-Road packages** (as long as `compile-servers` group in ansible inventory = `localhost`). 
+Package version names are formed using current git commit timestamp and hash. This means that
+
+* if you only make local changes without performing a git commit, package names and version numbers are
+not changed - and executing xroad_dev playbook will keep the old packages intact 
+* if you perform a git commit (of any kind), all local modifications will be packaged and deployed 
+using the new version number - and all local modifications (whether they were included in the commit or not)
+will be deployed
+
+In short, to see changes, **a git commit needs to be done**.
+ 
 ### Partial compilation and deployment
 
 For fast development, you can compile and install modules separately. The ansible playbook *xroad_dev_partial.yml* offers this. For example, if you make a change to a Java or Ruby file under proxy-ui, use the following command to compile the war and deploy it to the security servers.
@@ -78,6 +98,9 @@ It is also possible to compile and install several modules (jars or wars). The f
 ```
 ansible-playbook  -i hosts/lxd_hosts_from_local.txt   xroad_dev_partial.yml   -e selected_modules=common-util,proxy-ui,signer
 ```
+
+This updates the **selected modules (jars or wars)** to ones compiled locally. 
+**No git commits are needed** to see changes.
 
 The modules are listed in dicts common_modules.yml, cs_modules.yml, cp_modules.yml and ss_modules.yml.
 
