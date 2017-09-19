@@ -1,0 +1,60 @@
+plugins {
+  id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+apply plugin: 'application'
+
+dependencies {
+    compile project(':common-util')
+    compile project(':signer-protocol')
+
+    compile 'commons-cli:commons-cli:1.2'
+
+    testCompile project(':common-test')
+}
+
+mainClassName = 'ee.ria.xroad.confproxy.ConfProxyMain'
+
+shadowJar {
+    classifier = ''
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
+}
+
+jar.enabled = false
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
+
+task runConfigurationProxyTest(type: JavaExec) {
+    jvmArgs '-Dxroad.conf.path=src/test/resources/',
+            '-Dxroad.common.configuration-path=src/test/resources/test-conf-simple',
+            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+
+    main = 'ee.ria.xroad.confproxy.ConfProxyTest'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+task runConfigurationProxyMain(type: JavaExec) {
+    jvmArgs '-Dxroad.conf.path=src/test/resources/',
+            '-Dxroad.common.configuration-path=build/',
+            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+
+    main = 'ee.ria.xroad.confproxy.ConfProxyMain'
+    classpath = sourceSets.test.runtimeClasspath
+
+    args 'PROXY1'
+}
+
+task runConfigurationProxyUtilTest(type: JavaExec) {
+    jvmArgs '-Dxroad.conf.path=src/test/resources/',
+            '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
+
+    main = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
+    classpath = sourceSets.test.runtimeClasspath
+
+    args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor', '-p', 'PROXY1', '-f', 'test.xml'
+    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilAddSigningKey', '-p', 'PROXY1', '-t', '0'
+    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilDelSigningKey', '-p', 'PROXY1', '-k', 'B8F553EC0944EB8022B29166D5C13E6298FB6616'
+    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilViewConf', '-a'
+    //args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilCreateInstance', '-p', 'PROXY2'
+}

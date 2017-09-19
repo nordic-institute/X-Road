@@ -1,0 +1,75 @@
+configurations {
+    schema
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        resources.srcDirs = ['src/main/resources']
+    }
+}
+
+dependencies {
+    compile project(':common-db')
+    compile project(':common-verifier')
+
+    // DB layer tests use HSQLDB with in-memory tables
+    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile project(':common-db')
+    testCompile project(':common-test')
+    testCompile 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
+
+    schema project(':common-util')
+    schema 'org.hibernate:hibernate-hikaricp:4.3.11.Final'
+    schema 'org.hibernate:hibernate-tools:4.3.5.Final'
+    schema 'commons-collections:commons-collections:3.2.2'
+    schema 'ch.qos.logback:logback-classic:1.2.3'
+    schema 'org.hsqldb:hsqldb:2.3.2'
+}
+
+task schemaExport () {
+    doLast {
+        ant.taskdef(name: 'schemaExport', classname: 'org.hibernate.tool.ant.HibernateToolTask', classpath: configurations.schema.asPath)
+
+        ant.schemaExport(destdir: 'build') {
+            annotationconfiguration(
+                configurationfile: 'src/main/resources/hibernate.cfg.xml')
+            hbm2ddl(
+                export: false,
+                outputfilename: 'schema-export.sql',
+                delimiter: ';',
+                format: 'true')
+            classpath {
+                pathelement(path: configurations.schema.asPath)
+                pathelement(path: 'src/main/resources')
+                pathelement(path: 'src/test/resources')
+                pathelement(path: 'build/classes/main')
+            }
+        }
+    }
+}
+
+task runServerConfCRUDTest (type: JavaExec) {
+    jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
+    main = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
+    classpath = sourceSets.test.runtimeClasspath
+    standardInput = System.in;
+}
+
+schemaExport.dependsOn compileJava
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+

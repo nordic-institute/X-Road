@@ -1,0 +1,73 @@
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+sourceSets {
+    main {
+        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+        resources.srcDirs = ['src/main/resources']
+    }
+}
+
+configurations {
+    xjc
+}
+
+dependencies {
+    compile project(':common-util')
+    testCompile project(':common-test').sourceSets.main.output
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+}
+
+task createDirs() {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+task xjc {
+    inputs.files fileTree(dir:'src/main/resources', include: '*.xsd')
+    outputs.dir project.ext.schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters',
+                schema: 'src/main/resources/ocsp-nextupdate-conf.xsd'
+        )
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters',
+                schema: 'src/main/resources/ocsp-fetchinterval-conf.xsd'
+        )
+    }
+}
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+xjc.dependsOn createDirs
+xjc.dependsOn processResources
+xjc.mustRunAfter processResources
+
+compileJava.dependsOn xjc
+compileJava.dependsOn processResources
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}

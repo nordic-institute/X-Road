@@ -1,0 +1,41 @@
+plugins {
+    id "it.tellnet.sass" version "1.2"
+}
+
+dependencies {
+    compile project(':common-util')
+    compile project(':common-verifier')
+    compile project(':signer-protocol')
+
+    compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+    compile 'org.kohsuke:libpam4j:1.8'
+    compile 'net.java.dev.jna:jna:4.2.2'
+
+    testCompile project(':common-test')
+    testCompile project(':common-util').sourceSets.test.output
+}
+
+task copyDeps(type: Copy) {
+    into "$buildDir/libs"
+    from configurations.compile
+}
+
+task checkRubySource(type: Exec) {
+    inputs.files fileTree('app') + fileTree('lib')
+    outputs.files file('build/rubocop_report.txt')
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+/* use task sassCompile to compile from scss to css */
+sass {
+    sassDir = "public/stylesheets/scss/"
+    cssDir = "public/stylesheets"
+}
+
+/* Some tests depend on English strings */
+test {
+    environment "LANGUAGE", "en"
+}
+
+check.dependsOn checkRubySource
+build.dependsOn copyDeps

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="olli" id="5-timestamping-index" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IX_NOT_TIMESTAMPED_LOGRECORD"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="logrecord" indexName="IX_NOT_TIMESTAMPED_LOGRECORD">
+            <column name="id"/>
+            <column name="discriminator"/>
+            <column name="signaturehash"/>
+        </createIndex>
+        <modifySql>
+            <append value=" where discriminator = 'm' and signaturehash is not null"/>
+        </modifySql>
+    </changeSet>
+</databaseChangeLog>

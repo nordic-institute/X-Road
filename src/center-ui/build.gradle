@@ -1,0 +1,114 @@
+dependencies {
+    compile project(':common-ui')
+}
+
+clean {
+    doLast {
+        project.delete "vendor/engines/common-ui"
+        project.delete "vendor/engines/center-common"
+        project.delete "db/migrate"
+        project.delete "log/development.log"
+        project.delete "public/javascripts/translations.js"
+    }
+}
+
+task copyCommon(type: Copy) {
+    into "vendor/engines/common-ui"
+    from "../common-ui"
+    include "Gemfile"
+    include "Rakefile"
+    include "common-ui.gemspec"
+    include "config/"
+    include "lib/**"
+    include "app/**"
+    include "public/**"
+}
+
+task copyCenterCommon {
+    doLast {
+        copy {
+            into "vendor/engines/center-common"
+            from "../center-common"
+            include "Gemfile"
+            include "Rakefile"
+            include "center-common.gemspec"
+            include "config/"
+            include "lib/**"
+            include "app/**"
+            include "db/**"
+        }
+
+        copy {
+            into "db/migrate"
+            from "../center-common/db/migrate"
+        }
+    }
+}
+
+task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
+    into "$buildDir/libs"
+    from configurations.compile
+}
+
+task generateJsTranslations(type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'i18n:js:export']
+}
+
+// FUTURE - We might want to get rid of warning at .war file generation. RM task #3316
+task warble(dependsOn: [copyDeps, ':center-ui:build', generateJsTranslations], type: Exec) {
+    commandLine = ['jruby', '-S', 'warble']
+}
+
+// Runs the migration steps on the database.
+task updateSQLiteDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test']
+}
+
+task rollbackSQLiteDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
+}
+
+task updatePostgresDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test_pg']
+}
+
+task rollbackPostgresDbSchema(dependsOn: [':center-common:check', copyDeps, ':center-ui:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test_pg']
+}
+
+task runModelTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:units', 'RAILS_ENV=test']
+}
+
+task runControllerTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:controllers', 'RAILS_ENV=test']
+}
+
+// These tests assume the database has been configured using BDR and is part of a cluster.
+task runPgHaTests(dependsOn: [updatePostgresDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test_pg:database', 'RAILS_ENV=test_pg']
+}
+
+task checkRubySource(type: Exec) {
+    inputs.files fileTree('app') + fileTree('lib')
+    outputs.files file('build/rubocop_report.txt')
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
+build.dependsOn copyDeps
+
+
+def licenseSourceAdds = fileTree('test_pg')
+
+task licenseFormatAdds(type:nl.javadude.gradle.plugins.license.License) {
+    source += licenseSourceAdds
+}
+
+task licenseFormatAddsCheck(type:nl.javadude.gradle.plugins.license.License) {
+    source += licenseSourceAdds
+    check = true
+}
+
+licenseFormat.dependsOn licenseFormatAdds
+licenseTest.dependsOn licenseFormatAddsCheck

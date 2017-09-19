@@ -1,0 +1,114 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+apply plugin: 'application'
+
+dependencies {
+    compile project(':serverconf')
+    compile project(':signer-protocol')
+    compile project(':common-messagelog')
+    compile project(':common-op-monitoring')
+
+    compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
+
+    testCompile project(':common-test')
+    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+
+    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+
+    testCompile 'wsdl4j:wsdl4j:1.6.3'
+
+    testCompile files(this.project(':common-util').sourceSets.test.output)
+    testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
+
+    testCompile project(':common-verifier').sourceSets.test.output
+}
+
+mainClassName = 'ee.ria.xroad.proxy.ProxyMain'
+
+shadowJar {
+    classifier = ''
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
+}
+
+jar.enabled = false
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+task runProxyMain(type: JavaExec) {
+    jvmArgs '-Dxroad.proxy.sslEnabled=false',
+        '-Dxroad.proxy.globalConfDistributor.enabled=false',
+        '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
+        '-Dxroad.tempFiles.path=build/attach-tmp',
+        '-Dxroad.proxy.globalConfFile=../systemtest/conf/local_test/globalconf.xml',
+        '-Dxroad.proxy.configurationFile=../systemtest/conf/local_test/serverconf_consumer.xml',
+        '-Dxroad.key.configurationFile=../systemtest/conf/local_test/keyconf.xml',
+        '-Dxroad.appLog.path=log',
+        '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
+
+    //main = 'ee.ria.xroad.proxy.ProxyMain'
+    main = 'ee.ria.xroad.proxy.TestProxyMain'
+    classpath = sourceSets.main.runtimeClasspath
+    classpath += sourceSets.test.runtimeClasspath
+    classpath += files('src/test/resources')
+}
+
+apply plugin: "jacoco"
+
+task runProxyTest(type: JavaExec) {
+    jvmArgs '-Xmx2g',
+        '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
+        '-Dxroad.tempFiles.path=build/attach-tmp',
+        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/serverproxy.xml',
+        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/ocsp-responder.xml',
+        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/clientproxy.xml',
+        '-Dxroad.proxy.client-connector-so-linger=-1',
+        '-Dxroad.proxy.client-httpclient-so-linger=-1',
+        '-Dxroad.proxy.server-connector-so-linger=-1',
+        '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
+        '-Dproxy.akka.remote.netty.tcp.port=0'
+//      '-Djava.security.properties==src/main/resources/java.security'
+
+    main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+jacoco {
+    applyTo runProxyTest
+}
+
+task deleteForeverGrowingJacocoFile(type: Delete) {
+    delete file("$buildDir/jacoco/runProxyTest.exec")
+    // for some reason this jacoco file keeps appending, so we delete it to cleanup
+}
+
+task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
+    // merge jacoco results from normal tests and runProxyTest
+    destinationFile = file("$buildDir/jacoco/test.exec")
+    executionData test, runProxyTest
+}
+
+runProxyTest.doLast {
+    tasks.mergedJacoco.execute()
+    tasks.deleteForeverGrowingJacocoFile.execute()
+}
+
+task mergedCoverageReport(type:JacocoReport){
+    executionData = files("$buildDir/jacoco/test.exec")
+    sourceSets sourceSets.main
+}
+
+task runBatchSigner(type: JavaExec) {
+    jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
+
+    main = 'ee.ria.xroad.common.signature.BatchSigner'
+    classpath = sourceSets.test.runtimeClasspath
+}
+

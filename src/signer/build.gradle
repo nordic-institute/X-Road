@@ -1,0 +1,138 @@
+plugins {
+  id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+apply plugin: 'application'
+
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+    }
+
+    //testsuite {
+    //    java {
+    //        compileClasspath += main.output
+    //        runtimeClasspath += main.output
+    //    }
+    //}
+}
+
+dependencies {
+    compile project(':common-verifier')
+    compile project(':signer-protocol')
+
+    // Necessary since there are jars with no adequate Maven dependencies
+    compile fileTree(dir: '../libs', include: '*.jar')
+
+    testCompile project(':common-test')
+    testCompile project(':common-verifier').sourceSets.test.output
+    testCompile "com.typesafe.akka:akka-testkit_2.11:$akkaVersion"
+
+    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile 'org.powermock:powermock-module-junit4:1.6.5'
+    testCompile 'org.powermock:powermock-api-mockito:1.6.5'
+
+    xjc 'org.glassfish.jaxb:jaxb-xjc:2.2.11'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:2.2.11'
+    //testsuiteCompile project(':common-test')
+}
+
+//configurations {
+//    testsuiteCompile.extendsFrom testCompile
+//    testsuiteRuntime.extendsFrom testRuntime
+//}
+
+
+mainClassName = 'ee.ria.xroad.signer.SignerMain'
+
+shadowJar {
+    classifier = ''
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
+}
+
+jar.enabled = false
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
+
+task createDirs () {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+task xjc () {
+    inputs.file file('src/main/resources/*.xsd')
+    outputs.dir project.ext.schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.keyconf',
+            schema: 'src/main/resources/keyconf.xsd',
+            binding: '../common-util/src/main/resources/identifiers-bindings.xml'
+        )
+    }
+}
+
+// XXX For running several instances side-by-side, do not use the gradle task --
+// gradle cannot handle parallel runs if each task invokes a long-running server process.
+// Instead, use the .jar in the build/libs directory:
+// java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
+task runSignerMain(type: JavaExec) {
+    jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
+        '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
+        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good_v2',
+        '-Dxroad.common.temp-files-path=build/tmp/',
+        '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
+        '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
+        '-Djava.library.path=../passwordstore:../libs',
+        '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
+    main = 'ee.ria.xroad.signer.SignerMain'
+    classpath = sourceSets.main.runtimeClasspath
+    classpath += files('../addons/hwtoken/build/libs/hwtoken-1.0.jar')
+
+    description = "Starts signer main program.\nNote: " +
+       "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
+       "directory\n{JAVA_HOME}/jre/lib/i386 (analogous directory for 64-bit " +
+       "OS). Otherwise use\nnext property to detemine your library path:\n" +
+       "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
+}
+
+//task runSignerTestsuite(type: Test){
+//    include '**/SignerTestSuite.class' // for doing only testsuite
+//    description = "Run Signer test suite."
+//    testClassesDir = project.sourceSets.testsuite.output.classesDir
+//    classpath = project.sourceSets.testsuite.runtimeClasspath
+//}
+
+xjc.dependsOn createDirs
+compileJava.dependsOn xjc
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}

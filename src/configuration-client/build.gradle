@@ -1,0 +1,32 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+apply plugin: 'application'
+
+mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
+
+dependencies {
+    compile project(':common-verifier')
+
+    compile 'commons-cli:commons-cli:1.2'
+
+    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
+    testCompile project(':common-test')
+}
+
+shadowJar {
+    classifier = ''
+}
+
+jar.enabled = false
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
+
+task runConfigurationClient(type: JavaExec) {
+    jvmArgs '-Dxroad.conf.path=build/',
+            '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
+
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+}
+

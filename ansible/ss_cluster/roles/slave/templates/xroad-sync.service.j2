@@ -1,0 +1,23 @@
+[Unit]
+Description=X-Road Sync Task
+After=network.target
+Before=xroad-proxy.service
+Before=xroad-signer.service
+Before=xroad-confclient.service 
+Before=xroad-jetty.service
+
+[Service]
+User=xroad
+Group=xroad
+Type=oneshot
+Environment=XROAD_USER={{ xroad_slave_ssh_user }}
+Environment=MASTER={{ master_host }}
+
+ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
+
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=xroad-proxy.service
+

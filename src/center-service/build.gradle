@@ -1,0 +1,73 @@
+dependencies {
+    compile project(':common-ui')
+
+    compile project(':common-verifier')
+    compile project(':signer-protocol')
+
+    testCompile project(':common-util').sourceSets.test.output
+}
+
+clean {
+    doLast {
+        project.delete "vendor/engines/common-ui"
+        project.delete "vendor/engines/center-common"
+        project.delete "log/development.log"
+        project.delete "db"
+    }
+}
+
+task copyCommon(type: Copy) {
+    into "vendor/engines/common-ui"
+    from "../common-ui"
+    exclude '**/build/**'
+}
+
+task copyCenterCommon {
+    doLast {
+        copy {
+            into "vendor/engines/center-common"
+            from "../center-common"
+        }
+
+        copy {
+            into "db/migrate"
+            from "../center-common/db/migrate"
+        }
+    }
+}
+
+task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
+    into "$buildDir/libs"
+    from configurations.compile
+}
+
+// Runs the migration steps on the database.
+task updateSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+    commandLine = ['rake', 'db:migrate', 'RAILS_ENV=test']
+}
+
+task rollbackSQLiteDbSchema(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+    commandLine = ['rake', 'db:rollback', 'RAILS_ENV=test']
+}
+
+// FUTURE - We might want to get rid of warning at .war file generation
+task warble(dependsOn: [copyDeps, ':center-service:build'], type: Exec) {
+    commandLine = ['jruby', '-S', 'warble']
+}
+
+task runModelTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:units', 'RAILS_ENV=test']
+}
+
+task runControllerTests(dependsOn: [updateSQLiteDbSchema], type: Exec) {
+    commandLine = ['jruby', '-S', 'rake', 'test:controllers', 'RAILS_ENV=test']
+}
+
+task checkRubySource(type: Exec) {
+    inputs.files fileTree('app') + fileTree('lib')
+    outputs.files file('build/rubocop_report.txt')
+    commandLine = getRubySourceCheckCommand("$projectDir")
+}
+
+check.dependsOn checkRubySource
+build.dependsOn copyDeps

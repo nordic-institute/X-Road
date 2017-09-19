@@ -1,0 +1,264 @@
+<tns:keyConf xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:id="http://x-road.eu/xsd/identifiers"
+    xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd ../main/resources/keyconf.xsd ">
+    <device>
+        <deviceType>softToken</deviceType>
+        <id>1</id>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of producer</friendlyName>
+            <keyId>70726f6475636572</keyId>
+            <cert>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>producer</id:memberCode>
+                </memberId>
+                <contents>
+                    MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTIwOTI4MTgxODIxWhcNMTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9k
+                    dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL6kZcfiqsmviMOo
+                    PlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfKLTkmjeAz+ZPE57gB
+                    fKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tPBpJU
+                    AWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8a
+                    wEfDrdpnD04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlY
+                    cX+ojtAUSP8al87RJYo5R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq
+                    8+fRHekCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMwDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejK
+                    GvLWNT4LEZQqFNl2QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqo
+                    F5GsBeILwxuNxwapaB8ZUGoyn2OZu17LzZhevlBP40NjuOW19L0meFsh7gxgbWhz
+                    nR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHUStbyrKaCl+UDu+vBzCwes8oO
+                    rIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N5nQaeAs8ASXA
+                    SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPY=
+                </contents>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of test purposes</friendlyName>
+            <keyId>70726f6475636533</keyId>
+            <cert>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>producer</id:memberCode>
+                </memberId>
+                <contents>
+                    MIIDiDCCAnCgAwIBAgIIPl9RxHk9tEQwDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTIwOTI4MTgxODIxWhcNMTQwOTI4MTgxODIxWjATMREwDwYDVQQDDAhwcm9k
+                    dWNlcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL6kZcfiqsmviMOo
+                    PlZ70wiy8/W05Ks+OlbPE72LWFMjsxbV/LAnsR4NZhJSaWfKLTkmjeAz+ZPE57gB
+                    fKDeLZePvI5UgXx8ICv335u5xZdGPQQdKI0jymU518KVYzQEvStJarkul/tPBpJU
+                    AWLH8OWcHlWes107tb9pA0e8IAM3TzlPQTfqCYhEBBEuk3KelWB4OyN4vz2g/X8a
+                    wEfDrdpnD04M4V6dnFmqNJkzqH/NrG+8gs6KNpei0oyo6Oxzh34jD8dIxHGsyQlY
+                    cX+ojtAUSP8al87RJYo5R9lTZTo3VzzOZU8k7+9l87x09DjCBpsV+NrgFdMfN0yq
+                    8+fRHekCAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQUOSov6/KI/czxIZu50J/za2u8vPMwDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBAAah21Rhpo+MwvkJZI+sUu3CgejK
+                    GvLWNT4LEZQqFNl2QuKsFRlmV9nIo9SZND0jclp2GFj4i9uD+kuMZ2++5bq0tWqo
+                    F5GsBeILwxuNxwapaB8ZUGoyn2OZu17LzZhevlBP40NjuOW19L0meFsh7gxgbWhz
+                    nR+lrzpZheprvEgRkaVoBcCLcMVh4DLGO935xQHUStbyrKaCl+UDu+vBzCwes8oO
+                    rIPNU/TOoRzws9/NiIHeJxVBN2Jf0C3C7H58O3gmbqcBclfoBo5N5nQaeAs8ASXA
+                    SxcscVUoREaKExjoSIC+KMXhSESWdc7Prswii7i1i/l/ITMpNLr29O/0FPZ=
+                </contents>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of consumer</friendlyName>
+            <keyId>636f6e73756d6573</keyId>
+            <cert>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>consumer</id:memberCode>
+                </memberId>
+                <contents>MIIDiDCCAnCgAwIBAgIIC/Tasr5oaKswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTMwMjExMTIyMjQzWhcNMTUwMjExMTIyMjQzWjATMREwDwYDVQQDDAhjb25z
+                    dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJnc3kMx4hbH6LPm
+                    peXkt3Lwj6EdRnmPGc0YjR0lZMC4qJVPocXtfmN+1MyUbhQONP2UgWWswqDZTKwr
+                    ycfx9DOlBaOfbUkt4GG8/D1HR3rdmIENC7XI5mYGlic7J/b1qQSLsGAzTPmRMRZ4
+                    jKMPb1lcrPnZxT+0VZcAy28eMZ4kf4YsdfsmgdZVqwtIt/TZv7d6Y9Ku0Ty0UeSQ
+                    0jgb5FxnCXRKL3edrOVfhXcYbXzPC7i91xHfqWm74hu63jGvlpN6zM598Tgc7ZhC
+                    nc83SF3571TO1q2Msqw4pCK8AVI6chJa+237lK+EU+nmlq+c+WZM+kveP75WrlNN
+                    tsxBny8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQU+vRmVYcwfCkcSkxoRzxtyALpTt4wDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBABNtG8An2Kx/tXwvFRSelDCRwHsg
+                    cyX5enF73t+xGAOs8J8cEXZ24vFMP/Dn+uu9fUE/ZxypaWUDnUUGrnxbcGnPuyy3
+                    BrON88//Q9LdEZGJarNdRQXKQkC4FwXzLK+ha6PRqFgAj2ztCwt9QUIvrCnfomfh
+                    pCE6ivOUrcml3Sps2l3HtZcizfwVEysOEyNaZM6XtDcvPYeWoXuuJCsQc4qJWjoL
+                    vM1eC6qqqXNLoolVB5BWshuSNhwNyKMjxxsW08GCd9jJYMvasoDX+jQCUctEsZVT
+                    JRPVUNrOL3zRpWzZtt2+3yZ3dGp7uGri6TjsakMAS+QU65Ha+bfBXx87hwE=
+                </contents>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of consumer</friendlyName>
+            <keyId>02d66d5589f5b8626875ef99a11a84f7b2aa202f</keyId>
+            <cert>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>producer</id:memberCode>
+                </memberId>
+                <contents>
+                    MIIDiDCCAnCgAwIBAgIIC/Tasr5oaKswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTMwMjExMTIyMjQzWhcNMTUwMjExMTIyMjQzWjATMREwDwYDVQQDDAhjb25z
+                    dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJnc3kMx4hbH6LPm
+                    peXkt3Lwj6EdRnmPGc0YjR0lZMC4qJVPocXtfmN+1MyUbhQONP2UgWWswqDZTKwr
+                    ycfx9DOlBaOfbUkt4GG8/D1HR3rdmIENC7XI5mYGlic7J/b1qQSLsGAzTPmRMRZ4
+                    jKMPb1lcrPnZxT+0VZcAy28eMZ4kf4YsdfsmgdZVqwtIt/TZv7d6Y9Ku0Ty0UeSQ
+                    0jgb5FxnCXRKL3edrOVfhXcYbXzPC7i91xHfqWm74hu63jGvlpN6zM598Tgc7ZhC
+                    nc83SF3571TO1q2Msqw4pCK8AVI6chJa+237lK+EU+nmlq+c+WZM+kveP75WrlNN
+                    tsxBny8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQU+vRmVYcwfCkcSkxoRzxtyALpTt4wDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBABNtG8An2Kx/tXwvFRSelDCRwHsg
+                    cyX5enF73t+xGAOs8J8cEXZ24vFMP/Dn+uu9fUE/ZxypaWUDnUUGrnxbcGnPuyy3
+                    BrON88//Q9LdEZGJarNdRQXKQkC4FwXzLK+ha6PRqFgAj2ztCwt9QUIvrCnfomfh
+                    pCE6ivOUrcml3Sps2l3HtZcizfwVEysOEyNaZM6XtDcvPYeWoXuuJCsQc4qJWjoL
+                    vM1eC6qqqXNLoolVB5BWshuSNhwNyKMjxxsW08GCd9jJYMvasoDX+jQCUctEsZVT
+                    JRPVUNrOL3zRpWzZtt2+3yZ3dGp7uGri6TjsakMAS+QU65Ha+bfBXx87hwE=
+                </contents>
+            </cert>
+        </key>
+        <key usage="AUTHENTICATION">
+            <friendlyName>Auth key of the local machine</friendlyName>
+            <keyId>636f6e73756d6574</keyId>
+            <cert>
+                <contents>
+                    MIIDiDCCAnCgAwIBAgIIC/Tasr5oaKswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTMwMjExMTIyMjQzWhcNMTUwMjExMTIyMjQzWjATMREwDwYDVQQDDAhjb25z
+                    dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJnc3kMx4hbH6LPm
+                    peXkt3Lwj6EdRnmPGc0YjR0lZMC4qJVPocXtfmN+1MyUbhQONP2UgWWswqDZTKwr
+                    ycfx9DOlBaOfbUkt4GG8/D1HR3rdmIENC7XI5mYGlic7J/b1qQSLsGAzTPmRMRZ4
+                    jKMPb1lcrPnZxT+0VZcAy28eMZ4kf4YsdfsmgdZVqwtIt/TZv7d6Y9Ku0Ty0UeSQ
+                    0jgb5FxnCXRKL3edrOVfhXcYbXzPC7i91xHfqWm74hu63jGvlpN6zM598Tgc7ZhC
+                    nc83SF3571TO1q2Msqw4pCK8AVI6chJa+237lK+EU+nmlq+c+WZM+kveP75WrlNN
+                    tsxBny8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQU+vRmVYcwfCkcSkxoRzxtyALpTt4wDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBABNtG8An2Kx/tXwvFRSelDCRwHsg
+                    cyX5enF73t+xGAOs8J8cEXZ24vFMP/Dn+uu9fUE/ZxypaWUDnUUGrnxbcGnPuyy3
+                    BrON88//Q9LdEZGJarNdRQXKQkC4FwXzLK+ha6PRqFgAj2ztCwt9QUIvrCnfomfh
+                    pCE6ivOUrcml3Sps2l3HtZcizfwVEysOEyNaZM6XtDcvPYeWoXuuJCsQc4qJWjoL
+                    vM1eC6qqqXNLoolVB5BWshuSNhwNyKMjxxsW08GCd9jJYMvasoDX+jQCUctEsZVT
+                    JRPVUNrOL3zRpWzZtt2+3yZ3dGp7uGri6TjsakMAS+QU65Ha+bfBXx87hwE=
+                </contents>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Key with cert request</friendlyName>
+            <keyId>666f6f62617262617a</keyId>
+            <publicKey>
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2FBFyggzZk+Oo+d/p3FX
+                MzwMLCyksgcBHEXDrKRFHKZbxd9PKqQDz4SgZnuvy3d5pN5MOOiPPv4Sp0OiZUiv
+                BtoIEnkQRox9ZW3fSAWPTpxQTaoWukAhuAK7rt8eyErp5eMlysmpNNEVCt1AAb5x
+                jDrpSyf25MbCgH7ugePX5T9xQg/ulj7N3den+3w7RLlAgitV1kc28yNu3ePOhO3+
+                a/2jNcMI89Iqa92mtPjlR9RlIcqmVDi6qmZ9lBfvJoCjbIAG3TS2JkRBlo7SQ39y
+                2flH0AJPesdy+LavssRZJUH7O5vXatSPXVr9LsG2V7V+0tbY+s0GH6wAz2dTvj0e
+                zwIDAQAB
+            </publicKey>
+            <certRequest>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>consumer</id:memberCode>
+                </memberId>
+                <subjectName>foobarbaz</subjectName>
+            </certRequest>
+            <certRequest>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>producer</id:memberCode>
+                </memberId>
+                <subjectName>foobarbaz</subjectName>
+            </certRequest>
+        </key>
+        <key usage="SIGNING">
+            <keyId>9F3B62BA0BAA53823264C09AA34F7BDD15C44CE6</keyId>
+            <publicKey>MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuZZt6Ma2obpKW
+                BQO98g4DFTWQODJWJIkdvBicJTXb685D0Jkm9rw3fPuoSrZmFr0mh0StfnPXf63E
+                85ichS6qbTzZDaAxeBbBmxw9jV2HkfsqrfaTkIAomN2F+3Gz4Ch+bFIO7xFEI4bm
+                7YhMrDX6RdAUEfMUFZyZFc8hBohNuge/LNZj9rtr8mYGXkwQcXxLoxLaPNSUN0SB
+                MYmS1G/BMgKF6MNKFUo7KpDwThVuldmx8/GLiwXOasM35CnM7uw4fA8ZAFhvEziS
+                z5vh+ognGZwQ3ow7HryjdSQiJrcY4+3QMJivTEqqnWtYyQgdQDOHmfPyS9lfnnVi
+                12E8GEvNQIDAQAB
+            </publicKey>
+        </key>
+    </device>
+    <device>
+        <!-- Corresponds to the type as configured in Signer's devices.ini -->
+        <deviceType>hsm_ncipher</deviceType>
+        <id>2</id>
+        <tokenId>66d15b9bec133e04</tokenId>
+        <slotId>thekey</slotId>
+        <key usage="SIGNING">
+            <friendlyName>Signing key of producer</friendlyName>
+            <keyId>02d66d5589f5b8626875ef99a11a84f7b2aa202f</keyId>
+            <publicKey>
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArMsw+thnw3cctKEnjgFv
+                emv4a7M2x58tcY9PigbEHUyT9zrp/c29ANJMqqozZ0uBwBIUQGRXgPww5h5Jphmt
+                OS+IRAZCg9PKuJgh/6R08ut5BJQTgfHV/vZsoaFqD9y7JlKmDoU6Tas/LNsnBT/+
+                1GIzETdeEuRpXzJJWE5S56UD61yu7ZgOQcV+UUfza4CNnE8oF3W1sn2+BwCbsmye
+                b2Jz9JiIjxfYdL0RQZ058xyVfl29OHscTa6j6w4CO52OWtobViNGOS/mz4tHZ8Ui
+                dVs/RmHP4ASNOAPl9sJ5dbiX8tvFUa9wYT+FksTYMY6JzR9W1BLHtEedLPmLORW/
+                HQIDAQAB
+            </publicKey>
+            <cert>
+                <memberId id:objectType="MEMBER">
+                    <id:xRoadInstance>EE</id:xRoadInstance>
+                    <id:memberClass>BUSINESS</id:memberClass>
+                    <id:memberCode>producer</id:memberCode>
+                </memberId>
+                <contents>
+                    MIIDiDCCAnCgAwIBAgIIC/Tasr5oaKswDQYJKoZIhvcNAQEFBQAwNzERMA8GA1UE
+                    AwwIQWRtaW5DQTExFTATBgNVBAoMDEVKQkNBIFNhbXBsZTELMAkGA1UEBhMCU0Uw
+                    HhcNMTMwMjExMTIyMjQzWhcNMTUwMjExMTIyMjQzWjATMREwDwYDVQQDDAhjb25z
+                    dW1lcjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJnc3kMx4hbH6LPm
+                    peXkt3Lwj6EdRnmPGc0YjR0lZMC4qJVPocXtfmN+1MyUbhQONP2UgWWswqDZTKwr
+                    ycfx9DOlBaOfbUkt4GG8/D1HR3rdmIENC7XI5mYGlic7J/b1qQSLsGAzTPmRMRZ4
+                    jKMPb1lcrPnZxT+0VZcAy28eMZ4kf4YsdfsmgdZVqwtIt/TZv7d6Y9Ku0Ty0UeSQ
+                    0jgb5FxnCXRKL3edrOVfhXcYbXzPC7i91xHfqWm74hu63jGvlpN6zM598Tgc7ZhC
+                    nc83SF3571TO1q2Msqw4pCK8AVI6chJa+237lK+EU+nmlq+c+WZM+kveP75WrlNN
+                    tsxBny8CAwEAAaOBuzCBuDBYBggrBgEFBQcBAQRMMEowSAYIKwYBBQUHMAGGPGh0
+                    dHA6Ly9pa3MyLXVidW50dS5jeWJlci5lZTo4MDgwL2VqYmNhL3B1YmxpY3dlYi9z
+                    dGF0dXMvb2NzcDAdBgNVHQ4EFgQU+vRmVYcwfCkcSkxoRzxtyALpTt4wDAYDVR0T
+                    AQH/BAIwADAfBgNVHSMEGDAWgBR3LYkuA7b9+NJlOTE1ItBGGujSCTAOBgNVHQ8B
+                    Af8EBAMCBeAwDQYJKoZIhvcNAQEFBQADggEBABNtG8An2Kx/tXwvFRSelDCRwHsg
+                    cyX5enF73t+xGAOs8J8cEXZ24vFMP/Dn+uu9fUE/ZxypaWUDnUUGrnxbcGnPuyy3
+                    BrON88//Q9LdEZGJarNdRQXKQkC4FwXzLK+ha6PRqFgAj2ztCwt9QUIvrCnfomfh
+                    pCE6ivOUrcml3Sps2l3HtZcizfwVEysOEyNaZM6XtDcvPYeWoXuuJCsQc4qJWjoL
+                    vM1eC6qqqXNLoolVB5BWshuSNhwNyKMjxxsW08GCd9jJYMvasoDX+jQCUctEsZVT
+                    JRPVUNrOL3zRpWzZtt2+3yZ3dGp7uGri6TjsakMAS+QU65Ha+bfBXx87hwE=
+                </contents>
+            </cert>
+        </key>
+        <key usage="SIGNING">
+            <friendlyName>Auth key of producer</friendlyName>
+            <keyId>01</keyId>
+            <publicKey>
+                MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiJRVv/g4FBlz2GA/LG6K
+                Qjfq1L88SNKotC7h/LISoiOwXl4eGAc43H8tCOEyLREpn+cXE8l3bAiCEVDtvyeY
+                oBkZEpUwmHtRPiGFmNd/FVyVP9kksEA+YRlEvN+Ow2KaT5/n8GccycF4QRQb4ASL
+                THh4T9GjdonujRtj4+UPSTac1Scpe02R28HWd6QuD3YmScTnA1Io/Gjzww1XcdQw
+                SwMmMhuPIwGakxFs9SKEkDfloJ6GijHEvxXO56lVbeIlGd3hQfSLVgnJi5Z3AxRc
+                1RwHrOdoE5oT7qz5/ur7y62JiZeul4oQ1c5NvKt7RalxKyRdhXGTKQlLGWxxS+85
+                uQIDAQAB
+            </publicKey>
+        </key>
+    </device>
+</tns:keyConf>
