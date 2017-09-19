@@ -24,8 +24,8 @@ if ! command -v rvm &>/dev/null; then
     source ~/.rvm/scripts/rvm
 fi
 
-rvm install jruby-$JRUBY_VERSION --binary
-rvm jruby-$JRUBY_VERSION do jgem install jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:1.4.9 bundler-audit
+rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets
+rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher gem-wrappers rubygems-bundler rake:12.0.0 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:1.4.9 bundler-audit
 
 mkdir -p /var/tmp/xroad
 

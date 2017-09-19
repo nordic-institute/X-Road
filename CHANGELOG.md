@@ -1,12 +1,12 @@
 # Change Log
 
-## 6.16.0 - 2017-09-07
+## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
 - PVAYLADEV-815	Load Balancer documentation updated with Autologin setup and installing guide for slaves.
 - PVAYLADEV-847 / XRJD #169	Fixed UI empty table double click event handling
 - PVAYLADEV-367	Extend environmental monitoring to report optionally specified monitoring data.
 - PVAYLADEV-438 / XRDJ #57 	For security reasons, security server metaservice no longer returns the network addresses of subsystem's services when retrieving the WSDL of a service. Instead it returns "http://example.org/xroad-endpoint".
-- PVAYLADEV-822 / XRJD #162 	Environmental monitoring data now shows fewer certificate details, but for more certificates. SHA-1 hashes and validity periods (start and end date) are shown. The certificate data still contains the authentication and signing certificates and as a new addition, the internal TLS certificate for the security server as well as the client information system authentication certificates. The aim is to provide details about expiring certificates that would prevent message delivery but keep any private certificate details private. 
+- PVAYLADEV-822 / XRJD #162 	Environmental monitoring data now shows fewer certificate details, but for more certificates. SHA-1 hashes and validity periods (start and end date) are shown. The certificate data still contains the authentication and signing certificates and as a new addition, the internal TLS certificate for the security server as well as the client information system authentication certificates. The aim is to provide details about expiring certificates that would prevent message delivery but keep any private certificate details private.
 - PVAYLADEV-860 / XRJD #168	The central server's environmental monitoring component is installed by default.
 - PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
 - PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
@@ -32,6 +32,8 @@
 - XTE-248 / Backlog #55: Security Server: Fixed creation of signed documents (backward compatible) to follow e-signature standards (XAdES, ASiC).
 - XTE-330 / Backlog #127: Security Server: Added support for "NEE" member class in certificates provided by SK ID Solutions AS.
 - XTE-357 / Backlog #164: Security Server: Fixed temporary files removal in error situations.
+- PVAYLADEV-933: Fixed build failure on clean machine
+- PVAYLADEV-934: Fixed problem in wsdlvalidator install paths
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.
