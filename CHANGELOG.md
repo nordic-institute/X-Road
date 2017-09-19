@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.17.0 - 2017-09-19
+- TBD
+
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
 - PVAYLADEV-815	Load Balancer documentation updated with Autologin setup and installing guide for slaves.
