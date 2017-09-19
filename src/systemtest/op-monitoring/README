@@ -1,0 +1,33 @@
+This directory contains the various test suites and helper code
+for testing the Operational Monitoring system at various levels.
+
+The dependencies for each testing level are described in the corresponding
+subdirectory (integration and load).
+
+Unit tests are integrated into the build system of the respective
+source code modules and are not covered here.
+
+Please read the docs in doc/OperationalMonitoring/Testing/ for an
+overview of the testing strategy and the expected environment.
+
+The contents of this directory:
+
+- integration: Source code, request templates etc for running the integration
+  test suite of the Operational Monitoring system.
+
+- load: Source code for running the load test simulations of the Operational
+  Monitoring system.
+
+- misc: One-off scripts and various files used for manual testing.
+
+- mock: Configuration of the SoapUI-based mock service used for simulating
+  a service provider's information system in the testing environment.
+
+- python_common: A library of reusable code for the integration and load tests.
+
+- requests: Sample SOAP requests that can be used for manual testing.
+
+- zabbix_api: Sample scripts, configuration and JSON-RPC requests for configuring
+  Zabbix over its API. The zabbix_api/examples/zabbix/ directory is included
+  in the .deb and .rpm packages of the Operational Monitoring Daemon. These scripts
+  do not (and should not) use the code in python_common, but should be self-contained.

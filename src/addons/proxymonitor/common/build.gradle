@@ -1,0 +1,65 @@
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ["src/main/java", "$buildDir/generated-sources"]
+    }
+}
+
+dependencies {
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+}
+
+task createDirs() {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+
+        // Generate classes for identifiers
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.proxymonitor.message',
+                schema: 'src/main/resources/monitoring.xsd',
+                binding: 'src/main/resources/jaxb-bindings.xml'
+        )
+    }
+
+}
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+xjc.dependsOn createDirs
+compileJava.dependsOn xjc
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}

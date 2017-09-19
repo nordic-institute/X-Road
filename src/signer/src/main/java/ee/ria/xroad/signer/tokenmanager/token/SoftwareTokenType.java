@@ -1,0 +1,89 @@
+/**
+ * The MIT License
+ * Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+package ee.ria.xroad.signer.tokenmanager.token;
+
+import lombok.Data;
+
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
+
+/**
+ * The software token type TDO.
+ */
+@Data
+public final class SoftwareTokenType implements TokenType {
+
+    public static final String ID = "0";
+
+    @Override
+    public String getModuleType() {
+        return SoftwareModuleType.TYPE;
+    }
+
+    @Override
+    public Integer getSlotIndex() {
+        return 0;
+    }
+
+    @Override
+    public String getSerialNumber() {
+        return null;
+    }
+
+    @Override
+    public String getLabel() {
+        return null;
+    }
+
+    @Override
+    public String getId() {
+        return ID;
+    }
+
+    @Override
+    public boolean isReadOnly() {
+        return false;
+    }
+
+    @Override
+    public boolean isBatchSigningEnabled() {
+        return true;
+    }
+
+    @Override
+    public String getSignMechanismName() {
+        return CryptoUtils.CKM_RSA_PKCS_NAME;
+    }
+
+    @Override
+    public PubKeyAttributes getPubKeyAttributes() {
+        return null;
+    }
+
+    @Override
+    public PrivKeyAttributes getPrivKeyAttributes() {
+        return null;
+    }
+}

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema elementFormDefault="qualified"
+           targetNamespace="http://x-road.eu/xsd/xroad.xsd"
+           xmlns="http://x-road.eu/xsd/xroad.xsd"
+           xmlns:id="http://x-road.eu/xsd/identifiers"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace"
+             schemaLocation="http://www.w3.org/2009/01/xml.xsd"/>
+  <xs:import id="id" namespace="http://x-road.eu/xsd/identifiers"
+             schemaLocation="http://x-road.eu/xsd/identifiers.xsd"/>
+
+  <!-- Header elements -->
+  <xs:element name="securityServer" type="id:XRoadSecurityServerIdentifierType">
+    <xs:annotation>
+      <xs:documentation>Identifies security server</xs:documentation>
+    </xs:annotation>
+  </xs:element>
+</xs:schema>

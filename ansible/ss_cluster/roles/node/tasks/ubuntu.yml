@@ -1,0 +1,22 @@
+---
+- name: check postgresql version
+  become: yes
+  become_user: postgres
+  command: psql -tqAc "show server_version"
+  register: postgresql_version_output
+
+- set_fact:
+      postgresql_version: "{{ postgresql_version_output.stdout | regex_replace('^(\\d+\\.\\d+).*$','\\1') }}"
+
+- name: create the database
+  become: yes
+  become_user: postgres
+  command: pg_createcluster -p "{{ serverconf_db_port }}" "{{ postgresql_version }}" serverconf
+  args:
+    creates: "/var/lib/postgresql/{{ postgresql_version }}/serverconf"
+
+- set_fact:
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/serverconf"
+    postgresql_config_dir: "/etc/postgresql/{{ postgresql_version }}/serverconf"
+    postgresql_serverconf_service: "postgresql"
+

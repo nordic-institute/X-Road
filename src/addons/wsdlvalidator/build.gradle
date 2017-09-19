@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+}
+
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile "org.apache.cxf:cxf-tools-validator:3.0.1"
+}
+

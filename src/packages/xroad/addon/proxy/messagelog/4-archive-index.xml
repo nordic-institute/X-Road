@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="olli" id="4-archive-index" dbms="postgresql">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="IX_NOT_ARCHIVED_LOGRECORD"/>
+            </not>
+        </preConditions>
+        <createIndex tableName="logrecord" indexName="IX_NOT_ARCHIVED_LOGRECORD">
+            <column name="id"/>
+        </createIndex>
+        <modifySql>
+            <append value=" where discriminator = 't' and archived = false"/>
+        </modifySql>
+    </changeSet>
+</databaseChangeLog>

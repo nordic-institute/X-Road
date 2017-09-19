@@ -1,0 +1,9 @@
+[master]
+master.example nodename=master
+
+[slaves]
+slave1.example nodename=slave1
+slave2.example nodename=slave2
+
+[slaves:vars]
+master_host=master.example

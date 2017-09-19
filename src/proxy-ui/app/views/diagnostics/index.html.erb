@@ -1,0 +1,126 @@
+#
+# The MIT License
+# Copyright (c) 2015 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
+<% content_for :head do %>
+    <%= javascript_include_tag "diagnostics" %>
+<% end %>
+
+<% content_for :content do %>
+    <section class="container" id="diagnostics-container">
+
+      <div class="box">
+        <div class="box-heading">
+          <span class="box-title"><%= t 'diagnostics.index.global_configuration' %></span>
+        </div>
+
+        <table id="global_configuration" class="bordered">
+          <thead>
+          <th class="diagnostics_col_status"><%= t 'diagnostics.index.status' %></th>
+          <th class="diagnostics_col_message"><%= t 'diagnostics.index.message' %></th>
+          <th class="diagnostics_col_prev_update"><%= t 'diagnostics.index.previous_update' %></th>
+          <th class="diagnostics_col_next_update"><%= t 'diagnostics.index.next_update' %></th>
+          </thead>
+          <tbody>
+          <tr>
+            <td><i class="fa fa-circle <%= @global_conf_status[:status_class] %>"></i></td>
+            <td><%= @global_conf_status[:status_message] %></td>
+            <td><%= @global_conf_status[:prev_update] %></td>
+            <td><%= @global_conf_status[:next_update] %></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="box">
+        <div class="box-heading">
+          <span class="box-title"><%= t 'diagnostics.index.timestamping' %></span>
+        </div>
+
+        <table id="global_configuration" class="bordered">
+          <thead>
+          <th class="diagnostics_col_status"><%= t 'diagnostics.index.status' %></th>
+          <th class="diagnostics_col_message"><%= t 'diagnostics.index.service_url' %></th>
+          <th class="diagnostics_col_message"><%= t 'diagnostics.index.message' %></th>
+          <th class="diagnostics_col_prev_update"><%= t 'diagnostics.index.previous_update' %></th>
+          </thead>
+          <tbody>
+          <% @timestamp_data.each do |key, status| %>
+              <tr>
+                <td><i class="fa fa-circle <%= get_status_class(status['returnCode']) %>"></i></td>
+                <td><%= key %></td>
+                <td><%= get_status_message(status['returnCode']) %></td>
+                <td><%= get_formatted_time(status['prevUpdate']) %></td>
+              </tr>
+          <% end %>
+          </tbody>
+
+        </table>
+      </div>
+      <div class="box">
+        <div class="box-heading">
+          <span class="box-title"><%= t 'diagnostics.index.title_ocsp' %></span>
+        </div>
+
+        <table class="bordered">
+          <thead>
+
+          </thead>
+
+          <% @ocsp_data.each do |_, details| %>
+              <% next unless details.is_a? Hash %>
+              <% statusMap = details['ocspResponderStatusMap'] %>
+              <% next if statusMap.nil? || statusMap.size == 0 %>
+              <thead>
+              <tr>
+                <th colspan="5">
+                  <h3><strong><%= t 'diagnostics.index.label_ocsp_cert_service' %></strong><%= details['name'] %></h3>
+                </th>
+              </tr>
+              <tr>
+                <th class="diagnostics_col_status"><%= t 'diagnostics.index.status' %></th>
+                <th class="diagnostics_col_message"><%= t 'diagnostics.index.service_url' %></th>
+                <th class="diagnostics_col_message"><%= t 'diagnostics.index.message' %></th>
+                <th class="diagnostics_col_prev_update"><%= t 'diagnostics.index.previous_update' %></th>
+                <th class="diagnostics_col_next_update"><%= t 'diagnostics.index.next_update_at_latest' %></th>
+              </tr>
+              </thead>
+              <% statusMap.each do |key, valueMap| %>
+                  <tr class="margin-bottom-20">
+                    <td><i class="fa fa-circle <%= get_status_class(valueMap['status']) %>"></i></td>
+                    <td><%= key %></td>
+                    <td><%= get_status_message(valueMap['status']) %></td>
+                    <td><%= get_formatted_time(valueMap['prevUpdate']) unless valueMap['prevUpdate'].nil? %></td>
+                    <td><%= get_formatted_time(valueMap['nextUpdate']) %></td>
+                  </tr>
+              <% end %>
+              <thead>
+              <tr class="spacer-height-20">
+                <td></td>
+              </tr>
+              </thead>
+          <% end %>
+        </table>
+      </div>
+
+    </section>
+<% end %>

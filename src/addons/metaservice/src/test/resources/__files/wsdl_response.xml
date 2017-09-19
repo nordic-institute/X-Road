@@ -1,0 +1,204 @@
+--xroadZTLLyIMMYnAYliBumWCqHJYAhutxNf
+content-type:text/xml; charset=UTF-8
+
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:xroad="http://x-road.eu/xsd/xroad.xsd"><SOAP-ENV:Header xmlns:ns4="http://x-road.eu/xsd/representation.xsd"><xroad:client id:objectType="MEMBER"><id:xRoadInstance>EE</id:xRoadInstance><id:memberClass>BUSINESS</id:memberClass><id:memberCode>consumer</id:memberCode></xroad:client><xroad:service id:objectType="SERVICE"><id:xRoadInstance>EE</id:xRoadInstance><id:memberClass>BUSINESS</id:memberClass><id:memberCode>producer</id:memberCode><id:serviceCode>getWsdl</id:serviceCode></xroad:service><xroad:id>34ee3697-f9c6-43c9-9f2b-ef939058ea09</xroad:id><xroad:requestHash algorithmId="http://www.w3.org/2001/04/xmlenc#sha512">nO1xqQVmQy+hFBehoB/lsokX9R71uZQzPL2Ss0CeYYn7nLgD9lEAOWYDXasSqYqxo6eaGWVJm3fP6Ar+a1JwYw==</xroad:requestHash><xroad:protocolVersion>4.0</xroad:protocolVersion></SOAP-ENV:Header><SOAP-ENV:Body><xroad:getWsdlResponse><xroad:serviceCode>getRandom</xroad:serviceCode></xroad:getWsdlResponse></SOAP-ENV:Body></SOAP-ENV:Envelope>
+
+--xroadZTLLyIMMYnAYliBumWCqHJYAhutxNf
+content-type:text/xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="testService" targetNamespace="http://test.x-road.fi/producer"
+                  xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://test.x-road.fi/producer"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:id="http://x-road.eu/xsd/identifiers"
+                  xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+<wsdl:types>
+  <xsd:schema elementFormDefault="qualified" targetNamespace="http://test.x-road.fi/producer">
+    <xsd:import id="xrd" namespace="http://x-road.eu/xsd/xroad.xsd"/>
+    <xsd:element name="getRandom" nillable="true">
+      <xsd:complexType/>
+    </xsd:element>
+    <xsd:element name="getRandomResponse">
+      <xsd:complexType>
+        <xsd:sequence>
+          <xsd:element name="request"/>
+          <xsd:element name="response">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="data" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:documentation>Service response</xsd:documentation>
+                  </xsd:annotation>
+                </xsd:element>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="helloService">
+      <xsd:complexType>
+        <xsd:sequence>
+          <xsd:element name="request">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="name" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:documentation>Name</xsd:documentation>
+                  </xsd:annotation>
+                </xsd:element>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="helloServiceResponse">
+      <xsd:complexType>
+        <xsd:sequence>
+          <xsd:element name="request">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="name" nillable="true" type="xsd:string"/>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="response">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="message" type="xsd:string">
+                  <xsd:annotation>
+                    <xsd:documentation>Service response</xsd:documentation>
+                  </xsd:annotation>
+                </xsd:element>
+              </xsd:sequence>
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+</wsdl:types>
+<wsdl:message name="helloService">
+  <wsdl:part name="body" element="tns:helloService">
+  </wsdl:part>
+</wsdl:message>
+<wsdl:message name="requestheader">
+  <wsdl:part name="client" element="xrd:client">
+  </wsdl:part>
+  <wsdl:part name="service" element="xrd:service">
+  </wsdl:part>
+  <wsdl:part name="userId" element="xrd:userId">
+  </wsdl:part>
+  <wsdl:part name="id" element="xrd:id">
+  </wsdl:part>
+  <wsdl:part name="issue" element="xrd:issue">
+  </wsdl:part>
+  <wsdl:part name="protocolVersion" element="xrd:protocolVersion">
+  </wsdl:part>
+</wsdl:message>
+<wsdl:message name="getRandomResponse">
+  <wsdl:part name="body" element="tns:getRandomResponse">
+  </wsdl:part>
+</wsdl:message>
+<wsdl:message name="getRandom">
+  <wsdl:part name="body" element="tns:getRandom">
+  </wsdl:part>
+</wsdl:message>
+<wsdl:message name="helloServiceResponse">
+  <wsdl:part name="body" element="tns:helloServiceResponse">
+  </wsdl:part>
+</wsdl:message>
+<wsdl:portType name="testServicePortType">
+  <wsdl:operation name="getRandom">
+    <wsdl:input message="tns:getRandom">
+    </wsdl:input>
+    <wsdl:output message="tns:getRandomResponse">
+    </wsdl:output>
+  </wsdl:operation>
+  <wsdl:operation name="helloService">
+    <wsdl:input message="tns:helloService">
+    </wsdl:input>
+    <wsdl:output message="tns:helloServiceResponse">
+    </wsdl:output>
+  </wsdl:operation>
+</wsdl:portType>
+<wsdl:binding name="testServiceBinding" type="tns:testServicePortType">
+  <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  <wsdl:operation name="getRandom">
+    <soap:operation soapAction="" style="document"/>
+    <id:version>v1</id:version>
+    <wsdl:input>
+      <soap:body parts="body" use="literal"/>
+      <soap:header message="tns:requestheader" part="client" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="service" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="userId" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="id" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="issue" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="protocolVersion" use="literal">
+      </soap:header>
+    </wsdl:input>
+    <wsdl:output>
+      <soap:body parts="body" use="literal"/>
+      <soap:header message="tns:requestheader" part="client" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="service" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="userId" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="id" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="issue" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="protocolVersion" use="literal">
+      </soap:header>
+    </wsdl:output>
+  </wsdl:operation>
+  <wsdl:operation name="helloService">
+    <soap:operation soapAction="" style="document"/>
+    <id:version>v1</id:version>
+    <wsdl:input>
+      <soap:body parts="body" use="literal"/>
+      <soap:header message="tns:requestheader" part="client" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="service" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="userId" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="id" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="issue" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="protocolVersion" use="literal">
+      </soap:header>
+    </wsdl:input>
+    <wsdl:output>
+      <soap:body parts="body" use="literal"/>
+      <soap:header message="tns:requestheader" part="client" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="service" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="userId" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="id" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="issue" use="literal">
+      </soap:header>
+      <soap:header message="tns:requestheader" part="protocolVersion" use="literal">
+      </soap:header>
+    </wsdl:output>
+  </wsdl:operation>
+</wsdl:binding>
+<wsdl:service name="testService">
+  <wsdl:port name="testServicePort" binding="tns:testServiceBinding">
+    <soap:address location="https://172.28.128.2:8084/mocktestServiceBinding"/>
+  </wsdl:port>
+</wsdl:service>
+</wsdl:definitions>
+
+--xroadZTLLyIMMYnAYliBumWCqHJYAhutxNf--

@@ -1,0 +1,128 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
+}
+
+project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+
+configurations {
+    xjc
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources']
+        resources.srcDirs = ['src/main/resources', '../common-util/src/main/resources']
+    }
+}
+
+dependencies {
+    compile 'javax.validation:validation-api:1.1.0.Final'
+    compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
+
+    compile project(':common-db')
+    compile project(':common-op-monitoring')
+    compile project(':monitoring-conf')
+
+    // Using HSQLDB for an in-memory database in tests.
+    testCompile 'org.hsqldb:hsqldb:2.3.2'
+    testCompile 'commons-cli:commons-cli:1.2'
+
+    xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
+    xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+}
+
+task createDirs() {
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
+}
+
+task xjc() {
+    inputs.files fileTree(dir: 'src/main/resources', include: '*.xsd')
+    outputs.dir schemaTargetDir
+
+    doLast {
+        ant.taskdef(name: 'xjc',
+                classname: 'com.sun.tools.xjc.XJCTask',
+                classpath: configurations.xjc.asPath)
+
+        // Generate classes for query operational data and health data messages.
+        ant.xjc(
+                destdir: project.ext.schemaTargetDir,
+                package: 'ee.ria.xroad.opmonitordaemon.message',
+                schema: 'build/resources/main/op-monitoring.xsd',
+                binding: 'build/resources/main/identifiers-bindings.xml'
+        )
+    }
+}
+
+shadowJar {
+    append('reference.conf')
+    classifier = ''
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
+    }
+}
+
+task testsJar(type: Jar, dependsOn: testClasses) {
+    classifier = 'tests'
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OperationalDataRecordsGenerator'
+    }
+    from {
+        sourceSets.test.output
+    }
+}
+
+jar.enabled = false
+build.dependsOn shadowJar
+build.dependsOn testsJar
+buildall.dependsOn shadowJar
+buildall.dependsOn testsJar
+
+task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+xjc.dependsOn createDirs
+xjc.dependsOn processResources
+xjc.mustRunAfter processResources
+
+compileJava.dependsOn xjc
+compileJava.dependsOn processResources
+
+test {
+    //testLogging {
+    //    showStandardStreams = true;
+    //}
+
+    jacoco {
+        append = false
+        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.enabled true
+    }
+}
+
+idea.module {
+    excludeDirs -= file(buildDir)
+    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
+}

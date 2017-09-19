@@ -1,8 +1,8 @@
 ---
 - name: compile xroad code
-  command: ../xtee6/compile_code.sh
+  command: ./compile_code.sh
   args:
-    chdir: ../xtee6
+    chdir: ../src
     
 
 

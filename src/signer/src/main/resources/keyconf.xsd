@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://x-road.eu/xsd/xroad.xsd"
+    xmlns:jxb="http://java.sun.com/xml/ns/jaxb" jxb:version="1.0"
+    targetNamespace="http://x-road.eu/xsd/xroad.xsd" xmlns:id="http://x-road.eu/xsd/identifiers">
+
+    <import namespace="http://x-road.eu/xsd/identifiers" schemaLocation="../../../../common-util/src/main/resources/identifiers.xsd"/>
+    <element name="keyConf" type="tns:KeyConfType"/>
+
+    <complexType name="KeyConfType">
+        <sequence>
+            <element name="device" maxOccurs="unbounded" minOccurs="0" type="tns:DeviceType"/>
+        </sequence>
+    </complexType>
+
+    <complexType name="KeyType">
+        <annotation>
+            <documentation>
+                Encapsulates pointer to a key in keystore.
+                Interpretation of the contents of the string depend on
+                the type of the key.
+            </documentation>
+        </annotation>
+        <sequence>
+            <element name="friendlyName" type="string">
+                <annotation>
+                    <documentation>Name that is displayed in UI.</documentation>
+                </annotation>
+            </element>
+            <element name="label" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Label of the key.</documentation>
+                </annotation>
+            </element>
+            <element name="keyId" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Unique identifier for the key.
+Keys are identified with hash of the public key.</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="publicKey" type="base64Binary">
+                <annotation>
+                    <documentation>Public key corresponding to the private key.</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="certRequest" type="tns:CertRequestType"
+                maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Outstanding certificate request for this key.</documentation>
+                </annotation>
+            </element>
+            <element name="cert" type="tns:CertificateType" minOccurs="0" maxOccurs="unbounded">
+                <annotation>
+                    <documentation>Certificate(s) associated with the key.</documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="ocspRequestKey">
+                <annotation>
+                    <documentation>This is PKCS#12 file that contains key and certificate for signing OCSP requests.
+The content of the element is base64-encoded PKCS#12 file.</documentation>
+                </annotation>
+                <complexType>
+                    <simpleContent>
+                        <extension base="base64Binary">
+                            <attribute name="cert" type="IDREF" use="required"/>
+                        </extension>
+                    </simpleContent>
+                </complexType>
+            </element>
+        </sequence>
+        <attribute name="usage" type="tns:KeyUsage"/>
+    </complexType>
+    <simpleType name="KeyUsage">
+        <annotation>
+            <documentation>What is the purpose of this key. Possible options: authentication for security server or signing on behalf of particular member.</documentation>
+            <appinfo>
+                <jxb:javaType name="ee.ria.xroad.signer.protocol.dto.KeyUsageInfo" parseMethod="valueOf" printMethod="name"/>
+             </appinfo>
+        </annotation>
+        <restriction base="string">
+            <enumeration value="SIGNING"/>
+            <enumeration value="AUTHENTICATION"/>
+        </restriction>
+    </simpleType>
+    <complexType name="CertificateType">
+        <sequence>
+            <element minOccurs="0" name="memberId" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>If this certificate belongs to signing key, then this element contains identifier of the member that uses this certificate.</documentation>
+                </annotation>
+            </element>
+            <element name="contents" type="base64Binary"/>
+            <element name="status" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Holds the current status of the certificate. Will be displayed and managed in UI.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute default="true" name="active" type="boolean">
+            <annotation>
+                <documentation>Whether this certificate can be used by the proxy.</documentation>
+            </annotation>
+        </attribute>
+        <attribute name="id" type="ID" use="optional">
+            <annotation>
+                <documentation>ID for cert that is used by the OCSP request keys.</documentation>
+            </annotation>
+        </attribute>
+
+    </complexType>
+    <complexType name="DeviceType">
+        <sequence>
+            <element name="deviceType" type="string">
+                <annotation>
+                    <documentation>This is pointer to the device type configuration.</documentation>
+                </annotation>
+            </element>
+            <element name="friendlyName" type="string" minOccurs="0">
+                <annotation>
+                    <documentation>Name that is displayed in UI.</documentation>
+                </annotation>
+            </element>
+            <element name="id" type="string">
+                <annotation>
+                    <documentation>This is identifier that will be used to refer to this device in the APIs.</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="tokenId" type="string">
+                <annotation>
+                    <documentation>Id of the token (serial number)</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="slotId" type="string">
+                <annotation>
+                    <documentation>Id of the slot (label)</documentation>
+                </annotation>
+            </element>
+            <element minOccurs="0" name="pinIndex" type="int" default="1">
+                <annotation>
+                    <documentation>Pin index (in case slot id does not identify the correct token)</documentation>
+                </annotation>
+            </element>
+            <element maxOccurs="unbounded" minOccurs="0" name="key" type="tns:KeyType"/>
+            <element name="signMechanismName" type="string" minOccurs="0" default="CKM_RSA_PKCS">
+                <annotation>
+                    <documentation>Signing (PKCS#11) mechanism name.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+    </complexType>
+    <complexType name="CertRequestType">
+        <sequence>
+            <element minOccurs="0" name="memberId" type="id:XRoadClientIdentifierType">
+                <annotation>
+                    <documentation>Identifies the member on whose behalf the certificate request was sent. Not present on authentication keys.</documentation>
+                </annotation>
+            </element>
+            <element name="subjectName" type="string">
+                <annotation>
+                    <documentation>The DN component that went into the certification request. Encoded as string.</documentation>
+                </annotation>
+            </element>
+        </sequence>
+        <attribute name="id" type="ID" use="optional">
+            <annotation>
+                <documentation>ID of this element, mostly used by UIs.</documentation>
+            </annotation>
+        </attribute>
+    </complexType>
+</schema>
