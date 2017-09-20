@@ -21,10 +21,7 @@
   when: ansible_os_family == "Debian"
 
 - include: rhel.yml
-  when: ansible_distribution == "Red Hat Enterprise Linux"
-
-- include: centos.yml
-  when: ansible_distribution == "CentOS"
+  when: ansible_os_family == "RedHat"
 
 - name: clean xroad logs at boot
   cron:

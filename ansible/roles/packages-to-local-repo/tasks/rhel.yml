@@ -1,5 +1,6 @@
 ---
 - name: Copy RPM packages
+  become: yes
   copy: src={{item}} dest=/xroad/local/RPMS/ force=no
   with_fileglob:
     - ../src/packages/xroad/redhat/RPMS/noarch/xroad-*rpm

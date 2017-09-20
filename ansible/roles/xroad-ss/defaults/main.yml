@@ -1,6 +1,6 @@
 ---
-#defines variant packages for security servers, variant denoted by the string after _
-xroad_fi:
+#defines variant packages for security servers, variant denoted by the string after "_"
+xroad_fi: #6.16.0
   - xroad-securityserver-fi
   - xroad-securityserver
   - xroad-common
@@ -10,4 +10,4 @@ xroad_fi:
   - xroad-addon-messagelog
   - xroad-addon-metaservices
   - xroad-addon-proxymonitor
-  - xroad-addon-wsdlvalidator #added in 6.16
+  - xroad-addon-wsdlvalidator #added to RHEL in 6.16, remove if installing earlier versions
