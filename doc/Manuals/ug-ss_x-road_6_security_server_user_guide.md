@@ -22,7 +22,7 @@ Doc. ID: UG-SS
  10.10.2014 | 0.3     | Update
  14.10.2014 | 0.4     | Title page, header, footer added
  16.10.2014 | 0.5     | Minor corrections done
- 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#16-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).
+ 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#17-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).
  1.12.2014  | 1.0     | Minor corrections done
  19.01.2015 | 1.1     | License information added
  27.01.2015 | 1.2     | Minor corrections done
@@ -40,8 +40,8 @@ Doc. ID: UG-SS
  30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
  09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.
  14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))
- 14.01.2016 | 2.7     | Logs updated (Chapter [16](#16-logs-and-system-services))
- 08.02.2016 | 2.8     | Corrections in chapter [16](#16-logs-and-system-services)
+ 14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))
+ 08.02.2016 | 2.8     | Corrections in chapter [16](#17-logs-and-system-services)
  20.05.2016 | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate.
  29.11.2016 | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)). |
  19.12.2016 | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring
@@ -50,7 +50,7 @@ Doc. ID: UG-SS
  04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
  20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
- 15.06.2017 | 2.17    | Added [Chapter 17](#17-federation) on federation | Olli Lindgren
+ 15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
 
 ## Table of Contents
 
@@ -143,11 +143,12 @@ Doc. ID: UG-SS
     + [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     + [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
     + [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
-- [16 Logs and System Services](#16-logs-and-system-services)
-  * [16.1 System Services](#161-system-services)
-  * [16.2 Logging configuration](#162-logging-configuration)
-  * [16.3 Fault Detail UUID](#163-fault-detail-uuid)
-- [17 Federation](#17-federation)
+- [16 Environmental Monitoring](#16-environmental-monitoring)    
+- [17 Logs and System Services](#17-logs-and-system-services)
+  * [17.1 System Services](#171-system-services)
+  * [17.2 Logging configuration](#172-logging-configuration)
+  * [17.3 Fault Detail UUID](#173-fault-detail-uuid)
+- [18 Federation](#18-federation)
 
 <!-- tocstop -->
 
@@ -316,7 +317,7 @@ To remove a user permission, remove the user from the corresponding system group
 
     deluser username xroad-security-officer
 
-User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#161-system-services)).
+User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#171-system-services)).
 
 To remove a user, enter:
 
@@ -1691,12 +1692,12 @@ Please refer to \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\] for a specification of the n
 The xroad-opmonitor package comes with sample host data that can be imported to Zabbix, containing a JMX interface, applications related to sample services and health data items under these services. Also, a script is provided for importing health data related applications and items to several hosts using the Zabbix API. Please find the example files in the directory `/usr/share/doc/xroad-opmonitor/examples/zabbix/`. Please refer to \[[ZABBIX-API](#Ref_ZABBIX-API)\] for information on the Zabbix API.
 
 
-## 16 Logs and System Services
+## 17 Logs and System Services
 
 **To read logs**, a user must have root user's rights or belong to the `xroad` and/or `adm` system group.
 
 
-### 16.1 System Services
+### 17.1 System Services
 
 The most important system services of a security server are as follows.
 
@@ -1719,7 +1720,7 @@ System services are managed through the *upstart* facility.
     service <service> stop
 
 
-### 16.2 Logging configuration
+### 17.2 Logging configuration
 
 For logging, the **Logback** system is used. Logback configuration files are stored in the directory `/etc/xroad/conf.d/`.
 
@@ -1730,11 +1731,11 @@ Default settings for logging are the following:
 -   rolling policy: whenever the file size reaches 100 MB.
 
 
-### 16.3 Fault Detail UUID
+### 17.3 Fault Detail UUID
 
 In case a security server encounters an error condition during the message exchange, the security server returns a SOAP Fault message \[[PR-MESS](#Ref_PR-MESS)\] containing a UUID (a universally unique identifier, e.g. `1328e974-4fe5-412c-a4c4-f1ac36f20b14`) as the fault detail to the service client's information system. The UUID can be used to find the details of the occurred error from the `xroad-proxy` log.
 
-## 17 Federation
+## 18 Federation
 
 Federation allows security servers of two different X-Road instances to exchange messages with each other. The instances
 are federated at the central server level. After this, security servers can be configured to opt-in to the federation.
