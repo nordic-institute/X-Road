@@ -22,6 +22,19 @@
  */
 package ee.ria.xroad.common.hashchain;
 
+import ee.ria.xroad.common.util.ExpectedCodedException;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.crypto.dsig.DigestMethod;
+
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
 import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
@@ -29,19 +42,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
 import static ee.ria.xroad.common.util.MessageFileNames.attachment;
-
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.crypto.dsig.DigestMethod;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ee.ria.xroad.common.util.ExpectedCodedException;
 
 /**
  * Tests to verify that hash chain verification is correct.
@@ -258,7 +258,7 @@ public class HashChainVerifierTest {
                 resolver, inputs);
     }
 
-    private static Map<String, DigestValue> makeInputs(Object ...items)
+    private static Map<String, DigestValue> makeInputs(Object... items)
             throws Exception {
         Map<String, DigestValue> ret = new HashMap<>();
 
@@ -294,7 +294,7 @@ public class HashChainVerifierTest {
 
         private final Map<String, String> resources = new HashMap<>();
 
-        Resolver(String ...items) {
+        Resolver(String... items) {
             for (int i = 0; i < items.length; i += 2) {
                 resources.put(items[i], items[i + 1]);
             }

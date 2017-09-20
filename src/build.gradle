@@ -174,13 +174,11 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.19"
-        configFile = new File(rootDir, "checkstyle.xml")
-        //configDir is still an incubating feature in gradle 4
-        //configDir = rootDir
-        configProperties.config_loc = "$rootDir"
+        toolVersion = "8.2"
+        configDir=file("${project.rootDir}/config/checkstyle")
+        configFile=file("${configDir}/checkstyle.xml")
         ignoreFailures = false
-        showViolations = true
+        showViolations = false
     }
 
     jacocoTestReport {

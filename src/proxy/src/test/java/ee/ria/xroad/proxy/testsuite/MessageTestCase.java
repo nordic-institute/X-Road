@@ -424,11 +424,11 @@ public class MessageTestCase {
         this.sentResponse = response;
     }
 
-    protected final String errorCode(String ...parts) {
+    protected final String errorCode(String... parts) {
         return StringUtils.join(parts, ".");
     }
 
-    protected final void assertErrorCode(String ...parts) {
+    protected final void assertErrorCode(String... parts) {
         String errorCode = errorCode(parts);
 
         if (!receivedResponse.isFault()) {
@@ -442,7 +442,7 @@ public class MessageTestCase {
         }
     }
 
-    protected final void assertErrorCodeStartsWith(String ...parts) {
+    protected final void assertErrorCodeStartsWith(String... parts) {
         String errorCode = StringUtils.join(parts, ".");
 
         if (!receivedResponse.isFault()) {
