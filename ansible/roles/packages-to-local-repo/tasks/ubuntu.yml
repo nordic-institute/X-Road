@@ -1,5 +1,6 @@
 ---
 - name: Copy to security server
+  become: yes
   copy: src={{item}} dest=/xroad/ force=no
   with_fileglob:
     - ../src/packages/xroad-*deb
