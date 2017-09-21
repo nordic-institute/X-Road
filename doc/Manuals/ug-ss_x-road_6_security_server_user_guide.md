@@ -143,7 +143,9 @@ Doc. ID: UG-SS
     + [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     + [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
     + [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
-- [16 Environmental Monitoring](#16-environmental-monitoring)    
+- [16 Environmental Monitoring](#16-environmental-monitoring)
+  * [16.1 Usage via SOAP API](#161-usage-via-soap-api)
+  * [16.2 Usage via JMX API](#162-usage-via-jmxapi)    
 - [17 Logs and System Services](#17-logs-and-system-services)
   * [17.1 System Services](#171-system-services)
   * [17.2 Logging configuration](#172-logging-configuration)
@@ -269,6 +271,12 @@ The security server also depends on a central server, which provides the global 
 14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring, <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
 
 15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API, <https://www.zabbix.com/documentation/3.0/manual/api>
+
+16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: ARC-ENVMON. <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md>
+
+17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: PR-ENVMONMES. <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-messages.md>
+
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. <https://github.com/vrk-kpa/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd>
 
 
 ## 2 User Management
@@ -1690,6 +1698,23 @@ The JMX interface must be configured to each host item in Zabbix, for which heal
 Please refer to \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\] for a specification of the names and attributes of the JMX objects exposed by the operational monitoring daemon.
 
 The xroad-opmonitor package comes with sample host data that can be imported to Zabbix, containing a JMX interface, applications related to sample services and health data items under these services. Also, a script is provided for importing health data related applications and items to several hosts using the Zabbix API. Please find the example files in the directory `/usr/share/doc/xroad-opmonitor/examples/zabbix/`. Please refer to \[[ZABBIX-API](#Ref_ZABBIX-API)\] for information on the Zabbix API.
+
+
+## 16 Environmental Monitoring
+
+
+### 16.1 Usage via SOAP API
+
+Environmental monitoring provides SOAP API with via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\]. 
+
+Monitoring extension schema is provided by  \[[MONITORING_XSD](#Ref_MONITORING_XSD)\]
+
+### 16.2 Usage via JMX API    
+
+Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See  
+\[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
+
+
 
 
 ## 17 Logs and System Services
