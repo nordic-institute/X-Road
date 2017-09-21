@@ -1,22 +1,29 @@
 ---
 
-- name: makecache for repo key assume yes
+- name: makecache for repo (assume yes) (RHEL)
   command: yum -y makecache
   args:
     warn: no
 
 # dependencies are followed per version number; in development use version does not change -> update needs to be forced
-- name: install / update xroad security server packages
+- name: install / update xroad security server from local packages (RHEL)
   yum:
     name: "{{ item }}"
     state: latest
+  when: package_source == "local"
   with_items:
-    "{{ vars['xroad_' + variant] }}"
+    "{{ vars['xroad_pkglist_' + variant] }}"
+
+- name: install / update xroad security server from remote packages (RHEL)
+  yum:
+    name: "{{ vars['xroad_varpkg_' + variant] }}"
+    state: latest
+  when: package_source == "remote"
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
 
-- name: start xroad-proxy
+- name: start xroad-proxy (RHEL)
   service:
     name: xroad-proxy
     state: started
