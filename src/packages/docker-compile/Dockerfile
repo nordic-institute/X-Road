@@ -23,3 +23,5 @@ RUN ~/.rvm/bin/rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets && \
 RUN mkdir -p /var/tmp/xroad
 
 WORKDIR /mnt
+
+ENV GRADLE_USER_HOME /mnt/gradle-cache
