@@ -13,7 +13,7 @@ RUN apt-get update && \
 RUN apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper && \
     update-ca-certificates -f
 
-RUN useradd -m -u $uid -g $gid builder
+RUN groupadd -g $gid builder && useradd -m -u $uid -g $gid builder
 
 RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
 
