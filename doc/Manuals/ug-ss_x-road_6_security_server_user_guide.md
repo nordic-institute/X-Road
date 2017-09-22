@@ -1702,19 +1702,21 @@ The xroad-opmonitor package comes with sample host data that can be imported to 
 
 ## 16 Environmental Monitoring
 
+Environmental monitoring provides details of the security servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
+
 
 ### 16.1 Usage via SOAP API
 
-Environmental monitoring provides SOAP API with via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\]. 
+Environmental monitoring provides SOAP API via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\]. 
 
-Monitoring extension schema is provided by  \[[MONITORING_XSD](#Ref_MONITORING_XSD)\]
+Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD)\].
+
 
 ### 16.2 Usage via JMX API    
 
-Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See  
-\[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details.
+Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details. 
 
-
+JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`. 
 
 
 ## 17 Logs and System Services
