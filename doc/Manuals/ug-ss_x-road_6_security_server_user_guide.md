@@ -243,14 +243,17 @@ The security server also depends on a central server, which provides the global 
 
 1.  <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
 
-2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,
+2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
     <http://www.quartz-scheduler.org/generated/2.2.1/html/qs-all/#page/Quartz_Scheduler_Documentation_Set%2Fco-trg_crontriggers.html>
 
-3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file, <http://en.wikipedia.org/wiki/INI_file>
+3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
+    <http://en.wikipedia.org/wiki/INI_file>
 
-4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database, <https://jdbc.postgresql.org/documentation/93/connect.html>
+4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
+    <https://jdbc.postgresql.org/documentation/93/connect.html>
 
-5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON, <http://json.org/>
+5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
+    <http://json.org/>
 
 6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS
 
@@ -264,19 +267,26 @@ The security server also depends on a central server, which provides the global 
 
 11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: IG-SS
 
-12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology, <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
+12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology,  
+    <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
 
-13. <a id="Ref_ZABBIX-GATEWAY" class="anchor"></a>\[ZABBIX-GATEWAY\] Zabbix Java Gateway, <https://www.zabbix.com/documentation/3.0/manual/concepts/java>
+13. <a id="Ref_ZABBIX-GATEWAY" class="anchor"></a>\[ZABBIX-GATEWAY\] Zabbix Java Gateway,  
+    <https://www.zabbix.com/documentation/3.0/manual/concepts/java>
 
-14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring, <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
+14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring,  
+    <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
 
-15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API, <https://www.zabbix.com/documentation/3.0/manual/api>
+15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API,  
+    <https://www.zabbix.com/documentation/3.0/manual/api>
 
-16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: ARC-ENVMON. <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md>
+16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: ARC-ENVMON.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md>
 
-17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: PR-ENVMONMES. <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-messages.md>
+17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: PR-ENVMONMES.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-messages.md>
 
-18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension. <https://github.com/vrk-kpa/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd>
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd>
 
 
 ## 2 User Management
