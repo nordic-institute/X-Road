@@ -22,28 +22,16 @@
  */
 package ee.ria.xroad.monitor;
 
-import lombok.*;
-
 /**
- * Created by janne on 11.5.2017.
+ * Thrown by sensors to indicate a failure.
  */
-@Getter
-@RequiredArgsConstructor
-@ToString
-@EqualsAndHashCode
-public class CertificateMonitoringInfo {
-    private final CertificateType type;
-    private final String sha1hash;
-    private final String notBefore;
-    private final String notAfter;
-    private final boolean active;
+public class SensorException extends RuntimeException {
 
-    /**
-     * The type of the Certificate
-     */
-    public enum CertificateType {
-        AUTH_OR_SIGN,
-        SECURITY_SERVER_TLS,
-        INTERNAL_IS_CLIENT_TLS
+    public SensorException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public SensorException(Throwable cause) {
+        super(cause);
     }
 }
