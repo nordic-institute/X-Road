@@ -123,10 +123,24 @@
         <!-- See http://checkstyle.sf.net/config_misc.html -->
         <module name="TodoComment"/>
         <module name="UpperEll"/>
+        <module name="AvoidStarImport">
+            <property name="severity" value="warning"/>
+        </module>
+        <module name="ImportOrder">
+            <property name="severity" value="info"/>
+            <property name="groups" value="ee.ria.xroad,*,javax,java"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="option" value="bottom" />
+        </module>
+        <module name="Indentation">
+            <property name="severity" value="info"/>
+            <property name="basicOffset" value="4"/>
+            <property name="lineWrappingIndentation" value="8"/>
+        </module>
     </module>
     <!-- Some checks are disabled for specific source sets (i.e. tests)-->
     <module name="SuppressionFilter">
-        <property name="file" value="${config_loc}/checkstyle-suppressions.xml"
-                  default="checkstyle-suppressions.xml"/>
+        <property name="file" value="${config_loc}/suppressions.xml" default="suppressions.xml"/>
     </module>
 </module>

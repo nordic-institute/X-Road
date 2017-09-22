@@ -22,9 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import ee.ria.xroad.common.SystemProperties;
+
+import lombok.Getter;
+import lombok.Value;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,14 +39,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import ee.ria.xroad.common.SystemProperties;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.Test;
-
-import lombok.Getter;
-import lombok.Value;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for configuration downloader
@@ -224,7 +224,7 @@ public class ConfigurationDownloaderTest {
 
 
     private ConfigurationDownloader getDownloader(
-            String ... successfulLocationUrls) {
+            String... successfulLocationUrls) {
         FileNameProvider fileNameProvider = file -> new File("f").toPath();
 
         return new ConfigurationDownloader(fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
@@ -275,7 +275,7 @@ public class ConfigurationDownloaderTest {
         private List<String> configurationUrls = new ArrayList<>();
         private final List<String> successfulDownloadUrls;
 
-        TestConfigurationParser(String ... successfulDownloadUrls) {
+        TestConfigurationParser(String... successfulDownloadUrls) {
             this.successfulDownloadUrls = Arrays.asList(successfulDownloadUrls);
         }
 
