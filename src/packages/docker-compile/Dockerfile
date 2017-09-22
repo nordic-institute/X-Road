@@ -1,5 +1,8 @@
 FROM ubuntu:16.04
 
+ARG uid=1000
+ARG gid=1000
+
 RUN set -e
 
 ENV JRUBY_VERSION="1.7.27"
@@ -10,9 +13,10 @@ RUN apt-get update && \
 RUN apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper && \
     update-ca-certificates -f
 
-RUN useradd -m builder
+RUN useradd -m -u $uid -g $gid builder
 
 RUN mkdir -p /mnt/gradle-cache && chown -R builder:builder /mnt/gradle-cache
+
 USER builder
 
 RUN cd ~ && \
