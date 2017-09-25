@@ -30,15 +30,15 @@ Index of X-Road Documentation
 - [\[IG-XLB\] External Load Balancer Installation Guide](Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 
 ### Use Cases
-- [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.docx)
-- [\[UC-CP\] Configuration Proxy](UseCases/uc-cp_x-road_configuration_proxy_use_case_model_1.2_Y-883-5.docx)
-- [\[UC-CS\] Central Server Management](UseCases/uc-cs_x-road_use_case_model_for_central_server_management_1.2_Y-883-6.docx)
-- [\[UC-FED\] Federation](UseCases/uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.docx)
+- [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md)
+- [\[UC-CP\] Configuration Proxy](UseCases/uc-cp_x-road_configuration_proxy_use_case_model_1.2_Y-883-5.md)
+- [\[UC-CS\] Central Server Management](UseCases/uc-cs_x-road_use_case_model_for_central_server_management_1.2_Y-883-6.md)
+- [\[UC-FED\] Federation](UseCases/uc-fed_x-road_use_case_model_for_federation_1.1_Y-883-7.md)
 - [\[UC-MEMBER\] Member Management](UseCases/uc-member_x-road_use_case_model_for_member_management.md)
-- [\[UC-GCONF\] Global Configuration Distribution](UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.docx)
-- [\[UC-TRUST\] Trust Service Management](UseCases/uc-trust_x-road_use_case_model_for_trust_service_management_1.1.1_Y-883-9.docx)
+- [\[UC-GCONF\] Global Configuration Distribution](UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)
+- [\[UC-TRUST\] Trust Service Management](UseCases/uc-trust_x-road_use_case_model_for_trust_service_management_1.1.1_Y-883-9.md)
 - [\[UC-MESS\] Member Communication](UseCases/uc-mess_x-road_member_communication_use_case_model.md)
-- [\[UC-SERVICE\] Service Management](UseCases/uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.docx)
+- [\[UC-SERVICE\] Service Management](UseCases/uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.md)
 
 ### Data Models
 
