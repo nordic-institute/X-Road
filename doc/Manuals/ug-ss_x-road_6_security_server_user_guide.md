@@ -51,7 +51,8 @@ Doc. ID: UG-SS
  20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
  15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
-
+ 25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
+ 
 ## Table of Contents
 
 <!-- toc -->
