@@ -1,18 +1,4 @@
 ---
-#Defines variant package list for security servers, variant denoted by the string after "_".
-#For local package installation.
-xroad_pkglist_fi: #6.16.0
-  - xroad-securityserver-fi
-  - xroad-securityserver
-  - xroad-common
-  - xroad-proxy
-  - xroad-jetty9
-  - xroad-monitor
-  - xroad-addon-messagelog
-  - xroad-addon-metaservices
-  - xroad-addon-proxymonitor
-  - xroad-addon-wsdlvalidator
-
 #Defines the security server "variant package" that delivers variant configuration and pulls other packages through
-#dependencies. For remote package installations (released versioned packages). Variant denoted by the string after "_".
+#dependencies. Variant denoted by the string after "_".
 xroad_varpkg_fi: xroad-securityserver-fi

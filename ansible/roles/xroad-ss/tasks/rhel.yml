@@ -5,20 +5,19 @@
   args:
     warn: no
 
-# dependencies are followed per version number; in development use version does not change -> update needs to be forced
-- name: install / update xroad security server from local packages (RHEL)
-  yum:
-    name: "{{ item }}"
-    state: latest
-  when: package_source == "local"
-  with_items:
-    "{{ vars['xroad_pkglist_' + variant] }}"
-
-- name: install / update xroad security server from remote packages (RHEL)
+# verify presence of xroad packages and dependencies
+- name: install xroad packages and dependencies from set up repository (RHEL)
   yum:
     name: "{{ vars['xroad_varpkg_' + variant] }}"
+    state: present
+
+# update all xroad packages to their latest version in the set up repo
+- name: update xroad security server to latest (RHEL)
+  yum:
+    name: "*"
     state: latest
-  when: package_source == "remote"
+    disablerepo: "*"
+    enablerepo: xroad-{{package_source}}-repository
 
 - name: add xroad admin user
   command: "xroad-add-admin-user {{ xroad_ui_user }}"
