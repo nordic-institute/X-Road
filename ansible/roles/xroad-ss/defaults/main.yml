@@ -1,0 +1,4 @@
+---
+#Defines the security server "variant package" that delivers variant configuration and pulls other packages through
+#dependencies. Variant denoted by the string after "_".
+xroad_varpkg_fi: xroad-securityserver-fi

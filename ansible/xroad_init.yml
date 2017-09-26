@@ -1,20 +1,21 @@
 ---
-# This playbook initializes X-Road environment
-
+# This playbook installs an X-Road environment to the defined host inventory from a remote package repository
 
 - hosts: lxd-servers
   roles:
     - role: init-lxd
   tags:
     - init
-    
+
 - hosts: cs-servers
   become: yes
   become_user: root
   roles:
     - xroad-cs
   tags:
-    cs
+    - cs
+  vars_files:
+    - vars_files/remote_repo.yml
 
 - hosts: cp-servers
   become: yes
@@ -23,6 +24,8 @@
     - xroad-cp
   tags:
     - cp
+  vars_files:
+    - vars_files/remote_repo.yml
 
 - hosts: ss-servers
   become: yes
@@ -31,7 +34,9 @@
     - xroad-ss
   tags:
     - ss
-    
+  vars_files:
+    - vars_files/remote_repo.yml
+
 - hosts: ca-servers
   become: yes
   become_user: root

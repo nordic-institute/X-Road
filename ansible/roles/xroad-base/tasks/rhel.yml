@@ -1,15 +1,35 @@
 ---
-- name: install epel repo
+- name: Install epel repository (RHEL)
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
 
-- name: try to make sure the repos. are current
-  shell: yum -y makecache fast
+- name: Install required packages (RHEL)
+  become: yes
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - createrepo
+    - cronie
+    - tar
 
-- name: xroad repo
-  template:
-    src: "palveluvayla.repo.j2"
-    dest: "/etc/yum.repos.d/palveluvayla.repo"
-    owner: root
-    group: root
-    mode: 0644
+- name: Create / update local package repository (RHEL)
+  become: yes
+  command: createrepo /xroad/local
+  when: package_source == "local"
+  args:
+    chdir: /xroad/local
+  tags: centos-repo
+
+- name: Setup the correct repository for X-Road installation (RHEL)
+  yum_repository:
+    name: xroad-{{package_source}}-repository
+    description: Repository for installing X-Road packages
+    baseurl: "{{ rhel_repo_baseurl }}"
+    gpgcheck: "{{ rhel_repo_gpgcheck }}"
+    gpgkey: "{{ rhel_repo_gpgkey }}"
+    gpgcakey: "{{ rhel_repo_gpgcakey }}"
+    repo_gpgcheck: "{{ rhel_repo_gpgcheck }}"
+    state: present
+    enabled: yes

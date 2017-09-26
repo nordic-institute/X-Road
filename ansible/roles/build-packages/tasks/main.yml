@@ -19,3 +19,27 @@
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
     command: "/workspace/src/deb-docker.sh"
+
+- name: build docker image for building RPM packages
+  docker_image:
+    name: docker-rpmbuild
+    path: ../src/packages/docker-rpmbuild
+  tags: rpm
+
+- name: build RPM packages in docker
+  docker_container:
+    name: docker-rpmbuild
+    image: docker-rpmbuild
+    state: started
+    restart: true
+    detach: false
+    cleanup: yes
+    user: "{{ ansible_user_uid }}:{{ ansible_user_gid }}"
+    env:
+        HOME: "/workspace/src/packages"
+    volumes:
+      - ..:/workspace
+      - /etc/passwd:/etc/passwd:ro
+      - /etc/group:/etc/group:ro
+    command: "/workspace/src/rpm-docker.sh"
+  tags: rpm
