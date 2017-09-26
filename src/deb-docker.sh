@@ -8,5 +8,5 @@ fi
 
 cd src/packages/xroad
 dpkg-buildpackage -tc -b -us -uc
-cd src/packages/xroad-jetty9
+cd ../xroad-jetty9
 dpkg-buildpackage -tc -b -us -uc

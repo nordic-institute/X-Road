@@ -6,4 +6,3 @@ RUN yum clean all
 RUN sed -i 's/requiretty/!requiretty/' /etc/sudoers
 
 USER jenkins
-WORKDIR workspace
