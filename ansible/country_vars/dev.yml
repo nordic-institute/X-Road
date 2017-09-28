@@ -1,2 +1,0 @@
-ubuntu_apt_key: "http://192.168.1.121:8080/xmdev/repo.gpg"
-ubuntu_apt_repo: "deb http://192.168.1.121:8080/xmdev /"
