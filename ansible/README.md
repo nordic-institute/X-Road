@@ -6,6 +6,8 @@ Install Ansible by following instructions at http://docs.ansible.com/ansible/int
 
 ## 2. Configuration options
 
+#### Inventory
+
 The servers to be installed are written in the Ansible inventory (hosts-file). 
 In the provided example command they are in `hosts/example_xroad_hosts.txt`. 
 Host names in the file must be correct fully qualified host names because they are used 
@@ -15,6 +17,19 @@ Do not use IP addresses.
 You determine which servers are initialized by filling in the groups 
 `cs-servers`, `ss-servers`, `cp-servers` and `ca-servers`. If you have no use for such servers,
 you can leave that group empty.
+
+#### Variant
+
+When installing security servers, the Ansible playbooks require a configuration variable `variant` in `group_vars/all/vars.yml` 
+to be set into a value matching one of the available variants. The default selection is `vanilla`. The three currently supported variants are:
+- `vanilla` - the basic non-country-specific version of X-Road
+- `ee` - the Estonian country variant
+- `fi` - the Finnish country variant
+
+Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries. 
+The vanilla variant provides an operational X-Road installation without any country-specific configurations. Vanilla configurations can be considered the default X-Road configurations.  
+
+#### Additional parameters
 
 Parameters such as the admin username and password, and CA server's distinguished name values, 
 can be configured using files in `group_vars` directory. 
@@ -32,7 +47,7 @@ containing all the hosts in the inventory.
 Ansible searches for variables from `group_vars/example.yml` when initializing hosts from "example" group.
 
 Username and password are also defined in the default variables of the `xroad-base` role. This definition will be used
-if no group vars or other higher precedence configuration for the same variables have been assigned.
+if no group vars or other higher precedence configurations for the same variables have been assigned.
  
 ## 3. Install X-Road using Ansible
 
@@ -49,7 +64,6 @@ or
 
 The used repository can be configured in `vars_files/remote_repo.yml`.
 
-The Ansible playbooks currently only support the installation of X-Road according to the Finnish configuration. 
 
 ## 4. Development using LXD
 
@@ -113,33 +127,6 @@ This updates the **selected modules (jars or wars)** to ones compiled locally.
 The modules are listed in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modules.yml` and `ss_modules.yml`.
 
 Note that the playbook `xroad_dev_partial.yml` only copies jars and wars to the servers in correct locations. For the full installation, use `xroad_dev.yml`.
-
-
-### LXD Test automation environment deployment
-
-Install LXD servers and additional test automation stuff with ansible playbook
-- Ansible installs
-- SOAP mockserver
-- SOAP UI
-- Webserver
-- SSH server
-- Pycharm
-
-Install with Finnish country variables:
-```
-ansible-playbook -i hosts/xroad_hosts.txt xroad_automation.yml --extra-vars "@country_vars/fi.yml"
-```
-
-Install with Estonian country variables:
-```
-sudo ansible-playbook -i hosts/xroad_hosts.txt xroad_automation.yml --extra-vars "@country_vars/ee.yml"
-```
-Modify settings files if needed:
-
-```
-X-Road/ansible/group_vars/global.yml
-X-Road/ansible/country_vars/
-```
 
 ## 5. Test CA, TSA, and OCSP
 
