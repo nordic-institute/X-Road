@@ -2,6 +2,7 @@
   docker_image:
     name: docker-debbuild 
     path: ../src/packages/docker-debbuild
+    force: yes
 
 - name: build deb packages in docker
   docker_container:
@@ -24,6 +25,7 @@
   docker_image:
     name: docker-rpmbuild
     path: ../src/packages/docker-rpmbuild
+    force: yes
   tags: rpm
 
 - name: build RPM packages in docker
