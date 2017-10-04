@@ -45,6 +45,8 @@
 - hosts: ca-servers
   become: yes
   become_user: root
+  pre_tasks:
+    - raw: apt install openssl
   roles:
     - xroad-ca
   tags:
