@@ -124,7 +124,7 @@ ansible-playbook  -i hosts/lxd_hosts.txt   xroad_dev_partial.yml   -e selected_m
 This updates the **selected modules (jars or wars)** to ones compiled locally. 
 **No git commits are needed** to see changes.
 
-The modules are listed in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modules.yml` and `ss_modules.yml`.
+The modules are listed under `vars_files` in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modules.yml` and `ss_modules.yml`.
 
 Note that the playbook `xroad_dev_partial.yml` only copies jars and wars to the servers in correct locations. For the full installation, use `xroad_dev.yml`.
 
