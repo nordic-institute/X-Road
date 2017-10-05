@@ -791,26 +791,24 @@ configuration.
     b.  creates the backup file containing the database dump file and
         the following directories:
 
-        -   /etc/xroad/
-        
-        -   /etc/nginx/sites-enabled/
-        
-        and includes the following information as a label in the created .tar file:
-        
-        -   the type of the server (“security” for security servers),
-        
-        -   the version of the security server software,
-        
-        -   the X-Road identifier of the security server;
+    -   /etc/xroad/
+    
+    -   /etc/nginx/sites-enabled/
+    
+    and includes the following information as a label in the created .tar file:
+    
+    -   the type of the server (“security” for security servers),
+    
+    -   the version of the security server software,
+    
+    -   the X-Road identifier of the security server;
 
     c.  saves the created backup file to /var/lib/xroad/backup.
 
-<!-- -->
-
-1.  System displays the message “Configuration backup created” and the
+3.  System displays the message “Configuration backup created” and the
     backup script output to the SS administrator.
 
-2.  System logs the event “Back up configuration” to the audit log.
+4.  System logs the event “Back up configuration” to the audit log.
 
 **Extensions**:
 
@@ -860,18 +858,18 @@ configuration to a previously backed up state.
 
     b.  verifies the label of the backup file:
 
-        -   verifies that the server type in the label corresponds to
-            the type of the server that is being restored;
+    -   verifies that the server type in the label corresponds to
+        the type of the server that is being restored;
 
-            *Note: System verifies only the server type and ignores the rest of  the information in the label in case the restore script is called from  the CLI with the -F option.*
-        
-        -   verifies that the server software version in the label is compatible
-            with the installed software version of the server that is being
-            restored;
-        
-        -   verifies that the security server identifier in the label
-            corresponds to the identifier of the security server that is being
-            restored;
+        *Note: System verifies only the server type and ignores the rest of  the information in the label in case the restore script is called from  the CLI with the -F option.*
+    
+    -   verifies that the server software version in the label is compatible
+        with the installed software version of the server that is being
+        restored;
+    
+    -   verifies that the security server identifier in the label
+        corresponds to the identifier of the security server that is being
+        restored;
     
     c.  clears shared memory;
     
@@ -898,14 +896,14 @@ configuration to a previously backed up state.
 
     j.  restarts all the services that were previously stopped.
 
-1.  System displays the message “Configuration restored successfully
+5.  System displays the message “Configuration restored successfully
     from file 'X'.” (where “X” is the name of the backup file) and the
     restore script output to the SS administrator.
 
-2.  System notifies the SS administrator: “During restore, security
+6.  System notifies the SS administrator: “During restore, security
     tokens were logged out from.”
 
-3.  System logs the event “Restore configuration” to the audit log.
+7.  System logs the event “Restore configuration” to the audit log.
 
 **Extensions**:
 
