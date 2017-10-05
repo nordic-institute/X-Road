@@ -3,7 +3,7 @@
 ## 6.17.0 - 2017-09-19
 - PVAYLADEV-861 / XRJD #172 Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
 - PVAYLADEV-918	Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
-- PVAYLADEV-799	Monitoring Akka-implementation is enchanted for handling possible restart of actors.
+- PVAYLADEV-799	Monitoring Akka-implementation is enhanced for handling possible restart of actors.
 - PVAYLADEV-908 / XRJD #176 	Added certificate activation status to enviromental monitoring
 - PVAYLADEV-841	Added support for CentOS 7 LXD-containers to public X-Road installation Ansible playbooks
 - PVAYLADEV-891	Updated documentation for environmental monitoring. ug-ss_x-road_6_security_server_user_guide.md
