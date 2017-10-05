@@ -1,35 +1,27 @@
-#!/bin/bash
-
-if [ "$1" = "upgrade" ];
+SPLIT_VERS=6.17.0-0.20171002130956gitc4161ad
+if dpkg-divert --list |grep -F "/etc/xroad/nginx/default-xroad.conf"
 then
-    if dpkg --compare-versions "$2" lt-nl "6.3"
-    then
-     for service in `initctl list | grep xroad | awk '{print $1}'`
-      do
-        invoke-rc.d $service stop || true
-      done
-
-      ipcrm -m `ipcs -m | grep sdsb | awk '{print $2}'` 2>/dev/null || true
-      ipcrm -s `ipcs -s | grep sdsb | awk '{print $2}'` 2>/dev/null || true
-
-      usermod -d /var/lib/xroad -l xroad sdsb || true
-
-      groupmod -n xroad sdsb || true
-      mv /etc/sdsb /etc/xroad || true
-      sed -i 's/xsd\/sdsb\.xsd/xsd\/xroad\.xsd/' /etc/xroad/signer/keyconf.xml || true
-      sed -i 's/sdsbInstance/xRoadInstance/g' /etc/xroad/signer/keyconf.xml || true
-
-      mv /etc/sdsb /etc/xroad ||true
-      mv /etc/sudoers.d/xroad /etc/sudoers.d/xroad-restore.old ||true
-      find /etc/xroad/ -user sdsb -exec  chown xroad {} \; || true
-    fi
+   dpkg-divert --package xroad-confproxy --remove --rename /etc/xroad/nginx/default-xroad.conf
 fi
-
-if [[ $LC_ALL =~ "UTF-8"$ ]]
- then
-   echo "system locale set to UTF-8 compatible."
- else
-   echo "setting system locale to LC_ALL=en_US.UTF-8 in /etc/environment"
-   echo "LC_ALL=en_US.UTF-8" >> /etc/environment
+if dpkg-maintscript-helper supports rm_conffile 2>/dev/null; then
+    dpkg-maintscript-helper rm_conffile /etc/rcS.d/S75xroad ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/init/xroad-confclient.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/init/xroad-signer.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/backup.d/00_xroad-confclient ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/backup.d/10_xroad-signer ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/nginx/default-xroad.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/nginx/nginx-secure-addons.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/ssl/rfc3526group15.pem ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/ssl/openssl.cnf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/services/signer-console.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/services/confclient.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/services/global.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/services/signer.conf ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/common.ini ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/confclient-logback.xml ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer.ini ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer-console-logback.xml ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/confclient-logback-service.xml ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer-logback.xml ${SPLIT_VERS} -- "$@"
+    dpkg-maintscript-helper rm_conffile /etc/sudoers.d/xroad-restore ${SPLIT_VERS} -- "$@"
 fi
-
