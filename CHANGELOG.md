@@ -9,6 +9,7 @@
 - PVAYLADEV-891	Updated documentation for environmental monitoring. ug-ss_x-road_6_security_server_user_guide.md
 - PVAYLADEV-926	Removed automated testing environment Ansible setup from the public repository
 - PVAYLADEV-740 Created Dockerfile for compiling xroad codebase and created jenkins pipeline which will use that for compiling, packaging and deploying X-Road version.s
+- PVAYLADEV-878 Use case documentation changed from docx to md
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
