@@ -42,9 +42,6 @@ mkdir -p %{buildroot}/etc/xroad/nginx
 mkdir -p %{buildroot}/etc/nginx/conf.d
 mkdir -p %{buildroot}/usr/share/xroad/lib
 
-cp -p %{src}/../../libs/libpkcs11wrapper.so %{buildroot}/usr/share/xroad/lib/
-cp -p %{src}/../../lib/libpasswordstore.so %{buildroot}/usr/share/xroad/lib/
-
 ln -s /etc/xroad/nginx/default-xroad.conf %{buildroot}/etc/nginx/conf.d/default-xroad.conf
 ln -s /etc/xroad/nginx/nginx-secure-addons.conf %{buildroot}/etc/nginx/conf.d/xroad-securing.conf
 
@@ -60,8 +57,6 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /etc/nginx/conf.d/xroad-securing.conf
 /etc/nginx/conf.d/default-xroad.conf
-/usr/share/xroad/lib/libpasswordstore.so
-/usr/share/xroad/lib/libpkcs11wrapper.so
 
 %pre
 

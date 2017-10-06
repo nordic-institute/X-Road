@@ -54,7 +54,6 @@ ln -s /usr/share/xroad/jlib/postgresql-9.4.1207.jre6.jar %{buildroot}/usr/share/
 cp -p %{src}/../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../../proxy-ui/build/libs/postgresql-9.4.1207.jre6.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
-cp -p %{src}/../default-configuration/devices.ini %{buildroot}/etc/xroad/
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
 cp -p %{src}/../../packages/xroad/base/usr/share/xroad/db/liquibase-3.5.1.jar %{buildroot}/usr/share/xroad/db/liquibase-3.5.1.jar
@@ -74,7 +73,6 @@ rm -rf %{buildroot}
 %dir /etc/xroad/conf.d/addons
 %dir /var/lib/xroad
 %dir /var/lib/xroad/backup
-%config /etc/xroad/devices.ini
 %config /etc/xroad/services/global.conf
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
