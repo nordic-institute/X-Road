@@ -76,7 +76,6 @@ rm -rf %{buildroot}
 %config /etc/xroad/services/global.conf
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
-%config /etc/xroad/ssl/rfc3526group15.pem
 
 %defattr(-,root,root,-)
 %dir /usr/share/xroad

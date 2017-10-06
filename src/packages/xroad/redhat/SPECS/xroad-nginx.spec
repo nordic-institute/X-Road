@@ -38,6 +38,7 @@ cp -a * %{buildroot}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}/etc/xroad
+mkdir -p %{buildroot}/etc/xroad/ssl
 mkdir -p %{buildroot}/etc/xroad/nginx
 mkdir -p %{buildroot}/etc/nginx/conf.d
 mkdir -p %{buildroot}/usr/share/xroad/lib
@@ -53,6 +54,7 @@ rm -rf %{buildroot}
 %dir /etc/xroad
 %config /etc/xroad/nginx/default-xroad.conf
 %config /etc/xroad/nginx/nginx-secure-addons.conf
+%config /etc/xroad/ssl/rfc3526group15.pem
 
 %defattr(-,root,root,-)
 /etc/nginx/conf.d/xroad-securing.conf
