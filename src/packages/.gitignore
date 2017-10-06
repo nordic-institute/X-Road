@@ -8,4 +8,4 @@ xroad/debian/xroad-proxy.xroad-async.upstart
 xroad/debian/xroad-proxy.xroad-confclient.upstart
 xroad/debian/xroad-proxy.xroad-proxy.upstart
 xroad/proxy/usr/share/xroad/scripts/restore_db.sh
-
+xroad/debian/xroad-autologin.xroad-autologin.upstart

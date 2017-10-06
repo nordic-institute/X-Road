@@ -25,6 +25,7 @@ package ee.ria.xroad.monitor;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.TestActorRef;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
 import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.TestCertUtil;
@@ -32,9 +33,12 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.monitor.CertificateInfoSensor.CertificateInfoCollector;
 import ee.ria.xroad.monitor.CertificateInfoSensor.TokenExtractor;
-import ee.ria.xroad.monitor.CertificateInfoSensor.TokenInfoLister;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.signer.protocol.dto.*;
+import ee.ria.xroad.signer.protocol.dto.CertRequestInfo;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -42,10 +46,15 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.monitor.CertificateInfoSensor.CERT_HEX_DELIMITER;
-import static ee.ria.xroad.monitor.CertificateMonitoringInfo.CertificateType.AUTH_OR_SIGN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -157,17 +166,12 @@ public class CertificateInfoSensorTest {
         CertificateInfoSensor sensor = ref.underlyingActor();
 
         CertificateInfoCollector collector = new CertificateInfoCollector()
-                .addExtractor(AUTH_OR_SIGN, new TokenExtractor(new TokenInfoLister() {
-                    @Override
-                    List<TokenInfo> listTokens() throws Exception {
-                        return Arrays.asList(caTokenInfo, tspTokenInfo);
-                    }
-                }));
+                .addExtractor(new TokenExtractor(() -> Arrays.asList(caTokenInfo, tspTokenInfo)));
 
         sensor.setCertificateInfoCollector(collector);
 
         sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
-        Map result = metrics.getMetrics();
+        Map<String, Metric> result = metrics.getMetrics();
         assertEquals(2, result.entrySet().size()); // certs & jmx certs
         SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
                 (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)
@@ -201,12 +205,20 @@ public class CertificateInfoSensorTest {
         CertificateInfoSensor sensor = ref.underlyingActor();
 
         CertificateInfoCollector collector = new CertificateInfoCollector()
-                .addExtractor(AUTH_OR_SIGN, () -> Collections.singletonList(mockCert));
+                .addExtractor(new CertificateInfoSensor.CertificateInfoExtractor() {
+                    @Override
+                    Stream<CertificateMonitoringInfo> getCertificates() {
+                        return convertToMonitoringInfo(
+                                mockCert,
+                                CertificateMonitoringInfo.CertificateType.AUTH_OR_SIGN,
+                                true);
+                    }
+                });
 
         sensor.setCertificateInfoCollector(collector);
 
         sensor.onReceive(new CertificateInfoSensor.CertificateInfoMeasure());
-        Map result = metrics.getMetrics();
+        Map<String, Metric> result = metrics.getMetrics();
         assertEquals(2, result.entrySet().size()); // certs & jmx certs
         SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>> certificates =
                 (SimpleSensor<JmxStringifiedData<CertificateMonitoringInfo>>)

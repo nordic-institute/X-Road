@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static org.bouncycastle.asn1.ASN1Encoding.DER;
-
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static org.bouncycastle.asn1.ASN1Encoding.DER;
 
 final class DigestList {
 
@@ -40,7 +40,7 @@ final class DigestList {
      * Takes as input a sequence of hashes, combines them using DigestList
      * data structure and computes hash of the data structure.
      */
-    static byte[] digestHashStep(String digestMethod, byte[] ...items)
+    static byte[] digestHashStep(String digestMethod, byte[]... items)
             throws Exception {
         return calculateDigest(digestMethod,
                 concatDigests(getDigestAlgorithmURI(digestMethod), items));
@@ -50,7 +50,7 @@ final class DigestList {
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    static byte[] concatDigests(String digestMethodUri, byte[] ...items)
+    static byte[] concatDigests(String digestMethodUri, byte[]... items)
             throws Exception {
         ASN1Encodable[] digestList = new ASN1Encodable[items.length];
 
@@ -66,7 +66,7 @@ final class DigestList {
      * Takes as input a sequence of hashes and combines them using DigestList
      * data structure.
      */
-    static byte[] concatDigests(DigestValue ...items) throws Exception {
+    static byte[] concatDigests(DigestValue... items) throws Exception {
         ASN1Encodable[] digestList = new ASN1Encodable[items.length];
 
         for (int i = 0; i < items.length; ++i) {

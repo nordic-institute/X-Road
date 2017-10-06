@@ -25,16 +25,16 @@
 
 package ee.ria.xroad.common.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import ee.ria.xroad.common.CodedException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
-import ee.ria.xroad.common.CodedException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * JUnit rule that verifies that given block of code throws
@@ -84,7 +84,7 @@ public final class ExpectedCodedException implements TestRule {
      * If given error code is null, expects nothing.
      * @param parts the error code parts
      */
-    public void expectError(String ...parts) {
+    public void expectError(String... parts) {
         expected = join(parts);
         expectedSuffix = false;
     }
@@ -94,7 +94,7 @@ public final class ExpectedCodedException implements TestRule {
      * suffix. If given error code is null, expects nothing.
      * @param parts the error code parts
      */
-    public void expectErrorSuffix(String ...parts) {
+    public void expectErrorSuffix(String... parts) {
         expected = join(parts);
         expectedSuffix = true;
     }

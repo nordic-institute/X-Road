@@ -1,0 +1,14 @@
+---
+- name: Copy RPM packages (RHEL)
+  become: yes
+  copy: src={{item}} dest=/xroad/local/RPMS/ force=no
+  with_fileglob:
+    - ../src/packages/xroad/redhat/RPMS/noarch/xroad-*rpm
+    - ../src/packages/xroad/redhat/RPMS/x86_64/xroad-*rpm
+    - ../src/packages/xroad-jetty9/redhat/RPMS/x86_64/xroad-*rpm
+
+- name: Clear yum cache (RHEL)
+  become: yes
+  command: yum clean all
+  args:
+    warn: no

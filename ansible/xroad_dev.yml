@@ -1,5 +1,5 @@
 ---
-# This playbook compiles X-Road and installs the compiled version
+# This playbook compiles X-Road and installs the compiled packages to the defined host inventory
 
 - hosts: lxd-servers
   roles:
@@ -13,16 +13,6 @@
     - build-packages
   tags: 
     - compile
-    
-- hosts: ss-servers, cs-servers, cp-servers
-  become: yes
-  become_user: root
-  gather_facts: no
-  pre_tasks:
-    - name: 'Install python2'
-      raw: apt-get -y install python
-  tags:
-    - init
 
 - hosts: ss-servers, cs-servers, cp-servers
   roles:
@@ -38,7 +28,9 @@
   tags:
     - cs
     - install
-    
+  vars_files:
+    - vars_files/local_repo.yml
+
 - hosts: cp-servers
   become: yes
   become_user: root
@@ -47,6 +39,8 @@
   tags:
     - cp
     - install
+  vars_files:
+    - vars_files/local_repo.yml
 
 - hosts: ca-servers
   become: yes
@@ -56,8 +50,7 @@
   tags:
     - ca
     - install
-    
- 
+
 - hosts: ss-servers
   become: yes
   become_user: root
@@ -66,3 +59,5 @@
   tags:
     - ss
     - install
+  vars_files:
+    - vars_files/local_repo.yml
