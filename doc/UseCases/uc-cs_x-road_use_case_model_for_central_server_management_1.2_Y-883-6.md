@@ -405,30 +405,29 @@ configuration.
     b.  creates the backup file containing the database dump file and
         the following directories:
 
-        -   /etc/xroad/
-    
-        -   /etc/nginx/sites-enabled/
-            and includes the following information as a label in the created .tar file:
+    -   /etc/xroad/
 
-        -   the type of the server (“central” for central servers),
-        
-        -   the version of the central server software,
-        
-        -   the X-Road instance identifier,
-        
-        -   the node name if the central server is a part of a high availability
-        
-            cluster;
+    -   /etc/nginx/sites-enabled/
+    
+    and includes the following information as a label in the created .tar file:
+
+    -   the type of the server (“central” for central servers),
+    
+    -   the version of the central server software,
+    
+    -   the X-Road instance identifier,
+    
+    -   the node name if the central server is a part of a high availability
+    
+        cluster;
 
     c.  saves the created backup file to the directory
         /var/lib/xroad/backup.
 
-<!-- -->
-
-1.  System displays the message “Configuration backup created” and the
+3.  System displays the message “Configuration backup created” and the
     output of the backup script.
 
-2.  System logs the event “Back up configuration” to the audit log.
+4.  System logs the event “Back up configuration” to the audit log.
 
 **Extensions**:
 
@@ -478,22 +477,22 @@ configuration to a previously backed up state.
 
     b.  verifies the label of the backup file:
 
-        -   verifies that the server type in the label corresponds to
-            the type of the server that is being restored;
+    -   verifies that the server type in the label corresponds to
+        the type of the server that is being restored;
 
         *Note: System verifies only the server type and ignores the rest of the information in the label in case the restore script is called from the CLI with the -F option.*
-    
-        -   verifies that the server software version in the label is compatible
-            with the installed software version of the server that is being
-            restored;
-            
-        -   verifies that the instance identifier in the label corresponds to
-            the instance identifier of the central server that is being
-            restored;
-            
-        -   verifies that the node name in the label corresponds to the node
-            name of the central server that is being restored if the restored
-            server is a part of a high availability cluster.
+
+    -   verifies that the server software version in the label is compatible
+        with the installed software version of the server that is being
+        restored;
+        
+    -   verifies that the instance identifier in the label corresponds to
+        the instance identifier of the central server that is being
+        restored;
+        
+    -   verifies that the node name in the label corresponds to the node
+        name of the central server that is being restored if the restored
+        server is a part of a high availability cluster.
             
     c.  Clears the shared memory;
     
@@ -502,13 +501,16 @@ configuration to a previously backed up state.
     e.  creates a pre-restore backup of the system configuration (step 2 of 2.8) to /var/lib/xroad/conf\_prerestore\_backup.tar (the pre-restore backup file is overwritten on each restore);
     
     f.  deletes the content of the following directories:
-        -   /etc/xroad/
-        -   /etc/nginx/sites-enabled/
+    
+    -   /etc/xroad/
+    -   /etc/nginx/sites-enabled/
     
     g.  restores the contents of the directories
-        - /etc/xroad/
-        - /etc/nginx/sites-enabled/
-        from the backup file;
+    
+    - /etc/xroad/
+    - /etc/nginx/sites-enabled/
+    
+    from the backup file;
         
     h.  writes the database dump from the backup file to /var/lib/xroad/dbdump.dat;
     
@@ -516,13 +518,11 @@ configuration to a previously backed up state.
     
     j.  starts the system services that were previously stopped.
 
-<!-- -->
-
-1.  System displays the message “Configuration restored successfully
+3.  System displays the message “Configuration restored successfully
     from file 'X'.” (where X is the file name of the backup file) and
     the output of the restore script.
 
-2.  System logs the event “Restore configuration” to the audit log.
+4.  System logs the event “Restore configuration” to the audit log.
 
 **Extensions**:
 

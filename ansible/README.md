@@ -114,33 +114,6 @@ The modules are listed in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modu
 
 Note that the playbook `xroad_dev_partial.yml` only copies jars and wars to the servers in correct locations. For the full installation, use `xroad_dev.yml`.
 
-
-### LXD Test automation environment deployment
-
-Install LXD servers and additional test automation stuff with ansible playbook
-- Ansible installs
-- SOAP mockserver
-- SOAP UI
-- Webserver
-- SSH server
-- Pycharm
-
-Install with Finnish country variables:
-```
-ansible-playbook -i hosts/xroad_hosts.txt xroad_automation.yml --extra-vars "@country_vars/fi.yml"
-```
-
-Install with Estonian country variables:
-```
-sudo ansible-playbook -i hosts/xroad_hosts.txt xroad_automation.yml --extra-vars "@country_vars/ee.yml"
-```
-Modify settings files if needed:
-
-```
-X-Road/ansible/group_vars/global.yml
-X-Road/ansible/country_vars/
-```
-
 ## 5. Test CA, TSA, and OCSP
 
 More information about these [here.](TESTCA.md)
