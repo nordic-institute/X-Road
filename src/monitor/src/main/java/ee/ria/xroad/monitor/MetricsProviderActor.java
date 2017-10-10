@@ -111,8 +111,8 @@ public class MetricsProviderActor extends UntypedActor {
                 log.info("Specified metrics requested: " + req.getMetricNames());
             }
 
-            if (req.getClientOwner() != null ) {
-                log.info("Specified owner status is: " + req.getClientOwner());
+            if (req.isClientOwner() != null ) {
+                log.info("Specified owner status is: " + req.isClientOwner());
             }
 
             MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
@@ -126,7 +126,7 @@ public class MetricsProviderActor extends UntypedActor {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
-            if (req.getClientOwner()) {
+            if (req.isClientOwner()) {
 
 
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
