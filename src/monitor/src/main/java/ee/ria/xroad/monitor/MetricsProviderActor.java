@@ -126,7 +126,7 @@ public class MetricsProviderActor extends UntypedActor {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
-            if (req.getIsOwnder()) {
+            if (req.getIsOwner()) {
 
 
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
