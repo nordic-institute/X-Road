@@ -109,9 +109,6 @@ public class MetricsProviderActor extends UntypedActor {
 
             if (req.getMetricNames() != null && req.getMetricNames().size() > 0) {
                 log.info("Specified metrics requested: " + req.getMetricNames());
-            }
-
-            if (req.isClientOwner() != null ) {
                 log.info("Specified owner status is: " + req.isClientOwner());
             }
 
