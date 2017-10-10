@@ -4,24 +4,5 @@ then
    dpkg-divert --package xroad-confproxy --remove --rename /etc/xroad/nginx/default-xroad.conf
 fi
 if dpkg-maintscript-helper supports rm_conffile 2>/dev/null; then
-    dpkg-maintscript-helper rm_conffile /etc/rcS.d/S75xroad ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/init/xroad-confclient.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/init/xroad-signer.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/backup.d/00_xroad-confclient ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/backup.d/10_xroad-signer ${SPLIT_VERS} -- "$@"
     dpkg-maintscript-helper rm_conffile /etc/xroad/nginx/default-xroad.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/nginx/nginx-secure-addons.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/ssl/rfc3526group15.pem ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/ssl/openssl.cnf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/services/signer-console.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/services/confclient.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/services/global.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/services/signer.conf ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/common.ini ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/confclient-logback.xml ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer.ini ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer-console-logback.xml ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/confclient-logback-service.xml ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/xroad/conf.d/signer-logback.xml ${SPLIT_VERS} -- "$@"
-    dpkg-maintscript-helper rm_conffile /etc/sudoers.d/xroad-restore ${SPLIT_VERS} -- "$@"
 fi
