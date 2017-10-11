@@ -58,8 +58,7 @@ public final class MonitorClient {
      */
     public MetricSetType getMetrics(List<String> metricNames) {
         try {
-            final Future<Object> response = Patterns.ask(metricsProvider,
-                    new SystemMetricsRequest(metricNames, isOwner()),
+            final Future<Object> response = Patterns.ask(metricsProvider, new SystemMetricsRequest(metricNames, true),
                     Timeout.apply(TIMEOUT_REQUEST, TimeUnit.SECONDS));
             Object obj = Await.result(response, Duration.apply(TIMEOUT_AWAIT, TimeUnit.SECONDS));
             if (obj instanceof SystemMetricsResponse) {
@@ -72,12 +71,6 @@ public final class MonitorClient {
             log.warn("Unable to read metrics", e);
             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, "Unable to read metrics");
         }
-    }
-
-    private boolean isOwner() {
-        final ClientId owner = ServerConf.getIdentifier().getOwner();
-        final ClientId client = requestMessage.getSoap().getClient();
-        return owner.equals(client);
     }
 
 
