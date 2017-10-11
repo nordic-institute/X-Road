@@ -135,7 +135,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         root.getMetrics().add(version);
 
         if (client != null) {
-            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage,  isOwner())));
+            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage), isOwner()));
         }
 
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
