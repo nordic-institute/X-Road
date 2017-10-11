@@ -284,7 +284,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(anyList(), Mockito.anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -369,7 +369,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(), anyBoolean())).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(), Mockito.anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
