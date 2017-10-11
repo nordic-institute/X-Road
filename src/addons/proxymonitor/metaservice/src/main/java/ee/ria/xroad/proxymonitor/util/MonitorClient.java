@@ -56,9 +56,9 @@ public final class MonitorClient {
     /**
      * Get monitoring metrics
      */
-    public MetricSetType getMetrics(List<String> metricNames) {
+    public MetricSetType getMetrics(List<String> metricNames, boolean isOwner) {
         try {
-            final Future<Object> response = Patterns.ask(metricsProvider, new SystemMetricsRequest(metricNames, true),
+            final Future<Object> response = Patterns.ask(metricsProvider, new SystemMetricsRequest(metricNames, isOwner),
                     Timeout.apply(TIMEOUT_REQUEST, TimeUnit.SECONDS));
             Object obj = Await.result(response, Duration.apply(TIMEOUT_AWAIT, TimeUnit.SECONDS));
             if (obj instanceof SystemMetricsResponse) {
