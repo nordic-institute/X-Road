@@ -123,7 +123,7 @@ public class MetricsProviderActor extends UntypedActor {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
-            //if (req.isClientOwner()) {
+            if (req.isClientOwner()) {
 
 
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
@@ -157,7 +157,7 @@ public class MetricsProviderActor extends UntypedActor {
                     builder.withMetric(toPackageMetricSetDto(e.getKey(), e.getValue()));
                 }
 
-            //}
+            }
 
             MetricSetDto metricSet = builder.build();
             final SystemMetricsResponse response = new SystemMetricsResponse(metricSet);
