@@ -1,8 +1,5 @@
-SPLIT_VERS=6.17.0-0.20171010130543git10e678a
+SPLIT_VERS=6.17.0-0.20171012075348git38c1cf2
 if dpkg-divert --list |grep -F "/etc/xroad/nginx/default-xroad.conf"
 then
    dpkg-divert --package xroad-confproxy --remove --rename /etc/xroad/nginx/default-xroad.conf
-fi
-if dpkg-maintscript-helper supports rm_conffile 2>/dev/null; then
-    dpkg-maintscript-helper rm_conffile /etc/xroad/nginx/default-xroad.conf ${SPLIT_VERS} -- "$@"
 fi

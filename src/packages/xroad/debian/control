@@ -33,40 +33,40 @@ Package: xroad-base
 Architecture: amd64
 Pre-depends: dpkg (>= 1.15.7.2)
 Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, ca-certificates-java, ntp, crudini, adduser
-Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171010130543git10e678a)
-Breaks: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
+Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
+Breaks: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
 Description: X-Road base components
  X-Road base components and utilities
 
 Package: xroad-common
 Architecture: amd64
 Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version}), xroad-confclient (>=${source:Upstream-Version}), xroad-nginx (>=${source:Upstream-Version}), xroad-signer (>=${source:Upstream-Version})
-Replaces: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
-Breaks: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
+Replaces: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
+Breaks: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
 Description: X-Road shared components
  This is a meta-package of X-Road shared components and utilities
 
 Package: xroad-confclient
 Architecture: amd64
 Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version})
-Replaces: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
-Breaks: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
+Replaces: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
+Breaks: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
 Description: X-Road configuration client components
  X-Road configuration client
 
 Package: xroad-nginx
 Architecture: amd64
 Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version}), nginx-light (>=1.5.10)
-Replaces: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
-Breaks: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
+Replaces: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
+Breaks: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
 Description: X-Road nginx component
  X-Road nginx dependencies and configurations
 
 Package: xroad-signer
 Architecture: amd64
 Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version})
-Replaces: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
-Breaks: xroad-common (<= 6.17.0-0.20171010130543git10e678a)
+Replaces: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
+Breaks: xroad-common (<= 6.17.0-0.20171012075348git38c1cf2)
 Description: X-Road signer component
  X-Road signer components and utilities
 
