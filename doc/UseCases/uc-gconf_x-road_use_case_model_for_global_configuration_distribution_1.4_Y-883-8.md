@@ -309,7 +309,7 @@ information.
     -   The configuration download URL – address from where the
         configuration directory provided by this source can be
         downloaded. The system composes the download URL by adding
-        */internalconf* or []{#conf_url35 .anchor}*/externalconf*
+        */internalconf* or */externalconf*
         (depending on the type of the configuration source) to the
         address of the central server.
 
@@ -323,7 +323,7 @@ information.
         -   the key generation date and time.
 
     The key currently used to sign configuration is displayed is
-    emphasised.\ Only the keys that have a certificate associated with them are displayed.
+    emphasised. Only the keys that have a certificate associated with them are displayed.
 
     -   List of configuration part files distributed by the source. For each
      configuration part, the following information is displayed:
@@ -786,7 +786,7 @@ entering the token PIN code.
     - 6b.1. System displays the error message: “Login failed: CKR\_PIN\_INCORRECT, tries left: 1”.
     - 6b.2. System logs the event “Log in to token failed” to the audit log.
     - 6b.3. CS administrator selects to re-enter the PIN code. Use case continues from step 3.
-    - 6b.3a. CS administrator selects to terminate the use case.
+        - 6b.3a. CS administrator selects to terminate the use case.
 
 - 6c. The entered PIN code is incorrect and no login attempts are left (i.e., the token is locked).
     - 6c.1. System displays the error message: “Login failed: CKR\_PIN\_INCORRECT. PIN locked.”.

@@ -1,6 +1,0 @@
----
-# Default settings do not work, always set "xroad_python_tests_git_path"
-xroad_python_tests_git_path: https://set-this-repository-url
-xroad_python_tests_local_path: /home/jenkins/
-xroad_python_tests_path: X-Road-tests/common/xrd-automated-tests/
-xroad_mock_path: X-Road-tests/common/xrd-automated-tests/mock/mock_service/
