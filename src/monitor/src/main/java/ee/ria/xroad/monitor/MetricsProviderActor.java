@@ -109,7 +109,7 @@ public class MetricsProviderActor extends UntypedActor {
 
             if (req.getMetricNames() != null && req.getMetricNames().size() > 0) {
                 log.info("Specified metrics requested: " + req.getMetricNames());
-                log.info("Specified owner status is: " + req.isClientOwner());
+                log.info("Is owner of security server: " + req.isClientOwner());
             }
 
             MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
@@ -118,20 +118,25 @@ public class MetricsProviderActor extends UntypedActor {
 
             SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
+            
+            SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
+                    (name, metric) ->
+                            isProcessPackageOrCertificateMetric(name) && isOwnerOrOperationSystem(req.isOwner, name));
+
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
+            for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
+                builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
+            }
 
             if (req.isClientOwner()) {
 
 
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                         null);
-
-                SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                        (name, metric) -> !isProcessPackageOrCertificateMetric(name));
 
 
                 SystemMetricsFilter processMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
@@ -148,9 +153,7 @@ public class MetricsProviderActor extends UntypedActor {
                 // dont handle processes, packages and certificates gauges normally,
                 // they have have special conversions to dto
                 // *_STRINGS gauges are only for JMX reporting
-                for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
-                    builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
-                }
+
 
                 for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
                     builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
@@ -161,13 +164,6 @@ public class MetricsProviderActor extends UntypedActor {
                     builder.withMetric(toPackageMetricSetDto(e.getKey(), e.getValue()));
                 }
 
-            } else {
-                SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                        (name, metric) -> name.equals("OperatingSystem"));
-
-                for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
-                    builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
-                }
             }
 
             MetricSetDto metricSet = builder.build();
@@ -180,7 +176,7 @@ public class MetricsProviderActor extends UntypedActor {
     }
 
     private boolean isOwnerAndOperationSystem(boolean isOwner, String name) {
-        return isOwner && name.equals("OperatingSystem");
+        return isOwner || name.equals("OperatingSystem");
     }
 
     private boolean isProcessPackageOrCertificateMetric(String name) {
