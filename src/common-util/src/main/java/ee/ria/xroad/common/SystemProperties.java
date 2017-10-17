@@ -247,7 +247,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
 
-    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "true"
+    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "true";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
@@ -464,7 +464,7 @@ public final class SystemProperties {
     public static final String ENV_MONITOR_PORT =
             PREFIX + "env-monitor.port";
 
-     Property name of environmental monitor port. */
+    /** Property name of environmental monitor limiting remote data set. */
     public static final String ENV_MONITOR_LIMIT_REMOTE_DATA_SET =
             PREFIX + "env-monitor.limit-remote-data-set";
 
