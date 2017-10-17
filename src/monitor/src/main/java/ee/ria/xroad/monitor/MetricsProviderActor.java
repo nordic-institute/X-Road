@@ -119,10 +119,9 @@ public class MetricsProviderActor extends UntypedActor {
             SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
 
-            //
             SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    (name, metric) -> isProcessPackageOrCertificateMetric(name) &&
-                                    isOwnerOrOperationSystem(req.isClientOwner(), name));
+                    (name, metric) -> filterPackageOrCertifates(req.isClientOwner(), name));
+
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
@@ -134,8 +133,10 @@ public class MetricsProviderActor extends UntypedActor {
 
             if (req.isClientOwner()) {
 
+
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                         null);
+
 
                 SystemMetricsFilter processMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                         (name, metric) -> SystemMetricNames.PROCESSES.equals(name)
@@ -151,6 +152,8 @@ public class MetricsProviderActor extends UntypedActor {
                 // dont handle processes, packages and certificates gauges normally,
                 // they have have special conversions to dto
                 // *_STRINGS gauges are only for JMX reporting
+
+
                 for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
                     builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
                 }
@@ -171,12 +174,12 @@ public class MetricsProviderActor extends UntypedActor {
         }
     }
 
-    private boolean isOwnerOrOperationSystem(boolean isOwner, String name) {
-        return isOwner || name.equals("OperatingSystem");
-    }
-
-    private boolean isProcessPackageOrCertificateMetric(String name) {
-        return PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
+    private boolean filterPackageOrCertifates(boolean isOwner, String name) {
+        if (isOwner /*|| RETURN ALL */) {
+            return !PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
+        } else {
+            return name.equals("OperatingSystem");
+        }
     }
 
     private MetricSetDto toProcessMetricSetDto(String name,
