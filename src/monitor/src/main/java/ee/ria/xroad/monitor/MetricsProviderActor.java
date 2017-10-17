@@ -118,7 +118,7 @@ public class MetricsProviderActor extends UntypedActor {
 
             SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
-            
+
             SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) ->
                             isProcessPackageOrCertificateMetric(name) && isOwnerOrOperationSystem(req.isOwner, name));
@@ -175,7 +175,7 @@ public class MetricsProviderActor extends UntypedActor {
         }
     }
 
-    private boolean isOwnerAndOperationSystem(boolean isOwner, String name) {
+    private boolean isOwnerOrOperationSystem(boolean isOwner, String name) {
         return isOwner || name.equals("OperatingSystem");
     }
 
