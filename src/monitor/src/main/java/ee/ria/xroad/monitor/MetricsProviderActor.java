@@ -119,10 +119,10 @@ public class MetricsProviderActor extends UntypedActor {
             SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
 
+            //
             SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    (name, metric) ->
-                            isProcessPackageOrCertificateMetric(name) && isOwnerOrOperationSystem(req.isOwner, name));
-
+                    (name, metric) -> isProcessPackageOrCertificateMetric(name) &&
+                                    isOwnerOrOperationSystem(req.isClientOwner(), name));
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
@@ -134,10 +134,8 @@ public class MetricsProviderActor extends UntypedActor {
 
             if (req.isClientOwner()) {
 
-
                 SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                         null);
-
 
                 SystemMetricsFilter processMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                         (name, metric) -> SystemMetricNames.PROCESSES.equals(name)
@@ -153,8 +151,6 @@ public class MetricsProviderActor extends UntypedActor {
                 // dont handle processes, packages and certificates gauges normally,
                 // they have have special conversions to dto
                 // *_STRINGS gauges are only for JMX reporting
-
-
                 for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
                     builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
                 }
