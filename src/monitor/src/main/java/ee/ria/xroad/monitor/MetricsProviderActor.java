@@ -27,6 +27,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.codahale.metrics.*;
 import com.google.common.collect.Lists;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
