@@ -20,3 +20,7 @@ ss-servers
 cp-servers
 ca-servers
 
+### vars ###
+
+[ss-servers:vars]
+variant=vanilla

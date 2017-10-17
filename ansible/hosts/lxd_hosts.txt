@@ -22,3 +22,8 @@ localhost ansible_connection=local
 
 [compile-servers]
 localhost ansible_connection=local
+
+### vars ###
+
+[ss-servers:vars]
+variant=vanilla
