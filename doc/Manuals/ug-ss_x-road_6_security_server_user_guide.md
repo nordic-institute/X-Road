@@ -52,6 +52,7 @@ Doc. ID: UG-SS
  16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
  15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
  25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
+ 17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
  
 ## Table of Contents
 
@@ -146,7 +147,8 @@ Doc. ID: UG-SS
     + [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
 - [16 Environmental Monitoring](#16-environmental-monitoring)
   * [16.1 Usage via SOAP API](#161-usage-via-soap-api)
-  * [16.2 Usage via JMX API](#162-usage-via-jmxapi)    
+  * [16.2 Usage via JMX API](#162-usage-via-jmxapi)
+  * [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
 - [17 Logs and System Services](#17-logs-and-system-services)
   * [17.1 System Services](#171-system-services)
   * [17.2 Logging configuration](#172-logging-configuration)
@@ -1729,6 +1731,9 @@ Environmental monitoring provides also a standard JMX endpoint which can be acce
 
 JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`. 
 
+### 16.3 Limiting environmental monitoring remote data set
+
+It is possibility to limit what allowed non-owners can request via environmental monotiring data request by changing monitor-env limit-remote-data-set parameter. By changing flag to be true non-owners who are allowed to query environmental monitoring data will get only certificate, operating system and xroad version information. This parameters is set by default false. Security server owner will always get full data set as requested.
 
 ## 17 Logs and System Services
 

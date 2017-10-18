@@ -126,6 +126,7 @@ public class MetricsProviderActorTest {
                     break;
                 default:
                     Assert.fail("Unknown metric found in response.");
+
             }
         }
 
