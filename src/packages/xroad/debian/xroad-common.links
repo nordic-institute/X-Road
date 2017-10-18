@@ -1,8 +1,0 @@
-usr/share/xroad/bin/signer-console usr/bin/signer-console
-usr/share/xroad/jlib/signer-1.0.jar usr/share/xroad/jlib/signer.jar
-usr/share/xroad/jlib/signer-console-1.0.jar usr/share/xroad/jlib/signer-console.jar
-usr/share/xroad/jlib/configuration-client-1.0.jar usr/share/xroad/jlib/configuration-client.jar
-etc/xroad/nginx/default-xroad.conf etc/nginx/sites-enabled/default-xroad
-etc/xroad/nginx/nginx-secure-addons.conf etc/nginx/conf.d/xroad-securing.conf
-usr/share/xroad/jlib/common-db-1.0.jar usr/share/xroad/jlib/common-db.jar
-usr/share/xroad/jlib/postgresql-9.4.1207.jre6.jar usr/share/xroad/jlib/postgresql.jar
