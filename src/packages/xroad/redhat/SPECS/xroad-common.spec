@@ -10,18 +10,12 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road shared components
 Group:      Applications/Internet
 License:    MIT
-Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
-BuildRequires: systemd
-Requires:  systemd
-Requires:  postgresql-server, postgresql-contrib
-Requires: xroad-base >= %version, xroad-nginx >= %version, xroad-confclient >= %version, xroad-signer >= %version
+Requires:   xroad-base >= %version, xroad-nginx >= %version, xroad-confclient >= %version, xroad-signer >= %version
 
 %define src %{_topdir}/..
 
 %description
-X-Road shared components and utilities
+Meta-package for X-Road shared components and utilities
 
 %prep
 
@@ -37,5 +31,4 @@ rm -rf %{buildroot}
 %pre
 
 %post
-
 

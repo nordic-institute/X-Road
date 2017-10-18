@@ -1,4 +1,3 @@
-SPLIT_VERS=6.17.0-0.20171012075348git38c1cf2
 if dpkg-divert --list |grep -F "/etc/xroad/nginx/default-xroad.conf"
 then
    dpkg-divert --package xroad-confproxy --remove --rename /etc/xroad/nginx/default-xroad.conf

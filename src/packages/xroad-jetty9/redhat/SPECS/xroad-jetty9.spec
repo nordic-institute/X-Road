@@ -26,7 +26,7 @@ BuildRequires:  systemd, curl
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
-Requires:	systemd, xroad-common >= 6.5
+Requires:	systemd, xroad-common >= %{version}
 Conflicts: 	xroad-center, xroad-confproxy
 
 %description
