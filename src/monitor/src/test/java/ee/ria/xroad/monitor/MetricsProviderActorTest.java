@@ -134,6 +134,39 @@ public class MetricsProviderActorTest {
     }
 
     @Test
+    public void testLimitedSystemMetricsRequest() throws Exception {
+        final Props props = Props.create(MetricsProviderActor.class);
+        final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
+        Future<Object> future = Patterns.ask(ref, new SystemMetricsRequest(null, false),
+                Timeout.apply(1, TimeUnit.MINUTES));
+        Object result = Await.result(future, Duration.apply(1, TimeUnit.MINUTES));
+        assertTrue(future.isCompleted());
+        assertTrue(result instanceof SystemMetricsResponse);
+        SystemMetricsResponse response = (SystemMetricsResponse) result;
+        MetricSetDto metricSetDto = response.getMetrics();
+        Set<MetricDto> dtoSet = metricSetDto.getMetrics();
+
+        log.info("metricSetDto: " + metricSetDto);
+        assertEquals(2, dtoSet.stream().count());
+
+        for (MetricDto metricDto : dtoSet) {
+
+            // Order of entries is undefined -> Must handle by name
+            switch (metricDto.getName()) {
+                case HISTOGRAM_NAME:
+                    Assert.fail("Should not have histrogram.");
+                    break;
+                case GAUGE_NAME:
+                    Assert.fail("Should not have histrogram gauge.");
+                    break;
+                default:
+                    Assert.fail("Unknown metric found in response.");
+                    break;
+            }
+        }
+    }
+
+    @Test
     public void testParametrizedSystemMetricsRequest() throws Exception {
         final Props props = Props.create(MetricsProviderActor.class);
         final TestActorRef<MetricsProviderActor> ref = TestActorRef.create(actorSystem, props, "testActorRef");
