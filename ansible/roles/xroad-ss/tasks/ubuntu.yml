@@ -38,12 +38,10 @@
     state: latest
     force: yes
   with_items:
-    - xroad-securityserver-fi
+    - "{{ vars['xroad_varpkg_' + variant] }}"
 # these are dependencies of xroad-securityserver, no need to install them explicitely
 #    - xroad-common
 #    - xroad-jetty9
 #    - xroad-addon-messagelog
 #    - xroad-addon-metaservices
 #    - xroad-proxy
-
-

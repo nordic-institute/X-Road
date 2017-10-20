@@ -1,26 +1,70 @@
 # X-Road installation instructions
 
+Please note that this Ansible collection and the corresponding documentation is for creating a development-use X-Road system only.
+
 ## 1. Install Ansible
 
-Install Ansible by following instructions at http://docs.ansible.com/ansible/intro_installation.html
+Install Ansible by following instructions at [http://docs.ansible.com/ansible/intro_installation.html](http://docs.ansible.com/ansible/intro_installation.html)
 
 ## 2. Configuration options
 
-The servers to be installed are written in the Ansible inventory (hosts-file). 
-In the provided example command they are in `hosts/example_xroad_hosts.txt`. 
-Host names in the file must be correct fully qualified host names because they are used 
-in X-Road certificate generation and setting the hostname of the servers when installing. 
-Do not use IP addresses.
+#### Inventory
 
-You determine which servers are initialized by filling in the groups 
-`cs-servers`, `ss-servers`, `cp-servers` and `ca-servers`. If you have no use for such servers,
+The hosts for X-Road servers must be listed in the used Ansible inventory (host-file).
+It is recommended to create your own host file in order to best facilitate further configuration of your installations.
+
+The `hosts` directory contains examples of inventory host files that are used in the example commands provided in
+[section 3](#3-install-x-road-using-ansible) and
+[section 4](#4-development-using-ansible-playbooks) (`hosts/example_xroad_hosts.txt` and `hosts/lxd_hosts.txt`). These files also contain a short description of the purpose of each group.
+
+Host names in the file must be correct fully qualified host names because they are used
+in X-Road certificate generation and setting the hostname of the servers when installing. Do not use IP addresses.
+
+You determine which servers are initialized by filling in the groups
+`cs-servers`, `ss-servers`, `cp-servers` and `ca-servers`. If you have no use for a specific server group,
 you can leave that group empty.
 
-Parameters such as the admin username and password, and CA server's distinguished name values, 
-can be configured using files in `group_vars` directory. 
-In the provided example the configuration file is `group_vars/example.yml`. 
-The link between the inventory file and the variable definition file is based on (in this example) a group name. 
-`example_xroad_hosts.txt` defines a host group
+**Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
+inventory files. For example, the group `[centos-ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss-servers]` and can be omitted entirely if you have no use for CentOS containers.
+
+#### Variant
+
+When installing security servers, the Ansible playbooks use the configuration variable `variant`
+to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The three currently supported variants are:
+- `vanilla` - the basic non-country-specific version of X-Road
+- `ee` - the Estonian country variant
+- `fi` - the Finnish country variant
+
+Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries.
+The vanilla variant provides an operational X-Road installation without any country-specific configurations. Vanilla configurations can be considered the default X-Road configurations.
+
+The recommended place for defining a different variant is the inventory file. For example, the definition for the Finnish variant:
+```
+[ss-servers:vars]
+variant=fi
+```
+
+While it is possible to define different variants for different security servers, it is worth noting that upgrading from one variant to another is not supported.
+
+#### Package repository
+
+Playbook `xroad_init.yml` uses package repositories for X-Road installations.
+The default repository configurations are:
+* for DEB-packages `http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current`
+* for RHEL-packages `http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current`.
+
+The used repository can be configured in `vars_files/remote_repo.yml`. The file contains repository and key variables for both RHEL-
+and DEB-packages. Note that RHEL-packages are only likely to be available from Finnish or custom repositories.
+
+
+#### Additional variables
+
+Parameters such as the admin username and password or the CA server's distinguished name values
+can be configured using files in the `group_vars` directory.
+In the example provided in [section 3](#3-install-x-road-using-ansible) the configuration file matching the super group `example` is `group_vars/example.yml`.
+
+The inventory file `example_xroad_hosts.txt` defines a host group
+
 ```
 [example:children]
  cs-servers
@@ -28,34 +72,75 @@ The link between the inventory file and the variable definition file is based on
  cp-servers
  ca-server
 ```
-containing all the hosts in the inventory. 
-Ansible searches for variables from `group_vars/example.yml` when initializing hosts from "example" group.
+
+containing all other X-Road server host groups in the inventory. Ansible searches for variables in `group_vars/example.yml`
+when initializing hosts from `example` group.
 
 Username and password are also defined in the default variables of the `xroad-base` role. This definition will be used
-if no group vars or other higher precedence configuration for the same variables have been assigned.
- 
+if no group vars or other higher precedence configurations for the same variables have been assigned.
+
 ## 3. Install X-Road using Ansible
+
+Before running any playbooks, be sure to configure your inventory file to specify the composition of hosts for the X-Road installation. Also check the [configuration section](#2-configuration-options) for additional configuration options.
+
+The following command installs or updates **all X-Road related packages** to latest versions **from package repositories** for all hosts defined in the inventory file `example_xroad_hosts.txt`:
 
 ```
 ansible-playbook -i hosts/example_xroad_hosts.txt xroad_init.yml
 ```
 
-This installs or updates **all X-Road related packages** to latest versions **from package repositories**. 
+For repository configuration, check the detailed instructions in the [repository configuration section](#package-repository).
 
-For the X-Road's own packages, the default repository is either
-`http://www.nic.funet.fi/pub/csc/x-road/client/ubuntu-prod-current` 
-or 
-`http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current`.
 
-The used repository can be configured in `vars_files/remote_repo.yml`.
+## 4. Development using Ansible playbooks
 
-The Ansible playbooks currently only support the installation of X-Road according to the Finnish configuration. 
+#### Installing X-Road from locally built packages
 
-## 4. Development using LXD
+Compile your own X-Road, build packages and install X-Road from your own packages using the playbook `xroad_dev.yml`.
 
-On Linux it is possible to use the LXD container hypervisor for fast testing and development.
+First make sure that `docker` and `docker-py` are installed on the compilation machine. Docker is used for building DEB- and RHEL-packages.
 
-First, make sure that you have LXD installed and configured as explained on https://linuxcontainers.org/lxd/getting-started-cli/. For example, on Ubuntu:
+```
+ansible-playbook  -i hosts/example_xroad_hosts.txt xroad_dev.yml
+```
+
+This installs or updates **all X-Road related packages to their latest versions** using **locally built X-Road packages** (as long as `compile-servers` group in ansible inventory has the value `localhost`) for hosts defined in the inventory file `example_xroad_hosts.txt`.
+Package version names are formed using current git commit timestamp and hash. This means that
+
+* if you only make local changes without performing a git commit, package names and version numbers are
+not changed - and executing `xroad_dev.yml` playbook will not update the packages of an existing installation with the same git commit
+* if you perform a git commit (of any kind), all local modifications will be packaged and deployed
+using the new version number - and all local modifications (whether they were included in the commit or not)
+will be deployed
+
+In short, to deploy made changes with package installation, **a git commit must be made**.
+
+#### Partial compilation and deployment
+
+For fast development, you can compile and update modules separately using the ansible playbook `xroad_dev_partial.yml`. For example, if you make a change to a Java or Ruby file under the module `proxy-ui`, use the following command to compile the WAR and deploy it to the existing security server installations.
+
+```
+ansible-playbook  -i hosts/example_xroad_hosts.txt   xroad_dev_partial.yml   -e selected_modules=proxy-ui
+```
+
+It is also possible to compile and update several modules (JARs or WARs). The following command compiles and updates JAR-files for modules `common-util` and `signer` and the WAR-file for module `proxy-ui` to the defined existing server installations.
+
+```
+ansible-playbook  -i hosts/example_xroad_hosts.txt   xroad_dev_partial.yml   -e selected_modules=common-util,proxy-ui,signer
+```
+
+This updates the **selected modules (JARs or WARs)** to ones compiled locally.
+**No git commits are needed** to see the changes.
+
+The modules are listed under `vars_files` in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modules.yml` and `ss_modules.yml`.
+
+Note that the playbook `xroad_dev_partial.yml` only copies JARs and WARs to the appropriate locations on the servers and can only be used to update made changes to existing server installations. For the full, package-based installation, use `xroad_dev.yml` described in [section 4](#4-development-using-ansible-playbooks).
+
+#### Using LXD-hosts
+
+On Linux it is possible to use the LXD-container hypervisor for fast testing and development.
+
+First, make sure that you have LXD installed and configured as explained on [https://linuxcontainers.org/lxd/getting-started-cli/](https://linuxcontainers.org/lxd/getting-started-cli/). For example, on Ubuntu:
 
 ```
 sudo apt-get install lxd
@@ -63,57 +148,33 @@ sudo apt-get install lxd
 # Log in to the new group lxd (or logout/login)
 newgrp lxd
 
-# Configure lxd
-sudo lxd init (use bridge network configuration and turn on nat)
+# Configure lxd (use bridge network configuration and turn on nat)
+sudo lxd init
 ```
-Study the provided LXD-specific host file `hosts/lxd_hosts.txt` and modify the inventory or create your own host file as required.
-The playbook initializes LXD-containers according to the hosts defined in the inventory. The host for the LXD-containers themselves is
-defined with the group `lxd-servers`, normally localhost.
 
-Install packages to local LXD containers from public repository with:
+An example of an LXD-specific host file can be found in `hosts/lxd_hosts.txt`. While it is possible to use and modify this file it is recommended to create your own host file to facilitate further configuration.
+
+The playbook initializes LXD-containers according to the hosts defined in the inventory. The host for the LXD-containers themselves is
+defined with the group `lxd-servers`, normally localhost. After inventory configurations, Ansible playbooks can be used to deploy X-Road to the LXD-hosts much like with other inventories.
+
+Install packages to local LXD-containers from the public repositories with:
 
 ```
 ansible-playbook  -i hosts/lxd_hosts.txt xroad_init.yml
 ```
 
-Compile your own X-Road, build packages and install X-Road from your own packages using the playbook `xroad_dev.yml`.
-
-First make sure that docker and docker-py are installed. Docker is used for building packages on localhost.
+Install locally built X-Road packages to LXD-containers with:
 
 ```
 ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev.yml
 ```
 
-This updates **all X-Road related packages to their latest versions** using **locally built X-Road packages** (as long as `compile-servers` group in ansible inventory = `localhost`). 
-Package version names are formed using current git commit timestamp and hash. This means that
+Update module `proxy-ui` to an existing LXD-container X-Road installation with:
 
-* if you only make local changes without performing a git commit, package names and version numbers are
-not changed - and executing xroad_dev playbook will keep the old packages intact 
-* if you perform a git commit (of any kind), all local modifications will be packaged and deployed 
-using the new version number - and all local modifications (whether they were included in the commit or not)
-will be deployed
-
-In short, to see changes, **a git commit must be done**.
- 
-### Partial compilation and deployment
-
-For fast development, you can compile and install modules separately. The ansible playbook `xroad_dev_partial.yml` offers this. For example, if you make a change to a Java or Ruby file under proxy-ui, use the following command to compile the war and deploy it to the security servers.
 ```
-ansible-playbook  -i hosts/lxd_hosts.txt   xroad_dev_partial.yml   -e selected_modules=proxy-ui
+ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev_partial.yml -e selected_modules=proxy-ui
 ```
-
-It is also possible to compile and install several modules (jars or wars). The following command compiles and installs common-util and signer jars and proxy-ui war to the correct servers.
-```
-ansible-playbook  -i hosts/lxd_hosts.txt   xroad_dev_partial.yml   -e selected_modules=common-util,proxy-ui,signer
-```
-
-This updates the **selected modules (jars or wars)** to ones compiled locally. 
-**No git commits are needed** to see changes.
-
-The modules are listed in dicts `common_modules.yml`, `cs_modules.yml`, `cp_modules.yml` and `ss_modules.yml`.
-
-Note that the playbook `xroad_dev_partial.yml` only copies jars and wars to the servers in correct locations. For the full installation, use `xroad_dev.yml`.
 
 ## 5. Test CA, TSA, and OCSP
 
-More information about these [here.](TESTCA.md)
+While not themselves components provided by X-Road, certification and time stamping authorities are crucial to messaging within the system. More information on creating development-use CA, TSA and OCSP services [here.](TESTCA.md)

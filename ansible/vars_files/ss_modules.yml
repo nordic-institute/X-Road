@@ -16,12 +16,12 @@ ss_modules:
     lib: proxymonitor-metaservice-1.0.jar
     target: /usr/share/xroad/jlib/addon/proxy
   configuration-client:
-    dir: configuration-client  
+    dir: configuration-client
     build: build
     lib: configuration-client-1.0.jar
     target: /usr/share/xroad/jlib
   proxy-ui:
-    dir: proxy-ui  
+    dir: proxy-ui
     build: warble
     lib: proxy-ui.war
     target: /usr/share/xroad/jlib/webapps

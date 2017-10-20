@@ -10,10 +10,10 @@
         
 - hosts: compile-servers
   vars_files:
-    - common_modules.yml
-    - cs_modules.yml
-    - cp_modules.yml
-    - ss_modules.yml
+    - vars_files/common_modules.yml
+    - vars_files/cs_modules.yml
+    - vars_files/cp_modules.yml
+    - vars_files/ss_modules.yml
   roles:
     - { role: compile-module, modules: "{{common_modules | combine(cs_modules,cp_modules,ss_modules)  }}"}
   tags: 
@@ -21,8 +21,8 @@
 
 - hosts: cs-servers
   vars_files:
-    - common_modules.yml
-    - cs_modules.yml
+    - vars_files/common_modules.yml
+    - vars_files/cs_modules.yml
   roles:
     - { role: packages-to-server, modules: "{{common_modules | combine(cs_modules) }}"}
   tags:
@@ -30,8 +30,8 @@
 
 - hosts: cp-servers
   vars_files:
-    - common_modules.yml
-    - cp_modules.yml
+    - vars_files/common_modules.yml
+    - vars_files/cp_modules.yml
   roles:
     - { role: packages-to-server, modules: "{{common_modules | combine(cp_modules) }}"}
   tags:
@@ -39,8 +39,8 @@
 
 - hosts: ss-servers
   vars_files:
-    - common_modules.yml
-    - ss_modules.yml
+    - vars_files/common_modules.yml
+    - vars_files/ss_modules.yml
   roles:
     - { role: packages-to-server, modules: "{{common_modules | combine(ss_modules) }}"}
   tags:
