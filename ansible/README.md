@@ -15,7 +15,7 @@ It is recommended to create your own host file in order to best facilitate furth
 
 The `hosts` directory contains examples of inventory host files that are used in the example commands provided in
 [section 3](#3-install-x-road-using-ansible) and
-[section 4](#4-development-using-ansible-playbooks) (`hosts/example_xroad_hosts.txt` and `hosts/lxd_hosts.txt`).
+[section 4](#4-development-using-ansible-playbooks) (`hosts/example_xroad_hosts.txt` and `hosts/lxd_hosts.txt`). These files also contain a short description of the purpose of each group.
 
 Host names in the file must be correct fully qualified host names because they are used
 in X-Road certificate generation and setting the hostname of the servers when installing. Do not use IP addresses.
