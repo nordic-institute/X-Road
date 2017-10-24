@@ -22,27 +22,10 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getAcceptableTimestampFailurePeriodSeconds;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveInterval;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getCleanInterval;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getHashAlg;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.shouldTimestampImmediately;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
-import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
-import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
-import org.joda.time.DateTime;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -51,6 +34,16 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
+import org.quartz.JobDataMap;
+import org.quartz.SchedulerException;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
@@ -68,32 +61,34 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.MessageSendingJob;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.*;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
+import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
+import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
 
 /**
  * Message log manager. Sets up the whole logging system components.
- * The logging system consists of a task queue, timestamper, archiver and
- * log cleaner.
+ * The logging system consists of a task queue, timestamper, archiver and log cleaner.
  */
 @Slf4j
 public class LogManager extends AbstractLogManager {
 
-    private static final Timeout TIMESTAMP_TIMEOUT =
-            new Timeout(Duration.create(30, TimeUnit.SECONDS));
+    private static final Timeout TIMESTAMP_TIMEOUT = new Timeout(Duration.create(30, TimeUnit.SECONDS));
 
     // Actor names of message log components
     static final String TASK_QUEUE_NAME = "RequestLogTaskQueue";
     static final String TIMESTAMPER_NAME = "RequestLogTimestamper";
+    static final String TIMESTAMPING_POST_WORKER = "TimestampingPostWorker";
     static final String ARCHIVER_NAME = "RequestLogArchiver";
     static final String CLEANER_NAME = "RequestLogCleaner";
 
     private final LogRecordManager logRecordManager = new LogRecordManager();
-
-
 
     // Date at which a time-stamping first failed.
     private DateTime timestampFailed;
@@ -106,31 +101,34 @@ public class LogManager extends AbstractLogManager {
         createTaskQueue();
 
         createTimestamper();
+
         createArchiver(jobManager);
         createCleaner(jobManager);
+
+        createTimestampingPostWorker();
     }
 
     @Getter
     private ActorRef taskQueueRef;
 
+    private ActorRef timestampingPostWorker;
 
     private void createTaskQueue() {
-        taskQueueRef = getContext().actorOf(getTaskQueueImpl(),
-                TASK_QUEUE_NAME);
+        taskQueueRef = getContext().actorOf(getTaskQueueImpl(), TASK_QUEUE_NAME);
     }
 
     private void createTimestamper() {
-        timestamper = getContext().actorOf(
-                getTimestamperImpl(),
-                TIMESTAMPER_NAME
-            );
+        timestamper = getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
 
         getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
     }
 
+    private void createTimestampingPostWorker() {
+        timestampingPostWorker = getContext().actorOf(getTimestampingPostWorkerImpl(), TIMESTAMPING_POST_WORKER);
+    }
+
     /**
-     * Can be overwritten in test classes if we want to make sure that timestamping
-     * does not start prematurely
+     * Can be overwritten in test classes if we want to make sure that timestamping does not start prematurely.
      * @return
      */
     protected FiniteDuration getTimestamperJobInitialDelay() {
@@ -140,26 +138,22 @@ public class LogManager extends AbstractLogManager {
     private void createArchiver(JobManager jobManager) {
         getContext().actorOf(getArchiverImpl(), ARCHIVER_NAME);
 
-        registerCronJob(jobManager, ARCHIVER_NAME, START_ARCHIVING,
-                getArchiveInterval());
+        registerCronJob(jobManager, ARCHIVER_NAME, START_ARCHIVING, getArchiveInterval());
     }
 
     private void createCleaner(JobManager jobManager) {
         getContext().actorOf(getCleanerImpl(), CLEANER_NAME);
 
-        registerCronJob(jobManager, CLEANER_NAME, START_CLEANING,
-                getCleanInterval());
+        registerCronJob(jobManager, CLEANER_NAME, START_CLEANING, getCleanInterval());
     }
 
     // ------------------------------------------------------------------------
 
     @Override
-    protected void log(SoapMessageImpl message, SignatureData signature,
-                       boolean clientSide) throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
         verifyCanLogMessage();
 
-        MessageRecord logRecord = saveMessageRecord(message, signature,
-                clientSide);
+        MessageRecord logRecord = saveMessageRecord(message, signature, clientSide);
 
         if (shouldTimestampImmediately()) {
             timestampImmediately(logRecord);
@@ -168,8 +162,8 @@ public class LogManager extends AbstractLogManager {
 
     @Override
     protected TimestampRecord timestamp(Long messageRecordId) throws Exception {
-        MessageRecord messageRecord =
-                (MessageRecord) logRecordManager.get(messageRecordId);
+        MessageRecord messageRecord = (MessageRecord) logRecordManager.get(messageRecordId);
+
         if (messageRecord.getTimestampRecord() != null) {
             return messageRecord.getTimestampRecord();
         } else {
@@ -178,21 +172,17 @@ public class LogManager extends AbstractLogManager {
     }
 
     @Override
-    protected LogRecord findByQueryId(String queryId, Date startTime,
-                                      Date endTime) throws Exception {
+    protected LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
         return logRecordManager.getByQueryId(queryId, startTime, endTime);
     }
 
     @Override
     public void onReceive(Object message) throws Exception {
+        log.trace("onReceive({})", message);
+
         try {
             if (message instanceof String && CommonMessages.TIMESTAMP_STATUS.equals(message)) {
                 getSender().tell(statusMap, getSelf());
-            } else if (message instanceof SetTimestampingStatusMessage) {
-                setTimestampingStatus((SetTimestampingStatusMessage) message);
-            } else if (message instanceof SaveTimestampedDataMessage) {
-                SaveTimestampedDataMessage data = (SaveTimestampedDataMessage) message;
-                saveTimestampRecord(data.getTimestampSucceeded());
             } else {
                 super.onReceive(message);
             }
@@ -212,62 +202,81 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected Props getArchiverImpl() {
-        return Props.create(
-            LogArchiver.class,
-            Paths.get(MessageLogProperties.getArchivePath()),
-            Paths.get(SystemProperties.getTempFilesPath())
-        );
+        return Props.create(LogArchiver.class, Paths.get(MessageLogProperties.getArchivePath()),
+                Paths.get(SystemProperties.getTempFilesPath()));
     }
 
     protected Props getCleanerImpl() {
         return Props.create(LogCleaner.class);
     }
 
-    protected TimestampRecord timestampImmediately(MessageRecord logRecord)
-            throws Exception {
+    protected Props getTimestampingPostWorkerImpl() {
+        return Props.create(TimestampingPostWorker.class, this).withDispatcher("akka.control-aware-dispatcher");
+    }
+
+    /**
+     * Timestamping post worker handling SetTimestampingStatusMessage and SaveTimestampedDataMessage messages.
+     */
+    @RequiredArgsConstructor
+    public static class TimestampingPostWorker extends UntypedActor {
+
+        private final LogManager logManager;
+
+        @Override
+        public void onReceive(Object message) throws Exception {
+            log.trace("TimestampingPostWorker::onReceive({})", message);
+
+            try {
+                if (message instanceof SetTimestampingStatusMessage) {
+                    logManager.setTimestampingStatus((SetTimestampingStatusMessage) message);
+                } else if (message instanceof SaveTimestampedDataMessage) {
+                    logManager.saveTimestampRecord(((SaveTimestampedDataMessage) message).getTimestampSucceeded());
+                } else {
+                    unhandled(message);
+                }
+            } catch (Exception e) {
+                log.error("Processing timestamping post message {} failed", message.getClass().getName(), e);
+            }
+        }
+    }
+
+    protected TimestampRecord timestampImmediately(MessageRecord logRecord) throws Exception {
         log.trace("timestampImmediately({})", logRecord);
 
         try {
-
-
-            Object result = Await.result(Patterns.ask(timestamper,
-                            new Timestamper.TimestampTask(logRecord), TIMESTAMP_TIMEOUT),
-                    TIMESTAMP_TIMEOUT.duration());
-
+            Object result = Await.result(Patterns.ask(timestamper, new Timestamper.TimestampTask(logRecord),
+                    TIMESTAMP_TIMEOUT), TIMESTAMP_TIMEOUT.duration());
 
             if (result instanceof Timestamper.TimestampSucceeded) {
                 return saveTimestampRecord((Timestamper.TimestampSucceeded) result);
             } else if (result instanceof Timestamper.TimestampFailed) {
                 Exception e = ((Timestamper.TimestampFailed) result).getCause();
+
                 log.warn("Timestamp failed: {}", e);
+
                 for (String tspUrl: ServerConf.getTspUrl()) {
                     statusMap.put(tspUrl, new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), LocalTime.now(),
                             tspUrl));
                 }
+
                 throw e;
             } else {
-
-                throw new RuntimeException(
-                        "Unexpected result from Timestamper: " + result.getClass());
+                throw new RuntimeException("Unexpected result from Timestamper: " + result.getClass());
             }
         } catch (Exception e) {
             throw e;
         }
     }
 
-    protected MessageRecord saveMessageRecord(SoapMessageImpl message,
-                                              SignatureData signature, boolean clientSide) throws Exception {
+    protected MessageRecord saveMessageRecord(SoapMessageImpl message, SignatureData signature, boolean clientSide)
+            throws Exception {
         log.trace("saveMessageRecord()");
 
         String loggedMessage = new SoapMessageBodyManipulator().getLoggableMessageText(message, clientSide);
 
-        MessageRecord messageRecord =
-                new MessageRecord(message.getQueryId(),
-                        loggedMessage,
-                        signature.getSignatureXml(),
-                        message.isResponse(),
-                        clientSide ? message.getClient()
-                                : message.getService().getClientId());
+        MessageRecord messageRecord = new MessageRecord(message.getQueryId(), loggedMessage,
+                signature.getSignatureXml(), message.isResponse(),
+                clientSide ? message.getClient() : message.getService().getClientId());
 
         messageRecord.setTime(new Date().getTime());
 
@@ -276,15 +285,14 @@ public class LogManager extends AbstractLogManager {
             messageRecord.setHashChain(signature.getHashChain());
         }
 
-        messageRecord.setSignatureHash(
-                signatureHash(signature.getSignatureXml()));
+        messageRecord.setSignatureHash(signatureHash(signature.getSignatureXml()));
 
         return saveMessageRecord(messageRecord);
     }
 
-    protected MessageRecord saveMessageRecord(MessageRecord messageRecord)
-            throws Exception {
+    protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
         logRecordManager.saveMessageRecord(messageRecord);
+
         return messageRecord;
     }
 
@@ -293,8 +301,7 @@ public class LogManager extends AbstractLogManager {
      * Calls "atomic" / synchronized method storeTimestampAndSetStatus, so that we can trust in setTimestampFailed
      * that task queue remains in same (empty / non-empty) state between checking and setting status.
      */
-    private TimestampRecord saveTimestampRecord(
-            Timestamper.TimestampSucceeded message) throws Exception {
+    private TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
 
         statusMap.put(message.getUrl(), new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, LocalTime.now()));
@@ -303,8 +310,8 @@ public class LogManager extends AbstractLogManager {
         timestampRecord.setTime(new Date().getTime());
         timestampRecord.setTimestamp(encodeBase64(message.getTimestampDer()));
 
-        String hashChainResult = message.getHashChainResult() != null
-                ? message.getHashChainResult() : null;
+        String hashChainResult = message.getHashChainResult();
+
         timestampRecord.setHashChainResult(hashChainResult);
 
         storeTimestampAndSetStatus(message, timestampRecord);
@@ -322,13 +329,15 @@ public class LogManager extends AbstractLogManager {
      * @throws Exception
      */
     private synchronized void storeTimestampAndSetStatus(Timestamper.TimestampSucceeded message,
-                                                         TimestampRecord timestampRecord) throws Exception {
+            TimestampRecord timestampRecord) throws Exception {
         try {
             persistTimestampRecord(message, timestampRecord);
             setTimestampSucceeded();
         } catch (Exception e) {
             log.error("Failed to save time-stamp record to database", e);
+
             setTimestampFailedRegardlessOfQueue(new DateTime());
+
             throw e;
         }
     }
@@ -339,10 +348,9 @@ public class LogManager extends AbstractLogManager {
      * @param timestampRecord
      * @throws Exception
      */
-    protected void persistTimestampRecord(Timestamper.TimestampSucceeded message,
-                                          TimestampRecord timestampRecord) throws Exception {
-        logRecordManager.saveTimestampRecord(timestampRecord,
-                message.getMessageRecords(), message.getHashChains());
+    protected void persistTimestampRecord(Timestamper.TimestampSucceeded message, TimestampRecord timestampRecord)
+            throws Exception {
+        logRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
     }
 
     boolean isTimestampFailed() {
@@ -389,9 +397,11 @@ public class LogManager extends AbstractLogManager {
                 if (queueIsKnownToBeEmpty()) {
                     log.info("ignoring time stamping fail-status since there are no timestamping tasks in the queue "
                             + "(another time stamping task was successful)");
+
                     return;
                 }
             }
+
             timestampFailed = atTime;
         }
     }
@@ -408,6 +418,7 @@ public class LogManager extends AbstractLogManager {
         } catch (TaskQueue.CannotDetermineTaskQueueSize e) {
             log.error("Cannot determine task queue size", e);
         }
+
         return false;
     }
 
@@ -420,32 +431,29 @@ public class LogManager extends AbstractLogManager {
 
     void verifyCanLogMessage() {
         int period = getAcceptableTimestampFailurePeriodSeconds();
+
         if (period == 0) { // check disabled
             return;
         }
 
         if (ServerConf.getTspUrl().isEmpty()) {
             throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
-                    "Cannot time-stamp messages: "
-                            + "no timestamping services configured");
+                    "Cannot time-stamp messages: no timestamping services configured");
         }
 
         if (isTimestampFailed()) {
             if (new DateTime().minusSeconds(period).isAfter(timestampFailed)) {
-                throw new CodedException(X_MLOG_TIMESTAMPER_FAILED,
-                        "Cannot time-stamp messages");
+                throw new CodedException(X_MLOG_TIMESTAMPER_FAILED, "Cannot time-stamp messages");
             }
         }
     }
 
-    void registerCronJob(JobManager jobManager, String actorName,
-                         Object message, String cronExpression) {
+    private void registerCronJob(JobManager jobManager, String actorName, Object message, String cronExpression) {
         ActorSelection actor = getContext().actorSelection(actorName);
-
         JobDataMap jobData = MessageSendingJob.createJobData(actor, message);
+
         try {
-            jobManager.registerJob(MessageSendingJob.class, actorName + "Job",
-                    cronExpression, jobData);
+            jobManager.registerJob(MessageSendingJob.class, actorName + "Job", cronExpression, jobData);
         } catch (SchedulerException e) {
             log.error("Unable to schedule job", e);
         }
@@ -460,11 +468,9 @@ public class LogManager extends AbstractLogManager {
     }
 
     /**
-     * Timestamper job is responsible for firing up the timestamping
-     * periodically.
+     * Timestamper job is responsible for firing up the timestamping periodically.
      */
     public static class TimestamperJob extends UntypedActor {
-
         private static final int MIN_INTERVAL_SECONDS = 60;
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
 
@@ -477,6 +483,8 @@ public class LogManager extends AbstractLogManager {
 
         @Override
         public void onReceive(Object message) throws Exception {
+            log.trace("onReceive({})", message);
+
             if (START_TIMESTAMPING.equals(message)) {
                 handle(message);
                 schedule(getNextDelay());
@@ -486,8 +494,7 @@ public class LogManager extends AbstractLogManager {
         }
 
         private void handle(Object message) {
-            getContext().actorSelection("../" + TASK_QUEUE_NAME).tell(message,
-                    getSelf());
+            getContext().actorSelection("../" + TASK_QUEUE_NAME).tell(message, getSelf());
         }
 
         @Override
@@ -503,22 +510,20 @@ public class LogManager extends AbstractLogManager {
         }
 
         private void schedule(FiniteDuration delay) {
-            tick = getContext().system().scheduler().scheduleOnce(delay,
-                    getSelf(), START_TIMESTAMPING, getContext().dispatcher(),
-                    ActorRef.noSender());
+            tick = getContext().system().scheduler().scheduleOnce(delay, getSelf(), START_TIMESTAMPING,
+                    getContext().dispatcher(), ActorRef.noSender());
         }
 
         private FiniteDuration getNextDelay() {
             int actualInterval = MIN_INTERVAL_SECONDS;
+
             try {
                 actualInterval = GlobalConf.getTimestampingIntervalSeconds();
             } catch (Exception e) {
                 log.error("Failed to get timestamping interval", e);
             }
 
-            int intervalSeconds =
-                    Math.min(Math.max(actualInterval,
-                            MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
+            int intervalSeconds = Math.min(Math.max(actualInterval, MIN_INTERVAL_SECONDS), MAX_INTERVAL_SECONDS);
 
             return Duration.create(intervalSeconds, TimeUnit.SECONDS);
         }

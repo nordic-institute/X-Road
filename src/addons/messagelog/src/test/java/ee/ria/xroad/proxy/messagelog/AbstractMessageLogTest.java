@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.DeadLetter;
@@ -31,6 +34,9 @@ import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -38,38 +44,36 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
+import static org.junit.Assert.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPING_POST_WORKER;
 
 @Slf4j
 abstract class AbstractMessageLogTest {
 
-    protected JobManager jobManager;
-    protected ActorSystem actorSystem;
-    protected LogManager logManager;
+    JobManager jobManager;
+    ActorSystem actorSystem;
+    LogManager logManager;
 
     @Getter
     private TestActorRef<LogManager> logManagerRef;
 
-    protected void testSetUp() throws Exception {
+    void testSetUp() throws Exception {
         testSetUp(false);
     }
 
-    private List<DeadLetter> deadLetters = new ArrayList<DeadLetter>();
-    public List<DeadLetter> getDeadLetters() {
+    private List<DeadLetter> deadLetters = new ArrayList<>();
+
+    List<DeadLetter> getDeadLetters() {
         return deadLetters;
     }
-    public void clearDeadLetters() {
-        deadLetters = new ArrayList<DeadLetter>();
+
+    private void clearDeadLetters() {
+        deadLetters = new ArrayList<>();
     }
-    public synchronized void addDeadLetter(DeadLetter d) {
+
+    synchronized void addDeadLetter(DeadLetter d) {
         deadLetters.add(d);
     }
 
@@ -83,6 +87,7 @@ abstract class AbstractMessageLogTest {
         public void onReceive(Object message) {
             if (message instanceof DeadLetter) {
                 log.info("dead letter: " + message);
+
                 test.addDeadLetter((DeadLetter) message);
             }
         }
@@ -91,93 +96,86 @@ abstract class AbstractMessageLogTest {
     protected void testSetUp(boolean timestampImmediately) throws Exception {
         jobManager = new JobManager();
         jobManager.start();
+
         clearDeadLetters();
 
-        actorSystem = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy")
-                        .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
+        actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
+                .withValue("akka.remote.netty.tcp.port", ConfigValueFactory.fromAnyRef(0)));
 
-        actorSystem.eventStream().subscribe(
-                actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
+        actorSystem.eventStream().subscribe(actorSystem.actorOf(Props.create(DeadLetterActor.class, this)),
                 DeadLetter.class);
 
-        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY,
-                timestampImmediately ? "true" : "false");
+        System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
         System.setProperty(MessageLogProperties.SOAP_BODY_LOGGING_ENABLED, "true");
 
-        logManagerRef = TestActorRef.create(actorSystem,
-                Props.create(getLogManagerImpl(), jobManager),
+        logManagerRef = TestActorRef.create(actorSystem, Props.create(getLogManagerImpl(), jobManager),
                 MessageLog.LOG_MANAGER);
 
         logManager = logManagerRef.underlyingActor();
     }
 
-    /**
-     * Use this to print Akka configuration out to log.
-     * May be useful when solving problems.
-     */
+    // Use this to print Akka configuration out to log. May be useful when solving problems.
     protected void logAkkaConfiguration() {
-        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
-                setComments(false).setJson(false);
+        ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults()
+                .setOriginComments(false)
+                .setComments(false)
+                .setJson(false);
         String configString = ConfigFactory.load().root().render(renderOpts);
-        log.info("akka configuration:");
-        log.info(configString);
+
+        log.info("akka configuration: {}", configString);
     }
 
-    protected void testTearDown() throws Exception {
+    void testTearDown() throws Exception {
         jobManager.stop();
         actorSystem.shutdown();
     }
 
-    protected Class<? extends AbstractLogManager> getLogManagerImpl()
-            throws Exception {
+    protected Class<? extends AbstractLogManager> getLogManagerImpl() throws Exception {
         return LogManager.class;
     }
 
-    protected void initLogManager() throws Exception {
+    void initLogManager() throws Exception {
         signalTimestampingStatus(SetTimestampingStatusMessage.Status.SUCCESS);
     }
 
     /**
-     * Sends time stamping status message to logManager
-     * @param status
+     * Sends time stamping status message to timestamping post worker
+     * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
-        SetTimestampingStatusMessage statusMessage = new SetTimestampingStatusMessage(status);
-        logManagerRef.tell(statusMessage, ActorRef.noSender());
+        actorSystem.actorSelection(component(TIMESTAMPING_POST_WORKER))
+                .tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
     }
 
-    protected void log(SoapMessageImpl message, SignatureData signature)
-            throws Exception {
+    protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
         logManager.log(message, signature, true);
     }
 
-    protected TimestampRecord timestamp(MessageRecord record) throws Exception {
+    TimestampRecord timestamp(MessageRecord record) throws Exception {
         return logManager.timestamp(record.getId());
     }
 
-    protected void startTimestamping() {
-        actorSystem.actorSelection(component(LogManager.TASK_QUEUE_NAME)).tell(
-                TaskQueue.START_TIMESTAMPING, ActorRef.noSender());
+    void startTimestamping() {
+        actorSystem.actorSelection(component(LogManager.TASK_QUEUE_NAME)).tell(TaskQueue.START_TIMESTAMPING,
+                ActorRef.noSender());
     }
 
-    protected void startArchiving() {
-        actorSystem.actorSelection(component(LogManager.ARCHIVER_NAME)).tell(
-                LogArchiver.START_ARCHIVING, ActorRef.noSender());
+    void startArchiving() {
+        actorSystem.actorSelection(component(LogManager.ARCHIVER_NAME)).tell(LogArchiver.START_ARCHIVING,
+                ActorRef.noSender());
     }
 
-    protected void startCleaning() {
-        actorSystem.actorSelection(component(LogManager.CLEANER_NAME)).tell(
-                LogCleaner.START_CLEANING, ActorRef.noSender());
+    void startCleaning() {
+        actorSystem.actorSelection(component(LogManager.CLEANER_NAME)).tell(LogCleaner.START_CLEANING,
+                ActorRef.noSender());
     }
 
-    protected void awaitTermination() {
+    void awaitTermination() {
         actorSystem.awaitTermination();
     }
 
-    protected static void assertMessageRecord(Object o, String queryId)
-            throws Exception {
+    static void assertMessageRecord(Object o, String queryId) throws Exception {
         assertNotNull(o);
         assertTrue(o instanceof MessageRecord);
 

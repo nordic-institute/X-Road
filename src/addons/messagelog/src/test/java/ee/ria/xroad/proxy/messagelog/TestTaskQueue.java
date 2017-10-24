@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import lombok.extern.slf4j.Slf4j;
+
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 @Slf4j
 class TestTaskQueue extends TaskQueue {
@@ -39,21 +40,30 @@ class TestTaskQueue extends TaskQueue {
         super();
     }
 
-    public static void waitForMessage() throws Exception {
+    static void initGateLatch() {
+        log.trace("initGateLatch()");
+
+        gate = new CountDownLatch(1);
+    }
+
+    static boolean waitForMessage() throws Exception {
+        log.trace("waitForMessage()");
+
         try {
-            boolean result = gate.await(10, TimeUnit.SECONDS);
+            return gate.await(10, TimeUnit.SECONDS);
         } finally {
             gate = new CountDownLatch(1);
         }
     }
 
-    public static Object getLastMessage() {
+    static Object getLastMessage() {
         return lastMessage;
     }
 
     @Override
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
-        log.info("handleTimestampSucceeded");
+        log.trace("handleTimestampSucceeded()");
+
         try {
             lastMessage = message;
             super.handleTimestampSucceeded(message);
@@ -64,7 +74,8 @@ class TestTaskQueue extends TaskQueue {
 
     @Override
     protected void handleTimestampFailed(TimestampFailed message) {
-        log.info("handleTimestampSucceeded");
+        log.info("handleTimestampFailed");
+
         try {
             lastMessage = message;
             super.handleTimestampFailed(message);
@@ -77,5 +88,4 @@ class TestTaskQueue extends TaskQueue {
     protected void handleStartTimestamping() {
         super.handleStartTimestamping();
     }
-
 }
