@@ -117,6 +117,14 @@ Pre-depends:
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
+Package: xroad-securityserver-ee
+Conflicts: xroad-centralserver
+Architecture: all
+Depends: xroad-securityserver (>=${source:Upstream-Version}), xroad-addon-opmonitoring (>=${source:Upstream-Version})
+Pre-Depends:
+Description: X-Road security server with Estonian settings
+ This is meta-package of X-Road security server with Estonian settings.
+
 Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
