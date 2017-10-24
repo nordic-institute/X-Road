@@ -247,6 +247,8 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
 
+    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
+
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
     /** The default value of the on/off switch for a group of settings that affect whether or not pooled connections
@@ -461,6 +463,10 @@ public final class SystemProperties {
     /** Property name of environmental monitor port. */
     public static final String ENV_MONITOR_PORT =
             PREFIX + "env-monitor.port";
+
+    /** Property name of environmental monitor limiting remote data set. */
+    public static final String ENV_MONITOR_LIMIT_REMOTE_DATA_SET =
+            PREFIX + "env-monitor.limit-remote-data-set";
 
     /** Property name of system metrics sensor interval. */
     public static final String ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL =
@@ -978,6 +984,14 @@ public final class SystemProperties {
      */
     public static int getEnvMonitorPort() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_PORT, "2552"));
+    }
+
+    /**
+     * @return enviroonmental monitoring limiting remote return data set, 'false' by default.
+     */
+    public static boolean getEnvMonitorLimitRemoteDataSet() {
+        return Boolean.parseBoolean(System.getProperty(ENV_MONITOR_LIMIT_REMOTE_DATA_SET,
+                DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET));
     }
 
     /**

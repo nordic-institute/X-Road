@@ -20,7 +20,7 @@ Vagrant.configure("2") do |config|
        vb.customize [
          'createhd',
          '--filename', file_to_disk,
-         '--size', 10 * 1024
+         '--size', 20 * 1024
        ]
        vb.customize [
        	 'storageattach', :id,

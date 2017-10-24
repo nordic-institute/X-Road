@@ -80,6 +80,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -284,7 +285,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(anyList())).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -369,7 +370,8 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList())).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(),
+                anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
