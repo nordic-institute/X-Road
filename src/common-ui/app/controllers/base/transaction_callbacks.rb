@@ -37,8 +37,20 @@ module Base
     end
 
     def reset_transaction_callbacks
+      if @reset_disabled
+        logger.debug("reset transaction callbacks disabled")
+        return
+      end
+
+      logger.debug("reset transaction callbacks")
+
       @after_commit = []
       @after_rollback = []
+    end
+
+    def single_shot_reset_transaction_callbacks
+       reset_transaction_callbacks
+       @reset_disabled = true
     end
 
     def execute_after_commit_actions
