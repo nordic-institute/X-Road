@@ -224,20 +224,50 @@ while getopts ":FSt:i:s:n:f:b" opt ; do
   esac
 done
 
+echo "acquire_lock"
 acquire_lock $@
+echo $?
+echo "check_server_type"
 check_server_type
+echo $?
+echo "check_is_correct_tarball"
 check_is_correct_tarball
+echo $?
+echo "make_tarball_label"
 make_tarball_label
+echo $?
+echo "check_tarball_label"
 check_tarball_label
+echo $?
+echo "clear_shared_memory"
 clear_shared_memory
+echo $?
+echo "stop_services"
 stop_services
+echo $?
+echo "create_pre_restore_backup"
 create_pre_restore_backup
+echo $?
+echo "setup_tmp_restore_dir"
 setup_tmp_restore_dir
+echo $?
+echo "extract_to_tmp_restore_dir"
 extract_to_tmp_restore_dir
+echo $?
+echo "remove_old_existing_files"
 remove_old_existing_files
+echo $?
+echo "restore_configuration_files"
 restore_configuration_files
+echo $?
+echo "restore_database"
 restore_database
+echo $?
+echo "remove_tmp_restore_dir"
 remove_tmp_restore_dir
+echo $?
+echo "restart_services"
 restart_services
+echo $?
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

@@ -73,9 +73,17 @@ while getopts ":t:i:s:n:f:b" opt ; do
   esac
 done
 
+echo "check_server_type"
 check_server_type
+echo $?
+echo "create_database_backup"
 create_database_backup
+echo $?
+echo "make_tarball_label"
 make_tarball_label
+echo $?
+echo "create_backup_tarball"
 create_backup_tarball
+echo $?
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
