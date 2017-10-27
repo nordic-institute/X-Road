@@ -268,6 +268,6 @@ remove_tmp_restore_dir
 echo $?
 echo "restart_services"
 restart_services
-# echo $?
+echo $?
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
