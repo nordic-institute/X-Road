@@ -61,7 +61,6 @@ The XML Schema for this extension is also listed in the section [XML Schema for 
 
 Note that at the moment, there is no unifying schema that would combine the message protocol and this extension under
 the same namespace. That means there is no single schema that would validate an X-Road message with this extension in use.
-It should be possible to validate the messages using a validator that accepts multiple schemas from the same namespace.
 
 
 ### Schema header
