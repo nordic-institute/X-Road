@@ -6,6 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  06.07.2015 | 0.1     | Initial draft                                                   |
  23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
+ 14.11.2017 | 0.3     | Estonia descriptions removed ...                                | Antti Luoma
 
 ## Table of Contents
 
@@ -38,91 +39,65 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 X-Road and X-Road Instance
 
-**X-Road instance** (*X-tee keskkond*)– legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of X-Road and limited to the participants administered by one governing authority.
+**X-Road instance** – legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of X-Road and limited to the participants administered by one governing authority.
 
-> **X-tee keskkond** (*X-Road instance*) – X-tee liikmete vahelist turvalist ja tõestusväärtust tagavat internetipõhist andmevahetust võimaldav tehniline infrastruktuur ja organisatsiooniline keskkond.
+**United/federated X-Road** – legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of united/federated X-Road instances
 
-**United/federated X-Road** (*X-tee ühendus*) – legal, organizational and technical environment, enabling universal internet-based secure data exchange between the members of united/federated X-Road instances
+**Local X-Road instance** A group of members that are registered in a particular instance.
 
-> **X-tee …** (*United/federated X-Road*) – ühendatud X-tee keskkondade liikmete vahelist turvalist ja tõestusväärtust tagavat internetipõhist andmevahetust võimaldav tehniline infrastruktuur ja organisatsiooniline keskkond.
-
-**Local X-Road instance** (*kohalik X-tee keskkond*)
-
-**External X-Road instance** (*väline X-tee keskkond*)
+**External X-Road instance** an instance that has been federated with the local instance. For example the FI-instance is defined as an external instance in the EE's local point of view.
 
 ## 2 Participants of X-Road
 
-**X-Road governing authority** (*X-teed haldav asutus*) – authority, that sets the requirements for using X-road and establishing the procedure for using X-Road, managing and regulating participants of X-Road.
+**X-Road governing authority** – authority, that sets the requirements for using X-road and establishing the procedure for using X-Road, managing and regulating participants of X-Road.
 
-**X-Road Center** (*X-tee keskus*) - participant of X-Road administering components of the X-Road software centre.
+**X-Road Center** - participant of X-Road administering components of the X-Road software centre.
 
-**X-Road member / member** (*X-tee liige / liige*) – participant of X-Road entitled to exchange data/messages on X-Road.
+**X-Road member / member** – participant of X-Road entitled to exchange data/messages on X-Road.
 
-> **X-tee liige** on isik, kellel on õigus kasutada X-teed andmevahetuseks.
+**Local member** – a member entitled to exchange data/messages on the united X-Road and managed by governing authority of the local X-Road instance.
 
-**Local member** (*… liige*) – a member entitled to exchange data/messages on the united X-Road and managed by governing authority of the local X-Road instance.
+**United / Federated member** – a member entitled to exchange data/messages on their behalf on the united X-Road, but managed by governing authority of the external X-Road instance.
 
-**United / Federated member** (*ühendatud X-tee liige)* – a member entitled to exchange data/messages on their behalf on the united X-Road, but managed by governing authority of the external X-Road instance.
+**End user of dataservice** – information system, part of information system or physical person, who uses data service through the information system of X-Road member.
 
-**End user of dataservice** (*andmeteenuse lõppkasutaja*) – information system, part of information system or physical persoon, who uses data service through the inforamtion system of X-Road member.
-
-> **Andmeteenuse lõppkasutaja** on infosüsteem või selle osa või füüsiline isik, kes kasutab andmeteenust X-tee liikme infosüsteemi vahendusel.
-
-**Approved trust service provider** (*tunnustatud usaldusteenuse osutaja*) – participant of X-Road, who meets the requirements established by X-Road governing authority and has passed the process of recognition of X-Road trust service provider.
+**Approved trust service provider** – participant of X-Road, who meets the requirements established by X-Road governing authority and has passed the process of recognition of X-Road trust service provider.
 
 ## 3 Trust services
 
-**Approved certification service provider** (*tunnustatud sertifitseerimisteenuse osutaja*) – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and sertificate validation service (OCSP).
+**Approved certification service provider** – Provider of a trust service approved on X-Road, who provides at least following trust services approved on X-Road: service of authentication certificate of security server, service of signature certificate of a member, and sertificate validation service (OCSP).
 
-**Approved timestamp service provider** (*tunnustatud ajatempliteenuse osutaja*) – Provider of a trust service approved on X-Road, who provides the timestamp service.
+**Approved timestamp service provider** – Provider of a trust service approved on X-Road, who provides the timestamp service.
 
-**Authentication certificate of security server** (*turvaserveri autentimissertifikaat*) – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to security server, certifying authenticity of security server and used for authentication of security servers upon establishment of connection between security servers. Upon establishment of connection, it is checked from global configuration, if the security server trying to establish connection has registered the used authentication certificate in X-Road governing authority (i.e. the used authentication certificate is bound to the ID of security server).
+**Authentication certificate of security server** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to security server, certifying authenticity of security server and used for authentication of security servers upon establishment of connection between security servers. Upon establishment of connection, it is checked from global configuration, if the security server trying to establish connection has registered the used authentication certificate in X-Road governing authority (i.e. the used authentication certificate is bound to the ID of security server).
 
-> **Turvaserveri autentimissertifikaat** (*authentication sertificate (of security server)*) – X-teel tunnustatud sertifitseerimisteenuse osutaja väljastatud ja turvaserveriga seotud sertifikaat, mis tõendab turvaserveri autentsust ja mida kasutatakse turvaserverite autentimiseks turvaserverite vahelise ühenduse loomisel. Ühenduse loomisel kontrollitakse globaalsest konfiguratsioonist, kas ühendust luua üritav turvaserver on kasutatava autentimissertifikaadi X-tee keskuses registeerinud (st kas kasutatav autentimissertifkaat on seotud turvaserveri identifikaatoriga).
-
-**Signature certificate of a member** (*liikme e-templi sertifikaat*) – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to a member, used for verification of the integrity of mediated messages and association of the member with the message.
-
-> **Liikme allkirjasertifikaat** (*signature sertificate (of member)*) – X-teel tunnustatud sertiftiseerimisteenuse osutaja väljastatud ja liikmega seotud e-templi sertifikaat, mida kasutatakse vahendatavate sõnumite tervikluse tõendamiseks ning tõendamaks liikme seost sõnumiga.
+**Signature certificate of a member** – qualified certificate of e-stamp issued by certification service provider approved on X-Road and bound to a member, used for verification of the integrity of mediated messages and association of the member with the message.
 
 **Validation service** (OCSP) – Validation service of the validity of certificate issued by certification service provider approved on X-Road.
 
-> **Kehtivuskinnituse teenus** (*OCSP*) – X-teel tunnustatud sertifitseerimisteenuse osutaja väljastatud sertifikaadi kehtivuse kinnituse teenus.
-
 **Timestamp** – means data in electronic form which binds other data in electronic form to a particular time establishing evidence that the latter data existed at that time (EU No 910/2014)
-
-> **Ajatempel** - elektroonilised andmed, mis seovad muud elektroonilised andmed kindla ajahetkega ja tõendavad, et need andmed olid sel ajahetkel olemas on.
 
 ## 4 Roles of X-Road member
 
 ### 4.1 In terms of dataservice
 
-**Dataservice provider** (*andmeteenuse osutaja*) – member of X-Road responsible for dataservice provision, incl. granting the service SLA, managing the agreements with dataservice clients, granting access rights etc. Technically, dataservice provider is a party of interaction sending the response.
+**Dataservice provider** – member of X-Road responsible for dataservice provision, incl. granting the service SLA, managing the agreements with dataservice clients, granting access rights etc. Technically, dataservice provider is a party of interaction sending the response.
 
-> **Andmeteenuse osutaja** on X-tee liige, kes osutab teistele liikmetele andmeteenust. Tarkvaras on andmeteenuse osutaja on interaktsiooni osapool, kes edastab vastussõnumi.
+**Dataservice client** – member of X-Road responsible for using the dataservice in accordance with dataservice usage agreements. Technically, dataservice client is a party of interaction sending the request.
 
-**Dataservice client** (*andmeteenuse kasutaja*) – member of X-Road responsible for using the dataservice in accordance with dataservice usage agreements. Technically, dataservice client is a party of interaction sending the request.
-
-> **Andmeteenuse kasutaja** on X-tee liige, kes kasutab andmeteenust. Tarkvaras, on andmeteenuse kasutaja interaktsiooni osapool, kes edastab päringusõnumi.
-
-**Dataservice host** (*andmeteenuse vahendaja*) - A member enabling access to X-Road services through their information system (as the provider or user of the service) for natural or legal persons, who need not be members of X-Road.
-
-> **Andmeteenuse vahendaja** on X-tee liige, kes võimaldab enda organisatsioonivälistele füüsilistele või juriidilistele isikutele juurdepääsu andmeteenusele oma infosüsteemi vahendusel.
+**Dataservice host** - A member enabling access to X-Road services through their information system (as the provider or user of the service) for natural or legal persons, who need not be members of X-Road.
 
 ### 4.2 In terms of management of security server
 
-**Security server owner** (*turvaserveri omanik*) – a member responsible for security server and creation of a secure data exchange channel.
+**Security server owner** – a member responsible for security server and creation of a secure data exchange channel.
 
-> **Turvaserveri omanik** (*security server owner*) – liige, kes vastutab turvaserveri ja turvalise andmevahetuskanali loomise eest.
+**Security server client** – a member or subsystem of a member, whose relation with security server is registered in X-Road governing authority and who can use the security server on behalf of a member to exchange data on X-Road.
 
-**Security server client** (*turvaserveri klient*) – a member or subsystem of a member, whose relation with security server is registered in X-Road governing authority and who can use the security server on behalf of a member to exchange data on X-Road.
-
-> **Turvaserveri klient** (*security server client*) – liige või liikme alamsüsteem, kelle seos turvaserveriga on registreeritud X-tee keskuses ning kes saab turvaserverit kasutada liikme nimel andmete vahetamiseks X-teel.
-
-**Security server host** (*turvaserveri majutaja*) – Member who provides security server hosting services to third parties and other members.
+**Security server host** – Member who provides security server hosting services to third parties and other members.
 
 ## 5 X-Road interfacing steps
 
-**Affiliation of membership** (*X-teega liitumine*) – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
+**Affiliation of membership** – a process ending with becoming a member of X-Road. Becoming a member requires conclusion of affiliation contract and registration of data of the member (name and ID of the member) in X-Road central server. Requirements for affiliation are established by X-Road governing authority with relevant regulation/affiliation conditions
 
 > **X-teega liitumine** – protsess, mis lõpeb X-tee liikmeks saamisega. Protsess sisaldab liitumistingimustega nõustumist ja liikme andmete registreerimist keskserveris. Liitumistingimused kehtestab X-teed haldav asutus.
 
