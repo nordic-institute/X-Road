@@ -22,8 +22,10 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.Arrays;
-import java.util.List;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
@@ -33,13 +35,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
+import java.util.Arrays;
+import java.util.List;
 
 import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPER_NAME;
-import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPING_POST_WORKER;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 
 /**
@@ -67,36 +66,61 @@ public class TaskQueue extends UntypedActor {
     }
 
     protected void handleTimestampSucceeded(TimestampSucceeded message) {
+        log.trace("handleTimestampSucceeded");
+
         if (log.isTraceEnabled()) {
             log.trace("Time-stamped message records {}", Arrays.toString(message.getMessageRecords()));
         }
 
-        sendSavedTimestampToTimestampingPostWorker(message);
+        boolean succeeded = true;
+
+        try {
+            saveTimestampRecord(message);
+        } catch (Exception e) {
+            log.error("Failed to save time-stamp record to database", e);
+
+            succeeded = false;
+        } finally {
+            if (succeeded) {
+                indicateSuccess();
+            } else {
+                indicateFailure();
+            }
+        }
+    }
+
+    protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
+        LogManager.saveTimestampRecord(message);
+    }
+
+    private void indicateSuccess() {
+        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.SUCCESS);
+    }
+
+    private void indicateFailure() {
+        // If the timestamping task queue is currently empty, it means some previous timestamping task was successful
+        // already. In that case do not indicate failure to the LogManager, otherwise the message logging may block
+        // (in non-timestamp-immediately mode) in case further no more messages are logged until the acceptable
+        // timestamp failure period is reached.
+        if (isTaskQueueEmpty()) {
+            return;
+        }
+
+        sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
     }
 
     /**
-     * Sends successfully time stamped data to timestamping post worker for storing.
-     * @param message timestamp succeeded message
+     * Sends timestamping status message to LogManager.
+     * @param status timestamping status message.
      */
-    private void sendSavedTimestampToTimestampingPostWorker(TimestampSucceeded message) {
-        sendToTimestampingPostWorker(new SaveTimestampedDataMessage(message));
-    }
-
-    /**
-     * Sends time stamping status message to timestamping post worker.
-     * @param status timestamping status message
-     */
-    private void sendTimestampingStatusToTimestampingPostWorker(SetTimestampingStatusMessage.Status status) {
-        sendToTimestampingPostWorker(new SetTimestampingStatusMessage(status));
-    }
-
-    private void sendToTimestampingPostWorker(Object message) {
-        ActorSelection worker = getContext().actorSelection("../" + TIMESTAMPING_POST_WORKER);
-        worker.tell(message, ActorRef.noSender());
+    private void sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status status) {
+        getContext().parent().tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
     }
 
     protected void handleTimestampFailed(TimestampFailed message) {
-        sendTimestampingStatusToTimestampingPostWorker(SetTimestampingStatusMessage.Status.FAILURE);
+        log.trace("handleTimestampFailed");
+
+        indicateFailure();
     }
 
     protected void handleStartTimestamping() {
@@ -138,26 +162,13 @@ public class TaskQueue extends UntypedActor {
         return new TimestampTask(messageRecords, signatureHashes);
     }
 
-    /**
-     * @return whether timestamping task queue is empty or not
-     * @throws CannotDetermineTaskQueueSize if queue status could not be determined
-     */
-    static boolean isTimestampTasksEmpty() throws CannotDetermineTaskQueueSize {
+    private static boolean isTaskQueueEmpty() {
         try {
-            Long number = doInTransaction(TaskQueue::getTimestampTasksCount);
-
-            return number == 0;
+            return doInTransaction(TaskQueue::getTasksQueueSize) == 0L;
         } catch (Exception e) {
-            throw new CannotDetermineTaskQueueSize("could not read timestamp task queue status", e);
-        }
-    }
+            log.error("Could not read timestamp task queue status", e);
 
-    /**
-     * Thrown if we cannot find out the size of timestamping task queue size (for example because database is broken)
-     */
-    public static class CannotDetermineTaskQueueSize extends RuntimeException {
-        public CannotDetermineTaskQueueSize(String s, Throwable throwable) {
-            super(s, throwable);
+            return false;
         }
     }
 
@@ -168,7 +179,7 @@ public class TaskQueue extends UntypedActor {
     }
 
     @SuppressWarnings("unchecked")
-    private static Long getTimestampTasksCount(Session session) {
+    private static Long getTasksQueueSize(Session session) {
         return (Long) session.createQuery(getTaskQueueSizeQuery()).uniqueResult();
     }
 
@@ -177,7 +188,7 @@ public class TaskQueue extends UntypedActor {
                 + "from MessageRecord m where m.signatureHash is not null";
     }
 
-    static String getTaskQueueSizeQuery() {
+    private static String getTaskQueueSizeQuery() {
         return "select COUNT(*) from MessageRecord m where m.signatureHash is not null";
     }
 }

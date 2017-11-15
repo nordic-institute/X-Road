@@ -22,19 +22,24 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 class TestTaskQueue extends TaskQueue {
 
     private static CountDownLatch gate = new CountDownLatch(1);
     private static Object lastMessage;
+
+    // Countdownlatch for waiting for next timestamp record save.
+    private static CountDownLatch timestampSavedLatch = new CountDownLatch(1);
+
+    static Exception throwWhenSavingTimestamp;
 
     TestTaskQueue() {
         super();
@@ -44,6 +49,12 @@ class TestTaskQueue extends TaskQueue {
         log.trace("initGateLatch()");
 
         gate = new CountDownLatch(1);
+    }
+
+    static void initTimestampSavedLatch() {
+        log.trace("initTimestampSavedLatch");
+
+        timestampSavedLatch = new CountDownLatch(1);
     }
 
     static boolean waitForMessage() throws Exception {
@@ -58,6 +69,34 @@ class TestTaskQueue extends TaskQueue {
 
     static Object getLastMessage() {
         return lastMessage;
+    }
+
+    /**
+     * Waits for a call to saveTimestampRecord for a defined time.
+     * @return true when call came, false if timeouted waiting.
+     * @throws Exception
+     */
+    static boolean waitForTimestampSaved() throws Exception {
+        log.trace("waitForTimestampSaved()");
+
+        try {
+            return timestampSavedLatch.await(5, TimeUnit.SECONDS);
+        } finally {
+            timestampSavedLatch = new CountDownLatch(1);
+        }
+    }
+
+    @Override
+    protected void saveTimestampRecord(TimestampSucceeded message) throws Exception {
+        try {
+            if (throwWhenSavingTimestamp != null) {
+                throw throwWhenSavingTimestamp;
+            }
+
+            super.saveTimestampRecord(message);
+        } finally {
+            timestampSavedLatch.countDown();
+        }
     }
 
     @Override

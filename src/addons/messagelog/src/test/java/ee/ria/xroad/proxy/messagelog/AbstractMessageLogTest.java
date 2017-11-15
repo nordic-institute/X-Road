@@ -22,8 +22,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.JobManager;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
@@ -37,17 +42,12 @@ import com.typesafe.config.ConfigValueFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.JobManager;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.Assert.*;
-
-import static ee.ria.xroad.proxy.messagelog.LogManager.TIMESTAMPING_POST_WORKER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @Slf4j
 abstract class AbstractMessageLogTest {
@@ -140,12 +140,11 @@ abstract class AbstractMessageLogTest {
     }
 
     /**
-     * Sends time stamping status message to timestamping post worker
+     * Sends time stamping status message to LogManager
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
-        actorSystem.actorSelection(component(TIMESTAMPING_POST_WORKER))
-                .tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
+        logManagerRef.tell(new SetTimestampingStatusMessage(status), ActorRef.noSender());
     }
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {

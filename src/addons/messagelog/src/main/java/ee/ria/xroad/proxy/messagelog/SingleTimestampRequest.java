@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-
-import org.bouncycastle.tsp.TimeStampResponse;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.signature.Signature;
+
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.tsp.TimeStampResponse;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /**
  * Creates a timestamp request for a single message.
@@ -39,9 +39,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 class SingleTimestampRequest extends AbstractTimestampRequest {
-
-    private final LogRecordManager logRecordManager = new LogRecordManager();
-
     private MessageRecord message;
     private Signature signature;
 
@@ -51,10 +48,10 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
 
     @Override
     byte[] getRequestData() throws Exception {
-        LogRecord record = logRecordManager.get(logRecords[0]);
+        LogRecord record = LogRecordManager.get(logRecords[0]);
+
         if (record == null || !(record instanceof MessageRecord)) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    "Could not find message record #" + logRecords[0]);
+            throw new CodedException(X_INTERNAL_ERROR, "Could not find message record #" + logRecords[0]);
         }
 
         message = (MessageRecord) record;
@@ -70,12 +67,10 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
 
         updateSignatureProperties(timestampDer);
 
-        return new Timestamper.TimestampSucceeded(logRecords, timestampDer,
-                null, null, url);
+        return new Timestamper.TimestampSucceeded(logRecords, timestampDer, null, null, url);
     }
 
-    private void updateSignatureProperties(byte[] timestampDer)
-            throws Exception {
+    private void updateSignatureProperties(byte[] timestampDer) throws Exception {
         log.trace("Updating unsigned signature properties");
 
         signature.addSignatureTimestamp(timestampDer);
@@ -85,6 +80,6 @@ class SingleTimestampRequest extends AbstractTimestampRequest {
         message.setSignature(signatureXml);
         message.setSignatureHash(LogManager.signatureHash(signatureXml));
 
-        logRecordManager.updateMessageRecord(message);
+        LogRecordManager.updateMessageRecord(message);
     }
 }
