@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import static ee.ria.xroad.common.ErrorCodes.X_LOGGING_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMPING_FAILED_X;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogRecord;
@@ -36,6 +31,9 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -46,8 +44,8 @@ import ee.ria.xroad.common.messagelog.TimestampMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
-import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Contains methods for saving entries to the message log.
@@ -59,8 +57,7 @@ public final class MessageLog {
 
     public static final String LOG_MANAGER = "LogManager";
 
-    private static final String LOG_MANAGER_IMPL_CLASS =
-            SystemProperties.PREFIX + "proxy.messageLogManagerImpl";
+    private static final String LOG_MANAGER_IMPL_CLASS = SystemProperties.PREFIX + "proxy.messageLogManagerImpl";
     public static final String CONTROL_AWARE_DISPATCHER = "akka.control-aware-dispatcher";
 
     private static ActorRef logManager;
@@ -69,20 +66,18 @@ public final class MessageLog {
     }
 
     /**
-     * Initializes the message log using the provided actor system.
-     * Use control aware mailbox.
+     * Initializes the message log using the provided actor system. Use control aware mailbox.
      *
      * @param actorSystem the actor system
      * @param jobManager the job manager
      * @throws Exception if initialization fails
      */
-    public static void init(ActorSystem actorSystem,
-            JobManager jobManager) throws Exception {
+    public static void init(ActorSystem actorSystem, JobManager jobManager) throws Exception {
         Class<? extends AbstractLogManager> clazz = getLogManagerImpl();
+
         log.trace("Using implementation class: {}", clazz);
 
-        logManager = actorSystem.actorOf(Props.create(clazz, jobManager).
-                        withDispatcher(CONTROL_AWARE_DISPATCHER),
+        logManager = actorSystem.actorOf(Props.create(clazz, jobManager).withDispatcher(CONTROL_AWARE_DISPATCHER),
                 LOG_MANAGER);
     }
 
@@ -93,11 +88,10 @@ public final class MessageLog {
      * @param clientSide whether this message is logged by the client proxy
      * @throws Exception if an error occurs
      */
-    public static void log(SoapMessageImpl message, SignatureData signature,
-            boolean clientSide) throws Exception {
+    public static void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception {
         log.trace("log()");
-        try {
 
+        try {
             ask(new LogMessage(message, signature, clientSide));
         } catch (Exception e) {
             throw translateWithPrefix(X_LOGGING_FAILED_X, e);
@@ -112,14 +106,13 @@ public final class MessageLog {
      * @return the log record or null, if log record is not found in database.
      * @throws Exception if an error occurs
      */
-    public static LogRecord findByQueryId(String queryId, Date startTime,
-            Date endTime) throws Exception {
-        log.trace("findByQueryId({}, {}, {})",
-                new Object[] {queryId, startTime, endTime});
+    public static LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception {
+        log.trace("findByQueryId({}, {}, {})", queryId, startTime, endTime);
+
         try {
             assertInitialized();
-            return (LogRecord) ask(
-                    new FindByQueryId(queryId, startTime, endTime));
+
+            return (LogRecord) ask(new FindByQueryId(queryId, startTime, endTime));
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -132,6 +125,7 @@ public final class MessageLog {
      */
     public static TimestampRecord timestamp(MessageRecord record) {
         log.trace("timestamp()");
+
         try {
             return (TimestampRecord) ask(new TimestampMessage(record.getId()));
         } catch (Exception e) {
@@ -141,15 +135,14 @@ public final class MessageLog {
 
     @SuppressWarnings("unchecked")
     private static Class<? extends AbstractLogManager> getLogManagerImpl() {
-        String logManagerImplClassName =
-                System.getProperty(LOG_MANAGER_IMPL_CLASS,
-                        NullLogManager.class.getName());
+        String logManagerImplClassName = System.getProperty(LOG_MANAGER_IMPL_CLASS, NullLogManager.class.getName());
+
         try {
             Class<?> clazz = Class.forName(logManagerImplClassName);
+
             return (Class<? extends AbstractLogManager>) clazz;
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Unable to load log manager impl: "
-                    + logManagerImplClassName, e);
+            throw new RuntimeException("Unable to load log manager impl: " + logManagerImplClassName, e);
         }
     }
 
@@ -163,8 +156,8 @@ public final class MessageLog {
         assertInitialized();
 
         Timeout timeout = new Timeout(ASK_TIMEOUT, TimeUnit.SECONDS);
-        Object result = Await.result(Patterns.ask(logManager, message,
-                timeout), timeout.duration());
+        Object result = Await.result(Patterns.ask(logManager, message, timeout), timeout.duration());
+        
         if (result instanceof Exception) {
             throw (Exception) result;
         } else {

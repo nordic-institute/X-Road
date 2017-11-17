@@ -72,28 +72,36 @@ public class LogManagerTest {
             final Props props = Props.create(MessageRecordingLogManager.class)
                     .withDispatcher("akka.control-aware-dispatcher");
             final ActorRef subject = system.actorOf(props);
+
             // request direct access to logmanager instance
             subject.tell(MessageRecordingLogManager.GET_INSTANCE_MESSAGE, getRef());
             // wait for response with handle to logmanager
             final int timeout = 5000;
             final FiniteDuration timeoutDuration = FiniteDuration.create(timeout, TimeUnit.MILLISECONDS);
             MessageRecordingLogManager logManager = expectMsgClass(timeoutDuration, MessageRecordingLogManager.class);
+
             // stop processing messages
             log.debug("stopping processing");
+
             logManager.stopProcessingMessages();
             // send bunch of messages. first one will be received and
             // then processing stops. once processing is freed, the
             // next one (2nd overall) should be the control message
             List<Future> replies = new ArrayList();
+
             log.debug("asking first message");
+
             replies.add(Patterns.ask(subject, "dummy first message guaranteed to be processed as first item", timeout));
             // wait until the first message has arrived
             // (this is needed for predictable results, otherwise 2nd message may overtake the first
             // on the way to mailbox)
             log.debug("waiting for first message");
+
             logManager.waitForFirstMessageToArrive();
+
             // then the rest of the messages - these are the actual test targets
             log.debug("asking the rest of messages");
+
             replies.add(Patterns.ask(subject, "another-foostring", timeout));
             replies.add(Patterns.ask(subject, new LogMessage(null, null, false), timeout));
             replies.add(Patterns.ask(subject, new FindByQueryId(null, null, null), timeout));
@@ -101,12 +109,16 @@ public class LogManagerTest {
                     SetTimestampingStatusMessage.Status.SUCCESS), timeout));
             // enable processing
             logManager.resumeProcessingMessages();
+
             // wait for all processed
             for (Future f: replies) {
                 Await.ready(f, timeoutDuration);
             }
+
             List<Object> messages = logManager.getMessages();
+
             log.debug("logManager mailbox contents: " + dumpMailbox(messages));
+
             assertEquals(5, messages.size());
             // check that item #2 is the control message
 
@@ -119,12 +131,14 @@ public class LogManagerTest {
     private String dumpMailbox(List<Object> messages) {
         StringBuffer buf = new StringBuffer();
         int number = 1;
+
         for (Object o : messages) {
             buf.append(number++);
             buf.append(".");
             buf.append(o);
             buf.append(" ");
         }
+
         return buf.toString();
     }
 }

@@ -88,6 +88,10 @@ class BaseBackupController < ApplicationController
   end
 
   def restore
+    # WORKAROUND: Restore skips around-filter of the transaction, so lets do some magic to ensure expected audit log!
+    # First, reset manually transaction callbacks, and then disable next resets called afterwards.
+    single_shot_reset_transaction_callbacks
+
     audit_log("Restore configuration", audit_log_data = {})
 
     authorize!(:restore_configuration)

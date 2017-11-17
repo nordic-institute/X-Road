@@ -163,8 +163,10 @@ class ApplicationController < BaseController
       logger.error("Error while executing in transaction: #{$!.message}")
 
       begin
-        logger.debug("rolling back transaction")
-        @tx.rollback
+        if @tx
+          logger.debug("rolling back transaction")
+          @tx.rollback
+        end
       rescue Exception, Java::java.lang.Exception
         logger.error("Error rolling back transaction: #{$!.message}")
       end
