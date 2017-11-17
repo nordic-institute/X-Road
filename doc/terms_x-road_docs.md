@@ -181,7 +181,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Message log** – a log, where exchanged messages are logged and provided with batch signature.
 
-**Infolog** – a log that is made from a security server's system service. For example logs are made from xroad-confclient, -jetty, -proxy, signer services.  
+**System service log** – a log which is made from a running system service of a security server, for example from xroad-confclient, -jetty, -proxy, signer services.  
 
 **Auditlog** log, where the user actions (through user interface), when the user changes the system state or configuration, are logged regardless of whether the outcome was a success or failure.
 
