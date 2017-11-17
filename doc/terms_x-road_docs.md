@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  06.07.2015 | 0.1     | Initial draft                                                   |
  23.02.2017 | 0.2     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF. Added explanation of monitoring service | Toomas Mölder 
- 14.11.2017 | 0.3     | Estonia descriptions removed ...                                | Antti Luoma
+ 14.11.2017 | 0.3     | All the descriptions in estonian language removed. Couple of new descriptions added | Antti Luoma
 
 ## Table of Contents
 
@@ -189,27 +189,26 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.7 Identificators and codes
 
-**X-Road instance identifier** (*X-tee keskkonna identifikaator*) – identifier, that uniquely identifies the X-road instance in the X-Road Network.
+**X-Road instance identifier** – identifier, that uniquely identifies the X-road instance in the X-Road Network.
 
-**Security server identifier** (*turvaserveri identifikaator*) – identifier, that uniquely identifies security server in X-road Network. The security server identifier consists of security server owner identifier and security server code.
+**Security server identifier** – identifier, that uniquely identifies security server in X-road Network. The security server identifier consists of security server owner identifier and security server code.
 
-**Security server code** (*turvaserveri kood*) – identifier, that uniquely identifies the security server in all of the security servers of the security server owner.
+**Security server code** – identifier, that uniquely identifies the security server in all of the security servers of the security server owner.
 
-**Member class** (*X-tee liikmeklass*) - identifier, that is identified by X-Road governing authority and that uniquely identifies members with similar characteristics. Member class must assure the unique member code for each member in member class.
+**Member class** – identifier, that is identified by X-Road governing authority and that uniquely identifies members with similar characteristics. Member class must assure the unique member code for each member in member class.
 
-**Member code** (*liikmekood*) – part of member identifier, that uniquely identifies X-Road member in its memberclass. Member code cannot change for the member.
+**Member code** – part of member identifier, that uniquely identifies X-Road member in its memberclass. Member code cannot change for the member.
 
-**Member identifier** (*liikme identifikaator*) - identifier, that uniquely identifies member in X-Road Network. Member identifier consists of X-Road instance identifier, member class and member code.
+**Member identifier** – identifier, that uniquely identifies member in X-Road Network. Member identifier consists of X-Road instance identifier, member class and member code.
 
-**Subsystem identifier** (*alamsüsteemi identifikaator*) - identifier, that uniquely identifies subsystem in X-Road Network. Subsystem identifier consists of member identifier and subsystem code.
+**Subsystem identifier** – identifier, that uniquely identifies subsystem in X-Road Network. Subsystem identifier consists of member identifier and subsystem code.
 
-**Subsystem code** (*alamsüsteemi kood*) – code, that uniquely identifies subsystem in all of the subsystems of the member.
+**Subsystem code** – code, that uniquely identifies subsystem in all of the subsystems of the member.
 
-**Service identifier** (*teenuse identifikaator*) - identifier, that uniquely identifies service in X-Road Network. The service identifier consists of member identifier of the service provider, service code and version of the service. Including version of the service in the service identifier is optional.
+**Service identifier** – identifier, that uniquely identifies service in X-Road Network. The service identifier consists of member identifier of the service provider, service code and version of the service. Including version of the service in the service identifier is optional.
 
-**Central service identifier** (*keskse teenuse identifikaator*) - identifier, that uniquely identifies service in X-Road network wihtout having a reference for service provider. Central service identifier consists of X-Road instance identifier and central service code.
+**Central service identifier** – identifier, that uniquely identifies service in X-Road network without having a reference for service provider. Central service identifier consists of X-Road instance identifier and central service code.
 
-**Global access group identifier** (*globaalse pääsuõiguste grupi identifikaator*) – identifier, that uniquely identifies access group in X-Road Network. Global access group identifier consists of X-Road instance identifier and global group code.
+**Global access group identifier** – identifier, that uniquely identifies access group in X-Road Network. Global access group identifier consists of X-Road instance identifier and global group code.
 
-**Local access group identifier** (*lokaalse pääsuõiguste grupi identifikaator*) – identifier, that uniquely identifies access group for a security server client. Global access group identifier consists of X-Road instance identifier and global group code.
-
+**Local access group identifier** – identifier, that uniquely identifies access group for a security server client. Global access group identifier consists of X-Road instance identifier and global group code.
