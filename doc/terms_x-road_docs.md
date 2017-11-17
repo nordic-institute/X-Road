@@ -51,7 +51,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **X-Road governing authority** – authority, that sets the requirements for using X-road and establishing the procedure for using X-Road, managing and regulating participants of X-Road.
 
-**X-Road Center** - participant of X-Road administering components of the X-Road software centre.
+**X-Road Center** – participant of X-Road administering components of the X-Road software centre.
 
 **X-Road member / member** – participant of X-Road entitled to exchange data/messages on X-Road.
 
@@ -85,7 +85,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **Dataservice client** – member of X-Road responsible for using the dataservice in accordance with dataservice usage agreements. Technically, dataservice client is a party of interaction sending the request.
 
-**Dataservice host** - A member enabling access to X-Road services through their information system (as the provider or user of the service) for natural or legal persons, who need not be members of X-Road.
+**Dataservice host** – A member enabling access to X-Road services through their information system (as the provider or user of the service) for natural or legal persons, who need not be members of X-Road.
 
 ### 4.2 In terms of management of security server
 
@@ -167,21 +167,21 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.5 X-Road protocols
 
-**Message Transport Protocol** \[PR-MESSTRANSP\] – communications protocol that is used by service client's and service provider's security servers to exchange messages with each other.
+**Message Transport Protocol** – communications protocol that is used by service client's and service provider's security servers to exchange messages with each other.
 
-**Protocol for Downloading Configuration** \[PR-GCONF\] – protocol that is used to distribute configuration to security servers of an X-Road instance.
+**Protocol for Downloading Configuration** – protocol that is used to distribute configuration to security servers of an X-Road instance.
 
-**Federation Protocol** \[PR-FGONF\], currently same as\[PR-GCONF\] – protocol that is used to distribute configuration between two federated X-Road instances.
+**Federation Protocol** – protocol that is used to distribute configuration between two federated X-Road instances.
 
-**Message protocol** \[PR-MESS\] – protocol that is used between information systems and security servers in the X-Road system.
+**Message protocol** – protocol that is used between information systems and security servers in the X-Road system.
 
-**Service Metadata Protocol** \[PR-META\] – protocol that describes methods that can be used by X-Road participants to discover what services are available to them and download the WSDL files describing these services.
+**Service Metadata Protocol** – protocol that describes methods that can be used by X-Road participants to discover what services are available to them and download the WSDL files describing these services.
 
 ### 6.6 Logging and security
 
 **Message log** – a log, where exchanged messages are logged and provided with batch signature.
 
-**Infolog** – a log that is made from a security server's system service. E.g. logs are made from xroad-confclient, -jetty, -proxy, signer services.  
+**Infolog** – a log that is made from a security server's system service. For example logs are made from xroad-confclient, -jetty, -proxy, signer services.  
 
 **Auditlog** log, where the user actions (through user interface), when the user changes the system state or configuration, are logged regardless of whether the outcome was a success or failure.
 
