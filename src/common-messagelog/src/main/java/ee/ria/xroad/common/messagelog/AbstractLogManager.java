@@ -27,12 +27,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import akka.actor.UntypedActor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Base class for log manager actors.
@@ -55,20 +56,24 @@ public abstract class AbstractLogManager extends UntypedActor {
             if (message instanceof LogMessage) {
                 LogMessage m = (LogMessage) message;
                 log(m.getMessage(), m.getSignature(), m.isClientSide());
+
                 getSender().tell(new Object(), getSelf());
             } else if (message instanceof FindByQueryId) {
                 FindByQueryId f = (FindByQueryId) message;
-                LogRecord result = findByQueryId(f.getQueryId(),
-                        f.getStartTime(), f.getEndTime());
+                LogRecord result = findByQueryId(f.getQueryId(), f.getStartTime(), f.getEndTime());
+
                 getSender().tell(result, getSelf());
             } else if (message instanceof TimestampMessage) {
                 try {
                     TimestampMessage m = (TimestampMessage) message;
                     TimestampRecord result = timestamp(m.getMessageRecordId());
+
                     log.info("message: {}, result: {}", message, result);
+
                     getSender().tell(result, getSelf());
                 } catch (Exception e) {
                     log.info("Timestamp failed: {}", e);
+
                     getSender().tell(e, getSelf());
                 }
 
@@ -80,12 +85,9 @@ public abstract class AbstractLogManager extends UntypedActor {
         }
     }
 
-    protected abstract void log(SoapMessageImpl message,
-            SignatureData signature, boolean clientSide) throws Exception;
+    protected abstract void log(SoapMessageImpl message, SignatureData signature, boolean clientSide) throws Exception;
 
-    protected abstract LogRecord findByQueryId(String queryId, Date startTime,
-            Date endTime) throws Exception;
+    protected abstract LogRecord findByQueryId(String queryId, Date startTime, Date endTime) throws Exception;
 
-    protected abstract TimestampRecord timestamp(Long messageRecordId)
-            throws Exception;
+    protected abstract TimestampRecord timestamp(Long messageRecordId) throws Exception;
 }

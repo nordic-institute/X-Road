@@ -23,36 +23,11 @@
         <param-value>1</param-value>
     </context-param>
 
-    <context-param>
-        <param-name>org.eclipse.jetty.servlet.SessionIdPathParameterName</param-name>
-        <param-value>none</param-value>
-    </context-param>
-
-    <filter>
-        <filter-name>AuthFilter</filter-name>
-        <filter-class>ee.ria.xroad.commonui.jaas.AuthFilter</filter-class>
-    </filter>
-
-    <filter>
-        <filter-name>SessionTimeoutFilter</filter-name>
-        <filter-class>ee.ria.xroad.commonui.SessionTimeoutFilter</filter-class>
-    </filter>
-
     <filter>
         <filter-name>RackFilter</filter-name>
         <filter-class>org.jruby.rack.RackFilter</filter-class>
+        <async-supported>true</async-supported>
     </filter>
-
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
-    <filter-mapping>
-        <filter-name>SessionTimeoutFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
     <filter-mapping>
         <filter-name>RackFilter</filter-name>
         <url-pattern>/*</url-pattern>
@@ -63,23 +38,10 @@
     </listener>
 
     <session-config>
-        <session-timeout>30</session-timeout>
         <cookie-config>
             <http-only>true</http-only>
             <secure>true</secure>
         </cookie-config>
     </session-config>
 
-    <login-config>
-        <auth-method>FORM</auth-method>
-        <realm-name>xroad</realm-name>
-        <form-login-config>
-            <form-login-page>
-                /login
-            </form-login-page>
-            <form-error-page>
-                /login?error=1
-            </form-error-page>
-        </form-login-config>
-    </login-config>
 </web-app>

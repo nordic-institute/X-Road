@@ -47,16 +47,13 @@ import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;
 
 /**
  * The main HTTP(S) request handler of the operational monitoring daemon.
- * This class handles the requests for storing and querying operational
- * data (JSON for storing, SOAP for querying).
- * SOAP requests for monitoring data are further processed by the
- * QueryRequestProcessor class.
+ * This class handles the requests for storing and querying operational data (JSON for storing, SOAP for querying).
+ * SOAP requests for monitoring data are further processed by the QueryRequestProcessor class.
  */
 @Slf4j
 final class OpMonitorDaemon implements StartStop {
 
-    private static final String CLIENT_CONNECTOR_NAME =
-            "OpMonitorDaemonClientConnector";
+    private static final String CLIENT_CONNECTOR_NAME = "OpMonitorDaemonClientConnector";
 
     private static final int SSL_SESSION_TIMEOUT = 600;
 
@@ -68,8 +65,7 @@ final class OpMonitorDaemon implements StartStop {
     private Server server = new Server();
 
     private final MetricRegistry healthMetricRegistry = new MetricRegistry();
-    private final JmxReporter reporter = JmxReporter.forRegistry(
-            healthMetricRegistry).build();
+    private final JmxReporter reporter = JmxReporter.forRegistry(healthMetricRegistry).build();
 
     /**
      * Constructor. Creates the connector and request handlers.
@@ -108,21 +104,18 @@ final class OpMonitorDaemon implements StartStop {
 
         String scheme = OpMonitoringSystemProperties.getOpMonitorDaemonScheme();
         ServerConnector connector = "https".equalsIgnoreCase(scheme)
-                ? createDaemonSslConnector(server)
-                : createDaemonConnector(server);
+                ? createDaemonSslConnector(server) : createDaemonConnector(server);
 
         connector.setName(CLIENT_CONNECTOR_NAME);
         connector.setHost(listenAddress);
         connector.setPort(port);
         connector.getConnectionFactories().stream()
                 .filter(cf -> cf instanceof HttpConnectionFactory)
-                .forEach(httpCf -> ((HttpConnectionFactory) httpCf)
-                        .getHttpConfiguration().setSendServerVersion(false));
+                .forEach(httpCf -> ((HttpConnectionFactory) httpCf).getHttpConfiguration().setSendServerVersion(false));
 
         server.addConnector(connector);
 
-        log.info("OpMonitorDaemon {} created ({}:{})",
-                connector.getClass().getSimpleName(), listenAddress, port);
+        log.info("OpMonitorDaemon {} created ({}:{})", connector.getClass().getSimpleName(), listenAddress, port);
     }
 
     private static ServerConnector createDaemonConnector(Server server) {
@@ -139,8 +132,7 @@ final class OpMonitorDaemon implements StartStop {
         cf.setIncludeCipherSuites(CryptoUtils.getINCLUDED_CIPHER_SUITES());
 
         SSLContext ctx = SSLContext.getInstance(CryptoUtils.SSL_PROTOCOL);
-        ctx.init(new KeyManager[] {new OpMonitorSslKeyManager()},
-                new TrustManager[] {new OpMonitorSslTrustManager()},
+        ctx.init(new KeyManager[] {new OpMonitorSslKeyManager()}, new TrustManager[] {new OpMonitorSslTrustManager()},
                 new SecureRandom());
 
         cf.setSslContext(ctx);
@@ -149,12 +141,10 @@ final class OpMonitorDaemon implements StartStop {
     }
 
     private void createHandler() {
-        server.setHandler(
-                new OpMonitorDaemonRequestHandler(healthMetricRegistry));
+        server.setHandler(new OpMonitorDaemonRequestHandler(healthMetricRegistry));
     }
 
     private void registerHealthMetrics() {
-        HealthDataMetrics.registerInitialMetrics(healthMetricRegistry,
-                this::getStartTimestamp);
+        HealthDataMetrics.registerInitialMetrics(healthMetricRegistry, this::getStartTimestamp);
     }
 }
