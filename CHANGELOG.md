@@ -10,6 +10,11 @@
 - PVAYLADEV-926	Removed automated testing environment Ansible setup from the public repository
 - PVAYLADEV-740 Created Dockerfile for compiling xroad codebase and created jenkins pipeline which will use that for compiling, packaging and deploying X-Road version.s
 - PVAYLADEV-878 Use case documentation changed from docx to md
+- XTE-355 / Backlog #152: Security Server: Improved message exchange performance at a time when periodical timestamping is performed
+- XTE-368: Added new security server metapackage xroad-securityserver-ee with default configuration for Estonian instances
+- XTE-375: Security Server / Central Server: Enabled HttpOnly flag and set security flag to true for the session cookies
+- XTE-376: Security Server: Fixed system resource leak of the monitoring component
+- XTE-380: Security Server: Fixed audit logging of the restore process
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1

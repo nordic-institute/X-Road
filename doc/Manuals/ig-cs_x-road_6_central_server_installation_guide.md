@@ -162,7 +162,7 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 ## 2.7 Installing the Support for Environmental Monitoring
 
-The optional configuration for environmental monitoring parameters is installed by package xroad-securityserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
+The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS].
 
