@@ -178,7 +178,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 ## Proxy parameters: `[proxy]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
-|--------------------------------------------------|--------------------------------------------|-----------------|
+|--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | client-http-port                                 | 80 <br/> 8080 (RHEL)                       |   |   | TCP port on which the service client's security server listens for HTTP requests from client applications. |
 | client-https-port                                | 443 <br/> 8443 (RHEL)                      |   |   | TCP port on which the service client's security server listens for HTTPS requests from client applications. |
 | client-timeout                                   | 30000                                      |   |   | Defines the time period (in milliseconds), for which the service client's security server tries to connect to the service provider's security server. When the timeout is reached, the service client's security server informs the service client's information system that a service timeout has occurred. |
@@ -228,7 +228,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 ## Signer parameters: `[signer]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
-|--------------------------------------------------|--------------------------------------------|-----------------|
+|--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | ocsp-cache-path                                  | /var/cache/xroad                           |   |   | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy                         | false                                      | true |   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
 | client-timeout                                   | 15000                                      |   |   | Signing timeout in milliseconds. |
@@ -260,7 +260,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 ## Message log add-on parameters: `[message-log]`
 
 | **Parameter**                                    | **Vanilla value**                          | **FI-package value** | **EE-package value** | **Description** |
-|--------------------------------------------------|--------------------------------------------|-----------------|
+|--------------------------------------------------|--------------------------------------------|----------------------|----------------------|-----------------|
 | soap-body-logging                                | true                                       | false  |   | Whether SOAP body of the messages should be logged or not.<br/><br/>If *true*, the SOAP messages are logged in their original form. If *false*, the SOAP body is cleared of its contents and only has an empty child element inside it. In addition, the SOAP header will only have specific set of elements logged, see [Note on logged X-Road message headers](#note-on-logged-x-road-message-headers) . As a side effect, details such as formatting and namespace labels of the xml message can be changed and new elements may be introduced for default values in SOAP header.<br/><br/>Removal of SOAP body is usually done for confidentiality reasons (body contains data that we do not want to have in the logs).<br/><br/>Note that changing the message this way prevents verifying its signature with the asicverifier tool. |
 | enabled-body-logging-local-producer-subsystems   |                                            |   |   | Subsystem-specific overrides for SOAP body logging when soap-body-logging = false.<br/><br/>This parameter defines logging for **local producer** subsystems, that is, our subsystems that produce some service which external clients use.<br/><br/>Comma-separated list of client identifiers for which SOAP body logging is enabled. For example FI/ORG/1710128-9/SUBSYSTEM\_A1, FI/ORG/1710128-9/SUBSYSTEM\_A2 where<br/>-   FI = x-road instance<br/>-   ORG = member class<br/>-   1710128-9 = member code<br/>-   SUBSYSTEM\_A1 = subsystem code<br/><br/>This parameter can only be used on subsystem-level, it is not possible to configure SOAP body logging per member.<br/><br/>If a subsystem has forward slashes “/” in for example subsystem code, those subsystems can’t be configured with this parameter. |
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |
@@ -317,7 +317,7 @@ For instructions on how to change the parameter values, see section [Changing th
 ### Center parameters: `[center]`
 
 | **Name**                | **Vanilla value**                       | **Description**       |
-|-------------------------|-----------------------------------------|---------------------- |
+|-------------------------|-----------------------------------------|-----------------------|
 | conf-backup-path        | /var/lib/xroad/backup/                  | Absolute path to the directory where configuration backups are stored. |
 | database-properties     | /etc/xroad/db.properties                | Absolute path to file where the properties of the database of the central server are stored. |
 | external-directory      | externalconf                            | Name of the signed external configuration directory that is distributed to the configuration clients (security servers and/or configuration proxies) of this and federated X-Road instances. |
