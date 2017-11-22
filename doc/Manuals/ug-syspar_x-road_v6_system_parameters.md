@@ -36,7 +36,7 @@ Doc. ID: UG-SYSPAR
 | 31.08.2017 | 2.24     | Moved ocsp-cache-path and enforce-token-pin-policy from under proxy to under signer and added them to central server and configuration proxy lists | Tatu Repo |
 | 17.10.2017 | 2.25     | Added new security server env-monitor parameter (limit-remote-data-set). | Joni Laurila |
 | 20.10.2017 | 2.26     | Clarified the effects of disabling SOAP body logging on the SOAP Headers. Split the system parameters to different tables for readability| Olli Lindgren |
-| 22.11.2017 | 2.27     | Default changed to vanilla. New colum added for FI and EE values. | Antti Luoma |
+| 22.11.2017 | 2.27     | Default changed to vanilla. New colums added for FI and EE values. | Antti Luoma |
 
 ## Table of Contents
 
