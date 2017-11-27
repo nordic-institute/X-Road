@@ -4,7 +4,7 @@
 
 # X-Road: Use Case Model for Member Communication
 
-# Analysis
+**Analysis**
 
 Version: 1.6
 22.02.2017

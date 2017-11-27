@@ -4,7 +4,7 @@
 
 # Technical Specification
 
-# X-Road Architecture
+**X-Road Architecture**
 
 Version: 1.5
 20.02.2017

@@ -4,7 +4,7 @@
 
 # Security Server Installation Guide
 
-# X-ROAD 6
+**X-ROAD 6**
 
 Version: 2.10
 Doc. ID: IG-SS

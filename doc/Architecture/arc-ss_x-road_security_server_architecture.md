@@ -4,7 +4,7 @@
 
 # X-Road: Security Server Architecture
 
-# Technical Specification
+**Technical Specification**
 
 Version: 1.4
 20.02.2017

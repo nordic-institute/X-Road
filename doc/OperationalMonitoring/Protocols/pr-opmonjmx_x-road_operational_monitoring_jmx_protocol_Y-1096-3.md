@@ -4,7 +4,7 @@
 
 # X-Road: Operational Monitoring JMX Protocol
 
-# Technical Specification
+**Technical Specification**
 
 Version: 0.3  
 Doc. ID: PR-OPMONJMX

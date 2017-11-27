@@ -4,7 +4,7 @@
 
 # SECURITY SERVER USER GUIDE
 
-# X-ROAD 6
+**X-ROAD 6**
 
 Version: 2.17  
 15.06.2017

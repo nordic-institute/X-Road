@@ -4,7 +4,7 @@
 
 # X-Road: Operational Monitoring Protocol
 
-# Technical Specification
+**Technical Specification**
 
 Version: 0.3  
 Doc. ID: PR-OPMON
