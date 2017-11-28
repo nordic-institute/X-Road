@@ -20,7 +20,6 @@
 - PVAYLADEV-883 Added feature to limit environmental monitoringdata result, via env-monitor parameter
 - PVAYLADEV-962 Fixed path that is displayed to user in central server and security server backup
 - PVAYLADEV-978 / XRJD #185 Fixed xroad-jetty high resource usage
-- PVAYLADEV-1002 / XRJD #152 Security Server: Improved message exchange performance at a time when periodical timestamping is performed. Refactored communication between LogManager and TaskQueue.
 - PVAYLADEV-947 / XRJD #179 Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
 
 ## 6.16.0 - 2017-09-13
