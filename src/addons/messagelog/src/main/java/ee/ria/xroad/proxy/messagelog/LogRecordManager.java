@@ -53,9 +53,13 @@ public final class LogRecordManager {
     private static final int DEFAULT_BATCH_SIZE = 50;
     private static int configuredBatchSize = 0;
 
+    private static final String UPDATE_LOG_RECORD_STATEMENT = "UPDATE logrecord SET timestamprecord = ?, "
+            + "timestamphashchain = ?, signaturehash = NULL WHERE id = ? AND timestamprecord IS NULL";
+
     private static final int INDEX_1 = 1;
     private static final int INDEX_2 = 2;
     private static final int INDEX_3 = 3;
+
 
     private LogRecordManager() {
     }
@@ -201,29 +205,29 @@ public final class LogRecordManager {
         log.trace("setMessageRecordsTimestamped({})", messageRecords.length);
 
         int storedCount = 0;
-        PreparedStatement stmt = connection.prepareStatement("UPDATE logrecord SET timestamprecord = ?, "
-                + "timestamphashchain = ?, signaturehash = NULL WHERE id = ? AND timestamprecord IS NULL");
 
-        for (int i = 0; i < messageRecords.length; i++) {
-            String hashChain = hashChains != null ? hashChains[i] : null;
+        try (PreparedStatement stmt = connection.prepareStatement(UPDATE_LOG_RECORD_STATEMENT)) {
+            for (int i = 0; i < messageRecords.length; i++) {
+                String hashChain = hashChains != null ? hashChains[i] : null;
 
-            stmt.setLong(INDEX_1, timestampRecord.getId());
-            stmt.setString(INDEX_2, hashChain);
-            stmt.setLong(INDEX_3, messageRecords[i]);
-            stmt.addBatch();
+                stmt.setLong(INDEX_1, timestampRecord.getId());
+                stmt.setString(INDEX_2, hashChain);
+                stmt.setLong(INDEX_3, messageRecords[i]);
+                stmt.addBatch();
 
-            if (++storedCount % batchSize == 0) {
-                log.trace("setMessageRecordsTimestamped(): execute batch({})", batchSize);
+                if (++storedCount % batchSize == 0) {
+                    log.trace("setMessageRecordsTimestamped(): execute batch({})", batchSize);
+
+                    stmt.executeBatch();
+                    stmt.clearBatch();
+                }
+            }
+
+            if (storedCount % batchSize != 0) {
+                log.trace("setMessageRecordsTimestamped(): execute batch({})", storedCount % batchSize);
 
                 stmt.executeBatch();
-                stmt.clearBatch();
             }
-        }
-
-        if (storedCount % batchSize != 0) {
-            log.trace("setMessageRecordsTimestamped(): execute batch({})", storedCount % batchSize);
-
-            stmt.executeBatch();
         }
     }
 
