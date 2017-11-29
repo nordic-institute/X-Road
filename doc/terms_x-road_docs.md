@@ -127,9 +127,9 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.3 X-Road external components
 
-**Adapter Service** converts a request or response query (e.g. from REST) to required X-Road SOAP-protocol. The information system (IS) uses and/or provides services via the X-Road.
+**Adapter Service** converts a request or response query (e.g. from REST) to required X-Road SOAP-protocol. 
 
-**Information system** – a system including technological as well as organizational information processing of a member of X-Road
+**Information system** – a system including technological as well as organizational information processing of a member of X-Road. The information system (IS) uses and/or provides services via the X-Road.
 
 **Subsystem** – minimum part of information system of a member of X-Road, to which access to X-Road content service can be enabled. All the query's goes trough subsystem. 
 
