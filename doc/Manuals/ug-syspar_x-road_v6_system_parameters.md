@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -78,7 +78,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 # Introduction
 
-This document describes the system parameters of the X-Road components – of the security server, the central server and the configuration proxy. Additionally, changing the default values of the system parameters are explained.
+This document describes the system parameters of the X-Road components – of the security server, the central server and the configuration proxy. Additionally, changing the default values of the system parameters are explained. 
+Please note the term 'vanilla' in the documentation. In X-Road context vanilla means the X-Road without any of the country specific customizations, settings etc. The vanilla version of X-Road security server is installed with xroad-securityserver package. The country specific versions are installed with xroad-securityserver-XX where XX is the country code f.ex. FI or EE.
 
 ## References
 
@@ -266,7 +267,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | enabled-body-logging-remote-producer-subsystems  |                                            |   |   | Subsystem-specific overrides for **remote producer** subsystems, that is, remote subsystems that produce services which we use.<br/><br/>Parameter is used when soap-body-logging = false. |
 | disabled-body-logging-local-producer-subsystems  |                                            |   |   | Same as enabled-body-logging-local-producer-subsystems, but this parameter is used when soap-body-logging = true. |
 | disabled-body-logging-remote-producer-subsystems |                                            |   |   | Same as enabled-body-logging-remote-producer-subsystems, but this parameter is used when soap-body-logging = true. |
-| acceptable-timestamp-failure-period              | 14400                                      | 18000   |   | Defines the time period (in seconds) for how long is time-stamping allowed to fail (for whatever reasons) before the message log stops accepting any more messages (and consequently the security server stops accepting requests). Set to 0 to disable this check. The value of this parameter should not be lower than the value of the central server system parameter *timeStampingIntervalSeconds.*     <BR/><BR/>Default for Finnish installation is 18 000 seconds |
+| acceptable-timestamp-failure-period              | 14400                                      | 18000   |   | Defines the time period (in seconds) for how long is time-stamping allowed to fail (for whatever reasons) before the message log stops accepting any more messages (and consequently the security server stops accepting requests). Set to 0 to disable this check. The value of this parameter should not be lower than the value of the central server system parameter *timeStampingIntervalSeconds.* |
 | archive-interval                                 | 0 0 0/6 1/1 \* ? \*                        |   |   | CRON expression \[CRON\] defining the interval of archiving the time-stamped messages. |
 | archive-max-filesize                             | 33554432                                   |   |   | Maximum size for archived files in bytes. Reaching the maximum value triggers file rotation. |
 | archive-path                                     | /var/lib/xroad                             |   |   | Absolute path to the directory where time-stamped log records are archived. |
@@ -385,6 +386,7 @@ This chapter describes the system parameters used by the X-Road configuration pr
 | enforce-token-pin-policy       | false                                   | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
 
 [1] See also [*http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger*](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger).
+
 [2] Default value for proxy.client-tls-ciphers.
 >TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, 
 TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, 
