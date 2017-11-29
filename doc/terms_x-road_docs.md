@@ -127,7 +127,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.3 X-Road external components
 
-**Adapter Service** converts a request or response query (e.g. from REST) to required X-Road SOAP-protocol. 
+**Adapter Service** converts a request or response query (e.g. from REST) to required X-Road SOAP-protocol. The information system (IS) uses and/or provides services via the X-Road.
 
 **Information system** – a system including technological as well as organizational information processing of a member of X-Road
 
@@ -179,7 +179,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 6.6 Logging and security
 
-**Message log** – a log, where exchanged messages are logged and provided with batch signature.
+**Message log** – a log, where exchanged X-Road messages are logged and provided with batch signature. Records all regular messages passing through the security server into the database. The messages are stored together with their signatures and signatures are timestamped. The purpose of the message log is to provide means to prove the reception of a request/response message to a third party.
 
 **System service log** – a log which is made from a running system service of a security server, for example from xroad-confclient, -jetty, -proxy, signer services.  
 
