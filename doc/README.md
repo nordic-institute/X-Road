@@ -2,6 +2,9 @@
 
 Index of X-Road Documentation
 
+### Terms and abbreviations
+- [\[TA-TERMS\] Terms of X-Road](terms_x-road_docs.md)
+
 ### Architecture
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
