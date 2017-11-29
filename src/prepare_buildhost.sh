@@ -6,7 +6,7 @@ sudo apt-get update
 sudo apt-get install -y curl software-properties-common
 
 REL=$(lsb_release -sr | cut -d'.' -f1)
-JRUBY_VERSION=$(cat .jruby-version || echo "1.7.27")
+JRUBY_VERSION=$(cat .jruby-version || echo "9.1.13.0")
 
 if [ $REL -lt 16 ]; then
     sudo apt-add-repository -y ppa:openjdk-r/ppa
@@ -37,4 +37,3 @@ if [[ $REL -ge 16 && ! -e /.dockerenv ]]; then
         newgrp docker
     fi
 fi
-
