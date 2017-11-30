@@ -15,6 +15,12 @@
 - XTE-375: Security Server / Central Server: Enabled HttpOnly flag and set security flag to true for the session cookies
 - XTE-376: Security Server: Fixed system resource leak of the monitoring component
 - XTE-380: Security Server: Fixed audit logging of the restore process
+- PVAYLADEV-809 / XRJD #190 The xroad package xroad-common has been split into four packages to allow removing unnecessary dependencies in the future. The package xroad-common still remains but is now a metapackage that depends on the new packages xroad-nginx, xroad-confclient, and xroad-signer which in turn depend on the new package xroad-base. X-Road packages that were dependant on xroad-common are, for now, still dependant on that package.e
+- PVAYLADEV-921 Ansible playbook support for selecting the security server variant (ee, fi, vanilla) to be installed, defaults to vanilla
+- PVAYLADEV-883 Added feature to limit environmental monitoringdata result, via env-monitor parameter
+- PVAYLADEV-962 Fixed path that is displayed to user in central server and security server backup
+- PVAYLADEV-978 / XRJD #185 Fixed xroad-jetty high resource usage
+- PVAYLADEV-947 / XRJD #179 Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
