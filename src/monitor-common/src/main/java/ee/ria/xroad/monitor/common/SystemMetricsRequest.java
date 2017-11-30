@@ -36,10 +36,13 @@ public class SystemMetricsRequest implements Serializable {
     // Can be set to null/empty to request all metrics
     private List<String> metricNames;
 
+    private boolean isClientOwner;
+
     public SystemMetricsRequest() {
     }
 
-    public SystemMetricsRequest(List<String> metricNames) {
+    public SystemMetricsRequest(List<String> metricNames, boolean isClientOwner) {
         this.metricNames = metricNames;
+        this.isClientOwner = isClientOwner;
     }
 }

@@ -48,7 +48,7 @@ public class ClientActor extends UntypedActor {
     @Override
     public void onReceive(Object o) throws Exception {
         if (o.equals("Start")) {
-            selection.tell(new SystemMetricsRequest(null), getSelf());
+            selection.tell(new SystemMetricsRequest(null, true), getSelf());
             log.info("ClientActor sent SystemMetricsRequest");
         } else if (o instanceof SystemMetricsResponse) {
             SystemMetricsResponse response = (SystemMetricsResponse) o;

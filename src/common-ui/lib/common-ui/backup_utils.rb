@@ -153,7 +153,7 @@ module CommonUi
     end
 
     def backup_file(filename)
-      "#{SystemProperties.getConfBackupPath}/#{filename}"
+      "#{SystemProperties.getConfBackupPath}#{filename}"
     end
 
     def validate_backup_file(uploaded_file_param)

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+umask 007
+
+if [ "$1" = configure ]; then
+    test -d /etc/xroad/ssl || mkdir -p -m 0750 /etc/xroad/ssl && chown xroad:xroad /etc/xroad/ssl
+    test -e /etc/nginx/sites-enabled/default && rm /etc/nginx/sites-enabled/default
+
+    chmod 0750 /etc/xroad/ssl
+    chown -R xroad:xroad /etc/xroad/ssl
+fi
+
+exit 0
+

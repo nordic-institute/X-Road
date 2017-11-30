@@ -1,0 +1,3 @@
+usr/share/xroad/bin/signer-console usr/bin/signer-console
+usr/share/xroad/jlib/signer-1.0.jar usr/share/xroad/jlib/signer.jar
+usr/share/xroad/jlib/signer-console-1.0.jar usr/share/xroad/jlib/signer-console.jar

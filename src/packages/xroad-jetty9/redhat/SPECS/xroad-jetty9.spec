@@ -17,16 +17,15 @@ Provides:       config(%{name}) = %{version}-%{release}
 License:        ASL 2.0/EPL 1.0
 URL:            https://confluence.csc.fi/display/Palveluvayla
 Source0:        %{jetty}
-Source1:        https://raw.githubusercontent.com/jetty-project/logging-modules/master/logback/logging.mod
-Source2:        %{name}
-Source3:        %{name}.service
-Source4:        %{name}.conf
+Source1:        %{name}
+Source2:        %{name}.service
+Source3:        %{name}.conf
 
 BuildRequires:  systemd, curl
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
-Requires:	systemd, xroad-common >= 6.5
+Requires:	systemd, xroad-common >= %{version}
 Conflicts: 	xroad-center, xroad-confproxy
 
 %description
@@ -37,9 +36,8 @@ Jetty9 modified for X-Road usage. Used by web services.
 
 %build
 rm -rf demo-base
-sed -i'' 's/^logback\.version?=1\.1\.7/logback\.version\?=1\.2\.3/' modules/logback-impl.mod
 mv start.ini start.ini.bak
-echo yes |java -jar start.jar --add-to-start=logging-logback jetty.base=$(pwd)
+yes | java -Dslf4j.version=1.7.25 -Dlogback.version=1.2.3 -jar start.jar --add-to-start=logback-impl,slf4j-logback jetty.base=$(pwd)
 
 %install
 ln -s /etc/xroad/jetty/jetty-login.conf etc/login.conf
@@ -58,10 +56,10 @@ cp -aP * %{buildroot}/usr/share/xroad/jetty9
 cp -p %{_topdir}/../../../common-util/build/libs/common-util-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -aP %{_topdir}/../etc %{buildroot}/etc
 mkdir -p %{buildroot}/etc/xroad/jetty/contexts-admin
-cp %{SOURCE2} %{buildroot}%{_bindir}
-cp %{SOURCE3} %{buildroot}%{_unitdir}
+cp %{SOURCE1} %{buildroot}%{_bindir}
+cp %{SOURCE2} %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}/usr/lib/tmpfiles.d
-cp %{SOURCE4} %{buildroot}/usr/lib/tmpfiles.d/
+cp %{SOURCE3} %{buildroot}/usr/lib/tmpfiles.d/
 
 %clean
 rm -rf %{buildroot}

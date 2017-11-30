@@ -25,7 +25,7 @@ Index of X-Road Documentation
 - [\[IG-CS\] Central Server Installation Guide](Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
 - [\[IG-CSHA\] HA Installation Guide](Manuals/ig-csha_x-road_6_ha_installation_guide.md)
 - [\[UG-SIGDOC\] Signed Document Download and Verification Manual](Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx)
-- [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual_2.0_Y-745-10.docx)
+- [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
 - [\[IG-XLB\] External Load Balancer Installation Guide](Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 

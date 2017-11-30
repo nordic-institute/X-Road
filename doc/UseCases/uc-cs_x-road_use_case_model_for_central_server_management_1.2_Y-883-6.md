@@ -662,7 +662,7 @@ central server.
     - 3a.3a. CS administrator selects to terminate the use case.
 
 - 4a. The file extension is not .tar.
-    - 4a.1. System displays the error message “Failed to upload new backup file: Uploaded file name 'X' has invalid extension, valid ones are 'tar'” (where “X” is the file name of the uploaded file).
+    - 4a.1. System displays the error message “Failed to upload new backup file: Uploaded file name 'X' has an invalid extension, the only valid one is 'tar'” (where “X” is the file name of the uploaded file).
     - 4a.2. System logs the event “Upload backup file failed” to the audit log.
     - 4a.3. CS administrator selects to reselect the backup file. Use case continues from step 3.
     - 4a.3a. CS administrator selects to terminate the use case.

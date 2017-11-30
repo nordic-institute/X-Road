@@ -27,6 +27,7 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import com.codahale.metrics.*;
 import com.google.common.collect.Lists;
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.monitor.common.SystemMetricsRequest;
 import ee.ria.xroad.monitor.common.SystemMetricsResponse;
@@ -104,50 +105,60 @@ public class MetricsProviderActor extends UntypedActor {
 
         if (o instanceof SystemMetricsRequest) {
 
-            SystemMetricsRequest req = (SystemMetricsRequest) o;
+            final SystemMetricsRequest req = (SystemMetricsRequest) o;
             log.info("Received SystemMetricsRequest: " + req);
 
             if (req.getMetricNames() != null && req.getMetricNames().size() > 0) {
                 log.info("Specified metrics requested: " + req.getMetricNames());
+                log.info("Is owner of security server: " + req.isClientOwner());
             }
 
             MetricRegistry metrics = MetricRegistryHolder.getInstance().getMetrics();
             final MetricSetDto.Builder builder = new MetricSetDto.Builder("systemMetrics");
 
 
-            SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    null);
-            SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    (name, metric) -> !isProcessPackageOrCertificateMetric(name));
-            SystemMetricsFilter processMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    (name, metric) -> SystemMetricNames.PROCESSES.equals(name)
-                            || SystemMetricNames.XROAD_PROCESSES.equals(name));
             SystemMetricsFilter certificateMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
                     (name, metric) -> SystemMetricNames.CERTIFICATES.equals(name));
-            SystemMetricsFilter packageMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
-                    (name, metric) -> SystemMetricNames.PACKAGES.equals(name));
 
-
-            for (Map.Entry<String, Histogram> e : metrics.getHistograms(histogramMetricFilter).entrySet()) {
-                builder.withMetric(toHistogramDto(e.getKey(), e.getValue().getSnapshot()));
-            }
-            // dont handle processes, packages and certificates gauges normally,
-            // they have have special conversions to dto
-            // *_STRINGS gauges are only for JMX reporting
-            for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
-                builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
-            }
-
-            for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
-                builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
-            }
+            SystemMetricsFilter simpleMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
+                    (name, metric) -> filterPackageOrCertifates(req.isClientOwner(), name));
 
             for (Map.Entry<String, Gauge> e : metrics.getGauges(certificateMetricFilter).entrySet()) {
                 builder.withMetric(toCertificateMetricSetDTO(e.getKey(), e.getValue()));
             }
 
-            for (Map.Entry<String, Gauge> e : metrics.getGauges(packageMetricFilter).entrySet()) {
-                builder.withMetric(toPackageMetricSetDto(e.getKey(), e.getValue()));
+            for (Map.Entry<String, Gauge> e : metrics.getGauges(simpleMetricFilter).entrySet()) {
+                builder.withMetric(toSimpleMetricDto(e.getKey(), e.getValue()));
+            }
+
+            if (req.isClientOwner() || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+
+                SystemMetricsFilter histogramMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
+                        null);
+
+                SystemMetricsFilter processMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
+                        (name, metric) -> SystemMetricNames.PROCESSES.equals(name)
+                                || SystemMetricNames.XROAD_PROCESSES.equals(name));
+
+                SystemMetricsFilter packageMetricFilter = new SystemMetricsFilter(req.getMetricNames(),
+                        (name, metric) -> SystemMetricNames.PACKAGES.equals(name));
+
+                for (Map.Entry<String, Histogram> e : metrics.getHistograms(histogramMetricFilter).entrySet()) {
+                    builder.withMetric(toHistogramDto(e.getKey(), e.getValue().getSnapshot()));
+                }
+
+                // dont handle processes, packages and certificates gauges normally,
+                // they have have special conversions to dto
+                // *_STRINGS gauges are only for JMX reporting
+                for (Map.Entry<String, Gauge> e : metrics.getGauges(processMetricFilter).entrySet()) {
+                    builder.withMetric(toProcessMetricSetDto(e.getKey(), e.getValue()));
+                }
+
+
+                for (Map.Entry<String, Gauge> e : metrics.getGauges(packageMetricFilter).entrySet()) {
+                    builder.withMetric(toPackageMetricSetDto(e.getKey(), e.getValue()));
+                }
+
             }
 
             MetricSetDto metricSet = builder.build();
@@ -159,8 +170,12 @@ public class MetricsProviderActor extends UntypedActor {
         }
     }
 
-    private boolean isProcessPackageOrCertificateMetric(String name) {
-        return PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
+    private boolean filterPackageOrCertifates(boolean isOwner, String name) {
+        if (isOwner || !SystemProperties.getEnvMonitorLimitRemoteDataSet()) {
+            return !PACKAGE_OR_CERTIFICATE_METRIC_NAMES.contains(name);
+        } else {
+            return name.equals("OperatingSystem");
+        }
     }
 
     private MetricSetDto toProcessMetricSetDto(String name,
