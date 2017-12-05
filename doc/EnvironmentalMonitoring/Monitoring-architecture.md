@@ -76,7 +76,7 @@ Monitoring service uses several _sensors_ to collect the data. Sensors and relat
 The following sensors produce monitoring data:
 - `SystemMetricsSensor`
   - data:
-    - CPU load
+    - system CPU load percentage (0-100)
     - free memory
     - total memory
     - free swap space
