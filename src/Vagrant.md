@@ -18,7 +18,7 @@ This guide is for development tool set. User can build and test changes in local
 ## 3. Setup ldx containers
 - ```vagrant ssh```
     - ```cd ../ansible```
-    - ```ansible-playbook  -i hosts/lxd_hosts_from_local.txt xroad_dev.yml```
+    - ```ansible-playbook  -i hosts/lxd_hosts.txt xroad_dev.yml```
 
 ## 4. Access X-Road from host
 1. Create routing
@@ -35,8 +35,8 @@ This guide is for development tool set. User can build and test changes in local
     - CS/SS1/SS2 address is: ```https://{ip-address}:4000```
     - Username and password for CS/SS1/SS2
         ```
-         u: grandmaster
-         p: Ghettoblaster1
+         u: xrd
+         p: secret
         ```
 
 ## 5. Troubleshoot
