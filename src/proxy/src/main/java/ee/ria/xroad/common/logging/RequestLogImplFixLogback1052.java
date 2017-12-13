@@ -8,5 +8,5 @@ import org.eclipse.jetty.util.component.LifeCycle;
  * See https://github.com/eclipse/jetty.project/issues/509
  * See https://github.com/qos-ch/logback/pull/269
  */
-public class RequestLogImpl_Fix_LOGBACK_1052 extends RequestLogImpl implements LifeCycle {
+public class RequestLogImplFixLogback1052 extends RequestLogImpl implements LifeCycle {
 }
