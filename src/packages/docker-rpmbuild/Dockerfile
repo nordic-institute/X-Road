@@ -6,4 +6,4 @@ RUN yum clean all
 RUN sed -i 's/requiretty/!requiretty/' /etc/sudoers
 
 USER jenkins
-CMD ["sh", "-c", "/workspace/src/packages/build-xroad-rpm.sh && /workspace/src/packages/build-jetty-rpm.sh" ]
+WORKDIR /workspace

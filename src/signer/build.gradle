@@ -1,6 +1,8 @@
 plugins {
-    id "eu.appsatori.fatjar" version "0.3"
+  id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
+
+apply plugin: 'application'
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
 
@@ -46,39 +48,39 @@ dependencies {
 //    testsuiteRuntime.extendsFrom testRuntime
 //}
 
-fatJarPrepareFiles {
-    include '*'
-}
 
-fatJar {
-    exclude "META-INF/*.SF"
-    exclude "META-INF/*.DSA"
-    exclude "META-INF/*.RSA"
+mainClassName = 'ee.ria.xroad.signer.SignerMain'
 
-    manifest {
-        attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
-    }
-
-    from rootProject.file('LICENSE.txt')
+shadowJar {
+    classifier = ''
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
 }
 
 jar.enabled = false
-build.dependsOn fatJar
-buildall.dependsOn fatJar
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
 
 task createDirs () {
-    project.ext.schemaTargetDir.mkdirs()
+    doLast {
+        project.ext.schemaTargetDir.mkdirs()
+    }
 }
 
 task xjc () {
-    ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+    inputs.file file('src/main/resources/*.xsd')
+    outputs.dir project.ext.schemaTargetDir
 
-    ant.xjc(
-        destdir: project.ext.schemaTargetDir,
-        package: 'ee.ria.xroad.common.conf.keyconf',
-        schema: 'src/main/resources/keyconf.xsd',
-        binding: '../common-util/src/main/resources/identifiers-bindings.xml'
-    )
+    doLast {
+        ant.taskdef(name: 'xjc', classname: 'com.sun.tools.xjc.XJCTask', classpath: configurations.xjc.asPath)
+
+        ant.xjc(
+            destdir: project.ext.schemaTargetDir,
+            package: 'ee.ria.xroad.common.conf.keyconf',
+            schema: 'src/main/resources/keyconf.xsd',
+            binding: '../common-util/src/main/resources/identifiers-bindings.xml'
+        )
+    }
 }
 
 // XXX For running several instances side-by-side, do not use the gradle task --
@@ -86,9 +88,9 @@ task xjc () {
 // Instead, use the .jar in the build/libs directory:
 // java -Djava.library.path=/home/iks2/core/passwordstore -jar signer-1.0.jar
 task runSignerMain(type: JavaExec) {
-    jvmArgs '-Dxroad.signer.key-configuration-file=build/tmp/keyconf.xml',
+    jvmArgs '-Dxroad.signer.key-configuration-file=src/test/resources/keyconf.xml',
         '-Dxroad.signer.device-configuration-file=src/test/resources/devices.ini',
-        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good',
+        '-Dxroad.common.configuration-path=../common-util/src/test/resources/globalconf_good_v2',
         '-Dxroad.common.temp-files-path=build/tmp/',
         '-Dxroad.proxy.configuration-anchor-file=../common-util/src/test/resources/configuration-anchor1.xml',
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',

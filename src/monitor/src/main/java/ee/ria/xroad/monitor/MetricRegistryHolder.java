@@ -22,13 +22,20 @@
  */
 package ee.ria.xroad.monitor;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingTimeWindowReservoir;
+
+import java.io.Serializable;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Global access point for {@link MetricRegistry}
  */
 public final class MetricRegistryHolder {
 
+    private static final int MINUTES_IN_HOUR = 60;
     private static final MetricRegistryHolder INSTANCE = new MetricRegistryHolder();
 
     private MetricRegistry metrics;
@@ -58,5 +65,33 @@ public final class MetricRegistryHolder {
      */
     public void setMetrics(MetricRegistry metricRegistry) {
         this.metrics = metricRegistry;
+    }
+
+
+
+    /**
+     * Either registers a new sensor to metricRegistry, or reuses already registered one.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Serializable> SimpleSensor<T> getOrCreateSimpleSensor(String metricName) {
+        final Gauge sensor = metrics.gauge(metricName, SimpleSensor::new);
+        if (sensor instanceof SimpleSensor) {
+            return (SimpleSensor<T>) sensor;
+        }
+        throw new IllegalArgumentException(metricName + " is already used for a different type of metric");
+    }
+
+    /**
+     * Either registers a new default histogram to metricRegistry, or reuses already registered one.
+     * throws an IllegalArgumentException if a metric with the same name but a different type exists
+     */
+    public Histogram getOrCreateHistogram(String metricName) {
+        return metrics.histogram(metricName, this::createDefaultHistogram);
+    }
+
+
+
+    private Histogram createDefaultHistogram() {
+        return new Histogram(new SlidingTimeWindowReservoir(MINUTES_IN_HOUR, TimeUnit.MINUTES));
     }
 }

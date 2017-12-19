@@ -1,0 +1,28 @@
+---
+
+- name: makecache for repo (assume yes) (RHEL)
+  command: yum -y makecache
+  args:
+    warn: no
+
+# verify presence of xroad packages and dependencies
+- name: install xroad packages and dependencies from set up repository (RHEL)
+  yum:
+    name: "{{ vars['xroad_varpkg_' + variant] }}"
+    state: present
+
+# update all xroad packages to their latest version in the set up repo
+- name: update xroad security server to latest (RHEL)
+  yum:
+    name: "*"
+    state: latest
+    disablerepo: "*"
+    enablerepo: xroad-{{package_source}}-repository
+
+- name: add xroad admin user
+  command: "xroad-add-admin-user {{ xroad_ui_user }}"
+
+- name: start xroad-proxy (RHEL)
+  service:
+    name: xroad-proxy
+    state: started

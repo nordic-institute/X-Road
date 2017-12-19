@@ -568,20 +568,21 @@
         opts.aaSortingFixed = [[4,'desc']];
         opts.aaSorting = [[1,'asc']];
 
-        oClients = $("#clients").dataTable(opts);
+        var clientsTable = $("#clients");
 
-        $("#clients tbody tr").live("dblclick", function() {
-            var clientData = oClients.fnGetData(this);
+        oClients = clientsTable.dataTable(opts);
+
+        clientsTable
+        .on("dblclick", "tbody td[class!=dataTables_empty]", function() {
+            var clientData = oClients.getFocusData();
             if (clientData.can_view_client_details_dialog) {
-                openClientDetails(oClients.fnGetData(this), "#details_tab");
+                openClientDetails(clientData, "#details_tab");
             }
-        });
-
-        $('#clients').on('click', 'tbody tr', function() {
+        })
+        .on('click', 'tbody tr', function() {
             oClients.setFocus(0, this);
-        });
-
-        $("#clients").on("click", ".tableitem-actions li", function() {
+        })
+        .on("click", ".tableitem-actions li", function() {
             oClients.setFocus(0, $(this).closest("tr"));
             openClientDetails(oClients.getFocusData(), $(this).data("tab"));
         });
@@ -598,9 +599,10 @@
             { "mData": "subsystem_code", "mRender" : util.escape }
         ];
 
-        oClientsGlobal = $("#clients_global").dataTable(opts);
+        var globalTable = $("#clients_global");
+        oClientsGlobal = globalTable.dataTable(opts);
 
-        $("#clients_global tbody tr").live("click", function() {
+        globalTable.on("click", "tbody tr", function() {
             oClientsGlobal.setFocus(0, this);
             enableActions();
         });

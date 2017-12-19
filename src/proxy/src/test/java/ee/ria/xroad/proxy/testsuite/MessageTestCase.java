@@ -53,6 +53,7 @@ import org.apache.http.nio.reactor.ConnectingIOReactor;
 import org.bouncycastle.operator.DigestCalculator;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -403,6 +404,10 @@ public class MessageTestCase {
         this.queryId = CryptoUtils.encodeHex(dc.getDigest());
     }
 
+    protected void onServiceReceivedHttpRequest(HttpServletRequest request) throws Exception {
+        // NOP
+    }
+
     protected void onServiceReceivedRequest(Message receivedRequest) throws Exception {
         if (!checkConsistency(sentRequest, receivedRequest)) {
             log.error("Sent request and received request are not "
@@ -419,11 +424,11 @@ public class MessageTestCase {
         this.sentResponse = response;
     }
 
-    protected final String errorCode(String ...parts) {
+    protected final String errorCode(String... parts) {
         return StringUtils.join(parts, ".");
     }
 
-    protected final void assertErrorCode(String ...parts) {
+    protected final void assertErrorCode(String... parts) {
         String errorCode = errorCode(parts);
 
         if (!receivedResponse.isFault()) {
@@ -437,7 +442,7 @@ public class MessageTestCase {
         }
     }
 
-    protected final void assertErrorCodeStartsWith(String ...parts) {
+    protected final void assertErrorCodeStartsWith(String... parts) {
         String errorCode = StringUtils.join(parts, ".");
 
         if (!receivedResponse.isFault()) {

@@ -71,20 +71,12 @@ public final class BatchSignerIntegrationTest {
 
     private static final String KEY_ID = "consumer";
 
-    private static final ClientId CORRECT_MEMBER =
-            ClientId.create("EE", "FOO", "consumer");
+    private static final ClientId CORRECT_MEMBER = ClientId.create("EE", "FOO", "consumer");
 
     private static final Date CORRECT_VALIDATION_DATE = createDate(30, 9, 2014);
 
-    private static X509Certificate subjectCert;
-    private static X509Certificate issuerCert;
-    private static X509Certificate signerCert;
-    private static PrivateKey signerKey;
-
     private static CountDownLatch latch;
     private static Integer sigIdx = 0;
-
-    private static ActorSystem actorSystem;
 
     static {
         TestSecurityUtil.initSecurity();
@@ -101,104 +93,87 @@ public final class BatchSignerIntegrationTest {
     public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             printUsage();
+
             return;
         }
 
-        actorSystem = ActorSystem.create("Proxy",
-                ConfigFactory.load().getConfig("proxy"));
+        ActorSystem actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy"));
         SignerClient.init(actorSystem);
 
         Thread.sleep(SIGNER_INIT_DELAY); // wait for signer client to connect
 
         BatchSigner.init(actorSystem);
 
-        subjectCert = TestCertUtil.getConsumer().cert;
-        issuerCert = TestCertUtil.getCaCert();
-        signerCert = TestCertUtil.getOcspSigner().cert;
-        signerKey = TestCertUtil.getOcspSigner().key;
+        X509Certificate subjectCert = TestCertUtil.getConsumer().cert;
+        X509Certificate issuerCert = TestCertUtil.getCaCert();
+        X509Certificate signerCert = TestCertUtil.getOcspSigner().cert;
+        PrivateKey signerKey = TestCertUtil.getOcspSigner().key;
 
         List<String> messages = new ArrayList<>();
-        for (int i = 0; i < args.length; i++) {
-            messages.add(FileUtils.readFileToString(new File(args[i])));
+
+        for (String arg : args) {
+            messages.add(FileUtils.readFileToString(new File(arg)));
         }
 
         latch = new CountDownLatch(messages.size());
 
         Date thisUpdate = new DateTime().plusDays(1).toDate();
-        final OCSPResp ocsp = OcspTestUtils.createOCSPResponse(
-                subjectCert, issuerCert, signerCert,
-                signerKey, CertificateStatus.GOOD, thisUpdate, null);
+        final OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subjectCert, issuerCert, signerCert, signerKey,
+                CertificateStatus.GOOD, thisUpdate, null);
 
         for (final String message : messages) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        byte[] hash = hash(message);
-                        log.info("File: {}, hash: {}", message, hash);
+            new Thread(() -> {
+                try {
+                    byte[] hash = hash(message);
+                    log.info("File: {}, hash: {}", message, hash);
 
-                        MessagePart hashPart = new MessagePart(
-                                MessageFileNames.MESSAGE,
-                                SHA512_ID,
-                                calculateDigest(SHA512_ID, message.getBytes()),
-                                message.getBytes());
+                    MessagePart hashPart = new MessagePart(MessageFileNames.MESSAGE, SHA512_ID,
+                            calculateDigest(SHA512_ID, message.getBytes()), message.getBytes());
 
-                        List<MessagePart> hashes =
-                                Collections.singletonList(hashPart);
+                    List<MessagePart> hashes = Collections.singletonList(hashPart);
 
-                        SignatureBuilder builder = new SignatureBuilder();
-                        builder.addPart(hashPart);
+                    SignatureBuilder builder = new SignatureBuilder();
+                    builder.addPart(hashPart);
 
-                        builder.setSigningCert(subjectCert);
-                        builder.addOcspResponses(
-                                Collections.singletonList(ocsp));
+                    builder.setSigningCert(subjectCert);
+                    builder.addOcspResponses(Collections.singletonList(ocsp));
 
-                        log.info("### Calculating signature...");
+                    log.info("### Calculating signature...");
 
-                        SignatureData signatureData = builder.build(
-                                new SignerSigningKey(KEY_ID),
-                                CryptoUtils.SHA512WITHRSA_ID);
+                    SignatureData signatureData = builder.build(new SignerSigningKey(KEY_ID,
+                            CryptoUtils.CKM_RSA_PKCS_NAME), CryptoUtils.SHA512_ID);
 
-                        synchronized (sigIdx) {
-                            log.info("### Created signature: "
-                                    + signatureData.getSignatureXml());
+                    synchronized (sigIdx) {
+                        log.info("### Created signature: {}", signatureData.getSignatureXml());
 
-                            log.info("HashChainResult: "
-                                    + signatureData.getHashChainResult());
-                            log.info("HashChain: "
-                                    + signatureData.getHashChain());
+                        log.info("HashChainResult: {}", signatureData.getHashChainResult());
+                        log.info("HashChain: {}", signatureData.getHashChain());
 
-                            toFile("message-" + sigIdx + ".xml", message);
+                        toFile("message-" + sigIdx + ".xml", message);
 
-                            String sigFileName =
-                                    signatureData.getHashChainResult() != null
-                                        ? "batch-sig-" : "sig-";
+                        String sigFileName = signatureData.getHashChainResult() != null ? "batch-sig-" : "sig-";
 
-                            toFile(sigFileName + sigIdx + ".xml",
-                                    signatureData.getSignatureXml());
+                        toFile(sigFileName + sigIdx + ".xml", signatureData.getSignatureXml());
 
-                            if (signatureData.getHashChainResult() != null) {
-                                toFile("hash-chain-" + sigIdx + ".xml",
-                                        signatureData.getHashChain());
-                                toFile("hash-chain-result.xml",
-                                        signatureData.getHashChainResult());
-                            }
-                            sigIdx++;
+                        if (signatureData.getHashChainResult() != null) {
+                            toFile("hash-chain-" + sigIdx + ".xml", signatureData.getHashChain());
+                            toFile("hash-chain-result.xml", signatureData.getHashChainResult());
                         }
 
-                        try {
-                            verify(signatureData, hashes, message);
-                            log.info("Verification successful (message hash: "
-                                    + "{})", hash);
-                        } catch (Exception e) {
-                            log.error("Verification failed (message hash: "
-                                    + hash + ")", e);
-                        }
-                    } catch (Exception e) {
-                        log.error("Error", e);
-                    } finally {
-                        latch.countDown();
+                        sigIdx++;
                     }
+
+                    try {
+                        verify(signatureData, hashes, message);
+
+                        log.info("Verification successful (message hash: {})", hash);
+                    } catch (Exception e) {
+                        log.error("Verification failed (message hash: {})", hash, e);
+                    }
+                } catch (Exception e) {
+                    log.error("Error", e);
+                } finally {
+                    latch.countDown();
                 }
             }).start();
         }
@@ -207,24 +182,19 @@ public final class BatchSignerIntegrationTest {
         actorSystem.shutdown();
     }
 
-    private static void verify(final SignatureData signatureData,
-            final List<MessagePart> hashes, final String message)
-                    throws Exception {
+    private static void verify(final SignatureData signatureData, final List<MessagePart> hashes, final String message)
+            throws Exception {
         SignatureVerifier verifier = new SignatureVerifier(signatureData);
         verifier.addParts(hashes);
 
-        HashChainReferenceResolver resolver =
-                new HashChainReferenceResolver() {
+        HashChainReferenceResolver resolver = new HashChainReferenceResolver() {
             @Override
             public InputStream resolve(String uri) throws IOException {
                 switch (uri) {
                     case MessageFileNames.SIG_HASH_CHAIN:
-                        return new ByteArrayInputStream(
-                                signatureData.getHashChain().getBytes(
-                                        StandardCharsets.UTF_8));
+                        return new ByteArrayInputStream(signatureData.getHashChain().getBytes(StandardCharsets.UTF_8));
                     case MessageFileNames.MESSAGE:
-                        return new ByteArrayInputStream(
-                                message.getBytes(StandardCharsets.UTF_8));
+                        return new ByteArrayInputStream(message.getBytes(StandardCharsets.UTF_8));
                     default:
                         return null;
                 }
@@ -245,9 +215,8 @@ public final class BatchSignerIntegrationTest {
 
     private static void printUsage() {
         log.info("BatchSigner <message1> <message2> ...\n"
-                + "NOTE: It assumes that Signer has configured a batch signing "
-                + "token with keyId 'testorg', where the key and cert are the "
-                + "ones found in 'common-test/src/test/certs/testorg.p12'");
+                + "NOTE: It assumes that Signer has configured a batch signing token with keyId 'testorg', "
+                + "where the key and cert are the ones found in 'common-test/src/test/certs/testorg.p12'");
     }
 
     private static byte[] hash(String data) throws Exception {
@@ -259,6 +228,7 @@ public final class BatchSignerIntegrationTest {
 
     private static void toFile(String fileName, String data) throws Exception {
         IOUtils.write(data, new FileOutputStream(fileName));
+
         log.info("Created file " + fileName);
     }
 
@@ -266,6 +236,7 @@ public final class BatchSignerIntegrationTest {
         Calendar cal = Calendar.getInstance();
         cal.clear(); // Let's clear the current time.
         cal.set(year, month, day);
+
         return cal.getTime();
     }
 }

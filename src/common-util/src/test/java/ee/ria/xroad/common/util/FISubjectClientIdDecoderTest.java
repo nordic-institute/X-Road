@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.common.util;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -40,11 +38,14 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for {@link FISubjectClientIdDecoder}
@@ -75,11 +76,13 @@ public class FISubjectClientIdDecoderTest {
         X509Certificate cert = generateSelfSignedCertificate(
                 "C=FI, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
+
         assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
 
-        cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, "
-                + "serialNumber=FI-TEST/serverCode/PUB", keyPair);
+        cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=FI-TEST/serverCode/PUB",
+                keyPair);
         clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
+
         assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
     }
 
@@ -91,8 +94,8 @@ public class FISubjectClientIdDecoderTest {
      */
     @Test(expected = CodedException.class)
     public void shouldFailIfEmptyComponents() throws GeneralSecurityException, IOException, OperatorCreationException {
-        final X509Certificate cert = generateSelfSignedCertificate(
-                "C=FI, O=ACME, CN=1234567-8, serialNumber=///", keyPair);
+        final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=///",
+                keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
     }
 
@@ -105,8 +108,8 @@ public class FISubjectClientIdDecoderTest {
     @Test(expected = CodedException.class)
     public void shouldFailIfTooManyComponents() throws GeneralSecurityException, IOException,
             OperatorCreationException {
-        final X509Certificate cert = generateSelfSignedCertificate(
-                "C=FI, O=ACME, CN=1234567-8, serialNumber=1/2/3/4", keyPair);
+        final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=ACME, CN=1234567-8, serialNumber=1/2/3/4",
+                keyPair);
         FISubjectClientIdDecoder.getSubjectClientId(cert);
     }
 
@@ -153,9 +156,9 @@ public class FISubjectClientIdDecoderTest {
     public void shouldDecodeClientIdLegacy() throws GeneralSecurityException, IOException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI, O=FI-TEST, OU=PUB, CN=1234567-8", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
+
         assertEquals(ClientId.create("FI-TEST", "PUB", "1234567-8"), clientId);
     }
-
 
     /**
      * Test that decoder fails if country code does not match
@@ -170,26 +173,21 @@ public class FISubjectClientIdDecoderTest {
         FISubjectClientIdDecoder.getSubjectClientId(cert);
     }
 
-
     private X509Certificate generateSelfSignedCertificate(String dn, KeyPair pair) throws OperatorCreationException,
             CertificateException {
-        ContentSigner signer = new JcaContentSignerBuilder("SHA256withRSA").build(pair.getPrivate());
+        ContentSigner signer = new JcaContentSignerBuilder(CryptoUtils.SHA256WITHRSA_ID).build(pair.getPrivate());
         X500Name name = new X500Name(dn);
-        JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(
-                name,
-                BigInteger.ONE,
-                new Date(),
-                new Date(),
-                name,
-                pair.getPublic()
+        JcaX509v3CertificateBuilder builder = new JcaX509v3CertificateBuilder(name, BigInteger.ONE, new Date(),
+                new Date(), name, pair.getPublic()
         );
+
         return new JcaX509CertificateConverter().getCertificate(builder.build(signer));
     }
 
     /*
-    *
-    * Tests for stone age
-    *
+     *
+     * Tests for stone age
+     *
      */
 
     /**
@@ -202,6 +200,7 @@ public class FISubjectClientIdDecoderTest {
     public void shouldDecodeClientIdStoneAge() throws GeneralSecurityException, IOException, OperatorCreationException {
         final X509Certificate cert = generateSelfSignedCertificate("C=FI-DEV, O=GOV, CN=0245437-2", keyPair);
         ClientId clientId = FISubjectClientIdDecoder.getSubjectClientId(cert);
+
         assertEquals(ClientId.create("FI-DEV", "GOV", "0245437-2"), clientId);
     }
 }

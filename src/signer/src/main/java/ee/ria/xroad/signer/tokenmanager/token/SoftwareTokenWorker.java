@@ -22,32 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
-import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
-import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
-
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -60,8 +34,11 @@ import java.security.Signature;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
@@ -72,7 +49,12 @@ import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
-import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.*;
+import static ee.ria.xroad.signer.util.ExceptionHelper.*;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -142,15 +124,12 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw tokenNotActive(tokenId);
         }
 
-        java.security.KeyPair keyPair =
-                generateKeyPair(SystemProperties.getSignerKeyLength());
+        java.security.KeyPair keyPair = generateKeyPair(SystemProperties.getSignerKeyLength());
 
         String keyId = SignerUtil.randomId();
-        savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId),
-                getPin());
+        savePkcs12Keystore(keyPair, keyId, getKeyStoreFileName(keyId), getPin());
 
-        String publicKeyBase64 =
-                encodeBase64(keyPair.getPublic().getEncoded());
+        String publicKeyBase64 = encodeBase64(keyPair.getPublic().getEncoded());
 
         return new GenerateKeyResult(keyId, publicKeyBase64);
     }
@@ -176,8 +155,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     @Override
-    protected byte[] sign(String keyId, byte[] data) throws Exception {
-        log.trace("sign({})", keyId);
+    protected byte[] sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
+        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
+
+        checkSignatureAlgorithm(signatureAlgorithmId);
 
         if (!isTokenActive(tokenId)) {
             throw tokenNotActive(tokenId);
@@ -188,16 +169,31 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
 
         PrivateKey key = getPrivateKey(keyId);
+
         if (key == null) {
             throw keyNotFound(keyId);
         }
 
-        log.debug("Signing with key '{}'", keyId);
+        log.debug("Signing with key '{}' and signature algorithm '{}'", keyId, signatureAlgorithmId);
 
         Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
         signature.initSign(key);
         signature.update(data);
+
         return signature.sign();
+    }
+
+    private static void checkSignatureAlgorithm(String signatureAlgorithmId) throws CodedException {
+        switch (signatureAlgorithmId) {
+            case CryptoUtils.SHA1WITHRSA_ID:
+            case CryptoUtils.SHA256WITHRSA_ID:
+            case CryptoUtils.SHA384WITHRSA_ID:
+            case CryptoUtils.SHA512WITHRSA_ID:
+                break;
+            default:
+                throw CodedException.tr(X_UNSUPPORTED_SIGN_ALGORITHM, "unsupported_sign_algorithm",
+                        "Unsupported signature algorithm '%s'", signatureAlgorithmId);
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -217,6 +213,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 activateToken();
             } catch (Exception e) {
                 setTokenActive(tokenId, false);
+
                 log.trace("Failed to activate token", e);
             }
         }
@@ -236,6 +233,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 initializePrivateKey(keyId);
             } catch (Exception e) {
                 setKeyAvailable(keyId, false);
+
                 log.trace("Failed to load private key from key store", e);
             }
         }
@@ -247,10 +245,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         for (String keyId : listKeysOnDisk()) {
             if (!hasKey(keyId)) {
                 try {
-                    String publicKeyBase64 =
-                            isPinStored() ? loadPublicKeyBase64(keyId) : null;
+                    String publicKeyBase64 = isPinStored() ? loadPublicKeyBase64(keyId) : null;
 
                     log.debug("Found new key with id '{}'", keyId);
+
                     addKey(tokenId, keyId, publicKeyBase64);
                 } catch (Exception e) {
                     log.error("Failed to read pkcs#12 key '{}'", keyId, e);
@@ -261,6 +259,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private PrivateKey getPrivateKey(String keyId) throws Exception {
         PrivateKey pkey = privateKeys.get(keyId);
+
         if (pkey == null) {
             initializePrivateKey(keyId);
         }
@@ -270,8 +269,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     private void initializePrivateKey(String keyId) throws Exception {
         PrivateKey pkey = loadPrivateKey(keyId);
+
         if (pkey != null) {
             log.debug("Found usable key '{}'", keyId);
+
             privateKeys.put(keyId, pkey);
         }
     }
@@ -285,8 +286,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE, "Token PIN does not meet complexity requirements");
         }
 
-        java.security.KeyPair kp =
-                generateKeyPair(SystemProperties.getSignerKeyLength());
+        java.security.KeyPair kp = generateKeyPair(SystemProperties.getSignerKeyLength());
 
         String keyStoreFile = getKeyStoreFileName(PIN_FILE);
         savePkcs12Keystore(kp, PIN_ALIAS, keyStoreFile, pin);
@@ -305,13 +305,14 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             log.error("Software token not initialized", e);
 
             setTokenStatus(tokenId, TokenStatusInfo.NOT_INITIALIZED);
+
             throw tokenNotInitialized(tokenId);
         } catch (Exception e) {
             log.error("Error verifiying token PIN", e);
 
             setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
-            throw CodedException.tr(X_PIN_INCORRECT,
-                    "pin_incorrect", "PIN incorrect");
+
+            throw CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
         }
     }
 
@@ -324,8 +325,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     private PrivateKey loadPrivateKey(String keyId) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
-        log.trace("Loading pkcs#12 private key '{}' from file '{}'", keyId,
-                keyStoreFile);
+        log.trace("Loading pkcs#12 private key '{}' from file '{}'", keyId, keyStoreFile);
 
         return SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyId, getPin());
     }
@@ -333,14 +333,13 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     private String loadPublicKeyBase64(String keyId) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyId);
 
-        log.trace("Loading pkcs#12 public key '{}' from file '{}'", keyId,
-                keyStoreFile);
+        log.trace("Loading pkcs#12 public key '{}' from file '{}'", keyId, keyStoreFile);
 
-        java.security.cert.Certificate cert =
-                loadCertificate(keyStoreFile, keyId, getPin());
+        java.security.cert.Certificate cert = loadCertificate(keyStoreFile, keyId, getPin());
+
         if (cert == null) {
-            log.error("No certificate found in '{}' using alias '{}'",
-                    keyStoreFile, keyId);
+            log.error("No certificate found in '{}' using alias '{}'", keyStoreFile, keyId);
+
             return null;
         }
 
@@ -355,8 +354,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         verifyPinProvided(pin);
 
         // Attempt to load private key from pin key store.
-        SoftwareTokenUtil.loadPrivateKey(getKeyStoreFileName(PIN_FILE),
-                PIN_ALIAS, pin);
+        SoftwareTokenUtil.loadPrivateKey(getKeyStoreFileName(PIN_FILE), PIN_ALIAS, pin);
     }
 
     private char[] getPin() throws Exception {
@@ -372,8 +370,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
-    private static void savePkcs12Keystore(KeyPair kp, String alias,
-            String keyStoreFile, char[] password) throws Exception {
+    private static void savePkcs12Keystore(KeyPair kp, String alias, String keyStoreFile, char[] password)
+            throws Exception {
         KeyStore keyStore = createKeyStore(kp, alias, password);
 
         log.debug("Creating pkcs#12 keystore '{}'", keyStoreFile);

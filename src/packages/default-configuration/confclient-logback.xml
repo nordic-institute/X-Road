@@ -5,15 +5,10 @@
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/configuration_client.log</file>
-        <!-- NB! Use ee.ria.xroad.common.XRoadSizeBasedRollingPolicy rolling -->
-        <!-- policy instead of ch.qos.logback.core.rolling.TimeBasedRollingPolicy -->
-        <!-- as a workaround for Logback bug http://jira.qos.ch/browse/LOGBACK-992 -->
-        <rollingPolicy class="ee.ria.xroad.common.XRoadSizeBasedRollingPolicy">
-            <fileNamePattern>${logOutputPath}/configuration_client.%i.log.zip</fileNamePattern>
-        </rollingPolicy>
-        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${logOutputPath}/configuration_client.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>
-        </triggeringPolicy>
+        </rollingPolicy>
         <encoder>
             <pattern>%d [%thread] %-5level %logger{36} - %msg%n</pattern>
             <charset>UTF-8</charset>

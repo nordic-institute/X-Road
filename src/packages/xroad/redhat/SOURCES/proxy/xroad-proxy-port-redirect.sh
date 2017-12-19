@@ -25,6 +25,7 @@ read_config () {
 }
 
 read_config "/etc/xroad/conf.d/proxy.ini"
+read_config "/etc/xroad/conf.d/override-rhel-proxy.ini"
 read_config "/etc/xroad/conf.d/local.ini"
 
 HTTP_PORT=${config[proxy.client-http-port]:-0}

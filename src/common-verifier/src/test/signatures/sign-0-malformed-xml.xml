@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><asic:XAdESSignatures xmlns:asic="http://uri.etsi.org/02918/v1.2.1#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><ds:Signature Id="signature">
+<ds:SignedInfo>
+<ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"/>
+<ds:Reference Id="signature-reference-0" URI="/message.xml">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>roOpGf2H8V3RqAjxdyLmPlYhec0Op1wsk5IhwCWyvlIP4ov16HsHm5PBL/liD7xuTzgGKlRn1fv+&#13;
+MsGVMllFCg==</ds:DigestValue>
+</ds:Reference>
+<ds:Reference Id="signature-reference-1" Type="http://uri.etsi.org/01903#SignedProperties" URI="#signed-properties">
+<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha512"/>
+<ds:DigestValue>JlVnoi5CGjrrMnUMjBuM/AmNTZa3Fv9SdHIM+8TtsAPXy3VYK5CYUu3kJBIFTPay99fHZ2XH9d9i&#13;
+Wjv5TheWYA==</ds:DigestValue>
+</ds:Reference>
+</ds:SignedInfo>
+<ds:SignatureValue Id="signature-value">
+dSDbrxdQFhDqe8seFeVrr9uyPiXnb+UUARYWPioOUjYEBNSbRurYkgEmZ7M5f2jwRt9R2mmgCuaN&#13;
+zyuSV5ryJ6/kZrQPutOCQsccgRHEFnYKyJNaCS/zJUEVzg3gueT37KobrUhNMWcJdMEsEpSU6wsb&#13;
+F4rc8jkWE4m2v0+O2J7SxQtjjwwkHKVScuDwEYDNbFwjpazTTyheLfqZCbN8rW4SFmwynUsgBR2p&#13;
+S/wYox6VF63yugbNWWwsBdzcuwyhauiVQmgVtPMvNUz7Fo4nG4wdEbUwS359olRrqXTFQUwSKGLf&#13;
+N0qyxZkPpeA65QL7GLI+Jx83NDejXDxNHmuG6w==
+</ds:SignatureValue>
+<ds:KeyInfo>
+<ds:X509Data>
+<ds:X509Certificate>
+MIIDhzCCAm+gAwIBAgIBBDANBgkqhkiG9w0BAQUFADBdMQswCQYDVQQGEwJFRTEUMBIGA1UEChML&#13;
+Q3liZXJuZXRpY2ExDDAKBgNVBAsTA0lUTzEOMAwGA1UEAxMFQ3liZXIxGjAYBgkqhkiG9w0BCQEW&#13;
+C2FhYUBiYmIuY2NjMB4XDTE0MTAwMjEzMjUzNFoXDTI0MDkyOTEzMjUzNFowYDELMAkGA1UEBhMC&#13;
+RUUxFDASBgNVBAoTC0N5YmVybmV0aWNhMQwwCgYDVQQLEwNJVE8xETAPBgNVBAMTCGNvbnN1bWVy&#13;
+MRowGAYJKoZIhvcNAQkBFgthYWFAYmJiLmNjYzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC&#13;
+ggEBANhZDGeLz2a+Cly2Hmy4bOUnHCPJfQ89B8Utuk7NsWTHA6ghc1/xqeaWs2JXSsbQRbD6KLJ5&#13;
+R06p9frnuwnr5pVyMmVDywffOoJvKitj7HjdFHvzcvJmiQVlqFigrNivuhHHjC+KI0IOnd58p553&#13;
+fsmSiemcb4uptgWOY2ipaJqtSF8S40ZG5oxxjQ4J+R3l28dfz9wdwMThPJuiS1tuI+QpqItVLZSz&#13;
+j71cWZnm6KHwviw6otDkX4pFhA7UaGMApXgskQUlXV+r0Tk+RpZGCNVkjEmZ5TmyWAufY4pPPQAo&#13;
+1xcbKA+gtM0oFT+6HbqPvBEw2W6rMNZXlhe4FSmSsf0CAwEAAaNPME0wHQYDVR0OBBYEFJ7Z2CRe&#13;
+4fi+Oqb7gbWjX3PhtKbFMB8GA1UdIwQYMBaAFH56Bu5MEbVcBSrjTG9O88qG3fLeMAsGA1UdDwQE&#13;
+AwIGwDANBgkqhkiG9w0BAQUFAAOCAQEAD22Mx4czRqtOqf0E1nb/mHtistYS2OoSWKByb/0gU9ir&#13;
+nNCHUfYdYbXP8NDQXJBOQ5AztCPNZRUe0mZIdhaJurmpyu0A82DFxT1U8MQOUW17ETUNrR0sRr11&#13;
+n5DUsH4C1EzRy1L1CKZLbPWIqTt+okhcdsmWTQDaTJXlxQR4m8pPaxiedn8f30TXuAz0pzrPwcKD&#13;
+4Xbtp9q/eO08Ynmv0qbXoYArn6wE61QGJFGRI6BNdtOv6GZkhbsMlVleOqkaOg6C7j9fpewJe9E2&#13;
+gOuzUql9Q1Dlp5pJ1JkKPNLs+5Zai2CKdfIxrcC7TogN/GtdJho0xcllMfXchAIVyyFmUg==
+</ds:X509Certificate>
+</ds:X509Data>
+</ds:KeyInfo>
+<ds:Object>
+sldghsadgfdsgfsgsdagsdgasdgd..

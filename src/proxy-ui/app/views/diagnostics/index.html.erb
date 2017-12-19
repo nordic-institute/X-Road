@@ -42,10 +42,10 @@
           </thead>
           <tbody>
           <tr>
-            <td><i class="fa fa-circle <%= @globalConfStatusClass %>"></i></td>
-            <td><%= @globalConfStatusMessage %></td>
-            <td><%= @globalConfPrevUpdate %></td>
-            <td><%= @globalConfNextUpdate %></td>
+            <td><i class="fa fa-circle <%= @global_conf_status[:status_class] %>"></i></td>
+            <td><%= @global_conf_status[:status_message] %></td>
+            <td><%= @global_conf_status[:prev_update] %></td>
+            <td><%= @global_conf_status[:next_update] %></td>
           </tr>
           </tbody>
         </table>
@@ -70,7 +70,6 @@
                 <td><%= key %></td>
                 <td><%= get_status_message(status['returnCode']) %></td>
                 <td><%= get_formatted_time(status['prevUpdate']) %></td>
-
               </tr>
           <% end %>
           </tbody>

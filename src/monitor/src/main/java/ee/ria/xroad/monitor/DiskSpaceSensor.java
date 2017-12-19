@@ -23,11 +23,7 @@
 package ee.ria.xroad.monitor;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import com.codahale.metrics.MetricRegistry;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
@@ -43,33 +39,29 @@ import scala.concurrent.duration.FiniteDuration;
 @Slf4j
 public class DiskSpaceSensor extends AbstractSensor {
 
-    private Map<String, SensorPair> drives = new HashMap<>();
-
+    /**
+     * Constructor
+     */
     public DiskSpaceSensor() {
         log.info("Creating sensor, measurement interval: {}", getInterval());
+        updateMetrics();
         scheduleSingleMeasurement(getInterval(), new DiskSpaceMeasure());
     }
 
     private void updateMetrics() {
         File[] roots = File.listRoots();
         if (roots != null && roots.length > 0) {
+            final MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
             for (File drive: roots) {
-                final String id = drive.toString();
-                registerDiskSpaceGaugesIfNeeded(id);
-                drives.get(id).getTotal().update(drive.getTotalSpace());
-                drives.get(id).getFree().update(drive.getFreeSpace());
-            }
-        }
-    }
+                SimpleSensor<Long> total = registryHolder.getOrCreateSimpleSensor(
+                        String.format("%s_%s", SystemMetricNames.DISK_SPACE_TOTAL, drive));
 
-    private void registerDiskSpaceGaugesIfNeeded(String drive) {
-        if (!drives.containsKey(drive)) {
-            SimpleSensor<Long> total = new SimpleSensor<>();
-            SimpleSensor<Long> free = new SimpleSensor<>();
-            MetricRegistry metricRegistry = MetricRegistryHolder.getInstance().getMetrics();
-            metricRegistry.register(String.format("%s_%s", SystemMetricNames.DISK_SPACE_TOTAL, drive), total);
-            metricRegistry.register(String.format("%s_%s", SystemMetricNames.DISK_SPACE_FREE, drive), free);
-            drives.put(drive.toString(), new SensorPair(total, free));
+                SimpleSensor<Long> free = registryHolder.getOrCreateSimpleSensor(
+                        String.format("%s_%s", SystemMetricNames.DISK_SPACE_FREE, drive));
+
+                total.update(drive.getTotalSpace());
+                free.update(drive.getFreeSpace());
+            }
         }
     }
 

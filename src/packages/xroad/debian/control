@@ -8,15 +8,15 @@ Standards-Version: 3.8.3
 Package: xroad-centralserver-monitoring
 Conflicts: xroad-securityserver
 Architecture: all
-Depends: xroad-centralserver (>=${source:Upstream-Version})
+Depends: xroad-center (>=${source:Upstream-Version})
 Pre-depends:
 Description: Monitoring client configuration for X-Road central
- This meta-package adds optional global monitoring configuration file.
+ X-Road global monitoring configuration file.
 
 Package: xroad-centralserver
 Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
-Depends: xroad-center
+Depends: xroad-center (>=${source:Upstream-Version}), xroad-centralserver-monitoring (>=${source:Upstream-Version})
 Pre-depends:
 Description: X-Road central server
  This is meta-package of X-Road central server.
@@ -29,12 +29,46 @@ Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.
 Description: X-Road central server
  X-Road central server programs and utilities
 
+Package: xroad-base
+Architecture: amd64
+Pre-depends: dpkg (>= 1.15.7.2)
+Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, ca-certificates-java, ntp, crudini, adduser
+Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Description: X-Road base components
+ X-Road base components and utilities
+
 Package: xroad-common
 Architecture: amd64
-Depends: ${misc:Depends}, java8-runtime-headless, rlwrap, nginx-light (>=1.5.10), ca-certificates-java, ntp, crudini, adduser
-Replaces: xroad-proxy (<< 6.8.9)
+Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version}), xroad-confclient (>=${source:Upstream-Version}), xroad-nginx (>=${source:Upstream-Version}), xroad-signer (>=${source:Upstream-Version})
+Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road shared components
- X-Road shared components and utilities
+ This is a meta-package of X-Road shared components and utilities
+
+Package: xroad-confclient
+Architecture: amd64
+Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version})
+Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Description: X-Road configuration client components
+ X-Road configuration client
+
+Package: xroad-nginx
+Architecture: amd64
+Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version}), nginx-light (>=1.5.10)
+Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Description: X-Road nginx component
+ X-Road nginx dependencies and configurations
+
+Package: xroad-signer
+Architecture: amd64
+Depends: ${misc:Depends}, xroad-base (>=${source:Upstream-Version})
+Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
+Description: X-Road signer component
+ X-Road signer components and utilities
 
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
@@ -117,6 +151,14 @@ Pre-depends:
 Description: X-Road security server with Finnish settings
  This is meta-package of X-Road security server with Finnish settings.
 
+Package: xroad-securityserver-ee
+Conflicts: xroad-centralserver
+Architecture: all
+Depends: xroad-securityserver (>=${source:Upstream-Version}), xroad-addon-opmonitoring (>=${source:Upstream-Version})
+Pre-Depends:
+Description: X-Road security server with Estonian settings
+ This is meta-package of X-Road security server with Estonian settings.
+
 Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
@@ -124,4 +166,12 @@ Depends: ${misc:Depends}, xroad-common (>=${source:Upstream-Version})
 Pre-depends: postgresql, postgresql-contrib
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
+
+Package: xroad-autologin
+Architecture: all
+Depends: ${misc:Depends}, expect, xroad-common (>=${source:Upstream-Version})
+Replaces: aux-xroad-autologin (<< 1.4-1)
+Conflicts: aux-xroad-autologin (<< 1.4-1)
+Description: Automatic token pin code entry
+ Optional utility that automatically enters the software token pin code on xroad-signer start
 

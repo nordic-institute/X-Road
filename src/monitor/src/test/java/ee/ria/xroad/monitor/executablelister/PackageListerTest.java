@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,15 +72,15 @@ public class PackageListerTest {
                 return fakeOutputs;
             }
         };
-        ListedData<PackageInfo> data = testPackageLister.list();
-        assertEquals(8, data.getParsedData().size());
-        assertEquals(8, data.getJmxData().size()); // header row included
+        JmxStringifiedData<PackageInfo> data = testPackageLister.list();
+        assertEquals(8, data.getDtoData().size());
+        assertEquals(8, data.getJmxStringData().size()); // header row included
 
-        PackageInfo info = data.getParsedData().iterator().next();
+        PackageInfo info = data.getDtoData().iterator().next();
         assertEquals("account-plugin-aim", info.getName());
         assertEquals("3.8.6-0ubuntu9.2", info.getVersion());
 
-        String jmxData = data.getJmxData().get(0);
+        String jmxData = data.getJmxStringData().get(0);
         assertEquals("account-plugin-aim/3.8.6-0ubuntu9.2", jmxData);
     }
 }

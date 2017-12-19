@@ -28,6 +28,7 @@ import java.util.List;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -43,9 +44,9 @@ public class OsInfoLister extends AbstractExecLister<String> {
      * Program entry point
      */
     public static void main(String[] args) throws IOException {
-        ListedData<String> p = new OsInfoLister().list();
-        System.out.println("raw: " + p.getJmxData());
-        System.out.println("parsed: " + p.getParsedData());
+        JmxStringifiedData<String> p = new OsInfoLister().list();
+        System.out.println("raw: " + p.getJmxStringData());
+        System.out.println("parsed: " + p.getDtoData());
     }
 
     @Override

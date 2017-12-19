@@ -39,6 +39,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -55,7 +57,7 @@ public final class SignerMain {
         SystemPropertiesLoader.create()
                 .withCommonAndLocal()
                 .withLocalOptional(CONF_FILE_NODE)
-                .with(CONF_FILE_PROXY)
+                .withAtLeastOneOf(CONF_FILE_CENTER, CONF_FILE_PROXY, CONF_FILE_CONFPROXY)
                 .with(CONF_FILE_SIGNER)
                 .load();
         diagnosticsDefault = new CertificationServiceDiagnostics();

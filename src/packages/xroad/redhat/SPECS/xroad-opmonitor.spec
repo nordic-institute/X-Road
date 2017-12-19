@@ -39,12 +39,12 @@ mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/etc/xroad/services/
 mkdir -p %{buildroot}/usr/share/xroad/bin/
 mkdir -p %{buildroot}/etc/xroad/conf.d/
+mkdir -p %{buildroot}/etc/xroad/backup.d/
 mkdir -p %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
 
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor.service %{buildroot}%{_unitdir}
 cp -p %{_sourcedir}/opmonitor/xroad-opmonitor-initdb.sh %{buildroot}/usr/share/xroad/scripts/
-cp -p %{src}/../../op-monitor-daemon/build/libs/metrics-bugfix-agent.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../../op-monitor-daemon/build/libs/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/op-monitor.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../default-configuration/op-monitor-logback.xml %{buildroot}/etc/xroad/conf.d/
@@ -55,6 +55,8 @@ cp -p %{src}/op-monitor/generate-opmonitor-certificate.sh %{buildroot}/usr/share
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/xroad-opmonitor/
 cp -p %{src}/../../systemtest/op-monitoring/zabbix_api/examples/zabbix/* %{buildroot}/usr/share/doc/xroad-opmonitor/examples/zabbix/
+cp -p %{src}/../../../CHANGELOG.md %{buildroot}/usr/share/doc/xroad-opmonitor/
+cp -p %{src}/op-monitor/etc/xroad/backup.d/??_xroad-opmonitor %{buildroot}/etc/xroad/backup.d/
 
 ln -s /usr/share/xroad/jlib/op-monitor-daemon-1.0.jar %{buildroot}/usr/share/xroad/jlib/op-monitor-daemon.jar
 ln -s /usr/share/uxp/scripts/generate-opmonitor-certificate.sh %{buildroot}/usr/bin/generate-opmonitor-certificate
@@ -67,6 +69,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/op-monitor.ini
 %config /etc/xroad/conf.d/op-monitor-logback.xml
 %config /etc/xroad/services/opmonitor.conf
+%attr(0440,xroad,xroad) %config /etc/xroad/backup.d/??_xroad-opmonitor
 
 /usr/share/xroad/db/op-monitor/
 /usr/share/xroad/db/op-monitor-changelog.xml
@@ -77,13 +80,13 @@ rm -rf %{buildroot}
 
 /usr/share/xroad/jlib/op-monitor-daemon-*.jar
 /usr/share/xroad/jlib/op-monitor-daemon.jar
-/usr/share/xroad/jlib/metrics-bugfix-agent.jar
 /usr/share/xroad/scripts/generate-opmonitor-certificate.sh
 /usr/bin/generate-opmonitor-certificate
 
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/securityserver-LICENSE.info
 %doc /usr/share/doc/%{name}/examples/zabbix/*
+%doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre
 

@@ -29,6 +29,7 @@ import ee.ria.xroad.common.util.StartStop;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -119,6 +120,8 @@ class DummyService extends Server implements StartStop {
                     return;
                 }
 
+                currentTestCase().onServiceReceivedHttpRequest(request);
+
                 Message receivedRequest = new Message(
                         request.getInputStream(), request.getContentType()).parse();
 
@@ -142,6 +145,7 @@ class DummyService extends Server implements StartStop {
                     log.error("Unknown request {}", target);
                 }
             } catch (Exception ex) {
+                response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
                 log.error("Error when reading request", ex);
             } finally {
                 baseRequest.setHandled(true);

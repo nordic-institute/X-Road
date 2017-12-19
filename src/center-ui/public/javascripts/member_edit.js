@@ -489,15 +489,15 @@ var XROAD_MEMBER_EDIT = function() {
 
         oAddableUsedServers = $("#used_server_search_all").dataTable(opts);
 
-        oAddableUsedServers.on("click", "tbody td[class!=dataTables_empty]",
+        oAddableUsedServers
+        .on("click", "tbody td[class!=dataTables_empty]",
                 function(ev) {
             if (oAddableUsedServers.setFocus(0, ev.target.parentNode)) {
                 $("#member_securityserver_search_select").enable();
             }
-        });
-
-        oAddableUsedServers.unbind("dblclick")
-                .on( "dblclick", "tbody td[class!=dataTables_empty]", function() {
+        })
+        .off("dblclick")
+        .on( "dblclick", "tbody td[class!=dataTables_empty]", function() {
             $("#member_securityserver_search_select").click();
         });
     }

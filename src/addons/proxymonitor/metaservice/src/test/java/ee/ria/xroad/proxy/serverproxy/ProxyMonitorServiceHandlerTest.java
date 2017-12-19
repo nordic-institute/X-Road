@@ -65,8 +65,11 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+
 
 import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
@@ -76,6 +79,8 @@ import static java.util.UUID.randomUUID;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -85,6 +90,7 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(MonitorClient.class)
 public class ProxyMonitorServiceHandlerTest {
+
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final ClientId DEFAULT_OWNER_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
@@ -204,7 +210,7 @@ public class ProxyMonitorServiceHandlerTest {
 
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
-        // the allowed monitoring client from test resources monitoring params
+        // the allowed monitoring client from test resources monitoring metricNames
         final ClientId allowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "BUSINESS",
                 "producer");
 
@@ -226,7 +232,7 @@ public class ProxyMonitorServiceHandlerTest {
 
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
 
-        // the allowed monitoring client from test resources monitoring params
+        // the allowed monitoring client from test resources monitoring metricNames
         final ClientId nonAllowedClient = ClientId.create(EXPECTED_XR_INSTANCE, "COM",
                 "justSomeClient");
 
@@ -248,7 +254,7 @@ public class ProxyMonitorServiceHandlerTest {
     }
 
     @Test
-    public void startHandingShouldProduceMetrics() throws Exception {
+    public void startHandingShouldProduceAllMetrics() throws Exception {
 
         // setup
         ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
@@ -257,6 +263,9 @@ public class ProxyMonitorServiceHandlerTest {
                 "testUser", randomUUID().toString());
 
         when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
+        when(mockProxyMessage.getSoapContent()).thenReturn(
+                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
+
 
         handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
 
@@ -276,7 +285,7 @@ public class ProxyMonitorServiceHandlerTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
-        PowerMockito.when(mockMonitorClient.getMetrics()).thenReturn(metricSetType);
+        PowerMockito.when(mockMonitorClient.getMetrics(anyList(), anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
 
@@ -317,4 +326,89 @@ public class ProxyMonitorServiceHandlerTest {
         assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
     }
 
+    /**
+     * As above but only environmental parameters defined in outputSpec.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void startHandingShouldProduceRequestedMetrics() throws Exception {
+
+        // setup
+        ProxyMonitorServiceHandlerImpl handlerToTest = new ProxyMonitorServiceHandlerImpl();
+
+
+        final SoapMessageImpl soapMessage = build(
+                false,
+                DEFAULT_OWNER_CLIENT,
+                MONITOR_SERVICE_ID,
+                "testUser",
+                randomUUID().toString(),
+                new MetricsQueryBuilder(Arrays.asList("proxyVersion", "CommittedVirtualMemory", "DiskSpaceFree")));
+
+
+        when(mockProxyMessage.getSoap()).thenReturn(soapMessage);
+        when(mockProxyMessage.getSoapContent()).thenReturn(
+                new ByteArrayInputStream(soapMessage.getXml().getBytes(soapMessage.getCharset())));
+
+
+        handlerToTest.canHandle(MONITOR_SERVICE_ID, mockProxyMessage);
+
+        final String expectedMetricsSetName = "someName";
+
+        MetricSetType metricSetType = new MetricSetType();
+        metricSetType.setName(expectedMetricsSetName);
+
+        final List<MetricType> metrics = metricSetType.getMetrics();
+
+        StringMetricType type = new StringMetricType();
+        final String expectedMetricName = "metricName123-23";
+        type.setName(expectedMetricName);
+
+        final String expectedMetricValue = "123SomeValue";
+        type.setValue(expectedMetricValue);
+        metrics.add(type);
+
+        MonitorClient mockMonitorClient = PowerMockito.mock(MonitorClient.class);
+        PowerMockito.when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(),
+                anyBoolean())).thenReturn(metricSetType);
+
+        RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);
+
+        // execution
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mock(HttpClient.class),
+                mock(OpMonitoringData.class));
+
+        //verification
+        assertThat("Wrong content type", handlerToTest.getResponseContentType(), is(TEXT_XML_UTF8));
+
+        final SOAPMessage message = messageFactory.createMessage(null, handlerToTest.getResponseContent());
+
+        final SoapHeader xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(), SoapHeader.class).getValue();
+
+        assertThat("Response client does not match", xrHeader.getClient(), is(DEFAULT_OWNER_CLIENT));
+        assertThat("Response client does not match", xrHeader.getService(), is(MONITOR_SERVICE_ID));
+
+        final MetricSetType root = verifyAndGetSingleBodyElementOfType(message.getSOAPBody(),
+                GetSecurityServerMetricsResponse.class, () -> unmarshaller).getMetricSet();
+        // root metrics should have the security server id as name
+        assertThat("Metrics set name does not match", root.getName(), is(DEFAULT_OWNER_SERVER.toString()));
+
+        final List<MetricType> responseMetrics = root.getMetrics();
+        assertThat("Missing proxy version from metrics", responseMetrics,
+                hasItem(hasProperty("name", is("proxyVersion"))));
+
+        assertThat("Missing the expected metrics set",
+                responseMetrics, hasItem(instanceOf(MetricSetType.class)));
+
+        final MetricSetType responseDataMetrics = (MetricSetType) responseMetrics.stream() // we just asserted this..
+                .filter(m -> m instanceof MetricSetType).findFirst().orElseThrow(IllegalStateException::new);
+
+        assertThat(responseDataMetrics.getName(), is(expectedMetricsSetName));
+        assertThat(responseDataMetrics.getMetrics().size(), is(1));
+
+        final StringMetricType responseMetric = (StringMetricType) responseDataMetrics.getMetrics().get(0);
+        assertThat("Wrong metric name", responseMetric.getName(), is(expectedMetricName));
+        assertThat("Wrong metric value", responseMetric.getValue(), is(expectedMetricValue));
+    }
 }

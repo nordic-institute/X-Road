@@ -1,0 +1,9 @@
+---
+package_source: "local"
+ubuntu_apt_repo: "deb file:///xroad /"
+
+rhel_repo_baseurl: "file:///xroad/local"
+rhel_repo_gpgcheck: "no"
+rhel_repo_gpgkey: "http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-sign.gpg"
+rhel_repo_gpgcakey: "http://www.nic.funet.fi/pub/csc/x-road/client/rhel7-prod-current/palveluvayla-ca.gpg"
+rhel_repo_repogpgcheck: "no"

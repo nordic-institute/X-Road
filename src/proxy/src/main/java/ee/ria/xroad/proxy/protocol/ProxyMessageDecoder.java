@@ -71,22 +71,34 @@ public class ProxyMessageDecoder {
 
     private final ProxyMessageConsumer callback;
 
-    /** The verifier that verifies the signature. */
+    /**
+     * The verifier that verifies the signature.
+     */
     private final Verifier verifier = new Verifier();
 
-    /** Holds the content type. */
+    /**
+     * Holds the content type.
+     */
     private final String contentType;
 
-    /** Indicates whether fault messages are allowed. */
+    /**
+     * Indicates whether fault messages are allowed.
+     */
     private final boolean faultAllowed;
 
-    /** The hash algorithm id used when hashing parts. */
+    /**
+     * The hash algorithm id used when hashing parts.
+     */
     private final String hashAlgoId;
 
-    /** Parser does the main work. */
+    /**
+     * Parser does the main work.
+     */
     private MimeStreamParser parser;
 
-    /** The signature that is read from the message*/
+    /**
+     * The signature that is read from the message
+     */
     private SignatureData signature = new SignatureData(null, null, null);
 
     @Getter
@@ -96,25 +108,27 @@ public class ProxyMessageDecoder {
 
     /**
      * Construct a message decoder.
-     * @param callback the callback executed on the decoded message
+     *
+     * @param callback    the callback executed on the decoded message
      * @param contentType expected content type of the input stream
-     * @param hashAlgoId hash algorithm id used when hashing parts
+     * @param hashAlgoId  hash algorithm id used when hashing parts
      */
     public ProxyMessageDecoder(ProxyMessageConsumer callback,
-            String contentType, String hashAlgoId) {
+                               String contentType, String hashAlgoId) {
         this(callback, contentType, true, hashAlgoId);
     }
 
     /**
      * Construct a message decoder.
-     * @param callback the callback executed on the decoded message
-     * @param contentType expected content type of the input stream
+     *
+     * @param callback     the callback executed on the decoded message
+     * @param contentType  expected content type of the input stream
      * @param faultAllowed whether a SOAP fault should be parsed or an exception
-     * should be thrown
-     * @param hashAlgoId hash algorithm id used when hashing parts
+     *                     should be thrown
+     * @param hashAlgoId   hash algorithm id used when hashing parts
      */
     public ProxyMessageDecoder(ProxyMessageConsumer callback,
-            String contentType, boolean faultAllowed, String hashAlgoId) {
+                               String contentType, boolean faultAllowed, String hashAlgoId) {
         LOG.trace("new ProxyMessageDecoder({}, {})", contentType, hashAlgoId);
 
         this.callback = callback;
@@ -125,6 +139,7 @@ public class ProxyMessageDecoder {
 
     /**
      * Attempts to decode the proxy SOAP message from the given input stream.
+     *
      * @param is input stream from which to decode the message
      * @throws Exception if the stream content type does not match the expected one
      */
@@ -144,7 +159,8 @@ public class ProxyMessageDecoder {
 
     /**
      * Verifies that the signature matches the sender.
-     * @param sender the sender
+     *
+     * @param sender        the sender
      * @param signatureData the signature
      * @throws Exception in case verification fails
      */
@@ -174,8 +190,8 @@ public class ProxyMessageDecoder {
                     "Multipart content type is missing required boundary");
         }
 
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(contentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(contentType).build();
+
         parser = new MimeStreamParser(config);
 
         parser.setContentHandler(new ContentHandler());
@@ -219,66 +235,66 @@ public class ProxyMessageDecoder {
             LOG.trace("body({}), next = {}", bd.getMimeType(), nextPart);
 
             switch (nextPart) {
-            case OCSP:
-                if (OCSP_RESPONSE.equalsIgnoreCase(bd.getMimeType())) {
-                    handleOcsp(bd, is);
-                    break;
-                }
-                // $FALL-THROUGH$ OCSP response is only sent from CP to SP.
-            case SOAP:
-                handleSoap(bd, is, partContentType, headers);
+                case OCSP:
+                    if (OCSP_RESPONSE.equalsIgnoreCase(bd.getMimeType())) {
+                        handleOcsp(bd, is);
+                        break;
+                    }
+                    // $FALL-THROUGH$ OCSP response is only sent from CP to SP.
+                case SOAP:
+                    handleSoap(bd, is, partContentType, headers);
 
-                nextPart = NextPart.ATTACHMENT;
-                break;
-            case ATTACHMENT:
-                if (MULTIPART_MIXED.equals(
-                        MimeUtils.getBaseContentType(bd.getMimeType()))) {
-                    handleAttachments(bd, is);
-
-                    nextPart = NextPart.HASH_CHAIN_RESULT;
+                    nextPart = NextPart.ATTACHMENT;
                     break;
-                }
-                // $FALL-THROUGH$ perhaps there is a hash chain result.
-            case HASH_CHAIN_RESULT:
-                if (HASH_CHAIN_RESULT.equalsIgnoreCase(bd.getMimeType())) {
+                case ATTACHMENT:
+                    if (MULTIPART_MIXED.equals(
+                            MimeUtils.getBaseContentType(bd.getMimeType()))) {
+                        handleAttachments(bd, is);
+
+                        nextPart = NextPart.HASH_CHAIN_RESULT;
+                        break;
+                    }
+                    // $FALL-THROUGH$ perhaps there is a hash chain result.
+                case HASH_CHAIN_RESULT:
+                    if (HASH_CHAIN_RESULT.equalsIgnoreCase(bd.getMimeType())) {
+                        try {
+                            handleHashChainResult(is);
+                        } catch (Exception e) {
+                            throw translateException(e);
+                        }
+
+                        nextPart = NextPart.HASH_CHAIN;
+                        break;
+                    }
+                    // $FALL-THROUGH$ perhaps there is a hash chain.
+                case HASH_CHAIN:
+                    if (HASH_CHAIN.equalsIgnoreCase(bd.getMimeType())) {
+                        try {
+                            handleHashChain(is);
+                        } catch (Exception e) {
+                            throw translateException(e);
+                        }
+
+                        nextPart = NextPart.SIGNATURE;
+                        break;
+                    }
+                    // $FALL-THROUGH$ Otherwise it was signature after all. Fall through the case.
+                case SIGNATURE:
                     try {
-                        handleHashChainResult(is);
+                        handleSignature(bd, is);
                     } catch (Exception e) {
                         throw translateException(e);
                     }
 
-                    nextPart = NextPart.HASH_CHAIN;
+                    // We are not expecting anything more.
+                    nextPart = NextPart.NONE;
                     break;
-                }
-                // $FALL-THROUGH$ perhaps there is a hash chain.
-            case HASH_CHAIN:
-                if (HASH_CHAIN.equalsIgnoreCase(bd.getMimeType())) {
-                    try {
-                        handleHashChain(is);
-                    } catch (Exception e) {
-                        throw translateException(e);
-                    }
-
-                    nextPart = NextPart.SIGNATURE;
-                    break;
-                }
-                // $FALL-THROUGH$ Otherwise it was signature after all. Fall through the case.
-            case SIGNATURE:
-                try {
-                    handleSignature(bd, is);
-                } catch (Exception e) {
-                    throw translateException(e);
-                }
-
-                // We are not expecting anything more.
-                nextPart = NextPart.NONE;
-                break;
-            case NONE:
-                throw new CodedException(X_INVALID_MESSAGE,
-                        "Extra content (%s) after signature", bd.getMimeType());
-            default:
-                throw new IllegalArgumentException("Unexpected next body part: "
-                        + nextPart);
+                case NONE:
+                    throw new CodedException(X_INVALID_MESSAGE,
+                            "Extra content (%s) after signature", bd.getMimeType());
+                default:
+                    throw new IllegalArgumentException("Unexpected next body part: "
+                            + nextPart);
             }
         }
     }
@@ -296,7 +312,7 @@ public class ProxyMessageDecoder {
     }
 
     private void handleSoap(BodyDescriptor bd, InputStream is,
-            String partContentType, Map<String, String> soapPartHeaders) {
+                            String partContentType, Map<String, String> soapPartHeaders) {
         try {
             LOG.trace("Looking for SOAP, got: {}, {}", bd.getMimeType(),
                     bd.getCharset());
@@ -335,8 +351,7 @@ public class ProxyMessageDecoder {
 
     private void parseAttachments(String attachmentContentType, InputStream is)
             throws MimeException, IOException {
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(attachmentContentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(attachmentContentType).build();
 
         final MimeStreamParser attachmentParser = new MimeStreamParser(config);
         attachmentParser.setContentHandler(new AbstractContentHandler() {
@@ -416,31 +431,31 @@ public class ProxyMessageDecoder {
 
         switch (bd.getMimeType() == null
                 ? "" : bd.getMimeType().toLowerCase()) {
-        case SIGNATURE_BDOC:
-            // We got signature, just as expected.
-            signature = new SignatureData(IOUtils.toString(is, UTF_8),
-                    signature.getHashChainResult(), signature.getHashChain());
-            callback.signature(signature);
-            break;
-        case TEXT_XML:
-            LOG.debug("Got fault instead of signature");
-            // It seems that signing failed and the other
-            // party sent SOAP fault instead of signature.
+            case SIGNATURE_BDOC:
+                // We got signature, just as expected.
+                signature = new SignatureData(IOUtils.toString(is, UTF_8),
+                        signature.getHashChainResult(), signature.getHashChain());
+                callback.signature(signature);
+                break;
+            case TEXT_XML:
+                LOG.debug("Got fault instead of signature");
+                // It seems that signing failed and the other
+                // party sent SOAP fault instead of signature.
 
-            // Parse the fault message.
-            Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
-            if (soap instanceof SoapFault) {
-                callback.fault((SoapFault) soap);
-                return; // The nextPart will be set to NONE
-            }
-            // $FALL-THROUGH$ If not fault message, fall through to invalid message case.
-        default:
-            // Um, not what we expected.
-            // The error reporting must use exceptions, otherwise
-            // the parsing is not interrupted.
-            throw new CodedException(X_INVALID_CONTENT_TYPE,
-                    "Received invalid content type instead of signature: %s",
-                    bd.getMimeType());
+                // Parse the fault message.
+                Soap soap = new SaxSoapParserImpl().parse(bd.getMimeType(), is);
+                if (soap instanceof SoapFault) {
+                    callback.fault((SoapFault) soap);
+                    return; // The nextPart will be set to NONE
+                }
+                // $FALL-THROUGH$ If not fault message, fall through to invalid message case.
+            default:
+                // Um, not what we expected.
+                // The error reporting must use exceptions, otherwise
+                // the parsing is not interrupted.
+                throw new CodedException(X_INVALID_CONTENT_TYPE,
+                        "Received invalid content type instead of signature: %s",
+                        bd.getMimeType());
         }
     }
 

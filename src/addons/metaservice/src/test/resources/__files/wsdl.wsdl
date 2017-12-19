@@ -4,6 +4,7 @@
                   xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:id="http://x-road.eu/xsd/identifiers"
                   xmlns:xrd="http://x-road.eu/xsd/xroad.xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
   <wsdl:types>
+    <!-- test comment -->
     <xsd:schema elementFormDefault="qualified" targetNamespace="http://test.x-road.fi/producer">
       <xsd:import id="xrd" namespace="http://x-road.eu/xsd/xroad.xsd"/>
       <xsd:element name="getRandom" nillable="true">
@@ -53,11 +54,11 @@
                   <xsd:element name="name" nillable="true" type="xsd:string"/>
                 </xsd:sequence>
               </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="response">
+            </xsd:element><!-- Elements describing other elements and operations--><xsd:element name="response">
               <xsd:complexType>
                 <xsd:sequence>
                   <xsd:element name="message" type="xsd:string">
+                    <!-- test comment 3 -->
                     <xsd:annotation>
                       <xsd:documentation>Service response</xsd:documentation>
                     </xsd:annotation>
@@ -75,6 +76,7 @@
     </wsdl:part>
   </wsdl:message>
   <wsdl:message name="requestheader">
+    <!-- test comment 2 -->
     <wsdl:part name="client" element="xrd:client">
     </wsdl:part>
     <wsdl:part name="service" element="xrd:service">

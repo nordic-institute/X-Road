@@ -1,34 +1,36 @@
+#central servers (ubuntu lxd containers)
 [cs-servers]
 xroad-lxd-cs ansible_connection=lxd
 
-[cs-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
+#configuration proxies (ubuntu lxd containers)
 [cp-servers]
 xroad-lxd-cp ansible_connection=lxd
 
-[cp-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
+#certification authority, time stamping authority and ocsp service server for testing purposes (ubuntu)
 [ca-servers]
 xroad-lxd-ca ansible_connection=lxd
 
-[ca-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
-
+#security servers (ubuntu lxd containers)
 [ss-servers]
 xroad-lxd-ss1 ansible_connection=lxd
 xroad-lxd-ss2 ansible_connection=lxd
 
-[ss-servers:vars]
-ubuntu_apt_key="https://s3-eu-west-1.amazonaws.com/xroad-development/debian/palveluvayla@gofore.com.asc"
-ubuntu_apt_repo="deb https://s3-eu-west-1.amazonaws.com/xroad-development/debian stable main"
+[ss-servers:children]
+centos-ss
 
+#security servers (centos lxd containers)
+[centos-ss]
+xroad-lxd-rh-ss1 ansible_connection=lxd
+
+#container host
 [lxd-servers]
 localhost ansible_connection=local
 
+#compilation host
 [compile-servers]
 localhost ansible_connection=local
+
+### vars ###
+
+[ss-servers:vars]
+variant=vanilla

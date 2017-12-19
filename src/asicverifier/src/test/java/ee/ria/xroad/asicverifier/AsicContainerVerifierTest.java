@@ -22,15 +22,11 @@
  */
 package ee.ria.xroad.asicverifier;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -45,7 +41,8 @@ import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.TestGlobalConfImpl;
-import lombok.RequiredArgsConstructor;
+
+import static ee.ria.xroad.common.ErrorCodes.*;
 
 /**
  * Tests to verify correct ASiC container verifier behavior.
@@ -66,14 +63,13 @@ public class AsicContainerVerifierTest {
      */
     @BeforeClass
     public static void setUpConf() {
-        System.setProperty(SystemProperties.CONFIGURATION_PATH,
-                "../common-util/src/test/resources/globalconf_good");
+        System.setProperty(SystemProperties.CONFIGURATION_PATH, "../common-util/src/test/resources/globalconf_good");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
+
         GlobalConf.reload(new TestGlobalConfImpl(false) {
             @Override
-            public X509Certificate getCaCert(String instanceIdentifier,
-                    X509Certificate memberCert) throws Exception {
+            public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
                 return TestCertUtil.getCaCert();
             }
         });
@@ -90,10 +86,8 @@ public class AsicContainerVerifierTest {
                 {"valid-batch-ts.asice", null},
                 {"wrong-message.asice", X_INVALID_SIGNATURE_VALUE},
                 {"invalid-digest.asice", X_INVALID_SIGNATURE_VALUE},
-                {"invalid-signed-hashchain.asice",
-                    X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
-                {"invalid-hashchain-modified-message.asice",
-                    X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
+                {"invalid-signed-hashchain.asice", X_MALFORMED_SIGNATURE + "." + X_INVALID_HASH_CHAIN_REF},
+                {"invalid-hashchain-modified-message.asice", X_MALFORMED_SIGNATURE + "." + X_HASHCHAIN_UNUSED_INPUTS},
                 // This verification actually passes, since the hash chain
                 // is not verified and the signature is correct otherwise
                 {"invalid-not-signed-hashchain.asice", null},
@@ -109,12 +103,12 @@ public class AsicContainerVerifierTest {
     @Test
     public void test() throws Exception {
         thrown.expectError(errorCode);
+
         verify(containerFile);
     }
 
     private static void verify(String fileName) throws Exception {
-        AsicContainerVerifier verifier = new AsicContainerVerifier(
-                "src/test/resources/" + fileName);
+        AsicContainerVerifier verifier = new AsicContainerVerifier("src/test/resources/" + fileName);
         verifier.verify();
     }
 }

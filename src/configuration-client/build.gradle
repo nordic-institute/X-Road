@@ -1,39 +1,32 @@
 plugins {
-    id "eu.appsatori.fatjar" version "0.3"
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
 }
+apply plugin: 'application'
 
-def mainClass = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
+mainClassName = 'ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain'
 
 dependencies {
     compile project(':common-verifier')
 
     compile 'commons-cli:commons-cli:1.2'
 
+    testCompile 'com.github.stefanbirkner:system-rules:1.16.0'
     testCompile project(':common-test')
 }
 
-fatJarPrepareFiles {
-    include '*'
-}
-
-fatJar {
-    exclude "META-INF/*.SF"
-    exclude "META-INF/*.DSA"
-    exclude "META-INF/*.RSA"
-
-    manifest {
-        attributes 'Main-Class': mainClass
-    }
+shadowJar {
+    classifier = ''
 }
 
 jar.enabled = false
-build.dependsOn fatJar
-buildall.dependsOn fatJar
+build.dependsOn shadowJar
+buildall.dependsOn shadowJar
 
 task runConfigurationClient(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
             '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
 
-    main = mainClass
+    main = mainClassName
     classpath = sourceSets.main.runtimeClasspath
 }
+

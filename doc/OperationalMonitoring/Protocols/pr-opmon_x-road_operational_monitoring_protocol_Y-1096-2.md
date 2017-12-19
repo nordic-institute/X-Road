@@ -1,3 +1,7 @@
+
+| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
+
 # X-Road: Operational Monitoring Protocol
 
 **Technical Specification**
@@ -101,10 +105,10 @@ The body of the request MUST contain an XML element *getSecurityServerOperationa
  * *serviceSecurityServerAddress*
  * *requestSoapSize*
  * *requestMimeSize*
- * *requestAttatchmentCount*
+ * *requestAttachmentCount*
  * *responseSoapSize*
  * *responseMimeSize*
- * *responseAttatchmentCount*
+ * *responseAttachmentCount*
  * *succeeded*
  * *soapFaultCode*
  * *soapFaultString*
@@ -1082,8 +1086,8 @@ properties:
               SOAP request message and attachments data size in bytes)
           type: integer
           minimum: 0
-        requestAttatchmentCount:
-          description: Number of attatchments of the request
+        requestAttachmentCount:
+          description: Number of attachments of the request
           type: integer
           minimum: 0
         responseSoapSize:
@@ -1095,8 +1099,8 @@ properties:
              SOAP response message and attachments data size in bytes)
           type: integer
           minimum: 0
-        responseAttatchmentCount:
-          description: Number of attatchments of the response
+        responseAttachmentCount:
+          description: Number of attachments of the response
           type: integer
           minimum: 0
         succeeded:

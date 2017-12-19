@@ -1,6 +1,6 @@
 # X-Road: Central Server Installation Guide
 
-Version: 2.4  
+Version: 2.5  
 Doc. ID: IG-CS
 
 
@@ -20,6 +20,7 @@ Doc. ID: IG-CS
 | 09.12.2016 | 2.2     | Converted to markdown format          | Ilkka Seppälä |
 | 20.12.2016 | 2.3     | Add chapter about additional configuration to central server's user manual          | Ilkka Seppälä |
 | 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+| 25.08.2017 | 2.5       | Update installation instructions concerning the support for environmental monitoring  | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -36,7 +37,7 @@ Doc. ID: IG-CS
   * [2.4 Preparing OS](#24-preparing-os)
   * [2.5 Installation](#25-installation)
   * [2.6 Installing the Support for Hardware Tokens](#26-installing-the-support-for-hardware-tokens)
-  * [2.7 Installing the Support for Monitoring](#27-installing-the-support-for-monitoring)
+  * [2.7 Installing the Support for Environmental Monitoring](#27-installing-the-support-for-environmental-monitoring)
 - [3 Initial Configuration](#3-initial-configuration)
   * [3.1 Reference Data](#31-reference-data)
   * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -159,13 +160,11 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 4.  After installing and configuring the driver, the xroad-signer service must be restarted:
 `sudo service xroad-signer restart`
 
-## 2.7 Installing the Support for Monitoring
+## 2.7 Installing the Support for Environmental Monitoring
 
-The optional configuration for monitoring parameters is taken into use by installing package xroad-securityserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration.
+The optional configuration for environmental monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
-`sudo apt-get install xroad-centralserver-monitoring`
-
-After installing the package the central monitoring client may be configured as specified in the [UG-CS].
+The central monitoring client may be configured as specified in the [UG-CS].
 
 # 3 Initial Configuration
 

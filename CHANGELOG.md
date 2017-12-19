@@ -1,7 +1,61 @@
 # Change Log
 
-## 6.16.0 - SNAPSHOT
-- TBD
+## 6.17.0 - 2017-09-19
+- PVAYLADEV-861 / XRJD #172 Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
+- PVAYLADEV-918	Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
+- PVAYLADEV-799	Monitoring Akka-implementation is enhanced for handling possible restart of actors.
+- PVAYLADEV-908 / XRJD #176 	Added certificate activation status to enviromental monitoring
+- PVAYLADEV-841	Added support for CentOS 7 LXD-containers to public X-Road installation Ansible playbooks
+- PVAYLADEV-891	Updated documentation for environmental monitoring. ug-ss_x-road_6_security_server_user_guide.md
+- PVAYLADEV-926	Removed automated testing environment Ansible setup from the public repository
+- PVAYLADEV-740 Created Dockerfile for compiling xroad codebase and created jenkins pipeline which will use that for compiling, packaging and deploying X-Road version.s
+- PVAYLADEV-878 Use case documentation changed from docx to md
+- XTE-355 / Backlog #152: Security Server: Improved message exchange performance at a time when periodical timestamping is performed
+- XTE-368: Added new security server metapackage xroad-securityserver-ee with default configuration for Estonian instances
+- XTE-375: Security Server / Central Server: Enabled HttpOnly flag and set security flag to true for the session cookies
+- XTE-376: Security Server: Fixed system resource leak of the monitoring component
+- XTE-380: Security Server: Fixed audit logging of the restore process
+- PVAYLADEV-809 / XRJD #190 The xroad package xroad-common has been split into four packages to allow removing unnecessary dependencies in the future. The package xroad-common still remains but is now a metapackage that depends on the new packages xroad-nginx, xroad-confclient, and xroad-signer which in turn depend on the new package xroad-base. X-Road packages that were dependant on xroad-common are, for now, still dependant on that package.e
+- PVAYLADEV-921 Ansible playbook support for selecting the security server variant (ee, fi, vanilla) to be installed, defaults to vanilla
+- PVAYLADEV-883 Added feature to limit environmental monitoringdata result, via env-monitor parameter
+- PVAYLADEV-962 Fixed path that is displayed to user in central server and security server backup
+- PVAYLADEV-978 / XRJD #185 Fixed xroad-jetty high resource usage
+- PVAYLADEV-947 / XRJD #179 Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
+
+## 6.16.0 - 2017-09-13
+- PVAYLADEV-848	Updated Gradle to version 4.1
+- PVAYLADEV-815	Load Balancer documentation updated with Autologin setup and installing guide for slaves.
+- PVAYLADEV-847 / XRJD #169	Fixed UI empty table double click event handling
+- PVAYLADEV-367	Extend environmental monitoring to report optionally specified monitoring data.
+- PVAYLADEV-438 / XRDJ #57 	For security reasons, security server metaservice no longer returns the network addresses of subsystem's services when retrieving the WSDL of a service. Instead it returns "http://example.org/xroad-endpoint".
+- PVAYLADEV-822 / XRJD #162 	Environmental monitoring data now shows fewer certificate details, but for more certificates. SHA-1 hashes and validity periods (start and end date) are shown. The certificate data still contains the authentication and signing certificates and as a new addition, the internal TLS certificate for the security server as well as the client information system authentication certificates. The aim is to provide details about expiring certificates that would prevent message delivery but keep any private certificate details private.
+- PVAYLADEV-860 / XRJD #168	The central server's environmental monitoring component is installed by default.
+- PVAYLADEV-783 / XRJD #155 Fixed security server diagnostics view breaking if any of its status queries fails.
+- PVAYLADEV-794 Packaging in development and release modes. The changelog is installed on target servers.
+- XTE-349: Fixed some typos related with document PR-OPMON.
+- XTE-335 / Backlog #134: Security Server, Op Monitoring Daemon : Updated Dropwizard to 3.2.2 and removed unnecessary bugfix.
+- XTE-332, XTE-353 / Backlog #129: Security Server, Central Server, Configuration Proxy: Added support for PKCS#11 sign mechanism CKM_RSA_PKCS_PSS and made key creation template configurable.
+- PVAYLADEV-780 / XRJD #146: Updated xroad-jetty to version 9.4.5. Now using jetty logging-logback module and updated logback (both library and jetty module version to 1.2.3). Removed XRoadSizeBasedRollingPolicy from the logback configurations. The policy class remains available (in case someone really wants to use it for awhile still), but will be removed entirely in a future release. Due to the log rolling policy change, the file name of archived files will lose the zip-creation time from the custom policy.
+- PVAYLADEV-807: Added a maintenance mode to the health check interface to force health check to return HTTP status code 503. Mode can be enabled through proxy's admin port.
+- PVAYLADEV-746: Added environment monitoring sensor for certificates which are associated with this security server.
+- PVAYLADEV-717: Added license for IAIK PKCS Wrapper
+- PVAYLADEV-800 / XRJD #71: Security server should preserve and propagate the SOAPAction header from the consumer to the provider.
+- PVAYLADEV-838: Fix Ansible script does not build installation packages
+- PVAYLADEV-804: Added instructions on performing an online rolling upgrade on a security server cluster. See the External Load Balancer documentation (doc id: IG-LXB).
+- PVAYLADEV-834: Updated dependencies to latest stable versions to fix known vulnerabilities (jackson-databind, apache-mime4j-core, JRuby)
+- PVAYLADEV-760 / XRJD #160: Modified connector SO-linger defaults to -1. Additionally moved RHEL-proxy configuration to file override-rhel-proxy.ini and reduced the file to only contain differences to debian-proxy configuration file proxy.ini, that is now also included in RHEL packaging as a baseline configuration. Also modified SystemPropertiesLoader to load glob-defined ini-files in alphabetic order based on the filename.
+- PVAYLADEV-798 / XRJD #170: Fixed the horizontal centering of central server UI tab bars as well as the vertical positioning of the advanced search window tab bar.
+- PVAYLADEV-818: Updated the frontpage of X-Road Github repository (README.md file) to contain more information about the X-Road development.
+- PVAYLADEV-816: Add missing load balancing installation document image source files
+- PVAYLADEV-772: The X-Road restore backup script names the services that need to be restarted so that the service list is always correct and the services are restarted in correct order.
+- PVAYLADEV-797 / XRJD #156: Federation has been disabled by default on the security server level. Federation can be enabled with the system parameter allowed-federations for the configuration-client server component. More information can be found in the Security Server User Guide (Doc. ID: UG-SS) and the System Parameters User Guide (Doc. ID: UG-SYSPAR)
+- PVAYLADEV-868:Added link from ig-xlb_x-road_external_load_balancer_installation_guide.md to /doc/README.md
+- PVAYLADEV-856: Exclude audit.log from automatic log cleanup on reboot
+- XTE-248 / Backlog #55: Security Server: Fixed creation of signed documents (backward compatible) to follow e-signature standards (XAdES, ASiC).
+- XTE-330 / Backlog #127: Security Server: Added support for "NEE" member class in certificates provided by SK ID Solutions AS.
+- XTE-357 / Backlog #164: Security Server: Fixed temporary files removal in error situations.
+- PVAYLADEV-933: Fixed build failure on clean machine
+- PVAYLADEV-934: Fixed problem in wsdlvalidator install paths
 
 ## 6.15.0 - 2017-05-12
 - PVAYLADEV-730 / XRJD #147 Packaged wsdlvalidator and included it in the RHEL distribution.

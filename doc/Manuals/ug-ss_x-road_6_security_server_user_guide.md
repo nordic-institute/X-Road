@@ -1,13 +1,13 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
 
----
-
+| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
 
 # SECURITY SERVER USER GUIDE
+
 **X-ROAD 6**
 
-Version: 2.16
-20.03.2017  
+Version: 2.17  
+15.06.2017
 Doc. ID: UG-SS
 
 ---
@@ -22,7 +22,7 @@ Doc. ID: UG-SS
  10.10.2014 | 0.3     | Update
  14.10.2014 | 0.4     | Title page, header, footer added
  16.10.2014 | 0.5     | Minor corrections done
- 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#16-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).
+ 12.11.2014 | 0.6     | Asynchronous messages section removed. Global Configuration distributors section replaced with Configuration Anchor section ([10.1](#101-managing-the-configuration-anchor)). Added Logback information (Chapter [16](#17-logs-and-system-services)). A note added about the order of timestamping services (Section [10.2](#102-managing-the-timestamping-services)).
  1.12.2014  | 1.0     | Minor corrections done
  19.01.2015 | 1.1     | License information added
  27.01.2015 | 1.2     | Minor corrections done
@@ -40,8 +40,8 @@ Doc. ID: UG-SS
  30.11.2015 | 2.4     | X-Road concepts updated (Section [1.2](#12-x-road-concepts)). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
  09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.
  14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))
- 14.01.2016 | 2.7     | Logs updated (Chapter [16](#16-logs-and-system-services))
- 08.02.2016 | 2.8     | Corrections in chapter [16](#16-logs-and-system-services)
+ 14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))
+ 08.02.2016 | 2.8     | Corrections in chapter [16](#17-logs-and-system-services)
  20.05.2016 | 2.9     | Merged changes from xtee6-doc repo. Added Chapter [14](#14-diagnostics) Diagnostics and updated content of [10.3](#103-changing-the-internal-tls-key-and-certificate) Changing the Internal TLS Key and Certificate.
  29.11.2016 | 2.10    | User Management updated (Chapter [2](#2-user-management)). XTE-297: Internal Servers tab is displayed to security server owner (Chapter [9](#9-communication-with-the-client-information-systems)). |
  19.12.2016 | 2.11    | Added Chapter [15](#15-operational-monitoring) Operational Monitoring
@@ -50,7 +50,10 @@ Doc. ID: UG-SS
  04.01.2016 | 2.14    | Corrections in Chapter [15.2.5](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
  20.02.2017 | 2.15    | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  16.03.2017 | 2.16    | Added observer role to Chapters [2.1](#21-user-roles) and [2.2](#22-managing-the-users) | Tatu Repo
-
+ 15.06.2017 | 2.17    | Added [Chapter 17](#18-federation) on federation | Olli Lindgren
+ 25.09.2017 | 2.18    | Added chapter [16 Environmental Monitoring](#16-environmental-monitoring) | Tomi Tolvanen
+ 17.10.2017 | 2.19    | Added section [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)| Joni Laurila
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -142,10 +145,15 @@ Doc. ID: UG-SS
     + [15.2.4 Installing an External Operational Monitoring Daemon](#1524-installing-an-external-operational-monitoring-daemon)
     + [15.2.5 Configuring an External Operational Monitoring Daemon and the Corresponding Security Server](#1525-configuring-an-external-operational-monitoring-daemon-and-the-corresponding-security-server)
     + [15.2.6 Monitoring Health Data over JMXMP](#1526-monitoring-health-data-over-jmxmp)
-- [16 Logs and System Services](#16-logs-and-system-services)
-  * [16.1 System Services](#161-system-services)
-  * [16.2 Logging configuration](#162-logging-configuration)
-  * [16.3 Fault Detail UUID](#163-fault-detail-uuid)
+- [16 Environmental Monitoring](#16-environmental-monitoring)
+  * [16.1 Usage via SOAP API](#161-usage-via-soap-api)
+  * [16.2 Usage via JMX API](#162-usage-via-jmxapi)
+  * [16.3 Limiting environmental monitoring remote data set](#163-limiting-environmental-monitoring-remote-data-set)
+- [17 Logs and System Services](#17-logs-and-system-services)
+  * [17.1 System Services](#171-system-services)
+  * [17.2 Logging configuration](#172-logging-configuration)
+  * [17.3 Fault Detail UUID](#173-fault-detail-uuid)
+- [18 Federation](#18-federation)
 
 <!-- tocstop -->
 
@@ -238,14 +246,17 @@ The security server also depends on a central server, which provides the global 
 
 1.  <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
 
-2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,
+2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
     <http://www.quartz-scheduler.org/generated/2.2.1/html/qs-all/#page/Quartz_Scheduler_Documentation_Set%2Fco-trg_crontriggers.html>
 
-3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file, <http://en.wikipedia.org/wiki/INI_file>
+3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
+    <http://en.wikipedia.org/wiki/INI_file>
 
-4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database, <https://jdbc.postgresql.org/documentation/93/connect.html>
+4.  <a id="Ref_JDBC" class="anchor"></a>\[JDBC\] Connecting to the Database,   
+    <https://jdbc.postgresql.org/documentation/93/connect.html>
 
-5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON, <http://json.org/>
+5.  <a id="Ref_JSON" class="anchor"></a>\[JSON\] Introducing JSON,  
+    <http://json.org/>
 
 6.  <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0. Document ID: PR-MESS
 
@@ -259,13 +270,26 @@ The security server also depends on a central server, which provides the global 
 
 11. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: IG-SS
 
-12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology, <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
+12. <a id="Ref_JMX" class="anchor"></a>\[JMX\] Monitoring and Management Using JMX Technology,  
+    <http://docs.oracle.com/javase/8/docs/technotes/guides/management/agent.html>
 
-13. <a id="Ref_ZABBIX-GATEWAY" class="anchor"></a>\[ZABBIX-GATEWAY\] Zabbix Java Gateway, <https://www.zabbix.com/documentation/3.0/manual/concepts/java>
+13. <a id="Ref_ZABBIX-GATEWAY" class="anchor"></a>\[ZABBIX-GATEWAY\] Zabbix Java Gateway,  
+    <https://www.zabbix.com/documentation/3.0/manual/concepts/java>
 
-14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring, <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
+14. <a id="Ref_ZABBIX-JMX" class="anchor"></a>\[ZABBIX-JMX\] Zabbix JMX Monitoring,  
+    <https://www.zabbix.com/documentation/3.0/manual/config/items/itemtypes/jmx_monitoring>
 
-15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API, <https://www.zabbix.com/documentation/3.0/manual/api>
+15. <a id="Ref_ZABBIX-API" class="anchor"></a>\[ZABBIX-API\] Zabbix API,  
+    <https://www.zabbix.com/documentation/3.0/manual/api>
+
+16. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Environmental Monitoring Architecture. Document ID: ARC-ENVMON.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md>
+
+17. <a id="Ref_PR-ENVMONMES" class="anchor"></a>\[PR-ENVMONMES\] X-Road: Environmental Monitoring Messages. Document ID: PR-ENVMONMES.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-messages.md>
+
+18. <a id="Ref_MONITORING_XSD" class="anchor"></a>\[MONITORING_XSD\] X-Road XML schema for monitoring extension.  
+    <https://github.com/vrk-kpa/X-Road/blob/develop/src/addons/proxymonitor/common/src/main/resources/monitoring.xsd>
 
 
 ## 2 User Management
@@ -314,7 +338,7 @@ To remove a user permission, remove the user from the corresponding system group
 
     deluser username xroad-security-officer
 
-User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#161-system-services)).
+User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#171-system-services)).
 
 To remove a user, enter:
 
@@ -1505,15 +1529,24 @@ If it is absolutely necessary to restore the system from a backup made on a diff
 
 Open the **Management** menu and select **Diagnostics**.
 
-On this page you can examine the statuses of the following services.
+On this page you can examine the statuses of the following services:
 
  Service              | Status           | Message        | Previous Update          | Next Update
 --------------------- | ---------------- | -------------- | ------------------------ | ------------------------
  Global configuration | Green/yellow/red | Status message | The time of the global configuration client’s last run | The estimated time of the global configuration client’s next run
  Timestamping         | Green/yellow/red | Status message | The time of the last timestamping operation            | Not used                                   
+ OCSP-responders      | Green/yellow/red | Status message | The time of the last contact with the OCSP-responder   | The latest possible time for the next OCSP-refresh
+ 
+To refresh the service statuses click the **Diagnostics** item on the **Management** menu.
 
-To refresh the service statuses click again the **Diagnostics** item on the **Management** menu.
+The status colors indicate the following:
+- **Red indicator** – service cannot be contacted or is not operational
+- **Yellow indicator** – service has been contacted but is yet to have been used to verify its status
+- **Green indicator** – service has been successfully contacted and used to verify it is operational
 
+The status message offers more detailed information on the current status.
+
+If a section of the diagnostics view appears empty, it means that there either is no configured service available or that checking the service status has failed. If sections are empty, try refreshing the diagnostics view or check the service configuration.
 
 ## 15 Operational Monitoring
 
@@ -1680,12 +1713,34 @@ Please refer to \[[PR-OPMONJMX](#Ref_PR-OPMONJMX)\] for a specification of the n
 The xroad-opmonitor package comes with sample host data that can be imported to Zabbix, containing a JMX interface, applications related to sample services and health data items under these services. Also, a script is provided for importing health data related applications and items to several hosts using the Zabbix API. Please find the example files in the directory `/usr/share/doc/xroad-opmonitor/examples/zabbix/`. Please refer to \[[ZABBIX-API](#Ref_ZABBIX-API)\] for information on the Zabbix API.
 
 
-## 16 Logs and System Services
+## 16 Environmental Monitoring
+
+Environmental monitoring provides details of the security servers such as operating system, memory, disk space, CPU load, running processes and installed packages, etc.
+
+
+### 16.1 Usage via SOAP API
+
+Environmental monitoring provides SOAP API via X-Road message protocol extension. SOAP messages are described in \[[PR-ENVMONMES](#Ref_PR-ENVMONMES)\]. 
+
+Monitoring extension schema is defined in \[[MONITORING_XSD](#Ref_MONITORING_XSD)\].
+
+
+### 16.2 Usage via JMX API    
+
+Environmental monitoring provides also a standard JMX endpoint which can be accessed with any JMX client (for example Java's jconsole application). See \[[ARC-ENVMON](#Ref_ARC-ENVMON)\] for details. 
+
+JMX is disabled on default. JMX is enabled by adding standard JMX-related options to the executable java process as in example by \[[ZABBIX-JMX](#Ref_ZABBIX-JMX)\]. Monitor process options are defined in security server's path `/etc/xroad/services/monitor.conf`. 
+
+### 16.3 Limiting environmental monitoring remote data set
+
+It is possibility to limit what allowed non-owners can request via environmental monotiring data request by changing monitor-env limit-remote-data-set parameter. By changing flag to be true non-owners who are allowed to query environmental monitoring data will get only certificate, operating system and xroad version information. This parameters is set by default false. Security server owner will always get full data set as requested.
+
+## 17 Logs and System Services
 
 **To read logs**, a user must have root user's rights or belong to the `xroad` and/or `adm` system group.
 
 
-### 16.1 System Services
+### 17.1 System Services
 
 The most important system services of a security server are as follows.
 
@@ -1708,7 +1763,7 @@ System services are managed through the *upstart* facility.
     service <service> stop
 
 
-### 16.2 Logging configuration
+### 17.2 Logging configuration
 
 For logging, the **Logback** system is used. Logback configuration files are stored in the directory `/etc/xroad/conf.d/`.
 
@@ -1719,7 +1774,53 @@ Default settings for logging are the following:
 -   rolling policy: whenever the file size reaches 100 MB.
 
 
-### 16.3 Fault Detail UUID
+### 17.3 Fault Detail UUID
 
 In case a security server encounters an error condition during the message exchange, the security server returns a SOAP Fault message \[[PR-MESS](#Ref_PR-MESS)\] containing a UUID (a universally unique identifier, e.g. `1328e974-4fe5-412c-a4c4-f1ac36f20b14`) as the fault detail to the service client's information system. The UUID can be used to find the details of the occurred error from the `xroad-proxy` log.
 
+## 18 Federation
+
+Federation allows security servers of two different X-Road instances to exchange messages with each other. The instances
+are federated at the central server level. After this, security servers can be configured to opt-in to the federation.
+By default, federation is disabled and configuration data for other X-Road instances will not be downloaded.
+
+The federation can be allowed for all X-Road instances that the central server offers, or a list of specific
+(comma-separated) instances. The default is to allow none. The values are case-insensitive.
+
+To override the default value, edit the file `/etc/xroad/conf.d/local.ini` and add or change the value of the system
+parameter `allowed-federations` for the server component `configuration-client`. To restore the default, either remove
+the system parameter entirely or set the value to `none`. X-Road services `xroad-confclient` and `xroad-proxy` need to
+be restarted (in that order) for any setting changes to take effect.
+
+Below are some examples for `/etc/xroad/conf.d/local.ini`.
+
+To allow federation with all offered X-Road instances:
+```
+[configuration-client]
+allowed-federations=all
+```
+
+To allow federation with specific instances `xe-test` and `ee-test`:
+```
+[configuration-client]
+allowed-federations=xe-test,ee-test
+```
+
+To disable federation, just remove the `allowed-federations` system parameter entirely or use:
+```
+[configuration-client]
+allowed-federations=none
+```
+
+Please note that if the keyword `all` is present in the comma-separated list, it will override the single allowed
+instances. The keyword `none` will override all other values. This means that the following setting will allow all
+federations:
+```
+[configuration-client]
+allowed-federations=xe-test, all, ee-test
+```
+And the following will allow none:
+```
+[configuration-client]
+allowed-federations=xe-test, all, none, ee-test
+```

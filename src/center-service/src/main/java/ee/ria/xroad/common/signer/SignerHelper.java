@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.common.signer;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
-
 import java.nio.charset.StandardCharsets;
 
+import lombok.extern.slf4j.Slf4j;
+
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanism;
+import ee.ria.xroad.signer.protocol.message.GetSignMechanismResponse;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Contains utility methods for interacting with the signer.
@@ -43,25 +43,16 @@ public final class SignerHelper {
     }
 
     /**
-     * @return a base64 encoded signature.
+     * @return a signature algorithm id.
      * @param keyId signing key ID
-     * @param signatureAlgorithmId ID of the signature algorithm to use
-     * @param data the data to sign
      * @throws Exception in case of any errors
      */
-    public static String sign(String keyId, String signatureAlgorithmId,
-            String data) throws Exception {
-        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
-        String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
+    public static String getSignAlgorithmId(String keyId, String digestAlgorithmId) throws Exception {
+        log.trace("getSignAlgorithmId({}, {})", keyId, digestAlgorithmId);
 
-        byte[] tbsData = data.getBytes(StandardCharsets.UTF_8);
-        byte[] digest = calculateDigest(digestAlgorithmId, tbsData);
+        GetSignMechanismResponse response = SignerClient.execute(new GetSignMechanism(keyId));
 
-        SignResponse response =
-                SignerClient.execute(
-                        new Sign(keyId, digestAlgorithmId, digest));
-
-        return encodeBase64(response.getSignature());
+        return CryptoUtils.getSignatureAlgorithmId(digestAlgorithmId, response.getSignMechanismName());
     }
 
     /**
@@ -71,17 +62,27 @@ public final class SignerHelper {
      * @param data the data to sign
      * @throws Exception in case of any errors
      */
-    public static String sign(String keyId, String signatureAlgorithmId,
-            byte[] data) throws Exception {
-        log.trace("sign({}, {})", keyId, signatureAlgorithmId);
-        String digestAlgorithmId = getDigestAlgorithmId(signatureAlgorithmId);
+    public static String sign(String keyId, String signatureAlgorithmId, String data) throws Exception {
+        log.trace("sign({}, {}, dataString)", keyId, signatureAlgorithmId);
 
-        byte[] digest = calculateDigest(digestAlgorithmId, data);
+        return sign(keyId, signatureAlgorithmId, data.getBytes(StandardCharsets.UTF_8));
+    }
 
-        SignResponse response =
-                SignerClient.execute(
-                        new Sign(keyId, digestAlgorithmId, digest));
+    /**
+     * @return a base64 encoded signature.
+     * @param keyId signing key ID
+     * @param signatureAlgorithmId ID of the signature algorithm to use
+     * @param data the data to sign
+     * @throws Exception in case of any errors
+     */
+    public static String sign(String keyId, String signatureAlgorithmId, byte[] data) throws Exception {
+        log.trace("sign({}, {}, dataBytes)", keyId, signatureAlgorithmId);
 
-        return encodeBase64(response.getSignature());
+        String digestAlgorithmId = CryptoUtils.getDigestAlgorithmId(signatureAlgorithmId);
+        byte[] digest = CryptoUtils.calculateDigest(digestAlgorithmId, data);
+
+        SignResponse response = SignerClient.execute(new Sign(keyId, signatureAlgorithmId, digest));
+
+        return CryptoUtils.encodeBase64(response.getSignature());
     }
 }

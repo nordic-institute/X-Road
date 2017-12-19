@@ -48,6 +48,8 @@ import ee.ria.xroad.proxy.testsuite.TestKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
@@ -55,6 +57,8 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
+import org.custommonkey.xmlunit.Diff;
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.*;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.ExpectedException;
@@ -73,8 +77,13 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -86,8 +95,8 @@ import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTran
 import static ee.ria.xroad.common.metadata.MetadataRequests.*;
 import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
-import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.*;
+import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -96,9 +105,11 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+
 /**
  * Unit test for {@link MetadataServiceHandlerImpl}
  */
+@Slf4j
 public class MetadataServiceHandlerTest {
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
@@ -131,6 +142,7 @@ public class MetadataServiceHandlerTest {
     private MetaserviceTestUtil.StubServletOutputStream mockServletOutputStream;
     private ProxyMessage mockProxyMessage;
     private WireMockServer mockServer;
+
 
 
     /**
@@ -467,13 +479,97 @@ public class MetadataServiceHandlerTest {
                 httpClientMock, mock(OpMonitoringData.class));
     }
 
+    private static class TestMetadataServiceHandlerImpl extends MetadataServiceHandlerImpl {
+        private OverwriteAttributeFilter filter;
+        @Override
+        protected OverwriteAttributeFilter getModifyWsdlFilter() {
+            return filter;
+        }
+        public void setTestFilter(OverwriteAttributeFilter testFilter) {
+            this.filter = testFilter;
+        }
+    }
+
+    @Test
+    public void getWsdlShouldModifyOnlyEndpointAddress() throws Exception {
+
+        final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
+        // "replace" with the original value (should produce identical output)
+        handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter(
+                "https://172.28.128.2:8084/mocktestServiceBinding"));
+
+        // execution
+        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        // verification
+        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
+                // this response content type and the headless parsing is some super funky business
+                handlerToTest.getResponseContentType());
+
+        String expectedXml = readFile("__files/wsdl.wsdl");
+        String resultXml = handler.getContentAsString();
+        log.debug("expected: {}", expectedXml);
+        log.debug("result: {}", resultXml);
+
+        XMLUnit.setIgnoreWhitespace(true);
+        Diff diff = new Diff(resultXml, expectedXml);
+        log.debug("diff: {}", diff);
+        // diff is "similar" (not identical) even if namespace prefixes and element ordering differ
+        assertTrue(diff.similar());
+        assertTrue(diff.identical());
+    }
+
     @Test
     public void shouldHandleGetWsdl() throws Exception {
 
         final ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_WSDL);
+        TestMetadataServiceHandlerImpl handlerToTest = prepareTestConstructsForWsdl(serviceId);
+        handlerToTest.setTestFilter(OverwriteAttributeFilter.createOverwriteSoapAddressFilter("expected-location"));
+
+        // execution
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        // verification
+        final List<String> expectedWSDLServiceNames =
+                Arrays.asList("getRandom", "helloService");
+
+        final List<String> expectedEndpointUrls =
+                Arrays.asList("expected-location");
+
+        assertThat("Content type does not match", handlerToTest.getResponseContentType(),
+                containsString("multipart/related; type=\"text/xml\"; charset=UTF-8;"));
+
+        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
+                // this response content type and the headless parsing is some super funky business
+                handlerToTest.getResponseContentType());
+
+        SoapHeader xrHeader = handler.getXrHeader();
+        assertThat("Response client does not match", xrHeader.getService(), is(serviceId));
+
+        final List<String> operationNames = handler.getOperationNames();
+
+        assertThat("Expected to find certain operations",
+                operationNames,
+                containsInAnyOrder(expectedWSDLServiceNames.toArray()));
+
+        List<String> endpointUrls = handler.getEndpointUrls();
+
+        assertThat("Expected to find overwritten endpoint urls",
+                endpointUrls,
+                containsInAnyOrder(expectedEndpointUrls.toArray()));
+    }
+
+    /**
+     * Prepare TestMetadataServiceHandlerImpl, wiremock, et al for get WSDL tests
+     */
+    private TestMetadataServiceHandlerImpl prepareTestConstructsForWsdl(ServiceId serviceId) throws Exception {
         final ServiceId requestingWsdlForService = ServiceId.create(DEFAULT_CLIENT, "someServiceWithWsdl122");
 
-        MetadataServiceHandlerImpl handlerToTest = new MetadataServiceHandlerImpl();
+        TestMetadataServiceHandlerImpl handlerToTest = new TestMetadataServiceHandlerImpl();
 
         WsdlRequestData wsdlRequestData = new WsdlRequestData();
         wsdlRequestData.setServiceCode(requestingWsdlForService.getServiceCode());
@@ -495,37 +591,19 @@ public class MetadataServiceHandlerTest {
         mockServer.start();
 
 
-        final List<String> expectedWSDLServiceNames =
-                Arrays.asList("getRandom", "helloService");
-
         when(mockResponse.getOutputStream()).thenReturn(mockServletOutputStream);
 
 
         handlerToTest.canHandle(serviceId, mockProxyMessage);
 
-        // execution
-
-        handlerToTest.startHandling(mockRequest, mockProxyMessage,
-                httpClientMock, mock(OpMonitoringData.class));
-
-        // verification
-        assertThat("Content type does not match", handlerToTest.getResponseContentType(),
-                containsString("multipart/related; type=\"text/xml\"; charset=UTF-8;"));
-
-        TestMimeContentHandler handler = parseWsdlResponse(handlerToTest.getResponseContent(),
-                // this response content type and the headless parsing is some super funky business
-                handlerToTest.getResponseContentType());
-
-        SoapHeader xrHeader = handler.getXrHeader();
-        assertThat("Response client does not match", xrHeader.getService(), is(serviceId));
-
-        final List<String> operationNames = handler.getOperationNames();
-
-        assertThat("Expected to find certain operations",
-                operationNames,
-                containsInAnyOrder(expectedWSDLServiceNames.toArray()));
+        return handlerToTest;
     }
 
+    private String readFile(String filename) throws IOException, URISyntaxException {
+        return new String(Files.readAllBytes(Paths.get(
+                ClassLoader.getSystemResource(filename).toURI()
+        )), "UTF-8");
+    }
 
     private void setUpDatabase(ServiceId serviceId) throws Exception {
         ServerConfType conf = new ServerConfType();
@@ -561,8 +639,7 @@ public class MetadataServiceHandlerTest {
 
     private TestMimeContentHandler parseWsdlResponse(InputStream inputStream, String headlessContentType)
             throws IOException, MimeException {
-        MimeConfig config = new MimeConfig();
-        config.setHeadlessParsing(headlessContentType);
+        MimeConfig config = new MimeConfig.Builder().setHeadlessParsing(headlessContentType).build();
         MimeStreamParser parser = new MimeStreamParser(config);
         TestMimeContentHandler contentHandler = new TestMimeContentHandler();
         parser.setContentHandler(contentHandler);
@@ -578,8 +655,16 @@ public class MetadataServiceHandlerTest {
         private SOAPMessage message;
         @Getter
         private List<String> operationNames;
+        @Getter
+        private List<String> endpointUrls;
 
         private String partContentType;
+
+        private String contentAsString;
+
+        public String getContentAsString() {
+            return contentAsString;
+        }
 
         @Override
         public void startHeader() throws MimeException {
@@ -595,6 +680,12 @@ public class MetadataServiceHandlerTest {
 
         @Override
         public void body(BodyDescriptor bd, InputStream is) throws MimeException, IOException {
+
+            // steal the string here
+            contentAsString = IOUtils.toString(is, "UTF-8");
+            log.debug("we have WSDL: {}", contentAsString);
+            is = new ByteArrayInputStream(contentAsString.getBytes(StandardCharsets.UTF_8));
+
             try {
                 message = (message != null) ? message : messageFactory.createMessage(null, is);
             } catch (SOAPException e) {
@@ -606,7 +697,7 @@ public class MetadataServiceHandlerTest {
                     xrHeader = unmarshaller.unmarshal(message.getSOAPHeader(),
                             SoapHeader.class).getValue();
                 } catch (SOAPException | JAXBException e) {
-                   throw new MimeException(e);
+                    throw new MimeException(e);
                 }
             } else {
                 if (partContentType != null) {
@@ -615,6 +706,7 @@ public class MetadataServiceHandlerTest {
                         Definition definition = wsdlReader.readWSDL(null, new InputSource(is));
 
                         operationNames = parseOperationNamesFromWSDLDefinition(definition);
+                        endpointUrls = parseEndpointUrlsFromWSDLDefinition(definition);
 
                     } catch (WSDLException e) {
                         throw new MimeException(e);

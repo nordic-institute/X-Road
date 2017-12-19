@@ -1,13 +1,12 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
 
----
-
+| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
 
 # Security Server Installation Guide
+
 **X-ROAD 6**
 
-Version: 2.8
-13.03.2017
+Version: 2.10
 Doc. ID: IG-SS
 
 ---
@@ -34,6 +33,8 @@ Doc. ID: IG-SS
  07.12.2016 | 2.6     | Added operational data monitoring packages. 2 GB RAM -&gt; 3 GB RAM |
  23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
+ 25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
+ 15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
 
 ## Table of Contents
 
@@ -51,7 +52,7 @@ Doc. ID: IG-SS
   * [2.5 Installation](#25-installation)
   * [2.6 Post-Installation Checks](#26-post-installation-checks)
   * [2.7 Installing the Support for Hardware Tokens](#27-installing-the-support-for-hardware-tokens)
-  * [2.8 Installing Support for Monitoring](#28-installing-support-for-monitoring)
+  * [2.8 Installing the Support for Environmental Monitoring](#28-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
   * [3.2 Reference Data](#32-reference-data)
@@ -178,7 +179,7 @@ To install the X-Road security server software, follow these steps.
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 
-3.  Issue the following commands to install the security server packages:
+3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia):
 
         sudo apt-get update
         sudo apt-get install xroad-securityserver
@@ -209,7 +210,7 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
-The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog`, operational data monitoring module `xroad-addon-opmonitoring` and WSDL validator module `xroad-addon-wsdlvalidator`.
+The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-package `xroad-securityserver-ee` installs operational data monitoring module `xroad-addon-opmonitoring`.
 
 
 ### 2.6 Post-Installation Checks
@@ -247,13 +248,9 @@ To configure support for hardware security tokens (smartcard, USB token, Hardwar
 
 If you are running a high availability (HA) hardware token setup (such as a cluster with replicated tokens) then you may need to constrain the token identifier format such that the token replicas can be seen as the same token. The token identifier format can be changed in /etc/xroad/devices.ini via the `token_id_format` property (default value: `{moduleType}{slotIndex}{serialNumber}{label}`). Removing certain parts of the identifier will allow the HA setup to work correctly when one of the tokens goes down and is replaced by a replica. For example, if the token replicas are reported to be on different slots the `{slotIndex}` part should be removed from the identifier format.
 
-### 2.8 Installing Support for Monitoring
+### 2.8 Installing the Support for Environmental Monitoring
 
-Enabling the monitoring functionality on a security server requires installation of one additional package:
-
-    sudo apt-get install xroad-monitor
-
-This installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
+The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
 
 ## 3 Security Server Initial Configuration
@@ -402,4 +399,3 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt-get dist-upgrade` commands.
 
 Please note that `xroad-jetty9 package` version can be different from other packages’ versions.
-

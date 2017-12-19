@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.http.HttpFields;
 import org.eclipse.jetty.util.MultiPartWriter;
+
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Various MIME related utility methods.
@@ -41,6 +41,7 @@ public final class MimeUtils {
 
     public static final String HEADER_CONTENT_TYPE = "content-type";
     public static final String HEADER_ORIGINAL_CONTENT_TYPE = "x-original-content-type";
+    public static final String HEADER_ORIGINAL_SOAP_ACTION = "x-original-soapaction";
     public static final String HEADER_CONTENT_DATE = "content-date";
     public static final String HEADER_SIG_ALGO_ID = "signature-algorithm-id";
     public static final String HEADER_HASH_ALGO_ID = "x-hash-algorithm";

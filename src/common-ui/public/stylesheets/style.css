@@ -868,8 +868,8 @@ p:not(.input) {
 }
 
 .ui-tabs.search_tabs .ui-tabs-nav {
-	margin: 0;
-	border-bottom: 0;
+	margin: 0 0 -4px 0;
+	border-bottom: none;
 }
 
 .ui-tabs.search_tabs .ui-tabs-panel {

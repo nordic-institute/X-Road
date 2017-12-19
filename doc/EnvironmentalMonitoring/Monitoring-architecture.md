@@ -9,6 +9,8 @@ Doc. ID: ARC-ENVMON
 | 04.01.2017 | 1.1       | Fix documentation links | Ilkka Seppälä         |
 | 20.01.2017 | 1.2       | Added license text, table of contents and version history | Sami Kallio |
 | 23.2.2017 | 1.3       | Added reference to the Security Server targeting extension and moved the modified X-Road protocol details there | Olli Lindgren |
+| 18.8.2017 | 1.4       | Added details about the security server certificates monitoring data | Olli Lindgren |
+| 18.10.2017| 1.5       |  | Joni Laurila |
 
 ## Table of Contents
 <!-- toc -->
@@ -74,7 +76,7 @@ Monitoring service uses several _sensors_ to collect the data. Sensors and relat
 The following sensors produce monitoring data:
 - `SystemMetricsSensor`
   - data:
-    - CPU load
+    - system CPU load percentage (0-100)
     - free memory
     - total memory
     - free swap space
@@ -100,6 +102,18 @@ The following sensors produce monitoring data:
 - `PackageLister`
   - data: list of installed packages and their versions
   - data is refreshed once per minute
+- `CertificateInfoSensor`
+  - data: information about certificates associated with this security server
+    - certificate SHA-1 hash
+    - validity period: not before (ISO 8601 date)
+    - validity period: not after (ISO 8601 date)
+    - the type of the certificate:
+       - `AUTH_OR_SIGN` for the Security Server member certificates (for signing) and the Security Server certificate (for authentication)
+       - `INTERNAL_IS_CLIENT_TLS` for the client Information system certificates
+       - `SECURITY_SERVER_TLS` for the TLS certificate of the Security server
+    - is the certificate active (true/false)
+  - data is refreshed once per day
+
 
 Monitoring service is installed as a separate package, with name `xroad-monitor`. It runs in a separate process.
 
@@ -228,7 +242,7 @@ For monitoring queries this is not enough. In a clustered security server config
     <SOAP-ENV:Body>
         <m:getSecurityServerMetrics/>
     </SOAP-ENV:Body>
-</SOAP-ENV:Envelope
+</SOAP-ENV:Envelope>
 ```
 
 The response looks like:
@@ -370,3 +384,11 @@ Monitoring queries are allowed from
 Central monitoring client is configured using central server admin user interface, see [Admin user interface](#adminanchor).
 
 Attempts to query monitoring data from other clients results in an `AccessDenied` -error.
+
+JMX API, in case port and network access is enabled, will provide monitoring data directly without access control checks by security server. 
+
+### Limiting central monitoring client access for environmental monitor data
+
+Request for monitor data can be set for limiting optional parts by changing env-monitor.limit-remote-data-set parameter. By limiting data set environmental monitoring will return only proxyVersion, OperatingSystem and Certificate information. 
+
+If request parameters are used and flag is set for limiting, response will include proxyVersion, name and OperatingSystem and/or Certificate information if they are in parameter list and nothing else.

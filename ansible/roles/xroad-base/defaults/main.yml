@@ -1,0 +1,4 @@
+---
+xroad_ui_user: "xrd"
+# Xroad default password: secret
+xroad_ui_user_password: "$6$Esp64ze9owZGsfI5$s6Wx5diVppHi8AoAUKU6LACNHB7dky3Gc3g4Ewa3e/x8lCjgVswA2EcUVpF2l9IadOHooFFjtbBMNWZAO2Xg4/"
