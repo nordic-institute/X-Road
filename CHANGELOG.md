@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.17.0 - 2017-12-11
+## 6.17.0 - 2017-12-19
 - PVAYLADEV-861 / XRJD #172 Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
 - PVAYLADEV-918	Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
 - PVAYLADEV-799	Monitoring Akka-implementation is enhanced for handling possible restart of actors.
@@ -23,6 +23,13 @@
 - PVAYLADEV-947 / XRJD #179 Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
 - XTE-386 / Backlog #187: Security Server: OCSP log messages more verbal.
 - XTE-391 / Backlog #196: X-Road Operations Monitoring Daemon: Use local SWA-Ref schema (swaref.xsd).
+- PVAYLADEV-983 / XRJD #195: Documentation fixes
+- PVAYLADEV-1040: Fix sonar blocker issue
+- PVAYLADEV-1025: Documentation fixes
+- PVAYLADEV-954: Security server: Optimize DB connection pool sizes
+- PVAYLADEV-1042 / XRJD #194: X-Road monitor: Fix SystemCpuLoad metric calculation
+- PVAYLADEV-1034: Security server: Fix access logs
+- PVAYLADEV-1057: Documentation fixes
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
