@@ -22,6 +22,23 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPReq;
+import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.ContentSigner;
+
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -32,25 +49,6 @@ import java.net.URL;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-
-import org.bouncycastle.asn1.ocsp.OCSPResponseStatus;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.cert.ocsp.OCSPException;
-import org.bouncycastle.cert.ocsp.OCSPReq;
-import org.bouncycastle.cert.ocsp.OCSPReqBuilder;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.ContentSigner;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
 
 /**
  * OCSP client downloads OCSP responses for specified certificates using responders defined in the Global Configuration.
@@ -85,12 +83,12 @@ final class OcspClient {
     }
 
     static PrivateKey getOcspRequestKey(X509Certificate subject) {
-        // FUTURE: 8162. If key is used, the appropriate SIGN_MECHANISM_NAME must be used!
+        // FUTURE task #8162. If key is used, the appropriate SIGN_MECHANISM_NAME must be used!
         return null;
     }
 
     static X509Certificate getOcspSignerCert() {
-        return null; // FUTURE: 8162
+        return null; // FUTURE task #8162.
     }
 
     static OCSPResp fetchResponse(X509Certificate subject, X509Certificate issuer, PrivateKey signerKey,
@@ -162,15 +160,22 @@ final class OcspClient {
     private static void verifyResponse(OCSPResp response) throws Exception {
         int responseStatus = response.getStatus();
 
-        if (responseStatus == OCSPResponseStatus.SUCCESSFUL) {
-            return;
+        switch (responseStatus) {
+            case OCSPResponseStatus.SUCCESSFUL:
+                return;
+            case OCSPResponseStatus.MALFORMED_REQUEST:
+                throw new OCSPException("OCSP responder received malformed request");
+            case OCSPResponseStatus.INTERNAL_ERROR:
+                throw new OCSPException("OCSP responder encountered an internal error");
+            case OCSPResponseStatus.TRY_LATER:
+                throw new OCSPException("OCSP responder unable to process request, try again later");
+            case OCSPResponseStatus.SIG_REQUIRED:
+                throw new OCSPException("OCSP responder requires request to be signed");
+            case OCSPResponseStatus.UNAUTHORIZED:
+                throw new OCSPException("OCSP responder did not authorize the request");
+            default:
+                throw new OCSPException("Invalid OCSP response status: " + responseStatus);
         }
-
-        if (responseStatus == OCSPResponseStatus.SIG_REQUIRED) {
-            throw new OCSPException("OCSP responder requires request to be signed");
-        }
-
-        throw new OCSPException("Invalid OCSP response status: " + responseStatus);
     }
 
     private static HttpURLConnection createConnection(String destination) throws IOException {
