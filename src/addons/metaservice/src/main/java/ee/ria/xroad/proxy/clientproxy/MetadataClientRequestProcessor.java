@@ -65,9 +65,10 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     public boolean canProcess() {
         switch (target) {
             case LIST_CLIENTS: // $FALL-THROUGH$
-            case LIST_CENTRAL_SERVICES: // $FALL-THROUGH$
-            case WSDL:
+            case LIST_CENTRAL_SERVICES:
                 return true;
+            case WSDL:
+                return false;
             default:
                 return false;
         }
