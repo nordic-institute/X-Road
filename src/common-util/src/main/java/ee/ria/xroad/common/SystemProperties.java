@@ -264,7 +264,7 @@ public final class SystemProperties {
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
-    private static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
+    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------

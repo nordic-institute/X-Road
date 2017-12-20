@@ -157,6 +157,10 @@ public class GetWSDLMessage extends SslMessageTestCase {
         });
         setUpDatabase();
 
+        // WSDL GET is enabled/disabled with system property
+        // Force it to enabled state
+        System.setProperty(SystemProperties.ALLOW_GET_WSDL_REQUEST, "true");
+
         mockServer.stubFor(WireMock.any(urlPathEqualTo(EXPECTED_WSDL_QUERY_PATH))
                 .willReturn(aResponse().withBodyFile(MOCK_SERVER_WSDL_FILE)));
         mockServer.start();

@@ -22,6 +22,7 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
 import ee.ria.xroad.common.identifier.CentralServiceId;
@@ -116,13 +117,29 @@ public class MetadataClientRequestProcessorTest {
     }
 
     @Test
-    @Ignore
     public void shouldBeAbleToProcessGetWsdl() {
+
+        // WSDL GET is enabled/disabled with system property
+        // Force it to enabled state
+        System.setProperty(SystemProperties.ALLOW_GET_WSDL_REQUEST, "true");
 
         MetadataClientRequestProcessor processorToTest =
                 new MetadataClientRequestProcessor(WSDL, mockRequest, mockResponse);
 
-        assertTrue("Wasn't able to process central services", processorToTest.canProcess());
+        assertTrue("Wasn't able to process get wsdl request", processorToTest.canProcess());
+    }
+
+    @Test
+    public void shouldNotBeAbleToProcessGetWsdl() {
+
+        // WSDL GET is enabled/disabled with system property
+        // Force it to disabled state
+        System.setProperty(SystemProperties.ALLOW_GET_WSDL_REQUEST, "false");
+
+        MetadataClientRequestProcessor processorToTest =
+                new MetadataClientRequestProcessor(WSDL, mockRequest, mockResponse);
+
+        assertFalse("Was able to process get wsdl request", processorToTest.canProcess());
     }
 
     @Test
