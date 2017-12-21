@@ -6,8 +6,8 @@
 
 **X-Road Architecture**
 
-Version: 1.5
-20.02.2017
+Version: 1.6
+21.12.2017
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -29,6 +29,7 @@ Doc. ID: ARC-G
  16.12.2015 | 1.3     | Add environmental monitoring                                    | Ilkka Seppälä
  20.12.2016 | 1.4     | Added operational monitoring                                    | Kristo Heero
  20.02.2017 | 1.5     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
+ 21.12.2017 | 1.6     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 
@@ -64,8 +65,7 @@ Doc. ID: ARC-G
   * [3.14 Operational Monitoring JMX](#314-operational-monitoring-jmx)
   * [3.15 Environmental Monitoring Protocol](#315-environmental-monitoring-protocol)
   * [3.16 Environmental Monitoring JMX](#316-environmental-monitoring-jmx)
-- [4 Technology Matrix](#4-technology-matrix)
-- [5 Deployment View](#5-deployment-view)
+- [4 Deployment View](#5-deployment-view)
 
 <!-- tocstop -->
 
@@ -354,50 +354,13 @@ The environmental monitoring interface responds to queries for monitoring enviro
 The environmental monitoring JMX service publishes environmental monitoring data via JMX interface. The environmental monitoring data is collected by environmental monitoring service.
 
 
-## 4 Technology Matrix
-
-[Table 1](#Ref_Technology_matrix_of_the_X_Road) presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
-
-
-<a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
-Table 1. Technology matrix of the X-Road
-
- **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
------------------------ | ------------------- | ------------------ | ------------------- | -------------------
- Java 8             | X                   | X                  | X                       | X
- C                  | X                   | X                  |                         |
- Logback            | X                   | X                  | X                       | X
- Akka 2.X           | X                   | X                  |                         | X
- Jetty 9            | X                   | X                  |                         |
- JRuby 1.7          | X                   | X                  |                         |
- Ubuntu 14.04       | X                   | X                  | X                       | X
- PostgreSQL 9.3     | X                   | X                  |                         | X
- PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
- nginx              | X                   | X                  | X                       |
- PAM                | X                   | X                  |                         |
- Liquibase          | X                   |                    |                         | X
- upstart            | X                   | X                  | X                       | X
- PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
- Dropwizard Metrics | X                   |                    |                         | X
-
-
-<a id="Ref_1" class="anchor"></a>
-\[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
-
-
-<a id="Ref_2" class="anchor"></a>
-\[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
-
-
-## 5 Deployment View
+## 4 Deployment View
 
 [Figure 2](#Deployment_view_of_X_Road) shows deployment view of a basic X-Road instance. In practice, all the components can use redundancy to improve availability and throughput. The deployment options for various components are described in the detailed architecture documents.
 
 The diagram also shows what components are installed and hosted by any given organization. The governing authority installs and maintains central server and central security server. The configuration proxy is an optional component that is typically used for distributing configuration to federated X-Road instances. The service client and service provider organizations host their information system and security server that connects the information system to the X-Road.
 
-
 <a id="Deployment_view_of_X_Road" class="anchor"></a>
 ![](img/arc-g_deployment_view_of_x_road.png)
 
 Figure 2. Deployment view of X-Road
-

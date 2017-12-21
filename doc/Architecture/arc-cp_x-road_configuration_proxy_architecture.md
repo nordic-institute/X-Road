@@ -24,6 +24,7 @@ Version: 1.3
  24.09.2015 | 1.1     | Reference added                                                 | Kristo Heero
  21.10.2015 | 1.2     | SSCD and passwordstore related information added                | Ilja Kromonov
  24.02.2017 | 1.3     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
+ 21.12.2017 | 1.4     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 
@@ -44,8 +45,7 @@ Version: 1.3
 - [3 Interfaces](#3-interfaces)
   * [3.1 Downloading Configuration](#31-downloading-configuration)
 - [4 Configuration Distribution Workflow](#4-configuration-distribution-workflow)
-- [5 Technology Matrix](#5-technology-matrix)
-- [6 Deployment View](#6-deployment-view)
+- [5 Deployment View](#5-deployment-view)
 
 <!-- tocstop -->
 
@@ -95,6 +95,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 Figure 1. Configuration proxy component diagram
 
+Technologies used by components can be found here: [\[ARC\] Technologies used in X-Road](Architecture/arc-x-road_technologies.md)
 
 ### 2.1 Web Server
 
@@ -181,29 +182,7 @@ This process is illustrated in the sequence diagram in [figure 2](#Ref_Configura
 Figure 2. Configuration creation sequence diagram
 
 
-## 5 Technology Matrix
-
-[Table 1](#Ref_Technology_matrix_of_the_configuration) presents the list of technologies used in the configuration proxy and the mapping between technologies and configuration proxy components.
-
-
-<a id="Ref_Technology_matrix_of_the_configuration" class="anchor"></a>
-Table 1. Technology matrix of the configuration proxy
-
- **Technology**   | **Web Server**   | **Configuration Processor**   | **Signer**   | **Configuration Client**
------------------ | ---------------- | ----------------------------- | ------------ | ------------------------
- Java 8           |                  | X                             | X            | X
- Logback          |                  | X                             | X            | X
- Akka 2.X         |                  | X                             | X            |
- nginx            | X                |                               |              |
- upstart          | X                | X                             | X            | X
- PKCS \#11\[[2](#Ref_2)\]   |                |                             | X          |
-
-
-<a id="Ref_2" class="anchor"></a>
-\[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
-
-
-## 6 Deployment View
+## 5 Deployment View
 
 The configuration proxy is deployed on a separate server on the configuration provider's side and, optionally, on the configuration client's side as well.
 

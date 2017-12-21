@@ -6,8 +6,8 @@
 
 **Technical Specification**
 
-Version: 1.4
-20.02.2017
+Version: 1.5
+21.12.2017
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -30,6 +30,7 @@ Doc. ID: ARC-SS
  16.12.2015 | 1.2     | Incorporated environmental monitoring                       | Ilkka Seppälä
  19.12.2016 | 1.3     | Added operational monitoring                                | Kristo Heero
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
+ 21.12.2017 | 1.5     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 
@@ -69,10 +70,9 @@ Doc. ID: ARC-SS
   * [3.11 Operational Monitoring Query](#311-operational-monitoring-query)
   * [3.12 Environmental Monitoring Protocol](#312-environmental-monitoring-protocol)
   * [3.13 Environmental Monitoring JMX](#313-environmental-monitoring-jmx)
-- [4 Technology Matrix](#4-technology-matrix)
-- [5 Deployment View](#5-deployment-view)
-  * [5.1 Simple Deployment](#51-simple-deployment)
-  * [5.2 Redundant Deployment](#52-redundant-deployment)
+- [4 Deployment View](#4-deployment-view)
+  * [4.1 Simple Deployment](#41-simple-deployment)
+  * [4.2 Redundant Deployment](#42-redundant-deployment)
 
 <!-- tocstop -->
 
@@ -160,6 +160,7 @@ The security server also depends on a central server, which provides the global 
 
 Figure 1. Security server component diagram
 
+Technologies used by components can be found here: [Technologies used in X-Road](Architecture/arc-x-road_technologies.md)
 
 ### 2.1 Proxy
 
@@ -371,43 +372,12 @@ The Environmental Monitoring Protocol can be used by the external monitoring sys
 Monitor JMX interface publishes local security server environmental monitoring data gathered by environmental monitoring service.
 
 
-## 4 Technology Matrix
-
-[Table 1](#Ref_Technology_matrix_of_the_security_server) presents the list of technologies used in the security server and the mapping between technologies and security server components.
+## 4 Deployment View
 
 
-<a id="Ref_Technology_matrix_of_the_security_server" class="anchor"></a>
-Table 1. Technology matrix of the security server
-
-<!-- ![](img/arc-ss_technology_matrix_of_the_security_server.png) -->
- **Technology**     | **Signer**   | **Proxy**   | **Password Store**   | **Message Log**   | **Metadata Services**   | **Database**   | **Configuration Client**   | **User Interface**   | **Servlet Engine**   | **Monitor**   | **Environmental Monitoring Service**   | **Operational Monitoring Buffer**   | **Operational Monitoring Services**
-------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
- Java 8             | X   | X   |     | X   | X   |     | X   | X   | X   | X   | X   | X   | X
- C                  |     |     | X   |     |     |     |     |     |     |     |     |     |
- Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X
- Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |
- Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |
- JRuby 1.7          |     |     |     |     |     |     |     | X   |     |     |     |     |
- Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |
- PostgreSQL 9.3     |     |     |     |     |     | X   |     |     |     |     |     |     |
- PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |
- Liquibase          |     |     |     |     |     | X   |     |     |     |     |     |     |
- upstart            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |
- PKCS \#11\[[3](#Ref_3)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
- Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
-
-
-<a id="Ref_3" class="anchor"></a>
-\[3\] The use of cryptographic hardware devices requires that a PKCS \#11 compliant device driver is installed and configured in the system.
-
-
-## 5 Deployment View
-
-
-### 5.1 Simple Deployment
+### 4.1 Simple Deployment
 
 In scenarios where availability is not a critical concern (such as testing environments) a single security server can be used. The authentication and signing keys are stored on a HSM device. [Figure 2](#Ref_Simple_security_server_deployment) shows the corresponding deployment diagram.
-
 
 <a id="Ref_Simple_security_server_deployment" class="anchor"></a>
 ![](img/arc-ss_simple_security_server_deployment.png)
@@ -417,7 +387,6 @@ Figure 2. Simple security server deployment
 Optionally, an SSCD can be connected with the security server if message signatures are to be provided by a cryptographic hardware device.
 
 
-### 5.2 Redundant Deployment
+### 4.2 Redundant Deployment
 
 The availability of the entire system can be increased with the use of redundancy. The information system can be connected to multiple security servers through a load balancer to evenly distribute the load. If multiple security servers provide the service requested by the service client, then the service client's security server will choose the first available service provider's security server when forwarding the request. Thus, redundancy is inherent to the X-Road message transport protocol, provided that there are multiple security servers configured to offer the same service.
-
