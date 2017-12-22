@@ -10,13 +10,25 @@ ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 if [ "$1" = "upgrade" ];
  then
-   if dpkg --compare-versions "$2" lt-nl "6.6" 
+   if dpkg --compare-versions "$2" lt-nl "6.6"
       then echo -e "\n\ndirect upgrade from xroad-proxy<6.6 is not supported\n\n"
       exit 1
    fi
 fi
 
-
+if [ "$1" = "upgrade" ];
+ then
+   proxy_ini=/etc/xroad/conf.d/proxy.ini
+   local_ini=/etc/xroad/conf.d/local.ini
+   present_in_proxy_ini=$(crudini --get ${proxy_ini} proxy allow-get-wsdl-request 2>/dev/null)
+   if [[ ! -z "$present_in_proxy_ini" ]];
+     then
+       echo "allow-get-wsdl-request already present in proxy.ini, do not update local.ini"
+     else
+       echo "allow-get-wsdl-request not present in proxy.ini, update local.ini"
+       crudini --set ${local_ini} proxy allow-get-wsdl-request true
+     fi
+fi
 
 function handle_error {
    ERR=$(</tmp/cert.err)
@@ -26,7 +38,7 @@ function handle_error {
    rm -f /tmp/cert.err
 }
 
-if  [ "$1" = "reconfigure" ];   
+if  [ "$1" = "reconfigure" ];
   then
     db_fset xroad-common/admin-subject seen false
     db_fset xroad-common/admin-altsubject seen false
