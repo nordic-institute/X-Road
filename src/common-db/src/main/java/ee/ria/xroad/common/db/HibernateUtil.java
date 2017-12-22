@@ -22,13 +22,9 @@
  */
 package ee.ria.xroad.common.db;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.PrefixedProperties;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +39,14 @@ import org.hibernate.cfg.Environment;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.internal.util.config.ConfigurationHelper;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.PrefixedProperties;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 
@@ -147,36 +148,38 @@ public final class HibernateUtil {
     private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
         log.trace("Creating session factory for '{}'...", name);
 
-        Configuration configuration = getDefaultConfiguration(name, interceptor);
+        Configuration configuration = new Configuration();
+        if (interceptor != null) {
+            configuration.setInterceptor(interceptor);
+        }
         configuration.configure("hibernate.cfg.xml");
         configuration.configure(name + ".hibernate.cfg.xml");
+        applyDatabasePropertyFile(configuration, name);
+        applySystemProperties(configuration, name);
 
         StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(
-                configuration.getProperties()).build();
+                        configuration.getProperties()).build();
 
         SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
 
         return new SessionFactoryCtx(sessionFactory, serviceRegistry);
     }
 
-    private static Configuration getDefaultConfiguration(String name, Interceptor interceptor) throws Exception {
-        String databaseProps = SystemProperties.getDatabasePropertiesFile();
+    private static void applySystemProperties(Configuration configuration, String name) {
+        final String prefix = name + ".hibernate.";
+        for (String key : System.getProperties().stringPropertyNames()) {
+            if (key.startsWith(prefix)) {
+                configuration.setProperty(key.substring(name.length() + 1), System.getProperty(key));
+            }
+        }
+    }
 
-        Properties extraProperties = new PrefixedProperties(name + ".");
-
-        try (InputStream in = new FileInputStream(databaseProps)) {
+    private static void applyDatabasePropertyFile(Configuration configuration, String name) throws IOException {
+        try (InputStream in = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
+            final Properties extraProperties = new PrefixedProperties(name + ".");
             extraProperties.load(in);
+            configuration.addProperties(extraProperties);
         }
-
-        Configuration configuration = new Configuration();
-
-        if (interceptor != null) {
-            configuration.setInterceptor(interceptor);
-        }
-
-        configuration.addProperties(extraProperties);
-
-        return configuration;
     }
 
     /**

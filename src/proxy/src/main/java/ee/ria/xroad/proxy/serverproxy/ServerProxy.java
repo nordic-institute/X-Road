@@ -33,6 +33,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import ch.qos.logback.access.jetty.RequestLogImpl;
+import ee.ria.xroad.common.logging.RequestLogImplFixLogback1052;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -165,7 +166,7 @@ public class ServerProxy implements StartStop {
         log.trace("createHandlers()");
 
         RequestLogHandler logHandler = new RequestLogHandler();
-        RequestLogImpl reqLog = new RequestLogImpl();
+        RequestLogImpl reqLog = new RequestLogImplFixLogback1052();
         reqLog.setResource("/logback-access-serverproxy.xml");
         reqLog.setQuiet(true);
         logHandler.setRequestLog(reqLog);

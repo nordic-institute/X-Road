@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
 
+    <property name="logOutputPath" value="/var/log/xroad" />
+
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>/var/log/xroad/serverproxy_access.log</file>
+        <file>${logOutputPath}/serverproxy_access.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${logOutputPath}/serverproxy_access.%d{yyyy-MM-dd}.%i.log.zip</fileNamePattern>
             <maxFileSize>100MB</maxFileSize>

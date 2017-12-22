@@ -5,9 +5,8 @@
 
 <hibernate-configuration>
   <session-factory>
-
+    <property name="hikari.maximumPoolSize">20</property>
     <mapping resource="serverconf.hbm.xml"/>
     <mapping resource="identifiers.hbm.xml"/>
-
   </session-factory>
 </hibernate-configuration>

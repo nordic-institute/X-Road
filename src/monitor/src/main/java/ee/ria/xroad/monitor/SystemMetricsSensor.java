@@ -21,14 +21,15 @@
  * THE SOFTWARE.
  */
 package ee.ria.xroad.monitor;
-import akka.actor.ActorIdentity;
-import akka.actor.ActorRef;
-import akka.actor.Identify;
-import akka.actor.Terminated;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+
+import akka.actor.ActorIdentity;
+import akka.actor.ActorRef;
+import akka.actor.Identify;
+import akka.actor.Terminated;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -42,23 +43,33 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SystemMetricsSensor extends AbstractSensor {
 
-
     private static final int SYSTEM_CPU_LOAD_MULTIPLIER = 100;
     private static final Object MEASURE_MESSAGE = new Object();
     private static final StatsRequest STATS_REQUEST = new StatsRequest();
 
     private final FiniteDuration interval
             = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
-    private final String agentPath =
+    private final String agentPath;
+
+    private static final String DEFAULT_AGENT_PATH =
             "akka.tcp://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
 
     private ActorRef agent;
     private long correlationId = 1;
 
     /**
-     * Constructor
+     * Create new Sensor with a default agent path.
      */
     public SystemMetricsSensor() {
+        this(DEFAULT_AGENT_PATH);
+    }
+
+    /**
+     * Create new Sensor with a custom agent path
+     * @param agentPath
+     */
+    public SystemMetricsSensor(String agentPath) {
+        this.agentPath = agentPath;
         log.info("Creating sensor, measurement interval: {}", getInterval());
         identifyAgent();
         scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
@@ -71,7 +82,7 @@ public class SystemMetricsSensor extends AbstractSensor {
         MetricRegistryHolder registryHolder = MetricRegistryHolder.getInstance();
         registryHolder
                 .getOrCreateHistogram(SystemMetricNames.SYSTEM_CPU_LOAD)
-                .update(stats.getOpenFileDescriptorCount() * SYSTEM_CPU_LOAD_MULTIPLIER);
+                .update((long)(stats.getSystemCpuLoad() * SYSTEM_CPU_LOAD_MULTIPLIER));
         registryHolder
                 .getOrCreateHistogram(SystemMetricNames.FREE_PHYSICAL_MEMORY)
                 .update(stats.getFreePhysicalMemorySize());
