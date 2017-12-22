@@ -159,6 +159,21 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # allow-get-wsdl-request for upgrade installations
+    proxy_ini=/etc/xroad/conf.d/proxy.ini
+    local_ini=/etc/xroad/conf.d/local.ini
+    present_in_proxy_ini=$(crudini --get ${proxy_ini} proxy allow-get-wsdl-request 2>/dev/null)
+    if [[ ! -z "$present_in_proxy_ini" ]];
+      then
+        echo "allow-get-wsdl-request already present in proxy.ini, do not update local.ini"
+      else
+        echo "allow-get-wsdl-request not present in proxy.ini, update local.ini"
+        crudini --set ${local_ini} proxy allow-get-wsdl-request true
+      fi
+fi
+
 sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
 
 if [ $1 -gt 1 ]; then
