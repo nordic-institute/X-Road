@@ -1,6 +1,14 @@
 ---
 # This playbook compiles X-Road and installs the compiled packages to the defined host inventory
 
+- hosts: centos-ss
+  gather_facts: no
+  tasks:
+    - name: RHEL-support check
+      fail:
+        msg: "Variant '{{variant}}' does not support RHEL-servers. Adjust your variant selection or inventory"
+      when: variant == "ee"
+
 - hosts: lxd-servers
   roles:
     - init-lxd
