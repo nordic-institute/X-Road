@@ -9,7 +9,7 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road addon: proxy monitoring
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-proxy >= %version, xroad-monitor >= %version
+Requires:   xroad-proxy = %version, xroad-monitor = %version
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd

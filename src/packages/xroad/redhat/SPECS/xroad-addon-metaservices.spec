@@ -9,7 +9,7 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: metaservices
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-proxy >= %version
+Requires:   xroad-proxy = %version
 
 %define src %{_topdir}/..
 

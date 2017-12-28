@@ -9,7 +9,7 @@ Summary:            X-Road security server with Finnish settings
 BuildArch:          noarch
 Group:              Applications/Internet
 License:            MIT
-Requires:           xroad-securityserver >= %version
+Requires:           xroad-securityserver = %version
 Conflicts:          xroad-centralserver
 
 %define src %{_topdir}/..

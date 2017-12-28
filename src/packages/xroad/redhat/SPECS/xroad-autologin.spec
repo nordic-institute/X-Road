@@ -12,7 +12,7 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:   xroad-proxy >= %version, expect, systemd
+Requires:   xroad-proxy = %version, expect, systemd
 Obsoletes: aux-xroad-autologin < 1.4-1
 
 %define src %{_topdir}/../../../autologin/source
