@@ -9,7 +9,7 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: messagelog
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-proxy = %version
+Requires:   xroad-proxy = %version-%release
 
 %define src %{_topdir}/..
 

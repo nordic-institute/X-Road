@@ -15,7 +15,7 @@ Requires(preun): systemd
 Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
-Requires: xroad-base = %version
+Requires: xroad-base = %version-%release
 
 %define src %{_topdir}/..
 
