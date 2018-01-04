@@ -27,6 +27,7 @@ import java.security.SecureRandom;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import ee.ria.xroad.proxy.util.InternalKeyManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -159,7 +160,7 @@ public class HttpClientCreator {
         InternalSSLKey key = ServerConf.getSSLKey();
 
         if (key != null) {
-            return new KeyManager[]{new ServiceKeyManager(key)};
+            return new KeyManager[]{new InternalKeyManager(key)};
         }
 
         return null;

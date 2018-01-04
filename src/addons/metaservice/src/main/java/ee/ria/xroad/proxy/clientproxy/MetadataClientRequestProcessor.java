@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
@@ -65,9 +66,10 @@ class MetadataClientRequestProcessor extends MessageProcessorBase {
     public boolean canProcess() {
         switch (target) {
             case LIST_CLIENTS: // $FALL-THROUGH$
-            case LIST_CENTRAL_SERVICES: // $FALL-THROUGH$
-            case WSDL:
+            case LIST_CENTRAL_SERVICES:
                 return true;
+            case WSDL:
+                return SystemProperties.isAllowGetWsdlRequest();
             default:
                 return false;
         }
