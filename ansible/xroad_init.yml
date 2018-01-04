@@ -3,9 +3,19 @@
 
 - hosts: lxd-servers
   roles:
-    - role: init-lxd
+    - init-lxd
   tags:
     - init
+
+- hosts: ss-servers
+  any_errors_fatal: true
+  tasks:
+    - name: RHEL-support check
+      fail:
+        msg: "Variant '{{ variant }}' does not support RHEL-servers"
+      when:
+        - variant == "ee"
+        - ansible_os_family == "RedHat"
 
 - hosts: cs-servers
   become: yes
