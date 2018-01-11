@@ -192,7 +192,7 @@ The URL for the HTTP GET-request is either `http://SECURITYSERVER/wsdl` or `http
 
 * `version` – version of the service.
 
-Therefore, an example HTTP GET-request would be:
+Therefore, an example HTTP GET-request URL would be:
 `http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&memberClass=MemberClass1&memberCode=ProviderId&subsystemCode=Subsystem1&serviceCode=service1&version=v1`
 
 All the special symbols (such as spaces, question marks etc.) in X-Road element names MUST be escaped.
@@ -203,7 +203,7 @@ WSDL files for central services are accessed in a similar manner, in this case t
 
 * `serviceCode` – code that identifies the central service.
 
-The resulting HTTP GET-request for a central service WSDL would be:
+The resulting HTTP GET-request URL for a central service WSDL would be:
 `http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&serviceCode=centralservice1`
 
 
