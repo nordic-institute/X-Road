@@ -510,6 +510,7 @@ when retrieved through the meta-service.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>listMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -538,6 +539,7 @@ when retrieved through the meta-service.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>listMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -553,6 +555,7 @@ when retrieved through the meta-service.
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>allowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
@@ -560,6 +563,7 @@ when retrieved through the meta-service.
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>disallowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
@@ -585,6 +589,7 @@ when retrieved through the meta-service.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>allowedMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -613,6 +618,7 @@ when retrieved through the meta-service.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>allowedMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -628,6 +634,7 @@ when retrieved through the meta-service.
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>allowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
