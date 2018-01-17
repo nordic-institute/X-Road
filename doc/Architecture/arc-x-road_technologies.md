@@ -3,7 +3,8 @@
 **Technical Specification**
 
 Version: 0.1
-21.12.2017
+18.01.2018
+<!-- 3 pages -->
 Doc. ID: ARC
 
 ---
@@ -12,7 +13,7 @@ Doc. ID: ARC
 
  Date       | Version | Description                                                 | Author
  ---------- | ------- | ----------------------------------------------------------- | --------------------
- 09.07.2015 | 0.1     | Initial version                                             | Antti Luoma
+ 18.01.2018 | 0.1     | Initial version                                             | Antti Luoma
  
 
 ## Table of Contents
