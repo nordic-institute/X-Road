@@ -31,7 +31,6 @@ Doc. ID: ARC
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
-[Technology Matrix General architecture](#1-xroad-tech-overview)
 
 ## 1 X-Road matrix of technologies 
 
@@ -119,7 +118,6 @@ Table 3. Technology matrix of the configuration proxy
 <a id="Ref_Technology_matrix_of_the_security_server" class="anchor"></a>
 Table 4. Technology matrix of the security server
 
-<!-- ![](img/arc-ss_technology_matrix_of_the_security_server.png) -->
  **Technology**     | **Signer**   | **Proxy**   | **Password Store**   | **Message Log**   | **Metadata Services**   | **Database**   | **Configuration Client**   | **User Interface**   | **Servlet Engine**   | **Monitor**   | **Environmental Monitoring Service**   | **Operational Monitoring Buffer**   | **Operational Monitoring Services**
 ------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
  Java 8             | X   | X   |     | X   | X   |     | X   | X   | X   | X   | X   | X   | X
