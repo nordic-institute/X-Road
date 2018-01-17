@@ -33,7 +33,7 @@ Doc. ID: ARC
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
 
-## 1 X-Road matrix of technologies 
+## 1 Technology matrix of the X-Road 
 
 [Table 1](#Ref_Technology_matrix_of_the_X_Road) presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
 
