@@ -21,7 +21,7 @@ Doc. ID: ARC
 <!-- toc -->
 
 - [License](#license)
-- [1 X-Road technologies](#1-xroad-tech-overview)
+- [1 Technology matrix of the X-Road](#1-xroad-tech-overview)
 - [2 Central server technologies](#2-cs-tech)
 - [3 Configuration proxy technologies](#3-cp-tech)
 - [4 Security server technologies](#4-ss-tech)
