@@ -6,8 +6,8 @@
 # X-Road: Service Metadata Protocol
 **Technical Specification**
 
-Version: 2.2  
-02.01.2018  
+Version: 2.3  
+04.01.2018  
 Doc. ID: PR-META  
 
 ---
@@ -24,7 +24,7 @@ Doc. ID: PR-META
  12.10.2015 | 2.1     | Updated identifier names and WSDL examples                      | Ilja Kromonov
  23.08.2017 | 2.1.6   | Converted to Markdown and added endpoint address replacement    | Janne Mattila
  02.01.2018 | 2.2     | Update getWsdl metaservice description                          | Ilkka Seppälä
-
+ 04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services    | Tatu Repo
 ## Table of Contents
 
 <!-- toc -->
@@ -35,7 +35,7 @@ Doc. ID: PR-META
 - [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
 - [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
-- [5 Retrieving WSDL of a Service](#5-retrieving-wsdl-of-a-service)
+- [5 Retrieving the WSDL of a Service](#5-retrieving-the-wsdl-of-a-service)
 - [Annex A XML Schema for Messages](#annex-a-xml-schema-for-messages)
 - [Annex B listMethods and allowedMethods WSDL](#annex-b-listmethods-and-allowedmethods-wsdl)
 - [Annex C Example Messages](#annex-c-example-messages)
@@ -53,11 +53,11 @@ This specification describes methods that can be used by X-Road participants to 
 
 2. Connect to the service provider and acquire a list of services offered by this provider (see Section [4](#4-retrieving-list-of-services)). This service has two forms: `listMethods` returns a list of services provided by a given service provider, `allowedMethods` constrains the returned list by only including services that are allowed for the client.
 
-3. Download the description of the service in WSDL format (see Section [5](#5-retrieving-wsdl-of-a-service)).
+3. Download the description of the service in WSDL format (see Section [5](#5-retrieving-the-wsdl-of-a-service)).
 
 This specification is based on the X-Road protocol \[[PR-MESS](#Ref_PR-MESS)\]. The X-Road protocol specification also defines important concepts used in this text (for example, central service and X-Road identifier). Because this protocol uses HTTP and X-Road protocol as transport mechanisms, the details of message transport and error conditions are not described in this specification.
 
-Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-and-allowedmethods-wsdl) contain normative information. All the other sections are informative in nature. All the references are normative.
+Chapters [2](#2-retrieving-list-of-service-providers), [3](#3-retrieving-list-of-central-services), [4](#4-retrieving-list-of-services) and [5](#5-retrieving-the-wsdl-of-a-service) together with annexes [A](#annex-a-xml-schema-for-messages) and [B](#annex-b-listmethods-and-allowedmethods-wsdl) contain normative information. All the other sections are informative in nature. All the references are normative.
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
@@ -65,9 +65,12 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 ## 1.1 References
 
-1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0.
-2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997.
-
+1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0,  
+[pr-mess_x-road_message_protocol.md](pr-mess_x-road_message_protocol.md)
+2. <a name="Ref_RFC2119" class="anchor"></a>\[RFC2119\] Key words for use in RFCs to Indicate Requirement Levels, Internet Engineering Task Force, 1997,  
+[https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)
+3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide,  
+[ug-syspar_x-road_v6_system_parameters.md](../Manuals/ug-syspar_x-road_v6_system_parameters.md)
 
 ## 2 Retrieving List of Service Providers
 
@@ -159,13 +162,26 @@ Annexes [C.4](#c4-listmethods-response) and [C.6](#c6-allowedmethods-response) c
     </xs:complexType>
 ```
 
-## 5 Retrieving WSDL of a Service   
+## 5 Retrieving the WSDL of a Service   
 
-Service clients are able to download WSDL files that contain the definition of a given service. This can be accomplished either by making normal X-Road protocol POST request or by making HTTP GET request to the client's security server. It should be noted that from X-Road version 6.17.x onwards the POST request method is preferred and the GET method has been disabled by default and is to be removed in some future version.
+Service clients are able to download WSDL-files that contain the definition of a given service by using the `getWsdl` meta-service. This can be accomplished by either sending the client security server an X-Road protocol POST-request or a parametrized HTTP GET-request.
 
-The POST method request is documented in annex C.7 and response in annexes C.8-C.9.
+#### X-Road protocol POST-request
 
-For the GET method the URL of the request is either `http://SECURITYSERVER/wsdl` or `https://SECURITYSERVER/wsdl` depending on whether the HTTPS protocol is configured for interaction between the security server and the information system. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the security server. The client MUST specify the identifier of the service using the following parameters:
+  * the standard method for retrieving the WSDL
+  * uses the connection type settings of the client subsystem
+  * WSDL is retrieved as a SOAP-attachment
+
+An example of a `getWsdl` X-Road protocol POST-request to the client security server is documented in annex [C.7](#c7-getwsdl-request) and the corresponding response in annexes [C.8](#c8-getwsdl-response) and [C.9](#c9-getwsdl-response-attachment).
+
+#### HTTP GET-request
+
+  * a convenience method for retrieving the WSDL that will be phased out in future releases
+  * disabled by default in new `6.17.x` installations, availability is configured by the `allow-get-wsdl-request` system parameter \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
+  * uses the connection type settings of the owner member on the client security server
+  * WSDL is retrieved in the response body.
+
+The URL for the HTTP GET-request is either `http://SECURITYSERVER/wsdl` or `https://SECURITYSERVER/wsdl` depending on the connection type settings for the client owner member. When making the request, the address `SECURITYSERVER` must be replaced with the actual address of the client security server. The client MUST specify the identifier of the service using the following HTTP-parameters:
 
 * `xRoadInstance` – code that identifies the X-Road instance;
 
@@ -173,22 +189,28 @@ For the GET method the URL of the request is either `http://SECURITYSERVER/wsdl`
 
 * `memberCode` – code that identifies the X-Road member;
 
-* `subsystemCode` (optional) – code that identifies a subsystem of the given member (if the service is provided by a subsystem);
+* `subsystemCode` – code that identifies a subsystem of the given member;
 
 * `serviceCode` – identifies the specific service;
 
-* `version` (optional) – version of the service.
+* `version` – version of the service.
 
-Therefore, an example HTTP request would be:
-`http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&memberClass=MemberClass1&memberCode=ProviderId&serviceCode=service1`
+Therefore, an example HTTP GET-request URL would be:
+`http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&memberClass=MemberClass1&memberCode=ProviderId&subsystemCode=Subsystem1&serviceCode=service1&version=v1`
 
-All the special symbols (such as spaces, question marks etc.) MUST be escaped.
+All the special symbols (such as spaces, question marks etc.) in X-Road element names MUST be escaped.
 
 WSDL files for central services are accessed in a similar manner, in this case the query parameters MUST be:
 
 * `xRoadInstance` – code that identifies the X-Road instance;
 
 * `serviceCode` – code that identifies the central service.
+
+The resulting HTTP GET-request URL for a central service WSDL would be:
+`http://SECURITYSERVER/wsdl?xRoadInstance=Inst1&serviceCode=centralservice1`
+
+
+#### WSDL-information modifications
 
 Security server MUST replace endpoint location with value `http://example.org/xroad-endpoint`.
 This is done for security reasons, to hide the endpoint addresses which often point
@@ -215,7 +237,7 @@ becomes
     </wsdl:service>
 ```
 
-when retrieved through the metaservice.
+when retrieved through the meta-service.
 
 ## Annex A XML Schema for Messages
 
@@ -491,6 +513,7 @@ when retrieved through the metaservice.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>listMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -519,6 +542,7 @@ when retrieved through the metaservice.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>listMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -528,13 +552,13 @@ when retrieved through the metaservice.
             qy3ljiLorMZ3e5iNZtX6Ek60xtV12Gue8Mme1ryZmQ==
         </xroad:requestHash>
     </SOAP-ENV:Header>
-    </SOAP-ENV:Header>
     <SOAP-ENV:Body>
         <xroad:listMethodsResponse>
             <xroad:service id:objectType="SERVICE">
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>allowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
@@ -542,6 +566,7 @@ when retrieved through the metaservice.
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>disallowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
@@ -567,6 +592,7 @@ when retrieved through the metaservice.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>allowedMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -595,6 +621,7 @@ when retrieved through the metaservice.
             <id:xRoadInstance>Inst1</id:xRoadInstance>
             <id:memberClass>MemberClass1</id:memberClass>
             <id:memberCode>ProviderId</id:memberCode>
+            <id:subsystemCode>Subsystem1</id:subsystemCode>
             <id:serviceCode>allowedMethods</id:serviceCode>
         </xroad:service>
         <xroad:id>411d6755661409fed365ad8135f8210be07613da</xroad:id>
@@ -610,6 +637,7 @@ when retrieved through the metaservice.
                 <id:xRoadInstance>Inst1</id:xRoadInstance>
                 <id:memberClass>MemberClass1</id:memberClass>
                 <id:memberCode>ProviderId</id:memberCode>
+                <id:subsystemCode>Subsystem1</id:subsystemCode>
                 <id:serviceCode>allowedService</id:serviceCode>
                 <id:serviceVersion>v1</id:serviceVersion>
             </xroad:service>
@@ -621,7 +649,7 @@ when retrieved through the metaservice.
 ### C.7 getWsdl Request
 ```xml
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xro="http://x-road.eu/xsd/xroad.xsd"
-                  xmlns:iden="http://x-road.eu/xsd/identifiers" xmlns:prod="http://test.x-road.fi/producer">
+                  xmlns:iden="http://x-road.eu/xsd/identifiers">
     <soapenv:Header>
         <xro:protocolVersion>4.x</xro:protocolVersion>
         <xro:issue>123</xro:issue>
@@ -654,7 +682,7 @@ when retrieved through the metaservice.
 ### C.8 getWsdl Response
 ```xml
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-                  xmlns:iden="http://x-road.eu/xsd/identifiers" xmlns:prod="http://test.x-road.fi/producer"
+                  xmlns:iden="http://x-road.eu/xsd/identifiers"
                   xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
     <soapenv:Header>
         <xro:protocolVersion>4.x</xro:protocolVersion>
@@ -737,7 +765,6 @@ when retrieved through the metaservice.
                             </xsd:complexType>
                         </xsd:element>
                     </xsd:sequence>systemCode>
-        </xro:client>
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="helloServiceResponse">
