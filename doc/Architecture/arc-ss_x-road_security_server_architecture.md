@@ -30,7 +30,7 @@ Doc. ID: ARC-SS
  16.12.2015 | 1.2     | Incorporated environmental monitoring                       | Ilkka Seppälä
  19.12.2016 | 1.3     | Added operational monitoring                                | Kristo Heero
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 21.12.2017 | 1.5     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
+ 19.01.2018 | 1.5     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 

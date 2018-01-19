@@ -30,7 +30,7 @@ Doc. ID: ARC-CS
  17.09.2015 | 2.0     | Editorial changes made                                          | Imbi Nõgisto
  21.10.2015 | 2.1     | SSCD and password store related information added               | Ilja Kromonov
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 21.12.2017 | 2.3     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
+ 19.01.2018 | 2.3     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 
@@ -54,9 +54,9 @@ Doc. ID: ARC-CS
   * [3.1 Management Services](#31-management-services)
   * [3.2 Download Configuration](#32-download-configuration)
 - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
-- [6 Deployment View](#5-deployment-view)
-  * [6.1 Simple Deployment](#51-simple-deployment)
-  * [6.2 Deployment in High Availability Setup](#52-deployment-in-high-availability-setup)
+- [5 Deployment View](#5-deployment-view)
+  * [5.1 Simple Deployment](#51-simple-deployment)
+  * [5.2 Deployment in High Availability Setup](#52-deployment-in-high-availability-setup)
 
 <!-- tocstop -->
 
