@@ -5,7 +5,7 @@
 Version: 0.1
 18.01.2018
 <!-- 3 pages -->
-Doc. ID: ARC
+Doc. ID: ARC-TEC
 
 ---
 
@@ -21,10 +21,10 @@ Doc. ID: ARC
 <!-- toc -->
 
 - [License](#license)
-- [1 Technology matrix of the X-Road](#1-xroad-tech-overview)
-- [2 Central server technologies](#2-cs-tech)
-- [3 Configuration proxy technologies](#3-cp-tech)
-- [4 Security server technologies](#4-ss-tech)
+- [1 Overview matrix of the X-Road technology](#xroad-tech-overview)
+- [2 Central server technologies](#cs-tech)
+- [3 Configuration proxy technologies](#cp-tech)
+- [4 Security server technologies](#ss-tech)
 
 <!-- tocstop -->
 
@@ -33,7 +33,7 @@ Doc. ID: ARC
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
 
-## 1 Technology matrix of the X-Road 
+## 1 Overview matrix of the X-Road technology
 
 [Table 1](#Ref_Technology_matrix_of_the_X_Road) presents the list of technologies used in the X-Road and mapping between the technologies and X-Road components.
 
