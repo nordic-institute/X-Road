@@ -7,7 +7,7 @@
 **Technical Specification**
 
 Version: 1.5
-21.12.2017
+19.01.2018
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 

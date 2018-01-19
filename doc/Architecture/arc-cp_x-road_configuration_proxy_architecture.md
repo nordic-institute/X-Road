@@ -6,8 +6,8 @@
 # X-Road: Configuration Proxy Architecture
 **Technical Specification**
 
-Version: 1.3
- 24.02.2017
+Version: 1.4
+ 19.02.2018
 <!-- 1 pages -->
  Doc. ID: ARC-CP
 

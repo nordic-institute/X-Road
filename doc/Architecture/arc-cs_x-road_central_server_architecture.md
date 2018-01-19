@@ -7,7 +7,7 @@
 **Technical Specification**
 
 Version: 2.3
-24.02.2017
+19.01.2018
 <!-- 12 pages -->
 Doc. ID: ARC-CS
 
