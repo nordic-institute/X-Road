@@ -99,6 +99,7 @@ class FastestConnectionSelectingSSLSocketFactory
             HttpContext context) throws IOException {
         // Read target addresses from the context.
         URI[] addressesFromContext = getAddressesFromContext(context);
+        log.info("addresses from context {}", addressesFromContext);
         URI[] addresses = addressesFromContext;
 
         // If the current SSL session cache contains a session to a target
@@ -196,7 +197,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private SocketInfo connect(URI[] addresses, HttpContext context,
             int timeout) throws IOException {
-        log.trace("Connecting to hosts: {}", Arrays.toString(addresses));
+        log.info("Connecting to hosts {} with timeout {}", Arrays.toString(addresses), timeout);
 
         if (addresses.length == 1) { // only one host, no need to select fastest
             return connect(addresses[0], context, timeout);
