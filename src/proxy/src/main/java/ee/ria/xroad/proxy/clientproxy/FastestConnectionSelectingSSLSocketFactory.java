@@ -246,7 +246,7 @@ class FastestConnectionSelectingSSLSocketFactory
             if (session != null) {
                 for (URI address : addresses) {
                     if (isSessionHost(session, address)) {
-                        log.trace("Found cached session for {}", address);
+                        log.info("Found cached session for {}", address);
                         return new CachedSSLSessionHostInformation(address, session);
                     }
                 }
