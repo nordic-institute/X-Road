@@ -540,7 +540,8 @@ class ClientMessageProcessor extends MessageProcessorBase {
         IsAuthentication.verifyClientAuthentication(sender, clientCert);
     }
 
-    private static List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
+    private static List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId)
+            throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
         Collection<String> hostNames = GlobalConf.getProviderAddress(serviceProvider.getClientId());
