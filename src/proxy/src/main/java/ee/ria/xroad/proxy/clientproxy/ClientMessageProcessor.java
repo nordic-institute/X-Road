@@ -263,9 +263,11 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // Start sending the request to server proxies. The underlying
             // SSLConnectionSocketFactory will select the fastest address
             // (socket that connects first) from the provided addresses.
-            // Dummy service address is only needed so that host name resolving
-            // could do its thing and start the ssl connection.
-            URI[] addresses = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
+            List<URI> tmp = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
+            Collections.shuffle(tmp);
+            // If there are more than 1 address, we will prefer the first one then selecting the fastest
+            // the randomization ensures that each address will be the preferred one
+            URI[] addresses = tmp.toArray(new URI[0]);
 
             updateOpMonitoringServiceSecurityServerAddress(addresses, httpSender);
 
@@ -294,7 +296,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             try {
                 opMonitoringData.setRequestOutTs(getEpochMillisecond());
 
-                httpSender.doPost(getDummyServiceAddress(addresses), reqIns, CHUNKED_LENGTH, outputContentType);
+                httpSender.doPost(addresses[0], reqIns, CHUNKED_LENGTH, outputContentType);
 
                 opMonitoringData.setResponseInTs(getEpochMillisecond());
             } catch (Exception e) {
@@ -538,16 +540,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
         IsAuthentication.verifyClientAuthentication(sender, clientCert);
     }
 
-    private static URI getDummyServiceAddress(URI[] addresses) throws Exception {
-        if (!isSslEnabled()) {
-            // In non-ssl mode we just connect to the first address
-            return addresses[0];
-        }
-
-        return new URI("https", null, "localhost", getServerProxyPort(), "/", null, null);
-    }
-
-    private static URI[] getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
+    private static List<URI> getServiceAddresses(ServiceId serviceProvider, SecurityServerId serverId) throws Exception {
         log.trace("getServiceAddresses({}, {})", serviceProvider, serverId);
 
         Collection<String> hostNames = GlobalConf.getProviderAddress(serviceProvider.getClientId());
@@ -580,7 +573,7 @@ class ClientMessageProcessor extends MessageProcessorBase {
             addresses.add(new URI(protocol, null, host, port, "/", null, null));
         }
 
-        return addresses.toArray(new URI[addresses.size()]);
+        return addresses;
     }
 
     private static String getHashAlgoId(HttpSender httpSender) {
