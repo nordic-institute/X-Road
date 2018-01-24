@@ -68,6 +68,10 @@ class FastestConnectionSelectingSSLSocketFactory
      */
     public static final String ID_TARGETS =
             "ee.ria.xroad.serverproxy.targets";
+    /**
+     * The timeout when connecting to previously selected "fastest" provider
+     */
+    public static final int CACHED_TIMEOUT = 5000;
 
     /**
      * The identifier for the selected target address stored in the created SSL
@@ -122,15 +126,16 @@ class FastestConnectionSelectingSSLSocketFactory
         }
 
         // Select the fastest address if more than one address is provided.
-        SocketInfo selectedSocket = connect(addresses, context, timeout);
+        SocketInfo selectedSocket = connect(addresses, context, cachedSSLSessionURI == null ? timeout : CACHED_TIMEOUT);
         if (selectedSocket == null) {
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
                 cachedHostInfo.clearCachedURIForSession();
 
-                selectedSocket =
-                        connect(addressesFromContext, context, timeout);
+                selectedSocket = connect(
+                    //swap the failed address to the last
+                    swap(addressesFromContext, 0, addressesFromContext.length - 1), context, timeout);
                 if (selectedSocket == null) {
                     throw couldNotConnectException(addresses);
                 }
@@ -149,6 +154,13 @@ class FastestConnectionSelectingSSLSocketFactory
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
         return sslSocket;
+    }
+
+    private static <T> T[] swap(final T[] array, final int first, final int second) {
+        final T tmp = array[first];
+        array[first] = array[second];
+        array[second] = tmp;
+        return array;
     }
 
     private static void updateOpMonitoringData(HttpContext context,
