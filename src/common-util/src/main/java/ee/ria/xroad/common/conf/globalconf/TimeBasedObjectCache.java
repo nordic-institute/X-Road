@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple time based object cache.
@@ -43,7 +44,7 @@ public class TimeBasedObjectCache {
 
   private final int expireSeconds;
 
-  private Map<String, TimeAndValue> values = new HashMap<>();
+  private Map<String, TimeAndValue> values = new ConcurrentHashMap<>();
 
   /**
    * Constructor.
