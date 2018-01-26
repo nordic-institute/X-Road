@@ -133,7 +133,8 @@ class FastestConnectionSelectingSSLSocketFactory
 //        }
 
         if (SystemProperties.isUseCachedSSLSessionHostUri() && cache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
-            addresses = new URI[] {(URI) cache.getValue(PREVIOUSLY_FASTEST_PROVIDER)};
+            cachedSSLSessionURI = (URI) cache.getValue(PREVIOUSLY_FASTEST_PROVIDER);
+            addresses = new URI[] {cachedSSLSessionURI};
         }
 
         // Select the fastest address if more than one address is provided.
