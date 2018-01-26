@@ -199,6 +199,8 @@ public final class ProxyTestSuite {
         // Make sure SSL is enabled
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
 
+        System.setProperty(SystemProperties.CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD, "0");
+
         List<StartStop> services = getDefaultServices();
         services.add(new DummySslServerProxy());
 
@@ -216,6 +218,8 @@ public final class ProxyTestSuite {
 
         // Make sure SSL is enabled
         System.setProperty(SystemProperties.PROXY_SSL_SUPPORT, "true");
+
+        System.setProperty(SystemProperties.CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD, "0");
 
         for (MessageTestCase c : tc) {
             List<StartStop> services = getDefaultServices();
