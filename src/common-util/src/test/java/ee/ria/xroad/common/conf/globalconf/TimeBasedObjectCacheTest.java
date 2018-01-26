@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for {@link TimeBasedObjectCache}
@@ -55,8 +56,12 @@ public class TimeBasedObjectCacheTest {
       assertTrue(cache1.isEnabled());
       TimeBasedObjectCache cache2 = new TimeBasedObjectCache(0);
       assertFalse(cache2.isEnabled());
-      TimeBasedObjectCache cache3 = new TimeBasedObjectCache(-100);
-      assertFalse(cache3.isEnabled());
+      try {
+          TimeBasedObjectCache cache3 = new TimeBasedObjectCache(-100);
+          fail();
+      } catch (IllegalArgumentException e) {
+          // expected this exception, everything is fine
+      }
   }
 
   /**
