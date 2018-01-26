@@ -94,6 +94,8 @@ class FastestConnectionSelectingSSLSocketFactory
         super(sslContext, null, supportedCipherSuites, null);
         this.sslContext = sslContext;
         this.socketfactory = sslContext.getSocketFactory();
+        log.info("SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() {}",
+                SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
         this.uriCache = new TimeBasedObjectCache(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
     }
 
