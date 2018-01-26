@@ -87,7 +87,6 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private final TimeBasedObjectCache uriCache;
 
-    private static final int EXPIRE_SECONDS = 10;
     private static final String PREVIOUSLY_FASTEST_PROVIDER = "previouslyFastestProvider";
 
     FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext,
