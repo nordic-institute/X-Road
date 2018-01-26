@@ -83,5 +83,7 @@ public class TimeBasedObjectCache {
    * Tells whether the cache is enabled or not
    * @return true if enabled
    */
-  public boolean isEnabled() { return expireSeconds > 0; }
+  public boolean isEnabled() {
+      return expireSeconds > 0;
+  }
 }
