@@ -110,7 +110,8 @@ class FastestConnectionSelectingSSLSocketFactory
             HttpContext context) throws IOException {
         // Read target addresses from the context.
         URI[] addressesFromContext = getAddressesFromContext(context);
-        log.info("addresses from context {}", addressesFromContext);
+        log.info("addresses from context {} current thread id {}", addressesFromContext,
+                Thread.currentThread().getId());
         URI[] addresses = addressesFromContext;
 
         // If the current SSL session cache contains a session to a target
