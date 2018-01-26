@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Simple last time based object cache
+ * Simple time based object cache.
  */
 @Slf4j
 public class TimeBasedObjectCache {
@@ -57,7 +57,7 @@ public class TimeBasedObjectCache {
   }
 
   /**
-   * Check if cache value is valid
+   * Check if cache value is valid. That is, not null and not yet expired.
    */
   public boolean isValid(String key) {
     TimeAndValue timeAndValue = values.get(key);
@@ -73,7 +73,7 @@ public class TimeBasedObjectCache {
   }
 
   /**
-   * Set cache value.
+   * Set cache value. Can also be used to invalidate cache value by setting it to null.
    */
   public void setValue(String key, Object value) {
     values.put(key, new TimeAndValue(LocalDateTime.now(), value));

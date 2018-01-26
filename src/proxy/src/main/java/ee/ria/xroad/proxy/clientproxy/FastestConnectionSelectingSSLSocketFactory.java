@@ -23,6 +23,7 @@
 package ee.ria.xroad.proxy.clientproxy;
 
 import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.TimeBasedObjectCache;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
@@ -84,11 +85,17 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private final SSLContext sslContext;
 
+    private final TimeBasedObjectCache cache;
+
+    private static final int EXPIRE_SECONDS = 10;
+    private static final String PREVIOUSLY_FASTEST_PROVIDER = "previouslyFastestProvider";
+
     FastestConnectionSelectingSSLSocketFactory(SSLContext sslContext,
             String[] supportedCipherSuites) {
         super(sslContext, null, supportedCipherSuites, null);
         this.sslContext = sslContext;
         this.socketfactory = sslContext.getSocketFactory();
+        this.cache = new TimeBasedObjectCache(EXPIRE_SECONDS);
     }
 
     @Override
@@ -115,14 +122,18 @@ class FastestConnectionSelectingSSLSocketFactory
         // we should be using pooled connections anyway if available. And if they are not available, it might
         // be a good idea to check what the fastest host currently is.
         // Leaving the cached session host uri as an option, default to "on" (as it used to be)
-        CachedSSLSessionHostInformation cachedHostInfo = getCachedSSLSessionHostURI(addresses);
+//        CachedSSLSessionHostInformation cachedHostInfo = getCachedSSLSessionHostURI(addresses);
+//
+//        if (SystemProperties.isUseCachedSSLSessionHostUri()) {
+//            cachedSSLSessionURI = cachedHostInfo.getSelectedAddresses();
+//        }
+//
+//        if (cachedSSLSessionURI != null) {
+//            addresses = new URI[] {cachedSSLSessionURI};
+//        }
 
-        if (SystemProperties.isUseCachedSSLSessionHostUri()) {
-            cachedSSLSessionURI = cachedHostInfo.getSelectedAddresses();
-        }
-
-        if (cachedSSLSessionURI != null) {
-            addresses = new URI[] {cachedSSLSessionURI};
+        if (SystemProperties.isUseCachedSSLSessionHostUri() && cache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
+            addresses = new URI[] {(URI) cache.getValue(PREVIOUSLY_FASTEST_PROVIDER)};
         }
 
         // Select the fastest address if more than one address is provided.
@@ -131,7 +142,8 @@ class FastestConnectionSelectingSSLSocketFactory
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
-                cachedHostInfo.clearCachedURIForSession();
+//                cachedHostInfo.clearCachedURIForSession();
+                cache.setValue(PREVIOUSLY_FASTEST_PROVIDER, null);
 
                 selectedSocket = connect(
                     //swap the failed address to the last
@@ -202,7 +214,8 @@ class FastestConnectionSelectingSSLSocketFactory
             HttpContext context) throws IOException {
         prepareSocket(sslSocket);
 
-        sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
+        // sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
+        cache.setValue(PREVIOUSLY_FASTEST_PROVIDER, selectedAddress);
 
         verify(context, sslSocket.getSession(), selectedAddress);
     }
