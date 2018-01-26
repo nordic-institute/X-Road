@@ -85,7 +85,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private final SSLContext sslContext;
 
-    private final TimeBasedObjectCache cache;
+    private final TimeBasedObjectCache uriCache;
 
     private static final int EXPIRE_SECONDS = 10;
     private static final String PREVIOUSLY_FASTEST_PROVIDER = "previouslyFastestProvider";
@@ -95,7 +95,7 @@ class FastestConnectionSelectingSSLSocketFactory
         super(sslContext, null, supportedCipherSuites, null);
         this.sslContext = sslContext;
         this.socketfactory = sslContext.getSocketFactory();
-        this.cache = new TimeBasedObjectCache(EXPIRE_SECONDS);
+        this.uriCache = new TimeBasedObjectCache(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
     }
 
     @Override
@@ -133,12 +133,10 @@ class FastestConnectionSelectingSSLSocketFactory
 //            addresses = new URI[] {cachedSSLSessionURI};
 //        }
 
-        if (SystemProperties.isUseCachedSSLSessionHostUri() && cache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
-            cachedSSLSessionURI = (URI) cache.getValue(PREVIOUSLY_FASTEST_PROVIDER);
+        if (uriCache.isEnabled() && uriCache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
+            cachedSSLSessionURI = (URI) uriCache.getValue(PREVIOUSLY_FASTEST_PROVIDER);
             addresses = new URI[] {cachedSSLSessionURI};
             log.info("Using cached URI for fastest provider {}", cachedSSLSessionURI);
-        } else if (SystemProperties.isUseCachedSSLSessionHostUri() && !cache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
-            log.info("Fastest provider URI not set or expired");
         }
 
         // Select the fastest address if more than one address is provided.
@@ -148,7 +146,7 @@ class FastestConnectionSelectingSSLSocketFactory
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
 //                cachedHostInfo.clearCachedURIForSession();
-                cache.setValue(PREVIOUSLY_FASTEST_PROVIDER, null);
+                uriCache.setValue(PREVIOUSLY_FASTEST_PROVIDER, null);
                 log.info("Invalidate cached fastest provider URI");
 
                 selectedSocket = connect(
@@ -221,9 +219,9 @@ class FastestConnectionSelectingSSLSocketFactory
         prepareSocket(sslSocket);
 
         // sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
-        if (SystemProperties.isUseCachedSSLSessionHostUri() && !cache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
+        if (uriCache.isEnabled() && !uriCache.isValid(PREVIOUSLY_FASTEST_PROVIDER)) {
             // cache has expired, store the new selection
-            cache.setValue(PREVIOUSLY_FASTEST_PROVIDER, selectedAddress);
+            uriCache.setValue(PREVIOUSLY_FASTEST_PROVIDER, selectedAddress);
             log.info("Add fastest provider URI to cache");
         }
 

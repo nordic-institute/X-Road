@@ -204,8 +204,8 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
             PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
 
-    private static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE =
-            PREFIX + "proxy.client-fastest-connecting-ssl-use-uri-cache";
+    private static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
+            PREFIX + "proxy.client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
             PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
@@ -245,7 +245,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
-    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
+    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
     private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
 
@@ -1258,12 +1258,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return true if the URI of the fastest responder should be cached.
-     * fastest responder
+     * @return period in seconds the fastest provider uri should be cached, or 0 to disable
      */
-    public static boolean isUseCachedSSLSessionHostUri() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE,
-                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE));
+    public static int getClientProxyFastestConnectingSslUriCachePeriod() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
+                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
     /**

@@ -49,6 +49,16 @@ public class TimeBasedObjectCacheTest {
     assertTrue(cache.isValid("foo"));
   }
 
+  @Test
+  public void testEnabled() {
+      TimeBasedObjectCache cache1 = new TimeBasedObjectCache(1500);
+      assertTrue(cache1.isEnabled());
+      TimeBasedObjectCache cache2 = new TimeBasedObjectCache(0);
+      assertFalse(cache2.isEnabled());
+      TimeBasedObjectCache cache3 = new TimeBasedObjectCache(-100);
+      assertFalse(cache3.isEnabled());
+  }
+
   /**
    * Idles for given time period
    */

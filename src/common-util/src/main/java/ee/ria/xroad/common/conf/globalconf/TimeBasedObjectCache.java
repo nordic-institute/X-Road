@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple time based object cache.
+ * Simple thread-safe time based object cache.
  */
 @Slf4j
 public class TimeBasedObjectCache {
@@ -78,4 +78,10 @@ public class TimeBasedObjectCache {
   public void setValue(String key, Object value) {
     values.put(key, new TimeAndValue(LocalDateTime.now(), value));
   }
+
+  /**
+   * Tells whether the cache is enabled or not
+   * @return true if enabled
+   */
+  public boolean isEnabled() { return expireSeconds > 0; }
 }
