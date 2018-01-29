@@ -176,8 +176,8 @@ class FastestConnectionSelectingSSLSocketFactory
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
         // Store the fastest provider URI to SSL cache
-        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0 && cachedSSLSessionURI != null) {
-            log.info("Store the fastest provider URI to SSL cache");
+        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0 && cachedSSLSessionURI == null) {
+            log.info("Store the fastest provider URI to SSL cache {}", selectedSocket.getUri());
             sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedSocket.getUri());
             sslSocket.getSession().putValue(ID_SELECTED_TARGET_TIMESTAMP, LocalDateTime.now());
         }
