@@ -28,7 +28,13 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.WsdlDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.MultipartSoapMessageEncoder;
+import ee.ria.xroad.common.message.SimpleSoapEncoder;
+import ee.ria.xroad.common.message.SoapMessageEncoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapParserImpl;
+import ee.ria.xroad.common.message.SoapUtils;
 import ee.ria.xroad.common.message.SoapUtils.SOAPCallback;
 import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
@@ -36,6 +42,7 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.common.WsdlRequestData;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -55,22 +62,35 @@ import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXTransformerFactory;
 import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
-import static ee.ria.xroad.common.metadata.MetadataRequests.*;
+import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
+import static ee.ria.xroad.common.metadata.MetadataRequests.GET_WSDL;
+import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 
 @Slf4j
 class MetadataServiceHandlerImpl implements ServiceHandler {
@@ -238,8 +258,11 @@ class MetadataServiceHandlerImpl implements ServiceHandler {
 
         log.info("Downloading WSDL from URL: {}", url);
         try (InputStream in = modifyWsdl(getWsdl(url, serviceId))) {
+            Map<String, String> additionalHeaders = new HashMap<>();
+            additionalHeaders.put("Content-Transfer-Encoding", "binary");
+            additionalHeaders.put("Content-ID", "<wsdl=" + UUID.randomUUID().toString() + "@x-road.eu>");
             responseEncoder.soap(SoapUtils.toResponse(request), new HashMap<>());
-            responseEncoder.attachment(MimeTypes.TEXT_XML, in, null);
+            responseEncoder.attachment(MimeTypes.TEXT_XML, in, additionalHeaders);
         }
     }
 
