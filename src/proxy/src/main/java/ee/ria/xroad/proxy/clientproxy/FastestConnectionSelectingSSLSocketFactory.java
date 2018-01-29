@@ -121,19 +121,23 @@ class FastestConnectionSelectingSSLSocketFactory
         // If URI cache is enabled, check if we find the fastest provider address there
         if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0) {
             cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
-            // Check if the stored URI is still valid
-            LocalDateTime timestamp = (LocalDateTime) cachedHostInfo.getSslSession()
-                    .getValue(ID_SELECTED_TARGET_TIMESTAMP);
-            LocalDateTime expire = timestamp
-                    .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
-            if (LocalDateTime.now().isAfter(expire)) {
-                log.info("URI cache expired");
-                cachedSSLSessionURI = null;
-                cachedHostInfo.clearCachedURIForSession();
-            }
-            if (cachedSSLSessionURI != null) {
-                // Success, use the cached URI
-                addresses = new URI[] {cachedSSLSessionURI};
+            if (cachedHostInfo.getSslSession() != null
+                    && cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP) != null) {
+                // Check if the stored URI is still valid
+                LocalDateTime timestamp =
+                        (LocalDateTime) cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP);
+
+                LocalDateTime expire = timestamp
+                        .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
+                if (LocalDateTime.now().isAfter(expire)) {
+                    log.info("URI cache expired");
+                    cachedSSLSessionURI = null;
+                    cachedHostInfo.clearCachedURIForSession();
+                }
+                if (cachedSSLSessionURI != null) {
+                    // Success, use the cached URI
+                    addresses = new URI[] {cachedSSLSessionURI};
+                }
             }
         }
 
