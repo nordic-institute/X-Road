@@ -120,6 +120,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         // If URI cache is enabled, check if we find the fastest provider address there
         if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0) {
+            log.info("URI cache enabled, session {}", cachedHostInfo.getSslSession());
             cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
             if (cachedHostInfo.getSslSession() != null
                     && cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP) != null) {
@@ -134,8 +135,10 @@ class FastestConnectionSelectingSSLSocketFactory
                     cachedSSLSessionURI = null;
                     cachedHostInfo.clearCachedURIForSession();
                 }
+                log.info("timestamp {} expire {}", timestamp, expire);
                 if (cachedSSLSessionURI != null) {
                     // Success, use the cached URI
+                    log.info("Use cached URI {}", cachedSSLSessionURI);
                     addresses = new URI[] {cachedSSLSessionURI};
                 }
             }
@@ -147,9 +150,11 @@ class FastestConnectionSelectingSSLSocketFactory
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
+                log.info("Could not connect to {} clear URI cache", addresses);
                 cachedSSLSessionURI = null;
                 cachedHostInfo.clearCachedURIForSession();
 
+                log.info("Continue connecting to all providers {}", addressesFromContext);
                 selectedSocket = connect(
                     //swap the failed address to the last
                     swap(addressesFromContext, 0, addressesFromContext.length - 1), context, timeout);
@@ -161,7 +166,7 @@ class FastestConnectionSelectingSSLSocketFactory
             }
         }
 
-        log.info("Connecting to {}", selectedSocket.getUri());
+        log.info("Connected to {}", selectedSocket.getUri());
 
         configureSocket(selectedSocket.getSocket());
 
@@ -172,6 +177,7 @@ class FastestConnectionSelectingSSLSocketFactory
 
         // Store the fastest provider URI to SSL cache
         if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0 && cachedSSLSessionURI != null) {
+            log.info("Store the fastest provider URI to SSL cache");
             sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedSocket.getUri());
             sslSocket.getSession().putValue(ID_SELECTED_TARGET_TIMESTAMP, LocalDateTime.now());
         }
