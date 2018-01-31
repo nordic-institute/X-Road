@@ -65,7 +65,7 @@ Doc. ID: ARC-G
   * [3.14 Operational Monitoring JMX](#314-operational-monitoring-jmx)
   * [3.15 Environmental Monitoring Protocol](#315-environmental-monitoring-protocol)
   * [3.16 Environmental Monitoring JMX](#316-environmental-monitoring-jmx)
-- [4 Deployment View](#5-deployment-view)
+- [4 Deployment View](#4-deployment-view)
 
 <!-- tocstop -->
 
@@ -148,6 +148,8 @@ The following list contains main design goals and design decisions of the X-Road
 
 20. <a id="Ref_WSDL" class="anchor"></a>\[WSDL\] Web Services Description Language (WSDL) 1.1, 2001.
 
+21. <a id"Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies 18.1.2018
+
 
 ## 2 System Components
 
@@ -158,6 +160,8 @@ The following list contains main design goals and design decisions of the X-Road
 ![](img/arc-g_logical_structure_of_x_road.png)
 
 Figure 1. Logical structure of X-Road
+
+See the list of technologies used in components here: [ARC-TEC](#Ref_ARC-TEC)
 
 
 ### 2.1 Central Server

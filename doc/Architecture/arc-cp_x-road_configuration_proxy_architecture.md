@@ -7,7 +7,7 @@
 **Technical Specification**
 
 Version: 1.4
- 19.02.2018
+ 19.01.2018
 <!-- 1 pages -->
  Doc. ID: ARC-CP
 
@@ -95,7 +95,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 Figure 1. Configuration proxy component diagram
 
-Technologies used by components can be found here: [\[ARC\] Technologies used in X-Road](Architecture/arc-x-road_technologies.md)
+Technologies used by components can be found here: [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
 
 ### 2.1 Web Server
 

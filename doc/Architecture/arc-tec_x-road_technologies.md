@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.1
+Version: 1.0
 18.01.2018
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
@@ -13,7 +13,7 @@ Doc. ID: ARC-TEC
 
  Date       | Version | Description                                                 | Author
  ---------- | ------- | ----------------------------------------------------------- | --------------------
- 18.01.2018 | 0.1     | Initial version                                             | Antti Luoma
+ 18.01.2018 | 1.0     | Initial version                                             | Antti Luoma
  
 
 ## Table of Contents
@@ -45,7 +45,7 @@ Table 1. Technology matrix of the X-Road
  Java 8             | X                   | X                  | X                       | X
  C                  | X                   | X                  |                         |
  Logback            | X                   | X                  | X                       | X
- Akka 2.X           | X                   | X                  |                         | X
+ Akka 2.X           | X                   | X                  | X                       | X
  Jetty 9            | X                   | X                  |                         |
  JRuby 1.7          | X                   | X                  |                         |
  Ubuntu 14.04       | X                   | X                  | X                       | X
@@ -53,7 +53,7 @@ Table 1. Technology matrix of the X-Road
  PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
  nginx              | X                   | X                  | X                       |
  PAM                | X                   | X                  |                         |
- Liquibase          | X                   |                    |                         | X
+ Liquibase          | X                   | X                  |                         | X
  upstart            | X                   | X                  | X                       | X
  PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
  Dropwizard Metrics | X                   |                    |                         | X

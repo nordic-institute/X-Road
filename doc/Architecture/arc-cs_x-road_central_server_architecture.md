@@ -124,7 +124,7 @@ In addition to configuration distribution, the central server provides interface
 
 Figure 1. Components and interfaces of the X-Road central server
 
-Technologies used by components can be found here: [Technologies used in X-Road](Architecture/arc-x-road_technologies.md)
+Technologies used by components can be found here: [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
 
 ### 2.1 Web Server
 
