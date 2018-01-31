@@ -84,6 +84,8 @@ The configuration proxy can be configured to mediate several global configuratio
 
 4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v6 Configuration Proxy Manual.
 
+5. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+
 
 ## 2 Component View
 
