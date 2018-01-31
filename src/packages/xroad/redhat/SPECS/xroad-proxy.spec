@@ -189,6 +189,7 @@ if [ $1 -gt 1 ] ; then
             echo "client-fastest-connecting-ssl-use-uri-cache=false, set client-fastest-connecting-ssl-uri-cache-period=0"
             crudini --set ${local_ini} proxy client-fastest-connecting-ssl-uri-cache-period 0
           fi
+        crudini --del ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache
       else
         echo "client-fastest-connecting-ssl-use-uri-cache not present in local.ini, use default value"
       fi
