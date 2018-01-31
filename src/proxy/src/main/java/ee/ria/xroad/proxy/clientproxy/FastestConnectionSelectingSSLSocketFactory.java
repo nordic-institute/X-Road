@@ -275,16 +275,23 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private CachedSSLSessionHostInformation getCachedSSLSessionHostURI(URI[] addresses) {
         SSLSessionContext sessionCtx = sslContext.getClientSessionContext();
-
         Enumeration<byte[]> ids = sessionCtx.getIds();
         while (ids.hasMoreElements()) {
             byte[] id = ids.nextElement();
             SSLSession session = sessionCtx.getSession(id);
-            // just look for the first host in the list
-            if (session != null && isSessionHost(session, addresses[0])) {
-                log.info("Found cached session to", addresses[0]);
-                return new CachedSSLSessionHostInformation(addresses[0], session);
+            if (session != null) {
+                for (URI address : addresses) {
+                    if (isSessionHost(session, address)) {
+                        log.info("Found cached session for {}", address);
+                        return new CachedSSLSessionHostInformation(address, session);
+                    }
+                }
             }
+            // just look for the first host in the list
+//            if (session != null && isSessionHost(session, addresses[0])) {
+//                log.info("Found cached session to", addresses[0]);
+//                return new CachedSSLSessionHostInformation(addresses[0], session);
+//            }
         }
         return CachedSSLSessionHostInformation.NONE;
     }
