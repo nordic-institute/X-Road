@@ -26,11 +26,11 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Simple thread-safe time based object cache.
+ * Simple last time based object cache
  */
 @Slf4j
 public class TimeBasedObjectCache {
@@ -43,7 +43,7 @@ public class TimeBasedObjectCache {
 
   private final int expireSeconds;
 
-  private Map<String, TimeAndValue> values = new ConcurrentHashMap<>();
+  private Map<String, TimeAndValue> values = new HashMap<>();
 
   /**
    * Constructor.
@@ -57,7 +57,7 @@ public class TimeBasedObjectCache {
   }
 
   /**
-   * Check if cache value is valid. That is, not null and not yet expired.
+   * Check if cache value is valid
    */
   public boolean isValid(String key) {
     TimeAndValue timeAndValue = values.get(key);
@@ -73,17 +73,9 @@ public class TimeBasedObjectCache {
   }
 
   /**
-   * Set cache value. Can also be used to invalidate cache value by setting it to null.
+   * Set cache value.
    */
   public void setValue(String key, Object value) {
     values.put(key, new TimeAndValue(LocalDateTime.now(), value));
-  }
-
-  /**
-   * Tells whether the cache is enabled or not
-   * @return true if enabled
-   */
-  public boolean isEnabled() {
-      return expireSeconds > 0;
   }
 }
