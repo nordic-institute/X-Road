@@ -159,6 +159,42 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # allow-get-wsdl-request for upgrade installations
+    proxy_ini=/etc/xroad/conf.d/proxy.ini
+    local_ini=/etc/xroad/conf.d/local.ini
+    present_in_proxy_ini=$(crudini --get ${proxy_ini} proxy allow-get-wsdl-request 2>/dev/null)
+    if [[ -n "$present_in_proxy_ini" ]];
+      then
+        echo "allow-get-wsdl-request already present in proxy.ini, do not update local.ini"
+      else
+        echo "allow-get-wsdl-request not present in proxy.ini, update local.ini"
+        crudini --set ${local_ini} proxy allow-get-wsdl-request true
+      fi
+fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
+    local_ini=/etc/xroad/conf.d/local.ini
+    local_ini_value=$(crudini --get ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache 2>/dev/null)
+    if [[ -n "$local_ini_value" ]];
+      then
+        echo "client-fastest-connecting-ssl-use-uri-cache present in local.ini, perform migration to client-fastest-connecting-ssl-uri-cache-period"
+        if [ "$local_ini_value" = true ] ;
+          then
+            echo "client-fastest-connecting-ssl-use-uri-cache=true, no action needed, use default value"
+          else
+            echo "client-fastest-connecting-ssl-use-uri-cache=false, set client-fastest-connecting-ssl-uri-cache-period=0"
+            crudini --set ${local_ini} proxy client-fastest-connecting-ssl-uri-cache-period 0
+          fi
+        crudini --del ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache
+      else
+        echo "client-fastest-connecting-ssl-use-uri-cache not present in local.ini, use default value"
+      fi
+fi
+
 sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
 
 if [ $1 -gt 1 ]; then
@@ -200,4 +236,3 @@ migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy si
 %systemd_postun_with_restart xroad-jetty9.service
 
 %changelog
-

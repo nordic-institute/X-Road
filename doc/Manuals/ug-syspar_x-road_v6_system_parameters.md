@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.27  
+Version: 2.29  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -37,6 +37,8 @@ Doc. ID: UG-SYSPAR
 | 17.10.2017 | 2.25     | Added new security server env-monitor parameter (limit-remote-data-set). | Joni Laurila |
 | 20.10.2017 | 2.26     | Clarified the effects of disabling SOAP body logging on the SOAP Headers. Split the system parameters to different tables for readability| Olli Lindgren |
 | 22.11.2017 | 2.27     | Default changed to vanilla. New colums added for FI and EE values. | Antti Luoma |
+| 02.01.2018 | 2.28     | Added proxy parameter allow-get-wsdl-request. | Ilkka Seppälä |
+| 29.01.2018 | 2.29     | Removed proxy parameter client-fastest-connecting-ssl-use-uri-cache. Added proxy parameter client-fastest-connecting-ssl-uri-cache-period. | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -78,7 +80,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 # Introduction
 
-This document describes the system parameters of the X-Road components – of the security server, the central server and the configuration proxy. Additionally, changing the default values of the system parameters are explained. 
+This document describes the system parameters of the X-Road components – of the security server, the central server and the configuration proxy. Additionally, changing the default values of the system parameters are explained.
 Please note the term 'vanilla' in the documentation. In X-Road context vanilla means the X-Road without any of the country specific customizations, settings etc. The vanilla version of X-Road security server is installed with xroad-securityserver package. The country specific versions are installed with xroad-securityserver-XX where XX is the country code f.ex. FI or EE.
 
 ## References
@@ -89,7 +91,7 @@ Please note the term 'vanilla' in the documentation. In X-Road context vanilla m
     CRON expression,
     *http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html*
 3.  <a name="Ref_PR-MESS"></a>\[PR-MESS\] [X-Road Message Protocol v. 4.0](../Protocols/pr-mess_x-road_message_protocol.md)
-4.  <a name="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md) 
+4.  <a name="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md)
 5.  <a name="Ref_PR-SECTOKEN"></a>\[PR-SECTOKEN\] [Security Token Extension for the X-Road Message Protocol](../Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md)
 
 # Changing the System Parameter Values
@@ -214,10 +216,11 @@ This chapter describes the system parameters used by the components of the X-Roa
 | pool-validate-connections-after-inactivity-of-millis | 2000                                   |   |   | When reusing a pooled connection to a service providing security server, check that the connection (the socket) is not half-closed if it has been idle for at least this many milliseconds. This method cannot detect half-open connections. Value of -1 disables the check. |
 | pool-enable-connection-reuse                     | false                                      | true |   | Allow pooled connections between security servers to be used more than once on the client side. The service provider end of the connections has to have the setting `server-support-clients-pooled-connections=true` for the pooling to work between a provider and consumer security servers.|
 | client-use-fastest-connecting-ssl-socket-autoclose | true                                     |   |   | On TLS connections between security servers, should the underlying TCP-layer connection (socket) be closed on the service consumer end when the TLS layer connection is terminated.|
-| client-fastest-connecting-ssl-use-uri-cache      | true                                       |   |   | When a service consumer's security server finds the fastest responding service providing security server, should the result be saved in the TLS session cache? |
+| client-fastest-connecting-ssl-uri-cache-period      | 3600                                       |   |   | When a service consumer's security server finds the fastest responding service providing security server, how long the result should be kept in the TLS session cache? 0 to disable. |
 | health-check-port                                | 0 (disabled)                               |   |   | The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.|
 | health-check-interface                           | 0.0.0.0                                    |   |   | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
+| allow-get-wsdl-request                           | false                                      |   |   | Whether to allow getWsdl metaservice to be called with HTTP/HTTPS GET method. |
 
 ## Proxy User Interface parameters: `[proxy-ui]`
 
@@ -330,7 +333,7 @@ For instructions on how to change the parameter values, see section [Changing th
 ### Signer parameters: `[signer]`
 
 | **Name**                | **Vanilla value**                      | **Description** |
-|-------------------------|----------------------------------------|-----------------| 
+|-------------------------|----------------------------------------|-----------------|
 | ocsp-response-retrieval-active | false <br/> _(see Description for more information)_ | This property is used as an override to deactivate periodic OCSP-response retrieval for components that don't need that functionality, but still use signer. <br/><br/> Values: <br/> `false` - OCSP-response retrieval jobs are never scheduled <br/> `true` - periodic OCSP-response retrieval is active based on ocspFetchInterval. **Note that if the entire property is missing, it is interpreted as true.** <br/><br/>  This property is delivered as an override and only for the components where the OCSP-response retrieval jobs need to be deactivated. The property is missing for components that require OCSP-response retrieval to be activated. |
 | ocsp-cache-path                | /var/cache/xroad                | Absolute path to the directory where the cached OCSP responses are stored. |
 | enforce-token-pin-policy       | false                           | Controls enforcing the token pin policy. When set to true, software token pin is required to be at least 10 ASCII characters from at least tree character classes (lowercase letters, uppercase letters, digits, special characters). (since version 6.7.7) |
@@ -388,17 +391,17 @@ This chapter describes the system parameters used by the X-Road configuration pr
 [1] See also [*http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger*](http://www.quartz-scheduler.org/documentation/quartz-1.x/tutorials/crontrigger).
 
 [2] Default value for proxy.client-tls-ciphers.
->TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, 
-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, 
-TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, 
-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, 
-TLS_DHE_RSA_WITH_AES_128_GCM_SHA256, 
-TLS_DHE_RSA_WITH_AES_128_CBC_SHA256, 
-TLS_DHE_RSA_WITH_AES_256_CBC_SHA256, 
-TLS_DHE_RSA_WITH_AES_256_GCM_SHA384, 
-TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, 
-TLS_DHE_RSA_WITH_AES_128_CBC_SHA, 
-TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, 
+>TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,
+TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,
+TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,
+TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,
+TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
 TLS_DHE_RSA_WITH_AES_256_CBC_SHA
 
 In Finnish package overridden to:
