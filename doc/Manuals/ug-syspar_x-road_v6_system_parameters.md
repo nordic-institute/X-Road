@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.28  
+Version: 2.29  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -38,6 +38,7 @@ Doc. ID: UG-SYSPAR
 | 20.10.2017 | 2.26     | Clarified the effects of disabling SOAP body logging on the SOAP Headers. Split the system parameters to different tables for readability| Olli Lindgren |
 | 22.11.2017 | 2.27     | Default changed to vanilla. New colums added for FI and EE values. | Antti Luoma |
 | 02.01.2018 | 2.28     | Added proxy parameter allow-get-wsdl-request. | Ilkka Seppälä |
+| 29.01.2018 | 2.29     | Removed proxy parameter client-fastest-connecting-ssl-use-uri-cache. Added proxy parameter client-fastest-connecting-ssl-uri-cache-period. | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -215,7 +216,7 @@ This chapter describes the system parameters used by the components of the X-Roa
 | pool-validate-connections-after-inactivity-of-millis | 2000                                   |   |   | When reusing a pooled connection to a service providing security server, check that the connection (the socket) is not half-closed if it has been idle for at least this many milliseconds. This method cannot detect half-open connections. Value of -1 disables the check. |
 | pool-enable-connection-reuse                     | false                                      | true |   | Allow pooled connections between security servers to be used more than once on the client side. The service provider end of the connections has to have the setting `server-support-clients-pooled-connections=true` for the pooling to work between a provider and consumer security servers.|
 | client-use-fastest-connecting-ssl-socket-autoclose | true                                     |   |   | On TLS connections between security servers, should the underlying TCP-layer connection (socket) be closed on the service consumer end when the TLS layer connection is terminated.|
-| client-fastest-connecting-ssl-use-uri-cache      | true                                       |   |   | When a service consumer's security server finds the fastest responding service providing security server, should the result be saved in the TLS session cache? |
+| client-fastest-connecting-ssl-uri-cache-period      | 3600                                       |   |   | When a service consumer's security server finds the fastest responding service providing security server, how long the result should be kept in the TLS session cache? 0 to disable. |
 | health-check-port                                | 0 (disabled)                               |   |   | The TCP port where the health check service listens to requests. Setting the port to 0 disables the health check service completely.|
 | health-check-interface                           | 0.0.0.0                                    |   |   | The network interface where the health check service listens to requests. Default is all available interfaces.|
 | actorsystem-port                                 | 5567                                       |   |   | The (localhost) port where the proxy actorsystem binds to. Used for communicating with xroad-signer and xroad-monitor. |
