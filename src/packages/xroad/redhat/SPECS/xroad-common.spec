@@ -31,5 +31,3 @@ rm -rf %{buildroot}
 %pre
 
 %post
-
-
