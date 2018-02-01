@@ -265,8 +265,6 @@ class ClientMessageProcessor extends MessageProcessorBase {
             // (socket that connects first) from the provided addresses.
             List<URI> tmp = getServiceAddresses(requestServiceId, requestSoap.getSecurityServer());
             Collections.shuffle(tmp);
-            // If there are more than 1 address, we will prefer the first one then selecting the fastest
-            // the randomization ensures that each address will be the preferred one
             URI[] addresses = tmp.toArray(new URI[0]);
 
             updateOpMonitoringServiceSecurityServerAddress(addresses, httpSender);
