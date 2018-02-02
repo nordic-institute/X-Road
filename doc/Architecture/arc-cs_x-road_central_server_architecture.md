@@ -30,7 +30,7 @@ Doc. ID: ARC-CS
  17.09.2015 | 2.0     | Editorial changes made                                          | Imbi Nõgisto
  21.10.2015 | 2.1     | SSCD and password store related information added               | Ilja Kromonov
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
- 19.01.2018 | 2.3     | Matrix of technologies moved to arc-x-road_technologies.md and chapters reordered | Antti Luoma 
+ 19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 

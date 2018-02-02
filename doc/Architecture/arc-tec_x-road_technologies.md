@@ -73,10 +73,10 @@ Table 1. Technology matrix of the X-Road
  PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
  Dropwizard Metrics | X                   |                    |                         | X
 
+See \[[ARC-G](#Ref_ARC-G)\] for general X-Road architecture details.
 
 <a id="Ref_1" class="anchor"></a>
 \[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
-
 
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.

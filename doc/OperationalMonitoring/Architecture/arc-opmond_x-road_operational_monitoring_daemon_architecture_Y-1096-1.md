@@ -85,7 +85,7 @@ Figure 1 shows the main components and interfaces of the monitoring daemon. The 
 
 ![Operational monitoring daemon component diagram](x-road_operational_monitoring_daemon_components.png)
 
-Technologies used in the operational monitoring daemon can be found here: \[[ARC-TEC](#Ref_ARC-TEC)\]
+Technologies used in the operational monitoring daemon can be found here: [[ARC-TEC]](#ARC-TEC)
 
 **Figure 1. Operational monitoring daemon component diagram**
 
@@ -145,7 +145,7 @@ The configuration download interface is a synchronous interface that is required
 
 The interface is described in more detail in [[ARC-G]](#ARC-G) and [[PR-GCONF]](#PR-GCONF).
 
-## 5 Deployment View
+## 4 Deployment View
 
 Figure 2 shows the deployment diagram.
 
