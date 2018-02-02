@@ -157,7 +157,8 @@ See \[[ARC-SS](#Ref_ARC-SS)\] for the security server details.
 
 ## 5 Operational monitoring daemon technologies
 
-[Table 5](#Ref_Technology_matrix_of_the_operational_monitoring_daemon) presents the list of the technologies used in the operational monitoring daemon and the mapping between technologies and monitoring daemon components.
+[Table 5](#Ref_Technology_matrix_of_the_operational_monitoring_daemon) presents the list of the technologies used in the operational monitoring daemon and the mapping between technologies and monitoring daemon components. 
+Note: OP-monitoring daemon is an additional component of the X-Road.
 
 <a id="Ref_Technology_matrix_of_the_operational_monitoring_daemon" class="anchor"></a>
 Table 5. Technology matrix of the operational monitoring daemon
