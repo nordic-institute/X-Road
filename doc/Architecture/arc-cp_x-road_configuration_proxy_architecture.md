@@ -97,7 +97,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 Figure 1. Configuration proxy component diagram
 
-Technologies used by components can be found here: [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
+Technologies used by components can be found here: \[[ARC-TEC](#Ref_ARC-TEC)\]
 
 ### 2.1 Web Server
 
