@@ -9,7 +9,7 @@ Release:    %{rel}%{?snapshot}%{?dist}
 Summary:    X-Road AddOn: opmonitoring
 Group:      Applications/Internet
 License:    MIT
-Requires:   xroad-proxy = %version, xroad-opmonitor = %version
+Requires:   xroad-proxy = %version-%release, xroad-opmonitor = %version-%release
 
 %define src %{_topdir}/..
 
