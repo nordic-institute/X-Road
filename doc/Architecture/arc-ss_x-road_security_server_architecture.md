@@ -149,6 +149,8 @@ The security server also depends on a central server, which provides the global 
 
 17. <a id="Ref_ARC-MA" class="anchor"></a>\[ARC-MA\] X-Road: Monitoring Architecture
 
+18. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+
 
 ## 2 Component View
 
@@ -160,7 +162,7 @@ The security server also depends on a central server, which provides the global 
 
 Figure 1. Security server component diagram
 
-Technologies used by components can be found here: [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
+Technologies used in the security server can be found here: \[[ARC-TEC](#Ref_ARC-TEC)\]
 
 ### 2.1 Proxy
 

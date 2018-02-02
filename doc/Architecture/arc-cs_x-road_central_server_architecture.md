@@ -113,6 +113,8 @@ In addition to configuration distribution, the central server provides interface
 
 8. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
+9. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+
 
 ## 2 Component View
 
@@ -124,7 +126,8 @@ In addition to configuration distribution, the central server provides interface
 
 Figure 1. Components and interfaces of the X-Road central server
 
-Technologies used by components can be found here: [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
+Technologies used in the central server can be found here: \[[ARC-TEC](#Ref_ARC-TEC)\]
+
 
 ### 2.1 Web Server
 

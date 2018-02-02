@@ -3,7 +3,7 @@
 **Technical Specification**
 
 Version: 1.0
-18.01.2018
+02.02.2018
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -13,7 +13,7 @@ Doc. ID: ARC-TEC
 
  Date       | Version | Description                                                 | Author
  ---------- | ------- | ----------------------------------------------------------- | --------------------
- 18.01.2018 | 1.0     | Initial version                                             | Antti Luoma
+ 02.02.2018 | 1.0     | Initial version                                             | Antti Luoma
  
 
 ## Table of Contents
@@ -21,10 +21,12 @@ Doc. ID: ARC-TEC
 <!-- toc -->
 
 - [License](#license)
+- [References](#references)
 - [1 Overview matrix of the X-Road technology](#1-overview-matrix-of-the-x-road-technology)
 - [2 Central server technologies](#2-central-server-technologies)
 - [3 Configuration proxy technologies](#3-configuration-proxy-technologies)
 - [4 Security server technologies](#4-security-server-technologies)
+- [5 Operational monitoring daemon technologies](#5-operational-monitoring-daemon-technologies)
 
 <!-- tocstop -->
 
@@ -32,6 +34,19 @@ Doc. ID: ARC-TEC
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
 
+## References
+
+1. <a id="Ref_ARC-CP" class="anchor"></a>\[ARC-CP\] X-Road: Configuration Proxy Architecture.
+
+2. <a id="Ref_ARC-CS" class="anchor"></a>\[ARC-CS\] X-Road: Central Server Architecture.
+
+3. <a id="Ref_ARC-SS" class="anchor"></a>\[ARC-SS\] X-Road: Security Server Architecture.
+
+4. <a id="Ref_ARC-MA" class="anchor"></a>\[ARC-MA\] X-Road: Monitoring Architecture
+
+5. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] X-Road: Operational Monitoring Daemon Architecture.
+
+6. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] X-Road Architecture.
 
 ## 1 Overview matrix of the X-Road technology
 
@@ -91,6 +106,7 @@ Table 2. Technology matrix of the central server
  upstart        | X          | X              |                    |                         |              |                    | X
  PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                  
 
+See \[[ARC-CS](#Ref_ARC-CS)\] for the central server details.
 
 ## 3 Configuration proxy technologies
 
@@ -111,6 +127,7 @@ Table 3. Technology matrix of the configuration proxy
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
+See \[[ARC-CP](#Ref_ARC-CP)\] for the configuration proxy details.
 
 ## 4 Security server technologies
 
@@ -135,3 +152,24 @@ Table 4. Technology matrix of the security server
  PKCS \#11\[[2](#Ref_2)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
  Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
 
+See \[[ARC-SS](#Ref_ARC-SS)\] for the security server details.
+
+
+## 5 Operational monitoring daemon technologies
+
+[Table 5](#Ref_Technology_matrix_of_the_operational_monitoring_daemon) presents the list of the technologies used in the operational monitoring daemon and the mapping between technologies and monitoring daemon components.
+
+<a id="Ref_Technology_matrix_of_the_operational_monitoring_daemon" class="anchor"></a>
+Table 5. Technology matrix of the operational monitoring daemon
+
+Technology         | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client
+:----------------- | :----------------------: | :-------------------: | :------------------: | :---:
+Java 8             | X                        | X                     | X                    | X
+Logback            | X                        | X                     | X                    | X
+Akka 2.X           | X                        | X                     |                      |
+PostgreSQL 9.3     | X                        | X                     |                      |
+Liquibase          | X                        | X                     |                      |
+Dropwizard Metrics | X                        | X                     |                      |
+upstart            | X                        |                       |                      | X
+
+See \[[ARC-OPMOND](#Ref_ARC-OPMOND)\] for the operational monitoring daemon details.
