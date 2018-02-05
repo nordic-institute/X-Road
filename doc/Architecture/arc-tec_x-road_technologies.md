@@ -67,7 +67,7 @@ Table 1. Technology matrix of the X-Road
  PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
  Dropwizard Metrics | X                   |                    |                         | X
 
-See \[[ARC-G](#Ref_ARC-G)\] for general X-Road architecture details.
+See [[ARC-G]](#Ref_ARC-G) for general X-Road architecture details.
 
 <a id="Ref_1" class="anchor"></a>
 \[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
@@ -100,7 +100,7 @@ Table 2. Technology matrix of the central server
  upstart        | X          | X              |                    |                         |              |                    | X
  PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                  
 
-See \[[ARC-CS](#Ref_ARC-CS)\] for the central server details.
+See [[ARC-CS]](#Ref_ARC-CS) for the central server details.
 
 ## 3 Configuration proxy technologies
 
@@ -121,7 +121,7 @@ Table 3. Technology matrix of the configuration proxy
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
-See \[[ARC-CP](#Ref_ARC-CP)\] for the configuration proxy details.
+See [[ARC-CP]](#Ref_ARC-CP) for the configuration proxy details.
 
 ## 4 Security server technologies
 
@@ -146,7 +146,7 @@ Table 4. Technology matrix of the security server
  PKCS \#11\[[2](#Ref_2)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
  Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
 
-See \[[ARC-SS](#Ref_ARC-SS)\] for the security server details.
+See [[ARC-SS]](#Ref_ARC-SS) for the security server details.
 
 
 ## 5 Operational monitoring daemon technologies
@@ -167,4 +167,4 @@ Liquibase          | X                        | X                     |         
 Dropwizard Metrics | X                        | X                     |                      |
 upstart            | X                        |                       |                      | X
 
-See \[[ARC-OPMOND](#Ref_ARC-OPMOND)\] for the operational monitoring daemon details.
+See [[ARC-OPMOND]](#Ref_ARC-OPMOND) for the operational monitoring daemon details.
