@@ -191,7 +191,7 @@ The URL for the HTTP GET-request is either `http://SECURITYSERVER/wsdl` or `http
 
 * `memberCode` – code that identifies the X-Road member;
 
-* `subsystemCode` – code that identifies a subsystem of the given member;
+* `subsystemCode` – (optional) code that identifies a subsystem of the given member;
 
 * `serviceCode` – identifies the specific service;
 
