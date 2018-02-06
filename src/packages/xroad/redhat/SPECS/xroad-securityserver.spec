@@ -9,11 +9,11 @@ Summary:            X-Road security server
 BuildArch:          noarch
 Group:              Applications/Internet
 License:            MIT
-Requires:           xroad-proxy >= %version
-Requires:           xroad-addon-messagelog >= %version
-Requires:           xroad-addon-metaservices >= %version
-Requires:           xroad-addon-proxymonitor >= %version
-Requires:           xroad-addon-wsdlvalidator >= %version
+Requires:           xroad-proxy = %version-%release
+Requires:           xroad-addon-messagelog = %version-%release
+Requires:           xroad-addon-metaservices = %version-%release
+Requires:           xroad-addon-proxymonitor = %version-%release
+Requires:           xroad-addon-wsdlvalidator = %version-%release
 Conflicts:          xroad-centralserver
 
 %description

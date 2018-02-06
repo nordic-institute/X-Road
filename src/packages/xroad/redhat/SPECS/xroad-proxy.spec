@@ -15,7 +15,7 @@ Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, policycoreutils-python, tar
-Requires:           xroad-common >= %version, xroad-jetty9 >= %version, rsyslog, postgresql-server, postgresql-contrib
+Requires:           xroad-common = %version-%release, xroad-jetty9 = %version-%release, rsyslog, postgresql-server, postgresql-contrib
 
 %define src %{_topdir}/..
 
