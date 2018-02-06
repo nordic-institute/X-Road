@@ -67,6 +67,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -290,8 +292,7 @@ public class OcspClientTest {
      */
     @AfterClass
     public static void shutdown() throws Exception {
-        ACTOR_SYSTEM.shutdown();
-
+        Await.ready(ACTOR_SYSTEM.terminate(), Duration.Inf());
         if (ocspResponder != null) {
             try {
                 ocspResponder.stop();

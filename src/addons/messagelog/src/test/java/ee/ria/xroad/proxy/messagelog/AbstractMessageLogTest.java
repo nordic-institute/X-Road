@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.JobManager;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.DeadLetter;
@@ -39,8 +31,17 @@ import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.JobManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +129,7 @@ abstract class AbstractMessageLogTest {
 
     void testTearDown() throws Exception {
         jobManager.stop();
-        actorSystem.shutdown();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 
     protected Class<? extends AbstractLogManager> getLogManagerImpl() throws Exception {
@@ -170,8 +171,8 @@ abstract class AbstractMessageLogTest {
                 ActorRef.noSender());
     }
 
-    void awaitTermination() {
-        actorSystem.awaitTermination();
+    void awaitTermination() throws Exception {
+        Await.result(actorSystem.whenTerminated(), Duration.Inf());
     }
 
     static void assertMessageRecord(Object o, String queryId) throws Exception {

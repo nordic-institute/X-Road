@@ -44,6 +44,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -109,9 +111,8 @@ public class CertificateInfoSensorTest {
      * Shut down actor system and wait for clean up, so that other tests are not disturbed
      */
     @After
-    public void tearDown() {
-        actorSystem.shutdown();
-        actorSystem.awaitTermination();
+    public void tearDown() throws Exception {
+        Await.result(actorSystem.terminate(), Duration.Inf());
     }
 
     private TokenInfo createTestTokenInfo(KeyInfo... keyInfoParams) {

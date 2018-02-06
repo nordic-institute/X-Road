@@ -44,6 +44,8 @@ import ee.ria.xroad.proxymonitor.message.HistogramMetricType;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.MetricType;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
@@ -156,7 +158,7 @@ public class SecurityServerMetricsMessage extends MessageTestCase {
 
     @Override
     protected void closeDown() throws Exception {
-        ACTOR_SYSTEM.terminate();
+        Await.ready(ACTOR_SYSTEM.terminate(), Duration.Inf());
     }
 
     private static SystemMetricsResponse createMetricsResponse() {

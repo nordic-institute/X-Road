@@ -35,6 +35,10 @@ import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * Main program for launching configuration proxy utility tools.
@@ -68,7 +72,13 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            actorSystem.shutdown();
+            try {
+                Await.ready(actorSystem.terminate(), Duration.Inf());
+            } catch (TimeoutException e) {
+                log.error("Timed out while waiting for akka to terminate");
+            } catch (InterruptedException e) {
+                log.error("Interrupted while waiting for akka to terminate");
+            }
         }
     }
 
