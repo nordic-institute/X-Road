@@ -18,7 +18,7 @@ xroad-lxd-ss2 ansible_connection=lxd
 [ss-servers:children]
 centos-ss
 
-#security servers (centos lxd containers)
+#security servers (centos lxd containers, not supported in variant ee)
 [centos-ss]
 xroad-lxd-rh-ss1 ansible_connection=lxd
 

@@ -173,7 +173,7 @@ public final class ProxyMain {
         log.trace("shutdown()");
 
         stopServices();
-        actorSystem.shutdown();
+        actorSystem.terminate();
     }
 
     private static void createServices() throws Exception {

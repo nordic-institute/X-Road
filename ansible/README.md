@@ -25,14 +25,14 @@ You determine which servers are initialized by filling in the groups
 you can leave that group empty.
 
 **Note:** Study the structure of the example host files carefully and model the group hierarchies that you wish to implement in your own
-inventory files. For example, the group `[centos-ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss-servers]` and can be omitted entirely if you have no use for CentOS containers.
+inventory files. For example, the group `[centos-ss]` for CentOS-based security server LXD-containers is a child group to the security server group `[ss-servers]` and can be omitted entirely if you have no use for CentOS containers or are using the ee-variant.
 
 #### Variant
 
 When installing security servers, the Ansible playbooks use the configuration variable `variant`
 to select one of the available security server variants for installation. If no additional configurations have been made, the playbooks will install the `vanilla` variant. The three currently supported variants are:
 - `vanilla` - the basic non-country-specific version of X-Road
-- `ee` - the Estonian country variant
+- `ee` - the Estonian country variant, no RHEL variant package available
 - `fi` - the Finnish country variant
 
 Country variants provide country-specific configuration options and dependencies in order to suit the X-Road instances and policies of their host countries.

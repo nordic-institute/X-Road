@@ -259,11 +259,12 @@ public final class SystemProperties {
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
+
+    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -1319,6 +1320,13 @@ public final class SystemProperties {
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
 
         return version;
+    }
+
+    /**
+     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
+     */
+    public static boolean isAllowGetWsdlRequest() {
+        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, "false"));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

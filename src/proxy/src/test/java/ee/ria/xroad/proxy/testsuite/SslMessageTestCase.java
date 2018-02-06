@@ -22,10 +22,55 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClientBuilder;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.nio.conn.PoolingNHttpClientConnectionManager;
+import org.apache.http.impl.nio.reactor.DefaultConnectingIOReactor;
+import org.apache.http.impl.nio.reactor.IOReactorConfig;
+import org.apache.http.nio.conn.NoopIOSessionStrategy;
+import org.apache.http.nio.conn.SchemeIOSessionStrategy;
+import org.apache.http.nio.conn.ssl.SSLIOSessionStrategy;
+import org.apache.http.nio.reactor.ConnectingIOReactor;
+import org.apache.http.ssl.SSLContexts;
+
 /**
  *  All test cases extending this class will be executed in a separate batch
  *  where ClientProxy and ServerProxy are started in SSL mode.
  */
 public class SslMessageTestCase extends MessageTestCase {
+
+    @Override
+    protected CloseableHttpAsyncClient getClient() throws Exception {
+        HttpAsyncClientBuilder builder = HttpAsyncClients.custom();
+
+        IOReactorConfig ioReactorConfig = IOReactorConfig.custom()
+                .setIoThreadCount(Runtime.getRuntime().availableProcessors())
+                .setConnectTimeout(getClientTimeout())
+                .setSoTimeout(30000)
+                .build();
+
+        ConnectingIOReactor ioReactor =
+                new DefaultConnectingIOReactor(ioReactorConfig);
+
+        Registry<SchemeIOSessionStrategy> sessionStrategyRegistry = RegistryBuilder.<SchemeIOSessionStrategy>create()
+                .register("http", NoopIOSessionStrategy.INSTANCE)
+                .register("https", new SSLIOSessionStrategy(
+                        SSLContexts.custom().loadTrustMaterial((chain, authType) -> true).build(),
+                        NoopHostnameVerifier.INSTANCE))
+                .build();
+
+        PoolingNHttpClientConnectionManager connManager =
+                new PoolingNHttpClientConnectionManager(ioReactor, sessionStrategyRegistry);
+
+        connManager.setMaxTotal(1);
+        connManager.setDefaultMaxPerRoute(1);
+
+        builder.setConnectionManager(connManager);
+        return builder.build();
+    }
 
 }
