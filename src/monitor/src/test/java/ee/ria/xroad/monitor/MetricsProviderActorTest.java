@@ -38,10 +38,10 @@ import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Rule;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import scala.concurrent.Await;
@@ -96,9 +96,8 @@ public class MetricsProviderActorTest {
      * Shut down actor system and wait for clean up, so that other tests are not disturbed
      */
     @After
-    public void tearDown() {
-        actorSystem.shutdown();
-        actorSystem.awaitTermination();
+    public void tearDown() throws Exception {
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 
     @Test

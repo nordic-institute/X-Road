@@ -29,6 +29,8 @@ import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 /**
  * Contains the center actor system.
@@ -71,7 +73,7 @@ public final class CenterServices {
      */
     public static void stop() throws Exception {
         if (actorSystem != null) {
-            actorSystem.shutdown();
+            Await.ready(actorSystem.terminate(), Duration.Inf());
         }
     }
 

@@ -27,10 +27,16 @@ import com.typesafe.config.ConfigFactory;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+
+import java.util.concurrent.TimeoutException;
 
 /**
  * Test client for monitoring
  */
+@Slf4j
 public final class MonitorTest {
 
     public static final int TIMES = 100;
@@ -50,7 +56,13 @@ public final class MonitorTest {
         }
         waitXSeconds(WAIT_SECONDS);
 
-        actorSystem.shutdown();
+        try {
+            Await.ready(actorSystem.terminate(), Duration.Inf());
+        } catch (TimeoutException e) {
+            log.error("Timed out while waiting for akka to terminate");
+        } catch (InterruptedException e) {
+            log.error("Interrupted while waiting for akka to terminate");
+        }
     }
 
     private MonitorTest() {

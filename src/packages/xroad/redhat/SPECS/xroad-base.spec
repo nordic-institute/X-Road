@@ -49,10 +49,10 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-9.4.1207.jre6.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.2.1.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
 cp -p %{src}/../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{src}/../../proxy-ui/build/libs/postgresql-9.4.1207.jre6.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{src}/../../proxy-ui/build/libs/postgresql-42.2.1.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{src}/../default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{src}/../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{src}/../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
