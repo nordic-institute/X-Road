@@ -70,7 +70,7 @@ allprojects {
 subprojects {
 
     ext {
-        akkaVersion = "2.5.9"
+        akkaVersion = "2.4.20"
         metricsVersion = "3.2.2"
         jettyVersion = "9.4.6.v20170531"
         jaxbVersion = "2.2.11"
