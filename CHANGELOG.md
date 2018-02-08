@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.17.0 - 2018-02-06
+## 6.17.0 - 2018-02-08
 - PVAYLADEV-861 / XRJD #172 Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
 - PVAYLADEV-918	Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
 - PVAYLADEV-799	Monitoring Akka-implementation is enhanced for handling possible restart of actors.
@@ -34,6 +34,8 @@
 - PVAYLADEV-1026 / XRJD #195: Security server getWsdl metaservice's security improved and added parameter that can be used to switch off getWsdl (HTTP GET) metaservice.
 - PVAYLADEV-1027: Updated and improved meta-service documentation
 - XTE-405 / Backlog #205: Security Server: Fixed changing internal TLS certificate of Security Server using UI
+- PVAYLADEV-986: X-Road installation and update changed to require identical package version numbers in dependencies
+- PVAYLADEV-1091: Upgraded some third party dependencies (for security fixes).
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
