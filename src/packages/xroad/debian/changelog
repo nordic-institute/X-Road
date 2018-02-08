@@ -1,8 +1,8 @@
-xroad (6.17.0-0) trusty; urgency=medium
+xroad (6.17.0-1) trusty; urgency=medium
 
-  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz (Ubuntu) and /usr/share/doc/xroad-common/CHANGELOG.md (RHEL)
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 19 Sep 2017 14:30:00 +0300
+ -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Thu, 08 Feb 2018 15:03:39 +0200
 
 xroad (6.16.0-1) trusty; urgency=medium
 
