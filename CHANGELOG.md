@@ -34,6 +34,8 @@
 - PVAYLADEV-1026 / XRJD #195: Security server getWsdl metaservice's security improved and added parameter that can be used to switch off getWsdl (HTTP GET) metaservice.
 - PVAYLADEV-1027: Updated and improved meta-service documentation
 - XTE-405 / Backlog #205: Security Server: Fixed changing internal TLS certificate of Security Server using UI
+- PVAYLADEV-1087: Fixed the documented WSDL-definition for security server meta-services
+- PVAYLADEV-1033 / XRJD #58: Enhancements to security server internal load balancing
 - PVAYLADEV-986: X-Road installation and update changed to require identical package version numbers in dependencies
 - PVAYLADEV-1091: Upgraded some third party dependencies (for security fixes).
 - PVAYLADEV-1029: Fix intermittent test failure
