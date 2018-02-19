@@ -1,8 +1,14 @@
-xroad (6.17.0-0) trusty; urgency=medium
+xroad (6.18.0-0) trusty; urgency=medium
 
-  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz (Ubuntu) and /usr/share/doc/xroad-common/CHANGELOG.md (RHEL)
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
 
- -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 19 Sep 2017 14:30:00 +0300
+ -- Gofore Oyj <palveluvayla@gofore.com>  Wed, 14 Feb 2018 16:15:45 +0200
+
+xroad (6.17.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- Gofore Oyj <palveluvayla@gofore.com>  Wed, 14 Feb 2018 16:15:45 +0200
 
 xroad (6.16.0-1) trusty; urgency=medium
 
@@ -92,6 +98,13 @@ xroad (6.10.0-1) trusty; urgency=medium
   * PVAYLADEV-547: Added Vagrantfile for creating X-Road development boxes. It is possible to run X-Road servers in LXD containers inside the development box.
 
  -- Jarkko Hyöty <jarkko.hyoty@gofore.com>  Wed, 15 Jan 2017 15:03:26 +0300
+
+xroad (6.9.5) trusty; urgency=low
+
+  * XTE-293: Security Server: A field set used to generate the token ID of the SSCD has been made configurable.
+  * XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp; or &lt; entities.
+
+ -- Cybernetica AS <xroad-support@cyber.ee>  Mon, 27 Mar 2017 16:38:15 +0300
 
 xroad (6.9.4) trusty; urgency=low
 

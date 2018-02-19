@@ -19,7 +19,7 @@ ROOT=${DIR}/xroad/redhat
 rm -rf ${ROOT}/RPMS/*
 
 rpmbuild \
-    --define "xroad_version 6.17.0" \
+    --define "xroad_version 6.18.0" \
     --define "rel $RELEASE" \
     --define "snapshot $SNAPSHOT" \
     --define "_topdir $ROOT" \

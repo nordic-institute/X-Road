@@ -1,26 +1,29 @@
 # Change Log
 
-## 6.17.0 - 2018-02-06
-- PVAYLADEV-861 / XRJD #172 Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
-- PVAYLADEV-918	Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
-- PVAYLADEV-799	Monitoring Akka-implementation is enhanced for handling possible restart of actors.
-- PVAYLADEV-908 / XRJD #176 	Added certificate activation status to enviromental monitoring
-- PVAYLADEV-841	Added support for CentOS 7 LXD-containers to public X-Road installation Ansible playbooks
-- PVAYLADEV-891	Updated documentation for environmental monitoring. ug-ss_x-road_6_security_server_user_guide.md
-- PVAYLADEV-926	Removed automated testing environment Ansible setup from the public repository
-- PVAYLADEV-740 Created Dockerfile for compiling xroad codebase and created jenkins pipeline which will use that for compiling, packaging and deploying X-Road version.s
-- PVAYLADEV-878 Use case documentation changed from docx to md
+## 6.18.0 - XXXX-XX-XX
+- TBD
+
+## 6.17.0 - 2018-02-14
+- PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
+- PVAYLADEV-918: Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
+- PVAYLADEV-799: Monitoring Akka-implementation is enhanced for handling possible restart of actors.
+- PVAYLADEV-908 / XRJD #176: Added certificate activation status to enviromental monitoring
+- PVAYLADEV-841: Added support for CentOS 7 LXD-containers to public X-Road installation Ansible playbooks
+- PVAYLADEV-891: Updated documentation for environmental monitoring. ug-ss_x-road_6_security_server_user_guide.md
+- PVAYLADEV-926: Removed automated testing environment Ansible setup from the public repository
+- PVAYLADEV-740: Created Dockerfile for compiling xroad codebase and created jenkins pipeline which will use that for compiling, packaging and deploying X-Road versions.
+- PVAYLADEV-878: Use case documentation changed from docx to md
 - XTE-355 / Backlog #152: Security Server: Improved message exchange performance at a time when periodical timestamping is performed
 - XTE-368: Added new security server metapackage xroad-securityserver-ee with default configuration for Estonian instances
 - XTE-375: Security Server / Central Server: Enabled HttpOnly flag and set security flag to true for the session cookies
 - XTE-376: Security Server: Fixed system resource leak of the monitoring component
 - XTE-380: Security Server: Fixed audit logging of the restore process
-- PVAYLADEV-809 / XRJD #190 The xroad package xroad-common has been split into four packages to allow removing unnecessary dependencies in the future. The package xroad-common still remains but is now a metapackage that depends on the new packages xroad-nginx, xroad-confclient, and xroad-signer which in turn depend on the new package xroad-base. X-Road packages that were dependant on xroad-common are, for now, still dependant on that package.e
-- PVAYLADEV-921 Ansible playbook support for selecting the security server variant (ee, fi, vanilla) to be installed, defaults to vanilla
-- PVAYLADEV-883 Added feature to limit environmental monitoringdata result, via env-monitor parameter
-- PVAYLADEV-962 Fixed path that is displayed to user in central server and security server backup
-- PVAYLADEV-978 / XRJD #185 Fixed xroad-jetty high resource usage
-- PVAYLADEV-947 / XRJD #179 Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
+- PVAYLADEV-809 / XRJD #190: The xroad package xroad-common has been split into four packages to allow removing unnecessary dependencies in the future. The package xroad-common still remains but is now a metapackage that depends on the new packages xroad-nginx, xroad-confclient, and xroad-signer which in turn depend on the new package xroad-base. X-Road packages that were dependant on xroad-common are, for now, still dependant on that package.
+- PVAYLADEV-921: Ansible playbook support for selecting the security server variant (ee, fi, vanilla) to be installed, defaults to vanilla
+- PVAYLADEV-883: Added feature to limit environmental monitoringdata result, via env-monitor parameter
+- PVAYLADEV-962: Fixed path that is displayed to user in central server and security server backup
+- PVAYLADEV-978 / XRJD #185: Fixed xroad-jetty high resource usage
+- PVAYLADEV-947 / XRJD #179: Defined an documented a common way that should be used to transfer loosely defined security tokens (like JSON Web Tokens) as SOAP headers over X-Road.
 - XTE-386 / Backlog #187: Security Server: OCSP log messages more verbal.
 - XTE-391 / Backlog #196: X-Road Operations Monitoring Daemon: Use local SWA-Ref schema (swaref.xsd).
 - PVAYLADEV-983 / XRJD #195: Documentation fixes
@@ -34,6 +37,11 @@
 - PVAYLADEV-1026 / XRJD #195: Security server getWsdl metaservice's security improved and added parameter that can be used to switch off getWsdl (HTTP GET) metaservice.
 - PVAYLADEV-1027: Updated and improved meta-service documentation
 - XTE-405 / Backlog #205: Security Server: Fixed changing internal TLS certificate of Security Server using UI
+- PVAYLADEV-1087: Fixed the documented WSDL-definition for security server meta-services
+- PVAYLADEV-1033 / XRJD #58 / XRJD #25: Enhancements to security server internal load balancing
+- PVAYLADEV-986: X-Road installation and update changed to require identical package version numbers in dependencies
+- PVAYLADEV-1091: Upgraded some third party dependencies (for security fixes).
+- PVAYLADEV-1029: Fix intermittent test failure
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1
@@ -119,6 +127,10 @@
 - PVAYLADEV-680: Fixed problem in Debian changelog that caused warnings on packaging.
 - PVAYLADEV-682: Added Ansible scripts to create test automation environment.
 - PVAYLADEV-547: Added Vagrantfile for creating X-Road development boxes. It is possible to run X-Road servers in LXD containers inside the development box.
+
+## 6.9.5 - 2017-03-27
+- XTE-293: Security Server: A field set used to generate the token ID of the SSCD has been made configurable.
+- XTE-333 / Joint development issue #128: Security Server bugfix: Fixed parsing SOAP messages containing &amp; or &lt; entities.
 
 ## 6.9.4 - 2017-02-13
 - XTE-301: Security Server UI bugfix: race condition of the adding a new client caused duplicates
@@ -313,3 +325,6 @@
   - uses SHA256withRSA as signer.csr-signature-algorithm
 - Fixed atomic save to work between separate file systems (PVAYLADEV-125)
   - OS temp directory and X-Road software can now reside on different file systems
+
+---
+Backlog/XRJD references: see https://github.com/vrk-kpa/xroad-joint-development
