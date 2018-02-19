@@ -1,5 +1,8 @@
 # Change Log
 
+## 6.18.0 - XXXX-XX-XX
+- TBD
+
 ## 6.17.0 - 2018-02-14
 - PVAYLADEV-861 / XRJD #172: Built a mechanism for configuration loader, that allows the loading of mutually alternative configuration files without unnecessary log errors. This mechanism is used to load explicit configuration values from either proxy, center or confproxy components on signer startup. Also refactored central server UI configuration loading to avoid unnecessary log errors. Update performs a migration for existing local configuration values if needed.
 - PVAYLADEV-918: Fixed ansible playbook xroad_init.yml installation for remote RHEL machines.
