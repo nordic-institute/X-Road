@@ -22,27 +22,31 @@
  */
 package ee.ria.xroad.common.db;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.PrefixedProperties;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.HibernateException;
+import org.hibernate.Interceptor;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.cfg.Environment;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.hibernate.internal.util.config.ConfigurationHelper;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.HibernateException;
-import org.hibernate.Interceptor;
-import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistry;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Configuration;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.PrefixedProperties;
 
 import static ee.ria.xroad.common.ErrorCodes.X_DATABASE_ERROR;
 
@@ -61,41 +65,37 @@ public final class HibernateUtil {
     private HibernateUtil() {
     }
 
-    private static Map<String, SessionFactoryCtx> sessionFactoryCache =
-            new HashMap<>();
+    private static Map<String, SessionFactoryCtx> sessionFactoryCache = new HashMap<>();
 
     /**
      * Returns the session factory for the given session factory name.
-     * If the session factory has not been already created, it is created
-     * and stored in the cache.
+     * If the session factory has not been already created, it is created and stored in the cache.
      * @param name the name of the session factory
      * @return the session factory
      */
-    public static synchronized SessionFactory getSessionFactory(
-            String name) {
+    public static synchronized SessionFactory getSessionFactory(String name) {
         return getSessionFactory(name, null);
     }
 
     /**
      * Returns the session factory for the given session factory name.
-     * If the session factory has not been already created, it is created
-     * and stored in the cache.
+     * If the session factory has not been already created, it is created and stored in the cache.
      * @param name the name of the session factory
      * @param interceptor the interceptor to use on sessions created with this factory
      * @return the session factory
      */
-    public static synchronized SessionFactory getSessionFactory(
-            String name, Interceptor interceptor) {
+    public static synchronized SessionFactory getSessionFactory(String name, Interceptor interceptor) {
         if (sessionFactoryCache.containsKey(name)) {
             return sessionFactoryCache.get(name).getSessionFactory();
         } else {
             try {
-                SessionFactoryCtx ctx = createSessionFactoryCtx(name,
-                        interceptor);
+                SessionFactoryCtx ctx = createSessionFactoryCtx(name, interceptor);
                 sessionFactoryCache.put(name, ctx);
+
                 return ctx.getSessionFactory();
             } catch (Exception e) {
                 log.error("Failed to create session factory", e);
+
                 throw new CodedException(X_DATABASE_ERROR, e);
             }
         }
@@ -115,14 +115,13 @@ public final class HibernateUtil {
     }
 
     /**
-     * Closes all session factories in the cache. Should be called when the
-     * main program exits.
+     * Closes all session factories in the cache. Should be called when the main program exits.
      */
     public static synchronized void closeSessionFactories() {
         log.trace("closeSessionFactories()");
 
-        Collection<SessionFactoryCtx> sessionFactories =
-                new ArrayList<>(sessionFactoryCache.values());
+        Collection<SessionFactoryCtx> sessionFactories = new ArrayList<>(sessionFactoryCache.values());
+
         for (SessionFactoryCtx ctx : sessionFactories) {
             closeSessionFactory(ctx);
         }
@@ -146,40 +145,55 @@ public final class HibernateUtil {
         StandardServiceRegistryBuilder.destroy(ctx.getServiceRegistry());
     }
 
-    private static SessionFactoryCtx createSessionFactoryCtx(String name,
-            Interceptor interceptor) throws Exception {
+    private static SessionFactoryCtx createSessionFactoryCtx(String name, Interceptor interceptor) throws Exception {
         log.trace("Creating session factory for '{}'...", name);
-
-        Configuration configuration = getDefaultConfiguration(name,
-                interceptor);
-        configuration.configure("hibernate.cfg.xml");
-        configuration.configure(name + ".hibernate.cfg.xml");
-
-        StandardServiceRegistry serviceRegistry =
-                new StandardServiceRegistryBuilder().applySettings(
-                        configuration.getProperties()).build();
-
-        SessionFactory sessionFactory =
-                configuration.buildSessionFactory(serviceRegistry);
-
-        return new SessionFactoryCtx(sessionFactory, serviceRegistry);
-    }
-
-    private static Configuration getDefaultConfiguration(String name,
-            Interceptor interceptor) throws Exception {
-        String databaseProps = SystemProperties.getDatabasePropertiesFile();
-
-        Properties extraProperties = new PrefixedProperties(name + ".");
-
-        try (InputStream in = new FileInputStream(databaseProps)) {
-            extraProperties.load(in);
-        }
 
         Configuration configuration = new Configuration();
         if (interceptor != null) {
             configuration.setInterceptor(interceptor);
         }
-        configuration.addProperties(extraProperties);
-        return configuration;
+        configuration.configure("hibernate.cfg.xml");
+        configuration.configure(name + ".hibernate.cfg.xml");
+        applyDatabasePropertyFile(configuration, name);
+        applySystemProperties(configuration, name);
+
+        StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder().applySettings(
+                        configuration.getProperties()).build();
+
+        SessionFactory sessionFactory = configuration.buildSessionFactory(serviceRegistry);
+
+        return new SessionFactoryCtx(sessionFactory, serviceRegistry);
+    }
+
+    private static void applySystemProperties(Configuration configuration, String name) {
+        final String prefix = name + ".hibernate.";
+        for (String key : System.getProperties().stringPropertyNames()) {
+            if (key.startsWith(prefix)) {
+                configuration.setProperty(key.substring(name.length() + 1), System.getProperty(key));
+            }
+        }
+    }
+
+    private static void applyDatabasePropertyFile(Configuration configuration, String name) throws IOException {
+        try (InputStream in = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
+            final Properties extraProperties = new PrefixedProperties(name + ".");
+            extraProperties.load(in);
+            configuration.addProperties(extraProperties);
+        }
+    }
+
+    /**
+     * Returns Hibernate batch size value if configured, otherwise the given default value.
+     * @param session Hibernate session
+     * @param defaultBatchSize default batch size
+     * @return batch size
+     */
+    public static int getConfiguredBatchSize(Session session, int defaultBatchSize) {
+        Properties props = ((SessionFactoryImpl) session.getSessionFactory()).getProperties();
+        int configuredBatchSize = ConfigurationHelper.getInt(Environment.STATEMENT_BATCH_SIZE, props, defaultBatchSize);
+
+        log.trace("Configured JDBC batch size is {}", configuredBatchSize);
+
+        return configuredBatchSize;
     }
 }

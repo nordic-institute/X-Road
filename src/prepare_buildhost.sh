@@ -25,7 +25,7 @@ if ! command -v rvm &>/dev/null; then
 fi
 
 rvm install jruby-$JRUBY_VERSION --binary --skip-gemsets
-rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher gem-wrappers rubygems-bundler rake:12.0.0 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:1.4.9 bundler-audit
+rvm jruby-$JRUBY_VERSION do jgem install jruby-openssl jruby-launcher gem-wrappers executable-hooks:1.3.2 rubygems-bundler:1.4.4 rake:12.0.0 rvm jruby-jars:$JRUBY_VERSION bundler:1.14.6 warbler:1.4.9 bundler-audit
 
 mkdir -p /var/tmp/xroad
 

@@ -1,3 +1,9 @@
+xroad (6.17.0-1) trusty; urgency=medium
+
+  * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz
+
+ -- Gofore Oyj <palveluvayla@gofore.com>  Wed, 14 Feb 2018 16:15:45 +0200
+
 xroad (6.16.0-1) trusty; urgency=medium
 
   * Change history is found at /usr/share/doc/xroad-common/CHANGELOG.md.gz (Ubuntu) and /usr/share/doc/xroad-common/CHANGELOG.md (RHEL)

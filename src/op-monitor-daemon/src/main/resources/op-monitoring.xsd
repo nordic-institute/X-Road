@@ -8,8 +8,7 @@
     <xs:import namespace="http://x-road.eu/xsd/identifiers"
                schemaLocation="identifiers.xsd" id="id"/>
     <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd"
-               schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd"
-               id="ref"/>
+               schemaLocation="swaref.xsd" id="ref"/>
     <xs:complexType name="GetSecurityServerOperationalDataType">
         <xs:annotation>
             <xs:documentation>Security server operational data request</xs:documentation>

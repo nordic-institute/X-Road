@@ -108,9 +108,9 @@ public final class SystemProperties {
     public static final String PROXY_SERVER_LISTEN_PORT =
             PREFIX + "proxy.server-listen-port";
 
-    /** Property name of the cached OCSP response path. */
+    /** Property name of the cached OCSP response path for signer operation. */
     public static final String OCSP_CACHE_PATH =
-            PREFIX + "proxy.ocsp-cache-path";
+            PREFIX + "signer.ocsp-cache-path";
 
     /** Property name of the Ocsp Responder port. */
     public static final String OCSP_RESPONDER_PORT =
@@ -152,8 +152,8 @@ public final class SystemProperties {
     private static final String PROXY_CLIENT_TLS_CIPHERS =
             PREFIX + "proxy.client-tls-ciphers";
 
-    private static final String PROXY_ENFORCE_TOKEN_PIN_POLICY =
-            PREFIX + "proxy.enforce-token-pin-policy";
+    private static final String SIGNER_ENFORCE_TOKEN_PIN_POLICY =
+            PREFIX + "signer.enforce-token-pin-policy";
 
     public static final String SERVER_CONF_CACHE_PERIOD =
             PREFIX + "proxy.server-conf-cache-period";
@@ -204,8 +204,8 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
             PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
 
-    private static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE =
-            PREFIX + "proxy.client-fastest-connecting-ssl-use-uri-cache";
+    public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
+            PREFIX + "proxy.client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
             PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
@@ -245,7 +245,9 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
-    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
+    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
+
+    private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
 
     private static final String DEFAULT_CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS = "2000";
 
@@ -257,11 +259,12 @@ public final class SystemProperties {
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
+
+    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -461,6 +464,10 @@ public final class SystemProperties {
     /** Property name of environmental monitor port. */
     public static final String ENV_MONITOR_PORT =
             PREFIX + "env-monitor.port";
+
+    /** Property name of environmental monitor limiting remote data set. */
+    public static final String ENV_MONITOR_LIMIT_REMOTE_DATA_SET =
+            PREFIX + "env-monitor.limit-remote-data-set";
 
     /** Property name of system metrics sensor interval. */
     public static final String ENV_MONITOR_SYSTEM_METRICS_SENSOR_INTERVAL =
@@ -981,6 +988,14 @@ public final class SystemProperties {
     }
 
     /**
+     * @return enviroonmental monitoring limiting remote return data set, 'false' by default.
+     */
+    public static boolean getEnvMonitorLimitRemoteDataSet() {
+        return Boolean.parseBoolean(System.getProperty(ENV_MONITOR_LIMIT_REMOTE_DATA_SET,
+                DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET));
+    }
+
+    /**
      * @return system metrics sensor interval in seconds,'5' by default.
      */
     public static int getEnvMonitorSystemMetricsSensorInterval() {
@@ -1116,7 +1131,7 @@ public final class SystemProperties {
      * @return true if PIN policy should be enforced.
      */
     public static boolean shouldEnforceTokenPinPolicy() {
-        return Boolean.valueOf(System.getProperty(PROXY_ENFORCE_TOKEN_PIN_POLICY, "false"));
+        return Boolean.valueOf(System.getProperty(SIGNER_ENFORCE_TOKEN_PIN_POLICY, "false"));
     }
 
     /**
@@ -1243,12 +1258,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return true if the URI of the fastest responder should be cached.
-     * fastest responder
+     * @return period in seconds the fastest provider uri should be cached, or 0 to disable
      */
-    public static boolean isUseCachedSSLSessionHostUri() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE,
-                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE));
+    public static int getClientProxyFastestConnectingSslUriCachePeriod() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
+                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
     /**
@@ -1305,6 +1319,13 @@ public final class SystemProperties {
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
 
         return version;
+    }
+
+    /**
+     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
+     */
+    public static boolean isAllowGetWsdlRequest() {
+        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, "false"));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

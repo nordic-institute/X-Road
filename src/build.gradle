@@ -30,7 +30,7 @@ sonarqube {
         property "sonar.projectKey", "xtee6"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "National Data Exchange Layer"
-        property "sonar.projectVersion", "6.16.0"
+        property "sonar.projectVersion", "6.17.0"
     }
 }
 
@@ -70,7 +70,7 @@ allprojects {
 subprojects {
 
     ext {
-        akkaVersion = "2.4.8"
+        akkaVersion = "2.4.20"
         metricsVersion = "3.2.2"
         jettyVersion = "9.4.6.v20170531"
         jaxbVersion = "2.2.11"
@@ -174,13 +174,11 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "6.19"
-        configFile = new File(rootDir, "checkstyle.xml")
-        //configDir is still an incubating feature in gradle 4
-        //configDir = rootDir
-        configProperties.config_loc = "$rootDir"
+        toolVersion = "8.2"
+        configDir=file("${project.rootDir}/config/checkstyle")
+        configFile=file("${configDir}/checkstyle.xml")
         ignoreFailures = false
-        showViolations = true
+        showViolations = false
     }
 
     jacocoTestReport {
@@ -243,9 +241,10 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 task clean(type: Delete) {
    delete "${rootDir}/packages/xroad-jetty9/jetty9/"
    delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
-   delete "${rootDir}/packages/xroad/debian/xroad-common.xroad-signer.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-signer.xroad-signer.upstart"
    delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
-   delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-confclient.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-confclient.xroad-confclient.upstart"
    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
    delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"
    delete "${rootDir}/packages/xroad/redhat/BUILD"

@@ -15,7 +15,7 @@ Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, policycoreutils-python, tar
-Requires:           xroad-common >= %version, xroad-jetty9 >= %version, rsyslog, postgresql-server, postgresql-contrib
+Requires:           xroad-common = %version-%release, xroad-jetty9 = %version-%release, rsyslog, postgresql-server, postgresql-contrib
 
 %define src %{_topdir}/..
 
@@ -159,6 +159,42 @@ if [ $1 -gt 1 ] ; then
     fi
 fi
 
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # allow-get-wsdl-request for upgrade installations
+    proxy_ini=/etc/xroad/conf.d/proxy.ini
+    local_ini=/etc/xroad/conf.d/local.ini
+    present_in_proxy_ini=$(crudini --get ${proxy_ini} proxy allow-get-wsdl-request 2>/dev/null)
+    if [[ -n "$present_in_proxy_ini" ]];
+      then
+        echo "allow-get-wsdl-request already present in proxy.ini, do not update local.ini"
+      else
+        echo "allow-get-wsdl-request not present in proxy.ini, update local.ini"
+        crudini --set ${local_ini} proxy allow-get-wsdl-request true
+      fi
+fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
+    local_ini=/etc/xroad/conf.d/local.ini
+    local_ini_value=$(crudini --get ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache 2>/dev/null)
+    if [[ -n "$local_ini_value" ]];
+      then
+        echo "client-fastest-connecting-ssl-use-uri-cache present in local.ini, perform migration to client-fastest-connecting-ssl-uri-cache-period"
+        if [ "$local_ini_value" = true ] ;
+          then
+            echo "client-fastest-connecting-ssl-use-uri-cache=true, no action needed, use default value"
+          else
+            echo "client-fastest-connecting-ssl-use-uri-cache=false, set client-fastest-connecting-ssl-uri-cache-period=0"
+            crudini --set ${local_ini} proxy client-fastest-connecting-ssl-uri-cache-period 0
+          fi
+        crudini --del ${local_ini} proxy client-fastest-connecting-ssl-use-uri-cache
+      else
+        echo "client-fastest-connecting-ssl-use-uri-cache not present in local.ini, use default value"
+      fi
+fi
+
 sh /usr/share/xroad/scripts/xroad-proxy-setup.sh >/var/log/xroad/proxy-install.log
 
 if [ $1 -gt 1 ]; then
@@ -170,6 +206,26 @@ if [ $1 -gt 1 ]; then
     rm -rf %{_localstatedir}/lib/rpm-state/%{name}
 fi
 
+#parameters:
+#1 file_path
+#2 old_section
+#3 old_key
+#4 new_section
+#5 new_key
+function migrate_conf_value {
+    MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
+    if [ "${MIGRATION_VALUE}" ];
+        then
+            crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
+            echo Configuration migration: "$2"."$3" "->" "$4"."$5"
+            crudini --del "$1" "$2" "$3"
+    fi
+}
+
+#migrating possible local configuration for modified configuration values (for version 6.17.0)
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
+migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
+
 %preun
 %systemd_preun xroad-proxy.service
 %systemd_preun xroad-confclient.service
@@ -180,4 +236,3 @@ fi
 %systemd_postun_with_restart xroad-jetty9.service
 
 %changelog
-

@@ -31,6 +31,8 @@ import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 /**
  * Test program for the configuration proxy,
@@ -69,7 +71,7 @@ public final class ConfProxyTest {
         } catch (Exception ex) {
             log.error("Error when executing configuration-proxy", ex);
         } finally {
-            actorSystem.shutdown();
+            Await.ready(actorSystem.terminate(), Duration.Inf());
         }
     }
 }

@@ -34,11 +34,17 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
 import ee.ria.xroad.signer.util.SignerUtil;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -55,7 +61,7 @@ public final class SignerMain {
         SystemPropertiesLoader.create()
                 .withCommonAndLocal()
                 .withLocalOptional(CONF_FILE_NODE)
-                .with(CONF_FILE_PROXY)
+                .withAtLeastOneOf(CONF_FILE_CENTER, CONF_FILE_PROXY, CONF_FILE_CONFPROXY)
                 .with(CONF_FILE_SIGNER)
                 .load();
         diagnosticsDefault = new CertificationServiceDiagnostics();
@@ -96,7 +102,7 @@ public final class SignerMain {
         signer = new Signer(actorSystem);
         signer.start();
 
-        actorSystem.awaitTermination();
+        Await.result(actorSystem.whenTerminated(), Duration.Inf());
 
         shutdown();
     }
@@ -118,7 +124,13 @@ public final class SignerMain {
             log.error("Error stopping admin port", e);
         }
 
-        actorSystem.shutdown();
+        try {
+            Await.ready(actorSystem.terminate(), Duration.Inf());
+        } catch (TimeoutException e) {
+            log.error("Timed out while waiting for akka to terminate");
+        } catch (InterruptedException e) {
+            log.error("Interrupted while waiting for akka to terminate");
+        }
     }
 
     private static AdminPort createAdminPort(int signerPort) {

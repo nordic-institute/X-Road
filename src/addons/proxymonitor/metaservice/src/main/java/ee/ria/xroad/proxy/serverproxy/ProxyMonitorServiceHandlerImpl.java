@@ -135,7 +135,7 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
         root.getMetrics().add(version);
 
         if (client != null) {
-            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage)));
+            root.getMetrics().add(client.getMetrics(getMetricNames(proxyRequestMessage), isOwner()));
         }
 
         SoapMessageImpl result = createResponse(requestMessage.getSoap(), metricsResponse);
@@ -188,6 +188,12 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
     @Override
     public InputStream getResponseContent() throws Exception {
         return new ByteArrayInputStream(responseOut.toByteArray());
+    }
+
+    private boolean isOwner() {
+        final ClientId owner = ServerConf.getIdentifier().getOwner();
+        final ClientId client = requestMessage.getSoap().getClient();
+        return owner.equals(client);
     }
 
     private void verifyAccess() {

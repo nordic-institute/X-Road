@@ -30,13 +30,12 @@ override_dh_installinit:
 override_dh_gencontrol:
 	dh_gencontrol -- -v$(version)
 
-build: 
+build:
 	./download_jetty.sh
 	tar zxf ~/jetty/jetty.tgz -C ~/jetty
 	rm -rf jetty9
 	mv ~/jetty/jetty-distribution* jetty9
 	rm -rf jetty9/lib/setuid
 	rm -rf jetty9/demo-base
-	sed -i'' 's/^logback\.version?=1\.1\.7/logback\.version\?=1\.2\.3/' jetty9/modules/logback-impl.mod
 	mv jetty9/start.ini jetty9/start.ini.bak
-	echo yes |java -jar jetty9/start.jar --add-to-start=logging-logback jetty.base=jetty9
+	yes | java -Dslf4j.version=1.7.25 -Dlogback.version=1.2.3 -jar jetty9/start.jar --add-to-start=logback-impl,slf4j-logback jetty.base=jetty9

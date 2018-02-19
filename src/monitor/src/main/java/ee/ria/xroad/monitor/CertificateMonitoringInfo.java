@@ -28,16 +28,15 @@ import lombok.*;
  * Created by janne on 11.5.2017.
  */
 @Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 @ToString
 @EqualsAndHashCode
 public class CertificateMonitoringInfo {
-    private CertificateType type;
-    private String sha1hash;
-    private String notBefore;
-    private String notAfter;
+    private final CertificateType type;
+    private final String sha1hash;
+    private final String notBefore;
+    private final String notAfter;
+    private final boolean active;
 
     /**
      * The type of the Certificate

@@ -22,16 +22,15 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import lombok.extern.slf4j.Slf4j;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.identifier.ClientId;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Encapsulates the information system authentication method.
@@ -77,7 +76,7 @@ public enum IsAuthentication {
                                 + " TLS certificate", client);
             }
 
-            if (auth.getCert().equals(InternalSSLKey.load().getCert())) {
+            if (auth.getCert().equals(ServerConf.getSSLKey().getCert())) {
                 // do not check certificates for local TLS connections
                 return;
             }

@@ -22,11 +22,15 @@
  */
 package ee.ria.xroad.centerui;
 
+import ee.ria.xroad.common.SystemPropertiesLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ee.ria.xroad.commonui.UIServices;
 import ee.ria.xroad.signer.protocol.SignerClient;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
  * Contains the UI actor system instance.
@@ -35,6 +39,13 @@ public final class CenterUIServices {
 
     private static final Logger LOG =
             LoggerFactory.getLogger(CenterUIServices.class);
+
+    static {
+        SystemPropertiesLoader.create().withCommonAndLocal()
+                .with(CONF_FILE_CENTER)
+                .with(CONF_FILE_SIGNER)
+                .load();
+    }
 
     private static UIServices instance;
 

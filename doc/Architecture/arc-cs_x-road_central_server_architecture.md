@@ -6,8 +6,8 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.2
-24.02.2017
+Version: 2.3
+19.01.2018
 <!-- 12 pages -->
 Doc. ID: ARC-CS
 
@@ -30,6 +30,7 @@ Doc. ID: ARC-CS
  17.09.2015 | 2.0     | Editorial changes made                                          | Imbi Nõgisto
  21.10.2015 | 2.1     | SSCD and password store related information added               | Ilja Kromonov
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
+ 19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
 
 ## Table of Contents
 
@@ -53,10 +54,9 @@ Doc. ID: ARC-CS
   * [3.1 Management Services](#31-management-services)
   * [3.2 Download Configuration](#32-download-configuration)
 - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
-- [5 Technology Matrix](#5-technology-matrix)
-- [6 Deployment View](#6-deployment-view)
-  * [6.1 Simple Deployment](#61-simple-deployment)
-  * [6.2 Deployment in High Availability Setup](#62-deployment-in-high-availability-setup)
+- [5 Deployment View](#5-deployment-view)
+  * [5.1 Simple Deployment](#51-simple-deployment)
+  * [5.2 Deployment in High Availability Setup](#52-deployment-in-high-availability-setup)
 
 <!-- tocstop -->
 
@@ -113,6 +113,8 @@ In addition to configuration distribution, the central server provides interface
 
 8. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
+9. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+
 
 ## 2 Component View
 
@@ -123,6 +125,8 @@ In addition to configuration distribution, the central server provides interface
 ![](img/arc-cs_components_and_interfaces_of_the_x_road_central_server.png)
 
 Figure 1. Components and interfaces of the X-Road central server
+
+Technologies used in the central server can be found here: \[[ARC-TEC](#Ref_ARC-TEC)\]
 
 
 ### 2.1 Web Server
@@ -245,45 +249,10 @@ This process is illustrated in the sequence diagram in [Figure 2](#Ref_The_proce
 Figure 2. The process of global configuration generation and distribution
 
 
-## 5 Technology Matrix
-
-[Table 1](#Ref_Technology_matrix_of_the_central_server) presents the list of technologies used in the security server and the mapping between technologies and central server components.
+## 5 Deployment View
 
 
-<a id="Ref_Technology_matrix_of_the_central_server" class="anchor"></a>
-Table 1. Technology matrix of the central server
-
- **Technology** | **Signer** | **Web Server** | **Password Store** | **Management Services** | **Database** | **User Interface** | **Servlet Engine**
-----------------|------------|----------------|--------------------|-------------------------|--------------|--------------------|--------------------
- Java 8         | X          |                |                    | X                       |              | X                  | X
- C              |            |                | X                  |                         |              |                    |
- Logback        | X          |                |                    | X                       |              | X                  |
- Akka 2.X       | X          |                |                    | X                       |              | X                  |
- Jetty 9        |            |                |                    |                         |              |                    | X
- JRuby 1.7      |            |                |                    |                         |              | X                  |
- Javascript     |            |                |                    |                         |              | X                  |
- PostgreSQL 9.3 |            |                |                    |                         | X            |                    |
- PostgreSQL 9.4 |            |                |                    |                         | X\[[5](#Ref_5)\]         |                    |                  
- nginx          |            | X              |                    |                         |              |                    |
- PAM            |            |                |                    |                         |              |                    | X
- Liquibase      |            |                |                    |                         | X            |                    |
- upstart        | X          | X              |                    |                         |              |                    | X
- PKCS \#11\[[6](#Ref_6)\]   | X          |                |                    |                         |              |                    |                  
-
-
-<a id="Ref_5" class="anchor"></a>
-\[5\] PostgreSQL 9.4 is used in High-Availability setup of the central server.
-
-
-<a id="Ref_6" class="anchor"></a>
-\[6\] The use of cryptographic hardware devices requires that a PKCS \#11 compliant device driver is installed and configured in the system.
-
-
-
-## 6 Deployment View
-
-
-### 6.1 Simple Deployment
+### 5.1 Simple Deployment
 
 This section describes a simple scenario where the central server is installed on a standalone server without the use of redundancy. The signing key is stored on a HSM device. This setup is useful for testing environments and for X-Road instances where availability is not of critical concern.
 
@@ -296,7 +265,7 @@ Figure 3. Simple deployment of the central server
 Optionally, an SSCD can be connected with the central server if global configuration signatures are to be provided by a cryptographic hardware device.
 
 
-### 6.2 Deployment in High Availability Setup
+### 5.2 Deployment in High Availability Setup
 
 This section describes the deployment of the central server in a cluster, for achieving high availability.
 

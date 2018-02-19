@@ -28,6 +28,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -130,10 +131,12 @@ public class SystemPropertiesLoader {
     private final String prefix;
     private final List<FileWithSections> files = new ArrayList<>();
     private final List<FileWithSections> optionalLocalFiles = new ArrayList<>();
+    private final List<String> mutuallyAlternativeFiles = new ArrayList<>();
 
     private boolean withCommon;
     private boolean withLocal;
     private boolean withAddOn;
+    private boolean withAtLeastOneOf;
     private boolean withOverrides = true;
 
     // ------------------------------------------------------------------------
@@ -231,6 +234,21 @@ public class SystemPropertiesLoader {
     }
 
     /**
+     * Specifies the mutually alternative configuration files to be loaded. The triggered mechanism attempts to
+     * load all described files, with the minimum requirement of loading at least one file. If none of the files
+     * are found or loaded, a FileNotFoundException is produced listing the files that could not be loaded.
+     * Built to handle alternative module configurations in installations that consist of different components
+     * (i.e. configuring Signer in proxy installation or in center installation)
+     * @param filePaths file paths to be loaded alternatively to each other
+     * @return this instance for chaining
+     */
+    public SystemPropertiesLoader withAtLeastOneOf(String... filePaths) {
+        withAtLeastOneOf = true;
+        Collections.addAll(mutuallyAlternativeFiles, filePaths);
+        return this;
+    }
+
+    /**
      * Does the actual loading of the INI files. Glob-defined files are loaded in alphabetical
      * order based on the filename.
      */
@@ -240,6 +258,14 @@ public class SystemPropertiesLoader {
         }
 
         files.forEach(this::load);
+
+        if (withAtLeastOneOf) {
+            try {
+                loadMutuallyAlternativeFilesInEntryOrder(mutuallyAlternativeFiles);
+            } catch (FileNotFoundException e) {
+                log.error("Configuration loading failed", e);
+            }
+        }
 
         if (withAddOn) {
             try {
@@ -290,6 +316,27 @@ public class SystemPropertiesLoader {
         getFilePaths(dir, glob).stream()
                 .sorted(comp)
                 .forEach(path -> load(new FileWithSections(path.toString())));
+    }
+
+    void loadMutuallyAlternativeFilesInEntryOrder(List<String> filePaths) throws FileNotFoundException {
+        if (filePaths == null || filePaths.size() == 0) {
+            return;
+        }
+
+        List<Path> viablePaths = new ArrayList<>();
+        for (String stringPath : filePaths) {
+            Path path = Paths.get(stringPath);
+            if (Files.exists(path) && Files.isReadable(path)) {
+                viablePaths.add(path);
+            }
+        }
+
+        if (viablePaths.size() > 0) {
+            viablePaths.forEach(path -> load(new FileWithSections(path.toString())));
+        } else {
+            throw new FileNotFoundException("None of the following configuration files were found: "
+                    + String.join(", ", filePaths));
+        }
     }
 
     private void load(FileWithSections file) {

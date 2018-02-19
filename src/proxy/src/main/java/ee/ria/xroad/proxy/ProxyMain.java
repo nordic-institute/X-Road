@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -171,9 +172,8 @@ public final class ProxyMain {
 
     private static void shutdown() throws Exception {
         log.trace("shutdown()");
-
         stopServices();
-        actorSystem.shutdown();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 
     private static void createServices() throws Exception {

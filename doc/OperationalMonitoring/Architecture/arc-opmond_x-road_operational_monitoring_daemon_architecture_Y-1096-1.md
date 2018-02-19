@@ -1,3 +1,7 @@
+
+| ![European Union / European Regional Development Fund / Investing in your future](../img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
+
 # X-Road: Operational Monitoring Daemon Architecture
 
 Version: 0.6  
@@ -7,6 +11,7 @@ Document ID: ARC-OPMOND
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+| 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
 
 ## Table of Contents
 
@@ -27,8 +32,7 @@ Document ID: ARC-OPMOND
   * [3.2 Operational Monitoring Query](#32-operational-monitoring-query)
   * [3.3 Operational Monitoring JMX](#33-operational-monitoring-jmx)
   * [3.4 Download Configuration](#34-download-configuration)
-- [4 Technology Matrix](#4-technology-matrix)
-- [5 Deployment View](#5-deployment-view)
+- [4 Deployment View](#4-deployment-view)
 - [Appendix A Store Operational Monitoring Data Messages](#appendix-a-store-operational-monitoring-data-messages)
   * [A.1 JSON-Schema for Store Operational Monitoring Data Request](#a1-json-schema-for-store-operational-monitoring-data-request)
   * [A.2 Example Store Operational Monitoring Data Request](#a2-example-store-operational-monitoring-data-request)
@@ -72,12 +76,16 @@ TLS -- Transport Layer security
 <a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
 <a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
+<a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).
+
 
 ## 2 Component View
 
 Figure 1 shows the main components and interfaces of the monitoring daemon. The components and the interfaces are described in detail in the following sections.
 
 ![Operational monitoring daemon component diagram](x-road_operational_monitoring_daemon_components.png)
+
+Technologies used in the operational monitoring daemon can be found here: [[ARC-TEC]](#ARC-TEC)
 
 **Figure 1. Operational monitoring daemon component diagram**
 
@@ -137,23 +145,7 @@ The configuration download interface is a synchronous interface that is required
 
 The interface is described in more detail in [[ARC-G]](#ARC-G) and [[PR-GCONF]](#PR-GCONF).
 
-## 4 Technology Matrix
-
-Table 1 presents the list of the technologies used in the operational monitoring daemon and the mapping between technologies and monitoring daemon components.
-
-**Table 1. Technology matrix of the operational monitoring daemon**  
-
-Technology         | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client
-:----------------- | :----------------------: | :-------------------: | :------------------: | :---:
-Java 8             | X                        | X                     | X                    | X
-Logback            | X                        | X                     | X                    | X
-Akka 2.X           | X                        | X                     |                      |
-PostgreSQL 9.3     | X                        | X                     |                      |
-Liquibase          | X                        | X                     |                      |
-Dropwizard Metrics | X                        | X                     |                      |
-upstart            | X                        |                       |                      | X
-
-## 5 Deployment View
+## 4 Deployment View
 
 Figure 2 shows the deployment diagram.
 

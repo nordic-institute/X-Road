@@ -56,6 +56,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MessageFileNames;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 import ee.ria.xroad.signer.protocol.SignerClient;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static ee.ria.xroad.common.util.CryptoUtils.*;
 
@@ -179,7 +181,7 @@ public final class BatchSignerIntegrationTest {
         }
 
         latch.await();
-        actorSystem.shutdown();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 
     private static void verify(final SignatureData signatureData, final List<MessagePart> hashes, final String message)

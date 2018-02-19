@@ -1,12 +1,12 @@
-![](img/eu_regional_development_fund_horizontal_div_15.png "European Union | European Regional Development Fund | Investing in your future")
 
----
-
+| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
 
 # Security Server Installation Guide
+
 **X-ROAD 6**
 
-Version: 2.9  
+Version: 2.10
 Doc. ID: IG-SS
 
 ---
@@ -34,6 +34,7 @@ Doc. ID: IG-SS
  23.02.2017 | 2.7     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
  25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
+ 15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
 
 ## Table of Contents
 
@@ -178,7 +179,7 @@ To install the X-Road security server software, follow these steps.
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 00A6F0A3C300EE8C
         sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EB9B1D8886F44E2A
 
-3.  Issue the following commands to install the security server packages:
+3.  Issue the following commands to install the security server packages (use package xroad-securityserver-ee to include configuration specific to Estonia):
 
         sudo apt-get update
         sudo apt-get install xroad-securityserver
@@ -209,7 +210,7 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
-The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog`, operational data monitoring module `xroad-addon-opmonitoring` and WSDL validator module `xroad-addon-wsdlvalidator`.
+The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-package `xroad-securityserver-ee` installs operational data monitoring module `xroad-addon-opmonitoring`.
 
 
 ### 2.6 Post-Installation Checks

@@ -83,14 +83,16 @@ Finland - [Palveluväylä contacts](https://esuomi.fi/yhteystiedot/)
 
 ## Support disclaimer
 
-Current repository is collaboration platform between Finnish and Estonian government for joint development of X-Road solution. Cooperation is organized as described in the [X-road Joint Development](https://github.com/vrk-kpa/xroad-joint-development/blob/master/README.md) repository.
+Current repository is collaboration platform between Finnish and Estonian government for joint development of X-Road. Cooperation is organized by the [Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/).
 
 Support for members (existing or potential) X-tee (support provided by [RIA](https://www.ria.ee)) and Palveluväylä (support provided by [VRK](https://www.vrk.fi)).
 
 Consultational services for deploing independent X-Road instances should be obtained from enterprises with such services. Known organizations are:
 
-* [AS Cybernetica](http://www.cybernetica.ee)
 * [Aktors OÜ](http://www.aktors.ee)
-* [Roksnet Solutions](http://roksnet.com)
+* [Cybercom Finland Oy](http://www.cybercom.fi)
+* [Cybernetica AS](https://cyber.ee)
+* [Gofore Oyj](https://www.gofore.com)
+* [Roksnet Solutions OÜ](https://roksnet.com)
  
 No support for X-Road deployment is provided here.

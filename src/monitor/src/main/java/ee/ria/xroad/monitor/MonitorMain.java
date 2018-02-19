@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.monitor;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -31,13 +34,14 @@ import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.TimeUnit;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_ENV_MONITOR;
 
@@ -57,6 +61,7 @@ public final class MonitorMain {
     private static final String AKKA_PORT = "akka.remote.netty.tcp.port";
 
     private static ActorSystem actorSystem;
+    private static JmxReporter jmxReporter;
 
     /**
      * Main entry point
@@ -64,8 +69,8 @@ public final class MonitorMain {
      * @param args
      */
     public static void main(String args[]) throws Exception {
-
         log.info("Starting X-Road Environmental Monitoring");
+
         registerShutdownHook();
         initAkka();
         startReporters();
@@ -75,13 +80,32 @@ public final class MonitorMain {
     }
 
     private static void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdownAkka()));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            shutdownAkka();
+            stopReporter();
+        }));
     }
 
     private static void shutdownAkka() {
+        log.trace("shutdownAkka()");
+
         if (actorSystem != null) {
-            actorSystem.terminate();
+            try {
+                Await.ready(actorSystem.terminate(), Duration.Inf());
+            } catch (TimeoutException e) {
+                log.error("Timed out while waiting for akka to terminate");
+            } catch (InterruptedException e) {
+                log.error("Interrupted while waiting for akka to terminate");
+            }
             actorSystem = null;
+        }
+    }
+
+    private static void stopReporter() {
+        log.trace("stopReporter()");
+
+        if (jmxReporter != null) {
+            jmxReporter.stop();
         }
     }
 
@@ -103,23 +127,20 @@ public final class MonitorMain {
 
     private static Config loadAkkaConfiguration() {
         log.info("loadAkkaConfiguration");
+
         final int port = SystemProperties.getEnvMonitorPort();
-        return ConfigFactory.load()
-                .withValue(AKKA_PORT, ConfigValueFactory.fromAnyRef(port));
+
+        return ConfigFactory.load().withValue(AKKA_PORT, ConfigValueFactory.fromAnyRef(port));
     }
 
     private static void startReporters() {
-        JmxReporter jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
+        jmxReporter = JmxReporter.forRegistry(MetricRegistryHolder.getInstance().getMetrics())
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .filter((name, metric) -> !Lists.newArrayList(SystemMetricNames.PROCESSES,
-                        SystemMetricNames.PACKAGES,
-                        SystemMetricNames.CERTIFICATES
-                        ).contains(name))
+                        SystemMetricNames.PACKAGES, SystemMetricNames.CERTIFICATES).contains(name))
                 .build();
 
         jmxReporter.start();
     }
-
-
 }

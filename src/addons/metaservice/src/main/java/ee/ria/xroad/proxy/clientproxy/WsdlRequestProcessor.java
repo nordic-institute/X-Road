@@ -29,7 +29,14 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.*;
+import ee.ria.xroad.common.message.JaxbUtils;
+import ee.ria.xroad.common.message.ProtocolVersion;
+import ee.ria.xroad.common.message.SoapBuilder;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapHeader;
+import ee.ria.xroad.common.message.SoapMessage;
+import ee.ria.xroad.common.message.SoapMessageDecoder;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
@@ -37,7 +44,9 @@ import ee.ria.xroad.proxy.common.WsdlRequestData;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.Marshaller;
@@ -69,6 +78,10 @@ public class WsdlRequestProcessor {
     static final String PARAM_VERSION = "version";
 
     private static final String GET_WSDL = "getWsdl";
+    private static final String PROXY_LOCAL_HTTPS_ENDPOINT =
+            "https://127.0.0.1:" + SystemProperties.getClientProxyHttpsPort();
+    private static final String PROXY_LOCAL_HTTP_ENDPOINT =
+            "http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort();
 
     private final HttpServletRequest request;
     private final HttpServletResponse response;
@@ -153,29 +166,40 @@ public class WsdlRequestProcessor {
         }
     }
 
-    // package-private for unit-test purposes
     HttpURLConnection createConnection(SoapMessageImpl message) throws Exception {
-        URL url = new URL("http://127.0.0.1:" + SystemProperties.getClientProxyHttpPort());
 
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setDoInput(true);
-        con.setDoOutput(true);
-        // Use the same timeouts as client proxy to server proxy connections.
-        con.setConnectTimeout(SystemProperties.getClientProxyTimeout());
-        con.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
-        con.setRequestMethod("POST");
+        final HttpURLConnection urlConnection;
 
-        con.setRequestProperty(HttpHeaders.CONTENT_TYPE, MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
-                StandardCharsets.UTF_8.name()));
-
-        IOUtils.write(message.getBytes(), con.getOutputStream());
-
-        if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new RuntimeException("Received HTTP error: " + con.getResponseCode() + " - "
-                    + con.getResponseMessage());
+        if (request.isSecure()) {
+            HttpsURLConnection tmp = (HttpsURLConnection) new URL(PROXY_LOCAL_HTTPS_ENDPOINT).openConnection();
+            tmp.setSSLSocketFactory(InternalSslSocketFactory.getInstance());
+            tmp.setHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+            urlConnection = tmp;
+        } else {
+            urlConnection = (HttpURLConnection) new URL(PROXY_LOCAL_HTTP_ENDPOINT).openConnection();
         }
 
-        return con;
+        urlConnection.setDoInput(true);
+        urlConnection.setDoOutput(true);
+        // Use the same timeouts as client proxy to server proxy connections.
+        urlConnection.setConnectTimeout(SystemProperties.getClientProxyTimeout());
+        urlConnection.setReadTimeout(SystemProperties.getClientProxyHttpClientTimeout());
+        urlConnection.setRequestMethod("POST");
+
+        urlConnection.setRequestProperty(
+                HttpHeaders.CONTENT_TYPE,
+                MimeUtils.contentTypeWithCharset(MimeTypes.TEXT_XML,
+                StandardCharsets.UTF_8.name()));
+
+        IOUtils.write(message.getBytes(), urlConnection.getOutputStream());
+
+        if (urlConnection.getResponseCode() != HttpURLConnection.HTTP_OK) {
+            urlConnection.disconnect();
+            throw new RuntimeException("Received HTTP error: " + urlConnection.getResponseCode() + " - "
+                    + urlConnection.getResponseMessage());
+        }
+
+        return urlConnection;
     }
 
     private class SoapDecoderCallback implements SoapMessageDecoder.Callback {

@@ -44,15 +44,15 @@ class TestTimestamperWorker extends TimestamperWorker {
     }
 
     @Override
-    protected AbstractTimestampRequest createSingleTimestampRequest(
-            Long logRecord) {
+    protected AbstractTimestampRequest createSingleTimestampRequest(Long logRecord) {
         return new SingleTimestampRequest(logRecord) {
             @Override
-            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req,
-                    List<String> tspUrls) throws Exception {
+            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req, List<String> tspUrls)
+                    throws Exception {
                 synchronized (shouldFail) {
                     if (shouldFail) {
                         shouldFail = false;
+
                         throw new RuntimeException("time-stamping failed");
                     }
                 }
@@ -61,27 +61,25 @@ class TestTimestamperWorker extends TimestamperWorker {
             }
 
             @Override
-            protected void verify(TimeStampRequest request,
-                    TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
-                TimestampVerifier.verify(token,
-                        GlobalConf.getTspCertificates());
+                TimestampVerifier.verify(token, GlobalConf.getTspCertificates());
             }
         };
     }
 
     @Override
-    protected AbstractTimestampRequest createBatchTimestampRequest(
-            Long[] logRecords, String[] signatureHashes) {
+    protected AbstractTimestampRequest createBatchTimestampRequest(Long[] logRecords, String[] signatureHashes) {
         return new BatchTimestampRequest(logRecords, signatureHashes) {
             @Override
-            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req,
-                    List<String> tspUrls) throws Exception {
+            protected AbstractTimestampRequest.TsRequest makeTsRequest(TimeStampRequest req, List<String> tspUrls)
+                    throws Exception {
                 synchronized (shouldFail) {
                     if (shouldFail) {
                         shouldFail = false;
+
                         throw new RuntimeException("time-stamping failed");
                     }
                 }
@@ -90,13 +88,11 @@ class TestTimestamperWorker extends TimestamperWorker {
             }
 
             @Override
-            protected void verify(TimeStampRequest request,
-                    TimeStampResponse response) throws Exception {
+            protected void verify(TimeStampRequest request, TimeStampResponse response) throws Exception {
                 // do not validate against request
 
                 TimeStampToken token = response.getTimeStampToken();
-                TimestampVerifier.verify(token,
-                        GlobalConf.getTspCertificates());
+                TimestampVerifier.verify(token, GlobalConf.getTspCertificates());
             }
         };
     }

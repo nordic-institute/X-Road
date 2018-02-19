@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.commonui;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +29,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
-import ee.ria.xroad.common.SystemPropertiesLoader;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 /**
  * Encapsulates actor system management in UI.
@@ -40,13 +38,6 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 public final class UIServices {
 
     private static final Logger LOG = LoggerFactory.getLogger(UIServices.class);
-
-    static {
-        SystemPropertiesLoader.create().withCommonAndLocal()
-            .with(CONF_FILE_CENTER)
-            .with(CONF_FILE_SIGNER)
-            .load();
-    }
 
     private ActorSystem actorSystem;
 
@@ -81,7 +72,7 @@ public final class UIServices {
         LOG.info("stop()");
 
         if (actorSystem != null) {
-            actorSystem.shutdown();
+            Await.ready(actorSystem.terminate(), Duration.Inf());
         }
     }
 }

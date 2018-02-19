@@ -26,6 +26,7 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHost;
@@ -42,6 +43,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.nio.channels.UnresolvedAddressException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Enumeration;
 
@@ -68,6 +70,10 @@ class FastestConnectionSelectingSSLSocketFactory
      */
     public static final String ID_TARGETS =
             "ee.ria.xroad.serverproxy.targets";
+    /**
+     * The timeout when connecting to previously selected "fastest" provider
+     */
+    public static final int CACHED_TIMEOUT = 5000;
 
     /**
      * The identifier for the selected target address stored in the created SSL
@@ -75,6 +81,9 @@ class FastestConnectionSelectingSSLSocketFactory
      */
     private static final String ID_SELECTED_TARGET =
             "ee.ria.xroad.serverproxy.selectedtarget";
+
+    private static final String ID_SELECTED_TARGET_TIMESTAMP =
+            "ee.ria.xroad.serverproxy.selectedtargettimestamp";
 
     private final javax.net.ssl.SSLSocketFactory socketfactory;
 
@@ -99,37 +108,52 @@ class FastestConnectionSelectingSSLSocketFactory
             HttpContext context) throws IOException {
         // Read target addresses from the context.
         URI[] addressesFromContext = getAddressesFromContext(context);
+        log.trace("addresses from context {} current thread id {}", addressesFromContext,
+                Thread.currentThread().getId());
         URI[] addresses = addressesFromContext;
-
-        // If the current SSL session cache contains a session to a target
-        // then connect to that target immediately without host selection.
         URI cachedSSLSessionURI = null;
 
-        // .. the target host might be unreachable though, and we didn't use to clear the cached host URI.
-        // We don't always want to use the FastestSocketSelector -- but when the connection pool is in good use,
-        // we should be using pooled connections anyway if available. And if they are not available, it might
-        // be a good idea to check what the fastest host currently is.
-        // Leaving the cached session host uri as an option, default to "on" (as it used to be)
+        // Read from SSL session cache
         CachedSSLSessionHostInformation cachedHostInfo = getCachedSSLSessionHostURI(addresses);
 
-        if (SystemProperties.isUseCachedSSLSessionHostUri()) {
-            cachedSSLSessionURI = cachedHostInfo.getSelectedAddresses();
-        }
-
-        if (cachedSSLSessionURI != null) {
-            addresses = new URI[] {cachedSSLSessionURI};
+        // If URI cache is enabled, check if we find the fastest provider address there
+        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0) {
+            log.trace("URI cache enabled, session {}", cachedHostInfo.getSslSession());
+            cachedSSLSessionURI = cachedHostInfo.getSelectedAddress();
+            if (cachedHostInfo.getSslSession() != null
+                    && cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP) != null) {
+                // Check if the stored URI is still valid
+                LocalDateTime timestamp =
+                        (LocalDateTime) cachedHostInfo.getSslSession().getValue(ID_SELECTED_TARGET_TIMESTAMP);
+                LocalDateTime expire = timestamp
+                        .plusSeconds(SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod());
+                if (LocalDateTime.now().isAfter(expire)) {
+                    log.trace("URI cache expired");
+                    cachedSSLSessionURI = null;
+                    cachedHostInfo.clearCachedURIForSession();
+                }
+                if (cachedSSLSessionURI != null) {
+                    // Success, use the cached URI
+                    log.trace("Use cached URI {}", cachedSSLSessionURI);
+                    addresses = new URI[] {cachedSSLSessionURI};
+                }
+            }
         }
 
         // Select the fastest address if more than one address is provided.
-        SocketInfo selectedSocket = connect(addresses, context, timeout);
+        SocketInfo selectedSocket = connect(addresses, context, cachedSSLSessionURI == null ? timeout : CACHED_TIMEOUT);
         if (selectedSocket == null) {
             if (cachedSSLSessionURI != null) {
                 // could not connect to cached host, try all others.
                 // .. and make sure the previous "fastest" host does not come up as "fastest" anymore
+                log.trace("Could not connect to {}, clearing the URI cache", addresses);
+                cachedSSLSessionURI = null;
                 cachedHostInfo.clearCachedURIForSession();
 
-                selectedSocket =
-                        connect(addressesFromContext, context, timeout);
+                log.trace("Continue connecting to all providers {}", addressesFromContext);
+                selectedSocket = connect(
+                    //swap the failed address to the last
+                    swap(addressesFromContext, 0, addressesFromContext.length - 1), context, timeout);
                 if (selectedSocket == null) {
                     throw couldNotConnectException(addresses);
                 }
@@ -138,7 +162,7 @@ class FastestConnectionSelectingSSLSocketFactory
             }
         }
 
-        log.info("Connecting to {}", selectedSocket.getUri());
+        log.trace("Connected to {}", selectedSocket.getUri());
 
         configureSocket(selectedSocket.getSocket());
 
@@ -147,7 +171,21 @@ class FastestConnectionSelectingSSLSocketFactory
         SSLSocket sslSocket = wrapToSSLSocket(selectedSocket.getSocket());
         prepareAndVerify(sslSocket, selectedSocket.getUri(), context);
 
+        // Store the fastest provider URI to SSL cache
+        if (SystemProperties.getClientProxyFastestConnectingSslUriCachePeriod() > 0 && cachedSSLSessionURI == null) {
+            log.trace("Store the fastest provider URI to SSL cache {}", selectedSocket.getUri());
+            sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedSocket.getUri());
+            sslSocket.getSession().putValue(ID_SELECTED_TARGET_TIMESTAMP, LocalDateTime.now());
+        }
+
         return sslSocket;
+    }
+
+    private static <T> T[] swap(final T[] array, final int first, final int second) {
+        final T tmp = array[first];
+        array[first] = array[second];
+        array[second] = tmp;
+        return array;
     }
 
     private static void updateOpMonitoringData(HttpContext context,
@@ -188,16 +226,12 @@ class FastestConnectionSelectingSSLSocketFactory
     private void prepareAndVerify(SSLSocket sslSocket, URI selectedAddress,
             HttpContext context) throws IOException {
         prepareSocket(sslSocket);
-
-        sslSocket.getSession().putValue(ID_SELECTED_TARGET, selectedAddress);
-
         verify(context, sslSocket.getSession(), selectedAddress);
     }
 
     private SocketInfo connect(URI[] addresses, HttpContext context,
             int timeout) throws IOException {
-        log.trace("Connecting to hosts: {}", Arrays.toString(addresses));
-
+        log.trace("Connecting to hosts {} with timeout {}", Arrays.toString(addresses), timeout);
         if (addresses.length == 1) { // only one host, no need to select fastest
             return connect(addresses[0], context, timeout);
         } else {
@@ -236,11 +270,9 @@ class FastestConnectionSelectingSSLSocketFactory
 
     private CachedSSLSessionHostInformation getCachedSSLSessionHostURI(URI[] addresses) {
         SSLSessionContext sessionCtx = sslContext.getClientSessionContext();
-
         Enumeration<byte[]> ids = sessionCtx.getIds();
         while (ids.hasMoreElements()) {
             byte[] id = ids.nextElement();
-
             SSLSession session = sessionCtx.getSession(id);
             if (session != null) {
                 for (URI address : addresses) {
@@ -251,11 +283,15 @@ class FastestConnectionSelectingSSLSocketFactory
                 }
             }
         }
-
-        return new CachedSSLSessionHostInformation();
+        return CachedSSLSessionHostInformation.NONE;
     }
 
+    /**
+     * Simple value object for holding URI - SSLSession pairs
+     */
+    @Getter
     private static class CachedSSLSessionHostInformation {
+        static final CachedSSLSessionHostInformation NONE = new CachedSSLSessionHostInformation();
         private final URI selectedAddress;
         private final SSLSession sslSession;
 
@@ -267,16 +303,12 @@ class FastestConnectionSelectingSSLSocketFactory
         CachedSSLSessionHostInformation() {
             this.selectedAddress = null;
             this.sslSession = null;
-
-        }
-
-        URI getSelectedAddresses() {
-            return selectedAddress;
         }
 
         void clearCachedURIForSession() {
             if (sslSession != null) {
                 sslSession.removeValue(ID_SELECTED_TARGET);
+                sslSession.removeValue(ID_SELECTED_TARGET_TIMESTAMP);
             }
         }
     }

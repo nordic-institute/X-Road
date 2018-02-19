@@ -1,0 +1,9 @@
+---
+#Default variant, used if none defined in group_vars/all/vars.yml or in other higher precedence configuration
+variant: vanilla
+
+#Defines the security server "variant package", a meta-package that delivers variant override configuration and
+#pulls other packages through dependencies. Variant denoted by the string after the last "_".
+xroad_varpkg_fi: xroad-securityserver-fi
+xroad_varpkg_ee: xroad-securityserver-ee
+xroad_varpkg_vanilla: xroad-securityserver

@@ -26,6 +26,7 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import com.typesafe.config.ConfigFactory;
 
@@ -34,6 +35,8 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import lombok.extern.slf4j.Slf4j;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 /**
  * Main program for the configuration proxy.
@@ -116,9 +119,8 @@ public final class ConfProxyMain {
     /**
      * Shutdown configuration proxy components.
      */
-    private static void shutdown() {
+    private static void shutdown() throws TimeoutException, InterruptedException {
         log.trace("shutdown()");
-
-        actorSystem.shutdown();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 }

@@ -27,22 +27,21 @@ import java.io.Serializable;
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.messagelog.MessageRecord;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+
 /**
- * Timestamper is responsible for routing timestamping tasks to the
- * timestamp worker.
+ * Timestamper is responsible for routing timestamping tasks to the timestamp worker.
  */
 @Slf4j
 public class Timestamper extends UntypedActor {
-
-
+    
     @Data
     @RequiredArgsConstructor
     @ToString(exclude = "signatureHashes")
@@ -52,8 +51,7 @@ public class Timestamper extends UntypedActor {
 
         TimestampTask(MessageRecord messageRecord) {
             this.messageRecords = new Long[] {messageRecord.getId()};
-            this.signatureHashes =
-                    new String[] {messageRecord.getSignatureHash()};
+            this.signatureHashes = new String[] {messageRecord.getSignatureHash()};
         }
     }
 
@@ -95,10 +93,8 @@ public class Timestamper extends UntypedActor {
             return;
         }
 
-        // Spawn a new temporary child actor that will do the actual
-        // time stamping, which is probably lengthy process.
-        ActorRef worker = getContext().actorOf(
-                Props.create(getWorkerImpl(), ServerConf.getTspUrl()));
+        // Spawn a new temporary child actor that will do the actual time stamping, which is probably lengthy process.
+        ActorRef worker = getContext().actorOf(Props.create(getWorkerImpl(), ServerConf.getTspUrl()));
         worker.tell(message, getSender());
     }
 }

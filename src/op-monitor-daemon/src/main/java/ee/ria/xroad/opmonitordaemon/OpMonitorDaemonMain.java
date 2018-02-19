@@ -35,6 +35,8 @@ import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.StartStop;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 
@@ -161,9 +163,8 @@ public final class OpMonitorDaemonMain {
 
     private static void shutdown() throws Exception {
         log.info("Shutting down the operational monitoring daemon");
-
         stopServices();
-        actorSystem.terminate();
+        Await.ready(actorSystem.terminate(), Duration.Inf());
     }
 }
 

@@ -1,3 +1,9 @@
+xroad-jetty9 (6.17.0-1) trusty; urgency=medium
+
+  * Version bump
+
+ -- Gofore Oyj <palveluvayla@gofore.com>  Wed, 14 Feb 2018 16:15:45 +0200
+
 xroad-jetty9 (6.16.0-1) trusty; urgency=medium
 
   * Version bump

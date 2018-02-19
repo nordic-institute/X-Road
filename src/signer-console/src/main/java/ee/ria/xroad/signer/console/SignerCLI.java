@@ -65,6 +65,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.MemberSigningInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.*;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static ee.ria.xroad.common.AuditLogger.XROAD_USER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -741,7 +743,7 @@ public class SignerCLI {
                 startCommandLoop();
             }
         } finally {
-            actorSystem.shutdown();
+            Await.ready(actorSystem.terminate(), Duration.Inf());
         }
     }
 
