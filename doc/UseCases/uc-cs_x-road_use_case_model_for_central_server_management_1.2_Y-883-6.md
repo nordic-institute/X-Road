@@ -5,7 +5,7 @@
 # X-Road: Use Case Model for Central Server Management
 **Analysis**
 
-Version: 1.3
+Version: 1.4
 19.02.2018
 <!-- 38 pages -->
 Doc. ID: UC-CS
@@ -21,8 +21,8 @@ Date       | Version | Description                                              
 21.09.2015 |  1.0    |   Editorial changes made                                                                                                                  |   Imbi Nõgisto
 08.11.2015 |  1.1    |   Renamed *Scope* element to *System*. Renamed *User* to *CS administrator*. Updated use cases CS\_07 and CS\_08. Minor corrections done. |   Riin Saarmäe
 13.12.2015 |  1.2    |   Restore clears the shared memory (UC CS\_08)                                                                                            |   Riin Saarmäe
-29.08.2017 |  1.2    |  Changed documentation type from docx to md file | Lasse Matikainen
-19.02.2018 |  1.3    |   Updated the negative case extension for backing up the central server | Tatu Repo
+29.08.2017 |  1.3    |  Changed documentation type from docx to md file | Lasse Matikainen
+19.02.2018 |  1.4    |   Updated the negative case extension for backing up the central server | Tatu Repo
 
 ## Table of Contents
 
