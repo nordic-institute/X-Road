@@ -5,8 +5,8 @@
 # X-Road: Use Case Model for Central Server Management
 **Analysis**
 
-Version: 1.2
-29.08.2017
+Version: 1.3
+19.02.2018
 <!-- 38 pages -->
 Doc. ID: UC-CS
 ------------------------------------------------------
@@ -22,6 +22,7 @@ Date       | Version | Description                                              
 08.11.2015 |  1.1    |   Renamed *Scope* element to *System*. Renamed *User* to *CS administrator*. Updated use cases CS\_07 and CS\_08. Minor corrections done. |   Riin Saarmäe
 13.12.2015 |  1.2    |   Restore clears the shared memory (UC CS\_08)                                                                                            |   Riin Saarmäe
 29.08.2017 |  1.2    |  Changed documentation type from docx to md file | Lasse Matikainen
+19.02.2018 |  1.3    |   Updated the negative case extension for backing up the central server | Tatu Repo
 
 ## Table of Contents
 
@@ -432,9 +433,10 @@ configuration.
 **Extensions**:
 
 - 3a. Backing up the central server configuration failed.
-    - 3a.1. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
-    - 3a.2. System logs the event “Back up configuration failed” to the audit log.
-    - 3a.3. Use case terminates.
+    - 3a.1  Backup script produces an error code that prompts the error handling to remove any incomplete backup archives
+    - 3a.2. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
+    - 3a.3. System logs the event “Back up configuration failed” to the audit log.
+    - 3a.4. Use case terminates.
 
 **Related information**:
 
