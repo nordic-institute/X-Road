@@ -204,8 +204,8 @@ public final class SystemProperties {
     private static final String CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE =
             PREFIX + "proxy.client-use-fastest-connecting-ssl-socket-autoclose";
 
-    private static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE =
-            PREFIX + "proxy.client-fastest-connecting-ssl-use-uri-cache";
+    public static final String CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD =
+            PREFIX + "proxy.client-fastest-connecting-ssl-uri-cache-period";
 
     private static final String CLIENTPROXY_POOL_VALIDATE_CONNECTIONS_AFTER_INACTIVITY_OF_MS =
             PREFIX + "proxy.pool-validate-connections-after-inactivity-of-millis";
@@ -245,7 +245,7 @@ public final class SystemProperties {
 
     private static final String DEFAULT_CLIENTPROXY_USE_FASTEST_CONNECTING_SSL_SOCKET_AUTOCLOSE = "true";
 
-    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE = "true";
+    private static final String DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD = "3600";
 
     private static final String DEFAULT_ENV_MONITOR_LIMIT_REMOTE_DATA_SET = "false";
 
@@ -259,11 +259,12 @@ public final class SystemProperties {
 
     private static final String DEFAULT_PROXY_HEALTH_CHECK_PORT = "0";
 
-
     private static final String OCSP_VERIFIER_CACHE_PERIOD =
             PREFIX + "proxy.ocsp-verifier-cache-period";
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
+
+    public static final String ALLOW_GET_WSDL_REQUEST = PREFIX + "proxy.allow-get-wsdl-request";
 
 
     // Signer -----------------------------------------------------------------
@@ -1257,12 +1258,11 @@ public final class SystemProperties {
     }
 
     /**
-     * @return true if the URI of the fastest responder should be cached.
-     * fastest responder
+     * @return period in seconds the fastest provider uri should be cached, or 0 to disable
      */
-    public static boolean isUseCachedSSLSessionHostUri() {
-        return Boolean.parseBoolean(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE,
-                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_USE_URI_CACHE));
+    public static int getClientProxyFastestConnectingSslUriCachePeriod() {
+        return Integer.parseInt(System.getProperty(CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD,
+                DEFAULT_CLIENTPROXY_FASTEST_CONNECTING_SSL_URI_CACHE_PERIOD));
     }
 
     /**
@@ -1319,6 +1319,13 @@ public final class SystemProperties {
                 DEFAULT_MINIMUM_CONFIGURATION_PROXY_SERVER_GLOBAL_CONFIGURATION_VERSION);
 
         return version;
+    }
+
+    /**
+     * @return whether GET request can be used for getWsdl metaservice, 'false' by default.
+     */
+    public static boolean isAllowGetWsdlRequest() {
+        return "true".equalsIgnoreCase(System.getProperty(ALLOW_GET_WSDL_REQUEST, "false"));
     }
 
     private static void checkVersionValidity(int version, int current, String defaultVersion) {

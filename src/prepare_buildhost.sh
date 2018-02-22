@@ -37,3 +37,4 @@ if [[ $REL -ge 16 && ! -e /.dockerenv ]]; then
         newgrp docker
     fi
 fi
+

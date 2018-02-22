@@ -16,7 +16,7 @@ Requires(postun): systemd
 BuildRequires: systemd
 Requires:  systemd
 Requires:  nginx >= 1.5.10
-Requires: xroad-base >= %version
+Requires: xroad-base = %version-%release
 
 %define src %{_topdir}/..
 

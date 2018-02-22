@@ -29,6 +29,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 /**
  * Encapsulates actor system management in UI.
@@ -70,7 +72,7 @@ public final class UIServices {
         LOG.info("stop()");
 
         if (actorSystem != null) {
-            actorSystem.shutdown();
+            Await.ready(actorSystem.terminate(), Duration.Inf());
         }
     }
 }

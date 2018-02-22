@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -38,6 +36,9 @@ import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestKeyConf;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.apache.http.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
@@ -48,30 +49,42 @@ import org.junit.rules.ExpectedException;
 import org.mockito.ArgumentCaptor;
 import org.xml.sax.InputSource;
 
+import javax.net.ServerSocketFactory;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.wsdl.Definition;
 import javax.wsdl.factory.WSDLFactory;
+
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
-import static ee.ria.xroad.common.util.MimeTypes.*;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML_UTF8;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.CodedExceptionMatcher.faultCodeEquals;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.StubServletOutputStream;
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.parseOperationNamesFromWSDLDefinition;
 import static java.util.Collections.singletonList;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit test for {@link MetadataClientRequestProcessor}
@@ -81,7 +94,16 @@ public class WsdlRequestProcessorTest {
     private static final String EXPECTED_XR_INSTANCE = "EE";
 
 
-    private static final int WSDL_SERVER_PORT = 9859;
+    private static final int WSDL_SERVER_PORT;
+    static {
+        try (ServerSocket s = ServerSocketFactory.getDefault().createServerSocket(0)) {
+            s.setReuseAddress(true);
+            WSDL_SERVER_PORT = s.getLocalPort();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to select port");
+        }
+    }
+
     private static final String EXPECTED_WSDL_QUERY_PATH = "/";
 
 
@@ -93,6 +115,9 @@ public class WsdlRequestProcessorTest {
     @Rule // by default, the request processor contacts a client proxy
     public final ProvideSystemProperty targetServerProperty
             = new ProvideSystemProperty(SystemProperties.PROXY_CLIENT_HTTP_PORT, Integer.toString(WSDL_SERVER_PORT));
+
+    @Rule
+    public final ProvideSystemProperty keepAlive = new ProvideSystemProperty("http.keepAlive", "false");
 
     private HttpServletRequest mockRequest;
     private HttpServletResponse mockResponse;

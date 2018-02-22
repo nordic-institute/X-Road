@@ -30,7 +30,7 @@ sonarqube {
         property "sonar.projectKey", "xtee6"
         property "sonar.projectName", "X-Road"
         property "sonar.projectDescription", "National Data Exchange Layer"
-        property "sonar.projectVersion", "6.17.0"
+        property "sonar.projectVersion", "6.18.0"
     }
 }
 
@@ -70,7 +70,7 @@ allprojects {
 subprojects {
 
     ext {
-        akkaVersion = "2.4.8"
+        akkaVersion = "2.4.20"
         metricsVersion = "3.2.2"
         jettyVersion = "9.4.6.v20170531"
         jaxbVersion = "2.2.11"
@@ -243,6 +243,7 @@ task clean(type: Delete) {
    delete "${rootDir}/packages/xroad/center/usr/share/xroad/scripts/restore_db.sh"
    delete "${rootDir}/packages/xroad/debian/xroad-signer.xroad-signer.upstart"
    delete "${rootDir}/packages/xroad/debian/xroad-monitor.xroad-monitor.upstart"
+   delete "${rootDir}/packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart"
    delete "${rootDir}/packages/xroad/debian/xroad-confclient.xroad-confclient.upstart"
    delete "${rootDir}/packages/xroad/debian/xroad-proxy.xroad-proxy.upstart"
    delete "${rootDir}/packages/xroad/proxy/usr/share/xroad/scripts/restore_db.sh"

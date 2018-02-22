@@ -31,7 +31,6 @@ SRPMS/
 packages/DEBIAN/
 *.rpm
 .vagrant/
-packages/xroad/debian/xroad-common.xroad-confclient.upstart
 packages/xroad/debian/xroad-monitor.xroad-monitor.upstart
 packages/xroad/debian/xroad-opmonitor.xroad-opmonitor.upstart
 systemtest/op-monitoring/load/SimulationSetup.scala

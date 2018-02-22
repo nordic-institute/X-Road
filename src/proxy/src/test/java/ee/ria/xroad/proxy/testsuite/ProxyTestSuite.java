@@ -48,7 +48,6 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Proxy test suite program.
@@ -108,7 +107,7 @@ public final class ProxyTestSuite {
 
         } finally {
             jobManager.stop();
-            Await.ready(actorSystem.terminate(), Duration.apply(5, TimeUnit.SECONDS));
+            Await.ready(actorSystem.terminate(), Duration.Inf());
 
             List<MessageTestCase> failed = getFailedTestcases(testCasesToRun);
 

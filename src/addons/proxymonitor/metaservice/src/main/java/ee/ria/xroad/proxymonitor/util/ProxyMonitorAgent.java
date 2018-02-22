@@ -22,11 +22,12 @@
  */
 package ee.ria.xroad.proxymonitor.util;
 
-import akka.actor.UntypedActor;
-import com.sun.management.UnixOperatingSystemMXBean;
 import ee.ria.xroad.common.util.SystemMetrics;
 import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
+
+import akka.actor.UntypedActor;
+import com.sun.management.UnixOperatingSystemMXBean;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -50,7 +51,7 @@ public class ProxyMonitorAgent extends UntypedActor {
             final StatsResponse response = new StatsResponse(
                     stats.getOpenFileDescriptorCount(),
                     stats.getMaxFileDescriptorCount(),
-                    stats.getSystemCpuLoad(),
+                    Math.max(stats.getSystemCpuLoad(), 0d),
                     stats.getCommittedVirtualMemorySize(),
                     stats.getFreePhysicalMemorySize(),
                     stats.getTotalPhysicalMemorySize(),

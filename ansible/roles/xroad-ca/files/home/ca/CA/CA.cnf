@@ -179,7 +179,7 @@ extendedKeyUsage = clientAuth, serverAuth
 default_tsa = tsa_config1 # the default TSA section
 
 [ tsa_config1 ]
-dir               = /home/hyoty/projects/proto/TSA/CA/TSA
+dir               = $HOME/TSA
 serial            = $dir/serial
 
 # These are used by the TSA reply generation only. 

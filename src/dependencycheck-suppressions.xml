@@ -49,4 +49,18 @@
         <gav regex="true">^javax\.servlet:javax\.servlet-api:.*$</gav>
         <cpe>cpe:/a:oracle:glassfish</cpe>
     </suppress>
+    <suppress>
+       <notes><![CDATA[
+       file name: scala-library-2.11.11.jar
+       ]]></notes>
+       <gav regex="true">^org\.scala-lang:scala-library:.*$</gav>
+       <cve>CVE-2017-15288</cve>
+    </suppress>
+    <suppress>
+       <notes><![CDATA[
+       file name: proxy-1.0.jar/META-INF/maven/commons-io/commons-io/pom.xml
+       ]]></notes>
+       <gav regex="true">^commons-io:commons-io:.*$</gav>
+       <cve>CVE-2014-9653</cve>
+    </suppress>
 </suppressions>

@@ -2,12 +2,16 @@
 
 Index of X-Road Documentation
 
+### Terms and abbreviations
+- [\[TA-TERMS\] Terms of X-Road](terms_x-road_docs.md)
+
 ### Architecture
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
 - [\[ARC-CS\] Central Server Architecture](Architecture/arc-cs_x-road_central_server_architecture.md)
 - [\[SPEC-AL\] Audit Log Events](Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx)
+- [\[ARC-TEC\] Technologies used in X-Road](Architecture/arc-tec_x-road_technologies.md)
 
 ### Protocols
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
