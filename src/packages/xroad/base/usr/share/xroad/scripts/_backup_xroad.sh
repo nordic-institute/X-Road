@@ -37,6 +37,8 @@ create_backup_tarball () {
   echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
   tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
   if [ $? != 0 ] ; then
+    echo "Removing incomplete backup archive"
+    rm -v ${BACKUP_FILENAME}
     die "Creating a backup file to ${BACKUP_FILENAME} failed!" \
         "Please check the error messages and fix them before trying again!"
   fi

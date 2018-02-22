@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.5
-29.08.2017
+Version: 1.6
+19.02.2018
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -28,6 +28,7 @@ Date       | Version | Description                                              
 30.11.2015 | 1.3     | Use cases updated according to system developments. | Meril Vaht
 16.12.2015 | 1.4     | UC SS\_18, UC SS\_19, UC SS\_20, UC SS\_29, UC SS\_30, UC SS\_31, UC SS\_34, UC SS\_35, UC SS\_38, UC SS\_39 updated. UC SS\_42 added. Editorial changes made. | Meril Vaht
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
+19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
 
 <!-- tocstop -->
 
@@ -813,9 +814,10 @@ configuration.
 **Extensions**:
 
 - 3a. Backing up the security server configuration failed.
-    - 3a.1. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
-    - 3a.2. System logs the event “Back up configuration failed” to the audit log.
-    - 3a.3. Use case terminates.
+    - 3a.1  Backup script produces an error code that prompts the error handling to remove any incomplete backup archives
+    - 3a.2. System displays the error message “Error making configuration backup, script exited with status code 'X'” (where “X” is the exit code of the backup script) and the output of the backup script.
+    - 3a.3. System logs the event “Back up configuration failed” to the audit log.
+    - 3a.4. Use case terminates.
 
 **Related information**:
 
