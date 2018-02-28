@@ -56,7 +56,7 @@
       - "ca/{{ nodename }}/server.key"
 
 - name: setup serverconf database
-  include: "{{ ansible_distribution | lower }}.yml"
+  import_tasks: "{{ ansible_distribution | lower }}.yml"
 
 - name: disable connection keep-alives
   ini_file:
