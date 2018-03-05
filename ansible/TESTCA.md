@@ -64,9 +64,10 @@ xroad_ca_tsa_cn: "Customized Test TSA CN"
 5. Add user `ocsp` to group `ca`
 6. Grant `ca` ownership and all permissions to files under `/home/ca/CA`
 7. Grant read permission for group `ca` to files under `/home/ca/CA`
-8. Create a file called `ocsp.log` under `/var/log`
-9. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
-10. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
+8. Grant read + execute permissions for group `ca` to directories under `/home/ca/CA`
+9. Create a file called `ocsp.log` under `/var/log`
+10. Grant `ca` ownership and group `ca` read and write permissions for `ocsp.log`
+11. Fill in parameters for CA, OCSP and TSA distinguished names (DN) in `/home/ca/CA/init.sh`:
 ```
 # dn parameters
 DN_COUNTRY="{{ xroad_ca_dn_country }}"
