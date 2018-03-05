@@ -4,6 +4,8 @@ Please note that this Ansible collection and the corresponding documentation is 
 
 ## 1. Install Ansible
 
+The playbooks require Ansible 2.4 or later. Using the latest stable version of Ansible is strongly recommended.
+
 Install Ansible by following instructions at [http://docs.ansible.com/ansible/intro_installation.html](http://docs.ansible.com/ansible/intro_installation.html)
 
 ## 2. Configuration options
