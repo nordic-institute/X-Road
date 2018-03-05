@@ -130,6 +130,8 @@ To configure the central server to use the test-CA:
 
 ## 7. Signing certificates
 
+NOTE: The test CA setup only accepts DER as input format.
+
 To sign a CSR, you have two options: 
 
 ### 7.1. Use command `sign` on a file
