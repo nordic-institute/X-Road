@@ -25,9 +25,11 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v1.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v1.ObjectFactory;
+
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;

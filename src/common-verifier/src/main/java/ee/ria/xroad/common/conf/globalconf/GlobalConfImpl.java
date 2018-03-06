@@ -36,9 +36,15 @@ import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
-import ee.ria.xroad.common.identifier.*;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,12 +54,24 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.certHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Global configuration implementation

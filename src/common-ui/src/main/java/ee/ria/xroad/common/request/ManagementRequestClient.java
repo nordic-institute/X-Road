@@ -22,19 +22,12 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.net.Socket;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509ExtendedKeyManager;
-import javax.net.ssl.X509TrustManager;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.StartStop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -49,12 +42,19 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.StartStop;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509ExtendedKeyManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * Client that sends managements requests to the Central Server.

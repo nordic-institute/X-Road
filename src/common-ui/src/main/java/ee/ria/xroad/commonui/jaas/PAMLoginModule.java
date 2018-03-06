@@ -22,8 +22,11 @@
  */
 package ee.ria.xroad.commonui.jaas;
 
-import java.io.IOException;
-import java.util.Map;
+import ee.ria.xroad.common.AuditLogger;
+
+import lombok.extern.slf4j.Slf4j;
+import org.jvnet.libpam.PAM;
+import org.jvnet.libpam.UnixUser;
 
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
@@ -34,11 +37,8 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import javax.security.auth.spi.LoginModule;
 
-import org.jvnet.libpam.PAM;
-import org.jvnet.libpam.UnixUser;
-
-import ee.ria.xroad.common.AuditLogger;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * The PAM login module implementation.

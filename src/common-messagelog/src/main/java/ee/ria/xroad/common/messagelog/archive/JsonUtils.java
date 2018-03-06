@@ -22,6 +22,8 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.messagelog.AbstractLogRecord;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -29,8 +31,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-
-import ee.ria.xroad.common.messagelog.AbstractLogRecord;
 
 final class JsonUtils {
 

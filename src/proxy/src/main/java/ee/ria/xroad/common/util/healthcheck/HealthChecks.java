@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.common.util.healthcheck;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.proxy.conf.KeyConf;
+
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 

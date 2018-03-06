@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.common.ocsp;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Holds OCSP response per key. When getting the response, it is checked

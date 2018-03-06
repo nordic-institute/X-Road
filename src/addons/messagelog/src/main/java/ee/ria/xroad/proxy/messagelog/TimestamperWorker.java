@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.Arrays;
-import java.util.List;
+import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 
 import akka.actor.ActorRef;
 import akka.actor.UntypedActor;
-import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampTask;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Timestamper worker is responsible for creating timestamps.

@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import lombok.Data;
-
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
+
+import lombok.Data;
 
 /**
  * The software token type TDO.

@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
+
 import org.hibernate.Session;
 
 import java.util.List;

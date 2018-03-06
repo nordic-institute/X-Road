@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.util;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.junit.Test;
+
 import static ee.ria.xroad.common.util.SkCprKlass3.getSubjectIdentifier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
-import org.bouncycastle.asn1.x500.X500Name;
-import org.junit.Test;
 
 /**
  * Tests the name extractor.

@@ -22,15 +22,16 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.Getter;
+import lombok.SneakyThrows;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-import lombok.Getter;
-import lombok.SneakyThrows;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Creates linking info for the log archive file.

@@ -23,6 +23,7 @@
 package ee.ria.xroad.commonui;
 
 import ee.ria.xroad.common.certificateprofile.GetCertificateProfile;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**

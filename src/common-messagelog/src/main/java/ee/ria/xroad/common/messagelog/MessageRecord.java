@@ -22,15 +22,13 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
-
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -38,6 +36,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
 
 /**
  * A message log record.

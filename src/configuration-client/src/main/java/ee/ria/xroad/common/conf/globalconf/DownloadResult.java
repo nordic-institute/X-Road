@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.Getter;
 
 /**
  * Holds the download result of a configuration. Contains any exceptions per

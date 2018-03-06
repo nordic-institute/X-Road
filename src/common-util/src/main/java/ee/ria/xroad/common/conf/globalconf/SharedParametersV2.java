@@ -22,10 +22,30 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import ee.ria.xroad.common.conf.AbstractXmlConf;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedCATypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CaInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.CentralServiceType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalGroupType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.GlobalSettingsType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.MemberType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ObjectFactory;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.OcspInfoType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SecurityServerType;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SharedParametersTypeV2;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.SubsystemType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+
+import javax.xml.bind.JAXBElement;
 
 import java.io.IOException;
 import java.security.cert.CertificateException;
@@ -39,19 +59,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.xml.bind.JAXBElement;
-
-import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.*;
-import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cert.X509CertificateHolder;
-
-import ee.ria.xroad.common.conf.AbstractXmlConf;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.GlobalGroupId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import lombok.AccessLevel;
-import lombok.Getter;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * Contains shared parameters of a configuration instance.

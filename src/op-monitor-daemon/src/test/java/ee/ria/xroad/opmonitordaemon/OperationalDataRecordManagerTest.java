@@ -22,30 +22,34 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.HashSet;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import com.google.common.collect.Sets;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.joda.time.DateTime;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import java.lang.reflect.Field;
+import java.util.Collections;
+import java.util.HashSet;
 
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.*;
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.*;
-
-import static org.junit.Assert.*;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.queryAllRecords;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.queryRecords;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRecords;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.storeFullOperationalDataRecord;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.storeFullOperationalDataRecords;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases related to the operations with the operational monitoring

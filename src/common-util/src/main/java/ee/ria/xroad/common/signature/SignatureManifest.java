@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.common.signature;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
 
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.utils.Constants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Encapsulates the functionality of the manifest element. It is a collection

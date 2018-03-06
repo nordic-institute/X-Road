@@ -22,19 +22,6 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import java.io.OutputStream;
-import java.nio.file.AccessDeniedException;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.cli.CommandLine;
-
 import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationAnchorType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ConfigurationSourceType;
@@ -42,6 +29,19 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.util.AtomicSave;
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
+
+import org.apache.commons.cli.CommandLine;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Utility tool for creating an anchor file that is used for downloading

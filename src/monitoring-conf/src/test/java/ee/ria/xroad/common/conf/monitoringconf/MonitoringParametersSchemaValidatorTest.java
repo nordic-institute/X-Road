@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.common.conf.monitoringconf;
 
-import java.io.File;
-import java.net.URL;
+import ee.ria.xroad.common.util.ResourceUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import ee.ria.xroad.common.util.ResourceUtils;
+import java.io.File;
+import java.net.URL;
 
 /**
  * Created by janne on 25.11.2015.

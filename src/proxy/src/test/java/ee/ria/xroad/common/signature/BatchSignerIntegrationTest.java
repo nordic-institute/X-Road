@@ -22,6 +22,28 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.TestSecurityUtil;
+import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
+import ee.ria.xroad.signer.protocol.SignerClient;
+
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.DigestCalculator;
+import org.joda.time.DateTime;
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,29 +59,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.DigestCalculator;
-import org.joda.time.DateTime;
-
-import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.hashchain.HashChainReferenceResolver;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
-import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
-import ee.ria.xroad.signer.protocol.SignerClient;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 
 /**
  * Batch signer test program.

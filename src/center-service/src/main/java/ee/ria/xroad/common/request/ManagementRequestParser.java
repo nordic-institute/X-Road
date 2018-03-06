@@ -22,18 +22,20 @@
  */
 package ee.ria.xroad.common.request;
 
+import ee.ria.xroad.common.message.SoapMessageImpl;
+
+import lombok.extern.slf4j.Slf4j;
+import org.w3c.dom.Node;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.w3c.dom.Node;
-
-import ee.ria.xroad.common.message.SoapMessageImpl;
-
-import static ee.ria.xroad.common.request.ManagementRequests.*;
+import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
+import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
 
 /**
  * Parser for management requests.

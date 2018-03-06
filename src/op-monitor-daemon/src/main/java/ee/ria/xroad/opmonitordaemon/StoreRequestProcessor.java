@@ -22,19 +22,18 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
+import ee.ria.xroad.common.util.JsonUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.gson.Gson;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import ee.ria.xroad.common.util.JsonUtils;
+import javax.servlet.http.HttpServletRequest;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static ee.ria.xroad.common.util.TimeUtils.getEpochSecond;
 

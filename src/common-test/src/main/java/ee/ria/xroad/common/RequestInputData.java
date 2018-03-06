@@ -22,12 +22,11 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-
+import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
 
-import lombok.Getter;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Encapsulates necessary information about request.

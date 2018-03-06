@@ -22,10 +22,12 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
-import static org.junit.Assert.assertTrue;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
+
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -34,12 +36,10 @@ import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Rule;
-import org.junit.Test;
-
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.TestCertUtil;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests to verify configuration parser functionality.

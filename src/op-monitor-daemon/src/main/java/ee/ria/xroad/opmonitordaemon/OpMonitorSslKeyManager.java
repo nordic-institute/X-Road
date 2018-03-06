@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.net.Socket;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+
+import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.conf.InternalSSLKey;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
 @Slf4j
 class OpMonitorSslKeyManager extends X509ExtendedKeyManager {

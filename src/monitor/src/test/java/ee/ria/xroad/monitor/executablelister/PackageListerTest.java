@@ -22,22 +22,22 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
-import static org.junit.Assert.assertEquals;
+import ee.ria.xroad.monitor.JmxStringifiedData;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import ee.ria.xroad.monitor.JmxStringifiedData;
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Created by janne on 6.11.2015.
  */
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Tests for package lister

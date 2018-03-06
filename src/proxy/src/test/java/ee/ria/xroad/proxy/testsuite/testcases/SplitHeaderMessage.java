@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.ByteArrayInputStream;
-import java.util.Iterator;
-
-import javax.xml.soap.SOAPHeaderElement;
-
-import org.apache.commons.lang3.StringUtils;
-
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.soap.SOAPHeaderElement;
+
+import java.io.ByteArrayInputStream;
+import java.util.Iterator;
 
 /**
  * Ensure no problems arise if a header value needs to be processed in multiple

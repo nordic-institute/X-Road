@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.DefaultFilepaths;
+import ee.ria.xroad.common.ErrorCodes;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,11 +35,6 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-
-import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.DefaultFilepaths;
-import ee.ria.xroad.common.ErrorCodes;
 
 /**
  * Caches stuff in a temporary file.

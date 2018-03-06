@@ -22,20 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.merge;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.junit.Before;
-import org.junit.Test;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.model.Cert;
@@ -46,11 +32,37 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.tokenmanager.merge.TokenMergeStrategy.MergeResult;
 import ee.ria.xroad.signer.tokenmanager.module.SoftwareModuleType;
 
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static com.google.common.base.Preconditions.checkArgument;
-import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.*;
-import static org.hamcrest.CoreMatchers.*;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.createId;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.createKey;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.createKeyWithOneOcspResponse;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.createKeys;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.getCertCount;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.getResponseIndex;
+import static ee.ria.xroad.signer.tokenmanager.merge.MergeOntoFileTokenStrategyTest.TestKeyHelper.getResponseStatus;
+import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 

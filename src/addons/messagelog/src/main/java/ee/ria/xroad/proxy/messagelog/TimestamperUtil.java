@@ -22,17 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
 import org.bouncycastle.asn1.cmp.PKIStatus;
@@ -43,7 +35,14 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 final class TimestamperUtil {

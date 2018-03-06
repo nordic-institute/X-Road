@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
-
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SIGNATURE;
 
 /**
  * Test impersonates client proxy and connects directly to SP. Sends

@@ -22,16 +22,9 @@
  */
 package ee.ria.xroad.common.signature;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.ObjectContainer;
@@ -44,13 +37,37 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.XmlUtils;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.signature.Helper.*;
+import static ee.ria.xroad.common.signature.Helper.BASE_URI;
+import static ee.ria.xroad.common.signature.Helper.COMPLETE_CERTIFICATE_REFS_ID;
+import static ee.ria.xroad.common.signature.Helper.ENCAPSULATED_TIMESTAMP_TAG;
+import static ee.ria.xroad.common.signature.Helper.ID_TS_MANIFEST;
+import static ee.ria.xroad.common.signature.Helper.ID_TS_ROOT_MANIFEST;
+import static ee.ria.xroad.common.signature.Helper.SIGNATURE_TIMESTAMP_TAG;
+import static ee.ria.xroad.common.signature.Helper.SIGNATURE_VALUE_ID;
+import static ee.ria.xroad.common.signature.Helper.UNSIGNED_SIGNATURE_PROPS_TAG;
+import static ee.ria.xroad.common.signature.Helper.URI_ATTRIBUTE;
+import static ee.ria.xroad.common.signature.Helper.addManifestReference;
+import static ee.ria.xroad.common.signature.Helper.dsElement;
+import static ee.ria.xroad.common.signature.Helper.elementNotFound;
+import static ee.ria.xroad.common.signature.Helper.getCertificateRefElements;
+import static ee.ria.xroad.common.signature.Helper.getEncapsulatedOCSPValueElements;
+import static ee.ria.xroad.common.signature.Helper.getFirstElementByTagName;
+import static ee.ria.xroad.common.signature.Helper.parseDocument;
+import static ee.ria.xroad.common.signature.Helper.verifyDigest;
+import static ee.ria.xroad.common.signature.Helper.xadesElement;
 import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 

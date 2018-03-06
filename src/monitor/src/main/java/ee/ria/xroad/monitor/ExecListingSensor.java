@@ -22,10 +22,14 @@
  */
 package ee.ria.xroad.monitor;
 
-import com.codahale.metrics.Metric;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
-import ee.ria.xroad.monitor.executablelister.*;
+import ee.ria.xroad.monitor.executablelister.OsInfoLister;
+import ee.ria.xroad.monitor.executablelister.PackageLister;
+import ee.ria.xroad.monitor.executablelister.ProcessLister;
+import ee.ria.xroad.monitor.executablelister.XroadProcessLister;
+
+import com.codahale.metrics.Metric;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;

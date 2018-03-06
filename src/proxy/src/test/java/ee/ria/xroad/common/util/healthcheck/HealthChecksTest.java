@@ -29,11 +29,13 @@ import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.conf.KeyConfProvider;
+
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
 import javax.security.auth.x500.X500Principal;
+
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -43,7 +45,9 @@ import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
 import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

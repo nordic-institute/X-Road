@@ -22,25 +22,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.math.BigInteger;
-import java.security.PublicKey;
-import java.security.cert.X509Certificate;
-
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.X509Extension;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
@@ -57,9 +38,31 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.X509Extension;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStream;
+import java.math.BigInteger;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA512_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.readX509PublicKey;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 
 /**

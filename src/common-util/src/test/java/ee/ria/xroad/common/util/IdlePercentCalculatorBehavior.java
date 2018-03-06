@@ -22,11 +22,10 @@
  */
 package ee.ria.xroad.common.util;
 
-import static org.junit.Assert.assertNull;
-
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.junit.Assert.assertNull;
 
 /**
  * Tests to verify CPU idle percent calculator behavior.

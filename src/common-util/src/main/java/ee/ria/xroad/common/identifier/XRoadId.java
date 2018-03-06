@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.common.identifier;
 
-import java.io.Serializable;
-
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import java.io.Serializable;
 
 
 /**

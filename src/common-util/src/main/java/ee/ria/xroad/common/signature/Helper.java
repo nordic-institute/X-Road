@@ -22,14 +22,9 @@
  */
 package ee.ria.xroad.common.signature;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
-
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.parsers.DocumentBuilderFactory;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.ErrorCodes;
+import ee.ria.xroad.common.util.XmlUtils;
 
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.apache.xml.security.signature.Manifest;
@@ -40,11 +35,21 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.ErrorCodes;
-import ee.ria.xroad.common.util.XmlUtils;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.DocumentBuilderFactory;
 
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
+
+import static ee.ria.xroad.common.util.CryptoUtils.DEFAULT_DIGEST_ALGORITHM_URI;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
 
 /**
  * Local helper class for constructing Xades signatures.

@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.util.AtomicSave;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

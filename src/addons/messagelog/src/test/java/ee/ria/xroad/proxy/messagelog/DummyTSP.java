@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.io.FileInputStream;
-
 import org.bouncycastle.tsp.TimeStampRequest;
+
+import java.io.FileInputStream;
 
 final class DummyTSP {
 

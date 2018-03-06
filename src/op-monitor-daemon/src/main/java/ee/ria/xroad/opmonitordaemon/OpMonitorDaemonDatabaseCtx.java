@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.Serializable;
+import ee.ria.xroad.common.db.DatabaseCtx;
+import ee.ria.xroad.common.db.TransactionCallback;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
 
-import ee.ria.xroad.common.db.DatabaseCtx;
-import ee.ria.xroad.common.db.TransactionCallback;
+import java.io.Serializable;
 
 /**
  * Database context for the operational monitoring daemon

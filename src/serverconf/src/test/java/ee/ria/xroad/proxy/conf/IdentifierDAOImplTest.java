@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import static org.junit.Assert.assertEquals;
-
-import org.hibernate.Session;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
 import ee.ria.xroad.common.identifier.CentralServiceId;
@@ -40,6 +32,14 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
+
+import org.hibernate.Session;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests identifier DAO implementation -- creating and reading the identifiers.

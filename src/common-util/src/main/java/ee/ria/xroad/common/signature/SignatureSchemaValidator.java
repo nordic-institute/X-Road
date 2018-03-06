@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.signature;
 
-import javax.xml.transform.Source;
-import javax.xml.validation.Schema;
-
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.util.SchemaValidator;
+
+import javax.xml.transform.Source;
+import javax.xml.validation.Schema;
 
 /**
  * Validates signature XML according to schema.

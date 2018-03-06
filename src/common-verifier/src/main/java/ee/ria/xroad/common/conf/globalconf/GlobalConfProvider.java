@@ -26,7 +26,12 @@ import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.conf.ConfProvider;
-import ee.ria.xroad.common.identifier.*;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.GlobalGroupId;
+import ee.ria.xroad.common.identifier.SecurityCategoryId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;

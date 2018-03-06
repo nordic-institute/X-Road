@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
+import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Example;
 
-import ee.ria.xroad.common.identifier.XRoadId;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.get;
 
 /**
  * Identifier data access object implementation.

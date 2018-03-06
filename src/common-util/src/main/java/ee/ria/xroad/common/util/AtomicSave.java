@@ -22,6 +22,10 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.DefaultFilepaths;
+
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
@@ -32,11 +36,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.DefaultFilepaths;
-
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.DSYNC;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 /**
  * Holds atomic save utility methods.

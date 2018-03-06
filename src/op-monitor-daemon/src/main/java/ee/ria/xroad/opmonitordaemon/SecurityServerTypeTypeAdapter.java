@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.IOException;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import java.io.IOException;
 
 /**
  * Type adapter for the securityServerType field used with the JsonAdapter annotation.

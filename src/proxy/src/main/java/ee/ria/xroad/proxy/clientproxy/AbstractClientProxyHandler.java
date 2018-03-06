@@ -22,19 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.io.IOException;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-import org.eclipse.jetty.server.Request;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.CodedExceptionWithHttpStatus;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
@@ -45,6 +32,19 @@ import ee.ria.xroad.common.util.HandlerBase;
 import ee.ria.xroad.common.util.PerformanceLogger;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.HttpClient;
+import org.eclipse.jetty.server.Request;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 
 import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
 import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;

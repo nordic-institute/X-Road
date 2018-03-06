@@ -22,15 +22,13 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.security.SecureRandom;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.util.InternalKeyManager;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
@@ -44,10 +42,11 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import ee.ria.xroad.common.util.CryptoUtils;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+import java.security.SecureRandom;
 
 /**
  * This class creates Apache {@link CloseableHttpClient}s with common security settings for use by both

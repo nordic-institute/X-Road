@@ -22,18 +22,19 @@
  */
  package ee.ria.xroad.signer.protocol;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.signer.protocol.message.SuccessResponse;
+import ee.ria.xroad.signer.tokenmanager.TokenManager;
+
+import akka.actor.ActorRef;
+import akka.actor.UntypedActor;
+import lombok.extern.slf4j.Slf4j;
+
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getToken;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotAvailable;
-
-import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.signer.protocol.message.SuccessResponse;
-import ee.ria.xroad.signer.tokenmanager.TokenManager;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * An abstract request handler.

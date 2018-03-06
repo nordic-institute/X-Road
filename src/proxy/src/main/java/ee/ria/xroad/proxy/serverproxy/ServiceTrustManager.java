@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.X509TrustManager;
 
-import lombok.extern.slf4j.Slf4j;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
 /**
  * Dummy trust manager class, actual server certificate verification is

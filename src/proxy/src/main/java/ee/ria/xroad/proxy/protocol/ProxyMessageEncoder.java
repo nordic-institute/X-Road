@@ -22,19 +22,6 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.input.TeeInputStream;
-import org.apache.commons.io.output.CountingOutputStream;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.operator.DigestCalculator;
-
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -43,6 +30,19 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MultipartEncoder;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.signedmessage.Signer;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.operator.DigestCalculator;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;

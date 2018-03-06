@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.util;
 
-import static org.junit.Assert.assertEquals;
+import ee.ria.xroad.common.SystemProperties;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import ee.ria.xroad.common.SystemProperties;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to verify correct system metrics behavior.

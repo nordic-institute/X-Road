@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.lang.reflect.Constructor;
-
 import org.apache.http.client.HttpClient;
 import org.eclipse.jetty.server.Handler;
+
+import java.lang.reflect.Constructor;
 
 final class HandlerLoader {
 

@@ -22,16 +22,17 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Collects disk space information

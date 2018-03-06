@@ -22,7 +22,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import akka.actor.UntypedActor;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
@@ -32,6 +31,8 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
+
+import akka.actor.UntypedActor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;

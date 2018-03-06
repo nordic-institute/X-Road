@@ -22,22 +22,21 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
+import ee.ria.xroad.monitor.JmxStringifiedData;
+
+import com.google.common.base.Splitter;
+import com.google.common.io.CharStreams;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.SystemUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-
-import ee.ria.xroad.monitor.JmxStringifiedData;
-import org.apache.commons.lang3.SystemUtils;
-
-import com.google.common.base.Splitter;
-import com.google.common.io.CharStreams;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Abstract base class for parsing & listing output from external processes

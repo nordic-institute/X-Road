@@ -22,14 +22,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -38,7 +30,15 @@ import ee.ria.xroad.common.signature.SignatureBuilder;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.signedmessage.SigningKey;
+
 import lombok.RequiredArgsConstructor;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
 
 /**
  * Encapsulates security-related parameters of a given member,

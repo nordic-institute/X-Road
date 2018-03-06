@@ -22,15 +22,12 @@
  */
 package ee.ria.xroad.common.ocsp;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static org.junit.Assert.assertNotNull;
-
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.TestSecurityUtil;
+import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -42,12 +39,15 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import ee.ria.xroad.common.ExpectedCodedException;
-import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Tests the OCSP verifier.

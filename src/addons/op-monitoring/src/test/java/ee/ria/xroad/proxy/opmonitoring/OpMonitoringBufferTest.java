@@ -22,16 +22,14 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.testkit.TestActorRef;
-
 import org.apache.http.impl.client.CloseableHttpClient;
-
 import org.junit.Test;
-
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 
 import static org.junit.Assert.assertEquals;
 

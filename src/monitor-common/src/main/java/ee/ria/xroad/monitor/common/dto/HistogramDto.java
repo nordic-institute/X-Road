@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.monitor.common.dto;
 
-import java.time.Instant;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+
+import java.time.Instant;
 
 /**
  * Created by hyoty on 24.9.2015.

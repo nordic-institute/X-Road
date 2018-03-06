@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.nio.charset.StandardCharsets;
+import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidator;
 
 import org.apache.commons.io.IOUtils;
 
-import ee.ria.xroad.common.conf.monitoringconf.MonitoringParametersSchemaValidator;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Monitoring configuration file validator, which reads the configuration

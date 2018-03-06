@@ -25,6 +25,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.X509TrustManager;
+
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 

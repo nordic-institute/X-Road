@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.messagelog;
 
-import java.io.Serializable;
-
 import lombok.Value;
+
+import java.io.Serializable;
 
 /**
  * Message for timestamping an existing message record.

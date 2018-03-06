@@ -22,14 +22,13 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.util.JsonUtils;
 
 import com.google.gson.Gson;
-
 import org.junit.Test;
 
-import ee.ria.xroad.common.util.JsonUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 

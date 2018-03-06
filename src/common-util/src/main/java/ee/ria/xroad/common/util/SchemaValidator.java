@@ -22,7 +22,10 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.net.URL;
+import ee.ria.xroad.common.CodedException;
+
+import lombok.extern.slf4j.Slf4j;
+import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
@@ -30,10 +33,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import org.xml.sax.SAXException;
-
-import ee.ria.xroad.common.CodedException;
-import lombok.extern.slf4j.Slf4j;
+import java.net.URL;
 
 /**
  * Base class for schema-based validators.

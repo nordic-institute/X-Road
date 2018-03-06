@@ -22,29 +22,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
-import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_VERSION;
-import static ee.ria.xroad.proxy.conf.TestUtil.SUBSYSTEM;
-import static ee.ria.xroad.proxy.conf.TestUtil.client;
-import static ee.ria.xroad.proxy.conf.TestUtil.createTestClientId;
-import static ee.ria.xroad.proxy.conf.TestUtil.createTestServiceId;
-import static ee.ria.xroad.proxy.conf.TestUtil.prepareDB;
-import static ee.ria.xroad.proxy.conf.TestUtil.service;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-import java.util.List;
-
-import org.hibernate.Session;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
@@ -61,6 +38,29 @@ import ee.ria.xroad.common.conf.serverconf.model.WsdlType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import org.hibernate.Session;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.proxy.conf.TestUtil.NUM_CLIENTS;
+import static ee.ria.xroad.proxy.conf.TestUtil.SERVICE_VERSION;
+import static ee.ria.xroad.proxy.conf.TestUtil.SUBSYSTEM;
+import static ee.ria.xroad.proxy.conf.TestUtil.client;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestClientId;
+import static ee.ria.xroad.proxy.conf.TestUtil.createTestServiceId;
+import static ee.ria.xroad.proxy.conf.TestUtil.prepareDB;
+import static ee.ria.xroad.proxy.conf.TestUtil.service;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for different ServerConf releated DAOs.

@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.cert.CertChain;
+
+import lombok.extern.slf4j.Slf4j;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.X509ExtendedKeyManager;
+
 import java.net.Socket;
 import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.List;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.X509ExtendedKeyManager;
-
-import ee.ria.xroad.common.cert.CertChain;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Authentication key manager used by the proxy.

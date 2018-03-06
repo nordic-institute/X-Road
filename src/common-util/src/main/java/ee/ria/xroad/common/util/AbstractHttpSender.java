@@ -22,13 +22,8 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.Header;
@@ -47,10 +42,17 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.eclipse.jetty.http.HttpStatus;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_HTTP_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 
 /**
  * Base class for a closeable HTTP sender.

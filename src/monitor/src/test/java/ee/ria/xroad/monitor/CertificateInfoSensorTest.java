@@ -22,12 +22,6 @@
  */
 package ee.ria.xroad.monitor;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.testkit.TestActorRef;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
-import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -39,6 +33,13 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.testkit.TestActorRef;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;

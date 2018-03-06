@@ -22,10 +22,18 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.message.SaxSoapParserImpl;
+import ee.ria.xroad.common.message.Soap;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.signedmessage.Verifier;
 
 import lombok.Getter;
 import org.apache.commons.io.IOUtils;
@@ -43,21 +51,22 @@ import org.eclipse.jetty.http.HttpFields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.message.SaxSoapParserImpl;
-import ee.ria.xroad.common.message.Soap;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.common.util.MimeUtils;
-import ee.ria.xroad.proxy.signedmessage.Verifier;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.MimeTypes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_MESSAGE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeTypes.HASH_CHAIN;
+import static ee.ria.xroad.common.util.MimeTypes.HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_MIXED;
+import static ee.ria.xroad.common.util.MimeTypes.OCSP_RESPONSE;
+import static ee.ria.xroad.common.util.MimeTypes.SIGNATURE_BDOC;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 

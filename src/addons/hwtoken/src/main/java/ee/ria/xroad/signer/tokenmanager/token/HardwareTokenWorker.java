@@ -22,28 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.DatatypeConverter;
-
-import iaik.pkcs.pkcs11.Mechanism;
-import iaik.pkcs.pkcs11.Session;
-import iaik.pkcs.pkcs11.Token;
-import iaik.pkcs.pkcs11.objects.KeyPair;
-import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
-import iaik.pkcs.pkcs11.objects.RSAPublicKey;
-import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
-import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.PasswordStore;
@@ -57,16 +35,59 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.ModuleConf;
 import ee.ria.xroad.signer.util.SignerUtil;
 
-import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
+import iaik.pkcs.pkcs11.Mechanism;
+import iaik.pkcs.pkcs11.Session;
+import iaik.pkcs.pkcs11.Token;
+import iaik.pkcs.pkcs11.objects.KeyPair;
+import iaik.pkcs.pkcs11.objects.RSAPrivateKey;
+import iaik.pkcs.pkcs11.objects.RSAPublicKey;
+import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
+import iaik.pkcs.pkcs11.parameters.RSAPkcsPssParameters;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
+import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
+import lombok.extern.slf4j.Slf4j;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import javax.xml.bind.DatatypeConverter;
+
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
+import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.*;
-import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.*;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addCert;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.getKeyInfo;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.listKeys;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setPublicKey;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenInfo;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPrivateKeys;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKey;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeyCertificates;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.findPublicKeys;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.generateX509PublicKey;
 import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.getTokenStatus;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPrivateKeyAttributes;
+import static ee.ria.xroad.signer.tokenmanager.token.HardwareTokenUtil.setPublicKeyAttributes;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
+import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
+import static ee.ria.xroad.signer.util.ExceptionHelper.logoutFailed;
 import static ee.ria.xroad.signer.util.SignerUtil.keyId;
+import static iaik.pkcs.pkcs11.Token.SessionType.SERIAL_SESSION;
 
 /**
  * Token worker for hardware tokens.

@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
+
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service.

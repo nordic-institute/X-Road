@@ -22,24 +22,24 @@
  */
 package ee.ria.xroad.common.cert;
 
-import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
-
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.List;
-
-import org.bouncycastle.cert.ocsp.BasicOCSPResp;
-import org.bouncycastle.cert.ocsp.CertificateID;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.bouncycastle.cert.ocsp.SingleResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
+
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.SingleResp;
+
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 
 /**
  * Certificate-related helper functions.

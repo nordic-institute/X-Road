@@ -22,15 +22,19 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import ee.ria.xroad.common.asic.AsicContainer;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import org.apache.commons.io.IOUtils;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -44,19 +48,15 @@ import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.io.IOUtils;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
-import ee.ria.xroad.common.asic.AsicContainer;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Actually tests inner class of LogArchive.

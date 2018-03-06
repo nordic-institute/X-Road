@@ -24,6 +24,7 @@ package ee.ria.xroad.signer;
 
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.signer.util.VariableIntervalPeriodicJob;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**

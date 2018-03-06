@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -42,13 +43,16 @@ import org.quartz.JobListener;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ee.ria.xroad.common.DiagnosticsErrorCodes.*;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.ERROR_CODE_MISSING_PRIVATE_PARAMS;
+import static ee.ria.xroad.common.DiagnosticsErrorCodes.RETURN_SUCCESS;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
@@ -216,7 +220,7 @@ public final class ConfigurationClientMain {
             return RETURN_SUCCESS;
         } catch (Exception e) {
             log.error("Error when downloading conf", e);
-        
+
             return ConfigurationClientUtils.getErrorCode(e);
         }
     }

@@ -22,17 +22,24 @@
  */
 package ee.ria.xroad.common.ocsp;
 
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.TimeBasedObjectCache;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.xml.security.algorithms.MessageDigestAlgorithm;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.ocsp.ResponderID;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.ocsp.*;
+import org.bouncycastle.cert.ocsp.BasicOCSPResp;
+import org.bouncycastle.cert.ocsp.CertificateID;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.SingleResp;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -46,7 +53,12 @@ import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
 import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_VALIDATION_INFO;
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import static ee.ria.xroad.common.util.CryptoUtils.SHA1_ID;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.createCertId;
+import static ee.ria.xroad.common.util.CryptoUtils.createDefaultContentVerifier;
+import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /** Helper class for verifying OCSP responses. */
 @Slf4j

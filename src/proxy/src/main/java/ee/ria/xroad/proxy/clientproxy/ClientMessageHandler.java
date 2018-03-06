@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.http.client.HttpClient;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
@@ -34,6 +29,11 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+
+import org.apache.http.client.HttpClient;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
 import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;

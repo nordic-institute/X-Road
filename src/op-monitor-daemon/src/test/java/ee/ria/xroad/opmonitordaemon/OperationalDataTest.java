@@ -27,14 +27,15 @@ import org.hibernate.Session;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hibernate.internal.util.config.ConfigurationHelper;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.*;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.fillMinimalOperationalData;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatInvalidOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
 
 /**

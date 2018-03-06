@@ -24,6 +24,7 @@ package ee.ria.xroad.proxy.testsuite;
 
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.util.StartStop;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -35,6 +36,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;

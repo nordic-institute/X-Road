@@ -22,16 +22,15 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import javax.validation.constraints.Min;
-
 import com.google.gson.annotations.JsonAdapter;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.*;
+import javax.validation.constraints.Min;
+
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType;
 import static ee.ria.xroad.common.util.JsonUtils.Exclude;
 
 

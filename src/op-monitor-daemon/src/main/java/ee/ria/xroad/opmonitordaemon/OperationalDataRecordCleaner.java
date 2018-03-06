@@ -22,23 +22,20 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.concurrent.TimeUnit;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.util.JobManager;
+import ee.ria.xroad.common.util.MessageSendingJob;
 
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.joda.time.DateTime;
-
 import org.quartz.JobDataMap;
 import org.quartz.SchedulerException;
 
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.MessageSendingJob;
+import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
 

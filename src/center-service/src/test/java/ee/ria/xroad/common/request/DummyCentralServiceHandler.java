@@ -22,12 +22,11 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapFault;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+import ee.ria.xroad.common.util.MimeTypes;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -35,11 +34,12 @@ import org.apache.commons.lang.builder.ToStringStyle;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.SoapFault;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import ee.ria.xroad.common.util.MimeTypes;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 

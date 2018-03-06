@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
 
 /**
  * Tests for global conf change checking

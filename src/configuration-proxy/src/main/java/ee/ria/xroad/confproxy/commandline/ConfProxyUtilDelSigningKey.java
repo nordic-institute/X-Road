@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
-
-import org.apache.commons.cli.CommandLine;
-
 import ee.ria.xroad.confproxy.ConfProxyProperties;
 import ee.ria.xroad.signer.protocol.SignerClient;
 import ee.ria.xroad.signer.protocol.message.DeleteKey;
+
+import org.apache.commons.cli.CommandLine;
+
+import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
 
 /**
  * Utility tool for deleting signing keys from a configuration proxy instance.

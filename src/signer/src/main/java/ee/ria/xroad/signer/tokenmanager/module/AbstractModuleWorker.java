@@ -22,19 +22,20 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.List;
-
-import akka.actor.ActorRef;
-import akka.actor.OneForOneStrategy;
-import akka.actor.Props;
-import akka.actor.SupervisorStrategy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.Update;
+
+import akka.actor.ActorRef;
+import akka.actor.OneForOneStrategy;
+import akka.actor.Props;
+import akka.actor.SupervisorStrategy;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
+
+import java.util.List;
 
 /**
  * Module worker base class.

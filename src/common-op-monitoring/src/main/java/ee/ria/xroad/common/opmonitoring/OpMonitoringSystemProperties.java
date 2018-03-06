@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.PortNumbers;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static ee.ria.xroad.common.SystemProperties.PREFIX;
 import static ee.ria.xroad.common.SystemProperties.getConfPath;

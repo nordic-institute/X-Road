@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.util;
 
+import ee.ria.xroad.common.util.CryptoUtils;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import ee.ria.xroad.common.util.CryptoUtils;
 
 final class DigestPrefixCache {
 
