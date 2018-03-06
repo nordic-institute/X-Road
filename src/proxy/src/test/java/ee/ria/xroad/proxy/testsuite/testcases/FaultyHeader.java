@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
-
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MonitorAgentMessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
 
 /**
  * Client sends request with faulty SOAP header (missing field).

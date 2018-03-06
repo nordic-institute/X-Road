@@ -23,6 +23,7 @@
  package ee.ria.xroad.common.certificateprofile.impl;
 
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
+
 import lombok.Data;
 import lombok.experimental.Accessors;
 

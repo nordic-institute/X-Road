@@ -22,15 +22,15 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
+import akka.actor.ActorSelection;
+import akka.actor.UntypedActorContext;
+
 import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_SIGNER;
 import static ee.ria.xroad.signer.protocol.ComponentNames.TOKEN_WORKER;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
-
-import akka.actor.ActorSelection;
-import akka.actor.UntypedActorContext;
 
 /**
  * Utility class for getting specific actor paths in Signer.

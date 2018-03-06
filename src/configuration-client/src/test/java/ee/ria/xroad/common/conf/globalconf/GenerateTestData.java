@@ -22,6 +22,15 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.TestCertUtil.PKCS12;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.operator.DigestCalculator;
+
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -30,17 +39,6 @@ import java.nio.file.Paths;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import org.apache.commons.io.IOUtils;
-
-import org.bouncycastle.operator.DigestCalculator;
-
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestCertUtil.PKCS12;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;

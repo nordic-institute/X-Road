@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
-import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.message.SoapUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.message.SoapUtils;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.message.SoapHeader.NS_XROAD;
+import static ee.ria.xroad.common.message.SoapHeader.PREFIX_XROAD;
 
 /**
  * Contains utility methods for dealing with management requests.

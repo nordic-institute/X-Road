@@ -22,19 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager;
 
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.model.Cert;
@@ -56,8 +43,22 @@ import ee.ria.xroad.signer.tokenmanager.token.TokenType;
 import ee.ria.xroad.signer.util.SignerUtil;
 import ee.ria.xroad.signer.util.TokenAndKey;
 
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
-import static ee.ria.xroad.signer.util.ExceptionHelper.*;
+import static ee.ria.xroad.signer.util.ExceptionHelper.certWithIdNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotFound;
 import static java.util.Collections.unmodifiableList;
 
 /**

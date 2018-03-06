@@ -22,22 +22,17 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.util.SchemaValidator;
 
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.xml.security.signature.XMLSignatureInput;
+import org.apache.xml.security.transforms.Transforms;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -49,17 +44,22 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Source;
 import javax.xml.validation.Schema;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.xml.security.signature.XMLSignatureInput;
-import org.apache.xml.security.transforms.Transforms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.SchemaValidator;
+import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REFERENCE;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 
 /**
  * Verification of hash chains.

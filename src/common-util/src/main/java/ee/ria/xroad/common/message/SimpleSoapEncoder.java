@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.message;
 
+import ee.ria.xroad.common.util.MimeTypes;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
-
-import ee.ria.xroad.common.util.MimeTypes;
 
 /**
  * Simple SOAP encoder that does not support attachments or additional headers.

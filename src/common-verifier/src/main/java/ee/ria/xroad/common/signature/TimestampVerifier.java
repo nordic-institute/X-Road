@@ -22,16 +22,9 @@
  */
 package ee.ria.xroad.common.signature;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMP_VALIDATION;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import ee.ria.xroad.common.CodedException;
 
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.SignerId;
 import org.bouncycastle.cms.SignerInformation;
@@ -40,8 +33,15 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TimeStampToken;
 
-import ee.ria.xroad.common.CodedException;
-import lombok.extern.slf4j.Slf4j;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.X_TIMESTAMP_VALIDATION;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 
 /**
  * Contains methods for verifying various time-stamp characteristics.

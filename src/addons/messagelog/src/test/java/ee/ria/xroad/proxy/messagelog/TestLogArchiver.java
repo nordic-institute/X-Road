@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.nio.file.Path;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 
 import org.hibernate.Session;
 
-import ee.ria.xroad.common.messagelog.archive.DigestEntry;
+import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 class TestLogArchiver extends LogArchiver {
 

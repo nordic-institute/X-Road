@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.ByteArrayInputStream;
-
-import org.w3c.dom.Node;
-
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import org.w3c.dom.Node;
+
+import java.io.ByteArrayInputStream;
 
 /**
  * Ensure comments are not stripped from messages.

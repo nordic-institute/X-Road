@@ -22,17 +22,6 @@
  */
 package ee.ria.xroad.proxy.opmonitoring;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import akka.actor.ActorRef;
-import akka.actor.UntypedActor;
-import com.google.gson.Gson;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-
 import ee.ria.xroad.common.opmonitoring.AbstractOpMonitoringBuffer;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
@@ -42,6 +31,17 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
+
+import akka.actor.ActorRef;
+import akka.actor.UntypedActor;
+import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.CloseableHttpClient;
+
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_ERROR;
 import static ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse.STATUS_OK;

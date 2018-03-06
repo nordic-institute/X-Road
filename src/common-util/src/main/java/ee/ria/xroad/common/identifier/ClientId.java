@@ -22,11 +22,10 @@
  */
 package ee.ria.xroad.common.identifier;
 
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import static ee.ria.xroad.common.identifier.XRoadObjectType.MEMBER;
 import static ee.ria.xroad.common.identifier.XRoadObjectType.SUBSYSTEM;
-
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * Client ID.

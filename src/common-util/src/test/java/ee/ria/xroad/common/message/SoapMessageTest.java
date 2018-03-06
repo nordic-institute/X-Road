@@ -22,31 +22,44 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPException;
-
-import org.apache.commons.io.IOUtils;
-
-import org.bouncycastle.util.Arrays;
-
-import org.junit.Rule;
-import org.junit.Test;
-
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.ExpectedCodedException;
 import ee.ria.xroad.common.util.MimeTypes;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.message.SoapMessageTestUtil.*;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.util.Arrays;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPElement;
+import javax.xml.soap.SOAPException;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.util.List;
+
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_PROTOCOL_VERSION;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.QUERY_DIR;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.build;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createRequest;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createSoapMessage;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.fileToBytes;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.messageToBytes;
 import static ee.ria.xroad.common.message.SoapUtils.getChildElements;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This class tests the basic functionality (parsing the soap message etc.) of the SoapMessage class.

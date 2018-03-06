@@ -24,6 +24,7 @@
 
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.Data;
 
 /**

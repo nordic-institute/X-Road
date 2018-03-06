@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.message;
 
-import javax.xml.soap.SOAPMessage;
-
-import lombok.SneakyThrows;
-
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import lombok.SneakyThrows;
+
+import javax.xml.soap.SOAPMessage;
 
 import static ee.ria.xroad.common.message.SoapUtils.isResponseMessage;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;

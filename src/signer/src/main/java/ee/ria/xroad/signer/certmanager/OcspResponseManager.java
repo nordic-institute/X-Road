@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import akka.actor.Props;
-import akka.actor.UntypedActorContext;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponses;
 import ee.ria.xroad.signer.protocol.message.GetOcspResponsesResponse;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
@@ -31,6 +29,9 @@ import ee.ria.xroad.signer.tokenmanager.ServiceLocator;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
+
+import akka.actor.Props;
+import akka.actor.UntypedActorContext;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

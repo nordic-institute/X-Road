@@ -22,6 +22,19 @@
  */
 package ee.ria.xroad.common.signature;
 
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.TestSecurityUtil;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.MessageFileNames;
+
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.joda.time.DateTime;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -33,20 +46,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.joda.time.DateTime;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import ee.ria.xroad.common.OcspTestUtils;
-import ee.ria.xroad.common.TestCertUtil;
-import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.MessageFileNames;
-
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 

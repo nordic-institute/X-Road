@@ -22,20 +22,6 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.codahale.metrics.MetricRegistry;
-
-import com.google.gson.Gson;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-
-import org.eclipse.jetty.server.Request;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.HandlerBase;
@@ -43,7 +29,22 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import com.codahale.metrics.MetricRegistry;
+import com.google.gson.Gson;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.eclipse.jetty.server.Request;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVER_PROXY_OPMONITOR_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HTTP_METHOD;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints.QUERY_DATA_PATH;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringDaemonEndpoints.STORE_DATA_PATH;
 

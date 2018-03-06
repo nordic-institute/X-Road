@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.commonui;
 
-import java.util.Date;
-import java.util.List;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.SignerClient;
@@ -51,6 +46,11 @@ import ee.ria.xroad.signer.protocol.message.ListTokens;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * Responsible for managing cryptographic tokens (smartcards, HSMs, etc.) through the signer.

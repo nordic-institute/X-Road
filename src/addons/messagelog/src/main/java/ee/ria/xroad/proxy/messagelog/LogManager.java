@@ -72,7 +72,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.proxy.messagelog.LogArchiver.START_ARCHIVING;
 import static ee.ria.xroad.proxy.messagelog.LogCleaner.START_CLEANING;
 import static ee.ria.xroad.proxy.messagelog.TaskQueue.START_TIMESTAMPING;
-
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**

@@ -22,23 +22,21 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import ee.ria.xroad.common.util.FileContentChangeChecker;
 
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.configuration.ConfigurationRuntimeException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.apache.commons.configuration.SubnodeConfiguration;
 import org.apache.commons.lang.StringUtils;
 
-import ee.ria.xroad.common.util.FileContentChangeChecker;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static ee.ria.xroad.common.SystemProperties.getDeviceConfFile;
 

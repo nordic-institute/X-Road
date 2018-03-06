@@ -22,10 +22,11 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.security.PrivateKey;
-
 import ee.ria.xroad.common.cert.CertChain;
+
 import lombok.Value;
+
+import java.security.PrivateKey;
 
 /**
  * Value object representing the authentication key of the security server

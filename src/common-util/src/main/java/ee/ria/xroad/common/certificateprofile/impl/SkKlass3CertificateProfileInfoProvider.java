@@ -22,7 +22,12 @@
  */
 package ee.ria.xroad.common.certificateprofile.impl;
 
-import java.security.cert.X509Certificate;
+import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
+import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
+import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
+import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.util.CertUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -30,12 +35,7 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 
-import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
-import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
-import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
-import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.util.CertUtils;
+import java.security.cert.X509Certificate;
 
 /**
  * Certificate profile for SK Klass 3 certificates.

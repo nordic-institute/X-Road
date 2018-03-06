@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.confproxy;
 
-import com.typesafe.config.ConfigFactory;
-
-import akka.actor.ActorSystem;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
 import ee.ria.xroad.signer.protocol.SignerClient;
+
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;

@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import ee.ria.xroad.common.Request.RequestTag;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import ee.ria.xroad.common.Request.RequestTag;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Encapsulates everything that is specific to one request: name and content.

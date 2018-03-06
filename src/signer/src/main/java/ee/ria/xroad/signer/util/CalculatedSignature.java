@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.util;
 
-import java.io.Serializable;
-
 import lombok.Data;
 import lombok.ToString;
+
+import java.io.Serializable;
 
 /**
  * Signature calculation result.

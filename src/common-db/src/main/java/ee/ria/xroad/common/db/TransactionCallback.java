@@ -22,10 +22,9 @@
  */
 package ee.ria.xroad.common.db;
 
+import org.hibernate.Session;
 
 import java.util.function.Function;
-
-import org.hibernate.Session;
 
 /**
  * Callback that can be called during a transaction.

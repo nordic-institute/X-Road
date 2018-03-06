@@ -22,17 +22,16 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.util.JsonUtils.Exclude;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import ee.ria.xroad.common.util.JsonUtils.Exclude;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a payload of the request getSecurityServerOperationalData.

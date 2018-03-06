@@ -23,14 +23,12 @@
 package ee.ria.xroad.common.util;
 
 import com.google.gson.Gson;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 import static ee.ria.xroad.common.util.JsonUtils.Exclude;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Unit tests for {@link ee.ria.xroad.common.util.JsonUtils}

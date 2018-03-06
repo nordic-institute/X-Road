@@ -22,13 +22,6 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
-
-import java.util.Date;
-
-import org.hibernate.Query;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.CertificateType;
@@ -44,6 +37,13 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
+
+import org.hibernate.Query;
+
+import java.util.Date;
+
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.util.CryptoUtils.decodeBase64;
 
 /**
  * Contains server conf test utility methods.

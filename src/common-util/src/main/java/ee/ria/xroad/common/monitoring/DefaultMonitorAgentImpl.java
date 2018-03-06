@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.common.monitoring;
 
-import java.util.Date;
+import ee.ria.xroad.common.SystemProperties;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
-import ee.ria.xroad.common.SystemProperties;
+
+import java.util.Date;
 
 /**
  * Default implementation of the monitor agent interface.

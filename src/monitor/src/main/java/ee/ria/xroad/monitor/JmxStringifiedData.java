@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.ArrayList;
 
 /**
  * Sensor data which has different representation for SOAP interface (DTO objects)

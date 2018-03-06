@@ -22,13 +22,9 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Random;
+import ee.ria.xroad.common.util.MimeTypes;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.ByteOrderMark;
@@ -36,9 +32,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.util.MultiPartOutputStream;
 
-import ee.ria.xroad.common.util.MimeTypes;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Random;
 
 /**
  * Cliet sends mesage with very big attachment. Server responds with

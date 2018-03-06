@@ -22,10 +22,6 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
-import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
-import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.PasswordStore;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
@@ -38,8 +34,13 @@ import ee.ria.xroad.signer.util.AbstractUpdateableActor;
 import ee.ria.xroad.signer.util.CalculateSignature;
 import ee.ria.xroad.signer.util.CalculatedSignature;
 import ee.ria.xroad.signer.util.SignerUtil;
+
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_SIGN;
+import static ee.ria.xroad.common.ErrorCodes.X_FAILED_TO_GENERATE_R_KEY;
+import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 
 /**
  * Token worker base class.

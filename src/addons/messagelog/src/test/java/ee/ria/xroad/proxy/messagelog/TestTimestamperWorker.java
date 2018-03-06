@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.List;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.signature.TimestampVerifier;
 
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.signature.TimestampVerifier;
+import java.util.List;
 
 class TestTimestamperWorker extends TimestamperWorker {
 

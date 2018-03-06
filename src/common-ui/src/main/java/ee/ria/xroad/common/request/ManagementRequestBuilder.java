@@ -22,15 +22,6 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.util.UUID;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -39,7 +30,19 @@ import ee.ria.xroad.common.message.SoapBuilder;
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 
-import static ee.ria.xroad.common.request.ManagementRequests.*;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
+
+import java.util.UUID;
+
+import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_DELETION;
+import static ee.ria.xroad.common.request.ManagementRequests.AUTH_CERT_REG;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_DELETION;
+import static ee.ria.xroad.common.request.ManagementRequests.CLIENT_REG;
 
 @Slf4j
 final class ManagementRequestBuilder {

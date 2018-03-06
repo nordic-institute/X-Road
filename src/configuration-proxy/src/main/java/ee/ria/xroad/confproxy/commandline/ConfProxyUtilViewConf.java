@@ -22,10 +22,15 @@
  */
 package ee.ria.xroad.confproxy.commandline;
 
-import static ee.ria.xroad.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
-import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
-import static ee.ria.xroad.confproxy.ConfProxyProperties.SIGNING_KEY_ID_PREFIX;
-import static ee.ria.xroad.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SECONDS;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.confproxy.ConfProxyProperties;
+import ee.ria.xroad.confproxy.util.ConfProxyHelper;
+import ee.ria.xroad.confproxy.util.OutputBuilder;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,15 +40,10 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.lang.StringUtils;
-
-import ee.ria.xroad.common.conf.globalconf.ConfigurationAnchorV2;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.confproxy.ConfProxyProperties;
-import ee.ria.xroad.confproxy.util.ConfProxyHelper;
-import ee.ria.xroad.confproxy.util.OutputBuilder;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.ACTIVE_SIGNING_KEY_ID;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.CONF_INI;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.SIGNING_KEY_ID_PREFIX;
+import static ee.ria.xroad.confproxy.ConfProxyProperties.VALIDITY_INTERVAL_SECONDS;
 
 /**
  * Utility tool for viewing the configuration proxy configuration settings.

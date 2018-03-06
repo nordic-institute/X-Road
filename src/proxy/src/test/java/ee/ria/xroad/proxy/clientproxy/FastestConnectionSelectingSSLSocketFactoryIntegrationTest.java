@@ -22,18 +22,15 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.HttpSender;
+import ee.ria.xroad.common.util.SystemMetrics;
+import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
+import ee.ria.xroad.proxy.conf.AuthKeyManager;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.URI;
-import java.security.SecureRandom;
-
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -45,14 +42,17 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.conf.globalconf.AuthTrustManager;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.HttpSender;
-import ee.ria.xroad.common.util.SystemMetrics;
-import ee.ria.xroad.proxy.clientproxy.FastestSocketSelector.SocketInfo;
-import ee.ria.xroad.proxy.conf.AuthKeyManager;
-import lombok.extern.slf4j.Slf4j;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URI;
+import java.security.SecureRandom;
+
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
+import static ee.ria.xroad.proxy.clientproxy.FastestConnectionSelectingSSLSocketFactory.ID_TARGETS;
 
 /**
  * Fastest connection selecting SSL socket factory test program.

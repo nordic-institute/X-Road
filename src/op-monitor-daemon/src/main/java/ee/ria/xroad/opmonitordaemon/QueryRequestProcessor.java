@@ -22,17 +22,6 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.InputStream;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.codahale.metrics.MetricRegistry;
-
-import lombok.extern.slf4j.Slf4j;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -41,6 +30,16 @@ import ee.ria.xroad.common.message.SoapMessage;
 import ee.ria.xroad.common.message.SoapMessageDecoder;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
+
+import com.codahale.metrics.MetricRegistry;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.InputStream;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;

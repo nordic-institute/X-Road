@@ -22,12 +22,13 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import akka.actor.Props;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
+
+import akka.actor.Props;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Software token implementation.

@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.extern.slf4j.Slf4j;
+
+import javax.net.ssl.X509TrustManager;
+
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-
-import javax.net.ssl.X509TrustManager;
-
-import lombok.extern.slf4j.Slf4j;
-
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 @Slf4j
 class OpMonitorSslTrustManager implements X509TrustManager {

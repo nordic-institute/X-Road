@@ -22,15 +22,6 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import javax.servlet.http.HttpServletRequest;
-
-import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.HttpClient;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ServiceId;
@@ -43,7 +34,18 @@ import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.HttpClient;
+
+import javax.servlet.http.HttpServletRequest;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_HEALTH_DATA;
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringRequests.GET_SECURITY_SERVER_OPERATIONAL_DATA;
 import static ee.ria.xroad.common.util.TimeUtils.getEpochMillisecond;

@@ -22,17 +22,6 @@
  */
 package ee.ria.xroad.proxyui;
 
-import static ee.ria.xroad.common.ErrorCodes.translateException;
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-
-import java.security.cert.X509Certificate;
-
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
@@ -43,7 +32,18 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import java.security.cert.X509Certificate;
+
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Job that checks whether globalconf has changed.

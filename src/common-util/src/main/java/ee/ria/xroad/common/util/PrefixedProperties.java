@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.util;
 
-import java.util.Properties;
-
 import lombok.RequiredArgsConstructor;
+
+import java.util.Properties;
 
 /**
  * This class loads only those properties, that start with specified properties.

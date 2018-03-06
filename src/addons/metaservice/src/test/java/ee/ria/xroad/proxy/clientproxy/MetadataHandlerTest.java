@@ -28,6 +28,7 @@ import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
 import ee.ria.xroad.proxy.testsuite.TestKeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
+
 import org.apache.http.client.HttpClient;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -43,7 +44,9 @@ import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_CLIENTS;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

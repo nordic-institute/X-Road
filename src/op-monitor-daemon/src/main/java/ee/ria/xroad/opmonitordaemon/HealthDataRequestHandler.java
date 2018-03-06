@@ -22,26 +22,6 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.io.OutputStream;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-import javax.xml.bind.JAXBElement;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricRegistry;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
@@ -52,9 +32,35 @@ import ee.ria.xroad.opmonitordaemon.message.LastPeriodStatisticsType;
 import ee.ria.xroad.opmonitordaemon.message.ServiceEventsType;
 import ee.ria.xroad.opmonitordaemon.message.ServicesEventsType;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricRegistry;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.xml.bind.JAXBElement;
+
+import java.io.OutputStream;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetrics.MONITORING_STARTUP_TIMESTAMP;
 import static ee.ria.xroad.opmonitordaemon.HealthDataMetrics.STATISTICS_PERIOD_SECONDS;
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.*;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.findCounter;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.findGauge;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.findHistogram;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSoapSizeName;
 
 /**
  * Query handler for health data requests.

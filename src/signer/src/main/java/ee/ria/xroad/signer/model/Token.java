@@ -22,20 +22,20 @@
  */
 package ee.ria.xroad.signer.model;
 
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+
+import lombok.Data;
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ObjectUtils;
-
-import ee.ria.xroad.signer.protocol.dto.KeyInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenInfo;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.tokenmanager.token.TokenType;
-import lombok.Data;
 
 /**
  * Model object representing a token.

@@ -22,23 +22,13 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.function.Consumer;
-
-import javax.xml.namespace.QName;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.soap.SOAPException;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.CentralServiceId;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.util.MimeUtils;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -55,15 +45,32 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.ext.DefaultHandler2;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.CentralServiceId;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.util.MimeUtils;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.soap.SOAPException;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+import java.util.function.Consumer;
+
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SOAP;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.message.SoapUtils.validateMimeType;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;

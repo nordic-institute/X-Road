@@ -23,7 +23,6 @@
 package ee.ria.xroad.common.opmonitoring;
 
 import akka.actor.UntypedActor;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**

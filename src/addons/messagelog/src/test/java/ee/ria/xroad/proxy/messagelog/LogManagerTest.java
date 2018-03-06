@@ -22,6 +22,9 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.messagelog.FindByQueryId;
+import ee.ria.xroad.common.messagelog.LogMessage;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -29,8 +32,6 @@ import akka.pattern.Patterns;
 import akka.testkit.JavaTestKit;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
-import ee.ria.xroad.common.messagelog.FindByQueryId;
-import ee.ria.xroad.common.messagelog.LogMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

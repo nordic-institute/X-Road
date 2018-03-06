@@ -25,7 +25,12 @@
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.rolling.FixedWindowRollingPolicy;
 import ch.qos.logback.core.rolling.RolloverFailure;
-import ch.qos.logback.core.rolling.helper.*;
+import ch.qos.logback.core.rolling.helper.CompressionMode;
+import ch.qos.logback.core.rolling.helper.Compressor;
+import ch.qos.logback.core.rolling.helper.FileFilterUtil;
+import ch.qos.logback.core.rolling.helper.FileNamePattern;
+import ch.qos.logback.core.rolling.helper.IntegerTokenConverter;
+import ch.qos.logback.core.rolling.helper.RenameUtil;
 
 import java.io.File;
 import java.text.SimpleDateFormat;

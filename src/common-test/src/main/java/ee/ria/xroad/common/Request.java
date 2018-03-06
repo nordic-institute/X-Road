@@ -22,11 +22,14 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.SoapHeader;
+
+import lombok.Data;
+import org.antlr.stringtemplate.StringTemplate;
+import org.antlr.stringtemplate.language.DefaultTemplateLexer;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
@@ -35,14 +38,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
-import org.apache.commons.lang3.StringUtils;
-
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.SoapHeader;
-import lombok.Data;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Encapsulates request data.

@@ -23,11 +23,11 @@
 package ee.ria.xroad.centerui;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import ee.ria.xroad.commonui.UIServices;
 import ee.ria.xroad.signer.protocol.SignerClient;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;

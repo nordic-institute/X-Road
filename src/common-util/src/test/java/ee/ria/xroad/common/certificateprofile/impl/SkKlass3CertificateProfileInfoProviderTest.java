@@ -22,13 +22,6 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import java.security.cert.X509Certificate;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider;
@@ -37,8 +30,17 @@ import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.security.auth.x500.X500Principal;
+
+import java.security.cert.X509Certificate;
+
 import static org.bouncycastle.util.Arrays.areEqual;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the implementation of SkKlass3CertificateProfileInfoProvider.

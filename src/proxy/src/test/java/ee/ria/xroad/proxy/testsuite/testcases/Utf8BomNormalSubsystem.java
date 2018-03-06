@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.util.Arrays;
-
 import ee.ria.xroad.common.message.RequestHash;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.util.Arrays;
 
 /**
  * The simplest case -- normal message and normal response. Both messages

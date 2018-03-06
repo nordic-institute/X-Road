@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.hashchain.HashChainBuilder;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import static ee.ria.xroad.common.util.CryptoUtils.SHA256_ID;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
-
-import ee.ria.xroad.common.hashchain.HashChainBuilder;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Messagelog performance test program.

@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.conf.serverconf.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Local group.

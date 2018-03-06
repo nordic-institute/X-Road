@@ -22,22 +22,22 @@
  */
 package ee.ria.xroad.common;
 
-import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
-
-import java.io.InputStream;
-import java.net.URI;
-
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.MimeHeaders;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
+import ee.ria.xroad.common.util.AsyncHttpSender;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ee.ria.xroad.common.util.AsyncHttpSender;
+import javax.xml.soap.MessageFactory;
+import javax.xml.soap.MimeHeaders;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPMessage;
+
+import java.io.InputStream;
+import java.net.URI;
+
+import static ee.ria.xroad.common.util.AbstractHttpSender.CHUNKED_LENGTH;
 
 /**
  * Performs a single request at a time and returns a response.

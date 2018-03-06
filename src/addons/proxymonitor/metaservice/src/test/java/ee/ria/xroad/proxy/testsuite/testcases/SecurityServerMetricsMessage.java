@@ -22,11 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -37,12 +32,22 @@ import ee.ria.xroad.monitor.common.SystemMetricsResponse;
 import ee.ria.xroad.monitor.common.dto.HistogramDto;
 import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import ee.ria.xroad.proxy.conf.KeyConf;
-import ee.ria.xroad.proxy.testsuite.*;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import ee.ria.xroad.proxy.testsuite.TestGlobalConf;
+import ee.ria.xroad.proxy.testsuite.TestKeyConf;
+import ee.ria.xroad.proxy.testsuite.TestServerConf;
 import ee.ria.xroad.proxy.util.MetaserviceTestUtil;
 import ee.ria.xroad.proxymonitor.message.GetSecurityServerMetricsResponse;
 import ee.ria.xroad.proxymonitor.message.HistogramMetricType;
 import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.MetricType;
+
+import akka.actor.ActorSystem;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
@@ -50,12 +55,15 @@ import scala.concurrent.duration.Duration;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.soap.SOAPBody;
+
 import java.math.BigDecimal;
 import java.nio.file.Paths;
 import java.util.List;
 
 import static ee.ria.xroad.proxy.util.MetaserviceTestUtil.verifyAndGetSingleBodyElementOfType;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.isIn;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 

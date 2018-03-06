@@ -67,7 +67,6 @@ import static ee.ria.xroad.proxy.messagelog.TestUtil.cleanUpDatabase;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createMessage;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.createSignature;
 import static ee.ria.xroad.proxy.messagelog.TestUtil.initForTest;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

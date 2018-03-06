@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.io.InputStream;
-
 import ee.ria.xroad.common.message.SoapMessageImpl;
+
+import java.io.InputStream;
 
 /**
  * Describes the management request to be sent.

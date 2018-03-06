@@ -22,11 +22,13 @@
  */
 package ee.ria.xroad.common.cert;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
-import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CERT_PATH_X;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-import static ee.ria.xroad.common.cert.CertHelper.getOcspResponseForCert;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
+import ee.ria.xroad.common.ocsp.OcspVerifier;
+import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.CertPath;
 import java.security.cert.CertPathBuilder;
@@ -46,13 +48,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CERT_PATH_X;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
+import static ee.ria.xroad.common.cert.CertHelper.getOcspResponseForCert;
 
 /**
  * Certificate chain verifier.

@@ -22,10 +22,12 @@
  */
 package ee.ria.xroad.common.hashchain;
 
-import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
-import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
-import static ee.ria.xroad.common.util.MessageFileNames.attachment;
-import static java.lang.Integer.numberOfLeadingZeros;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -33,12 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static ee.ria.xroad.common.hashchain.DigestList.digestHashStep;
+import static ee.ria.xroad.common.util.CryptoUtils.getDigestAlgorithmURI;
+import static ee.ria.xroad.common.util.MessageFileNames.attachment;
+import static java.lang.Integer.numberOfLeadingZeros;
 
 /**
  * Builds Merkle tree from a set of hashes. Then constructs hash chains

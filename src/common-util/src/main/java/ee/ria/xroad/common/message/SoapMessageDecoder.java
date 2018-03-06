@@ -22,11 +22,7 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import ee.ria.xroad.common.CodedException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.james.mime4j.MimeException;
@@ -36,10 +32,20 @@ import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
 
-import ee.ria.xroad.common.CodedException;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.util.MimeTypes.*;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_CONTENT_TYPE;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_MIME_PARSING_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.util.MimeTypes.MULTIPART_RELATED;
+import static ee.ria.xroad.common.util.MimeTypes.TEXT_XML;
+import static ee.ria.xroad.common.util.MimeTypes.XOP_XML;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.getBaseContentType;
 

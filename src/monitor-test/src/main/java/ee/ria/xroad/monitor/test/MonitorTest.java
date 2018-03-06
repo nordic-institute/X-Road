@@ -22,11 +22,10 @@
  */
 package ee.ria.xroad.monitor.test;
 
-import com.typesafe.config.ConfigFactory;
-
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;

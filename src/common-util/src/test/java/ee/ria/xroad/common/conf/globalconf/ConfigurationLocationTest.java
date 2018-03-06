@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URLConnection;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link ConfigurationLocation}

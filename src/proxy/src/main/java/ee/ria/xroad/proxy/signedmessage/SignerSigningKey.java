@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.proxy.signedmessage;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
-import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
-
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.signature.BatchSigner;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -32,6 +29,9 @@ import ee.ria.xroad.common.signature.SigningRequest;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_SIGNATURE;
+import static ee.ria.xroad.common.ErrorCodes.translateWithPrefix;
 
 /**
  * Signing key that is located in SSCD (secure signature creation device).

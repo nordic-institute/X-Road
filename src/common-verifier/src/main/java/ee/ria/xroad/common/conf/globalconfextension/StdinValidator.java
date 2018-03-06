@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.common.conf.globalconfextension;
 
-import java.nio.charset.StandardCharsets;
-
 import org.apache.commons.io.IOUtils;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * OCSP nextUpdate configuration file validator, which reads the configuration

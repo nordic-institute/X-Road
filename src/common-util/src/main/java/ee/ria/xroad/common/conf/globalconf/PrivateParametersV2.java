@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServiceType;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
+
+import java.math.BigInteger;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Contains private parameters of a configuration instance.

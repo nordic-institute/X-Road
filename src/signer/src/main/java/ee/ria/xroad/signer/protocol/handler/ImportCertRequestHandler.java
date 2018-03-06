@@ -22,19 +22,6 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
-import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
-import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
-import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
-import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
-import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
-
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Date;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.cert.CertChainVerifier;
@@ -51,7 +38,21 @@ import ee.ria.xroad.signer.protocol.message.ImportCert;
 import ee.ria.xroad.signer.protocol.message.ImportCertResponse;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
+
 import lombok.extern.slf4j.Slf4j;
+
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Date;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_EXISTS;
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_IMPORT_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_INCORRECT_CERTIFICATE;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_WRONG_CERT_USAGE;
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**
  * Handles certificate import requests.

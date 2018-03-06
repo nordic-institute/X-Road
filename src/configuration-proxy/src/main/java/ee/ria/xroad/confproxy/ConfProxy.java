@@ -26,6 +26,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectory;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.confproxy.util.OutputBuilder;
+
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;

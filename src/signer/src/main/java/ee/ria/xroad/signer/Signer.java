@@ -22,9 +22,6 @@
  */
 package ee.ria.xroad.signer;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.PeriodicJob;
 import ee.ria.xroad.common.util.StartStop;
@@ -36,6 +33,10 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.tokenmanager.module.AbstractModuleManager;
 import ee.ria.xroad.signer.tokenmanager.module.DefaultModuleManagerImpl;
 import ee.ria.xroad.signer.util.Update;
+
+import akka.actor.ActorRef;
+import akka.actor.ActorSystem;
+import akka.actor.Props;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
@@ -45,7 +46,12 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
-import static ee.ria.xroad.signer.protocol.ComponentNames.*;
+import static ee.ria.xroad.signer.protocol.ComponentNames.MODULE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_RELOAD;
+import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_RESPONSE_MANAGER;
+import static ee.ria.xroad.signer.protocol.ComponentNames.REQUEST_PROCESSOR;
 
 /**
  * Signer application.

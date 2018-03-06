@@ -22,10 +22,9 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import ee.ria.xroad.common.db.HibernateUtil;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,11 +37,20 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.transform.Transformers;
 
-import ee.ria.xroad.common.db.HibernateUtil;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.*;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.CLIENT_MEMBER_CLASS;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.CLIENT_MEMBER_CODE;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.CLIENT_SUBSYSTEM_CODE;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.CLIENT_XROAD_INSTANCE;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SECURITY_SERVER_INTERNAL_IP;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_MEMBER_CLASS;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_MEMBER_CODE;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_SUBSYSTEM_CODE;
+import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SERVICE_XROAD_INSTANCE;
 import static ee.ria.xroad.opmonitordaemon.OpMonitorDaemonDatabaseCtx.doInTransaction;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.MONITORING_DATA_TS;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataOutputSpecFields.PUBLIC_OUTPUT_FIELDS;
