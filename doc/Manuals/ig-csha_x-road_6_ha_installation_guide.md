@@ -6,8 +6,8 @@
 # Central Server High Availability Installation Guide
 **X-ROAD 6**
 
-Version: 1.4
-20.02.2017
+Version: 1.5  
+05.03.2018  
 Doc. ID: IG-CSHA
 
 ---
@@ -23,7 +23,7 @@ Doc. ID: IG-CSHA
  16.12.2015 | 1.2     | Added recovery information
  17.12.2015 | 1.3     | Editorial changes made
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
-
+ 05.03.2018 | 1.5     | Added terms and abbreviations references and document links  | Tatu Repo
 
 ## Table of Contents
 
@@ -33,7 +33,8 @@ Doc. ID: IG-CSHA
 - [1 Introduction](#1-introduction)
   * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
   * [1.2 Target Audience](#12-target-audience)
-  * [1.3 References](#13-references)
+  * [1.3 Terms and abbreviations](#13-terms-and-conditions)
+  * [1.4 References](#14-references)
 - [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
 - [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
   * [3.1 Requirements](#31-requirements)
@@ -85,12 +86,17 @@ The intended audience of this installation guide are X-Road central server admin
 
 The document is intended for readers with a good knowledge of Linux server management, computer networks, and the X-Road functioning principles.
 
+### 1.3 Terms and abbreviations
 
-### 1.3 References
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
-1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+### 1.4 References
 
-2.  <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: UG-CS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md).
+
+2.  <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md).
+
+3.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 
 ## 2 Key Points and Known Limitations for X-Road Central Server HA Deployment

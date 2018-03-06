@@ -4,13 +4,14 @@
 
 # X-Road: Operational Monitoring Testing Plan
 
-Version: 0.6  
+Version: 0.7  
 Doc ID: TEST-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc. | Tatu Repo |
 
 ## Table of Contents
 <!-- toc -->
@@ -57,14 +58,7 @@ The purpose of this document is to describe the levels and procedures of testing
 
 ### 1.2 Terms and Abbreviations
 
-HTTP -- Hypertext Transfer Protocol  
-HTTPS -- Hypertext Transfer Protocol Secure  
-JMXMP -- Java Management Extensions Messaging Protocol  
-JSON -- JavaScript Object Notation  
-SOAP -- Simple Object Access Protocol  
-DSL -- Domain Specific Language  
-SDK -- Software Development Kit  
-SSH -- Secure Shell
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -73,7 +67,8 @@ SSH -- Secure Shell
 <a name="TEST-OPMONSTRAT"></a>**TEST-OPMONSTRAT** -- Cybernetica AS. X-Road: Operational Monitoring Testing Strategy. Document ID: [TEST-OPMONSTRAT](test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)  
 <a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
 <a name="UG-SS"></a>**UG-SS** -- Cybernetica AS. X-Road: Security Server User Guide. Document ID: [UG-SS](../../Manuals/ug-ss_x-road_6_security_server_user_guide_2.14_Y-883-32.docx).  
-<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).
+<a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. Operational Monitoring Daemon JMXMP Interface. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Components of the Operational Monitoring System in the Context of Testing
 

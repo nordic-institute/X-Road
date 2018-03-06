@@ -4,13 +4,14 @@
 
 # X-Road: Operational Monitoring Testing Strategy
 
-Version: 0.6  
+Version: 0.7  
 Doc. ID: TEST-OPMONSTRAT
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
+| 05.03.2018 | 0.7       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo | 
 
 ## Table of Contents
 
@@ -55,14 +56,7 @@ A detailed testing plan will be delivered as a separate document in [[TEST-OPMON
 
 ### 1.2 Terms and Abbreviations
 
-HTTP -- Hypertext Transfer Protocol  
-HTTPS -- Hypertext Transfer Protocol Secure  
-JMXMP -- Java Management Extensions Messaging Protocol  
-SOAP -- Simple Object Access Protocol  
-DSL -- Domain Specific Language  
-CA -- Certification Authority  
-TSA -- Timestamping Authority  
-CI -- Continuous Integration  
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -75,6 +69,7 @@ CI -- Continuous Integration
 <a name="UC-OPMON"></a>**UC-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Daemon Use Case Model. Document ID: [UC-OPMON](../UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md).  
 <a name="TEST-OPMON"></a>**TEST-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Testing Plan. Document ID: [TEST-OPMON](test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md).  
 <a name="IG-SS"></a>**IG-SS** -- Cybernetica AS. X-Road: Security Server Installation Guide. Document ID: [IG-SS](../../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Requirements Relevant to Testing
 

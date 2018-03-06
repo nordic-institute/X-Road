@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.6
-19.02.2018
+Version: 1.7
+06.03.2018
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -29,6 +29,7 @@ Date       | Version | Description                                              
 16.12.2015 | 1.4     | UC SS\_18, UC SS\_19, UC SS\_20, UC SS\_29, UC SS\_30, UC SS\_31, UC SS\_34, UC SS\_35, UC SS\_38, UC SS\_39 updated. UC SS\_42 added. Editorial changes made. | Meril Vaht
 29.08.2017 | 1.5     | Changed documentation type from docx to md file |   Lasse Matikainen
 19.02.2018 | 1.6     | Updated the negative case extension for backing up the central server | Tatu Repo
+06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 <!-- tocstop -->
 
@@ -126,20 +127,7 @@ the access rights required to carry out the use case.
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-This section defines the terms that are not defined in the
-aforementioned document or that have contextual meaning specific to this
-document in addition to the general definition.
-
--   **Internal TLS key** and **internal** **TLS certificates** are used
-    for setting up the TLS connection between the security server and
-    the client information systems.
-
--   **Certificate signing request (CSR)** is generated in the security
-    server for a certain approved certification authority for signing a
-    public key and associated information.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -165,6 +153,8 @@ document in addition to the general definition.
 
 7.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\]
     X-Road: Protocol for Management Services. Document ID: PR-MSERV.
+
+8. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 2.7  
+Version: 2.8  
 Doc. ID: PR-GCONF
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -16,7 +16,7 @@ Doc. ID: PR-GCONF
 | 05.09.2016 | 2.5       | Added description of optional configuration parts | Janne Mattila |
 |            | 2.6       | Converted to markdown format |  |
 | 20.01.2017 | 2.7       | Added version history | Sami Kallio |
-
+| 06.03.2018 | 2.8       | Moved terms to term doc, added doc reference and link | Tatu Repo |
 
 ## Table of Contents
 
@@ -77,24 +77,7 @@ The following figure contains a class diagram that illustrates important concept
 
 ![](img/pr-gconf-concepts.png)
 
-- **Configuration Provider** – Entity that maintains a configuration.
-  Configuration provider maintains one or more configuration sources that are used to distribute the configuration.
-- **Configuration Source** – Component that distributes configuration to configuration clients.
-  Configuration source can be either governing authority of an X-Road instance or a configuration proxy.
-- **Configuration Anchor** – Set of information that can be used to download and verify information from a configuration provider.
-  For each source the configuration anchor contains URL and a public key certificate that is used to verify integrity of the downloaded configuration. Configuration anchors are distributed by configuration providers as XML files.
-- **Configuration Client** – Entity that uses configuration anchors for downloading configuration from configuration sources.
-  Configuration clients can be either security servers or configuration proxies.
-- **Configuration Proxy** – Entity that downloads configuration from a configuration source and redistributes them (thus the configuration proxy acts as a configuration source).
-  Typically, the configuration proxy simply caches the configuration. When required, the proxy can also transform the configuration, e.g. by filtering out some data items.
-- **Configuration** – Set of parameters that are distributed by a configuration source.
-  Configuration consists of one or more configuration parts that contain groups of related parameters.
-- **Private Parameters** – Set of parameters that are used only by members of this X-Road instance.
-- **Shared Parameters** – Set of parameters that are used by members of this X-Road instance and other federated instances.
-- **Monitoring Parameters** – (not pictured) Set of parameters that control monitoring of security servers
-- **X-Road Instance** – Installation of the X-Road system. X-Road instances can interact with each other.
-  X-Road instance is run by a governing authority that is responsible for managing members of the X-Road instance and distributing the configuration.
-- **Governing Authority** – Authority that maintains the X-Road instance, registers X-Road members and security servers, and distributes this information to the X-Road members.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
@@ -105,6 +88,7 @@ The following figure contains a class diagram that illustrates important concept
 - [MPREL] The MIME Multipart/Related Content-type, Internet Engineering Task Force, 1998.
 - [XMLDSIG] XML Signature Syntax and Processing Version 2.0, 2013.
 - [ISO8601] Data Elements and Interchange Formats – Information Interchange – Representation of Dates and Times, International Organization for Standardization, 2004.
+- <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Protocol for Downloading Configuration
 

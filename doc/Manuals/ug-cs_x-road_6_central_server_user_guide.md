@@ -1,6 +1,6 @@
 # X-Road: Central Server User Guide
 
-Version: 2.4  
+Version: 2.5  
 Doc. ID: UG-CS
 
 
@@ -29,6 +29,7 @@ Doc. ID: UG-CS
 | 14.4.2016  | 2.2     | Added chapter for additional configuration options. ||
 | 5.9.2016   | 2.3     | Added instructions for configuring OCSP fetch interval. ||
 | 20.01.2017 | 2.4       | Added license text and version history | Sami Kallio |
+| 05.03.2018 | 2.5     | Added terms and abbreviations reference and document links | Tatu Repo |
 
 ## Table of Contents
 <!-- toc -->
@@ -36,7 +37,8 @@ Doc. ID: UG-CS
   * [License](#license)
 - [1. Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
-  * [1.2 References](#12-references)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
 - [2. User Management](#2-user-management)
   * [2.1 User Roles](#21-user-roles)
   * [2.2 Managing the Users](#22-managing-the-users)
@@ -130,18 +132,23 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 The intended audience of this User Guide are X-Road central server administrators who are responsible for everyday management of the X-Road central server.
 
-Instructions for the installation and initial configuration of the central server can be found in the Central Server Installation Guide [CSI]. Instructions for installing the central server in a cluster for achieving high availability can be found in the Central Server High Availability Installation Guide [IG-CSHA].
+Instructions for the installation and initial configuration of the central server can be found in the Central Server Installation Guide [CSI](#13-references). Instructions for installing the central server in a cluster for achieving high availability can be found in the Central Server High Availability Installation Guide [IG-CSHA](#13-references).
 
-## 1.2 References
+## 1.2 Terms and abbreviations
 
-1. [CSI] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: IG-CS
-2. [IG-CSHA] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: IG-CSHA
-3. [JSON] Introducing JSON, http://json.org/
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#13-references)\].
+
+## 1.3 References
+
+1. [CSI] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md)
+2. [IG-CSHA] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+3. [JSON] Introducing JSON, [http://json.org/](http://json.org/)
 4. [SPEC-AL] Cybernetica AS. X-Road: Audit log events. Document ID: SPEC-AL
-5. [SSI] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: IG-SS
-6. [IG-CS] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: IG-CS
-7. [UC-GCONF] Cybernetica AS. X-Road 6: Use Case Model for Global Configuration Distribution. Document ID: UC-GCONF
-8. [RFC-OCSP] Online Certificate Status Protocol – OCSP, https://tools.ietf.org/html/rfc6960
+5. [SSI] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+6. [IG-CS] Cybernetica AS. X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md)
+7. [UC-GCONF] Cybernetica AS. X-Road 6: Use Case Model for Global Configuration Distribution. Document ID: [UC-GCONF](../UseCases/uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md)
+8. [RFC-OCSP] Online Certificate Status Protocol – OCSP, [https://tools.ietf.org/html/rfc6960](https://tools.ietf.org/html/rfc6960)
+9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 # 2. User Management
 
@@ -233,7 +240,7 @@ The central server provides management services to the security servers that are
 
 A subsystem of an X-Road member acting as a service provider for the management services must be appointed in the central server (see 4.2.1), registered as a client of the management services’ security server (see 4.2.2) and configured to provide the services in the management services’ security server (see 4.2.3).
 
-The management services’ security server must be installed and registered in the central server before the management service provider can be registered as a client of the security server and the management services can be configured (see [SSI]).
+The management services’ security server must be installed and registered in the central server before the management service provider can be registered as a client of the security server and the management services can be configured (see [SSI](#13-references)).
 
 ### 4.2.1 Appointing the Management Service Provider
 
@@ -1034,7 +1041,7 @@ To upload a configuration file from the local file system to the security server
 
 # 14. Audit Log
 
-The central server keeps an audit log of the events performed by the central server administrator. The audit log events are generated by the user interface when the user changes the system’s state or configuration. The user actions are logged regardless of whether the outcome of the action was a success or a failure. The complete list of the audit log events is described in [SPEC-AL].
+The central server keeps an audit log of the events performed by the central server administrator. The audit log events are generated by the user interface when the user changes the system’s state or configuration. The user actions are logged regardless of whether the outcome of the action was a success or a failure. The complete list of the audit log events is described in [SPEC-AL](#13-references).
 
 Actions that change the system’s state or configuration but are not carried out using the user interface are not logged (for example, X-Road software installation and upgrade, user creation and permission granting, and changing of the configuration files in the file system).
 
@@ -1048,7 +1055,7 @@ For example, adding a new member in the central server produces the following lo
 
 `2015-07-03T11:40:52+03:00 my-central-server-host INFO  [X-Road Center UI] 2015-07-03 11:40:52+0300 - {"event":"Add member","user":"admin1", "data":{"memberName":"member1 name","memberClass":"COM", "memberCode":"member1"}}`
 
-The event is present in JSON [JSON] format, in order to ensure machine processability. The field event represents the description of the event, the field user represents the user name of the performer, and the field data represents data related with the event. The failed action event record contains an additional field reason for the error message. For example:
+The event is present in JSON [JSON](#13-references) format, in order to ensure machine processability. The field event represents the description of the event, the field user represents the user name of the performer, and the field data represents data related with the event. The failed action event record contains an additional field reason for the error message. For example:
 
 `2015-07-03T11:51:24+03:00 my-central-server-host INFO  [X-Road Center UI] 2015-07-03 11:51:24+0300 - {"event":"Log in to token failed","user":"admin1", "reason":"PIN incorrect","data":{"tokenId":"0","tokenSerialNumber":null, "tokenFriendlyName":"softToken-0"}}`
 
@@ -1086,9 +1093,9 @@ The X-Road software does not offer special tools for archiving the audit log. Th
 
 # 15. Monitoring
 
-Monitoring is taken to use by installing the monitoring support (see [IG-CS]) and appointing the central monitoring client as specified below.
+Monitoring is taken to use by installing the monitoring support (see [IG-CS](#13-references) and appointing the central monitoring client as specified below.
 
-Identity of central monitoring client (if any) is configured using central server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF]) monitoring-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF]).
+Identity of central monitoring client (if any) is configured using central server's admin user interface. Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) monitoring-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
 
 ```xml
 <tns:conf xmlns:id="http://x-road.eu/xsd/identifiers" xmlns:tns="http://x-road.eu/xsd/xroad.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://x-road.eu/xsd/xroad.xsd">
@@ -1117,9 +1124,9 @@ To disable central monitoring client altogether, update configuration to one whi
 # 16. Additional configuration options
 ## 16.1 Verify next update
 
-For additional robustness the OCSP [RFC-OCSP] response verifier can be configured to skip checking of nextUpdate parameter. By default the checking is turned on and to turn it off the user has to take action.
+For additional robustness the OCSP [RFC-OCSP](#13-references) response verifier can be configured to skip checking of nextUpdate parameter. By default the checking is turned on and to turn it off the user has to take action.
 
-Configuration is done by updating a specific optional configuration file (see [UC-GCONF]) nextupdate-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF]).
+Configuration is done by updating a specific optional configuration file (see [UC-GCONF](#13-references)) nextupdate-params.xml. This configuration file is distributed to all security servers through the global configuration distribution process (see [UC-GCONF](#13-references)).
 
 ```xml
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">
@@ -1131,7 +1138,7 @@ With verifyNextUpdate element value “false” the nextUpdate parameter checkin
 
 ## 16.2 OCSP fetch interval
 
-The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP] responses. By default the fetch interval is configured to 3600 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF]) of specific format can be uploaded to central server.
+The xroad-signer component has a specific interval how often it downloads new OCSP [RFC-OCSP](#13-references) responses. By default the fetch interval is configured to 3600 seconds. To use something else than the default value a global configuration extension part (see [UC-GCONF](#13-references)) of specific format can be uploaded to central server.
 
 ```xml
 <xro:conf xmlns:xro="http://x-road.eu/xsd/xroad.xsd">

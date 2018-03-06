@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Trust Service Management
 **Analysis**
 
-Version: 1.2
-29.08.2017
+Version: 1.3
+06.03.2017
 <!-- 23 pages-->
 Doc. ID: UC-TRUST
 
@@ -22,6 +22,7 @@ Doc. ID: UC-TRUST
 25.10.2015   | 1.0     | Editorial changes made                                         | Riin Saarmäe
 04.11.2015   | 1.1     | UC TRUST\_19 added. Minor corrections made.                    | Riin Saarmäe
 29.08.2017   | 1.2     |  Changed documentation type from docx to md file |   Lasse Matikainen
+06.03.2018   | 1.3     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 ## Table of Contents
 
@@ -81,39 +82,23 @@ the access rights required to carry out the use case.
 
 ### 1.1 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-This section defines the terms that are not defined in the
-aforementioned document or that have contextual meaning specific to this
-document in addition to the general definition.
-
--   **Certification authority** (**CA**) is an entity that issues
-    digital certificates. A digital certificate certifies the ownership
-    of a public key by the named subject of the certificate.
-
--   **Certification service CA** is used in the X-Road system as a trust
-    anchor for a certification service. The certification service CA
-    may, but does not have to be a Root CA.
-
--   **Timestamping authority** (**TSA**) is an entity that issues
-    timestamps. Timestamps are used to prove the existence of certain
-    data before a certain point of time without the possibility that the
-    owner can backdate the timestamps.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.2 References
 
-1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: IG-CS.
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
 2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Audit Log Events. Document ID: SPEC-AL.
 
-3.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] Global Configuration Distribution. Document ID: UC-GCONF.
+3.  <a id="Ref_UC-GCONF" class="anchor"></a>\[UC-GCONF\] Global Configuration Distribution. Document ID: [UC-GCONF](uc-gconf_x-road_use_case_model_for_global_configuration_distribution_1.4_Y-883-8.md).
 
-4.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Member Communication. Document ID: UC-MESS.
+4.  <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Member Communication. Document ID: [UC-MESS](uc-mess_x-road_member_communication_use_case_model.md).
 
 5.  <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate
     Revocation List (CRL) Profile, Internet Engineering Task
     Force, 2008.
+
+6.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

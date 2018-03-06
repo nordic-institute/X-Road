@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.3  
+Version: 1.4  
 Doc. ID: IG-XLB
 
 
@@ -10,6 +10,7 @@ Doc. ID: IG-XLB
 | 27.4.2017   | 1.1         | Added slave node user group instructions                                                                                 | Tatu Repo                    |
 | 15.6.2017   | 1.2         | Added health check interface maintenance mode                                                                            | Tatu Repo                    |
 | 21.6.2017   | 1.3         | Added chapter 7 on [upgrading the security server cluster](#7-upgrading-a-clustered-x-road-security-server-installation) | Olli Lindgren                |
+| 02.03.2018  | 1.4         | Added uniform terms and conditions reference                                                                             | Tatu Repo                    |
 
 ## Table of Contents
 
@@ -18,7 +19,8 @@ Doc. ID: IG-XLB
 - [License](#license)
 - [1. Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
-  * [1.2 References](#12-references)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
 - [2. Overview](#2-overview)
   * [2.1 Goals and assumptions](#21-goals-and-assumptions)
   * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
@@ -77,14 +79,18 @@ and configuring X-Road security servers to use external load balancing. The docu
 knowledge of Linux server management, computer networks, database administration, clustered environments and the X-Road
 functioning principles.
 
-### 1.2 References
+### 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.3 References
 
 | Document Id    |  Document                                                                                |
 |:--------------:|:-----------------------------------------------------------------------------------------|
 | \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](../../../ansible/ss_cluster/README.md) |
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
 | \[UG-SS\] | [X-Road 6 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
-
+| <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
 
 ## 2. Overview
 
@@ -216,7 +222,7 @@ replication cannot simultaneously create a single point of failure. A distribute
 
 This chapter details the complete installation on a high level, with links to other chapters that go into the details.
 
-You can set up the cluster manually, or use the provided Ansible playbook \[[SS-CLUSTER](#12-references)\] if it suits
+You can set up the cluster manually, or use the provided Ansible playbook \[[SS-CLUSTER](#13-references)\] if it suits
 your purposes.
 
 ### 3.1 Prerequisites
@@ -236,7 +242,7 @@ In order to properly set up the data replication, the slave nodes must be able t
    * `serverconf.hibernate.connection.url` : Change the url port number from `5432` to `5433` (or the port you specified)
 5. If you are using an already configured server as the master, the existing configuration was replicated to the slaves
    in step 3. Otherwise, proceed to configure the master server: install the configuration anchor, set up basic information,
-   create authentication and signing keys and so on. See the security server installation guide \[[IG-SS](#12-references)\]
+   create authentication and signing keys and so on. See the security server installation guide \[[IG-SS](#13-references)\]
    for help with the basic setup.
 6. Set up the configuration file replication, see section
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
@@ -296,7 +302,7 @@ In order to properly set up the data replication, the slave nodes must be able t
 
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
-   For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#12-references)\].
+   For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 10. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)

@@ -6,8 +6,8 @@
 
 **Technical Specification**
 
-Version: 1.5
-19.01.2018
+Version: 1.6  
+02.03.2018
 <!-- 15 pages -->
 Doc. ID: ARC-SS
 
@@ -31,7 +31,8 @@ Doc. ID: ARC-SS
  19.12.2016 | 1.3     | Added operational monitoring                                | Kristo Heero
  20.02.2017 | 1.4     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 1.5     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
-
+ 02.03.2018 | 1.6     | Moved terms and abbreviations to terms document, added terms reference and document links | Tatu Repo
+ 
 ## Table of Contents
 
 <!-- toc -->
@@ -102,55 +103,47 @@ The security server also depends on a central server, which provides the global 
 
 ### 1.2 Terms and Abbreviations
 
-**MIME** - Multipurpose Internet Mail Extensions
-
-**OCSP** - Online Certificate Status Protocol
-
-**SOAP** - Simple Object Access Protocol
-
-**TLS** - Transport Layer Security
-
-**TSP** - Time Stamp Provider
-
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture.
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture.
+2. <a id="Ref_ARC-OPMOND" class="anchor"></a>\[ARC-OPMOND\] Cybernetica AS. X-Road: Operational Monitoring Daemon Architecture. Document ID: [ARC-OPMOND](../OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md).
 
 3. <a id="Ref_BATCH-TS" class="anchor"></a>\[BATCH-TS\] Freudenthal, Margus. Using Batch Hashing for Signing and Time-Stamping. Cybernetica Research Reports, T-4-20, 2013.
 
-4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration.
+4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration._data_model_1.2_Y-883-12.docx).
 
-5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events.
+5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](spec-al_x-road_audit_log_events_1.7_Y-883-17.docx).
 
 6. <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
 
 7. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration.
+8. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-9. <a id="Ref_PR-MANAGE" class="anchor"></a>\[PR-MANAGE\] Cybernetica AS. X-Road: Management Services Protocol.
+9. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages.
+10. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol.
+11. <a id="Ref_PR-MESSTRANSP" class="anchor"></a>\[PR-MESSTRANSP\] Cybernetica AS. X-Road: Message Transport Protocol. Document ID: [PR-MESSTRANSP](../Protocols/pr-messtransp_x-road_message_transport_protocol_2.2_Y-743-4.docx).
 
-12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] Cybernetica AS. X-Road: Service Metadata Protocol.
+12. <a id="Ref_PR-META" class="anchor"></a>\[PR-META\] Cybernetica AS. X-Road: Service Metadata Protocol. Document ID: [PR-META](../Protocols/pr-meta_x-road_service_metadata_protocol.md).
 
-13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol.
+13. <a id="Ref_PR-OPMON" class="anchor"></a>\[PR-OPMON\] Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../OperationalMonitoring/Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).
 
 14. <a id="Ref_TSP" class="anchor"></a>\[TSP\] Internet X.509 Public Key Infrastructure Time-Stamp Protocol (TSP). Intenet Engineering Task Force, RFC 3161, 2001.
 
-15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual.
+15. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] Cybernetica AS. X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual_1.4.1_Y-883-21.docx).
 
-16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model.
+16. <a id="Ref_UC-MESS" class="anchor"></a>\[UC-MESS\] Cybernetica AS. X-Road: Member Communication Use Case Model. Document ID: [UC-MESS](../UseCases/uc-mess_x-road_member_communication_use_case_model.md).
 
-17. <a id="Ref_ARC-MA" class="anchor"></a>\[ARC-MA\] X-Road: Monitoring Architecture
+17. <a id="Ref_ARC-ENVMON" class="anchor"></a>\[ARC-ENVMON\] X-Road: Monitoring Architecture. Document ID: [ARC-ENVMON](../EnvironmentalMonitoring/Monitoring-architecture.md).
 
-18. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
+18. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 
+19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Component View
 
@@ -277,7 +270,7 @@ The management services are called by security servers to perform management tas
 
 The management service interface is a synchronous RPC-style interface that is required by the security server. The service is provided by central servers.
 
-The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MANGE](#Ref_PR-MANAGE)\].
+The interface is described in more detail in \[[ARC-G](#Ref_ARC-G)\], \[[PR-MSERV](#Ref_PR-MSERV)\].
 
 
 ### 3.2 Download Configuration

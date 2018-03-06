@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.1  
+Version: 2.2  
 Doc. ID: UG-CP
 
 ## Version History
@@ -19,6 +19,7 @@ Doc. ID: UG-CP
 | 09.07.2015 | 1.5     | Repository address updated             |              |
 | 20.09.2015 | 2.0     | Editorial changes made                 |              |
 | 07.06.2017 | 2.1     | System parameter *signature-algorithm-id* replaced with *signature-digest-algorithm-id* | Kristo Heero |
+| 05.03.2018 | 2.2     | Added references, terms and abbreviations reference, document link | Tatu Repo |
 
 ## Table of Contents
 
@@ -26,7 +27,9 @@ Doc. ID: UG-CP
 
 * [1 Introduction](#1-introduction)
     * [1.1 Target Audience](#11-target-audience)
-    * [1.2 X-Road Configuration Proxy](#12-x-road-configuration-proxy)
+    * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+    * [1.3 References](#13-references)
+    * [1.4 X-Road Configuration Proxy](#14-x-road-configuration-proxy)
 * [2 Installation](#2-installation)
     * [2.1 Supported Platforms](#21-supported-platforms)
     * [2.2 Reference Data](#22-reference-data)
@@ -58,7 +61,15 @@ The intended audience of this Manual are X-Road system administrators responsibl
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
-### 1.2 X-Road Configuration Proxy
+### 1.2 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.3 References
+
+1. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md). 
+
+### 1.4 X-Road Configuration Proxy
 
 The configuration proxy acts as an intermediary between X-Road servers in the matters of global configuration exchange.
 

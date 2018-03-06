@@ -4,7 +4,7 @@
 
 # X-Road: Operational Monitoring Daemon Architecture
 
-Version: 0.6  
+Version: 0.8  
 Document ID: ARC-OPMOND
 
 | Date       | Version     | Description                                                                  | Author             |
@@ -12,6 +12,7 @@ Document ID: ARC-OPMOND
 |  | 0.5       | Initial version               |          |
 | 23.01.2017 | 0.6       | Added license text, table of contents and version history | Sami Kallio |
 | 02.02.2018 | 0.7       | Technology matrix moved to the ARC-TEC-file               | Antti Luoma |
+| 05.03.2018 | 0.8       | Added terms and abbreviations reference and moved terms to term doc | Tatu Repo   |
 
 ## Table of Contents
 
@@ -61,12 +62,7 @@ The monitoring daemon also depends on central server that provides the global co
 
 ### 1.2 Terms and Abbrevations
 
-HTTP -- Hypertext Transfer Protocol  
-HTTPS -- Hypertext Transfer Protocol Secure  
-JMXMP -- Java Management Extensions Messaging Protocol  
-JSON -- JavaScript Object Notation  
-SOAP -- Simple Object Access Protocol  
-TLS -- Transport Layer security  
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
@@ -76,7 +72,8 @@ TLS -- Transport Layer security
 <a name="PR-OPMON"></a>**PR-OPMON** -- Cybernetica AS. X-Road: Operational Monitoring Protocol. Document ID: [PR-OPMON](../Protocols/pr-opmon_x-road_operational_monitoring_protocol_Y-1096-2.md).   
 <a name="PR-OPMONJMX"></a>**PR-OPMONJMX** -- Cybernetica AS. X-Road: Operational Monitoring JMX Protocol. Document ID: [PR-OPMONJMX](../Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md).  
 <a name="PSQL"></a>**PSQL** -- PostgreSQL, https://www.postgresql.org/  
-<a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).
+<a name="ARC-TEC"></a>**ARC-TEC** -- X-Road technologies. Document ID: [ARC-TEC](../../Architecture/arc-tec_x-road_technologies.md).  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 
 ## 2 Component View

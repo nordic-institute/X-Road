@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.10
+Version: 2.11  
 Doc. ID: IG-SS
 
 ---
@@ -35,6 +35,7 @@ Doc. ID: IG-SS
  13.04.2017 | 2.8     | Added token ID formatting                                       | Cybernetica AS
  25.08.2017 | 2.9     | Update environmental monitoring installation information | Ilkka Seppälä
  15.09.2017 | 2.10    | Added package with configuration specific to Estonia xroad-securityserver-ee | Cybernetica AS
+ 05.03.2018 | 2.11    | Added terms and abbreviations reference and document links
 
 ## Table of Contents
 
@@ -43,7 +44,8 @@ Doc. ID: IG-SS
 - [License](#license)
 - [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
-  * [1.2 References](#12-references)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
 - [2 Installation](#2-installation)
   * [2.1 Supported Platforms](#21-supported-platforms)
   * [2.2 Reference Data](#22-reference-data)
@@ -79,11 +81,15 @@ The intended audience of this Installation Guide are X-Road Security server syst
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, and the X-Road working principles.
 
+### 1.2 Terms and abbreviations
 
-### 1.2 References
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID UG-SS
+### 1.3 References
 
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+
+2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Installation
 

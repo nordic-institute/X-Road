@@ -6,8 +6,8 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.3
-19.01.2018
+Version: 2.4
+02.03.2018
 <!-- 12 pages -->
 Doc. ID: ARC-CS
 
@@ -31,6 +31,7 @@ Doc. ID: ARC-CS
  21.10.2015 | 2.1     | SSCD and password store related information added               | Ilja Kromonov
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
+ 02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document           | Tatu Repo
 
 ## Table of Contents
 
@@ -88,33 +89,27 @@ In addition to configuration distribution, the central server provides interface
 
 ### 1.2 Terms and Abbreviations
 
-**HSM** Hardware Security Module
-
-**OCSP** On-line Certificate Status Protocol
-
-**RPC** Remote Procedure Call
-
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture.
+1. <a id="Ref_ARC-G" class="anchor"></a>\[ARC-G\] Cybernetica AS. X-Road Architecture. Document ID: [ARC-G](arc-g_x-road_arhitecture.md).
 
-2. <a id="Ref_DM-CS" class="anchor"></a>\[DM-CS\] Cybernetica AS. X-Road: Central Server Configuration.
+2. <a id="Ref_DM-CS" class="anchor"></a>\[DM-CS\] Cybernetica AS. X-Road: Central Server Configuration. Document ID: [DM-CS](../DataModels/dm-cs_x-road_central_server_configuration_data_model.md).
 
-3. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration.
+3. <a id="Ref_PR-GCONF" class="anchor"></a>\[PR-GCONF\] Cybernetica AS. X-Road: Protocol for Downloading Configuration. Document ID: [PR-GCONF](../Protocols/pr-gconf_x-road_protocol_for_downloading_configuration.md).
 
-4. <a id="Ref_PR-MANAGE" class="anchor"></a>\[PR-MANAGE\] Cybernetica AS. X-Road: Management Services Protocol.
+4. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
-5. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages.
+5. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
-6. <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] Cybernetica AS. X-Road: Management Services Protocol.
+6. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events.
 
-7. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events.
+7. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-8. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
+8. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 
-9. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies.
-
+9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Component View
 

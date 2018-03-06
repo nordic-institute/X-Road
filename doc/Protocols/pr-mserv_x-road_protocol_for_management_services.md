@@ -6,7 +6,7 @@
 
 **Technical Specification**
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: PR-MSERV
 
 |  Date      | Version |  Description                                                             | Author             |
@@ -29,6 +29,7 @@ Doc. ID: PR-MSERV
 | 30.10.2015 | 1.8     | Header field *userId* removed from management services WSDL              | Kristo Heero       |
 | 11.12.2015 | 1.9     | Corrected documentation about registering only subsystems                | Siim Annuk         |
 | 07.06.2017 | 1.10    | Additional signature algorithms supported                                | Kristo Heero       |
+| 06.03.2018 | 1.11    | Added terms section, term doc reference and link, fixed references       | Tatu Repo          |
 
 ## Table of Contents
 
@@ -36,7 +37,8 @@ Doc. ID: PR-MSERV
 
 * [License](#license)
 * [1 Introduction](#1-introduction)
-    * [1.1 References](#11-references)
+    * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    * [1.2 References](#12-references)
 * [2 Format of the Messages](#2-format-of-the-messages)
     * [2.1 clientReg - Security Server Client Registration](#21-clientreg---security-server-client-registration)
     * [2.2 clientDeletion - Security Server Client Deletion](#22-clientdeletion---security-server-client-deletion)
@@ -67,7 +69,7 @@ Management services are services provided by the X-Road governing organization t
 
 * *authCertDeletion* – removing an authentication certificate from the security server.
 
-The management services are implemented as standard X-Road services (see [[PR-MESS]](#pr-mess) for detailed description of the protocol) that are offered by the X-Road governing authority. The exception is the *authCertReg* service that, for technical reasons, is implemented as HTTPS POST (see below for details).
+The management services are implemented as standard X-Road services (see \[[PR-MESS](#Ref_PR-MESS)\] for detailed description of the protocol) that are offered by the X-Road governing authority. The exception is the *authCertReg* service that, for technical reasons, is implemented as HTTPS POST (see below for details).
 
 This protocol builds on existing transport and message encoding mechanisms. Therefore, this specification does not cover the technical details and error conditions related to making HTTPS requests together with processing MIME-encoded messages. These concerns are discussed in detail in their respective standards.
 
@@ -75,20 +77,24 @@ Section 2 as well as [Annex B](#annex-b-wsdl-file-for-management-services), of t
 
 This specification does not include option for partially implementing the protocol – the conformant implementation must implement the entire specification.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document (in uppercase, as shown) are to be interpreted as described in [[REQUIREMENT]](#requirement).
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document (in uppercase, as shown) are to be interpreted as described in \[[REQUIREMENT](#Ref_REQ)\].
 
-### 1.1 References
+### 1.1 Terms and abbreviations
 
-- [REQUIREMENT] Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997.
-- [DM-CS] X-Road: Central Server Data Model. Document ID: DM-CS
-- [PR-MESS] X-Road: Message Protocol v4.0. Document ID: PR-MESS
-- [WSDL] Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001.
-- [DER] DER encoding. ITU-T X.690. July 2002.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
+### 1.2 References
+
+- <a name="Ref_REQ"></a>[REQUIREMENT] Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997.
+- <a name="Ref_DM-CS"></a>[DM-CS] X-Road: Central Server Data Model. Document ID: [DM-CS](../DataModels/dm-cs_x-road_central_server_configuration_data_model.md)
+- <a name="Ref_PR-MESS"></a>[PR-MESS] X-Road: Message Protocol v4.0. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md)
+- <a name="Ref_WSDL"></a>[WSDL] Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001.
+- <a name="Ref_DER"></a>[DER] DER encoding. ITU-T X.690. July 2002.
+- <a name="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Format of the Messages
 
-This section describes the input and output parameters of the management services. The low-level technical details of the services are specified using the WSDL [[WSDL]](#wsdl) syntax. See [Annex  B](#annex-b-wsdl-file-for-management-services) for management services WSDL file.
+This section describes the input and output parameters of the management services. The low-level technical details of the services are specified using the WSDL \[[WSDL](#Ref_WSDL)\] syntax. See [Annex  B](#annex-b-wsdl-file-for-management-services) for management services WSDL file.
 
 ### 2.1 *clientReg* - Security Server Client Registration
 
@@ -100,7 +106,7 @@ The body of the client registration message (request or response) contains the f
 
 * **server** – identifier of the security server where the client is added;
 
-* **requestId** – for responses only, unique identifier of the request that is stored in the central server database [[DM-CS]](#dm-cs).
+* **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
 
 The XML Schema fragment of the client registration request body is shown below. For clarity, documentation in the schema fragment is omitted.
 
@@ -128,7 +134,7 @@ The body of the client deletion message (request or response) contains following
 
 * **server** – identifier of the security server where the client is removed;
 
-* **requestId** – for responses only, unique identifier of the request that is stored in the central server database [[DM-CS]](#dm-cs).
+* **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
 
 The XML Schema fragment of the client deletion request body shown below.
 
@@ -156,9 +162,9 @@ The body of the authentication certificate registration message (request or resp
 
 * **address** – DNS address of the security server;
 
-* **authCert** – contents (in DER encoding [[DER]](#der)) of the authentication certificate that will be added to the security server;
+* **authCert** – contents (in DER encoding \[[DER](#Ref_DER)\]) of the authentication certificate that will be added to the security server;
 
-* **requestId** – for responses only, unique identifier of the request that is stored in the central server database [[DM-CS]](#dm-cs).
+* **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
 
 The XML Schema fragment of the authentication certificate registration request body is shown below. For clarity, documentation in the schema fragment is omitted.
 
@@ -205,7 +211,7 @@ The *authCertDeletion* service is invoked by the security server when an authent
 
 * **authCert** – contents (in DER encoding) of the authentication certificate that is removed from the security server;
 
-* **requestId** – for responses only, unique identifier of the request that is stored in the central server database [[DM-CS]](#dm-cs).
+* **requestId** – for responses only, unique identifier of the request that is stored in the central server database \[[DM-CS](#Ref_DM-CS)\].
 
 The XML Schema fragment of the authentication certificate deletion request body is shown below.
 

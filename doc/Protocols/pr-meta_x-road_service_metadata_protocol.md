@@ -6,8 +6,8 @@
 # X-Road: Service Metadata Protocol
 **Technical Specification**
 
-Version: 2.3  
-04.01.2018  
+Version: 2.5 
+06.03.2018  
 Doc. ID: PR-META  
 
 ---
@@ -26,6 +26,7 @@ Doc. ID: PR-META
  02.01.2018 | 2.2     | Update getWsdl metaservice description                          | Ilkka Seppälä
  04.01.2018 | 2.3     | Updated descriptions and subsystem requirements for meta-services | Tatu Repo
  30.01.2018 | 2.4     | Updated metaservices wsdl                                       | Jarkko Hyöty
+ 06.03.2018 | 2.5     | Added terms section, terms doc reference and link                              | Tatu Repo
 
 ## Table of Contents
 
@@ -33,7 +34,8 @@ Doc. ID: PR-META
 
 - [License](#license)
 - [1 Introduction](#1-introduction)
-  * [1.1 References](#11-references)
+  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  * [1.2 References](#12-references)
 - [2 Retrieving List of Service Providers](#2-retrieving-list-of-service-providers)
 - [3 Retrieving List of Central Services](#3-retrieving-list-of-central-services)
 - [4 Retrieving List of Services](#4-retrieving-list-of-services)
@@ -65,7 +67,11 @@ This specification does not include option for partially implementing the protoc
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document (in uppercase, as shown) are to be interpreted as described in \[[RFC2119](#Ref_RFC2119)\].
 
-## 1.1 References
+### 1.1 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
+
+### 1.2 References
 
 1. <a name="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Message Protocol v4.0,
 [pr-mess_x-road_message_protocol.md](pr-mess_x-road_message_protocol.md)
@@ -73,6 +79,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 [https://www.ietf.org/rfc/rfc2119.txt](https://www.ietf.org/rfc/rfc2119.txt)
 3. <a name="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide,
 [ug-syspar_x-road_v6_system_parameters.md](../Manuals/ug-syspar_x-road_v6_system_parameters.md)
+4. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Retrieving List of Service Providers
 

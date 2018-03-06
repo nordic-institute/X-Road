@@ -5,8 +5,8 @@
 # X-Road: Use Case Model for Service Management
 **Analysis**
 
-Version: 1.7
-29.08.2017
+Version: 1.8
+06.03.2018
 <!-- 45 pages -->
   
 Doc.ID: UC-SERVICE
@@ -32,6 +32,7 @@ Date       | Version | Description                                              
 23.12.2015 |  1.5    |   XTE-117 – WSDL validator (UC SERVICE\_08, UC SERVICE\_09, UC SERVICE\_14 updated; UC SERVICE\_44 added) | Meril Vaht
 29.12.2015 |  1.6    |   Editorial changes made | Meril Vaht
 29.08.2017 |  1.7    |  Changed documentation type from docx to md file |   Lasse Matikainen
+06.03.2018 |  1.8    |  Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
 
 <!-- toc -->
 
@@ -133,30 +134,23 @@ access rights required to carry out the use case.
 
 ### 1.2 Terms and Abbreviations
 
-The definitions for general X-Road terms can be found at
-<https://confluence.ria.ee/display/XROADDOCS/Terms%2C+definitions+and+abbrevations>.
-
-This section defines the terms that are not defined in the
-aforementioned document or that have contextual meaning specific to this
-document in addition to the general definition.
-
-**Service client** is an X-Road member, subsystem, local access rights
-group or global access rights group that has access rights to one or
-more services of a security server client.
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
 1\. <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation
-Guide. Document ID: IG-CS.
+Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
 2\. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server
-Installation Guide. Document ID: IG-SS.
+Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
 
 3\. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
 Audit Log Events. Document ID: SPEC-AL.
 
 4\. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road:
-System Parameters. Document ID: UG-SYSPAR.
+System Parameters. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
+
+5\. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2 Overview
 

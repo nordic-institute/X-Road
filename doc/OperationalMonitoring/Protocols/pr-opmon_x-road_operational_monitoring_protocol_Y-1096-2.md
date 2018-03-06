@@ -6,20 +6,22 @@
 
 **Technical Specification**
 
-Version: 0.3  
+Version: 0.4  
 Doc. ID: PR-OPMON
 
 | Date       | Version     | Description                                                                  | Author             |
 |------------|-------------|------------------------------------------------------------------------------|--------------------|
 |  | 0.2       | Initial version               |          |
 | 23.01.2017 | 0.3       | Added license text, table of contents and version history | Sami Kallio |
+| 05.03.2018 | 0.4       | Added terms and abbreviations reference
 
 ## Table of Contents
 
 <!-- toc -->
 
 - [1 Introduction](#1-introduction)
-    + [1.1 References](#11-references)
+    + [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+    + [1.2 References](#12-references)
 - [2 Retrieving Operational Data of Security Server](#2-retrieving-operational-data-of-security-server)
 - [3 Retrieving Health Data of Security Server](#3-retrieving-health-data-of-security-server)
 - [Annex A WSDL for Operational Monitoring Messages](#annex-a-wsdl-for-operational-monitoring-messages)
@@ -57,13 +59,18 @@ This specification does not include option for partially implementing the protoc
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document (in uppercase, as shown) are to be interpreted as described in [[RFC2119]](#RFC2119).
 
-### 1.1 References
+### 1.1 Terms and abbreviations
+
+See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
+
+### 1.2 References
 
 <a name="PR-MESS"></a>**PR-MESS** -- Cybernetica AS. X-Road: Message Transport Protocol v4.0. Document ID: [PR-MESS](../../Protocols/pr-mess_x-road_message_protocol_v4.0_4.0.17.md).  
 <a name="WSDL"></a>**WSDL** -- Web Services Description Language (WSDL) 1.1. World Wide Web Consortium. 15 March 2001, https://www.w3.org/TR/2001/NOTE-wsdl-20010315  
 <a name="SWAREF"></a>**SWAREF** -- Attachments Profile Version 1.0, http://www.ws-i.org/Profiles/AttachmentsProfile-1.0-2004-08-24.html  
 <a name="RFC1952"></a>**RFC1952** -- GZIP file format specification version 4.3, https://tools.ietf.org/html/rfc1952  
-<a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt
+<a name="RFC2119"></a>**RFC2119** -- Key words for use in RFCs to Indicate Requirement Levels. Request for Comments 2119, Internet Engineering Task Force, March 1997, https://www.ietf.org/rfc/rfc2119.txt  
+<a name="Ref_TERMS" class="anchor"></a>**TA-TERMS** -- X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 # 2 Retrieving Operational Data of Security Server
 
