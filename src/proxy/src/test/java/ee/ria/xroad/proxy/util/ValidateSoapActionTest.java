@@ -23,6 +23,7 @@
 package ee.ria.xroad.proxy.util;
 
 import ee.ria.xroad.common.CodedException;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;

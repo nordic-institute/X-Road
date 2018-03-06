@@ -22,15 +22,13 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import static ee.ria.xroad.common.DefaultFilepaths.createTempFile;
-import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchivePath;
-import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardOpenOption.CREATE;
-import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
-import static java.nio.file.StandardOpenOption.WRITE;
-import static org.apache.commons.io.FileUtils.deleteQuietly;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
+import ee.ria.xroad.common.messagelog.LogRecord;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.io.Closeable;
 import java.io.File;
@@ -45,13 +43,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
-
-import ee.ria.xroad.common.messagelog.LogRecord;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import lombok.extern.slf4j.Slf4j;
+import static ee.ria.xroad.common.DefaultFilepaths.createTempFile;
+import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchivePath;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
+import static org.apache.commons.io.FileUtils.deleteQuietly;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 /**
  * Class for writing log records to zip file containing ASiC containers

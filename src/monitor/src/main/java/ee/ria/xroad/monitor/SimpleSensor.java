@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.monitor;
 
-import java.io.Serializable;
-
 import com.codahale.metrics.Gauge;
+
+import java.io.Serializable;
 
 /**
  * Simple {@link Gauge} implementation

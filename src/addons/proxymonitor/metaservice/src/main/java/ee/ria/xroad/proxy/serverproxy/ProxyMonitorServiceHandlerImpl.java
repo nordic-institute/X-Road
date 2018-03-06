@@ -41,6 +41,7 @@ import ee.ria.xroad.proxymonitor.message.MetricSetType;
 import ee.ria.xroad.proxymonitor.message.ObjectFactory;
 import ee.ria.xroad.proxymonitor.message.StringMetricType;
 import ee.ria.xroad.proxymonitor.util.MonitorClient;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
 import org.w3c.dom.Document;
@@ -53,6 +54,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;

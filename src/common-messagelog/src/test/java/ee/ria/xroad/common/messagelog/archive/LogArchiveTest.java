@@ -22,23 +22,23 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
-import java.nio.file.Paths;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.nio.file.Paths;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises entire logic of archiving log entries. Actually depends on

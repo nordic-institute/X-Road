@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
-
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_INCONSISTENT_HEADERS;
 
 /**
  * Client sends message with invalid SOAP body (service name is

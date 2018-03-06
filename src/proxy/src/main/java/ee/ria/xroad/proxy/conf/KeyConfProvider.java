@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import java.security.cert.X509Certificate;
-import java.util.List;
+import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.identifier.ClientId;
 
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import ee.ria.xroad.common.conf.globalconf.AuthKey;
-import ee.ria.xroad.common.identifier.ClientId;
+import java.security.cert.X509Certificate;
+import java.util.List;
 
 /**
  * Declares methods for accessing key configuration.

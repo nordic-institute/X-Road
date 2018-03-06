@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import java.io.IOException;
-import java.nio.channels.SocketChannel;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.io.IOException;
+import java.nio.channels.SocketChannel;
 
 @Getter(AccessLevel.PACKAGE)
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)

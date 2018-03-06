@@ -22,17 +22,18 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
-import java.net.Socket;
-import java.security.Principal;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import ee.ria.xroad.common.conf.InternalSSLKey;
+import ee.ria.xroad.common.conf.serverconf.ServerConf;
+
+import lombok.extern.slf4j.Slf4j;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.X509ExtendedKeyManager;
 
-import ee.ria.xroad.common.conf.InternalSSLKey;
-import ee.ria.xroad.common.conf.serverconf.ServerConf;
-import lombok.extern.slf4j.Slf4j;
+import java.net.Socket;
+import java.security.Principal;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
 @Slf4j
 class ClientSslKeyManager extends X509ExtendedKeyManager {

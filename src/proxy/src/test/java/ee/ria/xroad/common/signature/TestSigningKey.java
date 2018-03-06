@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.common.signature;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.Signature;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.proxy.signedmessage.SigningKey;
 
 import lombok.extern.slf4j.Slf4j;
 
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.proxy.signedmessage.SigningKey;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.Signature;
 
 /**
  * Signing key that is located in PKCS12 key store.

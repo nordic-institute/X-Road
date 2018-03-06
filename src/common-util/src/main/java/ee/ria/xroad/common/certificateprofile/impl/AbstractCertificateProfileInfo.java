@@ -22,16 +22,16 @@
  */
  package ee.ria.xroad.common.certificateprofile.impl;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.apache.commons.lang.StringUtils;
-
 import ee.ria.xroad.common.certificateprofile.CertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.DnFieldDescription;
 import ee.ria.xroad.common.certificateprofile.DnFieldValue;
+
+import org.apache.commons.lang.StringUtils;
+
+import javax.security.auth.x500.X500Principal;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 abstract class AbstractCertificateProfileInfo
         implements CertificateProfileInfo {

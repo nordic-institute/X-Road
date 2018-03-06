@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.common.conf.serverconf.dao;
 
-import java.util.ArrayList;
-import java.util.List;
+import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
 
 import org.hibernate.Hibernate;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service data access object implementation.

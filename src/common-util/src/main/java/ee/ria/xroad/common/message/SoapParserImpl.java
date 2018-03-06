@@ -22,11 +22,15 @@
  */
 package ee.ria.xroad.common.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.util.MimeUtils;
+
+import com.sun.xml.bind.api.AccessorException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
@@ -37,18 +41,22 @@ import javax.xml.soap.SOAPFault;
 import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 
-import com.sun.xml.bind.api.AccessorException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.BOMInputStream;
-import org.apache.commons.lang3.StringUtils;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.util.MimeUtils;
-
-import static ee.ria.xroad.common.ErrorCodes.*;
-import static ee.ria.xroad.common.message.SoapUtils.*;
+import static ee.ria.xroad.common.ErrorCodes.X_DUPLICATE_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_BODY;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_HEADER_FIELD;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
+import static ee.ria.xroad.common.message.SoapUtils.createSOAPMessage;
+import static ee.ria.xroad.common.message.SoapUtils.getServiceName;
+import static ee.ria.xroad.common.message.SoapUtils.isRpcMessage;
+import static ee.ria.xroad.common.message.SoapUtils.validateMimeType;
+import static ee.ria.xroad.common.message.SoapUtils.validateServiceName;
 import static ee.ria.xroad.common.util.MimeUtils.UTF8;
 import static ee.ria.xroad.common.util.MimeUtils.hasUtf8Charset;
 

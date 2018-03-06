@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
 import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 import ee.ria.xroad.signer.util.SignerUtil;
+
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 
 /**
  * Hardware token type, holding the actual pkcs11 token.

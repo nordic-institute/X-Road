@@ -22,20 +22,20 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
+import ee.ria.xroad.common.CodedException;
+
+import lombok.Data;
+import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.http.HttpFields;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODING;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TYPE;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_HASH_ALGORITHM_ID;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_SIG_ALGO_ID;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.http.HttpFields;
-
-import ee.ria.xroad.common.CodedException;
-import lombok.Data;
 
 final class ConfigurationSignature extends AbstractConfigurationPart {
 

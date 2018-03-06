@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 /**
  * Encapsulates necessary information about a simple request.

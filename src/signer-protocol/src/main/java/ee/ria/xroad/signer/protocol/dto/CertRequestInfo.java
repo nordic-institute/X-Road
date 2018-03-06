@@ -22,10 +22,11 @@
  */
 package ee.ria.xroad.signer.protocol.dto;
 
-import java.io.Serializable;
-
 import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.Value;
+
+import java.io.Serializable;
 
 /**
  * Certificate request info DTO.

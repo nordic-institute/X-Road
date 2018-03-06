@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import java.util.Date;
-
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.JobManager;
+
+import java.util.Date;
 
 /**
  * A dummy implementation of message log that does nothing.

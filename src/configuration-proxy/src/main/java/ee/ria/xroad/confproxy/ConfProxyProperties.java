@@ -22,6 +22,16 @@
  */
 package ee.ria.xroad.confproxy;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.AtomicSave;
+import ee.ria.xroad.common.util.CryptoUtils;
+
+import lombok.Getter;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,16 +45,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.AtomicSave;
-import ee.ria.xroad.common.util.CryptoUtils;
-import lombok.Getter;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Defines the set of properties for a configuration proxy instance and provides

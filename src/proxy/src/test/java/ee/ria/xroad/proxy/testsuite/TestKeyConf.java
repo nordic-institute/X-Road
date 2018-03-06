@@ -22,18 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
-
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.bouncycastle.cert.ocsp.CertificateStatus;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.joda.time.DateTime;
-
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.OcspTestUtils;
 import ee.ria.xroad.common.TestCertUtil;
@@ -46,7 +34,19 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.proxy.conf.SigningCtx;
 import ee.ria.xroad.proxy.util.TestUtil;
+
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+import org.joda.time.DateTime;
+
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 
 /**
  * Test keyconf implementation.

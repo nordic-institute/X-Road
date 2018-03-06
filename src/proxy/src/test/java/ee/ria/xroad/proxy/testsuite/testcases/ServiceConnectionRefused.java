@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.monitoring.MessageInfo.Origin;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MonitorAgentMessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 
 /**
  * Client sends normal request, SP receives connection refused when

@@ -22,25 +22,28 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingTimeWindowReservoir;
-
 import lombok.extern.slf4j.Slf4j;
 
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
-import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.*;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getLastRequestTimestampGaugeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestCounterName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestDurationName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getRequestSoapSizeName;
+import static ee.ria.xroad.opmonitordaemon.HealthDataMetricsUtil.getResponseSoapSizeName;
 
 /**
  * Health data metrics forwarded over JMX. Also, these metrics are used when

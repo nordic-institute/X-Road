@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import java.util.Set;
-
 import ee.ria.xroad.common.TestCertUtil;
 import ee.ria.xroad.common.TestCertUtil.PKCS12;
 import ee.ria.xroad.common.conf.InternalSSLKey;
@@ -32,6 +30,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+
+import java.util.Set;
 
 /**
  * Test serverconf implementation.

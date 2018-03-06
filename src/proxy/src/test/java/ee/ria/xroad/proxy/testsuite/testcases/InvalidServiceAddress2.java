@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
-
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import static ee.ria.xroad.common.ErrorCodes.SERVER_SERVERPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_SERVICE_FAILED_X;
 
 /**
  * Client sends request with attachments. The SP will connect to to nonexisting

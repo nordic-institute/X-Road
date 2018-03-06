@@ -23,7 +23,6 @@
 package ee.ria.xroad.common.opmonitoring;
 
 import com.google.gson.annotations.SerializedName;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

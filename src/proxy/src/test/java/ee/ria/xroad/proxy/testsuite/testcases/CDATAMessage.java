@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPElement;
-
 import ee.ria.xroad.common.message.SoapHeader;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import javax.xml.namespace.QName;
+import javax.xml.soap.SOAPElement;
 
 /**
  * Client sends and receives a message with a CDATA block.

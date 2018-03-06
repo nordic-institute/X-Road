@@ -22,18 +22,6 @@
  */
 package ee.ria.xroad.common.request;
 
-import java.io.InputStream;
-import java.security.Signature;
-import java.security.cert.X509Certificate;
-import java.util.Map;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.io.IOUtils;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.certificateprofile.impl.SignCertificateProfileInfoParameters;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
@@ -47,7 +35,21 @@ import ee.ria.xroad.common.ocsp.OcspVerifier;
 import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.common.util.MimeUtils;
 
-import static ee.ria.xroad.common.ErrorCodes.*;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.io.InputStream;
+import java.security.Signature;
+import java.security.cert.X509Certificate;
+import java.util.Map;
+
+import static ee.ria.xroad.common.ErrorCodes.X_CERT_VALIDATION;
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
+import static ee.ria.xroad.common.ErrorCodes.X_INVALID_SIGNATURE_VALUE;
+import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 
 /**

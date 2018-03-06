@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite;
 
-import akka.actor.ActorSystem;
-import com.typesafe.config.ConfigFactory;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -36,6 +34,9 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
+
+import akka.actor.ActorSystem;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;

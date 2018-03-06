@@ -22,16 +22,16 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
-import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import org.apache.commons.io.ByteOrderMark;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.commons.io.ByteOrderMark;
-
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import static ee.ria.xroad.common.ErrorCodes.CLIENT_X;
+import static ee.ria.xroad.common.ErrorCodes.X_MISSING_SOAP;
 
 /**
  * Client sends empty multipart request. CP responds with error.

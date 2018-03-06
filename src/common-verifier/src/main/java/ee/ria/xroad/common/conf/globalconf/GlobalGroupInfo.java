@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.identifier.GlobalGroupId;
+
 import lombok.Data;
 
 /**

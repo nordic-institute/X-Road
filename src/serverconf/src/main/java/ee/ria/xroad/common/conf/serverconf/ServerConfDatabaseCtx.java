@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.common.conf.serverconf;
 
-import org.hibernate.Session;
-
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
+
+import org.hibernate.Session;
 
 /**
  * Server conf database context.

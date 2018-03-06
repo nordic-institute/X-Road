@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.common;
 
-import java.io.Serializable;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.io.Serializable;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Holds configuration client status information

@@ -22,13 +22,13 @@
  */
 package ee.ria.xroad.common;
 
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jetty.util.MultiPartOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.jetty.util.MultiPartOutputStream;
 
 
 /**

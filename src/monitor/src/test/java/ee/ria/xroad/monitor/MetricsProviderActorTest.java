@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.monitor;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.monitor.common.SystemMetricsRequest;
+import ee.ria.xroad.monitor.common.SystemMetricsResponse;
+import ee.ria.xroad.monitor.common.dto.HistogramDto;
+import ee.ria.xroad.monitor.common.dto.MetricDto;
+import ee.ria.xroad.monitor.common.dto.MetricSetDto;
+
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.pattern.Patterns;
@@ -31,12 +38,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.typesafe.config.ConfigFactory;
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.monitor.common.SystemMetricsRequest;
-import ee.ria.xroad.monitor.common.SystemMetricsResponse;
-import ee.ria.xroad.monitor.common.dto.HistogramDto;
-import ee.ria.xroad.monitor.common.dto.MetricDto;
-import ee.ria.xroad.monitor.common.dto.MetricSetDto;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;

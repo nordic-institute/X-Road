@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.bind.DatatypeConverter;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
+import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
+import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
 
 import iaik.pkcs.pkcs11.Mechanism;
 import iaik.pkcs.pkcs11.Module;
@@ -41,12 +41,12 @@ import iaik.pkcs.pkcs11.objects.X509PublicKeyCertificate;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Constants;
 import iaik.pkcs.pkcs11.wrapper.PKCS11Exception;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
-import ee.ria.xroad.signer.tokenmanager.module.ModuleInstanceProvider;
-import ee.ria.xroad.signer.tokenmanager.module.PrivKeyAttributes;
-import ee.ria.xroad.signer.tokenmanager.module.PubKeyAttributes;
+import javax.xml.bind.DatatypeConverter;
+
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Utility methods for hardware token.

@@ -22,17 +22,17 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
-import java.util.HashMap;
-import java.util.Map;
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.message.RepresentedParty;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.message.RepresentedParty;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The constants and operations used for representing and processing

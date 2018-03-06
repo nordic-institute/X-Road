@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.common.request;
 
-import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
-import static junit.framework.Assert.assertEquals;
+import ee.ria.xroad.common.message.SoapMessageImpl;
 
 import org.junit.Test;
 
-import ee.ria.xroad.common.message.SoapMessageImpl;
+import static ee.ria.xroad.common.message.SoapMessageTestUtil.createResponse;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Testing static methods of ManagementRequestSender

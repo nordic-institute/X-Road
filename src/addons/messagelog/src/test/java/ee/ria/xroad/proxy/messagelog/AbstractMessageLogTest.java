@@ -22,6 +22,14 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.message.SoapMessageImpl;
+import ee.ria.xroad.common.messagelog.AbstractLogManager;
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.JobManager;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.DeadLetter;
@@ -31,13 +39,6 @@ import akka.testkit.TestActorRef;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
-import ee.ria.xroad.common.message.SoapMessageImpl;
-import ee.ria.xroad.common.messagelog.AbstractLogManager;
-import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
-import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.JobManager;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;

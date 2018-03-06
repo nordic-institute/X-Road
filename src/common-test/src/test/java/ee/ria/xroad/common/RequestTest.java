@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.common;
 
-import static org.junit.Assert.assertEquals;
+import ee.ria.xroad.common.Request.RequestTag;
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-
-import ee.ria.xroad.common.Request.RequestTag;
-import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.identifier.ServiceId;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests to verify test requests are created as expected.

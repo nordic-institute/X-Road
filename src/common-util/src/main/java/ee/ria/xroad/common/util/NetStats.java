@@ -22,9 +22,8 @@
  */
 package ee.ria.xroad.common.util;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import lombok.Value;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * Encapsulates network statistics such as number bytes received and transmitted.

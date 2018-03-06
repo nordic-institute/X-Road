@@ -22,9 +22,9 @@
  */
 package ee.ria.xroad.signer.protocol.message;
 
-import java.io.Serializable;
-
 import lombok.Value;
+
+import java.io.Serializable;
 
 /**
  * Signer API message.

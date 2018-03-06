@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.monitor.executablelister;
 
-import java.io.IOException;
-import java.util.List;
+import ee.ria.xroad.monitor.JmxStringifiedData;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
-
-import ee.ria.xroad.monitor.JmxStringifiedData;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by janne on 5.11.2015.

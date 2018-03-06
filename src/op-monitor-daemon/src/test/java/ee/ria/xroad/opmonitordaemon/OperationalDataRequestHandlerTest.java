@@ -22,18 +22,17 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import java.util.Collections;
-
-import com.google.common.collect.Sets;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.TimeUtils;
 import ee.ria.xroad.opmonitordaemon.message.GetSecurityServerOperationalDataResponseType;
+
+import com.google.common.collect.Sets;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertNotNull;
 

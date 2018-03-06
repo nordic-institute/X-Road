@@ -23,6 +23,7 @@
  package ee.ria.xroad.common.certificateprofile;
 
 import ee.ria.xroad.common.CodedException;
+
 import lombok.RequiredArgsConstructor;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;

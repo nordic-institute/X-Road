@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
-import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.proxy.testsuite.Message;
+import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.proxy.testsuite.Message;
-import ee.ria.xroad.proxy.testsuite.MessageTestCase;
+import static ee.ria.xroad.common.ErrorCodes.SERVER_CLIENTPROXY_X;
+import static ee.ria.xroad.common.ErrorCodes.X_NETWORK_ERROR;
 
 /**
  * Client sends normal message, SP aborts connection.

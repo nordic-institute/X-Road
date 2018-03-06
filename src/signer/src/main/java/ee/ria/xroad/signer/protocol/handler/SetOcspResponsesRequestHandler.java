@@ -22,10 +22,10 @@
  */
 package ee.ria.xroad.signer.protocol.handler;
 
-import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
-
 import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
 import ee.ria.xroad.signer.protocol.message.SetOcspResponses;
+
+import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
 
 /**
  * Handles requests for setting the OCSP responses for certificates.

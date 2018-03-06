@@ -24,6 +24,7 @@ package ee.ria.xroad.common.identifier;
 
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.message.JaxbUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;

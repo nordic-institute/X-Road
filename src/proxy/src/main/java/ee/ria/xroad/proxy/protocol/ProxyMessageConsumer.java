@@ -22,14 +22,14 @@
  */
 package ee.ria.xroad.proxy.protocol;
 
-import java.io.InputStream;
-import java.util.Map;
-
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.message.SoapFault;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
+
+import org.bouncycastle.cert.ocsp.OCSPResp;
+
+import java.io.InputStream;
+import java.util.Map;
 
 /**
  * Describes the proxy message parts that are sent between client

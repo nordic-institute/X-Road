@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.util.Random;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Writes big attachment type test request content.

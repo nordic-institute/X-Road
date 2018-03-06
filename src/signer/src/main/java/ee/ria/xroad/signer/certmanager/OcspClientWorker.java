@@ -22,22 +22,6 @@
  */
 package ee.ria.xroad.signer.certmanager;
 
-import java.io.IOException;
-import java.net.ConnectException;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
-import java.time.LocalTime;
-import java.util.*;
-import java.util.Map.Entry;
-
-import akka.actor.ActorRef;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
-import org.bouncycastle.cert.ocsp.OCSPException;
-import org.bouncycastle.cert.ocsp.OCSPResp;
-
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
@@ -57,11 +41,33 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.AbstractSignerActor;
 import ee.ria.xroad.signer.util.SignerUtil;
 
-import static java.util.Collections.emptyList;
+import akka.actor.ActorRef;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.OCSPException;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import static ee.ria.xroad.common.util.CryptoUtils.*;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
+import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
+import static java.util.Collections.emptyList;
 
 
 /**

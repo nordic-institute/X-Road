@@ -22,11 +22,11 @@
  */
 package ee.ria.xroad.common.util;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
-
-import lombok.Getter;
 
 /**
  * Implements token pin complexity requirements policy.

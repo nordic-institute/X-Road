@@ -22,8 +22,6 @@
  */
 package ee.ria.xroad.proxy.testsuite.testcases;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
@@ -38,6 +36,9 @@ import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.testsuite.Message;
 import ee.ria.xroad.proxy.testsuite.SslMessageTestCase;
 import ee.ria.xroad.proxy.testsuite.TestServerConf;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.stream.BodyDescriptor;
@@ -47,6 +48,7 @@ import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;

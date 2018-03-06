@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.commonui.jaas;
 
-import java.security.Principal;
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.security.Principal;
+import java.util.Set;
 
 /**
  * JAAS principal.

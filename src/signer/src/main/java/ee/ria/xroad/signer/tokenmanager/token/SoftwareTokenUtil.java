@@ -22,6 +22,13 @@
  */
 package ee.ria.xroad.signer.tokenmanager.token;
 
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.CryptoUtils;
+import ee.ria.xroad.common.util.ResourceUtils;
+import ee.ria.xroad.signer.util.SignerUtil;
+
+import org.bouncycastle.operator.ContentSigner;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.security.KeyPair;
@@ -34,13 +41,6 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
-import org.bouncycastle.operator.ContentSigner;
-
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.ResourceUtils;
-import ee.ria.xroad.signer.util.SignerUtil;
 
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 

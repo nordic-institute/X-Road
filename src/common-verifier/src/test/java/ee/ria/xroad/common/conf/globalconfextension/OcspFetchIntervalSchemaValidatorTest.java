@@ -23,6 +23,7 @@
 package ee.ria.xroad.common.conf.globalconfextension;
 
 import ee.ria.xroad.common.util.ResourceUtils;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;

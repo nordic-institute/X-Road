@@ -22,19 +22,19 @@
  */
 package ee.ria.xroad.common.util;
 
+import ee.ria.xroad.common.CodedException;
+import ee.ria.xroad.common.message.SoapFault;
+
+import org.eclipse.jetty.server.handler.AbstractHandler;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.eclipse.jetty.server.handler.AbstractHandler;
-
-import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.message.SoapFault;
 
 /**
  * Convenience base class for proxy HTTP handlers.

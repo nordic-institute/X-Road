@@ -124,14 +124,15 @@
         <module name="TodoComment"/>
         <module name="UpperEll"/>
         <module name="AvoidStarImport">
-            <property name="severity" value="warning"/>
+            <property name="severity" value="error"/>
         </module>
         <module name="ImportOrder">
-            <property name="severity" value="info"/>
+            <property name="severity" value="error"/>
             <property name="groups" value="ee.ria.xroad,*,javax,java"/>
             <property name="ordered" value="true"/>
             <property name="separated" value="true"/>
             <property name="option" value="bottom" />
+            <property name="sortStaticImportsAlphabetically" value="true"/>
         </module>
         <module name="Indentation">
             <property name="severity" value="info"/>

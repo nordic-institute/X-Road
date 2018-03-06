@@ -22,12 +22,12 @@
  */
 package ee.ria.xroad.proxy.antidos;
 
-import java.io.IOException;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+
+import java.io.IOException;
 
 @RequiredArgsConstructor
 @EqualsAndHashCode

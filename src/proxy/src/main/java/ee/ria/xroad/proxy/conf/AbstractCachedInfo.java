@@ -22,11 +22,10 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import java.util.Date;
-
+import lombok.Getter;
 import org.joda.time.DateTime;
 
-import lombok.Getter;
+import java.util.Date;
 
 abstract class AbstractCachedInfo {
 

@@ -23,7 +23,6 @@
 package ee.ria.xroad.signer.tokenmanager.module;
 
 import akka.actor.Props;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**

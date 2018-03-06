@@ -22,14 +22,15 @@
  */
 package ee.ria.xroad.signer.tokenmanager.module;
 
-import java.util.Collections;
-import java.util.List;
-
-import akka.actor.Props;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareToken;
 import ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenType;
 import ee.ria.xroad.signer.tokenmanager.token.TokenType;
+
+import akka.actor.Props;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Worker for software module. Always lists only one software token.

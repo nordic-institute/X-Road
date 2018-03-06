@@ -22,7 +22,10 @@
  */
 package ee.ria.xroad.monitor;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 /**
  * Created by janne on 11.5.2017.
